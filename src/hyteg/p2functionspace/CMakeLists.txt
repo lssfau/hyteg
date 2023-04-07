@@ -26,5 +26,7 @@ target_sources( hyteg
     P2FunctionApplyOperator.hpp
 )
 add_subdirectory( variablestencil )
-add_subdirectory( generatedKernels )
 add_subdirectory( polynomial )
+if (HYTEG_USE_GENERATED_KERNELS)
+   add_subdirectory(generatedKernels)
+endif ()

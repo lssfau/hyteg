@@ -44,7 +44,7 @@ int main( int argc, char* argv[] )
 
    const uint_t level = 3;
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1, 1 ), MeshInfo::CRISS, 1, 1 );
    auto     setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );

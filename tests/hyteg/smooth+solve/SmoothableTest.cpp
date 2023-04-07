@@ -72,8 +72,8 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    bool ssorSmoothable = properties[4];
    bool chebSmoothable = properties[5];
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1., 1. } ), MeshInfo::CRISSCROSS, 2, 2 );
-   // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( {-1, -1, 0} ), Point3D( {1, 1, 2} ), 2, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1., 1.  ), MeshInfo::CRISSCROSS, 2, 2 );
+   // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( -1, -1, 0 ), Point3D( 1, 1, 2 ), 2, 2, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage  = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -125,6 +125,8 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    WALBERLA_CHECK( hasProperty == sorSmoothable );
    WALBERLA_LOG_INFO_ON_ROOT( "* SOR smoothable ...................... " << ( hasProperty ? "yes" : "no" ) );
 
+if (std::is_same<real_t,double>()){
+      //There is no backwards Gauss-Seidel for single precision (only a generated version for double)
    hasProperty = !smootherThrowsException( sgsSmoother, *oper, src, dst, minLevel );
    WALBERLA_CHECK( hasProperty == sgsSmoothable );
    WALBERLA_LOG_INFO_ON_ROOT( "* symmetric Gauss-Seidel smoothable ... " << ( hasProperty ? "yes" : "no" ) );
@@ -132,6 +134,7 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    hasProperty = !smootherThrowsException( ssorSmoother, *oper, src, dst, minLevel );
    WALBERLA_CHECK( hasProperty == ssorSmoothable );
    WALBERLA_LOG_INFO_ON_ROOT( "* symmetric SOR smoothable ............ " << ( hasProperty ? "yes" : "no" ) );
+}
 
    hasProperty = !smootherThrowsException( chebSmoother, *oper, src, dst, minLevel );
    WALBERLA_CHECK( hasProperty == chebSmoothable );

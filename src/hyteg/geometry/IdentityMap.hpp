@@ -21,6 +21,8 @@
 
 #include "GeometryMap.hpp"
 
+using walberla::real_c;
+
 namespace hyteg {
 
 class IdentityMap : public GeometryMap
@@ -34,35 +36,35 @@ class IdentityMap : public GeometryMap
 
    void evalDF( const Point3D&, Matrix2r& DFx ) const override final
    {
-      DFx( 0, 0 ) = 1.0;
-      DFx( 0, 1 ) = 0.0;
-      DFx( 1, 0 ) = 0.0;
-      DFx( 1, 1 ) = 1.0;
+      DFx( 0, 0 ) = real_c( 1.0 );
+      DFx( 0, 1 ) = real_c( 0.0 );
+      DFx( 1, 0 ) = real_c( 0.0 );
+      DFx( 1, 1 ) = real_c( 1.0 );
    }
 
    real_t evalDF( const Point3D&, Matrix3r& DFx ) const override final
    {
-      DFx( 0, 0 ) = 1.0;
-      DFx( 0, 1 ) = 0.0;
-      DFx( 0, 2 ) = 0.0;
+      DFx( 0, 0 ) = real_c( 1.0 );
+      DFx( 0, 1 ) = real_c( 0.0 );
+      DFx( 0, 2 ) = real_c( 0.0 );
 
-      DFx( 1, 0 ) = 0.0;
-      DFx( 1, 1 ) = 1.0;
-      DFx( 1, 2 ) = 0.0;
+      DFx( 1, 0 ) = real_c( 0.0 );
+      DFx( 1, 1 ) = real_c( 1.0 );
+      DFx( 1, 2 ) = real_c( 0.0 );
 
-      DFx( 2, 0 ) = 0.0;
-      DFx( 2, 1 ) = 0.0;
-      DFx( 2, 2 ) = 1.0;
+      DFx( 2, 0 ) = real_c( 0.0 );
+      DFx( 2, 1 ) = real_c( 0.0 );
+      DFx( 2, 2 ) = real_c( 1.0 );
 
-      return 1.0;
+      return real_c( 1.0 );
    }
 
    void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const override final
    {
-      DFinvx( 0, 0 ) = 1.0;
-      DFinvx( 0, 1 ) = 0.0;
-      DFinvx( 1, 0 ) = 0.0;
-      DFinvx( 1, 1 ) = 1.0;
+      DFinvx( 0, 0 ) = real_c( 1.0 );
+      DFinvx( 0, 1 ) = real_c( 0.0 );
+      DFinvx( 1, 0 ) = real_c( 0.0 );
+      DFinvx( 1, 1 ) = real_c( 1.0 );
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::IDENTITY; }

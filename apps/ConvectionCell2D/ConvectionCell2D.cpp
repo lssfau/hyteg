@@ -86,7 +86,7 @@ int main( int argc, char* argv[] )
 
    //////////////////////////////////////////
 
-   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 2, 2 );
+   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  1, 1  ), MeshInfo::CRISS, 2, 2 );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );

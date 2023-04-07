@@ -36,8 +36,8 @@ class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFu
    : projectMeanAfterRestriction_( projectMeanAfterRestriction )
    {}
 
-   typedef P1toP1LinearRestriction VelocityRestriction_T;
-   typedef P1toP1LinearRestriction PressureRestriction_T;
+   typedef P1toP1LinearRestriction<> VelocityRestriction_T;
+   typedef P1toP1LinearRestriction<> PressureRestriction_T;
 
    void restrict( const P1StokesFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
@@ -54,7 +54,7 @@ class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFu
    }
 
  private:
-   P1toP1LinearRestriction restrictionOperator_;
+   P1toP1LinearRestriction<> restrictionOperator_;
 
    bool projectMeanAfterRestriction_;
 };

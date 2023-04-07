@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void gaussseidel_3D_macrocell_P1_level_any(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellRhs, int level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil)
+static void gaussseidel_3D_macrocell_P1_level_any(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellRhs, int level, std::map< hyteg::indexing::Index, double > p1CellStencil)
 {
    const double xi_1 = p1CellStencil[{ 0, 0, 0 }];
    const double xi_17 = 1 / (xi_1);
@@ -76,7 +76,7 @@ static void gaussseidel_3D_macrocell_P1_level_any(double * RESTRICT _data_p1Cell
 }
 
 
-void gaussseidel_3D_macrocell_P1(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellRhs, int level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil)
+void gaussseidel_3D_macrocell_P1(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellRhs, int level, std::map< hyteg::indexing::Index, double > p1CellStencil)
 {
     switch( level )
     {

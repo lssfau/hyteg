@@ -103,7 +103,7 @@ std::vector< Point3D > genSamplePointsForFace( const Face& face, uint_t numSampl
    mat( 0, 1 ) = face.getCoordinates()[2][0] - face.getCoordinates()[0][0];
    mat( 1, 0 ) = face.getCoordinates()[1][1] - face.getCoordinates()[0][1];
    mat( 1, 1 ) = face.getCoordinates()[2][1] - face.getCoordinates()[0][1];
-   Point2D     shift( { face.getCoordinates()[0][0], face.getCoordinates()[0][1] } );
+   Point2D     shift(  face.getCoordinates()[0][0], face.getCoordinates()[0][1]  );
    AffineMap2D affineMap( mat, shift );
 
    for ( auto& sample : samples )
@@ -174,7 +174,16 @@ void testWith2DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      real_t tolerance = real_c( 5e-15 );
+      real_t tolerance = real_c( -1 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 5e-15 );
+      }
+      else
+      {
+         tolerance = real_c( 5e-7 );
+      }
+
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
@@ -221,7 +230,16 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
       }
 
       // now the actual testing
-      real_t tolerance = real_c( 5e-15 );
+      real_t tolerance = real_c( -1 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 5e-15 );
+      }
+      else
+      {
+         tolerance = real_c( 7e-7 );
+      }
+
       for ( uint_t idx = 0; idx < numSamples; ++idx )
       {
          // check that we can find the correct face for points on the computational domain
@@ -230,9 +248,10 @@ void testWith3DMesh( std::shared_ptr< PrimitiveStorage > storage )
          WALBERLA_CHECK_EQUAL( cellID1, cell.getID() );
 
          // now try to map points back to computational domain without specifing face info
-         auto [found2, cellID2, backMapped] = mapFromPhysicalToComputationalDomain3D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
+         auto [found2, cellID2, backMapped] =
+             mapFromPhysicalToComputationalDomain3D( storage, ptsOnPhysDomain[idx], real_c( -1 ) );
          WALBERLA_CHECK( found2 );
-         real_t reconstructionError{ (backMapped - ptsOnCompDomain[idx]).norm() };
+         real_t reconstructionError{ ( backMapped - ptsOnCompDomain[idx] ).norm() };
          // WALBERLA_LOG_INFO_ON_ROOT( " idx = " << idx << std::scientific << ", error = " << reconstructionError );
          WALBERLA_CHECK_EQUAL( cellID2, cell.getID() );
          WALBERLA_CHECK_LESS_EQUAL( reconstructionError, tolerance );

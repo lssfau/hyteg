@@ -111,14 +111,6 @@ class p1_epsilonvar_0_0_affine_q2 : public P1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
    void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
@@ -202,14 +194,6 @@ class p1_epsilonvar_0_1_affine_q2 : public P1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
    void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
@@ -272,14 +256,6 @@ class p1_epsilonvar_0_2_affine_q2 : public P1FormHyTeG
    ///                                               95     137       1       0      1             69                 4
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 
@@ -361,14 +337,6 @@ class p1_epsilonvar_1_0_affine_q2 : public P1FormHyTeG
    ///                                               95     137       1       0      1             69                 4
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 
@@ -453,14 +421,6 @@ class p1_epsilonvar_1_1_affine_q2 : public P1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
    void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
@@ -524,14 +484,6 @@ class p1_epsilonvar_1_2_affine_q2 : public P1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
    void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
@@ -592,14 +544,6 @@ class p1_epsilonvar_2_0_affine_q2 : public P1FormHyTeG
    ///                                               95     137       1       0      1             69                 4
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 
@@ -662,14 +606,6 @@ class p1_epsilonvar_2_1_affine_q2 : public P1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
    void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
@@ -730,14 +666,6 @@ class p1_epsilonvar_2_2_affine_q2 : public P1FormHyTeG
    ///                                              136     209       1       0      1             94                 4
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 

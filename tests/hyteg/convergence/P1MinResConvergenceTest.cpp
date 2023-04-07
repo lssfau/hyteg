@@ -65,12 +65,13 @@ int main( int argc, char* argv[] )
    u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, maxLevel );
 
-   auto prec   = std::make_shared< hyteg::JacobiPreconditioner< hyteg::P1ConstantLaplaceOperator >>( storage, minLevel, maxLevel, 10 );
-   auto solver = hyteg::MinResSolver< hyteg::P1ConstantLaplaceOperator >(
-       storage, minLevel, maxLevel,maxiter,1e-8, prec );
+   auto prec =
+       std::make_shared< hyteg::JacobiPreconditioner< hyteg::P1ConstantLaplaceOperator > >( storage, minLevel, maxLevel, 10 );
+   auto solver =
+       hyteg::MinResSolver< hyteg::P1ConstantLaplaceOperator >( storage, minLevel, maxLevel, maxiter, real_c( 1e-8 ), prec );
    solver.solve( L, u, f, maxLevel );
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
@@ -79,7 +80,8 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << std::scientific << discr_l2_err );
 
-   WALBERLA_CHECK_LESS( discr_l2_err, 6e-09 )
+   bool dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( discr_l2_err, dp ? 6e-09 : 4e-7 )
 
    //hyteg::VTKWriter<hyteg::P1Function< real_t >>({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
    return EXIT_SUCCESS;

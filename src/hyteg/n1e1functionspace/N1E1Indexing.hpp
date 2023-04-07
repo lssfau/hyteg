@@ -24,9 +24,9 @@
 
 #include "core/Abort.h"
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
 namespace n1e1 {

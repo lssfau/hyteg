@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.6
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -78,11 +74,11 @@ class p2_full_stokescc_0_0_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             2751    3659       2       0      1           1644                 0
+   ///                                             2284    3062       2       0      1           1418                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -90,21 +86,13 @@ class p2_full_stokescc_0_0_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              660     838       1       0      1            497                 0
+   ///                                              556     709       1       0      1            427                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -150,11 +138,11 @@ class p2_full_stokescc_0_1_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1401    2308       2       0      1            847                 0
+   ///                                             1154    1935       2       0      1            756                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -162,21 +150,13 @@ class p2_full_stokescc_0_1_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              375     513       1       0      1            289                 0
+   ///                                              317     437       1       0      1            253                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -204,11 +184,11 @@ class p2_full_stokescc_0_2_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1401    2308       2       0      1            847                 0
+   ///                                             1154    1935       2       0      1            756                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -216,21 +196,13 @@ class p2_full_stokescc_0_2_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              375     513       1       0      1            289                 0
+   ///                                              317     437       1       0      1            253                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -276,11 +248,11 @@ class p2_full_stokescc_1_0_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1401    2308       2       0      1            847                 0
+   ///                                             1154    1935       2       0      1            756                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -288,21 +260,13 @@ class p2_full_stokescc_1_0_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              375     513       1       0      1            289                 0
+   ///                                              317     437       1       0      1            253                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -348,11 +312,11 @@ class p2_full_stokescc_1_1_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             2751    3659       2       0      1           1644                 0
+   ///                                             2284    3062       2       0      1           1418                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -360,21 +324,13 @@ class p2_full_stokescc_1_1_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              660     838       1       0      1            497                 0
+   ///                                              556     709       1       0      1            427                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -402,11 +358,11 @@ class p2_full_stokescc_1_2_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1401    2308       2       0      1            847                 0
+   ///                                             1154    1935       2       0      1            756                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -414,21 +370,13 @@ class p2_full_stokescc_1_2_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              375     513       1       0      1            289                 0
+   ///                                              317     437       1       0      1            253                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -456,11 +404,11 @@ class p2_full_stokescc_2_0_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1401    2308       2       0      1            847                 0
+   ///                                             1154    1935       2       0      1            756                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -468,21 +416,13 @@ class p2_full_stokescc_2_0_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              375     513       1       0      1            289                 0
+   ///                                              317     437       1       0      1            253                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -510,11 +450,11 @@ class p2_full_stokescc_2_1_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1401    2308       2       0      1            847                 0
+   ///                                             1154    1935       2       0      1            756                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -522,21 +462,13 @@ class p2_full_stokescc_2_1_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              375     513       1       0      1            289                 0
+   ///                                              317     437       1       0      1            253                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -564,11 +496,11 @@ class p2_full_stokescc_2_2_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             2751    3659       2       0      1           1644                 0
+   ///                                             2284    3062       2       0      1           1418                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -576,21 +508,13 @@ class p2_full_stokescc_2_2_affine_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              660     838       1       0      1            497                 0
+   ///                                              556     709       1       0      1            427                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 

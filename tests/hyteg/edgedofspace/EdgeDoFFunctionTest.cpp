@@ -29,7 +29,6 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -79,13 +78,13 @@ static void testEdgeDoFFunction()
 
    for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
    }
 
    // Assign
@@ -99,9 +98,9 @@ static void testEdgeDoFFunction()
 
    for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )], real_c( 10 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )], real_c( 10 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )], real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 10 ) );
    }
 
    // Add
@@ -115,9 +114,9 @@ static void testEdgeDoFFunction()
 
    for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )], real_c( 48 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )], real_c( 48 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )], real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 48 ) );
    }
 
    // Dot
@@ -136,11 +135,11 @@ static void testEdgeDoFFunction()
 
    for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 1.0 / 48.0 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 1.0 / 48.0 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 1.0 / 48.0 ) );
    }
 
@@ -155,12 +154,9 @@ static void testEdgeDoFFunction()
    auto z = std::make_shared< EdgeDoFFunction< real_t > >( "z", storage2, minLevel, maxLevel );
    z->interpolate( linearX, maxLevel, DoFType::All );
 
-   auto dg = std::make_shared< FaceDoFFunction_old< real_t > >( "dg", storage2, minLevel, maxLevel );
-
    VTKOutput vtkOutput( "../../output", "interpolate_test", storage2 );
    vtkOutput.add( *p1 );
    vtkOutput.add( *z );
-   vtkOutput.add( *dg );
    vtkOutput.write( maxLevel );
 }
 

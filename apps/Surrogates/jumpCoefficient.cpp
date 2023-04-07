@@ -154,7 +154,7 @@ void printError( const A_t& A, uint_t l_min, uint_t l_max )
 }
 
 template < class M_t, class FE_t >
-double discrete_L2_error( const M_t& M, const FE_t& u, const FE_t& v, FE_t& err, FE_t& tmp, uint_t lvl )
+real_t discrete_L2_error( const M_t& M, const FE_t& u, const FE_t& v, FE_t& err, FE_t& tmp, uint_t lvl )
 {
    err.assign( { 1.0, -1.0 }, { u, v }, lvl );
    M.apply( err, tmp, lvl, hyteg::All, Replace );
@@ -253,9 +253,9 @@ FE_t solve( const OpType                        opType,
       }
 
       // solve
-      auto start = walberla::timing::getWcTime();
+      auto start = real_c( walberla::timing::getWcTime() );
       gmg.solve( A, u, b, l_max );
-      auto end   = walberla::timing::getWcTime();
+      auto end   = real_c( walberla::timing::getWcTime() );
       vCycleTime = end - start;
       solveTime += vCycleTime;
    }
@@ -338,7 +338,7 @@ int main( int argc, char** argv )
 
    // domain
    MeshInfo meshInfo = MeshInfo::fromGmshFile( msh );
-   // MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
+   // MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::stringstream ss;
@@ -387,20 +387,20 @@ int main( int argc, char** argv )
    // coefficient function
    function k = [=]( const hyteg::Point3D& x ) {
       // jump at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
-      real_t x_jump_y = x_jump_0 * ( 1.0 - x[1] ) + x_jump_1 * x[1];
+      real_t x_jump_y = x_jump_0 * ( real_c( 1.0 ) - x[1] ) + x_jump_1 * x[1];
       return ( x[0] < x_jump_y ) ? k_min : k_max;
    };
 
    // analytic solution
-   real_t du_dx_min = 1.0 / k_min;
-   real_t du_dx_max = 1.0 / k_max;
+   real_t du_dx_min = real_c( 1.0 ) / k_min;
+   real_t du_dx_max = real_c( 1.0 ) / k_max;
    real_t du_dy_min = ( x_jump_0 - x_jump_1 ) / k_min;
    real_t du_dy_max = ( x_jump_0 - x_jump_1 ) / k_max;
    real_t u_jump    = du_dx_min * x_jump_0;
 
    function u = [=]( const hyteg::Point3D& x ) {
       // kink at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
-      real_t x_jump_y = x_jump_0 * ( 1.0 - x[1] ) + x_jump_1 * x[1];
+      real_t x_jump_y = x_jump_0 * ( real_c( 1.0 ) - x[1] ) + x_jump_1 * x[1];
       if ( x[0] < x_jump_y )
       {
          return du_dx_min * x[0] + du_dy_min * x[1];
@@ -412,10 +412,10 @@ int main( int argc, char** argv )
    };
 
    // rhs
-   function f = []( const hyteg::Point3D& ) { return 0.0; };
+   function f = []( const hyteg::Point3D& ) { return real_c( 0.0 ); };
 
    // test with smooth solution and coeff
-   if ( alpha > 0.0 )
+   if ( alpha > real_c( 0.0 ) )
    {
       // real_t phi              = 6;
       real_t scaling_factor_u = 1;
@@ -441,14 +441,14 @@ int main( int argc, char** argv )
    {
       using M_t = P1ConstantMassOperator;
       using FE  = hyteg::P1Function< real_t >;
-      using R_t = hyteg::P1toP1LinearRestriction;
-      using P_t = hyteg::P1toP1LinearProlongation;
+      using R_t = hyteg::P1toP1LinearRestriction<>;
+      using P_t = hyteg::P1toP1LinearProlongation<>;
 
       using A_form = forms::p1_div_k_grad_affine_q1;
       A_form form( k, k );
 
-      P1VariableOperator< A_form > A1( storage, minLevel, maxLevel, form );
-      P1SurrogateOperator< A_form >    A1q( storage, minLevel, maxLevel, form );
+      P1VariableOperator< A_form >  A1( storage, minLevel, maxLevel, form );
+      P1SurrogateOperator< A_form > A1q( storage, minLevel, maxLevel, form );
       A1q.interpolateStencils( polyDegree, maxLevel );
 
       if ( surrogate_error )

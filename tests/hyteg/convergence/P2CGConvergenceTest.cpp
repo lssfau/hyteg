@@ -102,16 +102,16 @@ int main( int argc, char* argv[] )
    hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true );
    hyteg::P2CGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true );
 
-   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false );
-   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false );
-   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false );
-   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false );
-   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true );
+   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 1, real_c( 1.5e-05 ), false );
+   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 1, real_c( 2e-05 ), false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 1, real_c( 3e-06 ), false );
+   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, real_c( 2e-04 ), false );
+   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, real_c( 1.5e-04 ), true );
 
-   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false );
-   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false );
-   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false );
-   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true );
-   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false );
-   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true );
+   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 3, real_c( 1e-7 ), false );
+   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 3, real_c( 4e-7 ), false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 2, real_c( 3e-6 ), false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 3, real_c( 3e-7 ), true );
+   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, real_c( 3e-5 ), false );
+   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, real_c( 1.7e-5 ), true );
 }

@@ -66,7 +66,7 @@ class P1LinearCombinationForm : public P1Form
    // ---------------------------
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Point3D tmpOut;
@@ -93,7 +93,7 @@ class P1LinearCombinationForm : public P1Form
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Matrix3r tmpOut;
@@ -113,7 +113,7 @@ class P1LinearCombinationForm : public P1Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Point4D tmpOut;
@@ -140,7 +140,7 @@ class P1LinearCombinationForm : public P1Form
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
       {
          Matrix4r tmpOut;
@@ -153,62 +153,6 @@ class P1LinearCombinationForm : public P1Form
          owned_forms_[i]->integrateAll( coords, tmpOut );
          elMat += scalars_owned_forms_[i] * tmpOut;
       }
-   }
-
-   bool assemble2D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assemble2D();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assemble2D();
-      }
-      return assemble;
-   }
-
-   bool assemble3D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assemble3D();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assemble3D();
-      }
-      return assemble;
-   }
-
-   bool assembly2DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assembly2DDefined();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assembly2DDefined();
-      }
-      return assemble;
-   }
-
-   bool assembly3DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : unowned_forms_ )
-      {
-         assemble &= form->assembly3DDefined();
-      }
-      for ( const auto& form : owned_forms_ )
-      {
-         assemble &= form->assembly3DDefined();
-      }
-      return assemble;
    }
 
    virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )

@@ -79,27 +79,6 @@ class SphericalElementFormMass : public P1Form
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const { WALBERLA_ABORT( "Not implemented." ); }
 
-   bool assemble2D() const override
-   {
-      WALBERLA_ABORT( "SphericalElementFormMass does not provide assemble2D" );
-      return false;
-   };
-   bool assemble3D() const override
-   {
-      WALBERLA_ABORT( "SphericalElementFormMass does not provide assemble3D" );
-      return false;
-   };
-   bool assembly2DDefined() const override
-   {
-      WALBERLA_ABORT( "SphericalElementFormMass does not provide assembly2DDefined" );
-      return false;
-   };
-   bool assembly3DDefined() const override
-   {
-      WALBERLA_ABORT( "SphericalElementFormMass does not provide assembly3DDefined" );
-      return false;
-   };
-
    void setRadius( real_t radius )
    {
       WALBERLA_ASSERT( radius > real_c( 0 ) );

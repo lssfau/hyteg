@@ -101,9 +101,15 @@ class GeometryMap
    /// via the given threshold. The method is virtual so that children can override it, if need be.
    ///
    /// For details and motivation see issue 184.
+#ifdef WALBERLA_DOUBLE_ACCURACY
    virtual bool verifyPointPairing( const Point3D& computationalCoordinates,
                                     const Point3D& physicalCoordinates,
                                     real_t         threshold = real_c( 1e-12 ) ) const;
+#else
+   virtual bool verifyPointPairing( const Point3D& computationalCoordinates,
+                                    const Point3D& physicalCoordinates,
+                                    real_t         threshold = real_c( 1e-6 ) ) const;
+#endif
 
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );

@@ -59,7 +59,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::computeAndStoreLocalElementMatrice
                for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
                {
                   Matrixr< 4, 10 >& elMat = localElementMatrix3D( *cell, level, micro, cType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix3D( *cell, level, micro, cType, form, elMat );
                }
             }
@@ -88,7 +88,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::computeAndStoreLocalElementMatrice
                for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
                {
                   Matrixr< 3, 6 >& elMat = localElementMatrix2D( *face, level, micro, fType );
-                  elMat.setAll( 0 );
+                  elMat.setZero();
                   assembleLocalElementMatrix2D( *face, level, micro, fType, form, elMat );
                }
             }
@@ -206,7 +206,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
 
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< real_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
@@ -285,22 +285,22 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( uint_
    // assemble local element vector
    Point6D elVecOld;
    Point3D elVecNew;
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
-   for ( uint_t k = 3; k < 6; ++k )
+   for ( int k = 3; k < 6; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 3]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k - 3 )]];
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 3; ++k )
+   for ( int k = 0; k < 3; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
 }
 
@@ -323,22 +323,22 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply3D( const
    // assemble local element vector
    Point10D elVecOld;
    Point4D  elVecNew;
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
-   for ( uint_t k = 4; k < 10; ++k )
+   for ( int k = 4; k < 10; ++k )
    {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 4]];
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[uint_c( k - 4 )]];
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
+   elVecNew = elMat * elVecOld;
 
    // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( int k = 0; k < 4; ++k )
    {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c(k)]] += elVecNew[k];
    }
 }
 
@@ -437,7 +437,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::toMatrix( const std::shared_ptr< S
          idx_t                    xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+         indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
@@ -503,7 +503,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
 {
    Matrixr< 3, 6 >          elMat;
    indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
+   indexing::Index offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
    P2toP1Form               form;

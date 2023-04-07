@@ -72,7 +72,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   std::function<real_t(const hyteg::Point3D&)> exactFunction = [](const hyteg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hyteg::Point3D&)> ones  = [](const hyteg::Point3D&) { return 1.0; };
   walberla::math::seedRandomGenerator(0);
-  std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return walberla::math::realRandom(0.0, 1.0); };
+  std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return real_c( walberla::math::realRandom(0.0, 1.0) ); };
 
   p2function.interpolate( exactFunction, level, hyteg::DirichletBoundary );
   p2function.interpolate( rand, level, hyteg::Inner );

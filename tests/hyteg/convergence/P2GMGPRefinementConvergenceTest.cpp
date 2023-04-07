@@ -98,23 +98,23 @@ int main( int argc, char* argv[] )
    //  M.apply(npoints_helper, f, maxLevel, hyteg::All);
 
    WALBERLA_LOG_INFO_ON_ROOT( "Setting up stiffness operator" );
-   auto                           start = walberla::timing::getWcTime();
+   auto                             start = walberla::timing::getWcTime();
    hyteg::P1ConstantLaplaceOperator L_p1( storage, minLevel, maxLevel );
    hyteg::P2ConstantLaplaceOperator L_p2( storage, maxLevel, maxLevel );
-   auto                           end       = walberla::timing::getWcTime();
-   real_t                         setupTime = end - start;
+   auto                             end       = walberla::timing::getWcTime();
+   real_t                           setupTime = end - start;
 
    npoints_helper_p2.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper_p2.dotGlobal( npoints_helper_p2, maxLevel );
 
-   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+   auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
-   auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
    auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
-      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
    WALBERLA_LOG_INFO_ON_ROOT(

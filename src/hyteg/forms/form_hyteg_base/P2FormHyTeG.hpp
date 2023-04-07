@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr.
+ * Copyright (c) 2017-2022 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,30 +19,21 @@
  */
 #pragma once
 
+#include "hyteg/forms/P2Form.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
-#include "hyteg/forms/P2Form.hpp"
 
 namespace hyteg {
 
 class P2FormHyTeG : public P2Form
 {
  public:
-
    virtual ~P2FormHyTeG() {}
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const override = 0;
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override = 0;
-
-   bool assemble2D() const override { return true; };
-
-   bool assemble3D() const override { return false; };
-
-   bool assembly2DDefined() const override { return true; };
-
-   bool assembly3DDefined() const override { return false; };
 };
 
 } // namespace hyteg

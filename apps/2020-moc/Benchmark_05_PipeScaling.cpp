@@ -48,7 +48,7 @@ auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0
 };
 
 auto gaussianCone = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.5, 0.5, 0.5} );
+   const Point3D x0( 0.5, 0.5, 0.5 );
    const real_t  r0 = 0.15;
    if ( r( x, x0, r0 ) <= 1. )
       return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
@@ -145,8 +145,8 @@ void benchmark( int argc, char** argv )
 
    WALBERLA_CHECK_EQUAL( lengthCubes % diameterCubes, 0 );
 
-   meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ),
-                                    Point3D( {real_c( lengthCubes / diameterCubes ), 1, 1} ),
+   meshInfo = MeshInfo::meshCuboid( Point3D( 0, 0, 0 ),
+                                    Point3D( real_c( lengthCubes / diameterCubes ), 1, 1 ),
                                     lengthCubes,
                                     diameterCubes,
                                     diameterCubes );

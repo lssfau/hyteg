@@ -63,7 +63,7 @@ namespace hyteg {
 
     // scale input vector
     real_t norm = std::sqrt( itrVec.dotGlobal( itrVec, level, hyteg::All ) );
-    itrVec.assign( {1.0/norm}, {itrVec}, level, hyteg::All );
+    itrVec.assign( { real_c( 1.0 ) / norm }, { itrVec }, level, hyteg::All );
 
     // prepare iteration
     op.apply( itrVec, auxVec, level, hyteg::All );
@@ -71,10 +71,10 @@ namespace hyteg {
 
     // run power iteration
     for( uint_t it = 1; it <= numIts; ++it ) {
-      norm = std::sqrt( auxVec.dotGlobal( auxVec, level, hyteg::All ) );
-      itrVec.assign( {1.0/norm}, {auxVec}, level, hyteg::All );
-      op.apply( itrVec, auxVec, level, hyteg::All );
-      radius = itrVec.dotGlobal( auxVec, level, hyteg::All );
+       norm = std::sqrt( auxVec.dotGlobal( auxVec, level, hyteg::All ) );
+       itrVec.assign( { real_c( 1.0 ) / norm }, { auxVec }, level, hyteg::All );
+       op.apply( itrVec, auxVec, level, hyteg::All );
+       radius = itrVec.dotGlobal( auxVec, level, hyteg::All );
     }
 
     return radius;
@@ -117,13 +117,13 @@ namespace hyteg {
     cg.setupLanczosTriDiagMatrix( op, itrVec, rhsVec, level, numIts, mainDiag, subDiag );
 
     // compute spectrum of matrix using Eigen library
-    Eigen::Map<Eigen::VectorXd> dVec( mainDiag.data(), numIts );
-    Eigen::Map<Eigen::VectorXd> sVec( subDiag.data(), numIts - 1 );
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
+    Eigen::Map<Eigen::Matrix<real_t, Eigen::Dynamic, 1>> dVec( mainDiag.data(), numIts );
+    Eigen::Map<Eigen::Matrix<real_t, Eigen::Dynamic, 1>> sVec( subDiag.data(), numIts - 1 );
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic>> es;
     es.computeFromTridiagonal( dVec, sVec, Eigen::EigenvaluesOnly );
 
     // Eigen sorts eigenvalues ascendingly, extract smallest and largest one
-    Eigen::VectorXd ev = es.eigenvalues();
+    Eigen::Matrix<real_t, Eigen::Dynamic, 1> ev = es.eigenvalues();
     lowerBound = ev[0];
     upperBound = ev[numIts-1];
   }

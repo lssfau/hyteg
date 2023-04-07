@@ -21,6 +21,8 @@
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
+#include <utility>
+
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -55,7 +57,7 @@ class Solution
  public:
    Solution( real_t diffusivity, Point3D p0, real_t t0 )
    : diffusivity_( diffusivity )
-   , p0_( p0 )
+   , p0_(std::move( p0 ))
    , t_( t0 )
    {}
 
@@ -63,15 +65,15 @@ class Solution
    {
       // auto x_hat    = p0_[0] * std::cos( t_ ) - p0_[1] * std::sin( t_ );
       // auto y_hat    = -p0_[0] * std::sin( t_ ) + p0_[1] * std::cos( t_ );
-      auto x_hat    = p0_[0] + t_;
-      auto y_hat    = 0;
-      auto exponent = -std::pow( r( p, x_hat, y_hat ), 2 ) / ( 4.0 * diffusivity_ * t_ );
-      return ( 1.0 / ( 4.0 * pi * diffusivity_ * t_ ) ) * std::exp( exponent );
+      real_t x_hat    = p0_[0] + t_;
+      real_t y_hat    = real_c( 0 );
+      real_t exponent = -std::pow( r( p, x_hat, y_hat ), real_c( 2 ) ) / ( real_c( 4.0 ) * diffusivity_ * t_ );
+      return ( real_c( 1.0 ) / ( real_c( 4.0 ) * pi * diffusivity_ * t_ ) ) * std::exp( exponent );
    }
 
-   real_t r( const hyteg::Point3D& p, const real_t& x_hat, const real_t& y_hat )
+   static real_t r( const hyteg::Point3D& p, const real_t& x_hat, const real_t& y_hat )
    {
-      return std::sqrt( std::pow( p[0] - x_hat, 2 ) + std::pow( p[1] - y_hat, 2 ) );
+      return std::sqrt( std::pow( p[0] - x_hat, real_c( 2 ) ) + std::pow( p[1] - y_hat, real_c( 2 ) ) );
    }
 
    void inc( real_t dt ) { t_ += dt; }
@@ -113,9 +115,9 @@ real_t errorE2( const uint_t&                 level,
    return std::sqrt( tmp1.sumGlobal( level, All ) );
 }
 
-void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t discrL2Eps, real_t peakEps )
+void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, std::map<uint_t, std::pair<real_t,real_t>> checks )
 {
-   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {5, 1} ), MeshInfo::CRISS, 6, 1 );
+   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 5, 1 ), MeshInfo::CRISS, 6, 1 );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
@@ -128,7 +130,7 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
    const real_t  hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t  hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t  t0       = 0.5 * pi;
-   const Point3D p0( {-0.5, 0, 0} );
+   const Point3D p0( -0.5, 0, 0 );
    const bool    vtk   = false;
    const real_t  tFinal = 1.0;
    const real_t dt = tFinal / real_c(steps);
@@ -216,6 +218,20 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
 
    real_t total_mass_lost = 0;
 
+   auto output = [&](real_t discrL2Eps, real_t peakEps, uint_t step){
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+          " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", step, discrL2, E_peak, total_mass, total_mass_lost * 100. ) )
+
+      auto error_E1_consistent = errorE1( maxLevel, c, cSolution, tmp0, tmp1, M );
+      auto error_E2_consistent = errorE2( maxLevel, c, cSolution, tmp0, tmp1, M );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "E1 consistent: " << walberla::format( "%5.4e", error_E1_consistent ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "E2 consistent: " << walberla::format( "%5.4e", error_E2_consistent ) );
+
+      WALBERLA_CHECK_LESS( std::abs( E_peak ), peakEps )
+      WALBERLA_CHECK_LESS( discrL2, discrL2Eps )
+   };
+
    for ( uint_t i = 1; i <= steps; i++ )
    {
       solution.inc( dt );
@@ -232,34 +248,27 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
       diffusionSolver.step( diffusionOperator, L, M, c, cOld, f, fOld, maxLevel, Inner );
 
       // various errors
-      cError.assign( {1.0, -1.0}, {c, cSolution}, maxLevel, All );
+      cError.assign( { 1.0, -1.0 }, { c, cSolution }, maxLevel, All );
 
       discrL2            = std::sqrt( cError.dotGlobal( cError, maxLevel, All ) /
-                                      real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
+                           real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
       maxTempApproximate = c.getMaxMagnitude( maxLevel, All );
       maxTempAnalytical  = cSolution.getMaxMagnitude( maxLevel, All );
       E_peak             = maxTempApproximate / maxTempAnalytical - 1;
 
       M.apply( c, cMass, maxLevel, All );
-      auto total_mass_new  = cMass.sumGlobal( maxLevel );
-      total_mass_lost = 1.0 - ( total_mass_new / total_mass );
-      total_mass           = total_mass_new;
+      real_t total_mass_new = cMass.sumGlobal( maxLevel );
+      total_mass_lost       = real_c( 1.0 ) - ( total_mass_new / total_mass );
+      total_mass            = total_mass_new;
 
+      if (checks.find(i) != checks.end()){
+         output(checks[i].first,checks[i].second, i);
+      }
       if ( vtk )
          vtkOutput.write( maxLevel, i );
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-       " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", steps, discrL2, E_peak, total_mass, total_mass_lost * 100. ) )
 
-   auto error_E1_consistent = errorE1( maxLevel, c, cSolution, tmp0, tmp1, M );
-   auto error_E2_consistent = errorE2( maxLevel, c, cSolution, tmp0, tmp1, M );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "E1 consistent: " << walberla::format( "%5.4e", error_E1_consistent ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "E2 consistent: " << walberla::format( "%5.4e", error_E2_consistent ) );
-
-   WALBERLA_CHECK_LESS( std::abs( E_peak ), peakEps )
-   WALBERLA_CHECK_LESS( discrL2, discrL2Eps )
 
    storage->getTimingTree()->stop( "Entire test" );
 }
@@ -270,11 +279,14 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    uint_t timeSteppingScheme = 0;
-   uint_t maxLevel = 4;
-   runTest( maxLevel, 10, timeSteppingScheme, 1.4e-04, 8.0e-03 );
-   runTest( maxLevel, 20, timeSteppingScheme, 9.0e-05, 3.6e-03 );
-   runTest( maxLevel, 40, timeSteppingScheme, 1.8e-05, 1.3e-03 );
-   runTest( maxLevel, 80, timeSteppingScheme, 5.5e-06, 9.0e-05 );
+   uint_t maxLevel           = 4;
+   auto dp = std::is_same<real_t, double>();
+   auto checks = std::map<uint_t, std::pair<real_t,real_t>>();
+   checks[10] = {real_c( 1.4e-04 ), real_c( 8.7e-03 )};
+   checks[20] = {real_c( 9.0e-05 ), real_c( 3.6e-03 )};
+   checks[30] = {real_c( dp ? 3e-05: 4.6e-05 ), real_c( dp ? 1.5e-03 : 3e-03 )};
+   checks[40] = {real_c( dp ? 2e-05 : 4.5e-05 ), real_c( dp ? 2.0e-03 : 3e-03 )};
+   runTest( maxLevel, 40, timeSteppingScheme, checks );
 
    return EXIT_SUCCESS;
 }

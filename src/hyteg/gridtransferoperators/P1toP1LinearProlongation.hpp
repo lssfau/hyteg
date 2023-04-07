@@ -25,10 +25,11 @@
 
 namespace hyteg {
 
-class P1toP1LinearProlongation : public ProlongationOperator< P1Function< real_t > >
+template < typename ValueType = real_t >
+class P1toP1LinearProlongation : public ProlongationOperator< P1Function< ValueType > >
 {
  public:
-   void prolongate( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
+   void prolongate( const P1Function< ValueType >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
       if ( function.isDummy() )
          return;
@@ -43,9 +44,9 @@ class P1toP1LinearProlongation : public ProlongationOperator< P1Function< real_t
       }
    }
 
-   void prolongateAndAdd( const P1Function< walberla::real_t >& function,
-                          const walberla::uint_t&               sourceLevel,
-                          const DoFType&                        flag ) const override
+   void prolongateAndAdd( const P1Function< ValueType >& function,
+                          const walberla::uint_t&        sourceLevel,
+                          const DoFType&                 flag ) const override
    {
       if ( function.isDummy() )
          return;
@@ -61,22 +62,22 @@ class P1toP1LinearProlongation : public ProlongationOperator< P1Function< real_t
    }
 
  private:
-   void prolongate2D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
-   void prolongate2DAdditively( const P1Function< real_t >& function,
-                                const uint_t&               sourceLevel,
-                                const DoFType&              flag,
-                                const UpdateType&           updateType ) const;
+   void prolongate2D( const P1Function< ValueType >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void prolongate2DAdditively( const P1Function< ValueType >& function,
+                                const uint_t&                  sourceLevel,
+                                const DoFType&                 flag,
+                                const UpdateType&              updateType ) const;
 
-   void prolongate3DAdditively( const P1Function< real_t >& function,
-                                const uint_t&               sourceLevel,
-                                const DoFType&              flag,
-                                const UpdateType&           updateType ) const;
+   void prolongate3DAdditively( const P1Function< ValueType >& function,
+                                const uint_t&                  sourceLevel,
+                                const DoFType&                 flag,
+                                const UpdateType&              updateType ) const;
 
-   void prolongateMacroVertex2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
+   void prolongateMacroVertex2D( const ValueType* src, ValueType* dst, const uint_t& sourceLevel ) const;
 
-   void prolongateMacroEdge2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
+   void prolongateMacroEdge2D( const ValueType* src, ValueType* dst, const uint_t& sourceLevel ) const;
 
-   void prolongateMacroFace2D( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const;
+   void prolongateMacroFace2D( const ValueType* src, ValueType* dst, const uint_t& sourceLevel ) const;
 };
 
 } // namespace hyteg

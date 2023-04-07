@@ -153,8 +153,8 @@ void N1E1toN1E1Restriction::restrictMacroFace( const real_t* src, real_t* dst, c
 
    for ( auto it : edgedof::macroface::Iterator( dstLvl ) )
    {
-      const idx_t row = it.row();
-      const idx_t col = it.col();
+      const idx_t row = it.y();
+      const idx_t col = it.x();
 
       // horizontal edges
       dst[horizontalIndex( dstLvl, col, row )] += 0.25 * src[horizontalIndex( srcLvl, 2 * col, 2 * row + 1 )];

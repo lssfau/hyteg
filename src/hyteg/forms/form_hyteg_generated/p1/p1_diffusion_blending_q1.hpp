@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -54,7 +50,7 @@ class p1_diffusion_blending_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -66,7 +62,7 @@ class p1_diffusion_blending_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -78,7 +74,7 @@ class p1_diffusion_blending_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -90,21 +86,13 @@ class p1_diffusion_blending_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                              119     151       2       0      2            116                 1
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 

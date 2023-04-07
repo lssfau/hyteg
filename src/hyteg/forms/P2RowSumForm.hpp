@@ -49,7 +49,7 @@ class P2RowSumForm : public P2Form
    // ---------------------------
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       Matrix6r elMat;
       form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, elMat );
@@ -57,13 +57,13 @@ class P2RowSumForm : public P2Form
          out[0] += elMat( 0, j );
    }
 
-   void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const { out.setAll( 0 ); }
+   void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const { out.setZero(); }
 
-   void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const { out.setAll( 0 ); }
+   void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const { out.setZero(); }
 
    void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       Matrix6r elMat;
       form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, elMat );
@@ -76,7 +76,7 @@ class P2RowSumForm : public P2Form
       Matrix6r stiffness;
       form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, stiffness );
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < 6; i++ )
       {
          real_t sum = 0;
@@ -93,7 +93,7 @@ class P2RowSumForm : public P2Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      Matrix10r localStiffnessMatrix;
+      Matrix10r localStiffnessMatrix {Matrix10r::Zero()};
       integrateAll( coords, localStiffnessMatrix );
       out[0] = localStiffnessMatrix( 0, 0 );
       out[1] = localStiffnessMatrix( 0, 1 );
@@ -157,7 +157,7 @@ class P2RowSumForm : public P2Form
       Matrix10r stiffness;
       form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, stiffness );
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < 10; i++ )
       {
          real_t sum = 0;
@@ -168,14 +168,6 @@ class P2RowSumForm : public P2Form
          elMat( i, i ) = sum;
       }
    }
-
-   bool assemble2D() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
    std::shared_ptr< P2Form > form_;

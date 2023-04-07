@@ -71,9 +71,9 @@ static void testVertexDoFBasicFunctions()
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataX[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataX[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 2 ) );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 2 ) );
    }
 
    // Assign
@@ -87,7 +87,7 @@ static void testVertexDoFBasicFunctions()
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 10 ) );
    }
 
    // Add
@@ -100,7 +100,7 @@ static void testVertexDoFBasicFunctions()
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 48 ) );
    }
 
    // Dot
@@ -118,7 +118,7 @@ static void testVertexDoFBasicFunctions()
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 96 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 96 ) );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( timer );

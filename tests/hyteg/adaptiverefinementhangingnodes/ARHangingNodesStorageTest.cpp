@@ -112,7 +112,7 @@ void balanceTest()
    const bool writeVTK = false;
 
    WALBERLA_LOG_INFO_ON_ROOT( "+ balanceTest: 2:1 balance test." );
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  1, 1  ), MeshInfo::CRISS, 1, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

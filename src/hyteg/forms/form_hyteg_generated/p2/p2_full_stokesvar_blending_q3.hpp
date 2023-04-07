@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.6
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -50,15 +46,15 @@ class p2_full_stokesvar_0_0_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_0_0_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_0_0_blending_q3( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p2_full_stokesvar_0_0_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -91,11 +87,11 @@ class p2_full_stokesvar_0_0_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1959    3156       7       0      7           1504                18
+   ///                                             1630    2640       6       0      6           1303                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -103,35 +99,27 @@ class p2_full_stokesvar_0_0_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              906    1302       7       0      7            763                18
+   ///                                              760    1095       6       0      6            648                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
+   void Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
 
-   void Blending_DF_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
+   void Blending_F_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -149,15 +137,15 @@ class p2_full_stokesvar_0_1_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_0_1_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_0_1_blending_q3( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p2_full_stokesvar_0_1_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -190,11 +178,11 @@ class p2_full_stokesvar_0_1_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1716    2832       7       0      7           1165                18
+   ///                                             1417    2361       6       0      6           1013                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -202,35 +190,27 @@ class p2_full_stokesvar_0_1_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              636     930       7       0      7            505                18
+   ///                                              535     785       6       0      6            433                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
+   void Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
 
-   void Blending_DF_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
+   void Blending_F_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -248,13 +228,13 @@ class p2_full_stokesvar_0_2_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_0_2_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_0_2_blending_q3( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_full_stokesvar_0_2_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -269,11 +249,11 @@ class p2_full_stokesvar_0_2_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1716    2832       7       0      7           1165                18
+   ///                                             1417    2361       6       0      6           1013                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -281,29 +261,21 @@ class p2_full_stokesvar_0_2_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              636     930       7       0      7            505                18
+   ///                                              535     785       6       0      6            433                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -321,15 +293,15 @@ class p2_full_stokesvar_1_0_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_1_0_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_1_0_blending_q3( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p2_full_stokesvar_1_0_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -362,11 +334,11 @@ class p2_full_stokesvar_1_0_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1716    2832       7       0      7           1165                18
+   ///                                             1417    2361       6       0      6           1013                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -374,35 +346,27 @@ class p2_full_stokesvar_1_0_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              636     930       7       0      7            505                18
+   ///                                              535     785       6       0      6            433                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
+   void Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
 
-   void Blending_DF_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
+   void Blending_F_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -420,15 +384,15 @@ class p2_full_stokesvar_1_1_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_1_1_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_1_1_blending_q3( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p2_full_stokesvar_1_1_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
+   , callback_Scalar_Variable_Coefficient_2D_mu(_callback_Scalar_Variable_Coefficient_2D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
 
 
  public:
@@ -461,11 +425,11 @@ class p2_full_stokesvar_1_1_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1959    3156       7       0      7           1504                18
+   ///                                             1630    2640       6       0      6           1303                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -473,35 +437,27 @@ class p2_full_stokesvar_1_1_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              906    1302       7       0      7            763                18
+   ///                                              760    1095       6       0      6            648                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
+   void Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
 
-   void Blending_DF_Triangle( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const;
+   void Blending_F_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1 ) const;
 
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t * out_0 ) const;
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -519,13 +475,13 @@ class p2_full_stokesvar_1_2_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_1_2_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_1_2_blending_q3( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_full_stokesvar_1_2_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -540,11 +496,11 @@ class p2_full_stokesvar_1_2_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1716    2832       7       0      7           1165                18
+   ///                                             1417    2361       6       0      6           1013                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -552,29 +508,21 @@ class p2_full_stokesvar_1_2_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              636     930       7       0      7            505                18
+   ///                                              535     785       6       0      6            433                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -592,13 +540,13 @@ class p2_full_stokesvar_2_0_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_2_0_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_2_0_blending_q3( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_full_stokesvar_2_0_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -613,11 +561,11 @@ class p2_full_stokesvar_2_0_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1716    2832       7       0      7           1165                18
+   ///                                             1417    2361       6       0      6           1013                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -625,29 +573,21 @@ class p2_full_stokesvar_2_0_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              636     930       7       0      7            505                18
+   ///                                              535     785       6       0      6            433                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -665,13 +605,13 @@ class p2_full_stokesvar_2_1_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_2_1_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_2_1_blending_q3( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_full_stokesvar_2_1_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -686,11 +626,11 @@ class p2_full_stokesvar_2_1_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1716    2832       7       0      7           1165                18
+   ///                                             1417    2361       6       0      6           1013                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -698,29 +638,21 @@ class p2_full_stokesvar_2_1_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              636     930       7       0      7            505                18
+   ///                                              535     785       6       0      6            433                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
@@ -738,13 +670,13 @@ class p2_full_stokesvar_2_2_blending_q3 : public P2FormHyTeG
 
    p2_full_stokesvar_2_2_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_full_stokesvar_2_2_blending_q3( std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback3D(_callback3D)
+   p2_full_stokesvar_2_2_blending_q3( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_mu )
+   : callback_Scalar_Variable_Coefficient_3D_mu(_callback_Scalar_Variable_Coefficient_3D_mu)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_mu;
 
 
  public:
@@ -759,11 +691,11 @@ class p2_full_stokesvar_2_2_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1959    3156       7       0      7           1504                18
+   ///                                             1630    2640       6       0      6           1303                15
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -771,29 +703,21 @@ class p2_full_stokesvar_2_2_blending_q3 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Yu 2 | points: 5, degree: 3, test tolerance: 1e-14
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              906    1302       7       0      7            763                18
+   ///                                              760    1095       6       0      6            648                15
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
  private:
 
-   void Blending_F_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
+   void Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
 
-   void Blending_DF_Tetrahedron( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const;
+   void Blending_F_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2 ) const;
 
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
+   void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 

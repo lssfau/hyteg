@@ -151,17 +151,17 @@ int main( int argc, char* argv[] )
    const auto l2RateP = .44;
 
    petscSolveTest( 3,
-                   hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
+                   hyteg::MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1, 1  ), hyteg::MeshInfo::CRISS, 2, 2 ),
                    l2ErrorUCoarse,
                    l2ErrorPCoarse );
 
    petscSolveTest( 4,
-                   hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
+                   hyteg::MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1, 1  ), hyteg::MeshInfo::CRISS, 2, 2 ),
                    l2ErrorUCoarse * l2RateU,
                    l2ErrorPCoarse * l2RateP );
 
    petscSolveTest( 5,
-                   hyteg::MeshInfo::meshRectangle( Point2D( { -1, -1 } ), Point2D( { 1, 1 } ), hyteg::MeshInfo::CRISS, 2, 2 ),
+                   hyteg::MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1, 1  ), hyteg::MeshInfo::CRISS, 2, 2 ),
                    l2ErrorUCoarse * l2RateU * l2RateU,
                    l2ErrorPCoarse * l2RateP * l2RateP );
 

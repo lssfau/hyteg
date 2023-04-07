@@ -148,15 +148,15 @@ void IndexingTutorial()
   {
     /// [Stencil]
     // Get neighbors using the stencil versions of the indexing functions
-    const uint_t vertexDoF      = vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
+    const uint_t vertexDoF      = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(),
                                                                                   stencilDirection::VERTEX_C );
-    const uint_t leftNeighbor   = vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
+    const uint_t leftNeighbor   = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(),
                                                                                   stencilDirection::VERTEX_W );
-    const uint_t rightNeighbor  = vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
+    const uint_t rightNeighbor  = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(),
                                                                                   stencilDirection::VERTEX_E );
     /// [Stencil]
 
-    WALBERLA_LOG_INFO_ON_ROOT( "Stencil array idx access: row = " << it.row() << ", col =  " << it.col() << ": " <<
+    WALBERLA_LOG_INFO_ON_ROOT( "Stencil array idx access: row = " << it.y() << ", col =  " << it.x() << ": " <<
                                "W = " << leftNeighbor << " C = " << vertexDoF << " E = " << rightNeighbor );
   }
 

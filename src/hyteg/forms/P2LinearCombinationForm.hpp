@@ -53,7 +53,7 @@ class P2LinearCombinationForm : public P2Form
    // ---------------------------
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
@@ -64,7 +64,7 @@ class P2LinearCombinationForm : public P2Form
 
    void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
@@ -75,7 +75,7 @@ class P2LinearCombinationForm : public P2Form
 
    void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
@@ -86,7 +86,7 @@ class P2LinearCombinationForm : public P2Form
 
    void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
@@ -97,7 +97,7 @@ class P2LinearCombinationForm : public P2Form
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Matrix6r tmpOut;
@@ -111,7 +111,7 @@ class P2LinearCombinationForm : public P2Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point4D tmpOut;
@@ -169,53 +169,13 @@ class P2LinearCombinationForm : public P2Form
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const
    {
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Matrix10r tmpOut;
          forms_[i]->integrateAll( coords, tmpOut );
          elMat += scalars_[i] * tmpOut;
       }
-   }
-
-   bool assemble2D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assemble2D();
-      }
-      return assemble;
-   }
-
-   bool assemble3D() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assemble3D();
-      }
-      return assemble;
-   }
-
-   bool assembly2DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assembly2DDefined();
-      }
-      return assemble;
-   }
-
-   bool assembly3DDefined() const override
-   {
-      bool assemble = true;
-      for ( const auto& form : forms_ )
-      {
-         assemble &= form->assembly3DDefined();
-      }
-      return assemble;
    }
 
    virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )

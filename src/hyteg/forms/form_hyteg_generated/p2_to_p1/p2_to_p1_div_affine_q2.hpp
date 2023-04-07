@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -98,14 +94,6 @@ class p2_to_p1_div_0_affine_q2 : public P2ToP1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -170,14 +158,6 @@ class p2_to_p1_div_1_affine_q2 : public P2ToP1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
-
 };
 
 /// Implementation of the integration of a weak form over an element.
@@ -223,14 +203,6 @@ class p2_to_p1_div_2_affine_q2 : public P2ToP1FormHyTeG
    ///                                              166     159       1       0      1            126                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 

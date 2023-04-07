@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    const uint_t      minLevel                  = 0;
    const uint_t      maxLevel                  = 5;
    const std::string meshFile                  = "../../data/meshes/quad_8el.msh";
-   const real_t      coarseGridSolverTolerance = 1e-16;
+   const real_t      coarseGridSolverTolerance = real_c( 1e-16 );
    const uint_t      maxCoarseGridSolverIter   = 10000;
    const uint_t      numVCycles                = 10;
    const bool        writeVTK                  = false;
@@ -85,8 +85,8 @@ int main( int argc, char* argv[] )
    auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, maxCoarseGridSolverIter, coarseGridSolverTolerance );
-   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
-   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
    auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
@@ -96,7 +96,7 @@ int main( int argc, char* argv[] )
 
    // init residual once
    L.apply( u, Au, maxLevel, hyteg::Inner );
-   r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hyteg::Inner );
+   r.assign( { 1.0, -1.0 }, { f, Au }, maxLevel, hyteg::Inner );
 
    real_t discr_l2_err;
    real_t discr_l2_res           = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );
@@ -133,7 +133,8 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   WALBERLA_CHECK_LESS( discr_l2_res, 3.0e-14 );
+   bool dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( discr_l2_res, dp ? 3.0e-14 : 5e-8 );
    WALBERLA_CHECK_LESS( discr_l2_err, 2.9e-06 );
 
    return 0;

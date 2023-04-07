@@ -49,7 +49,7 @@ class P1RowSumForm : public P1Form
    // ---------------------------
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      out.setAll( 0 );
+      out.setZero();
       Matrix3r elMat;
       form_->setGeometryMap( this->geometryMap_ );
       form_->integrateAll( coords, elMat );
@@ -62,7 +62,7 @@ class P1RowSumForm : public P1Form
       Matrix3r elementMatrix;
       form_->setGeometryMap( this->geometryMap_ );
       form_->integrateAll( coords, elementMatrix );
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < 3; i++ )
       {
          real_t sum = 0;
@@ -92,7 +92,7 @@ class P1RowSumForm : public P1Form
       Matrix4r elementMatrix;
       form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, elementMatrix );
-      elMat.setAll( 0 );
+      elMat.setZero();
       for ( uint_t i = 0; i < 4; i++ )
       {
          real_t sum = 0;
@@ -103,14 +103,6 @@ class P1RowSumForm : public P1Form
          elMat( i, i ) = sum;
       }
    }
-
-   bool assemble2D() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
  private:
 

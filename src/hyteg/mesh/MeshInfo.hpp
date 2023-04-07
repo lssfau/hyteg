@@ -305,7 +305,7 @@ class MeshInfo
     public:
       Vertex()
       : id_( 0 )
-      , coordinates_( Point3D() )
+      , coordinates_( Point3D::Zero() )
       , boundaryFlag_( 0 ){};
 
       Vertex( const IDType& id, const Point3D& coordinates, const uint_t& boundaryFlag )
@@ -463,8 +463,8 @@ class MeshInfo
    /// \param rmax    radius of outermost shell
    static MeshInfo meshSphericalShell( uint_t        ntan,
                                        uint_t        nrad,
-                                       double        rmin,
-                                       double        rmax,
+                                       real_t        rmin,
+                                       real_t        rmax,
                                        shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
 
    /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
@@ -473,7 +473,7 @@ class MeshInfo
    /// \param layers  vector that gives the radii of all layers, sorted from the
    ///                CMB outwards
    static MeshInfo meshSphericalShell( uint_t                       ntan,
-                                       const std::vector< double >& layers,
+                                       const std::vector< real_t >& layers,
                                        shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
 
    /// Constructs a MeshInfo object for a thin spherical shell

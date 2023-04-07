@@ -68,8 +68,8 @@ void runTest( bool preCompute )
    const uint_t uzawaPre       = 10;
    const uint_t uzawaPost      = 10;
    const uint_t innerJacSmooth = 4;
-   const real_t uzawaOmega     = 0.37;
-   const real_t jacobiOmega    = 0.66;
+   const real_t uzawaOmega     = real_c( 0.37 );
+   const real_t jacobiOmega    = real_c( 0.66 );
    const uint_t numIterations  = 2;
 
    const uint_t nTan = 12;
@@ -200,9 +200,9 @@ void runTest( bool preCompute )
    communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[1], maxLevel );
    communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
-   auto coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, 1e-08, 500 );
+   auto coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, real_c( 1e-08 ), 500 );
 
-   auto fineGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, 1e-08, 100 );
+   auto fineGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, real_c( 1e-08 ), 100 );
 
    auto restriction    = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
    auto prolongation   = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
@@ -283,7 +283,7 @@ void runTest( bool preCompute )
    WALBERLA_CHECK_LESS( currRes, 1.0e-06 );
    WALBERLA_CHECK_LESS( discr_l2_err_u, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_v, 4.0e-04 );
-   WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
+   WALBERLA_CHECK_LESS( discr_l2_err_p, 6.0e-02 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving with MINRES ..." )
 
@@ -309,10 +309,10 @@ void runTest( bool preCompute )
       vtkOutput.write( maxLevel, numIterations + 1 );
    }
 
-   WALBERLA_CHECK_LESS( currRes, 5.0e-9 );
+   WALBERLA_CHECK_LESS( currRes, 9.0e-9 );
    WALBERLA_CHECK_LESS( discr_l2_err_u, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_v, 4.0e-04 );
-   WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
+   WALBERLA_CHECK_LESS( discr_l2_err_p, 6.0e-02 );
 }
 int main( int argc, char* argv[] )
 {

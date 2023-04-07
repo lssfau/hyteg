@@ -23,7 +23,6 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/HytegDefinitions.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -31,6 +30,7 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -66,7 +66,7 @@ int main( int argc, char* argv[] )
       {
          if ( verbose )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( "xIdx = " << it.col() << ", yIdx = " << it.row() << ", zIdx = " << it.dep() );
+            WALBERLA_LOG_INFO_ON_ROOT( "xIdx = " << it.x() << ", yIdx = " << it.y() << ", zIdx = " << it.z() );
          }
          auto microVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, cType );
 
@@ -79,7 +79,7 @@ int main( int argc, char* argv[] )
             indexing::Index vert = microVertexIndices[k];
             if ( verbose )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( "(" << vert.col() << "," << vert.row() << "," << vert.dep() << ")" );
+               WALBERLA_LOG_INFO_ON_ROOT( "(" << vert.x() << "," << vert.y() << "," << vert.z() << ")" );
             }
          }
 

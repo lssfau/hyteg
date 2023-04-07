@@ -23,15 +23,18 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "core/DataTypes.h"
 #include "core/Macros.h"
 #define RESTRICT WALBERLA_RESTRICT
+
+using walberla::real_t;
 
 namespace hyteg {
 namespace P2 {
 namespace macrocell {
 namespace generated {
 
-void prolongate_3D_macrocell_P2_push_from_edgedofs(double const * RESTRICT const _data_edgeCoarseSrc_X, double const * RESTRICT const _data_edgeCoarseSrc_XY, double const * RESTRICT const _data_edgeCoarseSrc_XYZ, double const * RESTRICT const _data_edgeCoarseSrc_XZ, double const * RESTRICT const _data_edgeCoarseSrc_Y, double const * RESTRICT const _data_edgeCoarseSrc_YZ, double const * RESTRICT const _data_edgeCoarseSrc_Z, double * RESTRICT _data_edgeFineDst_X, double * RESTRICT _data_edgeFineDst_XY, double * RESTRICT _data_edgeFineDst_XYZ, double * RESTRICT _data_edgeFineDst_XZ, double * RESTRICT _data_edgeFineDst_Y, double * RESTRICT _data_edgeFineDst_YZ, double * RESTRICT _data_edgeFineDst_Z, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3);
+void prolongate_3D_macrocell_P2_push_from_edgedofs(real_t const * RESTRICT const _data_edgeCoarseSrc_X, real_t const * RESTRICT const _data_edgeCoarseSrc_XY, real_t const * RESTRICT const _data_edgeCoarseSrc_XYZ, real_t const * RESTRICT const _data_edgeCoarseSrc_XZ, real_t const * RESTRICT const _data_edgeCoarseSrc_Y, real_t const * RESTRICT const _data_edgeCoarseSrc_YZ, real_t const * RESTRICT const _data_edgeCoarseSrc_Z, real_t * RESTRICT _data_edgeFineDst_X, real_t * RESTRICT _data_edgeFineDst_XY, real_t * RESTRICT _data_edgeFineDst_XYZ, real_t * RESTRICT _data_edgeFineDst_XZ, real_t * RESTRICT _data_edgeFineDst_Y, real_t * RESTRICT _data_edgeFineDst_YZ, real_t * RESTRICT _data_edgeFineDst_Z, real_t * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3);
 
 } // namespace generated
 } // namespace macrocell

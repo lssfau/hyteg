@@ -125,7 +125,9 @@ int main( int argc, char** argv )
 {
 #ifndef __APPLE__
 #ifndef _MSC_VER
+#ifndef __INTEL_LLVM_COMPILER
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 #endif
    walberla::debug::enterTestMode();
@@ -146,7 +148,7 @@ int main( int argc, char** argv )
 
    // Test with rectangle
    logSectionHeader( "Testing with RECTANGLE" );
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, -1.0 } ), Point2D( { 2.0, 3.0 } ), MeshInfo::CRISSCROSS, 1, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, -1.0  ), Point2D(  2.0, 3.0  ), MeshInfo::CRISSCROSS, 1, 2 );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
@@ -176,7 +178,7 @@ int main( int argc, char** argv )
 
    // test with cuboid
    logSectionHeader( "Testing with Cuboid" );
-   meshInfo = MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ), Point3D( { 2.0, 0.0, 2.0 } ), 1, 2, 1 );
+   meshInfo = MeshInfo::meshCuboid( Point3D(  -1.0, -1.0, 0.0  ), Point3D(  2.0, 0.0, 2.0  ), 1, 2, 1 );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
@@ -208,7 +210,7 @@ int main( int argc, char** argv )
 
    // Test with annulus
    logSectionHeader( "Testing with BLENDING( ANNULUS -- PolarCoordsMap )" );
-   meshInfo = MeshInfo::meshRectangle( Point2D( { 1.0, 0.0 } ), Point2D( { 2.0, 2.0 * pi } ), MeshInfo::CROSS, 1, 6 );
+   meshInfo = MeshInfo::meshRectangle( Point2D(  1.0, 0.0  ), Point2D(  2.0, 2.0 * pi  ), MeshInfo::CROSS, 1, 6 );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setMap( *setStore.get(), std::make_shared< PolarCoordsMap >() );
@@ -274,7 +276,7 @@ int main( int argc, char** argv )
    meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   vec         = Point2D( { 0.0, 0.0 } );
+   vec         = Point2D(  0.0, 0.0  );
    real_t phi  = real_c( 27 ) * pi / real_c( 180 );
    mat( 0, 0 ) = +std::cos( phi );
    mat( 0, 1 ) = -std::sin( phi );
@@ -292,7 +294,7 @@ int main( int argc, char** argv )
    meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   vec            = Point2D( { -2.0, 3.0 } );
+   vec            = Point2D(  -2.0, 3.0  );
    real_t scalFac = real_c( 2 );
    mat( 0, 0 )    = real_c( scalFac );
    mat( 0, 1 )    = real_c( 1 );
@@ -312,14 +314,16 @@ int main( int argc, char** argv )
    // Test with identity mapping
    logSectionHeader( "Testing with BLENDING( UNIT CUBE with IdentityMap )" );
 
-   Point3D lowerLeftFront( { 0.0, 0.0, 0.0 } );
-   Point3D upperRightBack( { 1.0, 1.0, 1.0 } );
+   Point3D lowerLeftFront(  0.0, 0.0, 0.0  );
+   Point3D upperRightBack(  1.0, 1.0, 1.0  );
    meshInfo = MeshInfo::meshCuboid( lowerLeftFront, upperRightBack, 1, 1, 1 );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
+   auto dp = std::is_same< real_t, double >();
+   checkArea< P2ElementwiseBlendingMassOperator >(
+       primStore, 1.0, "P2ElementwiseBlendingMassOperator", 2, real_c( dp ? 6e-8 : 2e-7 ) );
 
    // Test with affine mapping
    logSectionHeader( "Testing with BLENDING( UNIT CUBE with AffineMap )" );
@@ -338,11 +342,11 @@ int main( int argc, char** argv )
    matAffineMap( 2, 0 ) = +4.999999999999999e-01;
    matAffineMap( 2, 1 ) = +2.676165673298174e-01;
    matAffineMap( 2, 2 ) = +1.647278207092664e+00;
-   Point3D vecAffineMap( { -7.0, 3.0, 2.0 } );
+   Point3D vecAffineMap(  -7.0, 3.0, 2.0  );
    AffineMap3D::setMap( *setStore.get(), matAffineMap, vecAffineMap );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 2.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 2.0, "P2ElementwiseBlendingMassOperator", 2, real_c(dp ? 6e-8 : 4e-7) );
 
    // Test with thick spherical shell
    logSectionHeader( "Testing with BLENDING( Thick Spherical Shell -- IcosahedralShellMap )" );
@@ -353,7 +357,7 @@ int main( int argc, char** argv )
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
    checkArea< P2ElementwiseBlendingMassOperator >(
-       primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 5e-6 );
+       primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, real_c( dp ? 5e-6 : 5e-5 ) );
 
    // ------------------
    //  2D Surface Tests
@@ -374,8 +378,13 @@ int main( int argc, char** argv )
    SphericalElementFormMass sphMassForm( thinShellRadius );
    auto   massOpPtr     = std::make_shared< SphericalElementMassOperator >( primStore, 2, 4, sphMassForm );
    real_t thinShellArea = real_c( 4 ) * pi * thinShellRadius * thinShellRadius;
-   checkArea< SphericalElementMassOperator >( primStore, thinShellArea, "P1ElementwiseOperator< SphericalElementFormMass >",
-                                              2, real_c(-1), true, massOpPtr );
+   checkArea< SphericalElementMassOperator >( primStore,
+                                              thinShellArea,
+                                              "P1ElementwiseOperator< SphericalElementFormMass >",
+                                              2,
+                                              real_c( dp ? -1 : 8e-3 ),
+                                              true,
+                                              massOpPtr );
 
    return EXIT_SUCCESS;
 }

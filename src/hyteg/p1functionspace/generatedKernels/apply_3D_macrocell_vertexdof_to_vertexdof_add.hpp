@@ -34,7 +34,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-void apply_3D_macrocell_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil);
+void apply_3D_macrocell_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int level, std::map< hyteg::indexing::Index, double > p1CellStencil);
 
 } // namespace generated
 } // namespace macrocell

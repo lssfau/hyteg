@@ -105,11 +105,11 @@ int main( int argc, char* argv[] )
    };
 
    wcTimingTreeApp.start( "Function allocation" );
-   hyteg::P1Function< double > oneFunc( "x", storage, level, level );
-   hyteg::P1Function< double > x( "x", storage, level, level );
-   hyteg::P1Function< double > y( "y", storage, level, level );
-   hyteg::P1Function< double > z( "z", storage, level, level );
-   hyteg::P1Function< double > diff( "diff", storage, level, level );
+   hyteg::P1Function< real_t > oneFunc( "x", storage, level, level );
+   hyteg::P1Function< real_t > x( "x", storage, level, level );
+   hyteg::P1Function< real_t > y( "y", storage, level, level );
+   hyteg::P1Function< real_t > z( "z", storage, level, level );
+   hyteg::P1Function< real_t > diff( "diff", storage, level, level );
    hyteg::P1Function< idx_t >  numerator( "numerator", storage, level, level );
    wcTimingTreeApp.stop( "Function allocation" );
 

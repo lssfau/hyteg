@@ -157,27 +157,27 @@ static void testP2Smooth()
       for( const auto& it : hyteg::vertexdof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             vertexDoFData[hyteg::vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )],
+             vertexDoFData[hyteg::vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), sD::VERTEX_C )],
              1.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
       }
 
       for( const auto& it : hyteg::edgedof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_HO_E )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.x(), it.y(), sD::EDGE_HO_E )],
              1.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_DI_NE )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.x(), it.y(), sD::EDGE_DI_NE )],
              1.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_VE_N )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.x(), it.y(), sD::EDGE_VE_N )],
              1.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
       }
    }
 
@@ -248,16 +248,16 @@ static void testP2Smooth()
 
    for( const auto& it : hyteg::vertexdof::macroedge::Iterator( level, 0 ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFData[hyteg::vertexdof::macroedge::indexFromVertex( level, it.col(), sD::VERTEX_C )],
+      WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFData[hyteg::vertexdof::macroedge::indexFromVertex( level, it.x(), sD::VERTEX_C )],
                                   1.,
-                                  it.col() << " " << it.row() );
+                                  it.x() << " " << it.y() );
    }
 
    for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFData[hyteg::edgedof::macroedge::indexFromVertex( level, it.col(), sD::EDGE_HO_E )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFData[hyteg::edgedof::macroedge::indexFromVertex( level, it.x(), sD::EDGE_HO_E )],
                                   1.,
-                                  it.col() << " " << it.row() );
+                                  it.x() << " " << it.y() );
    }
 }
 
@@ -393,27 +393,27 @@ static void testP2JacobiSmooth()
       for( const auto& it : hyteg::vertexdof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             vertexDoFData[hyteg::vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )],
+             vertexDoFData[hyteg::vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), sD::VERTEX_C )],
              13.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
       }
 
       for( const auto& it : hyteg::edgedof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_HO_E )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.x(), it.y(), sD::EDGE_HO_E )],
              13.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_DI_NE )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.x(), it.y(), sD::EDGE_DI_NE )],
              13.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_VE_N )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.x(), it.y(), sD::EDGE_VE_N )],
              13.,
-             it.col() << " " << it.row() );
+             it.x() << " " << it.y() );
       }
    }
 
@@ -487,16 +487,16 @@ static void testP2JacobiSmooth()
 
   for (const auto &it : hyteg::vertexdof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFData[hyteg::vertexdof::macroedge::indexFromVertex(level,it.col(), sD::VERTEX_C)],
+      vertexDoFData[hyteg::vertexdof::macroedge::indexFromVertex(level,it.x(), sD::VERTEX_C)],
       1.,
-      it.col() << " " << it.row());
+      it.x() << " " << it.y());
   }
 
   for (const auto &it : hyteg::edgedof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      edgeDoFData[hyteg::edgedof::macroedge::indexFromVertex(level,it.col(), sD::EDGE_HO_E)],
+      edgeDoFData[hyteg::edgedof::macroedge::indexFromVertex(level,it.x(), sD::EDGE_HO_E)],
       1.,
-      it.col() << " " << it.row());
+      it.x() << " " << it.y());
   }
 #endif
 }

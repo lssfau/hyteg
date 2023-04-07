@@ -173,15 +173,16 @@ int main( int argc, char* argv[] )
 //   vtkOutput.write( maxLevel, 0 );
 #if 1
 
-   typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator  > GMGSolver_T;
+   typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator >                 CoarseGridSolver_T;
+   typedef hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator > GMGSolver_T;
    typedef hyteg::StokesBlockDiagonalPreconditioner< hyteg::P1P1StokesOperator, hyteg::P1LumpedInvMassOperator > Preconditioner_T;
 
-   auto coarseGridSolver = std::make_shared< CoarseGridSolver_T  >( storage, minLevel, maxLevel );
-   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
-   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
-   auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction >();
-   auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+   auto coarseGridSolver     = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
+   auto smoother             = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+   auto gmgSolver            = std::make_shared< GMGSolver_T >(
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
    //hyteg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
    //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
    auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2, gmgSolver );

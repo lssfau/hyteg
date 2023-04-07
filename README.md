@@ -38,11 +38,7 @@ TerraNeo is a module of HyTeG that is providing functionality for running mantle
 
     -DHYTEG_TERRANEO_MODULE=yes
 
-Please note that the module depends on [CGAL (The Computational Geometry Algorithms Library)](https://www.cgal.org/), which in turn has some dependencies on the [Boost](https://www.boost.org/) libraries. Both are header-only libraries.
-
-CMake will download CGAL once as part of the configuration process. If you already have CGAL installed on your system, you can alternatively provide the path to that installation using
-
-    -DCGAL_INCLUDE_PATH=<path to your local installation>
+Please note that the module depends on [Boost](https://www.boost.org/) library, which is a header-only library.
 
 CMake will search for installed Boost libraries. Should these not be found, you can tell it to download them also by setting
 
@@ -93,15 +89,14 @@ Required:
 
 * [CMake](https://cmake.org/ "CMake homepage")
 * a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
-
-Optional:
-
 * [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
   
-  Eigen is, (like waLBerla) automatically cloned as a git submodule.
+  Eigen (like waLBerla) is automatically cloned as a git submodule.
   
   CMake will automatically find the Eigen submodule, there is no need to specify a path
   or to download Eigen at all.
+
+Optional:
 
 * MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
 * [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage") and/or [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers

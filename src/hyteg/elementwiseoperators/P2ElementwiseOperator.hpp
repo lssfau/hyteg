@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
@@ -44,6 +43,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -81,24 +81,17 @@ VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator
 
    if ( this->getStorage()->hasGlobalCells() )
    {
-      if ( form_.assemble3D() )
-      {
-         // WALBERLA_ABORT("Not implemented.");
-         assembleVertexToEdgeStencils< VertexDoFToEdgeDoFForm >( this->getStorage(),
-                                                                 this->minLevel_,
-                                                                 this->maxLevel_,
-                                                                 getEdgeStencil3DID(),
-                                                                 getFaceStencil3DID(),
-                                                                 getCellStencilID(),
-                                                                 form_ );
-      }
+      assembleVertexToEdgeStencils< VertexDoFToEdgeDoFForm >( this->getStorage(),
+                                                              this->minLevel_,
+                                                              this->maxLevel_,
+                                                              getEdgeStencil3DID(),
+                                                              getFaceStencil3DID(),
+                                                              getCellStencilID(),
+                                                              form_ );
    }
    else
    {
-      if ( form_.assemble2D() )
-      {
-         assembleStencils();
-      }
+      assembleStencils();
    }
 }
 
@@ -218,65 +211,65 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
          auto edgeIt = edgedof::macroface::Iterator( level, 0 );
 
          // Loop until first interior DoF is reached
-         while ( edgeIt->row() == 0 || edgeIt->col() == 0 ||
-                 edgeIt->col() + edgeIt->row() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+         while ( edgeIt->y() == 0 || edgeIt->x() == 0 ||
+                 edgeIt->x() + edgeIt->y() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
          {
             edgeIt++;
          }
 
          const Point3D horizontalMicroEdgePosition =
-             faceBottomLeftCoords + ( walberla::real_c( edgeIt->col() * 2 + 1 ) * horizontalMicroEdgeOffset +
-                                      walberla::real_c( edgeIt->row() * 2 ) * verticalMicroEdgeOffset );
+             faceBottomLeftCoords + ( walberla::real_c( edgeIt->x() * 2 + 1 ) * horizontalMicroEdgeOffset +
+                                      walberla::real_c( edgeIt->y() * 2 ) * verticalMicroEdgeOffset );
          const Point3D verticalMicroEdgePosition =
-             faceBottomLeftCoords + ( walberla::real_c( edgeIt->col() * 2 ) * horizontalMicroEdgeOffset +
-                                      walberla::real_c( edgeIt->row() * 2 + 1 ) * verticalMicroEdgeOffset );
+             faceBottomLeftCoords + ( walberla::real_c( edgeIt->x() * 2 ) * horizontalMicroEdgeOffset +
+                                      walberla::real_c( edgeIt->y() * 2 + 1 ) * verticalMicroEdgeOffset );
          const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
          P2::variablestencil::assembleVertexToEdgeStencil( form_,
-                                                           {horizontalMicroEdgePosition + dirHO_W,
-                                                            horizontalMicroEdgePosition + dirHO_E,
-                                                            horizontalMicroEdgePosition + dirHO_NW},
-                                                           {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW )},
+                                                           { horizontalMicroEdgePosition + dirHO_W,
+                                                             horizontalMicroEdgePosition + dirHO_E,
+                                                             horizontalMicroEdgePosition + dirHO_NW },
+                                                           { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW ) },
                                                            vStencil );
          P2::variablestencil::assembleVertexToEdgeStencil( form_,
-                                                           {horizontalMicroEdgePosition + dirHO_W,
-                                                            horizontalMicroEdgePosition + dirHO_E,
-                                                            horizontalMicroEdgePosition + dirHO_SE},
-                                                           {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE )},
+                                                           { horizontalMicroEdgePosition + dirHO_W,
+                                                             horizontalMicroEdgePosition + dirHO_E,
+                                                             horizontalMicroEdgePosition + dirHO_SE },
+                                                           { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE ) },
                                                            vStencil );
 
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_NW},
-             {vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_NW )},
+             { verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_NW },
+             { vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_NW ) },
              vStencil );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_SE},
-             {vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_SE )},
+             { verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_SE },
+             { vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_SE ) },
              vStencil );
 
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_SW},
-             {vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SW )},
+             { diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_SW },
+             { vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SW ) },
              vStencil );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_NE},
-             {vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NE )},
+             { diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_NE },
+             { vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NE ) },
              vStencil );
       }
 
@@ -295,7 +288,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
          uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
          uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
 
-         real_t h = 1.0 / ( walberla::real_c( rowsize ) );
+         real_t h = real_c( 1.0 ) / ( walberla::real_c( rowsize ) );
 
          Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
          //       Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
@@ -328,27 +321,28 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 
          Point3D horizontalMicroEdgePosition;
 
-         horizontalMicroEdgePosition = leftCoords + ( real_c( 0 ) + 0.5 ) * dS_se;
+         horizontalMicroEdgePosition = leftCoords + ( real_c( 0 ) + real_c( 0.5 ) ) * dS_se;
 
          form_.setGeometryMap( faceS->getGeometryMap() );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_SE},
-             {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-              vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-              vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE )},
+             { horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_SE },
+             { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+               vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+               vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE ) },
              vStencil );
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
             form_.setGeometryMap( faceN->getGeometryMap() );
-            P2::variablestencil::assembleVertexToEdgeStencil(
-                form_,
-                {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_NW},
-                {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-                 vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-                 vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW )},
-                vStencil );
+            P2::variablestencil::assembleVertexToEdgeStencil( form_,
+                                                              { horizontalMicroEdgePosition + dir_W,
+                                                                horizontalMicroEdgePosition + dir_E,
+                                                                horizontalMicroEdgePosition + dir_NW },
+                                                              { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+                                                                vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+                                                                vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW ) },
+                                                              vStencil );
          }
       }
    }
@@ -389,6 +383,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
          {
             if ( hyteg::globalDefines::useGeneratedKernels )
             {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                typedef edgedof::EdgeDoFOrientation eo;
                auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
                auto                                srcData     = cell.getData( src.getCellDataID() )->getPointer( level );
@@ -423,6 +418,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
                                                                                               static_cast< int32_t >( level ),
                                                                                               stencilData );
                }
+#endif
             }
             else
             {
@@ -453,6 +449,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
             {
                if ( hyteg::globalDefines::useGeneratedKernels )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
                   auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
                   auto stencilData = face.getData( faceStencil3DID_ )->getData( level );
@@ -540,6 +537,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
                          neighbor_cell_1_local_vertex_id_2,
                          stencilData[1] );
                   }
+#endif
                }
                else
                {
@@ -551,6 +549,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
             {
                if ( hyteg::globalDefines::useGeneratedKernels )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   real_t* opr_data                      = face.getData( faceStencilID_ )->getPointer( level );
                   real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
                   real_t* vertexToHorizontalEdgeStencil = &opr_data[0];
@@ -587,6 +586,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
                          vertexToVerticalEdgeStencil,
                          static_cast< int32_t >( level ) );
                   }
+#endif
                }
                else
                {

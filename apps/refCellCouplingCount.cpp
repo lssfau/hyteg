@@ -239,6 +239,7 @@ std::array< uint_t, 3 > getCellCouplingsByType( uint_t level )
 
    // return counts;
    WALBERLA_ASSERT_EQUAL( numTotalCouplings, numCell2CellCouplings + numCell2FaceCouplings + numCell2EdgeCouplings );
+   WALBERLA_UNUSED( numTotalCouplings );
    return { numCell2CellCouplings, numCell2FaceCouplings, numCell2EdgeCouplings };
 }
 
@@ -623,6 +624,7 @@ std::array< uint_t, 3 > getCellCouplingsByType( uint_t level )
 
    // return counts;
    WALBERLA_ASSERT_EQUAL( numTotalCouplings, numCell2CellCouplings + numCell2FaceCouplings + numCell2EdgeCouplings );
+   WALBERLA_UNUSED( numTotalCouplings );
    return { numCell2CellCouplings, numCell2FaceCouplings, numCell2EdgeCouplings };
 }
 
@@ -684,6 +686,7 @@ std::array< uint_t, 3 > getFaceCouplingsForFace(
    }
 
    WALBERLA_ASSERT_EQUAL( nFace2Cell + nFace2Face + nFace2Edge, nTotal );
+   WALBERLA_UNUSED( nTotal );
 
    // WALBERLA_LOG_INFO_ON_ROOT( "nFace2Cell = " << nFace2Cell );
    // WALBERLA_LOG_INFO_ON_ROOT( "nFace2Face = " << nFace2Face );
@@ -820,6 +823,7 @@ std::array< uint_t, 3 > getEdgeCouplingsForEdge(
       WALBERLA_UNUSED( control );
    }
 
+   WALBERLA_UNUSED( nTotal );
    return { nEdge2Cell, nEdge2Face, nEdge2Edge };
 }
 

@@ -180,7 +180,7 @@ static void testEdgeDoFToVertexDoFOperator()
     for ( const auto & idxIt : vertexdof::macroedge::Iterator( maxLevel, 1 ) )
     {
       auto ptr = edgeFunction->getPointer( maxLevel );
-      auto idx = vertexdof::macroedge::index( maxLevel, idxIt.col());
+      auto idx = vertexdof::macroedge::index( maxLevel, idxIt.x());
 
       const real_t expectedValue = edgeSrcValue *
         ( 2.0 * real_c( edge->getNumNeighborFaces() ) * macroEdgeDiagonalStencilValue
@@ -200,7 +200,7 @@ static void testEdgeDoFToVertexDoFOperator()
     for ( const auto & idxIt : vertexdof::macroface::Iterator( maxLevel, 1 ) )
     {
       auto ptr = faceFunction->getPointer( maxLevel );
-      auto idx = vertexdof::macroface::index( maxLevel, idxIt.col(), idxIt.row());
+      auto idx = vertexdof::macroface::index( maxLevel, idxIt.x(), idxIt.y());
 
       const real_t expectedValue = edgeSrcValue * 4.0 * ( macroFaceHorizontalStencilValue + macroFaceDiagonalStencilValue + macroFaceVerticalStencilValue );
 

@@ -19,7 +19,11 @@
  */
 #pragma once
 
+#include "core/logging/Logging.h"
+
 namespace hyteg {
+
+using walberla::uint_t;
 
 namespace vtk {
 
@@ -40,6 +44,7 @@ enum class DoFType
    EDGE_YZ,
    EDGE_XYZ,
    DG,
+   FACEDOF_OLD,
    P2,
    N1E1,
    P1DGE

@@ -69,7 +69,47 @@ void sor_2D_macroface_vertexdof_to_vertexdof_backwards(double * RESTRICT _data_p
         break;
     }
 }
-    
+
+static void sor_2D_macroface_vertexdof_to_vertexdof_backwards_level_any(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceRhs, float const * RESTRICT const _data_p1FaceStencil, int level, float relax)
+{
+    const float xi_11 = 1.0;
+    const float xi_12 = -relax;
+    const float xi_0 = _data_p1FaceStencil[3];
+    const float xi_9 = 1 / (xi_0);
+    const float xi_1 = _data_p1FaceStencil[2];
+    const float xi_2 = _data_p1FaceStencil[5];
+    const float xi_3 = _data_p1FaceStencil[0];
+    const float xi_4 = _data_p1FaceStencil[6];
+    const float xi_5 = _data_p1FaceStencil[1];
+    const float xi_6 = _data_p1FaceStencil[4];
+    for (int ctr_2 = (1 << (level)) - 1; ctr_2 >= 1; ctr_2 += -1)
+    {
+        // inner triangle
+        for (int ctr_1 = -ctr_2 + (1 << (level)) - 1; ctr_1 >= 1; ctr_1 += -1)
+        {
+         const float xi_19 = _data_p1FaceRhs[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const float xi_13 = -xi_1*_data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
+         const float xi_14 = -xi_2*_data_p1FaceDst[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 2) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - 1];
+         const float xi_15 = -xi_3*_data_p1FaceDst[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 2) - ((ctr_2*(ctr_2 - 1)) / (2))];
+         const float xi_16 = -xi_4*_data_p1FaceDst[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 2) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2))];
+         const float xi_17 = -xi_5*_data_p1FaceDst[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 2) - ((ctr_2*(ctr_2 - 1)) / (2)) + 1];
+         const float xi_18 = -xi_6*_data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + 1];
+         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = relax*xi_9*(xi_13 + xi_14 + xi_15 + xi_16 + xi_17 + xi_18 + xi_19) + (xi_11 + xi_12)*_data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+        }
+    }
+}
+
+
+void sor_2D_macroface_vertexdof_to_vertexdof_backwards(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceRhs, float const * RESTRICT const _data_p1FaceStencil, int level, float relax)
+{
+    switch( level )
+    {
+
+    default:
+        sor_2D_macroface_vertexdof_to_vertexdof_backwards_level_any(_data_p1FaceDst, _data_p1FaceRhs, _data_p1FaceStencil, level, relax);
+        break;
+    }
+}
 
 } // namespace generated
 } // namespace macroface

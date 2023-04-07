@@ -108,12 +108,12 @@ int main( int argc, char* argv[] )
       hyteg::writeDomainPartitioningVTK( storage, "./output", "domain" );
    }
 
-   hyteg::P1Function< double > oneFunc( "x", storage, level, level );
+   hyteg::P1Function< real_t > oneFunc( "x", storage, level, level );
    oneFunc.interpolate( ones, level );
-   hyteg::P1Function< double > x( "x", storage, level, level );
-   hyteg::P1Function< double > y( "y", storage, level, level );
-   hyteg::P1Function< double > z( "z", storage, level, level );
-   hyteg::P1Function< double > diff( "diff", storage, level, level );
+   hyteg::P1Function< real_t > x( "x", storage, level, level );
+   hyteg::P1Function< real_t > y( "y", storage, level, level );
+   hyteg::P1Function< real_t > z( "z", storage, level, level );
+   hyteg::P1Function< real_t > diff( "diff", storage, level, level );
    x.interpolate( exact, level, hyteg::Inner );
    //hyteg::communication::syncFunctionBetweenPrimitives(x,level);
    hyteg::P1Function< idx_t >       numerator( "numerator", storage, level, level );

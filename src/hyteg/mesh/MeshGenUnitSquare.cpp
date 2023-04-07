@@ -34,7 +34,10 @@ MeshInfo MeshInfo::meshUnitSquare(uint_t level) {
   for (uint_t row = 0; row < N+1; ++row) {
     for (uint_t col = 0; col < N+1; ++col) {
       uint_t id = (N+1)*row + col;
-      meshInfo.vertices_[id] =  MeshInfo::Vertex(id, h * walberla::real_c(col) * Point3D({1.0, 0.0, 0.0}) + h * walberla::real_c(row) * Point3D({0.0, 1.0, 0.0}), 0);
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id,
+                                                 h * walberla::real_c( col ) * Point3D( 1.0, 0.0, 0.0 ) +
+                                                     h * walberla::real_c( row ) * Point3D( 0.0, 1.0, 0.0 ),
+                                                 0 );
     }
   }
 

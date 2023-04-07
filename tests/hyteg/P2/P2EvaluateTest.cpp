@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -52,28 +52,30 @@ void test2D()
    const uint_t numRandomEvaluations = 1000;
 
    auto testFunc = []( const Point3D& x ) {
-      return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 7.0 * x[1] * x[1] + 10.0 * x[0] + 3.0 * x[1] + 1.0;
+      return real_c( 5 ) * x[0] * x[0] + real_c( 2 ) * x[0] * x[1] + real_c( 7 ) * x[1] * x[1] + real_c( 10 ) * x[0] +
+             real_c( 3 ) * x[1] + real_c( 1 );
    };
-   auto testFuncDerivativeX = []( const Point3D& x ) { return 10.0 * x[0] + 2.0 * x[1] + 10.0; };
-   auto testFuncDerivativeY = []( const Point3D& x ) { return 14.0 * x[1] + 2.0 * x[0] + 3.0; };
+   auto testFuncDerivativeX = []( const Point3D& x ) { return real_c( 10 ) * x[0] + real_c( 2 ) * x[1] + real_c( 10 ); };
+   auto testFuncDerivativeY = []( const Point3D& x ) { return real_c( 14 ) * x[1] + real_c( 2 ) * x[0] + real_c( 3 ); };
 
    P2Function< real_t > x( "x", storage, minLevel, maxLevel );
    x.interpolate( testFunc, maxLevel );
+
    // IMPORTANT
    communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
-   Point3D coordinates( { 0.0, 0.5, 0.0 } );
+   Point3D coordinates(  real_c( 0.0 ), real_c( 0.5 ), real_c( 0.0 )  );
    real_t  eval;
    auto    success = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
-   Point3D gradient;
+   Point3D gradient( Point3D::Zero() );
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
-   coordinates[0] = 2.0;
-   coordinates[1] = 0.0;
+   coordinates[0] = real_c( 2.0 );
+   coordinates[1] = real_c( 0.0 );
    success        = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
@@ -81,8 +83,8 @@ void test2D()
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
-   coordinates[0] = 2.0;
-   coordinates[1] = 1.0;
+   coordinates[0] = real_c( 2.0 );
+   coordinates[1] = real_c( 1.0 );
    success        = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
@@ -90,8 +92,8 @@ void test2D()
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
-   coordinates[0] = 0.0;
-   coordinates[1] = 1.0;
+   coordinates[0] = real_c( 0.0 );
+   coordinates[1] = real_c( 1.0 );
    success        = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
@@ -99,8 +101,8 @@ void test2D()
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
-   coordinates[0] = 0.5;
-   coordinates[1] = 0.5;
+   coordinates[0] = real_c( 0.5 );
+   coordinates[1] = real_c( 0.5 );
    success        = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
@@ -110,10 +112,10 @@ void test2D()
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-      coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
+      coordinates[0] = walberla::math::realRandom( real_c( 0.0 ), real_c( 1.0 ) );
+      coordinates[1] = walberla::math::realRandom( real_c( 0.0 ), real_c( 1.0 ) );
 
-      if ( coordinates[0] < 0.5 && coordinates[1] < 0.5 )
+      if ( coordinates[0] < real_c( 0.5 ) && coordinates[1] < real_c( 0.5 ) )
       {
          continue;
       }
@@ -122,14 +124,27 @@ void test2D()
       WALBERLA_CHECK( success );
       x.evaluateGradient( coordinates, maxLevel, gradient );
       WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
+
+      // real_t differenceX = std::abs( gradient[0] - testFuncDerivativeX( coordinates ) );
+      // WALBERLA_LOG_INFO_ON_ROOT( "grad[0] = " << gradient[0] << ", " << testFuncDerivativeX( coordinates )
+      //                                         << ", diff in grad[0] = " << std::scientific << differenceX );
       WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+      }
+      else
+      {
+         real_t differenceY = std::abs( gradient[1] - testFuncDerivativeY( coordinates ) );
+         WALBERLA_CHECK_LESS( differenceY, 3e-3f );
+      }
    }
 }
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { -1, -1, -1 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  -1, -1, -1  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -141,8 +156,9 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    auto testFunc = []( const Point3D& x ) {
-      return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 4.0 * x[0] * x[2] + 7.0 * x[1] * x[1] + 9.0 * x[1] * x[2] +
-             3.0 * x[2] * x[2] + 10.0 * x[0] + 3.0 * x[1] + 4.0 * x[2] + 1.0;
+      double aux = 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 4.0 * x[0] * x[2] + 7.0 * x[1] * x[1] + 9.0 * x[1] * x[2] +
+                   3.0 * x[2] * x[2] + 10.0 * x[0] + 3.0 * x[1] + 4.0 * x[2] + 1.0;
+      return real_c( aux );
    };
 
    P2Function< real_t > x( "x", storage, minLevel, maxLevel );
@@ -154,10 +170,10 @@ void test3D()
 
       for ( uint_t i = 0; i < numRandomEvaluations; ++i )
       {
-         Point3D coordinates;
-         coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
-         coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+         Point3D coordinates( Point3D::Zero() );
+         coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+         coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
          real_t eval;
          auto   success = x.evaluate( coordinates, level, eval );
@@ -171,7 +187,7 @@ void test3D()
 
 void test3DReversibility()
 {
-   MeshInfo              meshInfo = MeshInfo::meshCuboid( Point3D( { -1, -1, -1 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshCuboid( Point3D(  -1, -1, -1  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -272,12 +288,19 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       {
          real_t radius = walberla::math::realRandom( rMin, rMax );
          real_t angle  = walberla::math::realRandom( real_c( 0 ), real_c( 2 ) * pi );
-         samples.push_back( Point3D( { radius * std::cos( angle ), radius * std::sin( angle ), real_c( 0 ) } ) );
+         samples.emplace_back( radius * std::cos( angle ), radius * std::sin( angle ), real_c( 0 ) );
       }
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-13 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 1e-13 );
+      }
+      else
+      {
+         tolerance = real_c( 2e-6 );
+      }
    }
 
    // 2D affine map
@@ -287,7 +310,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-      Point2D  shift( { real_c( 4 ), real_c( -1.0 / 3.0 ) } );
+      Point2D  shift(  real_c( 4 ), real_c( -1.0 / 3.0 )  );
       real_t   angle = pi / real_c( 180.0 * 25.0 );
       Matrix2r mat;
       mat( 0, 0 ) = +std::cos( angle );
@@ -302,12 +325,19 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
          real_t yPos = walberla::math::realRandom( real_c( 0 ), real_c( 1 ) );
          real_t x    = mat( 0, 0 ) * xPos + mat( 0, 1 ) * yPos + shift[0];
          real_t y    = mat( 1, 0 ) * xPos + mat( 1, 1 ) * yPos + shift[1];
-         samples.push_back( Point3D( { x, y, real_c( 0 ) } ) );
+         samples.emplace_back( x, y, real_c( 0 ) );
       }
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      tolerance = real_c( 1e-13 );
+      if constexpr ( std::is_same_v< real_t, double > )
+      {
+         tolerance = real_c( 1e-13 );
+      }
+      else
+      {
+         tolerance = real_c( 5e-6 );
+      }
    }
 
    const size_t minLevel = 2;

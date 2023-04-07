@@ -73,17 +73,17 @@ static void testP2Function()
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
-          vertexDoFFaceDataX[vertexdof::macroface::indexFromVertex( maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )],
+          vertexDoFFaceDataX[vertexdof::macroface::indexFromVertex( maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )],
           real_c( 2 ) );
    }
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 2 ) );
    }
 
@@ -98,17 +98,17 @@ static void testP2Function()
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
-          vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )],
+          vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )],
           real_c( 6 ) );
    }
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 6 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 6 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 6 ) );
    }
 
@@ -122,17 +122,17 @@ static void testP2Function()
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
-          vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )],
+          vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )],
           real_c( 20 ) );
    }
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 20 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 20 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 20 ) );
    }
 

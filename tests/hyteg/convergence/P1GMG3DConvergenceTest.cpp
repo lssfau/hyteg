@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
   const uint_t      maxLevel        = 3;
   const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
 
-  const uint_t      numVCycles      = 10;
+  const uint_t      numVCycles      = 4;
 //  const uint_t      numPreSmoothingSteps  = 2;
 //  const uint_t      numPostSmoothingSteps = 2;
 //
@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
 
   std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D & ) -> real_t
   {
-      return walberla::math::realRandom( 0.0, 1.0 );
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
   };
 
   hyteg::P1Function< real_t > res( "r", storage, minLevel, maxLevel );
@@ -104,17 +104,17 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, maxLevel, DoFType::All );
   oneFunction.interpolate( one, maxLevel, DoFType::All );
 
-  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+  auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
-  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+  auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
-     storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, maxLevel, DoFType::Inner );
 
-  VTKOutput vtkOutput("../../output", "P1GMG3DConvergenceTest", storage);
+  VTKOutput vtkOutput( "../../output", "P1GMG3DConvergenceTest", storage );
   vtkOutput.add( u );
   vtkOutput.add( err );
 

@@ -44,19 +44,19 @@ class N1E1Form_mass : public N1E1Form
                       const std::array< int, 6 >&     edgeDirections,
                       Matrix6r&                       elMat ) const final
    {
-      elMat.setAll( real_c( 0 ) );
+      elMat.setZero();
 
       // F maps from reference tet K' to affine tet K
       // K = F(K') = Bx' + b
       // B is the Jacobian of the transformation
-      Eigen::Matrix3r B;
-      B.col( 0 ) = coords[1].vector_ - coords[0].vector_;
-      B.col( 1 ) = coords[2].vector_ - coords[0].vector_;
-      B.col( 2 ) = coords[3].vector_ - coords[0].vector_;
+      hyteg::Matrix3r B;
+      B.col( 0 ) = coords[1] - coords[0];
+      B.col( 1 ) = coords[2] - coords[0];
+      B.col( 2 ) = coords[3] - coords[0];
 
       const real_t absDetB = std::abs( B.determinant() );
 
-      const Eigen::Matrix3r b    = B.inverse();
+      const hyteg::Matrix3r b    = B.inverse();
       const real_t          b_11 = b( 0, 0 );
       const real_t          b_12 = b( 0, 1 );
       const real_t          b_13 = b( 0, 2 );
@@ -104,27 +104,6 @@ class N1E1Form_mass : public N1E1Form
       elMat(5, 3) = absDetB*((1.0/60.0)*std::pow(b_11, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/40.0)*b_11*b_21*edgeDirections[3]*edgeDirections[5] + (1.0/20.0)*b_11*b_31*edgeDirections[3]*edgeDirections[5] + (1.0/60.0)*std::pow(b_12, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/40.0)*b_12*b_22*edgeDirections[3]*edgeDirections[5] + (1.0/20.0)*b_12*b_32*edgeDirections[3]*edgeDirections[5] + (1.0/60.0)*std::pow(b_13, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/40.0)*b_13*b_23*edgeDirections[3]*edgeDirections[5] + (1.0/20.0)*b_13*b_33*edgeDirections[3]*edgeDirections[5] + (1.0/120.0)*std::pow(b_21, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/40.0)*b_21*b_31*edgeDirections[3]*edgeDirections[5] + (1.0/120.0)*std::pow(b_22, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/40.0)*b_22*b_32*edgeDirections[3]*edgeDirections[5] + (1.0/120.0)*std::pow(b_23, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/40.0)*b_23*b_33*edgeDirections[3]*edgeDirections[5] + (1.0/60.0)*std::pow(b_31, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/60.0)*std::pow(b_32, 2)*edgeDirections[3]*edgeDirections[5] + (1.0/60.0)*std::pow(b_33, 2)*edgeDirections[3]*edgeDirections[5]);
       elMat(5, 4) = absDetB*((1.0/60.0)*std::pow(b_11, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/20.0)*b_11*b_21*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_11*b_31*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_12, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/20.0)*b_12*b_22*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_12*b_32*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_13, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/20.0)*b_13*b_23*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_13*b_33*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_21, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_21*b_31*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_22, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_22*b_32*edgeDirections[4]*edgeDirections[5] + (1.0/60.0)*std::pow(b_23, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/40.0)*b_23*b_33*edgeDirections[4]*edgeDirections[5] + (1.0/120.0)*std::pow(b_31, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/120.0)*std::pow(b_32, 2)*edgeDirections[4]*edgeDirections[5] + (1.0/120.0)*std::pow(b_33, 2)*edgeDirections[4]*edgeDirections[5]);
       elMat(5, 5) = absDetB*((1.0/20.0)*std::pow(b_11, 2)*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_11*b_21*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_11*b_31*std::pow(edgeDirections[5], 2) + (1.0/20.0)*std::pow(b_12, 2)*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_12*b_22*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_12*b_32*std::pow(edgeDirections[5], 2) + (1.0/20.0)*std::pow(b_13, 2)*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_13*b_23*std::pow(edgeDirections[5], 2) + (1.0/20.0)*b_13*b_33*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_21, 2)*std::pow(edgeDirections[5], 2) + (1.0/30.0)*b_21*b_31*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_22, 2)*std::pow(edgeDirections[5], 2) + (1.0/30.0)*b_22*b_32*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_23, 2)*std::pow(edgeDirections[5], 2) + (1.0/30.0)*b_23*b_33*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_31, 2)*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_32, 2)*std::pow(edgeDirections[5], 2) + (1.0/60.0)*std::pow(b_33, 2)*std::pow(edgeDirections[5], 2));      // clang-format on
-   };
-
-   bool assemble2D() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assemble3D() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assembly2DDefined() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
-   };
-   bool assembly3DDefined() const override
-   {
-      WALBERLA_ABORT( "Not implemented." );
-      return false;
    };
 };
 

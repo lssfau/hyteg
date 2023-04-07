@@ -48,7 +48,7 @@ inline real_t
       globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
    }
 
-   return std::pow( 2.0, -walberla::real_c( level ) ) * globalMin;
+   return std::pow( real_c( 2.0 ), -walberla::real_c( level ) ) * globalMin;
 }
 
 inline real_t
@@ -72,7 +72,7 @@ inline real_t
       globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
    }
 
-   return std::pow( 2.0, -walberla::real_c( level ) ) * globalMax;
+   return std::pow( real_c( 2.0 ), -walberla::real_c( level ) ) * globalMax;
 }
 
 } // namespace MeshQuality

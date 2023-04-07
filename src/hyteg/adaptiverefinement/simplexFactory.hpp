@@ -42,6 +42,7 @@ class SimplexFactory
    , _vertices( vertices )
    , _geometryMap( ( parent == nullptr ) ? PrimitiveID() : parent->getGeometryMap() )
    , _boundaryFlag( ( parent == nullptr ) ? 0 : parent->getBoundaryFlag() )
+   , _targetRank( ( parent == nullptr ) ? 0 : parent->getTargetRank() )
    {}
 
    /* add existing face \\subset parent for creating sub-tetrahedra
@@ -90,6 +91,7 @@ class SimplexFactory
    FaceMap                           _faces;
    PrimitiveID                       _geometryMap;
    uint_t                            _boundaryFlag;
+   uint_t                            _targetRank;
 };
 
 } // namespace adaptiveRefinement

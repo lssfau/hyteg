@@ -180,8 +180,8 @@ int main( int argc, char* argv[] )
    echoParams( params );
 
    logMessage( "Generating single triangle mesh" );
-   // MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( {0.0, 0.0} ), Point2D( {1.0, 0.0} ), Point2D( {0.0, 1.0} ) );
-   MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( {0.0, 0.0} ), Point2D( {2.0, 0.0} ), Point2D( {2.0, 1.0} ) );
+   // MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 0.0 ), Point2D( 0.0, 1.0 ) );
+   MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( 0.0, 0.0 ), Point2D( 2.0, 0.0 ), Point2D( 2.0, 1.0 ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -199,8 +199,8 @@ int main( int argc, char* argv[] )
    };
 
    expression parameterFunction = []( const hyteg::Point3D& x ) {
-      real_t value = real_c( 1.2 ) + std::sin( pi * ( x[1] * 0.5 + 0.1 ) ) + std::cos( 0.5 * pi * x[0] );
-      return 0.1 * value;
+      real_t value = real_c( 1.2 ) + std::sin( pi * ( x[1] * real_c( 0.5 + 0.1 ) ) ) + std::cos( real_c( 0.5 ) * pi * x[0] );
+      return real_c( 0.1 ) * value;
    };
 
    expression parameterFunction2 = []( const hyteg::Point3D& x ) { return 1.0 * x[0] + 0.0 * x[1] + 1.0; };
@@ -325,8 +325,8 @@ int main( int argc, char* argv[] )
    expression surrogate = [&poly, &Phi, &vertices]( const hyteg::Point3D& x ) {
       // polynomial is given in barycentric coordinates, so we must map x
       // to the reference element here
-      Point2D aux( {x[0] - vertices[0][0], x[1] - vertices[0][1]} );
-      Point2D pnt = Phi.mul( aux );
+      Point2D aux(  x[0] - vertices[0][0], x[1] - vertices[0][1]  );
+      Point2D pnt = Phi * aux;
       return poly.eval( pnt );
    };
 

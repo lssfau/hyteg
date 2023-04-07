@@ -47,8 +47,8 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
    typedef stencilDirection SD;
 
    real_t tmp;
-   uint_t i = idx.col();
-   uint_t j = idx.row();
+   uint_t i = idx.x();
+   uint_t j = idx.y();
 
    // VERTEX DoF
    if (!vertexdof::macroface::isVertexOnBoundary(level, idx))
@@ -176,8 +176,8 @@ inline void applyGS_DoF(const uint_t level, const hyteg::indexing::Index& idx,
    typedef stencilDirection SD;
 
    real_t tmp;
-   uint_t i = idx.col();
-   uint_t j = idx.row();
+   uint_t i = idx.x();
+   uint_t j = idx.y();
 
    // VERTEX DoF
    if (!vertexdof::macroface::isVertexOnBoundary(level, idx))
@@ -522,7 +522,7 @@ inline void applyVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
    {
-      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+      x = x0 + walberla::real_c(it.y()) * d2 + walberla::real_c(it.x()) * d0;
 
       assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
                       vertexToVertexStencil, edgeToVertexStencil,
@@ -575,7 +575,7 @@ inline void smoothGSVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
    {
-      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+      x = x0 + walberla::real_c(it.y()) * d2 + walberla::real_c(it.x()) * d0;
 
       assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
                       vertexToVertexStencil, edgeToVertexStencil,
@@ -721,7 +721,7 @@ inline void applyVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
    {
-      uint_t i = it.col();
+      uint_t i = it.x();
       x = x0 + walberla::real_c(i) * dx;
       assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil);
 
@@ -907,7 +907,7 @@ inline void smoothGSVariableStencil(uint_t level,
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
    {
-      uint_t i = it.col();
+      uint_t i = it.x();
       x = x0 + walberla::real_c(i) * dx;
       assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil);
 

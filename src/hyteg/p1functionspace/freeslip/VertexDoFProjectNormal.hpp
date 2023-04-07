@@ -88,7 +88,7 @@ inline void projectNormal3D( uint_t                                             
       in[1] = dstV[idx];
       in[2] = dstW[idx];
 
-      out = projection.mul( in );
+      out = projection * in;
 
       dstU[idx] = out[0];
       dstV[idx] = out[1];
@@ -144,7 +144,7 @@ inline void projectNormal2D( uint_t                                             
       in[0] = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       in[1] = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
 
-      out = projection.mul( in );
+      out = projection * in;
 
       dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = out[0];
       dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = out[1];
@@ -197,7 +197,7 @@ inline void projectNormal3D( uint_t                                             
       in[1] = dstV[idx];
       in[2] = dstW[idx];
 
-      out = projection.mul( in );
+      out = projection * in;
 
       dstU[idx] = out[0];
       dstV[idx] = out[1];
@@ -266,10 +266,10 @@ inline void projectNormal2D( uint_t                                             
 
    Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
 
-   Point3D xPhy;
+   Point3D xPhy( Point3D::Zero() );
    faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
 
-   Point3D normal;
+   Point3D normal( Point3D::Zero() );
    normal_function( xPhy, normal );
 
    Matrix2r projection;
@@ -281,7 +281,7 @@ inline void projectNormal2D( uint_t                                             
    Point2D in;
    in[0]       = *dstU;
    in[1]       = *dstV;
-   Point2D out = projection.mul( in );
+   Point2D out = projection * in;
 
    *dstU = out[0];
    *dstV = out[1];
@@ -325,7 +325,7 @@ inline void projectNormal3D( uint_t                                             
    in[1] = dstV[0];
    in[2] = dstW[0];
 
-   out = projection.mul( in );
+   out = projection * in;
 
    dstU[0] = out[0];
    dstV[0] = out[1];

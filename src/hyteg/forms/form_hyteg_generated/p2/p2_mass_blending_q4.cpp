@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -1517,7 +1513,7 @@ namespace forms {
 
    void p2_mass_blending_q4::Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -1528,7 +1524,7 @@ namespace forms {
 
    void p2_mass_blending_q4::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );

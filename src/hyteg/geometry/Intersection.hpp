@@ -103,10 +103,12 @@ inline bool isPointInTriangle( const PointType& pointOfInterest, const PointType
       const auto centrex = pointOfInterest[0];
       const auto centrey = pointOfInterest[1];
 
-      const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
-      const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
-      const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
-      return ( s > 0 && t > 0 && 1 - s - t > 0 );
+      const auto area = real_c( 0.5 ) * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
+      const auto s =
+          real_c( 1 ) / ( real_c( 2 ) * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
+      const auto t =
+          real_c( 1 ) / ( real_c( 2 ) * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
+      return ( s > real_c( 0 ) && t > real_c( 0 ) && real_c( 1 ) - s - t > real_c( 0 ) );
    }
 }
 
@@ -115,9 +117,9 @@ inline bool isPointInTriangle( const PointType& pointOfInterest, const PointType
 template < typename PointType >
 inline bool circleTriangleIntersection( const PointType& centre,
                                         const real_t&    radius,
-                                        const PointType&   v1,
-                                        const PointType&   v2,
-                                        const PointType&   v3 )
+                                        const PointType& v1,
+                                        const PointType& v2,
+                                        const PointType& v3 )
 {
    if constexpr ( !std::is_same< PointType, Point2D >::value && !std::is_same< PointType, Point3D >::value )
    {
@@ -252,7 +254,7 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto intersectionRadius = std::sqrt( radius * radius - centreDistToPlane * centreDistToPlane );
 
    // We need to rotate our coordinate system -> normal component in z direction.
-   auto planeTangent0 = v2 - v1;
+   Point3D planeTangent0 = v2 - v1;
    planeTangent0 /= planeTangent0.norm();
    auto planeTangent1 = crossProduct( planeNormal, planeTangent0 );
 
@@ -282,11 +284,11 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto v2PlaneBasis     = basisTrafo * v2OldBasis;
    auto v3PlaneBasis     = basisTrafo * v3OldBasis;
 
-   return circleTriangleIntersection( Point2D( { centrePlaneBasis[0], centrePlaneBasis[1] } ),
+   return circleTriangleIntersection( Point2D( centrePlaneBasis[0], centrePlaneBasis[1] ),
                                       intersectionRadius,
-                                      Point2D( { v1PlaneBasis[0], v1PlaneBasis[1] } ),
-                                      Point2D( { v2PlaneBasis[0], v2PlaneBasis[1] } ),
-                                      Point2D( { v3PlaneBasis[0], v3PlaneBasis[1] } ) );
+                                      Point2D( v1PlaneBasis[0], v1PlaneBasis[1] ),
+                                      Point2D( v2PlaneBasis[0], v2PlaneBasis[1] ),
+                                      Point2D( v3PlaneBasis[0], v3PlaneBasis[1] ) );
 }
 
 /// Returns true if the passed point is located in (or on) the passed tetrahedron.

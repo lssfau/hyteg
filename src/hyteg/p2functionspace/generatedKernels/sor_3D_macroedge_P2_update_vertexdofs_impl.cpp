@@ -29,7 +29,7 @@ namespace P2 {
 namespace macroedge {
 namespace generated {
 
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_012_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_012_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
@@ -59,7 +59,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_012_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_012(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_012(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -70,7 +70,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_012(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_013_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_013_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
@@ -100,7 +100,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_013_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_013(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_013(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -111,7 +111,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_013(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_021_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_021_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -146,7 +146,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_021_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_021(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_021(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -157,7 +157,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_021(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_023_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_023_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -192,7 +192,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_023_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_023(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_023(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -203,7 +203,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_023(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_031_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_031_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
@@ -233,7 +233,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_031_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_031(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_031(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -244,7 +244,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_031(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_032_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_032_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
@@ -274,7 +274,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_032_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_032(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_032(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -285,7 +285,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_032(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_102_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_102_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
@@ -315,7 +315,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_102_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_102(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_102(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -326,7 +326,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_102(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_103_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_103_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
@@ -356,7 +356,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_103_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_103(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_103(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -367,7 +367,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_103(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_120_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_120_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
@@ -397,7 +397,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_120_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_120(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_120(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -408,7 +408,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_120(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_123_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_123_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
@@ -438,7 +438,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_123_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_123(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_123(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -449,7 +449,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_123(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_130_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_130_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
@@ -484,7 +484,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_130_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_130(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_130(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -495,7 +495,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_130(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_132_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_132_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
@@ -530,7 +530,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_132_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_132(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_132(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -541,7 +541,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_132(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_201_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_201_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -576,7 +576,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_201_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_201(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_201(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -587,7 +587,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_201(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_203_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_203_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -622,7 +622,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_203_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_203(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_203(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -633,7 +633,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_203(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_210_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_210_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
@@ -663,7 +663,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_210_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_210(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_210(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -674,7 +674,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_210(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_213_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_213_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
@@ -704,7 +704,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_213_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_213(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_213(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -715,7 +715,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_213(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_230_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_230_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -745,7 +745,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_230_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_230(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_230(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -756,7 +756,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_230(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_231_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_231_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -786,7 +786,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_231_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_231(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_231(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -797,7 +797,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_231(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_301_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_301_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
@@ -827,7 +827,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_301_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_301(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_301(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -838,7 +838,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_301(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_302_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_302_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
@@ -868,7 +868,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_302_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_302(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_302(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -879,7 +879,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_302(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_310_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_310_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
@@ -914,7 +914,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_310_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_310(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_310(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -925,7 +925,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_310(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_312_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_312_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
@@ -960,7 +960,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_312_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_312(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_312(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -971,7 +971,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_312(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_320_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_320_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -1001,7 +1001,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_320_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_320(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_320(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {
@@ -1012,7 +1012,7 @@ void sor_3D_macroedge_P2_update_vertexdofs_impl_320(double const * RESTRICT cons
     }
 }
     
-static void sor_3D_macroedge_P2_update_vertexdofs_impl_321_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+static void sor_3D_macroedge_P2_update_vertexdofs_impl_321_level_any(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
    const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, -1 }];
    const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
@@ -1042,7 +1042,7 @@ static void sor_3D_macroedge_P2_update_vertexdofs_impl_321_level_any(double cons
 }
 
 
-void sor_3D_macroedge_P2_update_vertexdofs_impl_321(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil)
+void sor_3D_macroedge_P2_update_vertexdofs_impl_321(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::Index, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t num_neighbor_faces, std::map< hyteg::indexing::Index, double > v2v_cell_stencil)
 {
     switch( level )
     {

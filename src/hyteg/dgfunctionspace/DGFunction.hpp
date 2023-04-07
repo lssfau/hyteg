@@ -235,13 +235,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    /// Evaluates the linear functional
    ///
-   ///   l( v ) = \int_\Omega f * v
+   ///   \f[ l( v ) = \int_\Omega f \cdot v \f]
    ///
    /// by integration over the local basis functions and writes the result into the vector, i.e.
    ///
-   ///   u_i <- \int_T f * \phi_i
+   ///   \f[ u_i \leftarrow \int_T f \cdot \phi_i \f]
    ///
-   /// where \phi_i is the basis function associated with the DoF u_i and f a given analytical function.
+   /// where \f$\phi_i\f$ is the basis function associated with the DoF \f$u_i\f$ and \f$f\f$ a given analytical function.
    void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level );
 
    /// \brief Applies the Dirichlet boundary conditions to this function, treating it as the right-hand side of the linear system
@@ -340,11 +340,23 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       volumeDoFFunction_->swap(*(other.volumeDoFFunction()), level);
    }
 
-   /// \brief Returns the max absolute DoF.
+   /// \brief Returns the max absolute DoF value.
    ///
    /// \param level     refinement level
    /// \param mpiReduce if true, reduces over all processes (global max magnitude), if false returns the process local value
    ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const;
+
+   /// \brief Returns the max DoF value.
+   ///
+   /// \param level     refinement level
+   /// \param mpiReduce if true, reduces over all processes (global max), if false returns the process local value
+   ValueType getMax( uint_t level, bool mpiReduce = true ) const;
+
+   /// \brief Returns the min DoF value.
+   ///
+   /// \param level     refinement level
+   /// \param mpiReduce if true, reduces over all processes (global min), if false returns the process local value
+   ValueType getMin( uint_t level, bool mpiReduce = true ) const;
 
  private:
    using Function< DGFunction< ValueType > >::communicators_;

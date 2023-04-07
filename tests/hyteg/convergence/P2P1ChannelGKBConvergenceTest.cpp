@@ -94,7 +94,7 @@ void runBenchmark( const uint_t& level,
    //create a Rectangle as mesh with 4 triangles
    real_t halfLength = static_cast< real_t >( channelLength ) / 2;
    auto   meshInfo   = MeshInfo::meshRectangle(
-       Point2D( { -halfLength, -1 } ), Point2D( { halfLength, 1 } ), MeshInfo::CRISSCROSS, channelLength, 1 );
+       Point2D(  -halfLength, -1  ), Point2D(  halfLength, 1  ), MeshInfo::CRISSCROSS, channelLength, 1 );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

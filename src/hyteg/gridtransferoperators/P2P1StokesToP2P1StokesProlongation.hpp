@@ -31,7 +31,7 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
 {
  public:
    typedef P2toP2QuadraticProlongation VelocityProlongation_T;
-   typedef P1toP1LinearProlongation    PressureProlongation_T;
+   typedef P1toP1LinearProlongation<>  PressureProlongation_T;
 
    void prolongate( const P2P1TaylorHoodFunction< real_t >& function,
                     const uint_t&                           sourceLevel,
@@ -57,6 +57,6 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
 
  private:
    P2toP2QuadraticProlongation quadraticProlongationOperator_;
-   P1toP1LinearProlongation    linearProlongationOperator_;
+   P1toP1LinearProlongation<>  linearProlongationOperator_;
 };
 } // namespace hyteg

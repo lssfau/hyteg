@@ -540,11 +540,11 @@ void runBenchmark( real_t      cflMax,
    real_t vRms      = 0;
    real_t residual  = 0;
 
-   real_t timeStepTotal = 0;
-   real_t timeStokes    = 0;
-   real_t timeMMOC      = 0;
-   real_t timeDiffusion = 0;
-   real_t timeVTK       = 0;
+   double timeStepTotal = 0;
+   double timeStokes    = 0;
+   double timeMMOC      = 0;
+   double timeDiffusion = 0;
+   double timeVTK       = 0;
 
    /// [VTK]
    VTKOutput vtkOutput( outputDirectory, outputBaseName, storage );

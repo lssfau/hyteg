@@ -1,40 +1,39 @@
-add_library( hyteg )
-target_link_libraries( hyteg PUBLIC core vtk )
+add_library(hyteg)
+target_link_libraries(hyteg PUBLIC core vtk)
+if (HYTEG_BUILD_WITH_PETSC)
+   target_link_libraries(hyteg PUBLIC PETSc::PETSc)
+endif ()
 target_compile_features(hyteg PUBLIC cxx_std_17)
-set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF )
-target_sources( hyteg
+set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF)
+# There seem to be spurious warnings in gcc 12.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366
+# TODO: check if this is still the case for gcc 12.3
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12.1.0)
+   target_compile_options(hyteg PUBLIC "-Wno-nonnull")
+endif ()
+target_sources(hyteg
       PRIVATE
-      HytegDefinitions.in.hpp
-      Git.in.hpp
-      Levelinfo.hpp
-      Macros.hpp
-      OpenMPManager.hpp
-      MeshQuality.hpp
-      Math.hpp
-      Stencil.hpp
-      LikwidWrapper.hpp
-      StencilDirections.hpp
       Algorithms.hpp
-      PrimitiveID.hpp
       BuildInfo.in.hpp
+      Git.in.hpp
+      HytegDefinitions.in.hpp
+      Levelinfo.hpp
+      LikwidWrapper.hpp
+      Macros.hpp
+      Math.hpp
+      MeshQuality.hpp
+      OpenMPManager.hpp
+      PrimitiveID.hpp
+      Stencil.hpp
+      StencilDirections.hpp
       )
 
-add_subdirectory( p2functionspace )
-add_subdirectory( numerictools )
-add_subdirectory( mesh )
-add_subdirectory( edgedofspace )
-add_subdirectory( misc )
 add_subdirectory( adaptiverefinement )
-add_subdirectory( gridtransferoperators )
-add_subdirectory( types )
-add_subdirectory( forms )
-add_subdirectory( sparseassembly )
-add_subdirectory( memory )
-add_subdirectory( operators )
 add_subdirectory( boundary )
+add_subdirectory( communication )
 add_subdirectory( composites )
-add_subdirectory( solvers )
+add_subdirectory( dataexport )
 add_subdirectory( dgfunctionspace )
+add_subdirectory( edgedofspace )
 add_subdirectory( dg1functionspace )
 add_subdirectory( dgfunctionspace_old )
 add_subdirectory( volumedofspace )
@@ -42,20 +41,29 @@ add_subdirectory( mixedoperators )
 add_subdirectory( eigen )
 add_subdirectory( elementwiseoperators )
 add_subdirectory( fenics )
-add_subdirectory( primitives )
-add_subdirectory( dataexport )
-add_subdirectory( primitivestorage )
-add_subdirectory( celldofspace )
-add_subdirectory( primitivedata )
+add_subdirectory( forms )
 add_subdirectory( functions )
-add_subdirectory( trilinos )
-add_subdirectory( petsc )
 add_subdirectory( geometry )
+add_subdirectory( gridtransferoperators )
 add_subdirectory( indexing )
-add_subdirectory( communication )
+add_subdirectory( memory )
+add_subdirectory( mesh )
+add_subdirectory( misc )
+add_subdirectory( mixedoperators )
+add_subdirectory( n1e1functionspace )
+add_subdirectory( numerictools )
+add_subdirectory( operators )
 add_subdirectory( p0functionspace )
 add_subdirectory( egfunctionspace)
 add_subdirectory( p1functionspace )
-add_subdirectory( facedofspace_old )
+add_subdirectory( p2functionspace )
+add_subdirectory( petsc )
 add_subdirectory( polynomial )
-add_subdirectory( n1e1functionspace )
+add_subdirectory( primitivedata )
+add_subdirectory( primitives )
+add_subdirectory( primitivestorage )
+add_subdirectory( solvers )
+add_subdirectory( sparseassembly )
+add_subdirectory( trilinos )
+add_subdirectory( types )
+add_subdirectory( volumedofspace )

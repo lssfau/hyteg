@@ -50,11 +50,11 @@ inline void assembleLocalStencil( const P1Form&                            form,
 
 // as above but using the new integrateRow()-interface. Old version is kept for legacy purposes, e.g., P2 Operators.
 // todo: remove old version once all Operators are renewed
-template < class P1Form >
+template < class P1Form, typename ValueType >
 inline void assembleLocalStencil_new( const P1Form&                            form,
                                   const std::array< Point3D, 3 >&          coords,
                                   const std::array< stencilDirection, 3 >& directions,
-                                  real_t*                                  opr_data )
+                                  ValueType*                                  opr_data )
 {
    Matrixr<1,3> matrixRow;
 

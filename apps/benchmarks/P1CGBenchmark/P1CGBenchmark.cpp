@@ -166,7 +166,7 @@ int main( int argc, char* argv[] )
    }
    else if ( dimension == "3D" )
    {
-      meshInfo = hyteg::MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), cubesX, cubesY, cubesZ );
+      meshInfo = hyteg::MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), cubesX, cubesY, cubesZ );
    }
    else
    {

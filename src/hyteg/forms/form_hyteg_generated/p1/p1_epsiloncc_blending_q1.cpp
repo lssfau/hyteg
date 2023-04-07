@@ -487,7 +487,7 @@ namespace forms {
 
    void p1_epsiloncc_0_0_blending_q1::Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -498,7 +498,7 @@ namespace forms {
 
    void p1_epsiloncc_0_0_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -851,7 +851,7 @@ namespace forms {
 
    void p1_epsiloncc_0_1_blending_q1::Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -862,7 +862,7 @@ namespace forms {
 
    void p1_epsiloncc_0_1_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -1125,7 +1125,7 @@ namespace forms {
 
    void p1_epsiloncc_0_2_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -1478,7 +1478,7 @@ namespace forms {
 
    void p1_epsiloncc_1_0_blending_q1::Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -1489,7 +1489,7 @@ namespace forms {
 
    void p1_epsiloncc_1_0_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -1957,7 +1957,7 @@ namespace forms {
 
    void p1_epsiloncc_1_1_blending_q1::Blending_DF_Triangle_blend( real_t in_0, real_t in_1, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, 0} );
+      Point3D  mappedPt( in_0, in_1, 0 );
       Matrix2r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -1968,7 +1968,7 @@ namespace forms {
 
    void p1_epsiloncc_1_1_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -2231,7 +2231,7 @@ namespace forms {
 
    void p1_epsiloncc_1_2_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -2494,7 +2494,7 @@ namespace forms {
 
    void p1_epsiloncc_2_0_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -2757,7 +2757,7 @@ namespace forms {
 
    void p1_epsiloncc_2_1_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );
@@ -3109,7 +3109,7 @@ namespace forms {
 
    void p1_epsiloncc_2_2_blending_q1::Blending_DF_Tetrahedron_blend( real_t in_0, real_t in_1, real_t in_2, real_t * out_0, real_t * out_1, real_t * out_2, real_t * out_3, real_t * out_4, real_t * out_5, real_t * out_6, real_t * out_7, real_t * out_8 ) const
    {
-      Point3D  mappedPt( {in_0, in_1, in_2} );
+      Point3D  mappedPt( in_0, in_1, in_2 );
       Matrix3r DPsi;
       geometryMap_->evalDF( mappedPt, DPsi );
       *out_0 = DPsi( 0, 0 );

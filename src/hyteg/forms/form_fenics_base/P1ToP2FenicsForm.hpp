@@ -46,7 +46,7 @@ class P1ToP2FenicsForm : public Form
  public:
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      Matrixr< 6, 3 > localStiffnessMatrix;
+      Matrixr< 6, 3 > localStiffnessMatrix{ Matrixr< 6, 3 >::Zero() };
       computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
       out[0] = localStiffnessMatrix( 0, 0 );
       out[1] = localStiffnessMatrix( 0, 1 );
@@ -55,7 +55,7 @@ class P1ToP2FenicsForm : public Form
 
    void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
-      Matrixr< 6, 3 > localStiffnessMatrix;
+      Matrixr< 6, 3 > localStiffnessMatrix{ Matrixr< 6, 3 >::Zero() };
       computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
       out[0] = localStiffnessMatrix( 5, 0 );
       out[1] = localStiffnessMatrix( 5, 1 );
@@ -67,7 +67,7 @@ class P1ToP2FenicsForm : public Form
    // integrateVertexToVertex, but this would imply changing the P1 stuff, too.
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      Matrixr< 10, 4 > elMat;
+      Matrixr< 10, 4 > elMat{ Matrixr< 10, 4 >::Zero() };
       computeLocalStiffnessMatrix( coords, elMat );
       int rowIdx = fenics::P2DoFMap[0][0];
       out[0]        = elMat( rowIdx, fenics::P2DoFMap[0][0] );
@@ -76,11 +76,11 @@ class P1ToP2FenicsForm : public Form
       out[3]        = elMat( rowIdx, fenics::P2DoFMap[3][3] );
    }
 
-   real_t integrate( const std::array< Point3D, 4 >&     coords,
-                     const P2Form::dofPosByVertexPair3D& cntrPos,
-                     const P2Form::dofPosByVertexPair3D& leafPos ) const
+   [[nodiscard]] real_t integrate( const std::array< Point3D, 4 >&     coords,
+                                   const P2Form::dofPosByVertexPair3D& cntrPos,
+                                   const P2Form::dofPosByVertexPair3D& leafPos ) const
    {
-      Matrixr< 10, 4 > elMat;
+      Matrixr< 10, 4 > elMat{ Matrixr< 10, 4 >::Zero() };
       computeLocalStiffnessMatrix( coords, elMat );
       WALBERLA_ASSERT_LESS( leafPos[0], 4 );
       WALBERLA_ASSERT_LESS( leafPos[1], 4 );
@@ -90,9 +90,9 @@ class P1ToP2FenicsForm : public Form
       return real_c( elMat( rowIdx, colIdx ) );
    }
 
-   std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
-                                    const P2Form::dofPosByVertexPair3D&                cntrPos,
-                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
+   [[nodiscard]] std::vector< real_t > integrate( const std::array< Point3D, 4 >&,
+                                                  const P2Form::dofPosByVertexPair3D&,
+                                                  const std::vector< P2Form::dofPosByVertexPair3D >& ) const
    {
       WALBERLA_ABORT( "Missing implementation in P1ToP2FenicsForm" );
    }
@@ -121,33 +121,27 @@ class P1ToP2FenicsForm : public Form
       computeLocalStiffnessMatrix( coords, elMat );
    }
 
-   bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }
-
-   bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
-
-   bool assembly2DDefined() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::UndefinedAssembly >::value; }
-
-   bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::UndefinedAssembly >::value; }
-
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }
 
  private:
    void computeLocalStiffnessMatrix( const std::array< Point3D, 3 >& coords, Matrixr< 6, 3 >& localStiffnessMatrix ) const
    {
-      real_t fenicsCoords[6];
+      double fenicsCoords[6];
       fenicsCoords[0] = coords[0][0];
       fenicsCoords[1] = coords[0][1];
       fenicsCoords[2] = coords[1][0];
       fenicsCoords[3] = coords[1][1];
       fenicsCoords[4] = coords[2][0];
       fenicsCoords[5] = coords[2][1];
-      UFCOperator2D gen;
-      gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
+      UFCOperator2D                 gen;
+      hyteg::Matrix< double, 6, 3 > tmp = localStiffnessMatrix.cast< double >();
+      gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      localStiffnessMatrix = tmp.cast< real_t >();
    }
 
    void computeLocalStiffnessMatrix( const std::array< Point3D, 4 >& coords, Matrixr< 10, 4 >& localStiffnessMatrix ) const
    {
-      real_t fenicsCoords[12];
+      double fenicsCoords[12];
       for ( int node = 0; node < 4; ++node )
       {
          for ( int dim = 0; dim < 3; ++dim )
@@ -155,8 +149,10 @@ class P1ToP2FenicsForm : public Form
             fenicsCoords[node * 3 + dim] = coords[node][dim];
          }
       }
-      UFCOperator3D gen;
-      gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
+      UFCOperator3D                  gen;
+      hyteg::Matrix< double, 10, 4 > tmp = localStiffnessMatrix.cast< double >();
+      gen.tabulate_tensor( tmp.data(), nullptr, fenicsCoords, 0 );
+      localStiffnessMatrix = tmp.cast< real_t >();
    }
 };
 

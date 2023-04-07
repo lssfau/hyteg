@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/communication/Syncing.hpp"
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp>
 #include <hyteg/egfunctionspace/EGEpsilonEnergyNormForm.hpp>
@@ -51,6 +52,7 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
 

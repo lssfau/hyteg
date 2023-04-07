@@ -68,8 +68,8 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
 
    uint_t id = 0;
 
-   auto toroidalAngleIncrement = 2 * pi / real_c( numToroidalSlices );
-   auto poloidalAngleIncrement = 2 * pi / real_c( numPoloidalSlices );
+   real_t toroidalAngleIncrement = 2 * pi / real_c( numToroidalSlices );
+   real_t poloidalAngleIncrement = 2 * pi / real_c( numPoloidalSlices );
 
    // slices[toroidalSlice][layer][poloidalVertex]
    std::map< uint_t, std::map< uint_t, std::map< uint_t, uint_t > > > slices;
@@ -77,7 +77,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
 
    for ( uint_t toroidalSlice = 0; toroidalSlice < numToroidalSlices; toroidalSlice++ )
    {
-      auto toroidalAngle = toroidalStartAngle + real_c( toroidalSlice ) * toroidalAngleIncrement;
+      real_t toroidalAngle = toroidalStartAngle + real_c( toroidalSlice ) * toroidalAngleIncrement;
 
       // center vertex
       Point3D coords = torusCoordinates( radiusOriginToCenterOfTube, 0, toroidalAngle, 0 );
@@ -92,7 +92,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
       {
          for ( uint_t poloidalSlice = 0; poloidalSlice < numPoloidalSlices; poloidalSlice++ )
          {
-            auto poloidalAngle = poloidalStartAngle + real_c( poloidalSlice ) * poloidalAngleIncrement;
+            real_t poloidalAngle = poloidalStartAngle + real_c( poloidalSlice ) * poloidalAngleIncrement;
 
             auto coordsFirstVertex =
                 torusCoordinates( radiusOriginToCenterOfTube, tubeLayerRadii[layer - 1], toroidalAngle, poloidalAngle );
@@ -101,7 +101,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
 
             auto coordsOffsetVector = ( coordsNextVertex - coordsFirstVertex ) * ( real_c( 1 ) / real_c( layer ) );
 
-            auto poloidalVertex = poloidalSlice * layer;
+            uint_t poloidalVertex = poloidalSlice * layer;
 
             vertex                                       = MeshInfo::Vertex( id++, coordsFirstVertex, 0 );
             slices[toroidalSlice][layer][poloidalVertex] = vertex.getID();

@@ -354,9 +354,9 @@ class UnsteadyDiffusion
          M.apply( f, fWeak_, level, flag );
          M.apply( fOld, fWeak_, level, flag, Add );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( 0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -385,7 +385,7 @@ class UnsteadyDiffusion
          M.apply( uOld, uOld_, level, flag );
          uOld_.assign( {1.0}, {uOld_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -416,12 +416,12 @@ class UnsteadyDiffusion
          M.apply( f, fWeak_, level, flag );
          M.apply( fOld, fWeak_, level, flag, Add );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( 0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
       }
       A.apply( u, fWeak_, level, flag );
-      r.assign( {1.0, -1.0}, {uOld_, fWeak_}, level, flag );
+      r.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { uOld_, fWeak_ }, level, flag );
    }
 
  private:

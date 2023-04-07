@@ -20,54 +20,50 @@
 #pragma once
 
 #include "hyteg/fenics/fenics.hpp"
-#include "hyteg/forms/P1LinearCombinationForm.hpp"
-#include "hyteg/forms/P1RowSumForm.hpp"
-#include "hyteg/forms/P2LinearCombinationForm.hpp"
-#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
 #include "hyteg/p1functionspace/P1Operator.hpp"
 
 namespace hyteg {
 
+class P1LinearCombinationForm;
+
 using walberla::real_t;
 
-template < class P1Form, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
-class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >
+template < class P1Form, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false, typename ValueType = real_t >
+class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >
 {
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1Operator;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::storage_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::form_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::minLevel_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::maxLevel_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::vertexStencilID_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::edgeStencilID_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::faceStencilID_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::edgeStencil3DID_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::faceStencil3DID_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::cellStencilID_;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge_init;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face_init;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_cell_init;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_edge3D;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_face3D;
-   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal >::assemble_variableStencil_cell;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::P1Operator;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::storage_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::form_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::minLevel_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::maxLevel_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::vertexStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::edgeStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::faceStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::edgeStencil3DID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::faceStencil3DID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::cellStencilID_;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_edge_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_face_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_cell_init;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_edge;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_edge3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_face;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_face3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_cell;
 
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form );
 
-   void scale( real_t scalar );
+   void scale( ValueType scalar );
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1Function< idx_t >&                  src,
                   const P1Function< idx_t >&                  dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const override;
+                  DoFType                                     flag ) const;
 
  protected:
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
@@ -75,33 +71,34 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
    /* Initialize assembly of variable edge stencil.
       Will be called before iterating over edge whenever the stencil is applied.
    */
-   inline void assemble_stencil_edge_init( Edge& edge, const uint_t level ) const {}
+   inline void assemble_stencil_edge_init( Edge& edge, const uint_t level ) const override {}
 
    /* Assembly of edge stencil.
       Will be called before stencil is applied to a particuar edge-DoF.
    */
-   inline void assemble_stencil_edge( real_t* edge_stencil, const uint_t i ) const {}
+   inline void assemble_stencil_edge( ValueType* edge_stencil, const uint_t i ) const override {}
 
    /* Initialize assembly of face stencil.
       Will be called before iterating over face whenever the stencil is applied.
    */
-   inline void assemble_stencil_face_init( Face& face, const uint_t level ) const {}
+   inline void assemble_stencil_face_init( Face& face, const uint_t level ) const override {}
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
    */
-   inline void assemble_stencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const {}
+   inline void assemble_stencil_face( ValueType* face_stencil, const uint_t i, const uint_t j ) const override {}
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
    */
-   inline void assemble_stencil_face3D( vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j ) const
+   inline void
+       assemble_stencil_face3D( vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j ) const override
    {}
 
    /* Initialize assembly of cell stencil.
       Will be called before iterating over cell whenever the stencil is applied.
    */
-   inline void assemble_stencil_cell_init( Cell& cell, const uint_t level ) const {}
+   inline void assemble_stencil_cell_init( Cell& cell, const uint_t level ) const override {}
 
    /* Assembly of cell stencil.
       Will be called before stencil is applied to a particuar cell-DoF.
@@ -120,11 +117,11 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
                                        const uint_t&                                            level,
                                        UpdateType                                               update ) const;
 
-   inline void apply_face_generated( Face&                                                    face,
-                                     const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcId,
-                                     const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
-                                     const uint_t&                                            level,
-                                     UpdateType                                               update ) const;
+   inline void apply_face_generated( Face&                                                       face,
+                                     const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
+                                     const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
+                                     const uint_t&                                               level,
+                                     UpdateType                                                  update ) const;
 
    inline void apply_cell_generated( Cell&                                                    cell,
                                      const PrimitiveDataID< FunctionMemory< real_t >, Cell >& srcId,
@@ -139,12 +136,12 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
                                             real_t                                                   relax,
                                             const bool&                                              backwards = false ) const;
 
-   inline void smooth_sor_face_generated( Face&                                                    face,
-                                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstId,
-                                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsId,
-                                          const uint_t&                                            level,
-                                          real_t                                                   relax,
-                                          const bool&                                              backwards = false ) const;
+   inline void smooth_sor_face_generated( Face&                                                       face,
+                                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
+                                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId,
+                                          const uint_t&                                               level,
+                                          ValueType                                                   relax,
+                                          const bool&                                                 backwards = false ) const;
 
    inline void smooth_sor_cell_generated( Cell&                                                    cell,
                                           const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dstId,

@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.5
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -127,15 +123,11 @@ namespace forms {
       real_t tmp_31 = p_affine_2_2*p_affine_3_1;
       real_t tmp_32 = p_affine_2_0*p_affine_3_2;
       real_t tmp_33 = p_affine_2_1*p_affine_3_0;
-      real_t tmp_34 = std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
-      real_t tmp_35 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
-      real_t tmp_36 = tmp_21*tmp_34;
-      real_t tmp_37 = tmp_20*tmp_34;
-      real_t tmp_38 = tmp_19*tmp_34;
-      real_t a_0_0 = 0.16666666666666666*tmp_35;
-      real_t a_0_1 = -0.16666666666666666*tmp_36;
-      real_t a_0_2 = -0.16666666666666666*tmp_37;
-      real_t a_0_3 = -0.16666666666666666*tmp_38;
+      real_t tmp_34 = 0.16666666666666663*std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
+      real_t a_0_0 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
+      real_t a_0_1 = -tmp_21*tmp_34;
+      real_t a_0_2 = -tmp_20*tmp_34;
+      real_t a_0_3 = -tmp_19*tmp_34;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;
@@ -190,15 +182,11 @@ namespace forms {
       real_t tmp_31 = p_affine_2_2*p_affine_3_1;
       real_t tmp_32 = p_affine_2_0*p_affine_3_2;
       real_t tmp_33 = p_affine_2_1*p_affine_3_0;
-      real_t tmp_34 = std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
-      real_t tmp_35 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
-      real_t tmp_36 = tmp_21*tmp_34;
-      real_t tmp_37 = tmp_20*tmp_34;
-      real_t tmp_38 = tmp_19*tmp_34;
-      real_t a_0_0 = 0.16666666666666666*tmp_35;
-      real_t a_0_1 = -0.16666666666666666*tmp_36;
-      real_t a_0_2 = -0.16666666666666666*tmp_37;
-      real_t a_0_3 = -0.16666666666666666*tmp_38;
+      real_t tmp_34 = 0.16666666666666663*std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
+      real_t a_0_0 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
+      real_t a_0_1 = -tmp_21*tmp_34;
+      real_t a_0_2 = -tmp_20*tmp_34;
+      real_t a_0_3 = -tmp_19*tmp_34;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;
@@ -299,15 +287,11 @@ namespace forms {
       real_t tmp_31 = p_affine_2_2*p_affine_3_1;
       real_t tmp_32 = p_affine_2_0*p_affine_3_2;
       real_t tmp_33 = p_affine_2_1*p_affine_3_0;
-      real_t tmp_34 = std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
-      real_t tmp_35 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
-      real_t tmp_36 = tmp_21*tmp_34;
-      real_t tmp_37 = tmp_20*tmp_34;
-      real_t tmp_38 = tmp_19*tmp_34;
-      real_t a_0_0 = 0.16666666666666666*tmp_35;
-      real_t a_0_1 = -0.16666666666666666*tmp_36;
-      real_t a_0_2 = -0.16666666666666666*tmp_37;
-      real_t a_0_3 = -0.16666666666666666*tmp_38;
+      real_t tmp_34 = 0.16666666666666663*std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
+      real_t a_0_0 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
+      real_t a_0_1 = -tmp_21*tmp_34;
+      real_t a_0_2 = -tmp_20*tmp_34;
+      real_t a_0_3 = -tmp_19*tmp_34;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;
@@ -362,15 +346,11 @@ namespace forms {
       real_t tmp_31 = p_affine_2_2*p_affine_3_1;
       real_t tmp_32 = p_affine_2_0*p_affine_3_2;
       real_t tmp_33 = p_affine_2_1*p_affine_3_0;
-      real_t tmp_34 = std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
-      real_t tmp_35 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
-      real_t tmp_36 = tmp_21*tmp_34;
-      real_t tmp_37 = tmp_20*tmp_34;
-      real_t tmp_38 = tmp_19*tmp_34;
-      real_t a_0_0 = 0.16666666666666666*tmp_35;
-      real_t a_0_1 = -0.16666666666666666*tmp_36;
-      real_t a_0_2 = -0.16666666666666666*tmp_37;
-      real_t a_0_3 = -0.16666666666666666*tmp_38;
+      real_t tmp_34 = 0.16666666666666663*std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
+      real_t a_0_0 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
+      real_t a_0_1 = -tmp_21*tmp_34;
+      real_t a_0_2 = -tmp_20*tmp_34;
+      real_t a_0_3 = -tmp_19*tmp_34;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;
@@ -435,15 +415,11 @@ namespace forms {
       real_t tmp_31 = p_affine_2_2*p_affine_3_1;
       real_t tmp_32 = p_affine_2_0*p_affine_3_2;
       real_t tmp_33 = p_affine_2_1*p_affine_3_0;
-      real_t tmp_34 = std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
-      real_t tmp_35 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
-      real_t tmp_36 = tmp_21*tmp_34;
-      real_t tmp_37 = tmp_20*tmp_34;
-      real_t tmp_38 = tmp_19*tmp_34;
-      real_t a_0_0 = 0.16666666666666666*tmp_35;
-      real_t a_0_1 = -0.16666666666666666*tmp_36;
-      real_t a_0_2 = -0.16666666666666666*tmp_37;
-      real_t a_0_3 = -0.16666666666666666*tmp_38;
+      real_t tmp_34 = 0.16666666666666663*std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
+      real_t a_0_0 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
+      real_t a_0_1 = -tmp_21*tmp_34;
+      real_t a_0_2 = -tmp_20*tmp_34;
+      real_t a_0_3 = -tmp_19*tmp_34;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;
@@ -498,15 +474,11 @@ namespace forms {
       real_t tmp_31 = p_affine_2_2*p_affine_3_1;
       real_t tmp_32 = p_affine_2_0*p_affine_3_2;
       real_t tmp_33 = p_affine_2_1*p_affine_3_0;
-      real_t tmp_34 = std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
-      real_t tmp_35 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
-      real_t tmp_36 = tmp_21*tmp_34;
-      real_t tmp_37 = tmp_20*tmp_34;
-      real_t tmp_38 = tmp_19*tmp_34;
-      real_t a_0_0 = 0.16666666666666666*tmp_35;
-      real_t a_0_1 = -0.16666666666666666*tmp_36;
-      real_t a_0_2 = -0.16666666666666666*tmp_37;
-      real_t a_0_3 = -0.16666666666666666*tmp_38;
+      real_t tmp_34 = 0.16666666666666663*std::abs(p_affine_0_0*tmp_24 - p_affine_0_0*tmp_31 + p_affine_0_1*tmp_27 - p_affine_0_1*tmp_32 + p_affine_0_2*tmp_30 - p_affine_0_2*tmp_33 - p_affine_1_0*tmp_24 + p_affine_1_0*tmp_31 - p_affine_1_1*tmp_27 + p_affine_1_1*tmp_32 - p_affine_1_2*tmp_30 + p_affine_1_2*tmp_33 + p_affine_2_0*tmp_26 - p_affine_2_0*tmp_29 - p_affine_2_1*tmp_23 + p_affine_2_1*tmp_28 + p_affine_2_2*tmp_22 - p_affine_2_2*tmp_25 - p_affine_3_0*tmp_26 + p_affine_3_0*tmp_29 + p_affine_3_1*tmp_23 - p_affine_3_1*tmp_28 - p_affine_3_2*tmp_22 + p_affine_3_2*tmp_25);
+      real_t a_0_0 = tmp_34*(tmp_19 + tmp_20 + tmp_21);
+      real_t a_0_1 = -tmp_21*tmp_34;
+      real_t a_0_2 = -tmp_20*tmp_34;
+      real_t a_0_3 = -tmp_19*tmp_34;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;

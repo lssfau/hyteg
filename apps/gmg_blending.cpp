@@ -189,62 +189,80 @@ int main(int argc, char* argv[])
 //    WALBERLA_LOG_INFO_ON_ROOT("polyError34 = " << polyError34);
 //    WALBERLA_LOG_INFO_ON_ROOT("polyError45 = " << polyError45);
 //    WALBERLA_LOG_INFO_ON_ROOT("polyError56 = " << polyError56);
-//    WALBERLA_LOG_INFO_ON_ROOT("polyError67 = " << polyError67);
-//    WALBERLA_LOG_INFO_ON_ROOT("polyError78 = " << polyError78);
-//    WALBERLA_LOG_INFO_ON_ROOT("polyError89 = " << polyError89);
-//    WALBERLA_LOG_INFO_ON_ROOT("polyError910 = " << polyError910);
-//    WALBERLA_LOG_INFO_ON_ROOT("polyError1011 = " << polyError1011);
-//    WALBERLA_LOG_INFO_ON_ROOT("polyError1112 = " << polyError1112);
-
+    //    WALBERLA_LOG_INFO_ON_ROOT("polyError67 = " << polyError67);
+    //    WALBERLA_LOG_INFO_ON_ROOT("polyError78 = " << polyError78);
+    //    WALBERLA_LOG_INFO_ON_ROOT("polyError89 = " << polyError89);
+    //    WALBERLA_LOG_INFO_ON_ROOT("polyError910 = " << polyError910);
+    //    WALBERLA_LOG_INFO_ON_ROOT("polyError1011 = " << polyError1011);
+    //    WALBERLA_LOG_INFO_ON_ROOT("polyError1112 = " << polyError1112);
   }
-  auto end = walberla::timing::getWcTime();
-  real_t setupTime = end - start;
+  auto   end       = walberla::timing::getWcTime();
+  double setupTime = end - start;
 
-  WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
-  u_exact.interpolate(exact, maxLevel);
-  WALBERLA_LOG_INFO_ON_ROOT("Integrating rhs");
-  tmp.interpolate(rhs, maxLevel);
-  M.apply(tmp, f, maxLevel, hyteg::All);
+  WALBERLA_LOG_INFO_ON_ROOT( "Interpolating exact function" );
+  u_exact.interpolate( exact, maxLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "Integrating rhs" );
+  tmp.interpolate( rhs, maxLevel );
+  M.apply( tmp, f, maxLevel, hyteg::All );
 
-  npoints_helper.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper.dotGlobal(npoints_helper, maxLevel);
+  npoints_helper.interpolate( ones, maxLevel );
+  real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
-//  npoints_helper.interpolate(ones, interpolationLevel);
-//  real_t npointsCoarse = npoints_helper.dotGlobal(npoints_helper, interpolationLevel);
+  //  npoints_helper.interpolate(ones, interpolationLevel);
+  //  real_t npointsCoarse = npoints_helper.dotGlobal(npoints_helper, interpolationLevel);
 
+  auto coarseLaplaceSolverPoly =
+      std::make_shared< hyteg::CGSolver< SolveOperatorPoly > >( storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
+  auto coarseLaplaceSolverNodal =
+      std::make_shared< hyteg::CGSolver< SolveOperatorNodal > >( storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
 
-  auto coarseLaplaceSolverPoly = std::make_shared<hyteg::CGSolver< SolveOperatorPoly>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
-  auto coarseLaplaceSolverNodal = std::make_shared<hyteg::CGSolver< SolveOperatorNodal>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
-
-  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+  auto restrictionOperator           = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
+  auto prolongationOperator          = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
   auto quadraticProlongationOperator = std::make_shared< hyteg::P1toP1QuadraticProlongation >();
 
+  auto smootherPoly  = std::make_shared< hyteg::GaussSeidelSmoother< SolveOperatorPoly > >();
+  auto smootherNodal = std::make_shared< hyteg::GaussSeidelSmoother< SolveOperatorNodal > >();
 
-  auto smootherPoly = std::make_shared< hyteg::GaussSeidelSmoother< SolveOperatorPoly >  >();
-  auto smootherNodal = std::make_shared< hyteg::GaussSeidelSmoother< SolveOperatorNodal >  >();
+  GeometricMultigridSolver< SolveOperatorPoly > laplaceSolverPoly(
+      storage, smootherPoly, coarseLaplaceSolverPoly, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2 );
+  GeometricMultigridSolver< SolveOperatorNodal > laplaceSolverNodal( storage,
+                                                                     smootherNodal,
+                                                                     coarseLaplaceSolverNodal,
+                                                                     restrictionOperator,
+                                                                     prolongationOperator,
+                                                                     minLevel,
+                                                                     maxMemoryLevel,
+                                                                     2,
+                                                                     2 );
 
-  GeometricMultigridSolver< SolveOperatorPoly > laplaceSolverPoly(storage, smootherPoly, coarseLaplaceSolverPoly, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2);
-  GeometricMultigridSolver< SolveOperatorNodal > laplaceSolverNodal(storage, smootherNodal, coarseLaplaceSolverNodal, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2);
-
-
-  WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
+  WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
+  WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s",
+                                               "iter",
+                                               "abs_res",
+                                               "rel_res",
+                                               "conv",
+                                               "L2-error",
+                                               "est. L2",
+                                               "Cycle-Time",
+                                               "Est-Time" ) );
 
   real_t rel_res = 1.0;
 
-  if (polynomialOperator) {
-    Lpoly->apply(u, Lu, maxLevel, hyteg::Inner);
-  } else {
-    L->apply(u, Lu, maxLevel, hyteg::Inner);
+  if ( polynomialOperator )
+  {
+    Lpoly->apply( u, Lu, maxLevel, hyteg::Inner );
   }
-  r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner);
+  else
+  {
+    L->apply( u, Lu, maxLevel, hyteg::Inner );
+  }
+  r.assign( { 1.0, -1.0 }, { f, Lu }, maxLevel, hyteg::Inner );
 
-  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
+  real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
   real_t abs_res_old = begin_res;
 
-  err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);
-  real_t discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
+  err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
+  real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
   // Estimating discretization error
   quadraticProlongationOperator->prolongate( u, maxLevel, hyteg::Inner);
@@ -258,7 +276,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
 
-  real_t solveTime = real_c(0.0);
+  double solveTime = 0.0;
   real_t averageConvergenceRate = real_c(0.0);
   const uint_t convergenceStartIter = 3;
 
@@ -272,7 +290,7 @@ int main(int argc, char* argv[])
       laplaceSolverNodal.solve(*L, u, f, maxLevel);
     }
     end = walberla::timing::getWcTime();
-    real_t vCycleTime = end - start;
+    double vCycleTime = end - start;
 
     start = walberla::timing::getWcTime();
     // Estimating discretization error
@@ -283,7 +301,7 @@ int main(int argc, char* argv[])
 //    L->smooth_gs(tmp, r, maxMemoryLevel, hyteg::Inner);
 //    estL2Error = std::sqrt(r.dotGlobal(r, maxMemoryLevel) / npointsCoarse);
     end = walberla::timing::getWcTime();
-    real_t estimatorTime = end - start;
+    double estimatorTime = end - start;
     if (polynomialOperator) {
       Lpoly->apply(u, Lu, maxLevel, hyteg::Inner);
     } else {

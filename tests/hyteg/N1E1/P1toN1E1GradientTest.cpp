@@ -41,7 +41,7 @@ void test( const uint_t                                              lvl,
 {
    using namespace n1e1;
 
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -174,7 +174,8 @@ int main( int argc, char** argv )
       const real_t x = p[0];
       const real_t y = p[1];
       const real_t z = p[2];
-      return Eigen::Vector3r{ x + 0.5 * y - 4.0 * z, 0.5 * x - 2.0 * y + 2.5 * z, -4.0 * x + 2.5 * y + 3.0 * z };
+      return Eigen::Vector3r{
+          real_c( x + 0.5 * y - 4.0 * z ), real_c( 0.5 * x - 2.0 * y + 2.5 * z ), real_c( -4.0 * x + 2.5 * y + 3.0 * z ) };
    };
 
    test( 1, f, gradF );

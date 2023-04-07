@@ -25,6 +25,8 @@
 #include <cmath>
 #include <iostream>
 
+using walberla::real_c;
+
 namespace hyteg {
 namespace adaptiveRefinement {
 
@@ -95,12 +97,12 @@ bool Simplex< K, K_Simplex >::has_vertex( uint_t idx ) const
 template < uint_t K, class K_Simplex >
 inline Point3D Simplex< K, K_Simplex >::barycenter( const std::array< Point3D, K + 1 >& vertices )
 {
-   Point3D bc( { 0, 0, 0 } );
+   Point3D bc( 0, 0, 0 );
    for ( auto& vtx : vertices )
    {
       bc += vtx;
    }
-   bc *= ( 1.0 / ( K + 1 ) );
+   bc *= ( real_c( 1.0 ) / ( K + 1 ) );
    return bc;
 }
 
@@ -108,7 +110,7 @@ template < uint_t K, class K_Simplex >
 inline real_t Simplex< K, K_Simplex >::radius( const std::array< Point3D, K + 1 >& vertices )
 {
    Point3D bc = barycenter( vertices );
-   real_t  r  = 0.0;
+   real_t  r  = real_c( 0.0 );
    for ( auto& vtx : vertices )
    {
       r = std::max( r, ( vtx - bc ).norm() );
@@ -133,17 +135,17 @@ inline real_t Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 
       if constexpr ( K == 2 )
       {
          // ||X x Y|| / 2
-         return crossProduct( x, y ).norm() / 2.0;
+         return crossProduct( x, y ).norm() / real_c( 2.0 );
       }
       if constexpr ( K == 3 )
       {
          auto z = vertices[3] - vertices[0];
          // |(X x Y)/2 * Z/3|
-         return std::abs( crossProduct( x, y ).dot( z ) ) / 6.0;
+         return std::abs( crossProduct( x, y ).dot( z ) ) / real_c( 6.0 );
       }
    }
 
-   return 0.0;
+   return real_c( 0.0 );
 }
 
 template < uint_t K, class K_Simplex >
@@ -196,8 +198,9 @@ Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices
                     const std::array< std::shared_ptr< Simplex1 >, 3 >& edges,
                     std::shared_ptr< Simplex2 >                         parent,
                     const PrimitiveID&                                  geometryMap,
-                    uint_t                                              boundaryFlag )
-: Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag )
+                    uint_t                                              boundaryFlag,
+                    uint_t                                              targetRank )
+: Simplex< 2, Simplex2 >( vertices, parent, geometryMap, boundaryFlag, targetRank )
 , _edges( edges )
 {
    for ( uint_t i = 0; i < 3; ++i )
@@ -295,34 +298,32 @@ Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices
                     const std::array< std::shared_ptr< Simplex2 >, 4 >& faces,
                     std::shared_ptr< Simplex3 >                         parent,
                     const PrimitiveID&                                  geometryMap,
-                    uint_t                                              boundaryFlag )
-: Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag )
+                    uint_t                                              boundaryFlag,
+                    uint_t                                              targetRank )
+: Simplex< 3, Simplex3 >( vertices, parent, geometryMap, boundaryFlag, targetRank )
 , _edges( edges )
 , _faces( faces )
 {
-   // check edges
-   for ( uint_t i = 0; i < 3; ++i )
+   // check ordering of edges and faces
+   // should be: E = [01 02 03 12 13 23]
+   //            F = [012 013 023 123]
+   uint_t e = 0, f = 0;
+   for ( uint_t i = 0; i < 4; ++i )
    {
-      // edge 0--2
-      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
-      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
-      // edge 3--5
-      WALBERLA_ASSERT( _edges[i + 3]->has_vertex( _vertices[i] ) );
-      WALBERLA_ASSERT( _edges[i + 3]->has_vertex( _vertices[3] ) );
-   }
+      for ( uint_t j = i + 1; j < 4; ++j )
+      {
+         WALBERLA_ASSERT( _edges[e]->has_vertex( _vertices[i] ) );
+         WALBERLA_ASSERT( _edges[e]->has_vertex( _vertices[j] ) );
+         ++e;
 
-   // check faces
-   // face 0
-   for ( uint_t j = 0; j < 3; ++j )
-   {
-      WALBERLA_ASSERT( _faces[0]->has_vertex( _vertices[j] ) );
-   }
-   // face 1--3
-   for ( uint_t i = 1; i < 4; ++i )
-   {
-      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[i - 1] ) );
-      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[i % 3] ) );
-      WALBERLA_ASSERT( _faces[i]->has_vertex( _vertices[3] ) );
+         for ( uint_t k = j + 1; k < 4; ++k )
+         {
+            WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[i] ) );
+            WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[j] ) );
+            WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[k] ) );
+            ++f;
+         }
+      }
    }
 }
 

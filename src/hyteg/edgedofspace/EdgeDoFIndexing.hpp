@@ -24,13 +24,13 @@
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/StencilDirections.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
-#include "hyteg/facedofspace_old/FaceDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
+#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -86,10 +86,10 @@ inline std::ostream& operator<<( std::ostream& out, const EdgeDoFOrientation orn
 }
 
 /// \brief Given two logical vertexdof indices, this function returns the appropriate edgedof orientation.
-inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement& vertexIndex0,
-                                                  const indexing::IndexIncrement& vertexIndex1 )
+inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::Index& vertexIndex0,
+                                                  const indexing::Index& vertexIndex1 )
 {
-   const indexing::IndexIncrement offset = vertexIndex1 - vertexIndex0;
+   const indexing::Index offset = vertexIndex1 - vertexIndex0;
    const int                      x      = offset.x();
    const int                      y      = offset.y();
    const int                      z      = offset.z();
@@ -140,8 +140,8 @@ inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement
 
 /// \brief Given two logical vertexdof indices, this function returns the logical index of the edgedof inbetween.
 /// This function also implicitly calculates the orientation.
-inline indexing::IndexIncrement calcEdgeDoFIndex( const indexing::IndexIncrement& vertexIndex0,
-                                                  const indexing::IndexIncrement& vertexIndex1 )
+inline indexing::Index calcEdgeDoFIndex( const indexing::Index& vertexIndex0,
+                                                  const indexing::Index& vertexIndex1 )
 {
    const EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIndex0, vertexIndex1 );
    switch ( orientation )
@@ -153,57 +153,57 @@ inline indexing::IndexIncrement calcEdgeDoFIndex( const indexing::IndexIncrement
    case EdgeDoFOrientation::Z:
       return vertexIndex0.z() < vertexIndex1.z() ? vertexIndex0 : vertexIndex1;
    case EdgeDoFOrientation::XY:
-      return ( vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1 ) + indexing::IndexIncrement( 0, -1, 0 );
+      return ( vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1 ) + indexing::Index( 0, -1, 0 );
    case EdgeDoFOrientation::XZ:
-      return ( vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1 ) + indexing::IndexIncrement( 0, 0, -1 );
+      return ( vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1 ) + indexing::Index( 0, 0, -1 );
    case EdgeDoFOrientation::YZ:
-      return ( vertexIndex0.y() < vertexIndex1.y() ? vertexIndex0 : vertexIndex1 ) + indexing::IndexIncrement( 0, 0, -1 );
+      return ( vertexIndex0.y() < vertexIndex1.y() ? vertexIndex0 : vertexIndex1 ) + indexing::Index( 0, 0, -1 );
    case EdgeDoFOrientation::XYZ:
-      return ( vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1 ) + indexing::IndexIncrement( 0, -1, 0 );
+      return ( vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1 ) + indexing::Index( 0, -1, 0 );
    default:
       WALBERLA_ASSERT( false, "Invaild index offset." );
-      return indexing::IndexIncrement(
+      return indexing::Index(
           std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() );
    }
 }
 
 /// \brief Given an orientation, this function returns the logical index offsets of the two neighboring vertexdofs on that edge.
 /// If the resulting offsets are added to an logical edge index, the resulting logical indices are those of the neighboring vertices.
-inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices( const edgedof::EdgeDoFOrientation& orientation )
+inline std::array< indexing::Index, 2 > calcNeighboringVertexDoFIndices( const edgedof::EdgeDoFOrientation& orientation )
 {
-   std::array< indexing::IndexIncrement, 2 > vertexIndices = {
-       indexing::IndexIncrement(
+   std::array< indexing::Index, 2 > vertexIndices = {
+       indexing::Index(
            std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ),
-       indexing::IndexIncrement(
+       indexing::Index(
            std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ) };
-   vertexIndices[0] = indexing::IndexIncrement( 0, 0, 0 );
+   vertexIndices[0] = indexing::Index( 0, 0, 0 );
 
    switch ( orientation )
    {
    case EdgeDoFOrientation::X:
-      vertexIndices[1] = indexing::IndexIncrement( 1, 0, 0 );
+      vertexIndices[1] = indexing::Index( 1, 0, 0 );
       break;
    case EdgeDoFOrientation::Y:
-      vertexIndices[1] = indexing::IndexIncrement( 0, 1, 0 );
+      vertexIndices[1] = indexing::Index( 0, 1, 0 );
       break;
    case EdgeDoFOrientation::Z:
-      vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
+      vertexIndices[1] = indexing::Index( 0, 0, 1 );
       break;
    case EdgeDoFOrientation::XY:
-      vertexIndices[0] = indexing::IndexIncrement( 1, 0, 0 );
-      vertexIndices[1] = indexing::IndexIncrement( 0, 1, 0 );
+      vertexIndices[0] = indexing::Index( 1, 0, 0 );
+      vertexIndices[1] = indexing::Index( 0, 1, 0 );
       break;
    case EdgeDoFOrientation::XZ:
-      vertexIndices[0] = indexing::IndexIncrement( 1, 0, 0 );
-      vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
+      vertexIndices[0] = indexing::Index( 1, 0, 0 );
+      vertexIndices[1] = indexing::Index( 0, 0, 1 );
       break;
    case EdgeDoFOrientation::YZ:
-      vertexIndices[0] = indexing::IndexIncrement( 0, 1, 0 );
-      vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
+      vertexIndices[0] = indexing::Index( 0, 1, 0 );
+      vertexIndices[1] = indexing::Index( 0, 0, 1 );
       break;
    case EdgeDoFOrientation::XYZ:
-      vertexIndices[0] = indexing::IndexIncrement( 0, 1, 0 );
-      vertexIndices[1] = indexing::IndexIncrement( 1, 0, 1 );
+      vertexIndices[0] = indexing::Index( 0, 1, 0 );
+      vertexIndices[1] = indexing::Index( 1, 0, 1 );
       break;
    default:
       WALBERLA_ASSERT( false, "Invaild index offset." );
@@ -219,20 +219,20 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t& verte
    WALBERLA_ASSERT_UNEQUAL( vertexIndex0, vertexIndex1 );
    WALBERLA_ASSERT_LESS_EQUAL( vertexIndex0, 3 );
    WALBERLA_ASSERT_LESS_EQUAL( vertexIndex1, 3 );
-   static indexing::IndexIncrement vertexIndexII0, vertexIndexII1;
+   static indexing::Index vertexIndexII0, vertexIndexII1;
    switch ( vertexIndex0 )
    {
    case 0:
-      vertexIndexII0.setxyz( 0, 0, 0 );
+      vertexIndexII0 = { 0, 0, 0 };
       break;
    case 1:
-      vertexIndexII0.setxyz( 1, 0, 0 );
+      vertexIndexII0 = { 1, 0, 0 };
       break;
    case 2:
-      vertexIndexII0.setxyz( 0, 1, 0 );
+      vertexIndexII0 = { 0, 1, 0 };
       break;
    case 3:
-      vertexIndexII0.setxyz( 0, 0, 1 );
+      vertexIndexII0 = { 0, 0, 1 };
       break;
    default:
       WALBERLA_ABORT( "Wrong vertex ID" );
@@ -240,16 +240,16 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t& verte
    switch ( vertexIndex1 )
    {
    case 0:
-      vertexIndexII1.setxyz( 0, 0, 0 );
+      vertexIndexII1 = { 0, 0, 0 };
       break;
    case 1:
-      vertexIndexII1.setxyz( 1, 0, 0 );
+      vertexIndexII1 = { 1, 0, 0 };
       break;
    case 2:
-      vertexIndexII1.setxyz( 0, 1, 0 );
+      vertexIndexII1 = { 0, 1, 0 };
       break;
    case 3:
-      vertexIndexII1.setxyz( 0, 0, 1 );
+      vertexIndexII1 = { 0, 0, 1 };
       break;
    default:
       WALBERLA_ABORT( "Wrong vertex ID" );
@@ -879,19 +879,19 @@ inline bool isHorizontalEdgeOnBoundary( const uint_t level, const hyteg::indexin
 {
    /// level is only needed in the diagonal case
    WALBERLA_UNUSED( level );
-   return ( idx.row() == 0 );
+   return ( idx.y() == 0 );
 }
 
 inline bool isVerticalEdgeOnBoundary( const uint_t level, const hyteg::indexing::Index& idx )
 {
    /// level is only needed in the diagonal case
    WALBERLA_UNUSED( level );
-   return ( idx.col() == 0 );
+   return ( idx.x() == 0 );
 }
 
 inline bool isDiagonalEdgeOnBoundary( const uint_t level, const hyteg::indexing::Index& idx )
 {
-   return ( ( idx.col() + idx.row() ) == ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) );
+   return ( ( idx.x() + idx.y() ) == ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
 
 inline bool isInnerEdgeDoF( const uint_t& level, const indexing::Index& idx, const EdgeDoFOrientation& orientation )
@@ -1315,19 +1315,19 @@ inline void getEdgeDoFDataIndicesFromMicroCell( const indexing::Index&   microCe
 
    for ( uint_t k = 0; k < 6; ++k )
    {
-      // generate IndexIncrements for vertices in the current pair
+      // generate Indexs for vertices in the current pair
       uint_t n1 = pairs[k].first;
       uint_t n2 = pairs[k].second;
 
-      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
-      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
+      indexing::Index vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
+      indexing::Index vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
 
       // get edge orientation
       EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
       // edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
 
       // get index for this edgeDoF
-      indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
+      indexing::Index eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
 
       // finally get the data index of the edgeDoF
       edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );
@@ -1352,18 +1352,18 @@ inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::In
 
    for ( uint_t k = 0; k < 3; ++k )
    {
-      // generate IndexIncrements for vertices in the current pair
+      // generate Indexs for vertices in the current pair
       uint_t n1 = pairs[k].first;
       uint_t n2 = pairs[k].second;
 
-      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), 0 );
-      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), 0 );
+      indexing::Index vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), 0 );
+      indexing::Index vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), 0 );
 
       // get edge orientation
       EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
 
       // get index for this edgeDoF
-      indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
+      indexing::Index eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
 
       // finally get the data index of the edgeDoF
       edgeDoFIndices[k] = macroface::index( level, eIdx.x(), eIdx.y(), orientation );
@@ -1385,19 +1385,19 @@ inline void getEdgeDoFDataIndicesFromMicroVerticesFEniCSOrdering( const std::arr
 
    for ( uint_t k = 0; k < 6; ++k )
    {
-      // generate IndexIncrements for vertices in the current pair
+      // generate Indexs for vertices in the current pair
       uint_t n1 = pairs[k].first;
       uint_t n2 = pairs[k].second;
 
-      indexing::IndexIncrement vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
-      indexing::IndexIncrement vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
+      indexing::Index vertexIdx1( (int) verts[n1].x(), (int) verts[n1].y(), (int) verts[n1].z() );
+      indexing::Index vertexIdx2( (int) verts[n2].x(), (int) verts[n2].y(), (int) verts[n2].z() );
 
       // get edge orientation
       EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
       // edgedof::EdgeDoFOrientation orientation = edgedof::calcEdgeDoFOrientation( vertexIdx1, vertexIdx2 );
 
       // get index for this edgeDoF
-      indexing::IndexIncrement eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
+      indexing::Index eIdx = edgedof::calcEdgeDoFIndex( vertexIdx1, vertexIdx2 );
 
       // finally get the data index of the edgeDoF
       edgeDoFIndices[k] = macrocell::index( level, eIdx.x(), eIdx.y(), eIdx.z(), orientation );

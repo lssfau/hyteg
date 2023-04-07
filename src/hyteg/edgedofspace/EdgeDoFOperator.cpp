@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -82,19 +82,12 @@ EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr< Primitiv
 
    if ( this->getStorage()->hasGlobalCells() )
    {
-      if ( form_.assemble3D() )
-      {
-         // WALBERLA_ABORT("Not implemented.");
-         assembleEdgeToEdgeStencils< EdgeDoFForm >(
-             storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
-      }
+      assembleEdgeToEdgeStencils< EdgeDoFForm >(
+          storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
    }
    else
    {
-      if ( form_.assemble2D() )
-      {
-         assembleStencils();
-      }
+      assembleStencils();
    }
 }
 
@@ -207,18 +200,18 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils()
          auto edgeIt = edgedof::macroface::Iterator( level, 0 );
 
          // Loop until first interior DoF is reached
-         while ( edgeIt->row() == 0 || edgeIt->col() == 0 ||
-                 edgeIt->col() + edgeIt->row() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+         while ( edgeIt->y() == 0 || edgeIt->x() == 0 ||
+                 edgeIt->x() + edgeIt->y() == idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
          {
             edgeIt++;
          }
 
          const Point3D horizontalMicroEdgePosition =
-             faceBottomLeftCoords + ( walberla::real_c( edgeIt->col() * 2 + 1 ) * horizontalMicroEdgeOffset +
-                                      walberla::real_c( edgeIt->row() * 2 ) * verticalMicroEdgeOffset );
+             faceBottomLeftCoords + ( walberla::real_c( edgeIt->x() * 2 + 1 ) * horizontalMicroEdgeOffset +
+                                      walberla::real_c( edgeIt->y() * 2 ) * verticalMicroEdgeOffset );
          const Point3D verticalMicroEdgePosition =
-             faceBottomLeftCoords + ( walberla::real_c( edgeIt->col() * 2 ) * horizontalMicroEdgeOffset +
-                                      walberla::real_c( edgeIt->row() * 2 + 1 ) * verticalMicroEdgeOffset );
+             faceBottomLeftCoords + ( walberla::real_c( edgeIt->x() * 2 ) * horizontalMicroEdgeOffset +
+                                      walberla::real_c( edgeIt->y() * 2 + 1 ) * verticalMicroEdgeOffset );
          const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
          P2::variablestencil::assembleEdgeToEdgeStencil( form_,
@@ -284,7 +277,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils()
          uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
          uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
 
-         real_t h = 1.0 / ( walberla::real_c( rowsize ) );
+         real_t h = real_c( 1.0 ) / ( walberla::real_c( rowsize ) );
 
          Point3D dS_se = h * ( faceS->getCoordinates()[e_south] - faceS->getCoordinates()[s_south] );
          //       Point3D dS_so = h * ( faceS->getCoordinates()[o_south] - faceS->getCoordinates()[s_south] );
@@ -317,7 +310,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils()
 
          Point3D horizontalMicroEdgePosition;
 
-         horizontalMicroEdgePosition = leftCoords + ( real_c( 0 ) + 0.5 ) * dS_se;
+         horizontalMicroEdgePosition = leftCoords + real_c( 0.5 ) * dS_se;
 
          P2::variablestencil::assembleEdgeToEdgeStencil(
              form_,
@@ -377,6 +370,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
          {
             if ( hyteg::globalDefines::useGeneratedKernels )
             {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                typedef edgedof::EdgeDoFOrientation eo;
                auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
                auto                                srcData     = cell.getData( src.getCellDataID() )->getPointer( level );
@@ -423,6 +417,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
                                                                                             stencilData,
                                                                                             static_cast< int32_t >( level ) );
                }
+#endif
             }
             else
             {
@@ -453,6 +448,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
             {
                if ( hyteg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   auto opr_data = face.getData( faceStencil3DID_ )->getData( level );
                   auto src_data = face.getData( src.getFaceDataID() )->getPointer( level );
                   auto dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
@@ -554,6 +550,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
                       neighbor_cell_1_local_vertex_id_0,
                       neighbor_cell_1_local_vertex_id_1,
                       neighbor_cell_1_local_vertex_id_2 );
+#endif
                }
                else
                {
@@ -565,6 +562,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
             {
                if ( hyteg::globalDefines::useGeneratedKernels )
                {
+#ifdef HYTEG_USE_GENERATED_KERNELS
                   typedef edgedof::EdgeDoFOrientation eo;
                   real_t*                             opr_data = face.getData( faceStencilID_ )->getPointer( level );
                   real_t*                             src_data = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -600,6 +598,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply( const EdgeDoFFunction< real_t >& src
                                                                                                &opr_data[10],
                                                                                                static_cast< int32_t >( level ) );
                   }
+#endif
                }
                else
                {

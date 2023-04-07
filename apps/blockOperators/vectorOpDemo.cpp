@@ -75,8 +75,8 @@ int main( int argc, char* argv[] )
    const uint_t level = 5; // params.getParameter< uint_t >( "level" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Generating criss mesh on unit square" );
-   Point2D  cornerLL( {0.0, 0.0} );
-   Point2D  cornerUR( {1.0, 1.0} );
+   Point2D  cornerLL( 0.0, 0.0 );
+   Point2D  cornerUR( 1.0, 1.0 );
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    meshInfo          = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CRISS, 1, 1 );
 

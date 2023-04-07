@@ -77,10 +77,13 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
    outwardNormal_.resize( 3 );
 
+   // std::array versus std::vector
    const auto vertexIndicesVolume = facedof::macroface::getMicroVerticesFromMicroFace( elementIdx, faceType );
+   vertexIndicesVolume_.resize( 3 );
 
    for ( uint_t i = 0; i < 3; i++ )
    {
+      vertexIndicesVolume_[i]     = vertexIndicesVolume[i];
       const auto coord            = vertexdof::macroface::coordinateFromIndex( level, *face, vertexIndicesVolume[i] );
       vertexCoordsVolume_[i]( 0 ) = coord[0];
       vertexCoordsVolume_[i]( 1 ) = coord[1];
@@ -263,10 +266,13 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
 
    outwardNormal_.resize( 4 );
 
+   // std::array versus std::vector
    const auto vertexIndicesVolume = celldof::macrocell::getMicroVerticesFromMicroCell( elementIdx, cellType );
+   vertexIndicesVolume_.resize( 4 );
 
    for ( uint_t i = 0; i < 4; i++ )
    {
+      vertexIndicesVolume_[i]     = vertexIndicesVolume[i];
       const auto coord            = vertexdof::macrocell::coordinateFromIndex( level, *cell, vertexIndicesVolume[i] );
       vertexCoordsVolume_[i]( 0 ) = coord[0];
       vertexCoordsVolume_[i]( 1 ) = coord[1];

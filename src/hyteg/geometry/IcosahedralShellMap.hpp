@@ -202,7 +202,7 @@ class IcosahedralShellMap : public GeometryMap
       real_t tmp23 = x[2] * x[2];
       real_t tmp24 = tmp0 + tmp22 + tmp23;
       real_t tmp25 = tmp17 * ( tmp12 - tmp15 );
-      real_t tmp26 = 1.0 / ( tmp16 * pow( tmp24, 3.0 / 2.0 ) );
+      real_t tmp26 = real_c( 1.0 / ( tmp16 * pow( tmp24, 3.0 / 2.0 ) ) );
       real_t tmp27 = tmp13 - tmp8;
       real_t tmp28 = tmp17 * tmp24;
       real_t tmp29 = tmp21 * x[1] + tmp27 * tmp28;
@@ -275,7 +275,7 @@ class IcosahedralShellMap : public GeometryMap
    ///@}
 
    /// tolerance for comparing numerical values for equality
-   const real_t tol = 1e-14;
+   const real_t tol = real_c( std::is_same< real_t, double >() ? 1e-14 : 1e-7 );
 
    /// distance from origin of vertex rayVertex_
    real_t radRefVertex_;
@@ -304,7 +304,7 @@ class IcosahedralShellMap : public GeometryMap
 
       for ( uint_t k = 0; k < 4; k++ )
       {
-         radius[k] = std::sqrt( coords[k].normSq() );
+         radius[k] = std::sqrt( coords[k].squaredNorm() );
          innerRad  = radius[k] < innerRad ? radius[k] : innerRad;
          outerRad  = radius[k] > outerRad ? radius[k] : outerRad;
       }
@@ -454,8 +454,8 @@ class IcosahedralShellMap : public GeometryMap
          thrVertex_ = coords[idxThrVertex];
          forVertex_ = coords[idxForVertex];
 
-         radRefVertex_ = std::sqrt( refVertex_.normSq() );
-         radRayVertex_ = std::sqrt( rayVertex_.normSq() );
+         radRefVertex_ = std::sqrt( refVertex_.squaredNorm() );
+         radRayVertex_ = std::sqrt( rayVertex_.squaredNorm() );
 
          SHELL_MAP_LOG( "refVertex = " << refVertex_ );
          SHELL_MAP_LOG( "rayVertex = " << rayVertex_ );

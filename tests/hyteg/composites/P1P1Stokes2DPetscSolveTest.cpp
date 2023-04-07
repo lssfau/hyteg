@@ -72,7 +72,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   std::function< real_t( const hyteg::Point3D& ) > ones =   []( const hyteg::Point3D&    ) { return real_c(1); };
 
   walberla::math::seedRandomGenerator( 0 );
-  std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 1.0 ); };
+  std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
 
   b.uvw().interpolate( {exactU, exactV}, level, hyteg::DirichletBoundary );
   x.uvw().interpolate( {exactU, exactV}, level, DirichletBoundary );

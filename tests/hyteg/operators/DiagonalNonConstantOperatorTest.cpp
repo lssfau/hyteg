@@ -89,7 +89,7 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    funcType funcErr( "error", storage, level, level );
 
    walberla::math::seedRandomGenerator( 1234 );
-   auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
+   auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
    funcInp.interpolate( rand, level, All );
    // funcInp.interpolate( 1.9, level, All );
 
@@ -267,20 +267,20 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P1" );
    compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, 5e-17 );
+       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 5e-17 : 1e-9 ) );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1" );
    compareOperators< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, 1e-10, true );
+       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-10 : 5e-5 ), true );
 
    printTestHdr( "Testing Mass Lumping for P2" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
-       storage, level, lumpedMassFormP2, 1e-17 );
+       storage, level, lumpedMassFormP2, real_c( 1e-17 ) );
 
    printTestHdr( "Testing Laplace for P1" );
    typedef DiagonalNonConstantOperator< P1ElementwiseOperator, P1LaplaceForm_T, false > P1BlendingLaplaceDiagonalOperator;
    compareOperators< P1DiagonalLaplaceOperator, P1BlendingLaplaceDiagonalOperator, P1LaplaceForm_T, true >(
-       storage, level, p1LaplaceForm2D, 5e-15 );
+       storage, level, p1LaplaceForm2D, real_c( 5e-15 ) );
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -299,23 +299,23 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P1 (FEniCS Form)" );
    compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage3D, level, lumpedMassFormP1, 1e-16 );
+       storage3D, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-16 : 5e-09 ) );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form)" );
    compareOperators< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, 1e-10 );
+       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-10 : 5e-5 ) );
 
    printTestHdr( "Testing Mass Lumping for P2 (FEniCS Form)" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
-       storage, level, lumpedMassFormP2, 1e-17 );
+       storage, level, lumpedMassFormP2, real_c( 1e-17 ) );
 
    printTestHdr( "Testing Mass Lumping for P1 (HyTeG Form)" );
    compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage3D, level, lumpedMassFormP1HyTeG3D, 5e-17 );
+       storage3D, level, lumpedMassFormP1HyTeG3D, real_c( std::is_same< real_t, double >() ? 5e-17 : 6e-9 ) );
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form)" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
-       storage, level, lumpedMassFormP2HyTeG, 1e-16 );
+       storage, level, lumpedMassFormP2HyTeG, real_c( std::is_same<real_t, double>() ? 1e-16 : 8e-10 ) );
 
    // ----------------------
    //  Test Matrix Assembly
@@ -330,11 +330,11 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P1 (FEniCS Form, 2D)" );
    compareMatrices< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, 1e-16 );
+       storage, level, lumpedMassFormP1, real_c( 1e-16 ) );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form, 2D)" );
    compareMatrices< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, 1e-11 );
+       storage, level, lumpedMassFormP1, real_c( 1e-11 ) );
 
 #endif
 

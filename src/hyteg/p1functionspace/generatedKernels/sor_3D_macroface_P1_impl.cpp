@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void sor_3D_macroface_P1_impl_012_012_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_012_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -65,7 +65,7 @@ static void sor_3D_macroface_P1_impl_012_012_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_012(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_012(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -76,7 +76,7 @@ void sor_3D_macroface_P1_impl_012_012(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_013_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_013_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -112,7 +112,7 @@ static void sor_3D_macroface_P1_impl_012_013_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_013(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_013(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -123,7 +123,7 @@ void sor_3D_macroface_P1_impl_012_013(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_021_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_021_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -159,7 +159,7 @@ static void sor_3D_macroface_P1_impl_012_021_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_021(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_021(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -170,7 +170,7 @@ void sor_3D_macroface_P1_impl_012_021(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -206,7 +206,7 @@ static void sor_3D_macroface_P1_impl_012_023_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -217,7 +217,7 @@ void sor_3D_macroface_P1_impl_012_023(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -253,7 +253,7 @@ static void sor_3D_macroface_P1_impl_012_031_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -264,7 +264,7 @@ void sor_3D_macroface_P1_impl_012_031(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -300,7 +300,7 @@ static void sor_3D_macroface_P1_impl_012_032_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -311,7 +311,7 @@ void sor_3D_macroface_P1_impl_012_032(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -347,7 +347,7 @@ static void sor_3D_macroface_P1_impl_012_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -358,7 +358,7 @@ void sor_3D_macroface_P1_impl_012_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -394,7 +394,7 @@ static void sor_3D_macroface_P1_impl_012_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -405,7 +405,7 @@ void sor_3D_macroface_P1_impl_012_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -441,7 +441,7 @@ static void sor_3D_macroface_P1_impl_012_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -452,7 +452,7 @@ void sor_3D_macroface_P1_impl_012_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -488,7 +488,7 @@ static void sor_3D_macroface_P1_impl_012_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -499,7 +499,7 @@ void sor_3D_macroface_P1_impl_012_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -535,7 +535,7 @@ static void sor_3D_macroface_P1_impl_012_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -546,7 +546,7 @@ void sor_3D_macroface_P1_impl_012_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -582,7 +582,7 @@ static void sor_3D_macroface_P1_impl_012_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -593,7 +593,7 @@ void sor_3D_macroface_P1_impl_012_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -629,7 +629,7 @@ static void sor_3D_macroface_P1_impl_012_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -640,7 +640,7 @@ void sor_3D_macroface_P1_impl_012_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -676,7 +676,7 @@ static void sor_3D_macroface_P1_impl_012_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -687,7 +687,7 @@ void sor_3D_macroface_P1_impl_012_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -723,7 +723,7 @@ static void sor_3D_macroface_P1_impl_012_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -734,7 +734,7 @@ void sor_3D_macroface_P1_impl_012_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -770,7 +770,7 @@ static void sor_3D_macroface_P1_impl_012_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -781,7 +781,7 @@ void sor_3D_macroface_P1_impl_012_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -817,7 +817,7 @@ static void sor_3D_macroface_P1_impl_012_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -828,7 +828,7 @@ void sor_3D_macroface_P1_impl_012_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -864,7 +864,7 @@ static void sor_3D_macroface_P1_impl_012_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -875,7 +875,7 @@ void sor_3D_macroface_P1_impl_012_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -911,7 +911,7 @@ static void sor_3D_macroface_P1_impl_012_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -922,7 +922,7 @@ void sor_3D_macroface_P1_impl_012_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -958,7 +958,7 @@ static void sor_3D_macroface_P1_impl_012_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -969,7 +969,7 @@ void sor_3D_macroface_P1_impl_012_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1005,7 +1005,7 @@ static void sor_3D_macroface_P1_impl_012_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1016,7 +1016,7 @@ void sor_3D_macroface_P1_impl_012_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1052,7 +1052,7 @@ static void sor_3D_macroface_P1_impl_012_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1063,7 +1063,7 @@ void sor_3D_macroface_P1_impl_012_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1099,7 +1099,7 @@ static void sor_3D_macroface_P1_impl_012_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1110,7 +1110,7 @@ void sor_3D_macroface_P1_impl_012_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_012_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_012_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1146,7 +1146,7 @@ static void sor_3D_macroface_P1_impl_012_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_012_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_012_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1157,7 +1157,7 @@ void sor_3D_macroface_P1_impl_012_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_013_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_013_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1193,7 +1193,7 @@ static void sor_3D_macroface_P1_impl_013_013_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_013(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_013(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1204,7 +1204,7 @@ void sor_3D_macroface_P1_impl_013_013(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_021_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_021_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1240,7 +1240,7 @@ static void sor_3D_macroface_P1_impl_013_021_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_021(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_021(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1251,7 +1251,7 @@ void sor_3D_macroface_P1_impl_013_021(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1287,7 +1287,7 @@ static void sor_3D_macroface_P1_impl_013_023_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1298,7 +1298,7 @@ void sor_3D_macroface_P1_impl_013_023(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1334,7 +1334,7 @@ static void sor_3D_macroface_P1_impl_013_031_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1345,7 +1345,7 @@ void sor_3D_macroface_P1_impl_013_031(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1381,7 +1381,7 @@ static void sor_3D_macroface_P1_impl_013_032_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1392,7 +1392,7 @@ void sor_3D_macroface_P1_impl_013_032(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1428,7 +1428,7 @@ static void sor_3D_macroface_P1_impl_013_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1439,7 +1439,7 @@ void sor_3D_macroface_P1_impl_013_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1475,7 +1475,7 @@ static void sor_3D_macroface_P1_impl_013_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1486,7 +1486,7 @@ void sor_3D_macroface_P1_impl_013_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1522,7 +1522,7 @@ static void sor_3D_macroface_P1_impl_013_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1533,7 +1533,7 @@ void sor_3D_macroface_P1_impl_013_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1569,7 +1569,7 @@ static void sor_3D_macroface_P1_impl_013_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1580,7 +1580,7 @@ void sor_3D_macroface_P1_impl_013_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1616,7 +1616,7 @@ static void sor_3D_macroface_P1_impl_013_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1627,7 +1627,7 @@ void sor_3D_macroface_P1_impl_013_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1663,7 +1663,7 @@ static void sor_3D_macroface_P1_impl_013_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1674,7 +1674,7 @@ void sor_3D_macroface_P1_impl_013_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1710,7 +1710,7 @@ static void sor_3D_macroface_P1_impl_013_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1721,7 +1721,7 @@ void sor_3D_macroface_P1_impl_013_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1757,7 +1757,7 @@ static void sor_3D_macroface_P1_impl_013_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1768,7 +1768,7 @@ void sor_3D_macroface_P1_impl_013_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1804,7 +1804,7 @@ static void sor_3D_macroface_P1_impl_013_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1815,7 +1815,7 @@ void sor_3D_macroface_P1_impl_013_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1851,7 +1851,7 @@ static void sor_3D_macroface_P1_impl_013_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1862,7 +1862,7 @@ void sor_3D_macroface_P1_impl_013_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1898,7 +1898,7 @@ static void sor_3D_macroface_P1_impl_013_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1909,7 +1909,7 @@ void sor_3D_macroface_P1_impl_013_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1945,7 +1945,7 @@ static void sor_3D_macroface_P1_impl_013_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -1956,7 +1956,7 @@ void sor_3D_macroface_P1_impl_013_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -1992,7 +1992,7 @@ static void sor_3D_macroface_P1_impl_013_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2003,7 +2003,7 @@ void sor_3D_macroface_P1_impl_013_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2039,7 +2039,7 @@ static void sor_3D_macroface_P1_impl_013_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2050,7 +2050,7 @@ void sor_3D_macroface_P1_impl_013_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2086,7 +2086,7 @@ static void sor_3D_macroface_P1_impl_013_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2097,7 +2097,7 @@ void sor_3D_macroface_P1_impl_013_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2133,7 +2133,7 @@ static void sor_3D_macroface_P1_impl_013_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2144,7 +2144,7 @@ void sor_3D_macroface_P1_impl_013_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2180,7 +2180,7 @@ static void sor_3D_macroface_P1_impl_013_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2191,7 +2191,7 @@ void sor_3D_macroface_P1_impl_013_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_013_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_013_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2227,7 +2227,7 @@ static void sor_3D_macroface_P1_impl_013_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_013_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_013_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2238,7 +2238,7 @@ void sor_3D_macroface_P1_impl_013_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_021_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_021_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2274,7 +2274,7 @@ static void sor_3D_macroface_P1_impl_021_021_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_021(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_021(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2285,7 +2285,7 @@ void sor_3D_macroface_P1_impl_021_021(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2321,7 +2321,7 @@ static void sor_3D_macroface_P1_impl_021_023_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2332,7 +2332,7 @@ void sor_3D_macroface_P1_impl_021_023(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2368,7 +2368,7 @@ static void sor_3D_macroface_P1_impl_021_031_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2379,7 +2379,7 @@ void sor_3D_macroface_P1_impl_021_031(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2415,7 +2415,7 @@ static void sor_3D_macroface_P1_impl_021_032_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2426,7 +2426,7 @@ void sor_3D_macroface_P1_impl_021_032(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2462,7 +2462,7 @@ static void sor_3D_macroface_P1_impl_021_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2473,7 +2473,7 @@ void sor_3D_macroface_P1_impl_021_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2509,7 +2509,7 @@ static void sor_3D_macroface_P1_impl_021_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2520,7 +2520,7 @@ void sor_3D_macroface_P1_impl_021_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2556,7 +2556,7 @@ static void sor_3D_macroface_P1_impl_021_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2567,7 +2567,7 @@ void sor_3D_macroface_P1_impl_021_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2603,7 +2603,7 @@ static void sor_3D_macroface_P1_impl_021_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2614,7 +2614,7 @@ void sor_3D_macroface_P1_impl_021_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2650,7 +2650,7 @@ static void sor_3D_macroface_P1_impl_021_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2661,7 +2661,7 @@ void sor_3D_macroface_P1_impl_021_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2697,7 +2697,7 @@ static void sor_3D_macroface_P1_impl_021_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2708,7 +2708,7 @@ void sor_3D_macroface_P1_impl_021_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2744,7 +2744,7 @@ static void sor_3D_macroface_P1_impl_021_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2755,7 +2755,7 @@ void sor_3D_macroface_P1_impl_021_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2791,7 +2791,7 @@ static void sor_3D_macroface_P1_impl_021_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2802,7 +2802,7 @@ void sor_3D_macroface_P1_impl_021_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2838,7 +2838,7 @@ static void sor_3D_macroface_P1_impl_021_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2849,7 +2849,7 @@ void sor_3D_macroface_P1_impl_021_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2885,7 +2885,7 @@ static void sor_3D_macroface_P1_impl_021_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2896,7 +2896,7 @@ void sor_3D_macroface_P1_impl_021_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2932,7 +2932,7 @@ static void sor_3D_macroface_P1_impl_021_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2943,7 +2943,7 @@ void sor_3D_macroface_P1_impl_021_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -2979,7 +2979,7 @@ static void sor_3D_macroface_P1_impl_021_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -2990,7 +2990,7 @@ void sor_3D_macroface_P1_impl_021_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3026,7 +3026,7 @@ static void sor_3D_macroface_P1_impl_021_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3037,7 +3037,7 @@ void sor_3D_macroface_P1_impl_021_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3073,7 +3073,7 @@ static void sor_3D_macroface_P1_impl_021_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3084,7 +3084,7 @@ void sor_3D_macroface_P1_impl_021_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3120,7 +3120,7 @@ static void sor_3D_macroface_P1_impl_021_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3131,7 +3131,7 @@ void sor_3D_macroface_P1_impl_021_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3167,7 +3167,7 @@ static void sor_3D_macroface_P1_impl_021_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3178,7 +3178,7 @@ void sor_3D_macroface_P1_impl_021_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3214,7 +3214,7 @@ static void sor_3D_macroface_P1_impl_021_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3225,7 +3225,7 @@ void sor_3D_macroface_P1_impl_021_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_021_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_021_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3261,7 +3261,7 @@ static void sor_3D_macroface_P1_impl_021_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_021_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_021_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3272,7 +3272,7 @@ void sor_3D_macroface_P1_impl_021_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_023_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3308,7 +3308,7 @@ static void sor_3D_macroface_P1_impl_023_023_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_023(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3319,7 +3319,7 @@ void sor_3D_macroface_P1_impl_023_023(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3355,7 +3355,7 @@ static void sor_3D_macroface_P1_impl_023_031_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3366,7 +3366,7 @@ void sor_3D_macroface_P1_impl_023_031(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3402,7 +3402,7 @@ static void sor_3D_macroface_P1_impl_023_032_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3413,7 +3413,7 @@ void sor_3D_macroface_P1_impl_023_032(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3449,7 +3449,7 @@ static void sor_3D_macroface_P1_impl_023_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3460,7 +3460,7 @@ void sor_3D_macroface_P1_impl_023_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3496,7 +3496,7 @@ static void sor_3D_macroface_P1_impl_023_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3507,7 +3507,7 @@ void sor_3D_macroface_P1_impl_023_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3543,7 +3543,7 @@ static void sor_3D_macroface_P1_impl_023_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3554,7 +3554,7 @@ void sor_3D_macroface_P1_impl_023_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3590,7 +3590,7 @@ static void sor_3D_macroface_P1_impl_023_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3601,7 +3601,7 @@ void sor_3D_macroface_P1_impl_023_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3637,7 +3637,7 @@ static void sor_3D_macroface_P1_impl_023_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3648,7 +3648,7 @@ void sor_3D_macroface_P1_impl_023_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3684,7 +3684,7 @@ static void sor_3D_macroface_P1_impl_023_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3695,7 +3695,7 @@ void sor_3D_macroface_P1_impl_023_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3731,7 +3731,7 @@ static void sor_3D_macroface_P1_impl_023_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3742,7 +3742,7 @@ void sor_3D_macroface_P1_impl_023_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3778,7 +3778,7 @@ static void sor_3D_macroface_P1_impl_023_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3789,7 +3789,7 @@ void sor_3D_macroface_P1_impl_023_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3825,7 +3825,7 @@ static void sor_3D_macroface_P1_impl_023_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3836,7 +3836,7 @@ void sor_3D_macroface_P1_impl_023_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3872,7 +3872,7 @@ static void sor_3D_macroface_P1_impl_023_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3883,7 +3883,7 @@ void sor_3D_macroface_P1_impl_023_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3919,7 +3919,7 @@ static void sor_3D_macroface_P1_impl_023_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3930,7 +3930,7 @@ void sor_3D_macroface_P1_impl_023_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -3966,7 +3966,7 @@ static void sor_3D_macroface_P1_impl_023_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -3977,7 +3977,7 @@ void sor_3D_macroface_P1_impl_023_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4013,7 +4013,7 @@ static void sor_3D_macroface_P1_impl_023_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4024,7 +4024,7 @@ void sor_3D_macroface_P1_impl_023_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4060,7 +4060,7 @@ static void sor_3D_macroface_P1_impl_023_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4071,7 +4071,7 @@ void sor_3D_macroface_P1_impl_023_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4107,7 +4107,7 @@ static void sor_3D_macroface_P1_impl_023_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4118,7 +4118,7 @@ void sor_3D_macroface_P1_impl_023_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4154,7 +4154,7 @@ static void sor_3D_macroface_P1_impl_023_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4165,7 +4165,7 @@ void sor_3D_macroface_P1_impl_023_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4201,7 +4201,7 @@ static void sor_3D_macroface_P1_impl_023_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4212,7 +4212,7 @@ void sor_3D_macroface_P1_impl_023_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_023_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_023_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4248,7 +4248,7 @@ static void sor_3D_macroface_P1_impl_023_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_023_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_023_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4259,7 +4259,7 @@ void sor_3D_macroface_P1_impl_023_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_031_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4295,7 +4295,7 @@ static void sor_3D_macroface_P1_impl_031_031_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_031(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4306,7 +4306,7 @@ void sor_3D_macroface_P1_impl_031_031(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4342,7 +4342,7 @@ static void sor_3D_macroface_P1_impl_031_032_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4353,7 +4353,7 @@ void sor_3D_macroface_P1_impl_031_032(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4389,7 +4389,7 @@ static void sor_3D_macroface_P1_impl_031_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4400,7 +4400,7 @@ void sor_3D_macroface_P1_impl_031_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4436,7 +4436,7 @@ static void sor_3D_macroface_P1_impl_031_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4447,7 +4447,7 @@ void sor_3D_macroface_P1_impl_031_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4483,7 +4483,7 @@ static void sor_3D_macroface_P1_impl_031_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4494,7 +4494,7 @@ void sor_3D_macroface_P1_impl_031_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4530,7 +4530,7 @@ static void sor_3D_macroface_P1_impl_031_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4541,7 +4541,7 @@ void sor_3D_macroface_P1_impl_031_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4577,7 +4577,7 @@ static void sor_3D_macroface_P1_impl_031_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4588,7 +4588,7 @@ void sor_3D_macroface_P1_impl_031_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4624,7 +4624,7 @@ static void sor_3D_macroface_P1_impl_031_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4635,7 +4635,7 @@ void sor_3D_macroface_P1_impl_031_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4671,7 +4671,7 @@ static void sor_3D_macroface_P1_impl_031_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4682,7 +4682,7 @@ void sor_3D_macroface_P1_impl_031_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4718,7 +4718,7 @@ static void sor_3D_macroface_P1_impl_031_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4729,7 +4729,7 @@ void sor_3D_macroface_P1_impl_031_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4765,7 +4765,7 @@ static void sor_3D_macroface_P1_impl_031_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4776,7 +4776,7 @@ void sor_3D_macroface_P1_impl_031_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4812,7 +4812,7 @@ static void sor_3D_macroface_P1_impl_031_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4823,7 +4823,7 @@ void sor_3D_macroface_P1_impl_031_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4859,7 +4859,7 @@ static void sor_3D_macroface_P1_impl_031_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4870,7 +4870,7 @@ void sor_3D_macroface_P1_impl_031_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4906,7 +4906,7 @@ static void sor_3D_macroface_P1_impl_031_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4917,7 +4917,7 @@ void sor_3D_macroface_P1_impl_031_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -4953,7 +4953,7 @@ static void sor_3D_macroface_P1_impl_031_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -4964,7 +4964,7 @@ void sor_3D_macroface_P1_impl_031_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5000,7 +5000,7 @@ static void sor_3D_macroface_P1_impl_031_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5011,7 +5011,7 @@ void sor_3D_macroface_P1_impl_031_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5047,7 +5047,7 @@ static void sor_3D_macroface_P1_impl_031_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5058,7 +5058,7 @@ void sor_3D_macroface_P1_impl_031_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5094,7 +5094,7 @@ static void sor_3D_macroface_P1_impl_031_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5105,7 +5105,7 @@ void sor_3D_macroface_P1_impl_031_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5141,7 +5141,7 @@ static void sor_3D_macroface_P1_impl_031_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5152,7 +5152,7 @@ void sor_3D_macroface_P1_impl_031_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_031_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_031_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5188,7 +5188,7 @@ static void sor_3D_macroface_P1_impl_031_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_031_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_031_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5199,7 +5199,7 @@ void sor_3D_macroface_P1_impl_031_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_032_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5235,7 +5235,7 @@ static void sor_3D_macroface_P1_impl_032_032_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_032(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5246,7 +5246,7 @@ void sor_3D_macroface_P1_impl_032_032(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5282,7 +5282,7 @@ static void sor_3D_macroface_P1_impl_032_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5293,7 +5293,7 @@ void sor_3D_macroface_P1_impl_032_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5329,7 +5329,7 @@ static void sor_3D_macroface_P1_impl_032_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5340,7 +5340,7 @@ void sor_3D_macroface_P1_impl_032_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5376,7 +5376,7 @@ static void sor_3D_macroface_P1_impl_032_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5387,7 +5387,7 @@ void sor_3D_macroface_P1_impl_032_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5423,7 +5423,7 @@ static void sor_3D_macroface_P1_impl_032_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5434,7 +5434,7 @@ void sor_3D_macroface_P1_impl_032_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5470,7 +5470,7 @@ static void sor_3D_macroface_P1_impl_032_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5481,7 +5481,7 @@ void sor_3D_macroface_P1_impl_032_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5517,7 +5517,7 @@ static void sor_3D_macroface_P1_impl_032_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5528,7 +5528,7 @@ void sor_3D_macroface_P1_impl_032_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5564,7 +5564,7 @@ static void sor_3D_macroface_P1_impl_032_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5575,7 +5575,7 @@ void sor_3D_macroface_P1_impl_032_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5611,7 +5611,7 @@ static void sor_3D_macroface_P1_impl_032_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5622,7 +5622,7 @@ void sor_3D_macroface_P1_impl_032_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5658,7 +5658,7 @@ static void sor_3D_macroface_P1_impl_032_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5669,7 +5669,7 @@ void sor_3D_macroface_P1_impl_032_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5705,7 +5705,7 @@ static void sor_3D_macroface_P1_impl_032_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5716,7 +5716,7 @@ void sor_3D_macroface_P1_impl_032_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5752,7 +5752,7 @@ static void sor_3D_macroface_P1_impl_032_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5763,7 +5763,7 @@ void sor_3D_macroface_P1_impl_032_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5799,7 +5799,7 @@ static void sor_3D_macroface_P1_impl_032_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5810,7 +5810,7 @@ void sor_3D_macroface_P1_impl_032_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5846,7 +5846,7 @@ static void sor_3D_macroface_P1_impl_032_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5857,7 +5857,7 @@ void sor_3D_macroface_P1_impl_032_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5893,7 +5893,7 @@ static void sor_3D_macroface_P1_impl_032_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5904,7 +5904,7 @@ void sor_3D_macroface_P1_impl_032_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5940,7 +5940,7 @@ static void sor_3D_macroface_P1_impl_032_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5951,7 +5951,7 @@ void sor_3D_macroface_P1_impl_032_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -5987,7 +5987,7 @@ static void sor_3D_macroface_P1_impl_032_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -5998,7 +5998,7 @@ void sor_3D_macroface_P1_impl_032_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6034,7 +6034,7 @@ static void sor_3D_macroface_P1_impl_032_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6045,7 +6045,7 @@ void sor_3D_macroface_P1_impl_032_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_032_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_032_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6081,7 +6081,7 @@ static void sor_3D_macroface_P1_impl_032_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_032_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_032_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6092,7 +6092,7 @@ void sor_3D_macroface_P1_impl_032_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_102_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6128,7 +6128,7 @@ static void sor_3D_macroface_P1_impl_102_102_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_102(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6139,7 +6139,7 @@ void sor_3D_macroface_P1_impl_102_102(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6175,7 +6175,7 @@ static void sor_3D_macroface_P1_impl_102_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6186,7 +6186,7 @@ void sor_3D_macroface_P1_impl_102_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6222,7 +6222,7 @@ static void sor_3D_macroface_P1_impl_102_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6233,7 +6233,7 @@ void sor_3D_macroface_P1_impl_102_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6269,7 +6269,7 @@ static void sor_3D_macroface_P1_impl_102_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6280,7 +6280,7 @@ void sor_3D_macroface_P1_impl_102_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6316,7 +6316,7 @@ static void sor_3D_macroface_P1_impl_102_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6327,7 +6327,7 @@ void sor_3D_macroface_P1_impl_102_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6363,7 +6363,7 @@ static void sor_3D_macroface_P1_impl_102_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6374,7 +6374,7 @@ void sor_3D_macroface_P1_impl_102_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6410,7 +6410,7 @@ static void sor_3D_macroface_P1_impl_102_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6421,7 +6421,7 @@ void sor_3D_macroface_P1_impl_102_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6457,7 +6457,7 @@ static void sor_3D_macroface_P1_impl_102_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6468,7 +6468,7 @@ void sor_3D_macroface_P1_impl_102_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6504,7 +6504,7 @@ static void sor_3D_macroface_P1_impl_102_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6515,7 +6515,7 @@ void sor_3D_macroface_P1_impl_102_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6551,7 +6551,7 @@ static void sor_3D_macroface_P1_impl_102_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6562,7 +6562,7 @@ void sor_3D_macroface_P1_impl_102_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6598,7 +6598,7 @@ static void sor_3D_macroface_P1_impl_102_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6609,7 +6609,7 @@ void sor_3D_macroface_P1_impl_102_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6645,7 +6645,7 @@ static void sor_3D_macroface_P1_impl_102_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6656,7 +6656,7 @@ void sor_3D_macroface_P1_impl_102_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6692,7 +6692,7 @@ static void sor_3D_macroface_P1_impl_102_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6703,7 +6703,7 @@ void sor_3D_macroface_P1_impl_102_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6739,7 +6739,7 @@ static void sor_3D_macroface_P1_impl_102_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6750,7 +6750,7 @@ void sor_3D_macroface_P1_impl_102_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6786,7 +6786,7 @@ static void sor_3D_macroface_P1_impl_102_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6797,7 +6797,7 @@ void sor_3D_macroface_P1_impl_102_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6833,7 +6833,7 @@ static void sor_3D_macroface_P1_impl_102_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6844,7 +6844,7 @@ void sor_3D_macroface_P1_impl_102_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6880,7 +6880,7 @@ static void sor_3D_macroface_P1_impl_102_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6891,7 +6891,7 @@ void sor_3D_macroface_P1_impl_102_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_102_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_102_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6927,7 +6927,7 @@ static void sor_3D_macroface_P1_impl_102_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_102_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_102_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6938,7 +6938,7 @@ void sor_3D_macroface_P1_impl_102_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_103_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -6974,7 +6974,7 @@ static void sor_3D_macroface_P1_impl_103_103_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_103(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -6985,7 +6985,7 @@ void sor_3D_macroface_P1_impl_103_103(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7021,7 +7021,7 @@ static void sor_3D_macroface_P1_impl_103_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7032,7 +7032,7 @@ void sor_3D_macroface_P1_impl_103_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7068,7 +7068,7 @@ static void sor_3D_macroface_P1_impl_103_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7079,7 +7079,7 @@ void sor_3D_macroface_P1_impl_103_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7115,7 +7115,7 @@ static void sor_3D_macroface_P1_impl_103_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7126,7 +7126,7 @@ void sor_3D_macroface_P1_impl_103_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7162,7 +7162,7 @@ static void sor_3D_macroface_P1_impl_103_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7173,7 +7173,7 @@ void sor_3D_macroface_P1_impl_103_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7209,7 +7209,7 @@ static void sor_3D_macroface_P1_impl_103_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7220,7 +7220,7 @@ void sor_3D_macroface_P1_impl_103_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7256,7 +7256,7 @@ static void sor_3D_macroface_P1_impl_103_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7267,7 +7267,7 @@ void sor_3D_macroface_P1_impl_103_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7303,7 +7303,7 @@ static void sor_3D_macroface_P1_impl_103_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7314,7 +7314,7 @@ void sor_3D_macroface_P1_impl_103_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7350,7 +7350,7 @@ static void sor_3D_macroface_P1_impl_103_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7361,7 +7361,7 @@ void sor_3D_macroface_P1_impl_103_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7397,7 +7397,7 @@ static void sor_3D_macroface_P1_impl_103_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7408,7 +7408,7 @@ void sor_3D_macroface_P1_impl_103_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7444,7 +7444,7 @@ static void sor_3D_macroface_P1_impl_103_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7455,7 +7455,7 @@ void sor_3D_macroface_P1_impl_103_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7491,7 +7491,7 @@ static void sor_3D_macroface_P1_impl_103_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7502,7 +7502,7 @@ void sor_3D_macroface_P1_impl_103_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7538,7 +7538,7 @@ static void sor_3D_macroface_P1_impl_103_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7549,7 +7549,7 @@ void sor_3D_macroface_P1_impl_103_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7585,7 +7585,7 @@ static void sor_3D_macroface_P1_impl_103_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7596,7 +7596,7 @@ void sor_3D_macroface_P1_impl_103_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7632,7 +7632,7 @@ static void sor_3D_macroface_P1_impl_103_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7643,7 +7643,7 @@ void sor_3D_macroface_P1_impl_103_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7679,7 +7679,7 @@ static void sor_3D_macroface_P1_impl_103_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7690,7 +7690,7 @@ void sor_3D_macroface_P1_impl_103_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_103_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_103_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7726,7 +7726,7 @@ static void sor_3D_macroface_P1_impl_103_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_103_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_103_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7737,7 +7737,7 @@ void sor_3D_macroface_P1_impl_103_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_120_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7773,7 +7773,7 @@ static void sor_3D_macroface_P1_impl_120_120_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_120(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7784,7 +7784,7 @@ void sor_3D_macroface_P1_impl_120_120(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7820,7 +7820,7 @@ static void sor_3D_macroface_P1_impl_120_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7831,7 +7831,7 @@ void sor_3D_macroface_P1_impl_120_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7867,7 +7867,7 @@ static void sor_3D_macroface_P1_impl_120_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7878,7 +7878,7 @@ void sor_3D_macroface_P1_impl_120_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7914,7 +7914,7 @@ static void sor_3D_macroface_P1_impl_120_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7925,7 +7925,7 @@ void sor_3D_macroface_P1_impl_120_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -7961,7 +7961,7 @@ static void sor_3D_macroface_P1_impl_120_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -7972,7 +7972,7 @@ void sor_3D_macroface_P1_impl_120_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8008,7 +8008,7 @@ static void sor_3D_macroface_P1_impl_120_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8019,7 +8019,7 @@ void sor_3D_macroface_P1_impl_120_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8055,7 +8055,7 @@ static void sor_3D_macroface_P1_impl_120_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8066,7 +8066,7 @@ void sor_3D_macroface_P1_impl_120_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8102,7 +8102,7 @@ static void sor_3D_macroface_P1_impl_120_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8113,7 +8113,7 @@ void sor_3D_macroface_P1_impl_120_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8149,7 +8149,7 @@ static void sor_3D_macroface_P1_impl_120_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8160,7 +8160,7 @@ void sor_3D_macroface_P1_impl_120_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8196,7 +8196,7 @@ static void sor_3D_macroface_P1_impl_120_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8207,7 +8207,7 @@ void sor_3D_macroface_P1_impl_120_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8243,7 +8243,7 @@ static void sor_3D_macroface_P1_impl_120_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8254,7 +8254,7 @@ void sor_3D_macroface_P1_impl_120_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8290,7 +8290,7 @@ static void sor_3D_macroface_P1_impl_120_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8301,7 +8301,7 @@ void sor_3D_macroface_P1_impl_120_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8337,7 +8337,7 @@ static void sor_3D_macroface_P1_impl_120_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8348,7 +8348,7 @@ void sor_3D_macroface_P1_impl_120_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8384,7 +8384,7 @@ static void sor_3D_macroface_P1_impl_120_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8395,7 +8395,7 @@ void sor_3D_macroface_P1_impl_120_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8431,7 +8431,7 @@ static void sor_3D_macroface_P1_impl_120_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8442,7 +8442,7 @@ void sor_3D_macroface_P1_impl_120_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_120_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_120_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8478,7 +8478,7 @@ static void sor_3D_macroface_P1_impl_120_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_120_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_120_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8489,7 +8489,7 @@ void sor_3D_macroface_P1_impl_120_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_123_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8525,7 +8525,7 @@ static void sor_3D_macroface_P1_impl_123_123_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_123(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8536,7 +8536,7 @@ void sor_3D_macroface_P1_impl_123_123(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8572,7 +8572,7 @@ static void sor_3D_macroface_P1_impl_123_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8583,7 +8583,7 @@ void sor_3D_macroface_P1_impl_123_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8619,7 +8619,7 @@ static void sor_3D_macroface_P1_impl_123_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8630,7 +8630,7 @@ void sor_3D_macroface_P1_impl_123_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8666,7 +8666,7 @@ static void sor_3D_macroface_P1_impl_123_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8677,7 +8677,7 @@ void sor_3D_macroface_P1_impl_123_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8713,7 +8713,7 @@ static void sor_3D_macroface_P1_impl_123_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8724,7 +8724,7 @@ void sor_3D_macroface_P1_impl_123_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8760,7 +8760,7 @@ static void sor_3D_macroface_P1_impl_123_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8771,7 +8771,7 @@ void sor_3D_macroface_P1_impl_123_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8807,7 +8807,7 @@ static void sor_3D_macroface_P1_impl_123_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8818,7 +8818,7 @@ void sor_3D_macroface_P1_impl_123_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8854,7 +8854,7 @@ static void sor_3D_macroface_P1_impl_123_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8865,7 +8865,7 @@ void sor_3D_macroface_P1_impl_123_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8901,7 +8901,7 @@ static void sor_3D_macroface_P1_impl_123_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8912,7 +8912,7 @@ void sor_3D_macroface_P1_impl_123_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8948,7 +8948,7 @@ static void sor_3D_macroface_P1_impl_123_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -8959,7 +8959,7 @@ void sor_3D_macroface_P1_impl_123_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -8995,7 +8995,7 @@ static void sor_3D_macroface_P1_impl_123_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9006,7 +9006,7 @@ void sor_3D_macroface_P1_impl_123_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9042,7 +9042,7 @@ static void sor_3D_macroface_P1_impl_123_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9053,7 +9053,7 @@ void sor_3D_macroface_P1_impl_123_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9089,7 +9089,7 @@ static void sor_3D_macroface_P1_impl_123_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9100,7 +9100,7 @@ void sor_3D_macroface_P1_impl_123_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9136,7 +9136,7 @@ static void sor_3D_macroface_P1_impl_123_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9147,7 +9147,7 @@ void sor_3D_macroface_P1_impl_123_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_123_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_123_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9183,7 +9183,7 @@ static void sor_3D_macroface_P1_impl_123_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_123_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_123_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9194,7 +9194,7 @@ void sor_3D_macroface_P1_impl_123_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_130_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9230,7 +9230,7 @@ static void sor_3D_macroface_P1_impl_130_130_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_130(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9241,7 +9241,7 @@ void sor_3D_macroface_P1_impl_130_130(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9277,7 +9277,7 @@ static void sor_3D_macroface_P1_impl_130_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9288,7 +9288,7 @@ void sor_3D_macroface_P1_impl_130_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9324,7 +9324,7 @@ static void sor_3D_macroface_P1_impl_130_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9335,7 +9335,7 @@ void sor_3D_macroface_P1_impl_130_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9371,7 +9371,7 @@ static void sor_3D_macroface_P1_impl_130_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9382,7 +9382,7 @@ void sor_3D_macroface_P1_impl_130_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9418,7 +9418,7 @@ static void sor_3D_macroface_P1_impl_130_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9429,7 +9429,7 @@ void sor_3D_macroface_P1_impl_130_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9465,7 +9465,7 @@ static void sor_3D_macroface_P1_impl_130_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9476,7 +9476,7 @@ void sor_3D_macroface_P1_impl_130_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9512,7 +9512,7 @@ static void sor_3D_macroface_P1_impl_130_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9523,7 +9523,7 @@ void sor_3D_macroface_P1_impl_130_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9559,7 +9559,7 @@ static void sor_3D_macroface_P1_impl_130_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9570,7 +9570,7 @@ void sor_3D_macroface_P1_impl_130_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9606,7 +9606,7 @@ static void sor_3D_macroface_P1_impl_130_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9617,7 +9617,7 @@ void sor_3D_macroface_P1_impl_130_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9653,7 +9653,7 @@ static void sor_3D_macroface_P1_impl_130_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9664,7 +9664,7 @@ void sor_3D_macroface_P1_impl_130_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9700,7 +9700,7 @@ static void sor_3D_macroface_P1_impl_130_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9711,7 +9711,7 @@ void sor_3D_macroface_P1_impl_130_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9747,7 +9747,7 @@ static void sor_3D_macroface_P1_impl_130_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9758,7 +9758,7 @@ void sor_3D_macroface_P1_impl_130_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9794,7 +9794,7 @@ static void sor_3D_macroface_P1_impl_130_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9805,7 +9805,7 @@ void sor_3D_macroface_P1_impl_130_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_130_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_130_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9841,7 +9841,7 @@ static void sor_3D_macroface_P1_impl_130_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_130_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_130_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9852,7 +9852,7 @@ void sor_3D_macroface_P1_impl_130_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9888,7 +9888,7 @@ static void sor_3D_macroface_P1_impl_132_132_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9899,7 +9899,7 @@ void sor_3D_macroface_P1_impl_132_132(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9935,7 +9935,7 @@ static void sor_3D_macroface_P1_impl_132_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9946,7 +9946,7 @@ void sor_3D_macroface_P1_impl_132_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -9982,7 +9982,7 @@ static void sor_3D_macroface_P1_impl_132_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -9993,7 +9993,7 @@ void sor_3D_macroface_P1_impl_132_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10029,7 +10029,7 @@ static void sor_3D_macroface_P1_impl_132_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10040,7 +10040,7 @@ void sor_3D_macroface_P1_impl_132_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10076,7 +10076,7 @@ static void sor_3D_macroface_P1_impl_132_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10087,7 +10087,7 @@ void sor_3D_macroface_P1_impl_132_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10123,7 +10123,7 @@ static void sor_3D_macroface_P1_impl_132_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10134,7 +10134,7 @@ void sor_3D_macroface_P1_impl_132_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10170,7 +10170,7 @@ static void sor_3D_macroface_P1_impl_132_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10181,7 +10181,7 @@ void sor_3D_macroface_P1_impl_132_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10217,7 +10217,7 @@ static void sor_3D_macroface_P1_impl_132_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10228,7 +10228,7 @@ void sor_3D_macroface_P1_impl_132_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10264,7 +10264,7 @@ static void sor_3D_macroface_P1_impl_132_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10275,7 +10275,7 @@ void sor_3D_macroface_P1_impl_132_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10311,7 +10311,7 @@ static void sor_3D_macroface_P1_impl_132_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10322,7 +10322,7 @@ void sor_3D_macroface_P1_impl_132_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10358,7 +10358,7 @@ static void sor_3D_macroface_P1_impl_132_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10369,7 +10369,7 @@ void sor_3D_macroface_P1_impl_132_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10405,7 +10405,7 @@ static void sor_3D_macroface_P1_impl_132_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10416,7 +10416,7 @@ void sor_3D_macroface_P1_impl_132_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_132_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_132_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10452,7 +10452,7 @@ static void sor_3D_macroface_P1_impl_132_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_132_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_132_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10463,7 +10463,7 @@ void sor_3D_macroface_P1_impl_132_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_201_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10499,7 +10499,7 @@ static void sor_3D_macroface_P1_impl_201_201_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_201(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10510,7 +10510,7 @@ void sor_3D_macroface_P1_impl_201_201(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10546,7 +10546,7 @@ static void sor_3D_macroface_P1_impl_201_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10557,7 +10557,7 @@ void sor_3D_macroface_P1_impl_201_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10593,7 +10593,7 @@ static void sor_3D_macroface_P1_impl_201_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10604,7 +10604,7 @@ void sor_3D_macroface_P1_impl_201_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10640,7 +10640,7 @@ static void sor_3D_macroface_P1_impl_201_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10651,7 +10651,7 @@ void sor_3D_macroface_P1_impl_201_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10687,7 +10687,7 @@ static void sor_3D_macroface_P1_impl_201_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10698,7 +10698,7 @@ void sor_3D_macroface_P1_impl_201_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10734,7 +10734,7 @@ static void sor_3D_macroface_P1_impl_201_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10745,7 +10745,7 @@ void sor_3D_macroface_P1_impl_201_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10781,7 +10781,7 @@ static void sor_3D_macroface_P1_impl_201_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10792,7 +10792,7 @@ void sor_3D_macroface_P1_impl_201_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10828,7 +10828,7 @@ static void sor_3D_macroface_P1_impl_201_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10839,7 +10839,7 @@ void sor_3D_macroface_P1_impl_201_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10875,7 +10875,7 @@ static void sor_3D_macroface_P1_impl_201_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10886,7 +10886,7 @@ void sor_3D_macroface_P1_impl_201_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10922,7 +10922,7 @@ static void sor_3D_macroface_P1_impl_201_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10933,7 +10933,7 @@ void sor_3D_macroface_P1_impl_201_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -10969,7 +10969,7 @@ static void sor_3D_macroface_P1_impl_201_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -10980,7 +10980,7 @@ void sor_3D_macroface_P1_impl_201_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_201_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_201_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11016,7 +11016,7 @@ static void sor_3D_macroface_P1_impl_201_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_201_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_201_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11027,7 +11027,7 @@ void sor_3D_macroface_P1_impl_201_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_203_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11063,7 +11063,7 @@ static void sor_3D_macroface_P1_impl_203_203_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_203(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11074,7 +11074,7 @@ void sor_3D_macroface_P1_impl_203_203(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11110,7 +11110,7 @@ static void sor_3D_macroface_P1_impl_203_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11121,7 +11121,7 @@ void sor_3D_macroface_P1_impl_203_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11157,7 +11157,7 @@ static void sor_3D_macroface_P1_impl_203_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11168,7 +11168,7 @@ void sor_3D_macroface_P1_impl_203_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11204,7 +11204,7 @@ static void sor_3D_macroface_P1_impl_203_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11215,7 +11215,7 @@ void sor_3D_macroface_P1_impl_203_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11251,7 +11251,7 @@ static void sor_3D_macroface_P1_impl_203_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11262,7 +11262,7 @@ void sor_3D_macroface_P1_impl_203_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11298,7 +11298,7 @@ static void sor_3D_macroface_P1_impl_203_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11309,7 +11309,7 @@ void sor_3D_macroface_P1_impl_203_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11345,7 +11345,7 @@ static void sor_3D_macroface_P1_impl_203_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11356,7 +11356,7 @@ void sor_3D_macroface_P1_impl_203_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11392,7 +11392,7 @@ static void sor_3D_macroface_P1_impl_203_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11403,7 +11403,7 @@ void sor_3D_macroface_P1_impl_203_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11439,7 +11439,7 @@ static void sor_3D_macroface_P1_impl_203_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11450,7 +11450,7 @@ void sor_3D_macroface_P1_impl_203_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11486,7 +11486,7 @@ static void sor_3D_macroface_P1_impl_203_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11497,7 +11497,7 @@ void sor_3D_macroface_P1_impl_203_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_203_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_203_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11533,7 +11533,7 @@ static void sor_3D_macroface_P1_impl_203_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_203_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_203_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11544,7 +11544,7 @@ void sor_3D_macroface_P1_impl_203_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_210_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11580,7 +11580,7 @@ static void sor_3D_macroface_P1_impl_210_210_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_210(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11591,7 +11591,7 @@ void sor_3D_macroface_P1_impl_210_210(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11627,7 +11627,7 @@ static void sor_3D_macroface_P1_impl_210_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11638,7 +11638,7 @@ void sor_3D_macroface_P1_impl_210_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11674,7 +11674,7 @@ static void sor_3D_macroface_P1_impl_210_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11685,7 +11685,7 @@ void sor_3D_macroface_P1_impl_210_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11721,7 +11721,7 @@ static void sor_3D_macroface_P1_impl_210_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11732,7 +11732,7 @@ void sor_3D_macroface_P1_impl_210_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11768,7 +11768,7 @@ static void sor_3D_macroface_P1_impl_210_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11779,7 +11779,7 @@ void sor_3D_macroface_P1_impl_210_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11815,7 +11815,7 @@ static void sor_3D_macroface_P1_impl_210_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11826,7 +11826,7 @@ void sor_3D_macroface_P1_impl_210_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11862,7 +11862,7 @@ static void sor_3D_macroface_P1_impl_210_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11873,7 +11873,7 @@ void sor_3D_macroface_P1_impl_210_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11909,7 +11909,7 @@ static void sor_3D_macroface_P1_impl_210_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11920,7 +11920,7 @@ void sor_3D_macroface_P1_impl_210_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -11956,7 +11956,7 @@ static void sor_3D_macroface_P1_impl_210_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -11967,7 +11967,7 @@ void sor_3D_macroface_P1_impl_210_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_210_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_210_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12003,7 +12003,7 @@ static void sor_3D_macroface_P1_impl_210_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_210_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_210_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12014,7 +12014,7 @@ void sor_3D_macroface_P1_impl_210_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_213_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12050,7 +12050,7 @@ static void sor_3D_macroface_P1_impl_213_213_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_213(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12061,7 +12061,7 @@ void sor_3D_macroface_P1_impl_213_213(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12097,7 +12097,7 @@ static void sor_3D_macroface_P1_impl_213_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12108,7 +12108,7 @@ void sor_3D_macroface_P1_impl_213_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12144,7 +12144,7 @@ static void sor_3D_macroface_P1_impl_213_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12155,7 +12155,7 @@ void sor_3D_macroface_P1_impl_213_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12191,7 +12191,7 @@ static void sor_3D_macroface_P1_impl_213_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12202,7 +12202,7 @@ void sor_3D_macroface_P1_impl_213_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12238,7 +12238,7 @@ static void sor_3D_macroface_P1_impl_213_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12249,7 +12249,7 @@ void sor_3D_macroface_P1_impl_213_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12285,7 +12285,7 @@ static void sor_3D_macroface_P1_impl_213_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12296,7 +12296,7 @@ void sor_3D_macroface_P1_impl_213_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12332,7 +12332,7 @@ static void sor_3D_macroface_P1_impl_213_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12343,7 +12343,7 @@ void sor_3D_macroface_P1_impl_213_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12379,7 +12379,7 @@ static void sor_3D_macroface_P1_impl_213_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12390,7 +12390,7 @@ void sor_3D_macroface_P1_impl_213_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_213_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_213_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12426,7 +12426,7 @@ static void sor_3D_macroface_P1_impl_213_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_213_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_213_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12437,7 +12437,7 @@ void sor_3D_macroface_P1_impl_213_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_230_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12473,7 +12473,7 @@ static void sor_3D_macroface_P1_impl_230_230_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_230(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12484,7 +12484,7 @@ void sor_3D_macroface_P1_impl_230_230(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12520,7 +12520,7 @@ static void sor_3D_macroface_P1_impl_230_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12531,7 +12531,7 @@ void sor_3D_macroface_P1_impl_230_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12567,7 +12567,7 @@ static void sor_3D_macroface_P1_impl_230_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12578,7 +12578,7 @@ void sor_3D_macroface_P1_impl_230_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12614,7 +12614,7 @@ static void sor_3D_macroface_P1_impl_230_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12625,7 +12625,7 @@ void sor_3D_macroface_P1_impl_230_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12661,7 +12661,7 @@ static void sor_3D_macroface_P1_impl_230_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12672,7 +12672,7 @@ void sor_3D_macroface_P1_impl_230_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12708,7 +12708,7 @@ static void sor_3D_macroface_P1_impl_230_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12719,7 +12719,7 @@ void sor_3D_macroface_P1_impl_230_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12755,7 +12755,7 @@ static void sor_3D_macroface_P1_impl_230_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12766,7 +12766,7 @@ void sor_3D_macroface_P1_impl_230_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_230_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_230_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12802,7 +12802,7 @@ static void sor_3D_macroface_P1_impl_230_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_230_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_230_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12813,7 +12813,7 @@ void sor_3D_macroface_P1_impl_230_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_231_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12849,7 +12849,7 @@ static void sor_3D_macroface_P1_impl_231_231_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_231(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12860,7 +12860,7 @@ void sor_3D_macroface_P1_impl_231_231(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12896,7 +12896,7 @@ static void sor_3D_macroface_P1_impl_231_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12907,7 +12907,7 @@ void sor_3D_macroface_P1_impl_231_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12943,7 +12943,7 @@ static void sor_3D_macroface_P1_impl_231_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -12954,7 +12954,7 @@ void sor_3D_macroface_P1_impl_231_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -12990,7 +12990,7 @@ static void sor_3D_macroface_P1_impl_231_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13001,7 +13001,7 @@ void sor_3D_macroface_P1_impl_231_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13037,7 +13037,7 @@ static void sor_3D_macroface_P1_impl_231_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13048,7 +13048,7 @@ void sor_3D_macroface_P1_impl_231_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13084,7 +13084,7 @@ static void sor_3D_macroface_P1_impl_231_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13095,7 +13095,7 @@ void sor_3D_macroface_P1_impl_231_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_231_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_231_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13131,7 +13131,7 @@ static void sor_3D_macroface_P1_impl_231_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_231_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_231_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13142,7 +13142,7 @@ void sor_3D_macroface_P1_impl_231_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_301_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_301_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13178,7 +13178,7 @@ static void sor_3D_macroface_P1_impl_301_301_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_301_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_301_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13189,7 +13189,7 @@ void sor_3D_macroface_P1_impl_301_301(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_301_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_301_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13225,7 +13225,7 @@ static void sor_3D_macroface_P1_impl_301_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_301_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_301_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13236,7 +13236,7 @@ void sor_3D_macroface_P1_impl_301_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_301_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_301_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13272,7 +13272,7 @@ static void sor_3D_macroface_P1_impl_301_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_301_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_301_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13283,7 +13283,7 @@ void sor_3D_macroface_P1_impl_301_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_301_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_301_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13319,7 +13319,7 @@ static void sor_3D_macroface_P1_impl_301_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_301_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_301_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13330,7 +13330,7 @@ void sor_3D_macroface_P1_impl_301_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_301_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_301_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13366,7 +13366,7 @@ static void sor_3D_macroface_P1_impl_301_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_301_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_301_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13377,7 +13377,7 @@ void sor_3D_macroface_P1_impl_301_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_301_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_301_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13413,7 +13413,7 @@ static void sor_3D_macroface_P1_impl_301_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_301_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_301_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13424,7 +13424,7 @@ void sor_3D_macroface_P1_impl_301_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_302_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_302_302_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13460,7 +13460,7 @@ static void sor_3D_macroface_P1_impl_302_302_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_302_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_302_302(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13471,7 +13471,7 @@ void sor_3D_macroface_P1_impl_302_302(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_302_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_302_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13507,7 +13507,7 @@ static void sor_3D_macroface_P1_impl_302_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_302_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_302_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13518,7 +13518,7 @@ void sor_3D_macroface_P1_impl_302_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_302_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_302_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13554,7 +13554,7 @@ static void sor_3D_macroface_P1_impl_302_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_302_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_302_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13565,7 +13565,7 @@ void sor_3D_macroface_P1_impl_302_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_302_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_302_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13601,7 +13601,7 @@ static void sor_3D_macroface_P1_impl_302_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_302_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_302_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13612,7 +13612,7 @@ void sor_3D_macroface_P1_impl_302_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_302_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_302_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13648,7 +13648,7 @@ static void sor_3D_macroface_P1_impl_302_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_302_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_302_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13659,7 +13659,7 @@ void sor_3D_macroface_P1_impl_302_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_310_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_310_310_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13695,7 +13695,7 @@ static void sor_3D_macroface_P1_impl_310_310_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_310_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_310_310(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13706,7 +13706,7 @@ void sor_3D_macroface_P1_impl_310_310(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_310_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_310_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13742,7 +13742,7 @@ static void sor_3D_macroface_P1_impl_310_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_310_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_310_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13753,7 +13753,7 @@ void sor_3D_macroface_P1_impl_310_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_310_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_310_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13789,7 +13789,7 @@ static void sor_3D_macroface_P1_impl_310_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_310_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_310_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13800,7 +13800,7 @@ void sor_3D_macroface_P1_impl_310_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_310_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_310_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13836,7 +13836,7 @@ static void sor_3D_macroface_P1_impl_310_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_310_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_310_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13847,7 +13847,7 @@ void sor_3D_macroface_P1_impl_310_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_312_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_312_312_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13883,7 +13883,7 @@ static void sor_3D_macroface_P1_impl_312_312_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_312_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_312_312(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13894,7 +13894,7 @@ void sor_3D_macroface_P1_impl_312_312(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_312_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_312_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13930,7 +13930,7 @@ static void sor_3D_macroface_P1_impl_312_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_312_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_312_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13941,7 +13941,7 @@ void sor_3D_macroface_P1_impl_312_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_312_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_312_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -13977,7 +13977,7 @@ static void sor_3D_macroface_P1_impl_312_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_312_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_312_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -13988,7 +13988,7 @@ void sor_3D_macroface_P1_impl_312_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_320_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_320_320_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -14024,7 +14024,7 @@ static void sor_3D_macroface_P1_impl_320_320_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_320_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_320_320(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -14035,7 +14035,7 @@ void sor_3D_macroface_P1_impl_320_320(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_320_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_320_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -14071,7 +14071,7 @@ static void sor_3D_macroface_P1_impl_320_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_320_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_320_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -14082,7 +14082,7 @@ void sor_3D_macroface_P1_impl_320_321(double * RESTRICT _data_vertexFaceDst, dou
     }
 }
     
-static void sor_3D_macroface_P1_impl_321_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_impl_321_321_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -14118,7 +14118,7 @@ static void sor_3D_macroface_P1_impl_321_321_level_any(double * RESTRICT _data_v
 }
 
 
-void sor_3D_macroface_P1_impl_321_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_impl_321_321(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int level, double relax, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::Index, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {

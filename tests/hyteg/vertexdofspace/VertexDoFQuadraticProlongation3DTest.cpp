@@ -45,11 +45,10 @@ using namespace hyteg;
 
 void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel )
 {
+   const bool   writeVTK   = true;
+   const real_t errorLimit = real_c( std::is_same< real_t, double >() ? 1e-15 : 8e-9 );
 
-  const bool   writeVTK   = true;
-  const real_t errorLimit = 1e-15;
-
-  const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -87,7 +86,7 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
   };
 
   std::function< real_t( const hyteg::Point3D& ) > quadraticInXYZ = []( const hyteg::Point3D& p ) -> real_t {
-      return 2. * p[0] * p[0] + 3. * p[0] + 13. + 4. * p[1] + 5. * p[1] * p[1] + p[2] * p[2] + 6.;
+     return real_c( 2. * p[0] * p[0] + 3. * p[0] + 13. + 4. * p[1] + 5. * p[1] * p[1] + p[2] * p[2] + 6. );
   };
 
   hyteg::vertexdof::VertexDoFFunction< real_t > u          ( "u",           storage, lowerLevel, lowerLevel + 1 );
@@ -100,7 +99,7 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
   vtkOutput.add( resultExact );
   vtkOutput.add( err );
 
-  auto testProlongationResult = [&]( std::function< real_t( const hyteg::Point3D& ) > uFunction ) -> real_t
+  auto testProlongationResult = [&]( const std::function< real_t( const hyteg::Point3D& ) >& uFunction ) -> real_t
   {
       u.interpolate( uFunction, lowerLevel, All );
       resultExact.interpolate( uFunction, lowerLevel + 1, Inner | NeumannBoundary );

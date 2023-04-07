@@ -23,6 +23,8 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+
 #include "simplex.hpp"
 
 namespace hyteg {
@@ -43,12 +45,13 @@ class SimplexData
    SimplexData( PrimitiveID                 geometryMap  = PrimitiveID(),
                 uint_t                      boundaryFlag = 0,
                 PrimitiveID                 id           = PrimitiveID(),
-                std::array< uint_t, J + 1 > vtxIncices   = {} )
+                std::array< uint_t, J + 1 > vtxIncices   = {},
+                uint_t                      targetRank   = 0 )
    : _vertices( vtxIncices )
    , _geometryMap( geometryMap )
    , _boundaryFlag( boundaryFlag )
    , _id( id )
-   , _targetRank( 0 )
+   , _targetRank( targetRank )
    , _locality( NONE )
    {}
 
@@ -58,7 +61,7 @@ class SimplexData
    , _geometryMap( simplex->getGeometryMap() )
    , _boundaryFlag( simplex->getBoundaryFlag() )
    , _id( simplex->getPrimitiveID() )
-   , _targetRank( 0 )
+   , _targetRank( simplex->getTargetRank() )
    , _locality( NONE )
    {}
 
@@ -72,6 +75,9 @@ class SimplexData
    inline bool                               isLocal() const { return _locality == LOCAL; }
    inline void                               setLocality( Locality loc ) { _locality = loc; }
 
+   // count number of vertices that are not shared between this and other, i.e.,
+   // return d = (J+1) - n_shared
+   // e.g., if *this==other, then d=0; if other is a direct neighbor of this, then d=1;
    inline uint_t diff( const SimplexData& other ) const
    {
       uint_t d = 0;
@@ -125,14 +131,15 @@ using FaceData   = SimplexData< FACE >;
 using CellData   = SimplexData< CELL >;
 
 // stores IDs of neighbor primitives
-using Neighborhood = std::array< std::vector< uint_t >, ALL >;
+using Neighborhood = std::array< std::vector< PrimitiveID >, PrimitiveType::ALL >;
 
 /* apply loadbalancing (round robin) directly on our datastructures */
-void loadbalancing( std::vector< VertexData >& vtxs,
-                    std::vector< EdgeData >&   edges,
-                    std::vector< FaceData >&   faces,
-                    std::vector< CellData >&   cells,
-                    const uint_t&              n_processes );
+MigrationInfo loadbalancing( std::map< PrimitiveID, VertexData >& vtxs,
+                             std::map< PrimitiveID, EdgeData >&   edges,
+                             std::map< PrimitiveID, FaceData >&   faces,
+                             std::map< PrimitiveID, CellData >&   cells,
+                             const uint_t&                        n_processes,
+                             const uint_t&                        rank );
 
 /* apply neighborhood aware loadbalancing directly on our datastructures */
 // void loadbalancing( std::vector< VertexData >&         vtxs,
@@ -142,6 +149,13 @@ void loadbalancing( std::vector< VertexData >& vtxs,
 //                     const std::vector< Neighborhood >& nbrHood,
 //                     const uint_t&                      n_processes,
 //                     const uint_t&                      rank );
+
+/* assign interface primitives to the rank with the most neighboring volume primitives */
+void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >&         vtxs,
+                                      std::map< PrimitiveID, EdgeData >&           edges,
+                                      std::map< PrimitiveID, FaceData >&           faces,
+                                      std::map< PrimitiveID, CellData >&           cells,
+                                      const std::map< PrimitiveID, Neighborhood >& nbrHood );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

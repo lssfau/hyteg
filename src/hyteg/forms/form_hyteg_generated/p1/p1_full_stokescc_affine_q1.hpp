@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.6
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -54,7 +50,7 @@ class p1_full_stokescc_0_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -66,7 +62,7 @@ class p1_full_stokescc_0_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -78,7 +74,7 @@ class p1_full_stokescc_0_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -90,21 +86,13 @@ class p1_full_stokescc_0_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               72     107       1       0      1             74                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -126,7 +114,7 @@ class p1_full_stokescc_0_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -138,7 +126,7 @@ class p1_full_stokescc_0_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -150,7 +138,7 @@ class p1_full_stokescc_0_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -162,21 +150,13 @@ class p1_full_stokescc_0_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -204,7 +184,7 @@ class p1_full_stokescc_0_2_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -216,21 +196,13 @@ class p1_full_stokescc_0_2_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -252,7 +224,7 @@ class p1_full_stokescc_1_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -264,7 +236,7 @@ class p1_full_stokescc_1_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -276,7 +248,7 @@ class p1_full_stokescc_1_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -288,21 +260,13 @@ class p1_full_stokescc_1_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -324,7 +288,7 @@ class p1_full_stokescc_1_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -336,7 +300,7 @@ class p1_full_stokescc_1_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Centroid rule | points: 1, degree: 1, test tolerance: 7.85e-17
+   /// - quadrature rule:                        Witherden-Vincent 1 | points: 1, degree: 1, test tolerance: 7.85e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -348,7 +312,7 @@ class p1_full_stokescc_1_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -360,21 +324,13 @@ class p1_full_stokescc_1_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               72     107       1       0      1             74                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return true; }
-
-   bool assembly2DDefined() const override { return true; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -402,7 +358,7 @@ class p1_full_stokescc_1_2_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -414,21 +370,13 @@ class p1_full_stokescc_1_2_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -456,7 +404,7 @@ class p1_full_stokescc_2_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -468,21 +416,13 @@ class p1_full_stokescc_2_0_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -510,7 +450,7 @@ class p1_full_stokescc_2_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -522,21 +462,13 @@ class p1_full_stokescc_2_1_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               55      81       1       0      1             61                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 
@@ -564,7 +496,7 @@ class p1_full_stokescc_2_2_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
@@ -576,21 +508,13 @@ class p1_full_stokescc_2_2_affine_q1 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Xiao-Gimbutas 1 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
    ///                                               72     107       1       0      1             74                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
-
-   bool assemble2D() const override { return false; }
-
-   bool assembly2DDefined() const override { return false; }
-
-   bool assemble3D() const override { return true; }
-
-   bool assembly3DDefined() const override { return true; }
 
 };
 

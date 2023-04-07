@@ -33,7 +33,7 @@ namespace math {
 
 using walberla::real_t;
 
-template < size_t M, size_t N >
+template < int M, size_t N >
 inline real_t det2( const std::array< PointND< real_t, M >, N >& m )
 {
    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
@@ -45,7 +45,7 @@ inline real_t faceOrientation2D( const Point3D& a, const Point3D& b, const Point
    jac[0] = b - a;
    jac[1] = c - a;
 
-   return std::copysign( 1.0, det2( jac ) );
+   return std::copysign( walberla::real_c( 1.0 ), det2( jac ) );
 }
 
 constexpr uint_t binomialCoefficient(uint_t n, uint_t k)
@@ -72,7 +72,7 @@ inline Point3D toSpherical( const Point3D & pointInCartesianCoordinates )
    const real_t r = pointInCartesianCoordinates.norm();
    const real_t theta = std::acos( pointInCartesianCoordinates[2] / r );
    const real_t phi = std::atan2( pointInCartesianCoordinates[1], pointInCartesianCoordinates[0] );
-   return Point3D( { r, theta, phi } );
+   return Point3D( r, theta, phi );
 }
 
 /// Returns the given point from spherical coordinates to cartesian coordinates.
@@ -85,7 +85,7 @@ inline Point3D toCartesian( const Point3D & pointInSphericalCoordinates )
     const real_t x = r * std::sin( theta ) * std::cos( phi );
     const real_t y = r * std::sin( theta ) * std::sin( phi );
     const real_t z = r * std::cos( theta );
-    return Point3D( { x, y, z } );
+    return Point3D( x, y, z );
 }
 
 } // namespace math

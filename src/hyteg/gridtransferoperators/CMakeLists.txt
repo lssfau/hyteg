@@ -1,41 +1,43 @@
 target_sources( hyteg
     PRIVATE
-    P2P1StokesToP2P1StokesProlongation.hpp
-    P2P1StokesToP2P1StokesRestriction.hpp
-    P1toP1QuadraticProlongation.hpp
-    P1toP1LinearProlongation.cpp
-    P2toP1Conversion.cpp
-    P1toP1LinearRestriction.cpp
-    P1toP1InjectionRestriction.hpp
+    DGProlongation.cpp
+    DGProlongation.hpp
+    DGRestriction.cpp
+    DGRestriction.hpp
+    Embeddings.hpp
+    Embeddings.cpp
+    N1E1toN1E1Prolongation.cpp
+    N1E1toN1E1Prolongation.hpp
+    N1E1toN1E1Restriction.cpp
+    N1E1toN1E1Restriction.hpp
+    N1E1toP1Lifting.cpp
+    N1E1toP1Lifting.hpp
     P1P1StokesToP1P1StokesProlongation.hpp
-    P1toP1QuadraticProlongationThroughP2Injection.hpp
-    P1toP2Conversion.cpp
-    P2toP2QuadraticRestriction.hpp
-    P2toP2QuadraticProlongation.cpp
-    ProlongationOperator.hpp
-    P1toP2Conversion.hpp
-    P2toP2QuadraticRestriction.cpp
-    P2toP2QuadraticProlongation.hpp
     P1P1StokesToP1P1StokesRestriction.hpp
     P1VectorFunctionLinearProlongation.hpp
-    P1toP1QuadraticProlongation.cpp
-    P1toP1LinearProlongation.hpp
-    P2toP1Conversion.hpp
     P1VectorFunctionLinearRestriction.hpp
-    P1toP1InjectionRestriction.cpp
-    P1toP1LinearRestriction.hpp
-    RestrictionOperator.hpp
-    DGProlongation.hpp
-    DGProlongation.cpp
-    DGRestriction.hpp
-    DGRestriction.cpp
-    N1E1toN1E1Prolongation.hpp
-    N1E1toN1E1Prolongation.cpp
-    N1E1toN1E1Restriction.hpp
-    N1E1toN1E1Restriction.cpp
-    P1toN1E1Gradient.hpp
     P1toN1E1Gradient.cpp
-    N1E1toP1Lifting.hpp
-    N1E1toP1Lifting.cpp
+    P1toN1E1Gradient.hpp
+    P1toP1InjectionRestriction.cpp
+    P1toP1InjectionRestriction.hpp
+    P1toP1LinearProlongation.cpp
+    P1toP1LinearProlongation.hpp
+    P1toP1LinearRestriction.cpp
+    P1toP1LinearRestriction.hpp
+    P1toP1QuadraticProlongation.cpp
+    P1toP1QuadraticProlongation.hpp
+    P1toP1QuadraticProlongationThroughP2Injection.hpp
+    P1toP2Conversion.cpp
+    P1toP2Conversion.hpp
+    P2P1StokesToP2P1StokesProlongation.hpp
+    P2P1StokesToP2P1StokesRestriction.hpp
+    P2toP1Conversion.cpp
+    P2toP1Conversion.hpp
+    P2toP2QuadraticProlongation.cpp
+    P2toP2QuadraticProlongation.hpp
+    P2toP2QuadraticRestriction.cpp
+    P2toP2QuadraticRestriction.hpp
+    ProlongationOperator.hpp
+    RestrictionOperator.hpp
 )
 add_subdirectory( generatedKernels )

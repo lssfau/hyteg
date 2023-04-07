@@ -1,19 +1,19 @@
 target_sources( hyteg
     PRIVATE
-    SQL.hpp
-    VTKEdgeDoFWriter.cpp
-    VTKP1Writer.cpp
-    VTKOutput.hpp
-    TimingOutput.hpp
-    VTKMeshWriter.cpp
-    VTKP2Writer.hpp
     SQL.cpp
+    SQL.hpp
+    TimingOutput.hpp
+    VTKEdgeDoFWriter.cpp
     VTKEdgeDoFWriter.hpp
     VTKHelpers.hpp
-    VTKOutput.cpp
-    VTKP1Writer.hpp
+    VTKMeshWriter.cpp
     VTKMeshWriter.hpp
+    VTKOutput.cpp
+    VTKOutput.hpp
+    VTKP1Writer.cpp
+    VTKP1Writer.hpp
     VTKP2Writer.cpp
+    VTKP2Writer.hpp
     VTKDGWriter.cpp
     VTKDGWriter.hpp
     VTKN1E1Writer.hpp

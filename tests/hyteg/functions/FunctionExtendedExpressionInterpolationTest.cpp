@@ -23,7 +23,6 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/facedofspace_old/FaceDoFFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -119,7 +118,8 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    // ... and check result
    real_t error = difference.getMaxMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
-   WALBERLA_CHECK_LESS( error, 1e-15 );
+   auto dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );
 }
 
 template < typename myFuncType >
@@ -200,7 +200,8 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    // ... and check result
    real_t error = difference.getMaxMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
-   WALBERLA_CHECK_LESS( error, 1e-15 );
+   auto dp = std::is_same< real_t, double >();
+   WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );
 }
 
 } // namespace hyteg
@@ -217,7 +218,7 @@ int main( int argc, char* argv[] )
    // ------------
 
    // Generate mesh and primitive storage
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1.0, -1.0} ), Point2D( {2.0, 1.1} ), MeshInfo::CRISSCROSS, 3, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1.0, -1.0 ), Point2D( 2.0, 1.1 ), MeshInfo::CRISSCROSS, 3, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -232,9 +233,6 @@ int main( int argc, char* argv[] )
    hyteg::run2DTest< P2Function< real_t > >( CONST_FUNCS, storage, "P2Function" );
    hyteg::run2DTest< P2Function< real_t > >( POLY_RAT, storage, "P2Function" );
 
-   hyteg::run2DTest< FaceDoFFunction_old< real_t > >( CONST_FUNCS, storage, "FaceDoFFunction_old" );
-   hyteg::run2DTest< FaceDoFFunction_old< real_t > >( POLY_RAT, storage, "FaceDoFFunction_old" );
-
    // NOT IMPLEMENTED FOR P0Function
    // hyteg::run2DTest< P0Function< real_t > >( CONST_FUNCS, storage, "P0Function" );
    // hyteg::run2DTest< P0Function< real_t > >( POLY_RAT, storage, "P0Function" );
@@ -247,7 +245,7 @@ int main( int argc, char* argv[] )
    //  3D Testing
    // ------------
    // Generate mesh and primitive storage
-   MeshInfo meshInfo3D = MeshInfo::meshSymmetricCuboid( Point3D( {-1.0, -1.0, -1.0} ), Point3D( {2.0, 1.0, 3.0} ), 3, 1, 2 );
+   MeshInfo meshInfo3D = MeshInfo::meshSymmetricCuboid( Point3D( -1.0, -1.0, -1.0 ), Point3D( 2.0, 1.0, 3.0 ), 3, 1, 2 );
    SetupPrimitiveStorage setupStorage3D( meshInfo3D, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage3D );
    std::shared_ptr< PrimitiveStorage > storage3D = std::make_shared< PrimitiveStorage >( setupStorage3D );

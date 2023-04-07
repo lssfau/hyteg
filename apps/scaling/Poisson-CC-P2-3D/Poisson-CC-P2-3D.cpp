@@ -47,8 +47,8 @@ namespace hyteg {
 std::shared_ptr< PrimitiveStorage >
     createDomain( std::shared_ptr< walberla::WcTimingTree > timingTree, uint_t nx, uint_t ny, uint_t nz )
 {
-   Point3D lowerLeftFront( {0, 0, 0} );
-   Point3D upperRightBack( {1, 1, 1} );
+   Point3D lowerLeftFront( 0, 0, 0 );
+   Point3D upperRightBack( 1, 1, 1 );
    auto    meshInfo = MeshInfo::meshCuboid( lowerLeftFront, upperRightBack, nx, ny, nz );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

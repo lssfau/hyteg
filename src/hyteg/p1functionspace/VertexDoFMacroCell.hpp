@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,7 +27,6 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
@@ -39,11 +38,11 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/types.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
-namespace hyteg {
-namespace vertexdof {
-namespace macrocell {
+namespace hyteg::vertexdof::macrocell {
 
+using walberla::int64_c;
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
@@ -68,7 +67,7 @@ inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index&  v
 
 inline Point3D coordinateFromIndex( const uint_t& level, const Cell& cell, const Index& index )
 {
-   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( level );
+   const real_t  stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
    const Point3D xStep         = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
    const Point3D zStep         = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
@@ -79,11 +78,12 @@ template < typename ValueType >
 inline void interpolate( const uint_t&                                               level,
                          const Cell&                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
-                         const ValueType&                                            scalar )
+                         const ValueType&                                            scalar,
+                         const uint_t&                                               offset = 1 )
 {
    ValueType* cellData = cell.getData( cellMemoryId )->getPointer( level );
 
-   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
       cellData[idx]    = scalar;
@@ -95,7 +95,8 @@ inline void interpolate( const uint_t&                                          
                          const Cell&                                                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                                 cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&                  srcIds,
-                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr )
+                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr,
+                         const uint_t&                                                                               offset = 1 )
 {
    ValueType* cellData = cell.getData( cellMemoryId )->getPointer( level );
 
@@ -109,7 +110,7 @@ inline void interpolate( const uint_t&                                          
 
    Point3D xBlend;
 
-   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const Point3D coordinate = coordinateFromIndex( level, cell, it );
       const uint_t  idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
@@ -135,10 +136,7 @@ inline void swap( const uint_t&                                               le
 }
 
 template < typename ValueType >
-inline real_t evaluate( const uint_t&                                               level,
-                        const Cell&                                                 cell,
-                        const Point3D&                                              coordinates,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataID )
+inline real_t evaluate( const uint_t&, const Cell&, const Point3D&, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& )
 {
    WALBERLA_ABORT( "VertexDoF macro-cell evaluate not implemented for this data type." )
 }
@@ -181,7 +179,7 @@ inline Point3D transformToLocalTet( const Point3D& tet0,
    walberla::Vector3< real_t > x( globalPoint[0] - tet0[0], globalPoint[1] - tet0[1], globalPoint[2] - tet0[2] );
 
    auto result = A * x;
-   return Point3D( { result[0], result[1], result[2] } );
+   return Point3D( result[0], result[1], result[2] );
 }
 
 inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cell& cell, const Point3D& coordinates )
@@ -197,7 +195,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
    // 2. Find micro-cube in macro-cell. Each micro-cube is composed of 6 cells of all 6 cell-types.
 
    const int    numMicroEdges = (int) levelinfo::num_microedges_per_edge( level );
-   const real_t microEdgeSize = 1.0 / real_c( numMicroEdges );
+   const real_t microEdgeSize = real_c( 1.0 ) / real_c( numMicroEdges );
 
    int planeX = (int) ( xRelMacro[0] / microEdgeSize );
    int planeY = (int) ( xRelMacro[1] / microEdgeSize );
@@ -228,13 +226,9 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
    //                           local micro-cube space first, and then apply the precomputed transforms to the point.
    //                           That could save up to 5 3x3 matrix solves(!)
 
-   celldof::CellType cellType;
+   auto cellType = celldof::CellType::WHITE_UP;
 
-   if ( ( !inFullCube && !inCutCube ) )
-   {
-      cellType = celldof::CellType::WHITE_UP;
-   }
-   else
+   if ( inFullCube || inCutCube )
    {
       std::vector< celldof::CellType > possibleCellTypes = { celldof::CellType::WHITE_UP,
                                                              celldof::CellType::BLUE_UP,
@@ -251,7 +245,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
       for ( auto ct : possibleCellTypes )
       {
          auto mci = celldof::macrocell::getMicroVerticesFromMicroCell(
-             Index( uint_c( planeX ), uint_c( planeY ), uint_c( planeZ ) ), ct );
+             Index( int64_c( planeX ), int64_c( planeY ), int64_c( planeZ ) ), ct );
          auto mt0 = coordinateFromIndex( level, cell, mci[0] );
          auto mt1 = coordinateFromIndex( level, cell, mci[1] );
          auto mt2 = coordinateFromIndex( level, cell, mci[2] );
@@ -260,7 +254,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
          auto xl = detail::transformToLocalTet( mt0, mt1, mt2, mt3, coordinates );
          auto s  = xl[0] + xl[1] + xl[2];
 
-         Point4D rel( { xl[0], xl[1], xl[2], s } );
+         Point4D rel( xl[0], xl[1], xl[2], s );
 
          real_t distSum  = 0;
          bool   contains = true;
@@ -293,7 +287,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
    }
 
    auto microCellIndices = celldof::macrocell::getMicroVerticesFromMicroCell(
-       Index( uint_c( planeX ), uint_c( planeY ), uint_c( planeZ ) ), cellType );
+       Index( int64_c( planeX ), int64_c( planeY ), int64_c( planeZ ) ), cellType );
 
    const uint_t numMicroVertices = levelinfo::num_microvertices_per_edge( level );
    WALBERLA_ASSERT_LESS( microCellIndices[0].x() + microCellIndices[0].y() + microCellIndices[0].z(), numMicroVertices );
@@ -322,7 +316,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
          for ( auto ct : celldof::allCellTypes )
          {
             auto mci = celldof::macrocell::getMicroVerticesFromMicroCell(
-                Index( uint_c( planeX ), uint_c( planeY ), uint_c( planeZ ) ), ct );
+                Index( int64_c( planeX ), int64_c( planeY ), int64_c( planeZ ) ), ct );
             auto mt0 = coordinateFromIndex( level, cell, mci[0] );
             auto mt1 = coordinateFromIndex( level, cell, mci[1] );
             auto mt2 = coordinateFromIndex( level, cell, mci[2] );
@@ -371,8 +365,8 @@ inline real_t evaluate( const uint_t&                                           
 
    auto xLocal = detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
 
-   auto value = valueTet0 * ( 1.0 - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1] +
-                valueTet3 * xLocal[2];
+   auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
+                valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
    return value;
 }
@@ -545,9 +539,9 @@ inline void apply( const uint_t&                                                
    {
       for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
       {
-         const uint_t x = it.x();
-         const uint_t y = it.y();
-         const uint_t z = it.z();
+         const idx_t x = it.x();
+         const idx_t y = it.y();
+         const idx_t z = it.z();
 
          const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
 
@@ -567,9 +561,9 @@ inline void apply( const uint_t&                                                
    {
       for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
       {
-         const uint_t x = it.x();
-         const uint_t y = it.y();
-         const uint_t z = it.z();
+         const idx_t x = it.x();
+         const idx_t y = it.y();
+         const idx_t z = it.z();
 
          const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
 
@@ -577,8 +571,7 @@ inline void apply( const uint_t&                                                
 
          for ( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
          {
-            const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
-            const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
+            const uint_t idx = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
             tmp += operatorData.at( logicalIndexOffsetFromVertex( neighbor ) ) * src[idx];
          }
 
@@ -606,9 +599,9 @@ inline void smooth_gs( const uint_t&                                            
 
    for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
    {
-      const uint_t x = it.x();
-      const uint_t y = it.y();
-      const uint_t z = it.z();
+      const idx_t x = it.x();
+      const idx_t y = it.y();
+      const idx_t z = it.z();
 
       const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
 
@@ -644,9 +637,9 @@ inline void smooth_sor( const uint_t&                                           
 
    for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
    {
-      const uint_t x = it.x();
-      const uint_t y = it.y();
-      const uint_t z = it.z();
+      const idx_t x = it.x();
+      const idx_t y = it.y();
+      const idx_t z = it.z();
 
       const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
 
@@ -805,6 +798,4 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
-} // namespace macrocell
-} // namespace vertexdof
-} // namespace hyteg
+} // namespace hyteg::vertexdof::macrocell
