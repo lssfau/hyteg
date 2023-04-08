@@ -476,7 +476,7 @@ namespace hyteg {
             Point2D midpoint({0., 0.});
             for (uint_t i = 0; i < 3; i++)
                 for (uint_t d = 0; d < 2; d++)
-                    midpoint[d] += affineElementVertices[i][static_cast< walberla::uint_t >( d )] / 3.;
+                    midpoint[static_cast< long >( d )] += affineElementVertices[i][static_cast< long >( d )] / 3.;
 
             // evaluate P1 function
             std::array<uint_t, ndofsP1> vertexDoFIndices;
