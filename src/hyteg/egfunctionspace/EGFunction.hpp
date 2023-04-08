@@ -443,7 +443,6 @@ namespace hyteg {
 
             WALBERLA_ASSERT(!storage->hasGlobalCells());
 
-            Point2D coordinates2D({coordinates[0], coordinates[1]});
 
             WALBERLA_ASSERT(storage->faceExistsLocally(faceID));
             const Face &face = *storage->getFace(faceID);
