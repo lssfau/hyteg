@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
+ * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -72,12 +72,23 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
 : VertexDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
 {}
 
+    template < typename ValueType >
+    VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
+                                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                                       uint_t                                     minLevel,
+                                                       uint_t                                     maxLevel,
+                                                       BoundaryCondition                          boundaryCondition )
+            : VertexDoFFunction( name, storage, minLevel, maxLevel, boundaryCondition, false )
+    {}
+
 template < typename ValueType >
 VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
                                                    const std::shared_ptr< PrimitiveStorage >& storage,
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
-                                                   BoundaryCondition                          boundaryCondition )
+                                                   BoundaryCondition                          boundaryCondition,
+                                                   bool                                       addVolumeGhostLayer
+)
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
 , referenceCounter_( new internal::ReferenceCounter() )
@@ -88,12 +99,44 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
    auto vertexVertexDoFFunctionMemoryDataHandling =
        std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >();
 
-   storage->addCellData( cellDataID_, cellVertexDoFFunctionMemoryDataHandling, name );
-   storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
-   storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
-   storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
+    storage->addCellData( cellDataID_, cellVertexDoFFunctionMemoryDataHandling, name );
+    storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
+    storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
+    storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
 
-   for ( uint_t level = minLevel; level <= maxLevel; ++level )
+    if ( addVolumeGhostLayer )
+    {
+        WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(),
+                                      1,
+                                      "You are trying to extend the ghost-layers to the neighbor volume interior for "
+                                      "VertexDoFFunctions. This requires an additional halo depth of at least 1 in the "
+                                      "PrimitiveStorage. This can be set in the PrimitiveStorage constructor. Bye." )
+
+        if ( !storage->hasGlobalCells() )
+        {
+            // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+            const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
+
+            // Create three data IDs for all faces.
+            storage->addFaceData( faceGhostLayerDataIDs_[0], dofDataHandlingGL, "VolumeDoFMacroFaceGL0Data" );
+            storage->addFaceData( faceGhostLayerDataIDs_[1], dofDataHandlingGL, "VolumeDoFMacroFaceGL1Data" );
+            storage->addFaceData( faceGhostLayerDataIDs_[2], dofDataHandlingGL, "VolumeDoFMacroFaceGL2Data" );
+        }
+        else
+        {
+            // Create a data handling instance that handles the initialization, serialization, and deserialization of data.
+            const auto dofDataHandlingGL = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+
+            // Create three data IDs for all faces.
+            storage->addCellData( cellGhostLayerDataIDs_[0], dofDataHandlingGL, "VolumeDoFMacroCellGL0Data" );
+            storage->addCellData( cellGhostLayerDataIDs_[1], dofDataHandlingGL, "VolumeDoFMacroCellGL1Data" );
+            storage->addCellData( cellGhostLayerDataIDs_[2], dofDataHandlingGL, "VolumeDoFMacroCellGL2Data" );
+            storage->addCellData( cellGhostLayerDataIDs_[3], dofDataHandlingGL, "VolumeDoFMacroCellGL3Data" );
+        }
+    }
+
+
+    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
       for ( const auto& it : storage->getVertices() )
       {
@@ -112,8 +155,12 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
          allocateMemory( level, *it.second );
       }
 
-      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
-          level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level,
+                                                                                              vertexDataID_,
+                                                                                              edgeDataID_,
+                                                                                              faceDataID_,
+                                                                                              cellDataID_,
+                                                                                               this->getStorage() ) );
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
@@ -234,25 +281,43 @@ void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const 
    edge.getData( getEdgeDataID() )->addData( level, vertexDoFMacroEdgeFunctionMemorySize( level, edge ), 0 );
 }
 
-template < typename ValueType >
-void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Face& face )
-{
-   WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
-   WALBERLA_CHECK( face.hasData( getFaceDataID() ) )
-   if ( hasMemoryAllocated( level, face ) )
-      return;
-   face.getData( getFaceDataID() )->addData( level, vertexDoFMacroFaceFunctionMemorySize( level, face ), 0 );
-}
+    template < typename ValueType >
+    void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Face& face )
+    {
+        WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
+        WALBERLA_CHECK( face.hasData( getFaceDataID() ) )
+        if ( hasMemoryAllocated( level, face ) )
+            return;
+        face.getData( getFaceDataID() )->addData( level, vertexDoFMacroFaceFunctionMemorySize( level, face ), 0 );
 
-template < typename ValueType >
-void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Cell& cell )
-{
-   WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
-   WALBERLA_CHECK( cell.hasData( getCellDataID() ) )
-   if ( hasMemoryAllocated( level, cell ) )
-      return;
-   cell.getData( getCellDataID() )->addData( level, vertexDoFMacroCellFunctionMemorySize( level, cell ), 0 );
-}
+        if ( !this->getStorage()->hasGlobalCells() && hasVolumeGhostLayer() )
+        {
+            for ( uint_t glID = 0; glID < 3; glID++ )
+            {
+                face.getData( getFaceGLDataID( glID ) )->addData( level, levelinfo::num_microedges_per_edge( level ), 0 );
+            }
+        }
+    }
+
+    template < typename ValueType >
+    void VertexDoFFunction< ValueType >::allocateMemory( const uint_t& level, const Cell& cell )
+    {
+        WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
+        WALBERLA_CHECK( cell.hasData( getCellDataID() ) )
+        if ( hasMemoryAllocated( level, cell ) )
+            return;
+        cell.getData( getCellDataID() )->addData( level, vertexDoFMacroCellFunctionMemorySize( level, cell ), 0 );
+
+        if ( this->getStorage()->hasGlobalCells() && hasVolumeGhostLayer() )
+        {
+            for ( uint_t glID = 0; glID < 4; glID++ )
+            {
+                cell.getData( getCellGLDataID( glID ) )
+                        ->addData( level, facedof::macroface::numMicroFacesPerMacroFace( level, facedof::FaceType::GRAY ), 0 );
+            }
+        }
+    }
+
 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::deleteMemory( const uint_t& level, const Vertex& vertex )

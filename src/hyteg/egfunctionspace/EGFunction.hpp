@@ -209,7 +209,7 @@ namespace hyteg {
                     const auto degree = 1;
                     const auto numDofs = 3;
 
-                    std::vector<uint_t> vertexDoFIndices(numDofs);
+                    std::array<uint_t, numDofs> vertexDoFIndices;
                     std::vector<real_t> dofValues(numDofs);
 
                     for (int d = 0; d < 2; d += 1) {
@@ -312,7 +312,7 @@ namespace hyteg {
                     const auto degree = 1;
                     const auto numDofs = 4;
 
-                    std::vector<uint_t> vertexDoFIndices(numDofs);
+                    std::array<uint_t, numDofs> vertexDoFIndices;
                     std::vector<real_t> dofValues(numDofs);
 
                     for (int d = 0; d < 3; d += 1) {

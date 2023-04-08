@@ -25,7 +25,6 @@
 #include <hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp>
 #include <hyteg/egfunctionspace/EGEpsilonEnergyNormForm.hpp>
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dgfunctionspace/DGDivForm.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"

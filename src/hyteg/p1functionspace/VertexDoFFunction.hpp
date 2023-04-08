@@ -527,15 +527,8 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
    const uint_t numGlobalVertices = numberOfGlobalDoFs< VertexDoFFunctionTag >(
        *pressure.getStorage(), level, pressure.getStorage()->getSplitCommunicatorByPrimitiveDistribution() );
    const real_t sum = pressure.sumGlobal( level, All );
-
    pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
-
-template <>
-bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates,
-                                            uint_t         level,
-                                            real_t&        value,
-                                            real_t         searchToleranceRadius ) const;
 
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;

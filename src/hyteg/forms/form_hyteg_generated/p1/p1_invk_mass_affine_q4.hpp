@@ -111,13 +111,13 @@ class p1_invk_mass_affine_q4 : public P1FormHyTeG
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
-   bool assemble2D() const override { return true; }
+   bool assemble2D() const  { return true; }
 
-   bool assembly2DDefined() const override { return true; }
+   bool assembly2DDefined() const  { return true; }
 
-   bool assemble3D() const override { return true; }
+   bool assemble3D() const  { return true; }
 
-   bool assembly3DDefined() const override { return true; }
+   bool assembly3DDefined() const  { return true; }
 
  private:
 

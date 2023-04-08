@@ -22,7 +22,6 @@
 
 #include <hyteg/communication/Syncing.hpp>
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"

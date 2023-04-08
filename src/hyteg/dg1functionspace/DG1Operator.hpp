@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
 #include "hyteg/functions/Function.hpp"
