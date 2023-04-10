@@ -378,6 +378,12 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
+    template < typename OtherValueType >
+    void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
+    {
+        dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
+    }
+
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
       if ( flag != All && flag != Inner )
