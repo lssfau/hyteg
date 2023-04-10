@@ -27,6 +27,8 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/generatedKernels/communicate_directly_vertexdof_cell_to_face.hpp"
 #include "hyteg/p1functionspace/generatedKernels/communicate_directly_vertexdof_face_to_cell.hpp"
+#include "hyteg/primitives/all.hpp"
+#include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
 
 namespace hyteg {
 
@@ -52,7 +54,20 @@ public:
     : communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
   {}
 
-  void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+   VertexDoFPackInfo( uint_t                                                                   level,
+                      PrimitiveDataID< FunctionMemory< ValueType >, Vertex >                   dataIDVertex,
+                      PrimitiveDataID< FunctionMemory< ValueType >, Edge >                     dataIDEdge,
+                      PrimitiveDataID< FunctionMemory< ValueType >, Face >                     dataIDFace,
+                      PrimitiveDataID< FunctionMemory< ValueType >, Cell >                     dataIDCell,
+                      std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs,
+                      std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs,
+                      std::weak_ptr< PrimitiveStorage >                                        storage )
+   : communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
+   , faceGhostLayerDataIDs_( faceGhostLayerDataIDs )
+   , cellGhostLayerDataIDs_( cellGhostLayerDataIDs )
+   {}
+
+   void packVertexForEdge( const Vertex* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
 
   void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
@@ -100,15 +115,43 @@ public:
 
   void communicateLocalEdgeToCell(const Edge *sender, Cell *receiver) const override;
 
+   /// @name Face to Face
+   ///
+   /// These guys are responsible for the communication of the possibly extended ghost-layers into the volume macros.
+   /// It is important to note that the volume-to-volume communication step must be performed _after_ the volume DoFs on the
+   /// macro-vertices and macro-edges (and macro-faces in 3D) are entirely synced. So for example a communication pattern could be:
+   ///
+   /// comm< Vertex, Edge >();
+   /// comm< Edge, Face >();
+   /// comm< Face, Cell >();
+   /// comm< Cell, Face >();
+   /// comm< Face, Edge >();
+   /// comm< Edge, Vertex >();
+   ///
+   /// comm< Cell, Cell >();      // <== do this last!
+   ///
+   ///@{
 
+   void packFaceForFace( const Face* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
+   void unpackFaceFromFace( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
+   void communicateLocalFaceToFace( const Face* sender, Face* receiver ) const override;
 
-private:
-  using communication::DoFSpacePackInfo< ValueType >::level_;
-  using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
-  using communication::DoFSpacePackInfo< ValueType >::dataIDEdge_;
-  using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
-  using communication::DoFSpacePackInfo< ValueType >::dataIDCell_;
-  using communication::DoFSpacePackInfo< ValueType >::storage_;
+   void packCellForCell( const Cell* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
+   void unpackCellFromCell( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
+   void communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const override;
+
+   ///@}
+
+ private:
+   using communication::DoFSpacePackInfo< ValueType >::level_;
+   using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
+   using communication::DoFSpacePackInfo< ValueType >::dataIDEdge_;
+   using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
+   using communication::DoFSpacePackInfo< ValueType >::dataIDCell_;
+   using communication::DoFSpacePackInfo< ValueType >::storage_;
+
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
 };
 
 /// @name Vertex to Edge
@@ -766,6 +809,197 @@ void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToCell( const Edge* sen
       cellData[vertexdof::macrocell::indexFromVertex( level_, it->x(), it->y(), it->z(), stencilDirection::VERTEX_C )] =
           edgeData[i];
       it++;
+   }
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::packFaceForFace( const Face*                sender,
+                                                      const PrimitiveID&         receiver,
+                                                      walberla::mpi::SendBuffer& buffer ) const
+{
+   WALBERLA_ABORT( "Not implemented." );
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::unpackFaceFromFace( Face*                      receiver,
+                                                         const PrimitiveID&         sender,
+                                                         walberla::mpi::RecvBuffer& buffer ) const
+{
+   WALBERLA_ABORT( "Not implemented." );
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::communicateLocalFaceToFace( const Face* sender, Face* receiver ) const
+{
+   this->storage_.lock()->getTimingTree()->start( "VertexDoF - Face to Face" );
+
+   // Which local edges do we iterate on?
+
+   uint_t senderLocalEdgeID   = std::numeric_limits< uint_t >::max();
+   uint_t receiverLocalEdgeID = std::numeric_limits< uint_t >::max();
+
+   for ( const auto& [edgeID, npid] : sender->getIndirectNeighborFaceIDsOverEdges() )
+   {
+      if ( receiver->getID() == npid )
+      {
+         senderLocalEdgeID = edgeID;
+         break;
+      }
+   }
+
+   WALBERLA_ASSERT_LESS_EQUAL( senderLocalEdgeID, 2, "Couldn't find receiver face in neighborhood." );
+
+   for ( const auto& [edgeID, npid] : receiver->getIndirectNeighborFaceIDsOverEdges() )
+   {
+      if ( sender->getID() == npid )
+      {
+         receiverLocalEdgeID = edgeID;
+         break;
+      }
+   }
+
+   WALBERLA_ASSERT_LESS_EQUAL( receiverLocalEdgeID, 2, "Couldn't find sender face in neighborhood." );
+
+   // Do we need to invert the iteration direction?
+   // We simply check the orientation of the interface macro-edge from both sides.
+   // If the orientation does not change or if it changes twice, we do not need to switch up the iteration.
+
+   const auto senderEdgeOrienatation   = sender->getEdgeOrientation()[senderLocalEdgeID];
+   const auto receiverEdgeOrienatation = receiver->getEdgeOrientation()[receiverLocalEdgeID];
+   const auto finalSenderOrientation   = senderEdgeOrienatation * receiverEdgeOrienatation;
+
+   const auto width = levelinfo::num_microvertices_per_edge( level_ );
+
+   const ValueType* faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+   ValueType*       glData   = receiver->getData( faceGhostLayerDataIDs_.at( receiverLocalEdgeID ) )->getPointer( level_ );
+
+   const auto faceBoundaryDirection = hyteg::indexing::getFaceBoundaryDirection( senderLocalEdgeID, finalSenderOrientation );
+
+   uint_t glMicroVolumeIdx = 0;
+
+   for ( const auto& it : hyteg::indexing::FaceBoundaryIterator( width, faceBoundaryDirection, 1 ) )
+   {
+      const auto senderIdx = vertexdof::macroface::index( level_, it.x(), it.y() );
+      const auto senderVal = faceData[senderIdx];
+
+      const auto receiverIdx = volumedofspace::indexing::indexGhostLayerDirectly(
+          glMicroVolumeIdx, 0, 1, level_, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+
+      glData[receiverIdx] = senderVal;
+
+      glMicroVolumeIdx++;
+   }
+   this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Face to Face" );
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::packCellForCell( const Cell*                sender,
+                                                      const PrimitiveID&         receiver,
+                                                      walberla::mpi::SendBuffer& buffer ) const
+{
+   WALBERLA_ABORT( "Not implemented." );
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::unpackCellFromCell( Cell*                      receiver,
+                                                         const PrimitiveID&         sender,
+                                                         walberla::mpi::RecvBuffer& buffer ) const
+{
+   WALBERLA_ABORT( "Not implemented." );
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const
+{
+   // Which local faces do we iterate on?
+
+   uint_t senderLocalFaceID   = std::numeric_limits< uint_t >::max();
+   uint_t receiverLocalFaceID = std::numeric_limits< uint_t >::max();
+
+   for ( const auto& [faceID, npid] : sender->getIndirectNeighborCellIDsOverFaces() )
+   {
+      if ( receiver->getID() == npid )
+      {
+         senderLocalFaceID = faceID;
+         break;
+      }
+   }
+
+   WALBERLA_ASSERT_LESS_EQUAL( senderLocalFaceID, 3, "Couldn't find receiver cell in neighborhood." );
+
+   for ( const auto& [faceID, npid] : receiver->getIndirectNeighborCellIDsOverFaces() )
+   {
+      if ( sender->getID() == npid )
+      {
+         receiverLocalFaceID = faceID;
+         break;
+      }
+   }
+
+   WALBERLA_ASSERT_LESS_EQUAL( receiverLocalFaceID, 3, "Couldn't find sender cell in neighborhood." );
+
+   // We iterate in standard direction on the sender side.
+   // This means iteration from the smallest to second-smallest index in the inner loop, to the largest in the outer loop.
+
+   // On the receiver side we need to find the corresponding local vertex IDs.
+   // The iteration is performed with the cell boundary iterator. On the receiver side, we need to write to the ghost-layer,
+   // which we can achieve via extended access by setting one of the logical cell indices to -1.
+   // That index depends on the local face ID on the receiver side.
+
+   auto senderLocalVertexIDsSet = hyteg::indexing::cellLocalFaceIDsToSpanningVertexIDs.at( senderLocalFaceID );
+
+   std::vector< uint_t >      senderLocalVertexIDs;
+   std::vector< PrimitiveID > vertexPIDs;
+   for ( auto slvid : senderLocalVertexIDsSet )
+   {
+      senderLocalVertexIDs.push_back( slvid );
+      vertexPIDs.push_back( sender->neighborVertices().at( slvid ) );
+   }
+
+   // Sorting the receiver local vertex IDs correctly by matching the vertex primitive IDs.
+   std::vector< uint_t > receiverLocalVertexIDs;
+   for ( auto vpid : vertexPIDs )
+   {
+      receiverLocalVertexIDs.push_back( receiver->getLocalVertexID( vpid ) );
+   }
+
+   // WALBERLA_LOG_INFO_ON_ROOT(
+   //     "levelinfo::num_microvertices_per_edge( level_ )=" << levelinfo::num_microvertices_per_edge( level_ ) );
+   auto cellIteratorSender = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ),
+                                                                    senderLocalVertexIDs[0],
+                                                                    senderLocalVertexIDs[1],
+                                                                    senderLocalVertexIDs[2],
+                                                                    1 );
+
+   auto cellIteratorReceiverCell = hyteg::indexing::CellBoundaryIterator( levelinfo::num_microedges_per_edge( level_ ),
+                                                                          receiverLocalVertexIDs[0],
+                                                                          receiverLocalVertexIDs[1],
+                                                                          receiverLocalVertexIDs[2]);
+
+   const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+   ValueType*       glData   = receiver->getData( cellGhostLayerDataIDs_.at( receiverLocalFaceID ) )->getPointer( level_ );
+
+   // Iterating over WHITE_UP cells ...
+   while ( cellIteratorSender != cellIteratorSender.end() )
+   {
+      const auto senderIdx =
+          vertexdof::macrocell::index( level_, cellIteratorSender->x(), cellIteratorSender->y(), cellIteratorSender->z() );
+      const auto senderVal = cellData[senderIdx];
+
+      const auto receiverIdx =
+          volumedofspace::indexing::indexNeighborInGhostLayer( receiverLocalFaceID,
+                                                               cellIteratorReceiverCell->x(),
+                                                               cellIteratorReceiverCell->y(),
+                                                               cellIteratorReceiverCell->z(),
+                                                               celldof::CellType::WHITE_UP,
+                                                               0,
+                                                               1,
+                                                               level_,
+                                                               volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+      glData[receiverIdx] = senderVal;
+
+      cellIteratorSender++;
+      cellIteratorReceiverCell++;
    }
 }
 

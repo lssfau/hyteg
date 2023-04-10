@@ -160,7 +160,9 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                                                               edgeDataID_,
                                                                                               faceDataID_,
                                                                                               cellDataID_,
-                                                                                               this->getStorage() ) );
+                                                                                              faceGhostLayerDataIDs_,
+                                                                                              cellGhostLayerDataIDs_,
+                                                                                              this->getStorage() ) );
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }

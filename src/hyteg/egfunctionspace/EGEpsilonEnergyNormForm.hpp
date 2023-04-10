@@ -2431,7 +2431,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0 } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
@@ -4840,7 +4840,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0 } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
@@ -6963,7 +6963,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0 } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
@@ -8883,7 +8883,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0  } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
@@ -10803,7 +10803,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0  } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
@@ -12504,7 +12504,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0  } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
@@ -14241,7 +14241,7 @@ void integrateFacetDirichletBoundary3D(
 private:
    void Scalar_Variable_Coefficient_2D_mu( real_t in_0, real_t in_1, real_t* out_0 ) const
    {
-   *out_0 = callback2D( Point3D( { in_0, in_1 } ) );
+   *out_0 = callback2D( Point3D( { in_0, in_1, 0.0  } ) );
       }
       void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, real_t* out_0 ) const
       {
