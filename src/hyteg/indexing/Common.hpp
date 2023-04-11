@@ -79,12 +79,11 @@ inline std::ostream& operator<<( std::ostream& os, const Index& index )
 } // namespace indexing
 } // namespace hyteg
 
-// this can be changed to Index once Index is same as Index
 namespace std {
 template <>
-struct less< hyteg::PointND< hyteg::idx_t, 3 > >
+struct less< hyteg::indexing::Index >
 {
-   bool operator()( const hyteg::PointND< hyteg::idx_t, 3 >& lhs, const hyteg::PointND< hyteg::idx_t, 3 >& rhs ) const
+   bool operator()( const hyteg::indexing::Index& lhs, const hyteg::indexing::Index& rhs ) const
    {
       return lhs.z() < rhs.z() || ( lhs.z() == rhs.z() && lhs.y() < rhs.y() ) ||
              ( lhs.z() == rhs.z() && lhs.y() == rhs.y() && lhs.x() < rhs.x() );
