@@ -906,7 +906,7 @@ waLBerla_execute_test(NAME N1E1MassTest)
 waLBerla_compile_test(FILES N1E1/N1E1FormCurlCurlTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1FormCurlCurlTest)
 
-waLBerla_compile_test(FILES N1E1/N1E1CurlCurlConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES N1E1/N1E1CurlCurlConvergenceTest.cpp N1E1/common.hpp N1E1/common.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1CurlCurlConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1CurlCurlConvergenceTest> LABELS longrun PROCESSES 4)
 
 waLBerla_compile_test(FILES N1E1/N1E1ProlongationTest.cpp DEPENDS hyteg core)
@@ -930,13 +930,13 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME N1E1InverseDiagonalTest)
 endif ()
 
-waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES N1E1/HybridSmootherTest.cpp N1E1/common.hpp N1E1/common.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME HybridSmootherTest LABELS ${N1E1_CONDITIONAL_LONGRUN})
 
-waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES N1E1/N1E1GMGhIndependenceTest.cpp N1E1/common.hpp N1E1/common.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1GMGhIndependenceTest LABELS longrun)
 
-waLBerla_compile_test(FILES N1E1/N1E1GMGConvergenceTest.cpp N1E1/common.hpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES N1E1/N1E1GMGConvergenceTest.cpp N1E1/common.hpp N1E1/common.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1GMGConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1GMGConvergenceTest> LABELS longrun PROCESSES 4)
 
 ## types ##

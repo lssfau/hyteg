@@ -22,7 +22,7 @@
 
 // This file contains some common functions and definitions used in the N1E1 tests
 
-#include "core/logging/Logging.h"
+#include "core/DataTypes.h"
 #include "core/math/Constants.h"
 
 #include "hyteg/eigen/typeAliases.hpp"
@@ -74,6 +74,7 @@ class System
    static System sinusoidalOnSingleTet()
    {
       using std::sin;
+      using walberla::real_c;
 
       return System{
           MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ),
@@ -110,6 +111,8 @@ class System
 
    static System polynomialOnPyramid()
    {
+      using walberla::real_c;
+
       return System{
           MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
 
@@ -147,7 +150,7 @@ class System
    static System polynomialOnCube()
    {
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
@@ -174,7 +177,7 @@ class System
       using walberla::math::pi;
 
       return System{
-          MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ),
+          MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
@@ -203,31 +206,7 @@ void L2ConvergenceTest( const uint_t                                            
                         const uint_t                                                                             maxLevel,
                         const System                                                                             system,
                         std::function< real_t( const uint_t level, const System& system, const bool writeVtk ) > test,
-                        const bool writeVTK = false )
-{
-   const real_t l2ConvRate  = 1.0 / 4.0;
-   const real_t convRateEps = l2ConvRate * 0.1;
-   real_t       err         = test( minLevel, system, writeVTK );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
-   WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << std::scientific << err );
-
-   for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
-   {
-      const real_t errFiner     = test( level, system, writeVTK );
-      const real_t computedRate = errFiner / err;
-
-      WALBERLA_LOG_INFO_ON_ROOT( "error level " << level << ": " << std::scientific << errFiner );
-      WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << level << " / " << level - 1 << ": " << computedRate );
-
-      WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                 l2ConvRate + convRateEps,
-                                 "Convergence L2 rate level " << level << " vs level " << level - 1
-                                                              << " not sufficiently small (computed: " << computedRate
-                                                              << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-      err = errFiner;
-   }
-}
+                        const bool writeVTK = false );
 
 } // namespace n1e1
 } // namespace hyteg

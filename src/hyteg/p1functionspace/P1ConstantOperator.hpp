@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/fenics/fenics.hpp"
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/p1functionspace/P1Operator.hpp"
 

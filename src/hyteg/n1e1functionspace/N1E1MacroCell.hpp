@@ -282,11 +282,11 @@ inline void
       for ( uint_t k = 0; k < srcFunctions.size(); ++k )
       {
          srcFunctions[k].get().evaluate( xBlend, level, srcVectorX[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorY[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorZ[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorXY[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorXZ[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorYZ[k] );
+         srcFunctions[k].get().evaluate( yBlend, level, srcVectorY[k] );
+         srcFunctions[k].get().evaluate( zBlend, level, srcVectorZ[k] );
+         srcFunctions[k].get().evaluate( xyBlend, level, srcVectorXY[k] );
+         srcFunctions[k].get().evaluate( xzBlend, level, srcVectorXZ[k] );
+         srcFunctions[k].get().evaluate( yzBlend, level, srcVectorYZ[k] );
       }
 
       // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
