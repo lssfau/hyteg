@@ -28,7 +28,7 @@ class N1E1Form_mass : public N1E1Form
 {
  public:
    /// Edges are in FEniCS ordering:
-   ///
+   /// ```
    /// 3
    /// |\`\.
    /// | 0 `\.
@@ -37,6 +37,7 @@ class N1E1Form_mass : public N1E1Form
    /// |  /  `-2 `\.
    /// | 4      `\_`\
    /// 0------5------1
+   /// ```
    void integrateAll( const std::array< Point3D, 4 >& coords,
                       const std::array< int, 6 >&     edgeDirections,
                       Matrix6r&                       elMat ) const final

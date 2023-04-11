@@ -26,7 +26,7 @@
 namespace hyteg {
 namespace n1e1 {
 
-/// Determine the gradient of a P1 function as an N1E1 vector function
+/// Determine the gradient of a ::P1Function as an N1E1VectorFunction
 void P1toN1E1Gradient( const P1Function< real_t >&         src,
                        const N1E1VectorFunction< real_t >& dst,
                        const uint_t&                       lvl,

@@ -348,7 +348,7 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    }
 
    /// Similar to communicateAdditively() but excludes all primitives with the boundary type
-   /// /p boundaryTypeToSkipDuringAdditiveCommunication from receiving any data. These primitives are still sending their data
+   /// \p boundaryTypeToSkipDuringAdditiveCommunication from receiving any data. These primitives are still sending their data
    /// however!
    /// \tparam SenderType type of the sending primitive (e.g. Face)
    /// \tparam ReceiverType type of the receiving primitive (e.g. Face)

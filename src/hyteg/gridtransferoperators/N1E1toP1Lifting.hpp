@@ -26,8 +26,8 @@
 namespace hyteg {
 namespace n1e1 {
 
-/// Determine the scalar potential of an N1E1 vector function as a P1 function.
-/// This is the adjoint of the gradient and equal to -div.
+/// Determine the scalar potential of an N1E1VectorFunction as a ::P1Function.
+/// This is the adjoint of the gradient and equal to \f$-\mathrm{div}\f$.
 void N1E1toP1Lifting( const N1E1VectorFunction< real_t >& src,
                       const P1Function< real_t >&         dst,
                       const uint_t                        lvl,
