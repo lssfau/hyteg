@@ -185,7 +185,7 @@ namespace hyteg {
 
         /// \brief Returns the max absolute DoF.
         ValueType getMaxMagnitude(uint_t level, bool mpiReduce = true) const {
-            return std::max(u_discontinuous_->getMaxMagnitude(level, mpiReduce),
+            return std::max(u_discontinuous_->getMaxMagnitude(level, All, mpiReduce),
                             u_conforming_->getMaxComponentMagnitude(level, All, mpiReduce));
         }
 

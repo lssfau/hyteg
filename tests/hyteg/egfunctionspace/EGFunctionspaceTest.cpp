@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Nils Kohl.
+ * Copyright (c) 2017-2022 Nils Kohl, Andreas Wagner, Fabian Böhm.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -57,7 +57,7 @@ void testEvaluateLinearFunctional()
    vtk.add( f );
    vtk.add( *f.getConformingPart() );
    vtk.add( *f.getDiscontinuousPart() );
-   vtk.write( maxLevel );
+   //vtk.write( maxLevel );
 }
 void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
 } // namespace hyteg
@@ -89,7 +89,7 @@ int main( int argc, char** argv )
       dg::eg::checkAll( storage, level );
    }
 
-   //hyteg::testEvaluateLinearFunctional();
+   hyteg::dg::eg::testEvaluateLinearFunctional();
 
    return EXIT_SUCCESS;
 }

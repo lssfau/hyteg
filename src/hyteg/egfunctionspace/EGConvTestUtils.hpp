@@ -93,6 +93,7 @@ namespace hyteg {
             template<typename StokesOperatorType>
             constexpr bool isEpsilonOp() {
                 return std::is_same<StokesOperatorType, EGP0EpsilonStokesOperator>::value ||
+                       std::is_same<StokesOperatorType, EGEpsilonOperatorNitscheBC>::value ||
                        std::is_same<StokesOperatorType, EGP0EpsilonOperatorStokesNitscheBC>::value ||
                        std::is_same<StokesOperatorType, hyteg::P2P1ElementwiseAffineEpsilonStokesOperator>::value;
             }

@@ -1,6 +1,6 @@
 
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2023 Nils Kohl, Andreas Wagner, Fabian Böhm.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,6 +28,8 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
+#include "hyteg/egfunctionspace/EGConvTestUtils.hpp"
+#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -39,7 +41,8 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-static void testMass( const std::string& meshFile, const uint_t& level )
+template< typename OperatorType>
+static void testOperatorSymmetry( const std::string& meshFile, const uint_t& level )
 {
    using namespace dg::eg;
 
@@ -47,21 +50,24 @@ static void testMass( const std::string& meshFile, const uint_t& level )
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
    EGFunction< idx_t > numerator( "numerator", storage, level, level );
-   EGMassOperator      L( storage, level, level );
-
    numerator.enumerate( level );
 
-   PETScSparseMatrix< EGMassOperator > Lpetsc;
-   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
-
-   Lpetsc.print( "../P1DGE_Mass.m", false, PETSC_VIEWER_ASCII_MATLAB );
+   PETScSparseMatrix< OperatorType > Lpetsc;
+   if constexpr (isEpsilonOp<OperatorType>()) {
+      OperatorType                      L( storage, level, level, [](const Point3D &) -> real_t { return 1; } );
+      Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
+   } else {
+      OperatorType                      L( storage, level, level );
+      Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
+   }
+   //Lpetsc.print( "../P1DGE_Mass.m", false, PETSC_VIEWER_ASCII_MATLAB );
 
    WALBERLA_CHECK( Lpetsc.isSymmetric( 1e-12 ),
-                   "P1DGE vector Mass _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
-   WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector Mass symmetric for: level = " << level << ", mesh: " << meshFile );
+                   "P1DGE vector operator _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
+   WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector operator symmetric for: level = " << level << ", mesh: " << meshFile );
 }
+
 
 } // namespace hyteg
 
@@ -71,9 +77,25 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
+   using namespace hyteg::dg::eg;
+
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::testMass( "../../data/meshes/tri_1el.msh", level );
+
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/tri_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/quad_4el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/3D/tet_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/3D/cube_6el.msh", level );
+
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/tri_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/quad_4el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/3D/tet_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/3D/cube_6el.msh", level );
+
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/tri_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/quad_4el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/3D/tet_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/3D/cube_6el.msh", level );
    }
 
    return 0;
