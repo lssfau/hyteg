@@ -206,7 +206,5 @@ int main( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   }
-
    return EXIT_SUCCESS;
 }
