@@ -80,8 +80,8 @@ real_t testDG1( uint_t                                    level,
    solverM.solve( M, sol, tmp, level );
 
    // Solve system.
-   //PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
-   CGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, level, 10000 );
+   PETScCGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   //CGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, level, 10000 );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
@@ -164,7 +164,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] );
