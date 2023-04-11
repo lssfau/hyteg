@@ -566,7 +566,7 @@ namespace hyteg {
 
                         case 2: {
                             PETScBlockPreconditionedStokesSolver<StokesOperatorType> solver(
-                                    storage_, level, resNorms_ != NULL ? resNorms_->at(level) : 1e-4, std::numeric_limits<PetscInt>::max(), 6, 1);
+                                    storage_, level, resNorms_ != NULL ? resNorms_->at(level-2) : 1e-4, std::numeric_limits<PetscInt>::max(), 6, 1);
                             solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
                             solver.solve(*Op_, u, rhs, level);
                             if (runUntilErrorNorm_) {
