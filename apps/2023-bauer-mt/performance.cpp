@@ -127,7 +127,7 @@ void collectTimings( const walberla::WcTimingTree& tt, KeyValueStore& store, std
 void performance( const std::string& name, const bool computeAndStoreLocalElementMatrices )
 {
    const MeshInfo     solidTorus = MeshInfo::meshTorus( 16, 8, 4.0, { 1.6 } );
-   const auto         zero       = []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; };
+   const auto         zero       = []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; };
    const n1e1::System system{
        solidTorus,
        zero, // solution
@@ -137,9 +137,9 @@ void performance( const std::string& name, const bool computeAndStoreLocalElemen
    Params params{ name };
    params.system                              = system;
    params.initialGuess                        = { []( const Point3D& ) {
-      return Eigen::Vector3r{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
-                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
-                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
+      return Point3D{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                      real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                      real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
    } };
    params.minLevel                            = 2;
    params.maxLevel                            = 5;

@@ -22,7 +22,6 @@
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -31,7 +30,7 @@ using namespace hyteg;
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -43,11 +42,9 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    // most general function in N1E1 space
-   const Eigen::Vector3r                                    a        = { 1, 2, 3 };
-   const Eigen::Vector3r                                    b        = { 4, 5, 6 };
-   const std::function< Eigen::Vector3r( const Point3D& ) > testFunc = [&]( const Point3D& x ) {
-      return ( a + b.cross( x ) ).eval();
-   };
+   const Point3D                                    a        = { 1, 2, 3 };
+   const Point3D                                    b        = { 4, 5, 6 };
+   const std::function< Point3D( const Point3D& ) > testFunc = [&]( const Point3D& x ) { return ( a + b.cross( x ) ).eval(); };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
 
@@ -62,8 +59,8 @@ void test3D()
          coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
          coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
-         Eigen::Vector3r eval;
-         auto            success = f.evaluate( coordinates, level, eval );
+         Point3D eval;
+         auto    success = f.evaluate( coordinates, level, eval );
          WALBERLA_CHECK( success );
          WALBERLA_CHECK_FLOAT_EQUAL(
              eval[0], testFunc( coordinates )[0], "Test3D: wrong X-coordinate at " << coordinates << "." );

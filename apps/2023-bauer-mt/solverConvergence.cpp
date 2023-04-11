@@ -40,7 +40,7 @@ void solverConvergenceCube()
    const std::array< real_t, 3 > betas    = { 0.01, 1.0, 100.0 };
 
    const MeshInfo     cube = MeshInfo::meshSymmetricCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
-   const auto         zero = []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; };
+   const auto         zero = []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; };
    const n1e1::System system{
        cube,
        zero, // solution
@@ -50,9 +50,9 @@ void solverConvergenceCube()
    Params params{ "solverConvergenceCube" };
    params.system                              = system;
    params.initialGuess                        = { []( const Point3D& ) {
-      return Eigen::Vector3r{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
-                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
-                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
+      return Point3D{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                      real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                      real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
    } };
    params.maxLevel                            = maxLevel;
    params.computeAndStoreLocalElementMatrices = true;
@@ -100,7 +100,7 @@ void solverConvergenceTorus()
    const std::array< real_t, 3 > betas    = { 0.01, 1.0, 100.0 };
 
    const MeshInfo     solidTorus = MeshInfo::meshTorus( 16, 8, 4.0, { 1.6 } );
-   const auto         zero       = []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; };
+   const auto         zero       = []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; };
    const n1e1::System system{
        solidTorus,
        zero, // solution
@@ -111,9 +111,9 @@ void solverConvergenceTorus()
    params.coefficients                        = { alpha, 1.0 };
    params.system                              = system;
    params.initialGuess                        = { []( const Point3D& ) {
-      return Eigen::Vector3r{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
-                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
-                              real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
+      return Point3D{ real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                      real_c( walberla::math::realRandom( -1.0, 1.0 ) ),
+                      real_c( walberla::math::realRandom( -1.0, 1.0 ) ) };
    } };
    params.maxLevel                            = maxLevel;
    params.computeAndStoreLocalElementMatrices = true;

@@ -74,7 +74,7 @@ int main( int argc, char** argv )
    const Point3D v8{ { 0, 0.5, 0.5 } };
    const Point3D v9{ { 0, 0, 1 } };
 
-   Eigen::Matrix6r wu, gu, bu, bd, gd;
+   Matrix6r wu, gu, bu, bd, gd;
 
    // clang-format off
    wu <<  1,  0,  0, -1,  1,  0,

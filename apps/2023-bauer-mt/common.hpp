@@ -26,7 +26,6 @@
 
 #include "core/timing/TimingTree.h"
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -41,9 +40,9 @@ class Params
    std::string name;
 
    // system
-   std::vector< real_t >                                               coefficients;
-   n1e1::System                                                        system;
-   std::optional< std::function< Eigen::Vector3r( const Point3D& ) > > initialGuess;
+   std::vector< real_t >                                       coefficients;
+   n1e1::System                                                system;
+   std::optional< std::function< Point3D( const Point3D& ) > > initialGuess;
 
    // solver
    uint_t minLevel, maxLevel;

@@ -27,21 +27,20 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
 
-void test( const uint_t                                              lvl,
-           const std::function< real_t( const Point3D& ) >&          f,
-           const std::function< Eigen::Vector3r( const Point3D& ) >& gradF,
-           const bool                                                writeVTK = false )
+void test( const uint_t                                      lvl,
+           const std::function< real_t( const Point3D& ) >&  f,
+           const std::function< Point3D( const Point3D& ) >& gradF,
+           const bool                                        writeVTK = false )
 {
    using namespace n1e1;
 
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -49,7 +48,7 @@ void test( const uint_t                                              lvl,
    p1F.interpolate( f, lvl );
 
    N1E1VectorFunction< real_t > n1e1F( "n1e1F", storage, lvl, lvl );
-   n1e1F.interpolate( Eigen::Vector3r{ -1.1, 1000.0, 4.2 }, lvl ); // junk
+   n1e1F.interpolate( Point3D{ -1.1, 1000.0, 4.2 }, lvl ); // junk
 
    N1E1VectorFunction< real_t > projectedAnalytical( "projected analytical", storage, lvl, lvl );
    projectedAnalytical.interpolate( gradF, lvl );
@@ -146,11 +145,11 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::function< real_t( const Point3D& ) >          f     = []( const Point3D& ) { return 42.0; };
-   std::function< Eigen::Vector3r( const Point3D& ) > gradF = []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; };
+   std::function< real_t( const Point3D& ) >  f     = []( const Point3D& ) { return 42.0; };
+   std::function< Point3D( const Point3D& ) > gradF = []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; };
 
-   std::function< real_t( const Point3D& ) >          g = []( const Point3D& p ) { return 3.0 * p[0] + 5.0 * p[1] + 7.0 * p[2]; };
-   std::function< Eigen::Vector3r( const Point3D& ) > gradG = []( const Point3D& ) { return Eigen::Vector3r{ 3.0, 5.0, 7.0 }; };
+   std::function< real_t( const Point3D& ) >  g     = []( const Point3D& p ) { return 3.0 * p[0] + 5.0 * p[1] + 7.0 * p[2]; };
+   std::function< Point3D( const Point3D& ) > gradG = []( const Point3D& ) { return Point3D{ 3.0, 5.0, 7.0 }; };
 
    // Note that the following functions pass the test with exact, that is independent of h, checks
    // although neither function is in its respective FEM-space.
@@ -170,11 +169,11 @@ int main( int argc, char** argv )
       const real_t z = p[2];
       return 0.5 * x * x - y * y + 1.5 * z * z + 0.5 * x * y - 4.0 * x * z + 2.5 * y * z;
    };
-   std::function< Eigen::Vector3r( const Point3D& ) > gradH = []( const Point3D& p ) {
+   std::function< Point3D( const Point3D& ) > gradH = []( const Point3D& p ) {
       const real_t x = p[0];
       const real_t y = p[1];
       const real_t z = p[2];
-      return Eigen::Vector3r{
+      return Point3D{
           real_c( x + 0.5 * y - 4.0 * z ), real_c( 0.5 * x - 2.0 * y + 2.5 * z ), real_c( -4.0 * x + 2.5 * y + 3.0 * z ) };
    };
 
