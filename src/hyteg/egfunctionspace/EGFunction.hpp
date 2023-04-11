@@ -450,7 +450,7 @@ namespace hyteg {
             const uint_t polyDegree = 1;
             const uint_t ndofsP1 = 3;
 
-            Eigen::Matrix<real_t, 2, 1> affineCoordinates({coordinates[0], coordinates[1]});
+            Eigen::Matrix<real_t, 2, 1> affineCoordinates(coordinates[0], coordinates[1]);
 
             std::array<Eigen::Matrix<real_t, 2, 1>, 3> affineElementVertices;
             auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace(elementIndex, faceType);
@@ -472,7 +472,7 @@ namespace hyteg {
 
             const Eigen::Matrix<real_t, 2, 1> refPos = Ainv * affineCoordsTranslated;
 
-            Point2D midpoint({0., 0.});
+            Point2D midpoint(0., 0.);
             for (uint_t i = 0; i < 3; i++)
                 for (uint_t d = 0; d < 2; d++)
                     midpoint[static_cast< long >( d )] += affineElementVertices[i][static_cast< long >( d )] / 3.;
