@@ -21,7 +21,6 @@
 #include "common.hpp"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
@@ -89,7 +88,7 @@ Results solve( const Params& params, const bool useGmg )
       u.interpolate( params.initialGuess.value(), params.maxLevel, DoFType::Inner );
    }
    // Boundary conditions: homogeneous tangential trace
-   u.interpolate( Eigen::Vector3r{ 0.0, 0.0, 0.0 }, params.maxLevel, DoFType::Boundary );
+   u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, params.maxLevel, DoFType::Boundary );
 
    // Hybrid smoother
    P1LaplaceForm laplaceForm;

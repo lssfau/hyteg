@@ -25,7 +25,6 @@
 #include "core/math/Constants.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 
 #include "KeyValueStore.hpp"
@@ -49,7 +48,7 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
    std::string smootherDesc = walberla::format( "%i_%i", n1e1SmoothSteps, p1SmoothSteps );
 
    const MeshInfo     solidTorus = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
-   const auto         zero       = []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; };
+   const auto         zero       = []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; };
    const n1e1::System system{
        solidTorus,
        zero, // solution
@@ -77,7 +76,7 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
       const real_t z = p[2];
 
       const real_t val = std::sin( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi );
-      return Eigen::Vector3r{ val, val, val };
+      return Point3D{ val, val, val };
    };
 
    auto curlFreeMode = []( const int k, const Point3D& p ) {
@@ -85,10 +84,9 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
       const real_t y = p[1];
       const real_t z = p[2];
 
-      return Eigen::Vector3r{
-          std::cos( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi ),
-          std::sin( real_c( k ) * x * pi ) * std::cos( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi ),
-          std::sin( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::cos( real_c( k ) * z * pi ) };
+      return Point3D{ std::cos( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi ),
+                      std::sin( real_c( k ) * x * pi ) * std::cos( real_c( k ) * y * pi ) * std::sin( real_c( k ) * z * pi ),
+                      std::sin( real_c( k ) * x * pi ) * std::sin( real_c( k ) * y * pi ) * std::cos( real_c( k ) * z * pi ) };
    };
 
    auto divFreeMode = []( const int k, const Point3D& p ) {
@@ -100,9 +98,9 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
       const real_t y = p[1];
       const real_t z = p[2];
 
-      return Eigen::Vector3r{ sin( x * kp ) * cos( y * kp ) * sin( z * kp ) - sin( x * kp ) * sin( y * kp ) * cos( z * kp ),
-                              sin( x * kp ) * sin( y * kp ) * cos( z * kp ) - cos( x * kp ) * sin( y * kp ) * sin( z * kp ),
-                              cos( x * kp ) * sin( y * kp ) * sin( z * kp ) - sin( x * kp ) * cos( y * kp ) * sin( z * kp ) };
+      return Point3D{ sin( x * kp ) * cos( y * kp ) * sin( z * kp ) - sin( x * kp ) * sin( y * kp ) * cos( z * kp ),
+                      sin( x * kp ) * sin( y * kp ) * cos( z * kp ) - cos( x * kp ) * sin( y * kp ) * sin( z * kp ),
+                      cos( x * kp ) * sin( y * kp ) * sin( z * kp ) - sin( x * kp ) * cos( y * kp ) * sin( z * kp ) };
    };
 
    WALBERLA_LOG_INFO_ON_ROOT( "╭──────────────────────────────────╮" )

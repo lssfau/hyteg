@@ -25,13 +25,12 @@
 #include "core/DataTypes.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 
 namespace hyteg {
 namespace n1e1 {
 
-using VectorField = std::function< Eigen::Vector3r( const Point3D& ) >;
+using VectorField = std::function< Point3D( const Point3D& ) >;
 
 /// Some example problems (domain, analytical solution, right hand side) for
 ///   curl curl u + u = f  in Ω
@@ -58,14 +57,14 @@ class System
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{ y * z * ( x + y + z - 1 ), x * z * ( x + y + z - 1 ), x * y * ( x + y + z - 1 ) };
+             return Point3D{ y * z * ( x + y + z - 1 ), x * z * ( x + y + z - 1 ), x * y * ( x + y + z - 1 ) };
           },
 
           []( const Point3D& p ) {
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{
+             return Point3D{
                  y * z * ( x + y + z - 1 ) - y - z, x * z * ( x + y + z - 1 ) - x - z, x * y * ( x + y + z - 1 ) - x - y };
           },
       };
@@ -83,28 +82,28 @@ class System
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{ sin( y ) * sin( z ) * sin( x + y + z - 1 ),
-                                     sin( x ) * sin( z ) * sin( x + y + z - 1 ),
-                                     sin( x ) * sin( y ) * sin( x + y + z - 1 ) };
+             return Point3D{ sin( y ) * sin( z ) * sin( x + y + z - 1 ),
+                             sin( x ) * sin( z ) * sin( x + y + z - 1 ),
+                             sin( x ) * sin( y ) * sin( x + y + z - 1 ) };
           },
 
           []( const Point3D& p ) {
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{
-                 real_c( -sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
-                         5 * sin( y ) * sin( z ) * sin( x + y + z - 1 ) + sin( y ) * cos( x ) * cos( x + y + z - 1 ) -
-                         2 * sin( y ) * cos( z ) * cos( x + y + z - 1 ) + sin( z ) * cos( x ) * cos( x + y + z - 1 ) -
-                         2 * sin( z ) * cos( y ) * cos( x + y + z - 1 ) ),
-                 real_c( -sin( x ) * sin( y ) * sin( x + y + z - 1 ) + 5 * sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
-                         sin( x ) * cos( y ) * cos( x + y + z - 1 ) - 2 * sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
-                         sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( z ) * cos( x ) * cos( x + y + z - 1 ) +
-                         sin( z ) * cos( y ) * cos( x + y + z - 1 ) ),
-                 real_c( 5 * sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) -
-                         2 * sin( x ) * cos( y ) * cos( x + y + z - 1 ) + sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
-                         sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( y ) * cos( x ) * cos( x + y + z - 1 ) +
-                         sin( y ) * cos( z ) * cos( x + y + z - 1 ) ) };
+             return Point3D{ real_c( -sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) +
+                                     5 * sin( y ) * sin( z ) * sin( x + y + z - 1 ) + sin( y ) * cos( x ) * cos( x + y + z - 1 ) -
+                                     2 * sin( y ) * cos( z ) * cos( x + y + z - 1 ) + sin( z ) * cos( x ) * cos( x + y + z - 1 ) -
+                                     2 * sin( z ) * cos( y ) * cos( x + y + z - 1 ) ),
+                             real_c( -sin( x ) * sin( y ) * sin( x + y + z - 1 ) +
+                                     5 * sin( x ) * sin( z ) * sin( x + y + z - 1 ) + sin( x ) * cos( y ) * cos( x + y + z - 1 ) -
+                                     2 * sin( x ) * cos( z ) * cos( x + y + z - 1 ) - sin( y ) * sin( z ) * sin( x + y + z - 1 ) -
+                                     2 * sin( z ) * cos( x ) * cos( x + y + z - 1 ) +
+                                     sin( z ) * cos( y ) * cos( x + y + z - 1 ) ),
+                             real_c( 5 * sin( x ) * sin( y ) * sin( x + y + z - 1 ) - sin( x ) * sin( z ) * sin( x + y + z - 1 ) -
+                                     2 * sin( x ) * cos( y ) * cos( x + y + z - 1 ) + sin( x ) * cos( z ) * cos( x + y + z - 1 ) -
+                                     sin( y ) * sin( z ) * sin( x + y + z - 1 ) - 2 * sin( y ) * cos( x ) * cos( x + y + z - 1 ) +
+                                     sin( y ) * cos( z ) * cos( x + y + z - 1 ) ) };
           },
       };
    }
@@ -120,16 +119,16 @@ class System
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{ z * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ),
-                                     z * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ),
-                                     1 * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ) };
+             return Point3D{ z * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ),
+                             z * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ),
+                             1 * ( z - 2 * x ) * ( z + 2 * x - 2 ) * ( z - 2 * y ) * ( z + 2 * y - 2 ) };
           },
 
           []( const Point3D& p ) {
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{
+             return Point3D{
                  real_c( 16 * x * x * y * y * z - 16 * x * x * y * z - 4 * x * x * std::pow( z, 3 ) + 8 * x * x * z * z -
                          8 * x * x * z - 16 * x * x - 16 * x * y * y * z + 80 * x * y * z + 4 * x * std::pow( z, 3 ) -
                          8 * x * z * z - 40 * x * z + 32 * x - 4 * y * y * std::pow( z, 3 ) + 8 * y * y * z * z + 24 * y * y * z -
@@ -156,17 +155,16 @@ class System
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{
-                 y * ( 1 - y ) * z * ( 1 - z ), x * ( 1 - x ) * z * ( 1 - z ), x * ( 1 - x ) * y * ( 1 - y ) };
+             return Point3D{ y * ( 1 - y ) * z * ( 1 - z ), x * ( 1 - x ) * z * ( 1 - z ), x * ( 1 - x ) * y * ( 1 - y ) };
           },
 
           []( const Point3D& p ) {
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{ 2 * ( y * ( 1 - y ) + z * ( 1 - z ) ) + y * ( 1 - y ) * z * ( 1 - z ),
-                                     2 * ( x * ( 1 - x ) + z * ( 1 - z ) ) + x * ( 1 - x ) * z * ( 1 - z ),
-                                     2 * ( x * ( 1 - x ) + y * ( 1 - y ) ) + x * ( 1 - x ) * y * ( 1 - y ) };
+             return Point3D{ 2 * ( y * ( 1 - y ) + z * ( 1 - z ) ) + y * ( 1 - y ) * z * ( 1 - z ),
+                             2 * ( x * ( 1 - x ) + z * ( 1 - z ) ) + x * ( 1 - x ) * z * ( 1 - z ),
+                             2 * ( x * ( 1 - x ) + y * ( 1 - y ) ) + x * ( 1 - x ) * y * ( 1 - y ) };
           },
       };
    }
@@ -183,19 +181,18 @@ class System
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{ sin( 2 * pi * y ) * sin( 2 * pi * z ),
-                                     sin( 2 * pi * x ) * sin( 2 * pi * z ),
-                                     sin( 2 * pi * x ) * sin( 2 * pi * y ) };
+             return Point3D{ sin( 2 * pi * y ) * sin( 2 * pi * z ),
+                             sin( 2 * pi * x ) * sin( 2 * pi * z ),
+                             sin( 2 * pi * x ) * sin( 2 * pi * y ) };
           },
 
           []( const Point3D& p ) {
              const real_t x = p[0];
              const real_t y = p[1];
              const real_t z = p[2];
-             return Eigen::Vector3r{ sin( 2 * pi * y ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * y ) * sin( 2 * pi * z ),
-                                     sin( 2 * pi * x ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * z ),
-                                     sin( 2 * pi * x ) * sin( 2 * pi * y ) +
-                                         8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * y ) };
+             return Point3D{ sin( 2 * pi * y ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * y ) * sin( 2 * pi * z ),
+                             sin( 2 * pi * x ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * z ),
+                             sin( 2 * pi * x ) * sin( 2 * pi * y ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * y ) };
           },
       };
    }

@@ -21,7 +21,6 @@
 #include "core/mpi/Environment.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
@@ -76,7 +75,7 @@ uint_t test( const uint_t maxLevel, const uint_t numMaxVCycles, const n1e1::Syst
    f.copyFrom( *rhsOperator.getDiagonalValues(), maxLevel );
 
    // Boundary conditions: homogeneous tangential trace
-   u.interpolate( Eigen::Vector3r{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
+   u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
 
    // Hybrid smoother
    auto p1LaplaceOperator = std::make_shared< P1LaplaceOperator >( storage, minLevel, maxLevel );

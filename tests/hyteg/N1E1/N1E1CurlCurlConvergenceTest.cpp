@@ -19,7 +19,6 @@
 */
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
@@ -63,7 +62,7 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    f.copyFrom( *rhsOperator.getDiagonalValues(), level );
 
    // Boundary conditions: homogeneous tangential trace
-   u.interpolate( Eigen::Vector3r{ 0.0, 0.0, 0.0 }, level, DoFType::Boundary );
+   u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, level, DoFType::Boundary );
 
    // Interpolate solution
    sol.interpolate( system.analyticalSol_, level );

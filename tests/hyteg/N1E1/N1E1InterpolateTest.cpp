@@ -22,7 +22,6 @@
 #include "core/mpi/Environment.h"
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -39,7 +38,7 @@ void test3D()
    const size_t minLevel = 2;
    const size_t maxLevel = 4;
 
-   const Eigen::Vector3r c = { 1, 3, 6 };
+   const Point3D c = { 1, 3, 6 };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
 

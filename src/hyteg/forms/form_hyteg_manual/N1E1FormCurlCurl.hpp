@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/forms/N1E1Form.hpp"
 
 using walberla::real_c;
@@ -59,12 +58,12 @@ class N1E1Form_curl_curl : public N1E1Form
 
       // for first order elements, the curl of the basis functions φ is constant
       // clang-format off
-      std::array< Eigen::Vector3r, 6 > curlPhi = { Eigen::Vector3r{  2,  0,  0 } * edgeDirections[0],
-                                                   Eigen::Vector3r{  0, -2,  0 } * edgeDirections[1],
-                                                   Eigen::Vector3r{  0,  0,  2 } * edgeDirections[2],
-                                                   Eigen::Vector3r{ -2,  2,  0 } * edgeDirections[3],
-                                                   Eigen::Vector3r{  2,  0, -2 } * edgeDirections[4],
-                                                   Eigen::Vector3r{  0, -2,  2 } * edgeDirections[5] };
+      std::array< Point3D, 6 > curlPhi = { Point3D{  2,  0,  0 } * real_c( edgeDirections[0] ),
+                                           Point3D{  0, -2,  0 } * real_c( edgeDirections[1] ),
+                                           Point3D{  0,  0,  2 } * real_c( edgeDirections[2] ),
+                                           Point3D{ -2,  2,  0 } * real_c( edgeDirections[3] ),
+                                           Point3D{  2,  0, -2 } * real_c( edgeDirections[4] ),
+                                           Point3D{  0, -2,  2 } * real_c( edgeDirections[5] ) };
       // clang-format on
 
       for ( int i = 0; i < 6; i++ )

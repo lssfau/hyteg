@@ -30,7 +30,6 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -58,9 +57,7 @@ class Quadrature
       return Quadrature( { { 0.0, 8.0 / 9.0 }, { -std::sqrt( 3.0 / 5.0 ), 5.0 / 9.0 }, { std::sqrt( 3.0 / 5.0 ), 5.0 / 9.0 } } );
    }
 
-   real_t integrate( const Eigen::Vector3r                                  start,
-                     const Eigen::Vector3r                                  end,
-                     const std::function< real_t( const Eigen::Vector3r ) > expr ) const
+   real_t integrate( const Point3D start, const Point3D end, const std::function< real_t( const Point3D ) > expr ) const
    {
       const real_t len = ( end - start ).norm();
       real_t       res = 0.0;
@@ -72,11 +69,11 @@ class Quadrature
    }
 };
 
-inline Eigen::Vector3r edgeTangent( const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
+inline Point3D edgeTangent( const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
-   const Eigen::Vector3r xDir = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] );
-   const Eigen::Vector3r yDir = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] );
-   const Eigen::Vector3r zDir = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] );
+   const Point3D xDir = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] );
+   const Point3D yDir = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] );
+   const Point3D zDir = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] );
 
    switch ( orientation )
    {
@@ -99,11 +96,11 @@ inline Eigen::Vector3r edgeTangent( const Cell& cell, const edgedof::EdgeDoFOrie
    }
 }
 
-void interpolate( const Quadrature&                                               quadrature,
-                  const Cell&                                                     cell,
-                  const PrimitiveDataID< FunctionMemory< real_t >, Cell >&        cellMemoryId,
-                  const std::function< Eigen::Vector3r( const Eigen::Vector3r ) > expr,
-                  const uint_t                                                    level )
+void interpolate( const Quadrature&                                        quadrature,
+                  const Cell&                                              cell,
+                  const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellMemoryId,
+                  const std::function< Point3D( const Point3D ) >          expr,
+                  const uint_t                                             level )
 {
    auto cellData = cell.getData( cellMemoryId )->getPointer( level );
 
@@ -115,24 +112,18 @@ void interpolate( const Quadrature&                                             
       const Point3D v3 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 0, 0, 1 } );
 
       // x ↦ ∫ₑ x·t dΓ
-      const real_t dofScalarX  = quadrature.integrate( v0, v1, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::X ) );
-      } );
-      const real_t dofScalarY  = quadrature.integrate( v0, v2, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::Y ) );
-      } );
-      const real_t dofScalarZ  = quadrature.integrate( v0, v3, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::Z ) );
-      } );
-      const real_t dofScalarXY = quadrature.integrate( v1, v2, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XY ) );
-      } );
-      const real_t dofScalarXZ = quadrature.integrate( v1, v3, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XZ ) );
-      } );
-      const real_t dofScalarYZ = quadrature.integrate( v2, v3, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::YZ ) );
-      } );
+      const real_t dofScalarX = quadrature.integrate(
+          v0, v1, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::X ) ); } );
+      const real_t dofScalarY = quadrature.integrate(
+          v0, v2, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::Y ) ); } );
+      const real_t dofScalarZ = quadrature.integrate(
+          v0, v3, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::Z ) ); } );
+      const real_t dofScalarXY = quadrature.integrate(
+          v1, v2, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XY ) ); } );
+      const real_t dofScalarXZ = quadrature.integrate(
+          v1, v3, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XZ ) ); } );
+      const real_t dofScalarYZ = quadrature.integrate(
+          v2, v3, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::YZ ) ); } );
 
       cellData[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )]  = dofScalarX;
       cellData[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )]  = dofScalarY;
@@ -147,19 +138,18 @@ void interpolate( const Quadrature&                                             
       const Point3D v0 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 0, 1, 0 } );
       const Point3D v1 = vertexdof::macrocell::coordinateFromIndex( level, cell, it + indexing::Index{ 1, 0, 1 } );
 
-      const real_t dofScalarXYZ = quadrature.integrate( v0, v1, [&]( const Eigen::Vector3r x ) {
-         return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XYZ ) );
-      } );
+      const real_t dofScalarXYZ = quadrature.integrate(
+          v0, v1, [&]( const Point3D x ) { return expr( x ).dot( edgeTangent( cell, edgedof::EdgeDoFOrientation::XYZ ) ); } );
 
       cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
    }
 }
 
-void interpolate( const Quadrature&                                               quadrature,
-                  const std::shared_ptr< PrimitiveStorage >                       storage,
-                  n1e1::N1E1VectorFunction< real_t >&                             fun,
-                  const std::function< Eigen::Vector3r( const Eigen::Vector3r ) > expr,
-                  const uint_t                                                    level )
+void interpolate( const Quadrature&                               quadrature,
+                  const std::shared_ptr< PrimitiveStorage >       storage,
+                  n1e1::N1E1VectorFunction< real_t >&             fun,
+                  const std::function< Point3D( const Point3D ) > expr,
+                  const uint_t                                    level )
 {
    for ( const auto& cellID : storage->getCellIDs() )
    {
@@ -168,10 +158,10 @@ void interpolate( const Quadrature&                                             
    }
 }
 
-real_t test( const Quadrature&                                               quadrature,
-             const std::function< Eigen::Vector3r( const Eigen::Vector3r ) > expr,
-             const uint_t                                                    level,
-             const bool                                                      writeVTK = false )
+real_t test( const Quadrature&                               quadrature,
+             const std::function< Point3D( const Point3D ) > expr,
+             const uint_t                                    level,
+             const bool                                      writeVTK = false )
 {
    using namespace n1e1;
 
@@ -201,8 +191,8 @@ real_t test( const Quadrature&                                               qua
       coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
       coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
 
-      Eigen::Vector3r eval;
-      auto            success = u.evaluate( coordinates, level, eval );
+      Point3D eval;
+      auto    success = u.evaluate( coordinates, level, eval );
       WALBERLA_CHECK( success );
 
       error += ( eval - expr( coordinates ) ).norm();
@@ -216,7 +206,7 @@ void projectionQuadrature()
    const uint_t minLevel = 3;
    const uint_t maxLevel = 7;
 
-   auto expr = []( const Eigen::Vector3r p ) {
+   auto expr = []( const Point3D p ) {
       using std::sin;
       using std::cos;
       using walberla::math::pi;
@@ -227,9 +217,9 @@ void projectionQuadrature()
       const real_t y = p[1];
       const real_t z = p[2];
 
-      return Eigen::Vector3r{ sin( x * kp ) * cos( y * kp ) * sin( z * kp ) - sin( x * kp ) * sin( y * kp ) * cos( z * kp ),
-                              sin( x * kp ) * sin( y * kp ) * cos( z * kp ) - cos( x * kp ) * sin( y * kp ) * sin( z * kp ),
-                              cos( x * kp ) * sin( y * kp ) * sin( z * kp ) - sin( x * kp ) * cos( y * kp ) * sin( z * kp ) };
+      return Point3D{ sin( x * kp ) * cos( y * kp ) * sin( z * kp ) - sin( x * kp ) * sin( y * kp ) * cos( z * kp ),
+                      sin( x * kp ) * sin( y * kp ) * cos( z * kp ) - cos( x * kp ) * sin( y * kp ) * sin( z * kp ),
+                      cos( x * kp ) * sin( y * kp ) * sin( z * kp ) - sin( x * kp ) * cos( y * kp ) * sin( z * kp ) };
    };
 
    Table< 4 > table( { "level", "gl1", "gl2", "gl3" } );
