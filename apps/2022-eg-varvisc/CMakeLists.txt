@@ -11,3 +11,6 @@ waLBerla_add_executable( NAME EGSmoothViscTests
         FILES EGSmoothViscTests.cpp
         DEPENDS hyteg )
 
+waLBerla_add_executable( NAME EGJumpTests.cpp
+        FILES EGJumpTests.cpp
+        DEPENDS hyteg )

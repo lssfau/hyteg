@@ -252,8 +252,8 @@ int main( int argc, char* argv[] )
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
-   uint_t minLevel = 6;
-   uint_t maxLevel = 7;
+   uint_t minLevel = 3;
+   uint_t maxLevel = 4;
 
    // storage setup
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 2, 2 } ), MeshInfo::CRISS, 2, 2 );
@@ -265,11 +265,9 @@ int main( int argc, char* argv[] )
    // SolVi solution setup
    auto [solTuple, rhsTuple, viscosity] = SetupSolViSolution( 0.2, 100.0, 1.0 );
 
+   auto resNormsEGP0 = { 1e-5, 1e-5, 1e-6, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7 };
 
-   auto resNormsEGP0 = { 1e-5, 1e-5, 1e-6, 1e-7, 1e-7, 1e-7,1e-7, 1e-7   };
-
-
-    if ( false )
+   if ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with P2P1 ###" );
 
@@ -283,28 +281,12 @@ int main( int argc, char* argv[] )
           maxLevel,
           2,
           false,
-          false, NULL,  std::make_shared<std::vector<real_t>>(resNormsEGP0));
-      //,std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
-   }
-
-
-
-   if ( false )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Running SolVi with EGP0  ###" );
-
-      StokesConvergenceOrderTest< eg::EGP0EpsilonStokesOperator >(
-          "SolVi_EGP0",
-          solTuple,
-          rhsTuple,
-          std::make_shared< eg::EGP0EpsilonStokesOperator >( storage, minLevel, maxLevel, viscosity ),
-          storage,
-          minLevel,
-          maxLevel,
-          2,
           false,
-          false, NULL, std::make_shared<std::vector<real_t>>(resNormsEGP0),
-          std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
+          NULL,
+          NULL,
+          NULL,
+          1 );
+      //,std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
    }
 
    if ( true )
@@ -319,11 +301,15 @@ int main( int argc, char* argv[] )
           storage,
           minLevel,
           maxLevel,
-          1,
+          2,
           false,
-          false, NULL, std::make_shared<std::vector<real_t>>(resNormsEGP0), NULL, 1 );
+          false,
+          NULL,
+          NULL,
+          NULL,
+          1 );
+      //std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
    }
-
 
    return EXIT_SUCCESS;
 }
