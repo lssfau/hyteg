@@ -126,7 +126,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
 
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
-      communication::syncFunctionBetweenPrimitives( dst, level );
+      //communication::syncFunctionBetweenPrimitives( dst, level );
       src.communicate( level );
 
       const auto storage = this->getStorage();
@@ -147,6 +147,33 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
          auto       srcDofMemory = src.volumeDoFFunction()->dofMemory( pid, level );
 
          const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
+
+         // zero out halos for matrix-free application
+         if ( mat == nullptr )
+         {
+            if ( dim == 2 )
+            {
+               for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+               {
+                  if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
+                  {
+                     auto arrayIdx          = vertexdof::macroface::index( level, idx.x(), idx.y() );
+                     dstDofMemory[arrayIdx] = real_c( 0 );
+                  }
+               }
+            }
+            else
+            {
+               for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+               {
+                  if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
+                  {
+                     auto arrayIdx          = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
+                     dstDofMemory[arrayIdx] = real_c( 0 );
+                  }
+               }
+            }
+         }
 
          const uint_t numMicroVolTypes = ( storage->hasGlobalCells() ? 6 : 2 );
 
@@ -177,9 +204,6 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                   elementIdx = *itCell;
                   itCell++;
                }
-
-               // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
-               // TODO: blending
 
                // This object does the heavy lifting of computing all required coordinates and normals.
                ElementNeighborInfo neighborInfo;
@@ -227,11 +251,6 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
                }
 
-               /*
-               for ( uint_t dstDofIdx = 0; dstDofIdx < numSrcDofs; dstDofIdx++ )
-               {
-               }
-                */
 
                for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                {
@@ -332,7 +351,6 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
          }
       }
 
-      WALBERLA_UNUSED( flag );
    }
 
    std::shared_ptr< Form > form_;

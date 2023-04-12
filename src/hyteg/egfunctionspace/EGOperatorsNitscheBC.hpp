@@ -155,11 +155,11 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-      dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+      //dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
 
-      cg_00.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 0 ), level, flag, Add );
+      cg_00.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 0 ), level, flag, updateType );
       cg_01.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 0 ), level, flag, Add );
-      cg_10.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 1 ), level, flag, Add );
+      cg_10.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 1 ), level, flag, updateType );
       cg_11.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 1 ), level, flag, Add );
 
       if ( src.getDimension() == 3 )
@@ -194,8 +194,7 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
          cg_21.toMatrix( mat, src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 2 ), level, flag );
          cg_22.toMatrix( mat, src.getConformingPart()->component( 2 ), dst.getConformingPart()->component( 2 ), level, flag );
       }
-      //   cg_.toMatrix( mat, *src.getConformingPart(), *dst.getConformingPart(), level, flag );
-      dg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
+      //dg_to_cg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag );
       cg_to_dg_coupling_.toMatrix( mat, *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag );
       dg_to_dg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
    }

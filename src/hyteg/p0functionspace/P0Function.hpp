@@ -62,6 +62,7 @@ class P0Function : public Function< P0Function< ValueType > >
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
    uint_t getDimension() const { return dgFunction_->getDimension(); };
+
    void setDoNotWarnOnInterpolateFlag() { doNotWarnOnInterpolate_ = true; }
 
    // template < typename SenderType, typename ReceiverType >
@@ -413,7 +414,7 @@ class P0Function : public Function< P0Function< ValueType > >
 
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
-   bool doNotWarnOnInterpolate_ = false;
+   bool doNotWarnOnInterpolate_ = true;
 
 };
 

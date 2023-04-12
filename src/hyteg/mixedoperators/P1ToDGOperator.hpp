@@ -148,9 +148,16 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
       communication::syncFunctionBetweenPrimitives( src, level );
-      dst.communicate( level );
 
       const auto storage = this->getStorage();
+
+      if (!storage->hasGlobalCells()) {
+         src.template communicate<Face, Face>(level);
+      } else {
+         src.template communicate<Cell, Cell>(level);
+      }
+      dst.communicate( level );
+
 
       const int dim = storage->hasGlobalCells() ? 3 : 2;
 
@@ -199,8 +206,6 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                   itCell++;
                }
 
-               // TODO: all these coord computations can be executed _once_ and then the coordinates can be incremented by h
-               // TODO: blending
 
                // This object does the heavy lifting of computing all required coordinates and normals.
                ElementNeighborInfo neighborInfo;

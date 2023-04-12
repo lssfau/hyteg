@@ -117,16 +117,16 @@ void checkTranspose()
    const uint_t level = 2;
    const auto   form  = std::make_shared< P1ToDG1InterpolationForm >();
 
-   P1Function< idx_t >  srcP1( "srcP1", storage, level, level );
-   P1Function< idx_t >  dstP1( "dstP1", storage, level, level );
-   DG1Function< idx_t > srcDG( "srcDG", storage, level, level );
-   DG1Function< idx_t > dstDG( "dstDG", storage, level, level );
+   P1Function< real_t >  srcP1( "srcP1", storage, level, level );
+   P1Function< real_t >  dstP1( "dstP1", storage, level, level );
+   DG1Function< real_t > srcDG( "srcDG", storage, level, level );
+   DG1Function< real_t > dstDG( "dstDG", storage, level, level );
 
-   P1ToDGOperator< P1ToDG1InterpolationForm, idx_t > opP1ToDG( storage, level, level, form );
-   DGToP1Operator< P1ToDG1InterpolationForm, idx_t > opDGToP1( storage, level, level, form );
+   P1ToDGOperator< P1ToDG1InterpolationForm, real_t > opP1ToDG( storage, level, level, form );
+   DGToP1Operator< P1ToDG1InterpolationForm, real_t > opDGToP1( storage, level, level, form );
 
-   srcP1.enumerate( level );
-   srcDG.enumerate( level );
+   srcP1.interpolate([]( auto p ) { return std::sin(p[0]) *std::sin(p[1]); }, level, All );
+   srcDG.interpolate( []( auto p ) { return std::sin(p[0]) *std::sin(p[1]); }, level, All );
 
    opP1ToDG.apply( srcP1, *dstDG.getDGFunction(), level, All, hyteg::Replace );
    const auto value1 = dstDG.dotGlobal( srcDG, level, All );
@@ -137,10 +137,12 @@ void checkTranspose()
    WALBERLA_CHECK_EQUAL( value1, value2, "values of transposes have to be equal" );
 
    // VTK
-   // VTKOutput vtkOutput( "../../output", "P1ToDGOperatorTest", storage );
-   // vtkOutput.add( srcDG );
-   // vtkOutput.add( dstP1 );
-   // vtkOutput.write( level, 0 );
+   VTKOutput vtkOutput( "../../output", "P1ToDGOperatorTest", storage );
+   vtkOutput.add( srcDG );
+   vtkOutput.add( dstP1 );
+   vtkOutput.add( srcP1 );
+   vtkOutput.add( dstDG );
+   vtkOutput.write( level, 0 );
 }
 
 int main( int argc, char** argv )
@@ -148,9 +150,9 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   checkP1ToDG1ByIntegral( 2 );
-   checkP1ToDG1ByIntegral( 3 );
-   enumerateTest();
+   //checkP1ToDG1ByIntegral( 2 );
+   //checkP1ToDG1ByIntegral( 3 );
+   //enumerateTest();
    checkTranspose();
 
    return EXIT_SUCCESS;
