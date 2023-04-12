@@ -19,10 +19,10 @@
  */
 #include "Syncing.hpp"
 
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
@@ -80,7 +80,7 @@ void syncVectorFunctionBetweenPrimitives( const dg::DGVectorFunction< vType >& v
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& p1dgeFunc, const uint_t& level )
 {
-   auto& vecFunc = *(p1dgeFunc.getConformingPart());
+   auto& vecFunc = *( p1dgeFunc.getConformingPart() );
    for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
       syncFunctionBetweenPrimitives< hyteg::vertexdof::VertexDoFFunction< vType > >( vecFunc[idx], level );
 }

@@ -134,7 +134,7 @@ class EGVariableCoeffOperator final : public Operator< EGFunction< real_t >, EGF
                             std::function< real_t( const Point3D& ) >  viscosity )
    : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
 
-, viscosity_( viscosity )
+   , viscosity_( viscosity )
    , cg_to_cg_coupling_( storage, minLevel, maxLevel, viscosity )
    , eg_to_cg_coupling_( storage,
                          minLevel,
@@ -183,7 +183,7 @@ class EGVariableCoeffOperator final : public Operator< EGFunction< real_t >, EGF
       eg_to_eg_coupling_.toMatrix( mat, *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag );
    }
 
-   P1toP1Coupling          cg_to_cg_coupling_;
+   P1toP1Coupling cg_to_cg_coupling_;
    P1ToP0Coupling cg_to_eg_coupling_;
    P0ToP1Coupling eg_to_cg_coupling_;
 
@@ -206,7 +206,7 @@ typedef EGVariableCoeffOperator< P1ElementwiseAffineEpsilonOperator,
 class P0ToEGDivTOperator final : public Operator< P0Function< real_t >, EGFunction< real_t > >
 {
  public:
-   P0ToEGDivTOperator(const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   P0ToEGDivTOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator< P0Function< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , p0_to_p1x( storage, minLevel, maxLevel )
    , p0_to_p1y( storage, minLevel, maxLevel )

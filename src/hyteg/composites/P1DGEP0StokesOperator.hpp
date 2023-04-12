@@ -100,7 +100,7 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
    EGToP0DivOperator       div;
    P0ToEGDivTOperator      divT;
    EnergyNormOperator_T    energyNormOp;
-   BlockPreconditioner_T blockPrec;
+   BlockPreconditioner_T   blockPrec;
 };
 
 typedef EGP0StokesOperatorType< EGSIPGLaplaceOperator, EGLaplaceEnergyNormOperator, EGP0StokesPreconditioner > EGP0StokesOperator;
@@ -117,7 +117,7 @@ class EGP0EpsilonStokesPreconditionerType : public Operator< EGP0StokesFunction<
                                         std::function< real_t( const Point3D& ) >  viscosity )
    : Operator( storage, minLevel, maxLevel )
    , viscOp( storage, minLevel, maxLevel, viscosity )
-   , P( storage, minLevel, maxLevel, std::make_shared< P0P0WeightedMassForm >(viscosity) )
+   , P( storage, minLevel, maxLevel, std::make_shared< P0P0WeightedMassForm >( viscosity ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -131,14 +131,13 @@ class EGP0EpsilonStokesPreconditionerType : public Operator< EGP0StokesFunction<
       P.toMatrix( mat, src.p(), dst.p(), level, flag );
    }
 
-   VelocityBlockOperator viscOp;
-   P0Operator< P0P0WeightedMassForm>    P;
+   VelocityBlockOperator              viscOp;
+   P0Operator< P0P0WeightedMassForm > P;
 
    bool hasGlobalCells_;
 };
 
-typedef EGP0EpsilonStokesPreconditionerType< EGEpsilonOperator >
-     EGP0EpsilonStokesPreconditioner;
+typedef EGP0EpsilonStokesPreconditionerType< EGEpsilonOperator > EGP0EpsilonStokesPreconditioner;
 
 template < typename VelocityBlockOperator, typename BlockPreconditioner >
 class EGP0EpsilonStokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >

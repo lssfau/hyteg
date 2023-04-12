@@ -20,9 +20,9 @@
 
 #pragma once
 
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
-#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 
 namespace hyteg {
@@ -42,17 +42,17 @@ class EGP0StokesFunction : public BlockFunction< ValueType >
    using Tag = typename FunctionTrait< EGP0StokesFunction< ValueType > >::Tag;
 
    EGP0StokesFunction( const std::string&                         _name,
-                          const std::shared_ptr< PrimitiveStorage >& storage,
-                          size_t                                     minLevel,
-                          size_t                                     maxLevel )
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       size_t                                     minLevel,
+                       size_t                                     maxLevel )
    : EGP0StokesFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
    EGP0StokesFunction( const std::string&                         _name,
-                          const std::shared_ptr< PrimitiveStorage >& storage,
-                          size_t                                     minLevel,
-                          size_t                                     maxLevel,
-                          BoundaryCondition                          velocityBC )
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       size_t                                     minLevel,
+                       size_t                                     maxLevel,
+                       BoundaryCondition                          velocityBC )
    : BlockFunction< ValueType >( _name )
    {
       this->subFunc_.push_back( std::make_shared< FunctionWrapper< EGFunction< ValueType > > >(
