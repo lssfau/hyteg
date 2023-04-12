@@ -1,18 +1,11 @@
-
+### VisualStudioCode ###
 .vscode/*
-*link.txt
-.vscode/*
+#!.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
 !.vscode/extensions.json
 .idea
 cmake-build-*
 .vs/
 build/*
-*.cmake
-*.make
-*.bin
-*.log
-*.py
-*.sh
-*.marks
-*Makefile
-CMakeFiles/*
+
