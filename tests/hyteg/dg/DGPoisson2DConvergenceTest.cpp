@@ -80,8 +80,8 @@ real_t testDG1( uint_t                                    level,
    solverM.solve( M, sol, tmp, level );
 
    // Solve system.
-   PETScCGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
-   //CGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, level, 10000 );
+   //PETScCGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   CGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, level, 10000 );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );

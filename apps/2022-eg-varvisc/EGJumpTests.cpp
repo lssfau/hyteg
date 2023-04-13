@@ -368,7 +368,7 @@ void StraightJump3D( const uint_t minLevel, const uint_t maxLevel )
           std::make_shared< std::vector< real_t > >( resNormsP2P1 ) );
    }
 
-   / cube_6el, inhom.solution, EGP0 if ( true )
+   // cube_6el, inhom.solution, EGP0 if ( true )
    {
       auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
 
