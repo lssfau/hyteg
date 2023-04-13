@@ -67,10 +67,10 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
                UpdateType                  updateType ) const override
    {
 
-      dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, updateType );
+       cg_.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 0 ), level, flag, updateType );
+       cg_.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 1 ), level, flag, updateType );
+      dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, Add );
       //dst.interpolate(0, level, All);
-      cg_.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 0 ), level, flag, Add );
-      cg_.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 1 ), level, flag, Add );
       if ( src.getDimension() == 3 )
       {
          cg_.apply( src.getConformingPart()->component( 2 ), dst.getConformingPart()->component( 2 ), level, flag, Add );
