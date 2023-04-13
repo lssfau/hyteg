@@ -37,7 +37,7 @@ using indexing::Index;
 namespace macrocell {
 
 /// Returns an array of the four logical micro-vertex-indices that span the micro-cell of the given indices and cell type.
-/// This function is an improved version of \sa hyteg::celldofspace::macrocell::getMicroVerticesFromMicroCell that ensures
+/// This function is an improved version of hyteg::celldof::macrocell::getMicroVerticesFromMicroCell that ensures
 /// consistent orientation of edges.
 /// An edge is defined to be oriented from the vertex with the lower index to the vertex with the higher index.
 /// The returned array is sorted in such a way, that micro-edges have the same orientation as the corresponding macro-edges.
@@ -92,9 +92,9 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microC
 
 /// Return data indices for the edge dofs of a given micro-cell in a macro-cell.
 /// This function is essentially the same as
-/// \sa hyteg::edgedof::macrocell::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering
+/// hyteg::edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering
 /// but the edges are ordered according to the vertex ordering specified by
-/// \sa hyteg::n1e1::macrocell::getMicroVerticesFromMicroCell.
+/// hyteg::n1e1::macrocell::getMicroVerticesFromMicroCell.
 inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
                                                               const celldof::CellType& cellType,
                                                               const uint_t             level,

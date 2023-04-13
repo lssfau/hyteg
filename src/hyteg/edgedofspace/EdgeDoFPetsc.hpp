@@ -345,7 +345,7 @@ inline void saveFaceOperator3D( const uint_t&                                   
             const auto centerIndexInCell =
                 edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
             const auto cellCenterOrientation =
-                edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+                edgedof::macroface::getOrientationInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
             {
@@ -354,7 +354,7 @@ inline void saveFaceOperator3D( const uint_t&                                   
                   const auto stencilOffset = stencilIt.first;
                   const auto stencilWeight = stencilIt.second;
 
-                  const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+                  const auto leafOrientationInFace = edgedof::macrocell::getOrientationInNeighboringMacroFace(
                       leafOrientation, neighborCell, localFaceID, storage );
 
                   const auto leafIndexInCell = centerIndexInCell + stencilOffset;

@@ -1405,6 +1405,7 @@ inline void getEdgeDoFDataIndicesFromMicroVerticesFEniCSOrdering( const std::arr
 }
 
 /// Return data indices for the edge dofs of a given micro-cell in a macro-cell
+/// \sa hyteg::n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering
 inline void getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( const indexing::Index&   microCellIndex,
                                                               const celldof::CellType& cellType,
                                                               const uint_t             level,

@@ -78,7 +78,7 @@ class BufferedCommunicator
    /// The data of the sender can be modified after this method returns.
    /// \tparam SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
    /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
-   /// \param excludeReceivingIDs exclude primtives with theses IDs from receiving. The primitives will still send their data
+   /// \param excludeReceivingIDs exclude primtives with these IDs from receiving. The primitives will still send their data
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( std::vector< PrimitiveID > excludeReceivingIDs = {} );
 
