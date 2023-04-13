@@ -113,14 +113,18 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                                    size_t                                      level,
                                    DoFType                                     flag,
                                    const std::shared_ptr< SparseMatrixProxy >& mat,
-                                   UpdateType                                  updateType = Replace ) const
+                                   UpdateType                                  updateType ) const
    {
       // To avoid code duplication in this already long method, the implementation "fuses" the 2D and 3D implementation.
       // This more or less serves as a reference - for better performance the matrix-vector multiplication should be specialized.
 
       // zero out destination
+      VTKOutput vtk( "../../output", "DGToP1OpDebug", dst.getStorage() );
+      vtk.add( dst );
+      vtk.write( level, 0 );
       if (updateType == Replace)
          dst.interpolate(0, level, All);
+      vtk.write( level, 1 );
 
       DGBasisLinearLagrange_Example dstBasis;
 
@@ -149,7 +153,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
          const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
 
          // zero out halos for matrix-free application
-         if ( mat == nullptr )
+         if ( mat == nullptr)
          {
             if ( dim == 2 )
             {
@@ -339,8 +343,8 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
          {
             if ( dim == 2 )
             {
-               dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage, updateType == Replace );
-               dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage, updateType == Replace );
+               dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage, true );
+               dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage, true  );
             }
             else
             {
@@ -350,6 +354,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
             }
          }
       }
+
 
    }
 

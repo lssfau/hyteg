@@ -97,7 +97,6 @@ void IncreasingJump3D( const uint_t minLevel, const uint_t maxLevel )
       // cube_6el, inhom. solution, EGP0
       if ( true )
       {
-         auto resNormsP2P1 = { 1e-5, 1e-7, 1e-7, 1e-5, 1e-6, 1e-7, 1e-5, 1e-6 };
 
          auto meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( { -1, -1, -1 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 

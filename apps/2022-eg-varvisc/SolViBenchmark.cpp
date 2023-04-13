@@ -265,7 +265,6 @@ int main( int argc, char* argv[] )
    // SolVi solution setup
    auto [solTuple, rhsTuple, viscosity] = SetupSolViSolution( 0.2, 100.0, 1.0 );
 
-   auto resNormsEGP0 = { 1e-5, 1e-5, 1e-6, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7 };
 
    if ( true )
    {

@@ -122,11 +122,11 @@ void checkTranspose()
    DG1Function< real_t > srcDG( "srcDG", storage, level, level );
    DG1Function< real_t > dstDG( "dstDG", storage, level, level );
 
-   P1ToDGOperator< P1ToDG1InterpolationForm, real_t > opP1ToDG( storage, level, level, form );
-   DGToP1Operator< P1ToDG1InterpolationForm, real_t > opDGToP1( storage, level, level, form );
+   P1ToDGOperator< P1ToDG1InterpolationForm, idx_t > opP1ToDG( storage, level, level, form );
+   DGToP1Operator< P1ToDG1InterpolationForm, idx_t > opDGToP1( storage, level, level, form );
 
-   srcP1.interpolate([]( auto p ) { return std::sin(p[0]) *std::sin(p[1]); }, level, All );
-   srcDG.interpolate( []( auto p ) { return std::sin(p[0]) *std::sin(p[1]); }, level, All );
+   srcP1.enumerate( level );
+   srcDG.enumerate( level );
 
    opP1ToDG.apply( srcP1, *dstDG.getDGFunction(), level, All, hyteg::Replace );
    const auto value1 = dstDG.dotGlobal( srcDG, level, All );

@@ -237,7 +237,7 @@ int main( int argc, char* argv[] )
    ScalarLambda srcLambda2 = []( const hyteg::Point3D& ) { return 1; };
    ScalarLambda srcLambda3 = []( const hyteg::Point3D& x ) { return x[0] * x[0] * x[0] * std::sin( 3 * pi * x[1] ); };
 
-/*
+
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda1,
                                                               "EGLaplaceOperatorNitscheBC_tri_1el_4_src1",
                                                               4,
@@ -246,12 +246,7 @@ int main( int argc, char* argv[] )
                                                               writeVTK );
 
 
-   hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda1,
-                                                              "EGEpsilonOperatorNitscheBC_tri_1el_4_src1",
-                                                              4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
-                                                              1.0e-15,
-                                                              writeVTK );
+
 
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda3,
                                                               "EGLaplaceOperatorNitscheBC_tri_1el_4_src3",
@@ -261,12 +256,6 @@ int main( int argc, char* argv[] )
                                                               writeVTK );
 
 
-   hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda3,
-                                                              "EGEpsilonOperatorNitscheBC_tri_1el_4_src3",
-                                                              4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
-                                                              1.0e-15,
-                                                              writeVTK );
 
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda1,
                                                               "EGLaplaceOperatorNitscheBC_quad_4el_4_src1",
@@ -276,6 +265,16 @@ int main( int argc, char* argv[] )
                                                               writeVTK );
 
 
+
+   /*
+
+   hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda3,
+                                                              "EGEpsilonOperatorNitscheBC_tri_1el_4_src3",
+                                                              4,
+                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
+                                                              1.0e-15,
+                                                              writeVTK );
+
    hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda1,
                                                               "EGEpsilonOperatorNitscheBC_quad_4el_4_src1",
                                                               4,
@@ -283,22 +282,20 @@ int main( int argc, char* argv[] )
                                                               1.0e-15,
                                                               writeVTK );
 
-   hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda3,
-                                                              "EGLaplaceOperatorNitscheBC_quad_4el_4_src3",
+   hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda1,
+                                                              "EGEpsilonOperatorNitscheBC_tri_1el_4_src1",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
                                                               1.0e-15,
                                                               writeVTK );
-
-
    hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda3,
                                                               "EGEpsilonOperatorNitscheBC_quad_4el_4_src3",
                                                               4,
                                                               hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
                                                               1.0e-15,
-                                                              writeVTK );
+                                                              writeVTK );*/
    return EXIT_SUCCESS;
-*/
+/*
    hyteg::EGApplyNitscheBCTest< EGSIPGLaplaceOperator >( srcLambda1,
                                                          "EGLaplaceOperator_tri_1el_4_src1",
                                                          4,
@@ -379,6 +376,7 @@ int main( int argc, char* argv[] )
                        hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ),
                        1.0e-15,
                        writeVTK );
+                       */
    /*
      * // Test divT operator
     EGApplyTestDivt(

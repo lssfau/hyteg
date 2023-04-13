@@ -103,7 +103,6 @@ namespace hyteg {
                 auto dummyLambda = [](const Point3D &) -> real_t { return 0; };
 
                 auto resNormsEGP0 = {1e-5, 1e-5, 1e-5, 1e-5, 1e-6};
-                auto resNormsP2P1 = {1e-5, 1e-6, 1e-7, 1e-8, 1e-9};
 
                 if (true) {
                     hyteg::dg::eg::StokesConvergenceOrderTest<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>(

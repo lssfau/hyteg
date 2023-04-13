@@ -75,16 +75,28 @@ class ScalarP1WithDGFormOperator : public Operator< P1Function< real_t >, P1Func
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-      //srcReal_.interpolate( 0, level, All );
-      opP1ToDGReal.apply( src, srcReal_, level, flag, Replace );
+      VTKOutput vtk( "../../output", "EGApplyDebug", src.getStorage() );
 
+      vtk.add( src );
+      vtk.add( dst );
+      vtk.add( srcReal_ );
+      vtk.add( dstReal_ );
+
+      vtk.write( level, 0 );
+      //srcReal_.interpolate( 0, level, All );
+      opP1ToDGReal.apply( src, srcReal_, level, All, Replace );
+
+            vtk.write( level, 1 );
       //if ( updateType != Replace )
       //   opP1ToDGReal.apply( dst, dstReal_, level, flag, Replace );
 
       //dstReal_.interpolate( 0, level, All );
-      opMain.apply( srcReal_, dstReal_, level, flag, Replace );
+      opMain.apply( srcReal_, dstReal_, level, All, Replace );
 
-      opDGToP1Real.apply( dstReal_, dst, level, flag, updateType );
+      vtk.write( level, 2 );
+      opDGToP1Real.apply( dstReal_, dst, level, All, updateType );
+
+         vtk.write( level, 3 );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
