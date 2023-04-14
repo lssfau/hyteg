@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2023, Fabian Böhm.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -67,8 +67,6 @@ int main(int argc, char *argv[]) {
     uint_t minLevel = 3;
 
 
-
-
     if constexpr (true) {
         WALBERLA_LOG_INFO_ON_ROOT("### Testing varying viscosity Epsilon 2D ###")
         auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
@@ -102,7 +100,6 @@ namespace hyteg {
                                        const std::shared_ptr<PrimitiveStorage> &storage) {
                 auto dummyLambda = [](const Point3D &) -> real_t { return 0; };
 
-                auto resNormsEGP0 = {1e-5, 1e-5, 1e-5, 1e-5, 1e-6};
 
                 if (true) {
                     hyteg::dg::eg::StokesConvergenceOrderTest<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>(
@@ -164,7 +161,7 @@ namespace hyteg {
                             storage,
                             minLevel,
                             maxLevel,
-                            2, false, false, NULL, std::make_shared<std::vector<real_t>>(resNormsEGP0));
+                            2);
                 }
 
                 if (true) {
@@ -228,7 +225,7 @@ namespace hyteg {
                             storage,
                             minLevel,
                             maxLevel,
-                            2, false, false, NULL, NULL, NULL, 3);
+                            2, 1e-15, false, std::make_pair(false, 0), nullptr, 3);
                 }
 
          }
@@ -255,8 +252,7 @@ namespace hyteg {
                     auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
 
                     WALBERLA_LOG_INFO_ON_ROOT("### cube_6el, inhom. solution, Nitsche Bc ###");
-                    auto resNormsEGP0 = {1e-5, 1e-5, 1e-5, 1e-6};
-                    hyteg::dg::eg::StokesConvergenceOrderTest<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>(
+                   hyteg::dg::eg::StokesConvergenceOrderTest<hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC>(
                             "EGP0EpsilonStokesOp3DNitscheBC_varvisc_cube_6el_inhom",
                             std::make_tuple(
                                     [](const hyteg::Point3D &xx) {
@@ -329,15 +325,13 @@ namespace hyteg {
                             storage,
                             minLevel,
                             maxLevel,
-                            2, false, false, NULL, std::make_shared<std::vector<real_t>>(
-                                    resNormsEGP0));
+                            2);
 
 
                 }
 
                 // cube_6el, inhom. solution, P2P1
                 if (true) {
-                    auto resNormsP2P1 = {1e-5, 1e-6, 1e-6, 1e-5, 1e-6};
 
                     auto meshInfo = hyteg::MeshInfo::fromGmshFile(
                             "../../data/meshes/3D/cube_6el.msh");
@@ -423,9 +417,7 @@ namespace hyteg {
                             storage,
                             minLevel,
                             maxLevel,
-                            2,
-                            false,
-                            false, NULL, NULL, NULL, 3);
+                            2, 1e-15, false, std::make_pair(false, 0), nullptr, 3);
                 }
 
 

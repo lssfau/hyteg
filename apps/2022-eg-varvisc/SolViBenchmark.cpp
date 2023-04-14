@@ -278,13 +278,7 @@ int main( int argc, char* argv[] )
           storage,
           minLevel,
           maxLevel,
-          2,
-          false,
-          false,
-          NULL,
-          NULL,
-          NULL,
-          1 );
+          1, 1e-15, false, std::make_pair(false, 0), nullptr, 1 );
       //,std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
    }
 
@@ -300,13 +294,7 @@ int main( int argc, char* argv[] )
           storage,
           minLevel,
           maxLevel,
-          2,
-          false,
-          false,
-          NULL,
-          NULL,
-          NULL,
-          1 );
+          1, 1e-15, false, std::make_pair(false, 0), nullptr, 1 );
       //std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
    }
 

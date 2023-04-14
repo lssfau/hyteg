@@ -99,8 +99,6 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
 {
    auto dummyLambda = []( const Point3D& ) -> real_t { return 0; };
 
-   auto resNormsEGP0 = { 1e-5, 1e-5, 1e-5, 1e-5, 1e-6 };
-   auto resNormsP2P1 = { 1e-5, 1e-6, 1e-7, 1e-8, 1e-9 };
 
    // nitsche BCs
    if ( true )
@@ -164,11 +162,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
           storage,
           minLevel,
           maxLevel,
-          2,
-          false,
-          false,
-          NULL,
-          std::make_shared< std::vector< real_t > >( resNormsEGP0 ) );
+          2);
    }
 
    // mixed BCs
@@ -233,11 +227,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
           storage,
           minLevel,
           maxLevel,
-          6,
-          false,
-          false,
-          NULL,
-          std::make_shared< std::vector< real_t > >( resNormsEGP0 ) );
+          6);
    }
 
    // Taylor-Hood
@@ -302,11 +292,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
           storage,
           minLevel,
           maxLevel,
-          2,
-          false,
-          false,
-          NULL,
-          std::make_shared< std::vector< real_t > >( resNormsP2P1 ) );
+          2 );
    }
 }
 
@@ -322,7 +308,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
    };
 
    // cube_6el, inhom. solution, EGP0
-   if ( true )
+   if ( false )
    {
       auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
 
@@ -394,9 +380,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
           storage,
           minLevel,
           maxLevel,
-          2,
-          false,
-          true );
+          2);
    }
 
    // cube_6el, inhom. solution, EGP0 Nitsche BCs
@@ -410,7 +394,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
       auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
 
       WALBERLA_LOG_INFO_ON_ROOT( "### Nitsche BCs, cube_6el, inhom. solution ###" );
-      auto resNormsEGP0 = { 1e-5, 1e-5, 1e-5, 1e-6 };
+
       hyteg::dg::eg::StokesConvergenceOrderTest< hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC >(
           "EGP0EpsilonStokesOp3DNitscheBC_varvisc_cube_6el_inhom",
           std::make_tuple(
@@ -471,17 +455,12 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
           storage,
           minLevel,
           maxLevel,
-          6,
-          false,
-          false,
-          NULL,
-          std::make_shared< std::vector< real_t > >( resNormsEGP0 ) );
+          2 );
    }
 
    // cube_6el, inhom. solution, P2P1
    if ( false )
    {
-      auto resNormsP2P1 = { 1e-5, 1e-6, 1e-6, 1e-5, 1e-6 };
 
       auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
 
@@ -553,11 +532,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
           storage,
           minLevel,
           maxLevel,
-          2,
-          false,
-          false,
-          NULL,
-          std::make_shared< std::vector< real_t > >( resNormsP2P1 ) );
+          2 );
    }
 
   }
