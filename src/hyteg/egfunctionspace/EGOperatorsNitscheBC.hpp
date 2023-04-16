@@ -66,15 +66,14 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-
-       cg_.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 0 ), level, flag, updateType );
-       cg_.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 1 ), level, flag, updateType );
+      cg_.apply( src.getConformingPart()->component( 0 ), dst.getConformingPart()->component( 0 ), level, flag, updateType );
+      cg_.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 1 ), level, flag, updateType );
       if ( src.getDimension() == 3 )
       {
          cg_.apply( src.getConformingPart()->component( 2 ), dst.getConformingPart()->component( 2 ), level, flag, updateType );
       }
+
       dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, Add );
-      //dst.interpolate(0, level, All);
 
       cg_to_dg_coupling_.apply( *src.getConformingPart(), *dst.getDiscontinuousPart(), level, flag, updateType );
       dg_to_dg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getDiscontinuousPart(), level, flag, Add );

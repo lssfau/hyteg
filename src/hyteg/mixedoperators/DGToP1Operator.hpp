@@ -119,12 +119,17 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
       // This more or less serves as a reference - for better performance the matrix-vector multiplication should be specialized.
 
       // zero out destination
-      VTKOutput vtk( "../../output", "DGToP1OpDebug", dst.getStorage() );
-      vtk.add( dst );
-      vtk.write( level, 0 );
-      if (updateType == Replace)
+
+      //VTKOutput vtk( "../../output", "DGToP1OpDebug", dst.getStorage() );
+      //vtk.add( dst );
+      //vtk.write( level, 0 );
+      // vtk.write( level, 1 );
+
+    //  WALBERLA_ASSERT(updateType == Replace);
+
+      if (updateType == Replace && mat == nullptr)
          dst.interpolate(0, level, All);
-      vtk.write( level, 1 );
+
 
       DGBasisLinearLagrange_Example dstBasis;
 
@@ -133,9 +138,10 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
       //communication::syncFunctionBetweenPrimitives( dst, level );
       src.communicate( level );
 
-      const auto storage = this->getStorage();
+       const auto storage = this->getStorage();
+       const int dim = storage->hasGlobalCells() ? 3 : 2;
 
-      const int dim = storage->hasGlobalCells() ? 3 : 2;
+
 
       const std::vector< PrimitiveID > pids{ ( dim == 2 ) ? storage->getFaceIDs() : storage->getCellIDs() };
 
@@ -343,8 +349,8 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
          {
             if ( dim == 2 )
             {
-               dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage, true );
-               dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage, true  );
+               dst.template communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage, updateType == Replace );
+               dst.template communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage, updateType == Replace );
             }
             else
             {
