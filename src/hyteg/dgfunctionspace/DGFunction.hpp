@@ -70,13 +70,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
-   {
-      WALBERLA_UNUSED( constant );
-      WALBERLA_UNUSED( level );
-      WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "Not implemented." );
-   };
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
    {
@@ -390,5 +384,7 @@ void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
                                DoFType                               flag );
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
+
+
 
 } // namespace hyteg
