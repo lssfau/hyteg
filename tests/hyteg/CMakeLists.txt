@@ -842,7 +842,7 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME EGApplyTest)
 
     waLBerla_compile_test(FILES egfunctionspace/EGMatfreeConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGMatfreeConvergenceTest)
+    waLBerla_execute_test(NAME EGMatfreeConvergenceTest LABELS longrun)
 
     waLBerla_compile_test(FILES egfunctionspace/EGVectorLaplaceConvergenceTests.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGVectorLaplaceConvergenceTests)
