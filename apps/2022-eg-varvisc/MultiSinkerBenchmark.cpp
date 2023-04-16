@@ -56,8 +56,8 @@ void MultiSinker( const std::string& name,
    real_t visc_max                   = std::pow( DR, 0.5 );
 
    // storage and domain
-   //auto meshInfo = MeshInfo::meshCuboid(Point3D({0, 0, 0}), Point3D({1, 1, 1}), nxy, nxy, nxy);
-   auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   auto meshInfo = MeshInfo::meshCuboid(Point3D({0, 0, 0}), Point3D({1, 1, 1}), nxy, nxy, nxy);
+   //auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -65,7 +65,7 @@ void MultiSinker( const std::string& name,
 
    // some general info about the testcase
    StokesFunctionNumeratorType numerator( "numerator", storage, level, level + 1 );
-   numerator.enumerate( level );
+   numerator.enumerate( level ); numerator.enumerate( level + 1);
    uint_t globalDoFs      = numberOfGlobalDoFs( numerator, level );
    uint_t globalDoFsFiner = numberOfGlobalDoFs( numerator, level + 1 );
    WALBERLA_LOG_INFO_ON_ROOT( "### Computing " << name << " on level " << level << " ###" );
@@ -83,6 +83,15 @@ void MultiSinker( const std::string& name,
    StokesFunctionType errEq( "errEq", storage, level, level + 1 );
 
    P2Function< real_t > viscFunc( "viscFunc", storage, level, level + 1 );
+   using hyteg::dg::eg::copyBdry;
+    if constexpr (hyteg::dg::eg::isEGP0Discr<StokesOperatorType>()) {
+        copyBdry(x);
+        copyBdry(xFiner);
+        copyBdry(btmp);
+        copyBdry(b);
+        copyBdry(residuum);
+        copyBdry(errEq);
+    }
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
    x.uvw().interpolate( zero, level );
@@ -138,7 +147,7 @@ void MultiSinker( const std::string& name,
 
    StokesOperatorType OpFiner( storage, level + 1, level + 1, viscosity );
    // Visualization
-   VTKOutput vtkOutput( "../../output", name, storage );
+   /* VTKOutput vtkOutput( "../../output", name, storage );
    viscFunc.interpolate( viscosity, level, All );
    vtkOutput.add( viscFunc );
    vtkOutput.add( x.uvw() );
@@ -154,35 +163,12 @@ void MultiSinker( const std::string& name,
       vtkOutput.add( *xFiner.uvw().getConformingPart() );
       vtkOutput.add( *xFiner.uvw().getDiscontinuousPart() );
    }
-
-   // Solve
-   if ( false )
-   {
-      {
-         PETScLUSolver< StokesOperatorType > LU( storage, level, numerator );
-         LU.disableApplicationBC( std::is_same< StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC >::value );
-         StokesFunctionType nullSpace( "ns", storage, level, level );
-         nullSpace.uvw().interpolate( 0, level, All );
-         nullSpace.p().interpolate( 1, level, Inner );
-         LU.setNullSpace( nullSpace, level );
-         LU.solve( Op, x, b, level );
-      }
-
-      {
-         PETScLUSolver< StokesOperatorType > LUfiner( storage, level + 1, numerator );
-         LUfiner.disableApplicationBC( std::is_same< StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC >::value );
-         StokesFunctionType nullSpace( "ns", storage, level + 1, level + 1 );
-         nullSpace.uvw().interpolate( 0, level + 1, All );
-         nullSpace.p().interpolate( 1, level + 1, Inner );
-         LUfiner.setNullSpace( nullSpace, level + 1 );
-         LUfiner.solve( OpFiner, xFiner, b, level + 1 );
-      }
-   }
+*/
 
    if ( true )
    {
       {
-         // x.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
+         x.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
          PETScBlockPreconditionedStokesSolver< StokesOperatorType > solver(
              storage, level, 1e-3, std::numeric_limits< PetscInt >::max(), 6, 1 );
          solver.disableApplicationBC( std::is_same< StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC >::value );
@@ -191,7 +177,7 @@ void MultiSinker( const std::string& name,
       WALBERLA_LOG_INFO_ON_ROOT( "First solve done." );
 
       {
-         // xFiner.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
+         xFiner.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
          PETScBlockPreconditionedStokesSolver< StokesOperatorType > solverFiner(
              storage, level + 1, 1e-5, std::numeric_limits< PetscInt >::max(), 6, 1 );
          solverFiner.disableApplicationBC(
@@ -205,13 +191,11 @@ void MultiSinker( const std::string& name,
    {
       hyteg::dg::projectMean( x.p(), level );
       hyteg::dg::projectMean( xFiner.p(), level + 1 );
-      // hyteg::dg::projectMean(x.p(), level+1);
    }
    else if constexpr ( hyteg::dg::eg::isP2P1Discr< StokesOperatorType >() )
    {
       hyteg::vertexdof::projectMean( x.p(), level );
       hyteg::vertexdof::projectMean( xFiner.p(), level + 1 );
-      // hyteg::vertexdof::projectMean(x.p(), level+1);
    }
 
    // error equivalent
@@ -239,7 +223,7 @@ void MultiSinker( const std::string& name,
       WALBERLA_LOG_INFO_ON_ROOT( "error equivalent u = " << errEq.uvw().getMaxMagnitude( level + 1 ) );
    }
 
-   vtkOutput.write( level, 1 );
+   //vtkOutput.write( level, 1 );
 }
 
 } // namespace hyteg
@@ -255,14 +239,12 @@ int main( int argc, char* argv[] )
    uint_t nSinkers = 1;
    if ( true )
    {
-      MultiSinker< hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC >( "MultiSinker_EGP0", 4, 1, nSinkers, 1000, 200, 0.1 );
+      MultiSinker< hyteg::dg::eg::EGP0EpsilonOperatorStokesNitscheBC >( "MultiSinker_EGP0", 3, 1, nSinkers, 1000, 200, 0.1 );
    }
 
    if ( false )
    {
-      MultiSinker< P2P1ElementwiseAffineEpsilonStokesOperator >( "MultiSinker_P2P1", 2, 1, nSinkers, 1000, 200, 0.1 );
       MultiSinker< P2P1ElementwiseAffineEpsilonStokesOperator >( "MultiSinker_P2P1", 3, 1, nSinkers, 1000, 200, 0.1 );
-      MultiSinker< P2P1ElementwiseAffineEpsilonStokesOperator >( "MultiSinker_P2P1", 4, 1, nSinkers, 1000, 200, 0.1 );
    }
 
    return EXIT_SUCCESS;

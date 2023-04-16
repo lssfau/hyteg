@@ -252,8 +252,8 @@ int main( int argc, char* argv[] )
    /* commandline arguments for petsc solver:
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
-   uint_t minLevel = 3;
-   uint_t maxLevel = 4;
+   uint_t minLevel = 4;
+   uint_t maxLevel = 5;
 
    // storage setup
    auto meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 2, 2 } ), MeshInfo::CRISS, 2, 2 );
@@ -278,7 +278,7 @@ int main( int argc, char* argv[] )
           storage,
           minLevel,
           maxLevel,
-          1, 1e-15, false, std::make_pair(false, 0), nullptr, 1 );
+          6, 1e-15, false, std::make_pair(false, 0), nullptr, 1 );
       //,std::make_shared<std::function<void(const P2P1TaylorHoodFunction< real_t > &, real_t)>>(printPressureJump<P2P1TaylorHoodFunction< real_t >>)  );
    }
 
@@ -294,7 +294,7 @@ int main( int argc, char* argv[] )
           storage,
           minLevel,
           maxLevel,
-          1, 1e-15, false, std::make_pair(false, 0), nullptr, 1 );
+          6, 1e-15, false, std::make_pair(false, 0), nullptr, 1 );
       //std::make_shared<std::function<void(const EGP0StokesFunction<real_t> &, real_t)>>(printPressureJump<EGP0StokesFunction<real_t>>) );
    }
 
