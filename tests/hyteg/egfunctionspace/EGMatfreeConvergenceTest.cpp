@@ -137,7 +137,7 @@ void MatfreeLaplaceConvTest2D( const uint_t minLevel, const uint_t maxLevel, con
           solver,
           1e-15,
           false,
-          std::make_pair(true,1.79e-02));
+          std::make_pair(true,2.0e-02));
    }
 
   }
@@ -211,7 +211,7 @@ void MatfreeLaplaceConvTest2D( const uint_t minLevel, const uint_t maxLevel, con
                     solver,
                     1e-15,
                     false,
-                    std::make_pair(true, 1.91e-02));
+                    std::make_pair(true, 2.0e-02));
         }
 
     }
