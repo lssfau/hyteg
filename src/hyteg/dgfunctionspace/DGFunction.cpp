@@ -829,7 +829,7 @@ namespace hyteg {
             if (this->storage_->hasGlobalCells()) {
                 for (auto &it: this->getStorage()->getCells()) {
                     const auto cellID = it.first;
-                    const auto &cell = *it.second;
+
 
                     WALBERLA_CHECK_EQUAL(this->polynomialDegree(cellID), 0);
                     WALBERLA_CHECK_EQUAL(this->basis()->numDoFsPerElement(3, 0), 1);
@@ -853,7 +853,7 @@ namespace hyteg {
             } else {
                 for (auto &it: this->getStorage()->getFaces()) {
                     const auto faceID = it.first;
-                    const auto &face = *it.second;
+
 
                     const auto degree = polynomialDegree(faceID);
 
@@ -873,6 +873,7 @@ namespace hyteg {
                     }
                 }
             }
+            WALBERLA_UNUSED(dofType)
         }
 
 /// explicit instantiation

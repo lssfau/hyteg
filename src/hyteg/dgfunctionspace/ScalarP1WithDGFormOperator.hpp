@@ -84,8 +84,9 @@ class ScalarP1WithDGFormOperator : public Operator< P1Function< real_t >, P1Func
 
 
       vtk.write( level, 0 );
-    */   dstReal_.interpolate( 0, level, All );
-       srcReal_.interpolate( 0, level, All );
+    */
+//dstReal_.interpolate( 0, level, All );
+ //      srcReal_.interpolate( 0, level, All );
 
      //  vtk.write( level, 1 );
       opP1ToDGReal.apply( src, srcReal_, level, All, Replace );
