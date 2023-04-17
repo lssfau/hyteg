@@ -249,75 +249,41 @@ inline void
 {
    using ValueType = real_t;
 
-   auto cellData = cell.getData( cellMemoryId )->getPointer( level );
-
-   std::vector< VectorType< ValueType > > srcVectorX( srcFunctions.size() );
-   std::vector< VectorType< ValueType > > srcVectorY( srcFunctions.size() );
-   std::vector< VectorType< ValueType > > srcVectorZ( srcFunctions.size() );
-   std::vector< VectorType< ValueType > > srcVectorXY( srcFunctions.size() );
-   std::vector< VectorType< ValueType > > srcVectorXZ( srcFunctions.size() );
-   std::vector< VectorType< ValueType > > srcVectorYZ( srcFunctions.size() );
-   std::vector< VectorType< ValueType > > srcVectorXYZ( srcFunctions.size() );
+   auto                                   cellData = cell.getData( cellMemoryId )->getPointer( level );
+   std::vector< VectorType< ValueType > > srcVector( srcFunctions.size() );
 
    for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
    {
-      const Point3D microVertexPosition = vertexdof::macrocell::coordinateFromIndex( level, cell, it );
-      const Point3D xMicroEdgePosition  = microVertexPosition + edgedof::macrocell::xShiftFromVertex( level, cell );
-      const Point3D yMicroEdgePosition  = microVertexPosition + edgedof::macrocell::yShiftFromVertex( level, cell );
-      const Point3D zMicroEdgePosition  = microVertexPosition + edgedof::macrocell::zShiftFromVertex( level, cell );
-      const Point3D xyMicroEdgePosition = microVertexPosition + edgedof::macrocell::xShiftFromVertex( level, cell ) +
-                                          edgedof::macrocell::yShiftFromVertex( level, cell );
-      const Point3D xzMicroEdgePosition = microVertexPosition + edgedof::macrocell::xShiftFromVertex( level, cell ) +
-                                          edgedof::macrocell::zShiftFromVertex( level, cell );
-      const Point3D yzMicroEdgePosition = microVertexPosition + edgedof::macrocell::yShiftFromVertex( level, cell ) +
-                                          edgedof::macrocell::zShiftFromVertex( level, cell );
+      const Point3D                  microVertexPosition = vertexdof::macrocell::coordinateFromIndex( level, cell, it );
+      const std::array< Point3D, 6 > dofShiftsFromVertex{
+          edgedof::macrocell::xShiftFromVertex( level, cell ),
+          edgedof::macrocell::yShiftFromVertex( level, cell ),
+          edgedof::macrocell::zShiftFromVertex( level, cell ),
+          edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::yShiftFromVertex( level, cell ),
+          edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell ),
+          edgedof::macrocell::yShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell ),
+      };
 
-      Point3D xBlend, yBlend, zBlend, xyBlend, xzBlend, yzBlend;
-      cell.getGeometryMap()->evalF( xMicroEdgePosition, xBlend );
-      cell.getGeometryMap()->evalF( yMicroEdgePosition, yBlend );
-      cell.getGeometryMap()->evalF( zMicroEdgePosition, zBlend );
-      cell.getGeometryMap()->evalF( xyMicroEdgePosition, xyBlend );
-      cell.getGeometryMap()->evalF( xzMicroEdgePosition, xzBlend );
-      cell.getGeometryMap()->evalF( yzMicroEdgePosition, yzBlend );
-
-      for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+      for ( uint_t dofIdx = 0; dofIdx < dofShiftsFromVertex.size(); ++dofIdx )
       {
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorX[k] );
-         srcFunctions[k].get().evaluate( yBlend, level, srcVectorY[k] );
-         srcFunctions[k].get().evaluate( zBlend, level, srcVectorZ[k] );
-         srcFunctions[k].get().evaluate( xyBlend, level, srcVectorXY[k] );
-         srcFunctions[k].get().evaluate( xzBlend, level, srcVectorXZ[k] );
-         srcFunctions[k].get().evaluate( yzBlend, level, srcVectorYZ[k] );
+         const edgedof::EdgeDoFOrientation edgeOrientation = edgedof::allEdgeDoFOrientationsWithoutXYZ[dofIdx];
+         const Point3D                     dofCoordsComp   = microVertexPosition + dofShiftsFromVertex[dofIdx];
+         Point3D                           dofCoords;
+         cell.getGeometryMap()->evalF( dofCoordsComp, dofCoords );
+
+         for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+         {
+            srcFunctions[k].get().evaluate( dofCoords, level, srcVector[k] );
+         }
+
+         Matrix3r DF;
+         cell.getGeometryMap()->evalDF( dofCoords, DF );
+
+         // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
+         const ValueType dofValue =
+             ( DF.transpose() * expr( dofCoords, srcVector ) ).dot( microEdgeDirection( level, cell, edgeOrientation ) );
+         cellData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), edgeOrientation )] = dofValue;
       }
-
-      Matrix3r xDF, yDF, zDF, xyDF, xzDF, yzDF;
-      cell.getGeometryMap()->evalDF( xBlend, xDF );
-      cell.getGeometryMap()->evalDF( yBlend, yDF );
-      cell.getGeometryMap()->evalDF( zBlend, zDF );
-      cell.getGeometryMap()->evalDF( xyBlend, xyDF );
-      cell.getGeometryMap()->evalDF( xzBlend, xzDF );
-      cell.getGeometryMap()->evalDF( yzBlend, yzDF );
-
-      // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-      const ValueType dofScalarX = ( xDF.transpose() * expr( xBlend, srcVectorX ) )
-                                       .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::X ) );
-      const ValueType dofScalarY = ( yDF.transpose() * expr( yBlend, srcVectorY ) )
-                                       .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Y ) );
-      const ValueType dofScalarZ = ( zDF.transpose() * expr( zBlend, srcVectorZ ) )
-                                       .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Z ) );
-      const ValueType dofScalarXY = ( xyDF.transpose() * expr( xyBlend, srcVectorXY ) )
-                                        .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XY ) );
-      const ValueType dofScalarXZ = ( xzDF.transpose() * expr( xzBlend, srcVectorXZ ) )
-                                        .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XZ ) );
-      const ValueType dofScalarYZ = ( yzDF.transpose() * expr( yzBlend, srcVectorYZ ) )
-                                        .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::YZ ) );
-
-      cellData[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )]  = dofScalarX;
-      cellData[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )]  = dofScalarY;
-      cellData[edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() )]  = dofScalarZ;
-      cellData[edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() )] = dofScalarXY;
-      cellData[edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXZ;
-      cellData[edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() )] = dofScalarYZ;
    }
 
    for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
@@ -332,13 +298,13 @@ inline void
 
       for ( uint_t k = 0; k < srcFunctions.size(); ++k )
       {
-         srcFunctions[k].get().evaluate( xyzBlend, level, srcVectorXYZ[k] );
+         srcFunctions[k].get().evaluate( xyzBlend, level, srcVector[k] );
       }
 
       Matrix3r xyzDF;
       cell.getGeometryMap()->evalDF( xyzBlend, xyzDF );
 
-      const ValueType dofScalarXYZ = ( xyzDF.transpose() * expr( xyzBlend, srcVectorXYZ ) )
+      const ValueType dofScalarXYZ = ( xyzDF.transpose() * expr( xyzBlend, srcVector ) )
                                          .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
 
       cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
