@@ -109,7 +109,6 @@ namespace hyteg {
                     auto storage = std::make_shared<hyteg::PrimitiveStorage>(setupStorage, 1);
 
 
-                    auto discrErrorsP2P1 = {0.000454598, 5.78939e-05, 7.31194e-06, 9.18941e-07, 1.15185e-07};
 
 
                     if (false) {
