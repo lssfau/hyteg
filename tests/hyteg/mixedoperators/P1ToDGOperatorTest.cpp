@@ -117,10 +117,10 @@ void checkTranspose()
    const uint_t level = 2;
    const auto   form  = std::make_shared< P1ToDG1InterpolationForm >();
 
-   P1Function< real_t >  srcP1( "srcP1", storage, level, level );
-   P1Function< real_t >  dstP1( "dstP1", storage, level, level );
-   DG1Function< real_t > srcDG( "srcDG", storage, level, level );
-   DG1Function< real_t > dstDG( "dstDG", storage, level, level );
+   P1Function< idx_t >  srcP1( "srcP1", storage, level, level );
+   P1Function< idx_t >  dstP1( "dstP1", storage, level, level );
+   DG1Function< idx_t > srcDG( "srcDG", storage, level, level );
+   DG1Function< idx_t > dstDG( "dstDG", storage, level, level );
 
    P1ToDGOperator< P1ToDG1InterpolationForm, idx_t > opP1ToDG( storage, level, level, form );
    DGToP1Operator< P1ToDG1InterpolationForm, idx_t > opDGToP1( storage, level, level, form );
