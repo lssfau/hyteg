@@ -103,6 +103,7 @@ inline void interpolate( const uint_t&                                          
                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceMemoryId,
                          const VectorType< real_t >&                              constant )
 {
+   // TODO blending
    using ValueType = real_t;
 
    auto faceData = face.getData( faceMemoryId )->getPointer( level );
@@ -159,29 +160,30 @@ inline void
    const Point3D horizontalMicroEdgeOffset = horizontalMicroEdgeDirection * 0.5;
    const Point3D verticalMicroEdgeOffset   = verticalMicroEdgeDirection * 0.5;
 
-   Point3D xBlend;
+   Point3D  xBlend;
+   Matrix3r DF;
 
    for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
    {
       const Point3D horizontalMicroEdgePosition =
           faceBottomLeftCoords +
           ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
-      const Point3D verticalMicroEdgePosition =
-          faceBottomLeftCoords +
-          ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+      const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset +
+                                                                         ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
       const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
       // Do not update horizontal DoFs at bottom
       if ( it.y() != 0 )
       {
          face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
+         face.getGeometryMap()->evalDF( horizontalMicroEdgePosition, DF );
 
          for ( uint_t k = 0; k < srcFunctions.size(); ++k )
          {
             srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
          }
 
-         const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+         const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
          const ValueType               dofScalar = vector.dot( horizontalMicroEdgeDirection );
 
          faceData[edgedof::macroface::horizontalIndex( level, it.x(), it.y() )] = dofScalar;
@@ -191,13 +193,14 @@ inline void
       if ( it.x() != 0 )
       {
          face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
+         face.getGeometryMap()->evalDF( verticalMicroEdgePosition, DF );
 
          for ( uint_t k = 0; k < srcFunctions.size(); ++k )
          {
             srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
          }
 
-         const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+         const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
          const ValueType               dofScalar = vector.dot( verticalMicroEdgeDirection );
 
          faceData[edgedof::macroface::verticalIndex( level, it.x(), it.y() )] = dofScalar;
@@ -207,13 +210,14 @@ inline void
       if ( ( it.x() + it.y() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
+         face.getGeometryMap()->evalDF( diagonalMicroEdgePosition, DF );
 
          for ( uint_t k = 0; k < srcFunctions.size(); ++k )
          {
             srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
          }
 
-         const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+         const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
          const ValueType               dofScalar = vector.dot( diagonalMicroEdgeDirection );
 
          faceData[edgedof::macroface::diagonalIndex( level, it.x(), it.y() )] = dofScalar;

@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include <vector>
+
 #include "core/DataTypes.h"
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
@@ -134,6 +136,7 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
 
    Matrix3r DF;
    cell.getGeometryMap()->evalDF( coordinates, DF );
+
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
    Matrix3r A;
    A.row( 0 ) = microTet1 - microTet0;
@@ -211,6 +214,7 @@ inline void interpolate( const uint_t&                                          
                          const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellMemoryId,
                          const VectorType< real_t >&                              constant )
 {
+   // TODO blending
    using ValueType = real_t;
 
    auto cellData = cell.getData( cellMemoryId )->getPointer( level );
@@ -277,7 +281,7 @@ inline void
          }
 
          Matrix3r DF;
-         cell.getGeometryMap()->evalDF( dofCoords, DF );
+         cell.getGeometryMap()->evalDF( dofCoordsComp, DF );
 
          // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
          const ValueType dofValue =
@@ -302,7 +306,7 @@ inline void
       }
 
       Matrix3r xyzDF;
-      cell.getGeometryMap()->evalDF( xyzBlend, xyzDF );
+      cell.getGeometryMap()->evalDF( xyzMicroEdgePosition, xyzDF );
 
       const ValueType dofScalarXYZ = ( xyzDF.transpose() * expr( xyzBlend, srcVector ) )
                                          .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
