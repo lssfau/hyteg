@@ -873,7 +873,7 @@ namespace hyteg {
                     }
                 }
             }
-            WALBERLA_UNUSED(dofType)
+            WALBERLA_UNUSED(dofType);
         }
 
 /// explicit instantiation
