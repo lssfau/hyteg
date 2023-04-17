@@ -132,13 +132,15 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
 
    // transform to affine space (covariant Piola mapping)
 
+   Matrix3r DF;
+   cell.getGeometryMap()->evalDF( coordinates, DF );
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
    Matrix3r A;
    A.row( 0 ) = microTet1 - microTet0;
    A.row( 1 ) = microTet2 - microTet0;
    A.row( 2 ) = microTet3 - microTet0;
 
-   return A.fullPivLu().solve( localValue );
+   return ( A * DF.transpose() ).fullPivLu().solve( localValue );
 }
 
 inline VectorType< real_t > evaluate( const uint_t&                                            level,
@@ -288,19 +290,27 @@ inline void
          srcFunctions[k].get().evaluate( yzBlend, level, srcVectorYZ[k] );
       }
 
+      Matrix3r xDF, yDF, zDF, xyDF, xzDF, yzDF;
+      cell.getGeometryMap()->evalDF( xBlend, xDF );
+      cell.getGeometryMap()->evalDF( yBlend, yDF );
+      cell.getGeometryMap()->evalDF( zBlend, zDF );
+      cell.getGeometryMap()->evalDF( xyBlend, xyDF );
+      cell.getGeometryMap()->evalDF( xzBlend, xzDF );
+      cell.getGeometryMap()->evalDF( yzBlend, yzDF );
+
       // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-      const ValueType dofScalarX =
-          expr( xBlend, srcVectorX ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::X ) );
-      const ValueType dofScalarY =
-          expr( yBlend, srcVectorY ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Y ) );
-      const ValueType dofScalarZ =
-          expr( zBlend, srcVectorZ ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Z ) );
-      const ValueType dofScalarXY =
-          expr( xyBlend, srcVectorXY ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XY ) );
-      const ValueType dofScalarXZ =
-          expr( xzBlend, srcVectorXZ ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XZ ) );
-      const ValueType dofScalarYZ =
-          expr( yzBlend, srcVectorYZ ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::YZ ) );
+      const ValueType dofScalarX = ( xDF.transpose() * expr( xBlend, srcVectorX ) )
+                                       .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::X ) );
+      const ValueType dofScalarY = ( yDF.transpose() * expr( yBlend, srcVectorY ) )
+                                       .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Y ) );
+      const ValueType dofScalarZ = ( zDF.transpose() * expr( zBlend, srcVectorZ ) )
+                                       .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Z ) );
+      const ValueType dofScalarXY = ( xyDF.transpose() * expr( xyBlend, srcVectorXY ) )
+                                        .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XY ) );
+      const ValueType dofScalarXZ = ( xzDF.transpose() * expr( xzBlend, srcVectorXZ ) )
+                                        .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XZ ) );
+      const ValueType dofScalarYZ = ( yzDF.transpose() * expr( yzBlend, srcVectorYZ ) )
+                                        .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::YZ ) );
 
       cellData[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )]  = dofScalarX;
       cellData[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )]  = dofScalarY;
@@ -325,8 +335,11 @@ inline void
          srcFunctions[k].get().evaluate( xyzBlend, level, srcVectorXYZ[k] );
       }
 
-      const ValueType dofScalarXYZ =
-          expr( xyzBlend, srcVectorXYZ ).dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
+      Matrix3r xyzDF;
+      cell.getGeometryMap()->evalDF( xyzBlend, xyzDF );
+
+      const ValueType dofScalarXYZ = ( xyzDF.transpose() * expr( xyzBlend, srcVectorXYZ ) )
+                                         .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
 
       cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
    }
