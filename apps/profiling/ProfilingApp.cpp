@@ -35,10 +35,14 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GMRESSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/SORSmoother.hpp"
 #include "hyteg/solvers/SymmetricGaussSeidelSmoother.hpp"
+#include "hyteg/solvers/SymmetricSORSmoother.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
 using walberla::real_c;
@@ -70,8 +74,14 @@ struct P2conf
    using smooth       = smoother;
 };
 
+///
+/// \tparam config can be "P1conf" or "P2conf"
+/// \param minLevel the lowest level in the Multigrid hierarchy; should be >= 2
+/// \param maxLevel the highest level in the Multigird hierarchy; must be >= minLevel
+/// \param cycles numer of Multigrid cycles; must be >= 1
+/// \param smoothParameter Parameter for the smoother; must be 2 > x > 1 for SOR and 1 > x > 0 for weighted Jacobi
 template < typename config >
-static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles )
+static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles, real_t smoothParameter )
 {
    const uint_t numEdgesPerSide   = 1;
    const uint_t coarseRefinements = 0;
@@ -102,7 +112,7 @@ static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles )
    }
 
    auto coarseGridSolver     = std::make_shared< typename config::cs >( storage, minLevel, maxLevel );
-   auto smoother             = std::make_shared< typename config::smooth >();
+   auto smoother             = std::make_shared< typename config::smooth >( smoothParameter );
    auto restrictionOperator  = std::make_shared< typename config::Restriction >();
    auto prolongationOperator = std::make_shared< typename config::Prolongation >();
    auto gmgSolver            = std::make_shared< GeometricMultigridSolver< typename config::laplaceOP > >(
@@ -119,7 +129,8 @@ static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles )
    }
    timer.end();
 
-   WALBERLA_LOG_INFO( walberla::format( "Max Value: %9.3e | Time: %9.3e", u.getMaxValue( maxLevel, Inner ), timer.last() ) );
+   WALBERLA_LOG_INFO(
+       walberla::format( "Max Magnitude: %9.3e | Time: %9.3e", u.getMaxMagnitude( maxLevel, Inner ), timer.last() ) );
 }
 } // namespace hyteg
 
@@ -134,12 +145,18 @@ int main( int argc, char* argv[] )
    using P1op                   = hyteg::P1ConstantLaplaceOperator;
    using P2op                   = hyteg::P2ConstantLaplaceOperator;
 
-   hyteg::solvePoisson< hyteg::P1conf< hyteg::CGSolver< P1op >, hyteg::GaussSeidelSmoother< P1op > > >( minLevel, maxLevel, 1 );
-   hyteg::solvePoisson< hyteg::P1conf< hyteg::MinResSolver< P1op >, hyteg::SymmetricGaussSeidelSmoother< P1op > > >(
-       minLevel, maxLevel, 2 );
+   // P1conf and P2conf require two template parameter
+   // - coarseSolver is the solver that is used on the coarsest grid in the Multigrid hierarchy; this can be:
+   //   CGSolver, MinResSolver or GMRESSolver
+   // - smoother is the smoother that is used on each level in the smoother Multigrid hierarchy; this can be:
+   //   SORSmoother or SymmetricSORSmoother
+   //   the symmetric variant alternates the direction of the smoothing for each iteration
 
-   hyteg::solvePoisson< hyteg::P2conf< hyteg::CGSolver< P2op >, hyteg::GaussSeidelSmoother< P2op > > >( minLevel, maxLevel, 1 );
-   hyteg::solvePoisson< hyteg::P2conf< hyteg::MinResSolver< P2op >, hyteg::SymmetricGaussSeidelSmoother< P2op > > >(
-       minLevel, maxLevel, 1 );
+   hyteg::solvePoisson< hyteg::P1conf< hyteg::CGSolver< P1op >, hyteg::SORSmoother< P1op > > >( minLevel, maxLevel, 1, 1.0 );
+   hyteg::solvePoisson< hyteg::P1conf< hyteg::MinResSolver< P1op >, hyteg::SymmetricSORSmoother< P1op > > >(
+       minLevel, maxLevel, 2, 0.3 );
+
+   hyteg::solvePoisson< hyteg::P2conf< hyteg::CGSolver< P2op >, hyteg::SORSmoother< P2op > > >( minLevel, maxLevel, 1, 0.5 );
+   hyteg::solvePoisson< hyteg::P2conf< hyteg::GMRESSolver< P2op >, hyteg::SORSmoother< P2op > > >( minLevel, maxLevel, 1, 0.3 );
    return 0;
 }
