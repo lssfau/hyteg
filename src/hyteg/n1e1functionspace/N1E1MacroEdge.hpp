@@ -58,28 +58,6 @@ inline void add( const uint_t&                                            level,
    }
 }
 
-inline void interpolate( const uint_t&                                            level,
-                         Edge&                                                    edge,
-                         const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeMemoryId,
-                         const VectorType< real_t >&                              constant )
-{
-   // TODO blending
-   using ValueType = real_t;
-
-   const VectorType< ValueType > microEdgeDirection = edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
-
-   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   const ValueType dofScalar = constant.dot( microEdgeDirection );
-
-   auto edgeData = edge.getData( edgeMemoryId )->getPointer( level );
-
-   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
-   {
-      const uint_t idx = edgedof::macroedge::index( level, it.x() );
-      edgeData[idx]    = dofScalar;
-   }
-}
-
 inline void
     interpolate( const uint_t&                                                                      level,
                  Edge&                                                                              edge,
@@ -116,6 +94,42 @@ inline void
       const ValueType               dofScalar = vector.dot( microEdgeDirection );
 
       edgeData[edgedof::macroedge::index( level, it.x() )] = dofScalar;
+   }
+}
+
+inline void interpolate( const uint_t&                                            level,
+                         Edge&                                                    edge,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeMemoryId,
+                         const VectorType< real_t >&                              constant )
+{
+   using ValueType = real_t;
+
+   const auto geometryMap = edge.getGeometryMap();
+   if ( !geometryMap->isAffine() )
+   {
+      // If the blending map is not affine, the vector field is not constant in computational space.
+      // In that case, we delegate to the non-constant interpolation routine.
+      interpolate(
+          level, edge, edgeMemoryId, {}, [&]( const Point3D&, const std::vector< VectorType< real_t > >& ) { return constant; } );
+      return;
+   }
+
+   // Geometry map is affine ⇒ DF is constant
+   Matrix3r DF;
+   geometryMap->evalDF( {}, DF );
+   const VectorType< real_t > valComp = DF.transpose() * constant;
+
+   const VectorType< ValueType > microEdgeDirection = edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
+
+   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
+   const ValueType dofScalar = valComp.dot( microEdgeDirection );
+
+   auto edgeData = edge.getData( edgeMemoryId )->getPointer( level );
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
+   {
+      const uint_t idx = edgedof::macroedge::index( level, it.x() );
+      edgeData[idx]    = dofScalar;
    }
 }
 

@@ -209,41 +209,6 @@ inline void add( const uint_t&                                            level,
    }
 }
 
-inline void interpolate( const uint_t&                                            level,
-                         Cell&                                                    cell,
-                         const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellMemoryId,
-                         const VectorType< real_t >&                              constant )
-{
-   // TODO blending
-   using ValueType = real_t;
-
-   auto cellData = cell.getData( cellMemoryId )->getPointer( level );
-
-   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   const ValueType dofScalarX   = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::X ) );
-   const ValueType dofScalarY   = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Y ) );
-   const ValueType dofScalarZ   = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Z ) );
-   const ValueType dofScalarXY  = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XY ) );
-   const ValueType dofScalarXZ  = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XZ ) );
-   const ValueType dofScalarYZ  = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::YZ ) );
-   const ValueType dofScalarXYZ = constant.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
-
-   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
-   {
-      cellData[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )]  = dofScalarX;
-      cellData[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )]  = dofScalarY;
-      cellData[edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() )]  = dofScalarZ;
-      cellData[edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() )] = dofScalarXY;
-      cellData[edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXZ;
-      cellData[edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() )] = dofScalarYZ;
-   }
-
-   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
-   {
-      cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
-   }
-}
-
 inline void
     interpolate( const uint_t&                                                                      level,
                  Cell&                                                                              cell,
@@ -311,6 +276,55 @@ inline void
       const ValueType dofScalarXYZ = ( xyzDF.transpose() * expr( xyzBlend, srcVector ) )
                                          .dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
 
+      cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
+   }
+}
+
+inline void interpolate( const uint_t&                                            level,
+                         Cell&                                                    cell,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellMemoryId,
+                         const VectorType< real_t >&                              constant )
+{
+   using ValueType = real_t;
+
+   const auto geometryMap = cell.getGeometryMap();
+   if ( !geometryMap->isAffine() )
+   {
+      // If the blending map is not affine, the vector field is not constant in computational space.
+      // In that case, we delegate to the non-constant interpolation routine.
+      interpolate(
+          level, cell, cellMemoryId, {}, [&]( const Point3D&, const std::vector< VectorType< real_t > >& ) { return constant; } );
+      return;
+   }
+
+   // Geometry map is affine ⇒ DF is constant
+   Matrix3r DF;
+   geometryMap->evalDF( {}, DF );
+   const VectorType< real_t > valComp = DF.transpose() * constant;
+
+   auto cellData = cell.getData( cellMemoryId )->getPointer( level );
+
+   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
+   const ValueType dofScalarX   = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::X ) );
+   const ValueType dofScalarY   = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Y ) );
+   const ValueType dofScalarZ   = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::Z ) );
+   const ValueType dofScalarXY  = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XY ) );
+   const ValueType dofScalarXZ  = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XZ ) );
+   const ValueType dofScalarYZ  = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::YZ ) );
+   const ValueType dofScalarXYZ = valComp.dot( microEdgeDirection( level, cell, edgedof::EdgeDoFOrientation::XYZ ) );
+
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      cellData[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )]  = dofScalarX;
+      cellData[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )]  = dofScalarY;
+      cellData[edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() )]  = dofScalarZ;
+      cellData[edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() )] = dofScalarXY;
+      cellData[edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXZ;
+      cellData[edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() )] = dofScalarYZ;
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
       cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
    }
 }
