@@ -151,11 +151,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
 
       const auto storage = this->getStorage();
 
-      if (!storage->hasGlobalCells()) {
-         src.template communicate<Face, Face>(level);
-      } else {
-         src.template communicate<Cell, Cell>(level);
-      }
+
       dst.communicate( level );
 
 
