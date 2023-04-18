@@ -981,6 +981,9 @@ waLBerla_execute_test(NAME N1E1GMGhIndependenceTest LABELS longrun LABELS n1e1)
 waLBerla_compile_test(FILES N1E1/N1E1GMGConvergenceTest.cpp N1E1/common.hpp N1E1/common.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1GMGConvergenceTestLongrun COMMAND $<TARGET_FILE:N1E1GMGConvergenceTest> LABELS n1e1 longrun PROCESSES 4)
 
+waLBerla_compile_test(FILES N1E1/N1E1BlendingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1BlendingTest LABELS n1e1)
+
 ## types ##
 waLBerla_compile_test(FILES types/MatrixConstructFromEigenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MatrixConstructFromEigenTest)
