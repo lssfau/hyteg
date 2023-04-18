@@ -138,6 +138,8 @@ class AffineMap2D : public GeometryMap
       DFinvx *= real_c( 1 ) / jacDet_;
    }
 
+   bool isAffine() const final { return true; }
+
  private:
    /// matrix using in affine mapping
    Matrix2r mat_;

@@ -111,6 +111,14 @@ class GeometryMap
                                     real_t         threshold = real_c( 1e-6 ) ) const;
 #endif
 
+   /// Returns whether this Geometry map implements the identity.
+   /// Intended to enable optimizations.
+   virtual bool isIdentity() const { return false; }
+
+   /// Returns whether this Geometry map implements an affine mapping.
+   /// Intended to enable optimizations.
+   virtual bool isAffine() const { return false; }
+
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );
 

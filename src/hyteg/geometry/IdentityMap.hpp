@@ -67,6 +67,9 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 1 ) = real_c( 1.0 );
    }
 
+   bool isIdentity() const final { return true; }
+   bool isAffine() const final { return true; }
+
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::IDENTITY; }
 };
 
