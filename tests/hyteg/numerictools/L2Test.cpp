@@ -46,9 +46,6 @@ void testL2Dot( const std::shared_ptr< PrimitiveStorage >&       storage,
 {
    L2Space< Undefined, ValueType > L2( storage, lvl, quad );
 
-   Undefined b;
-   L2.dot(u,b);
-
    // compute (u,v)_0
    auto uv  = L2.dot( u, v );
    auto err = std::abs( uv - uv_expected );

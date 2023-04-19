@@ -20,20 +20,7 @@
 
 #pragma once
 
-#include "core/Abort.h"
-#include "core/math/KahanSummation.h"
-
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p0/p0_linear_form_blending_q5.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_linear_form_blending_q5.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
-#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 
@@ -46,7 +33,7 @@ class Undefined
 /// @brief Class representing an L2 space
 /// @tparam DiscretizationType   Functiontype defining a discrete subspace
 /// @tparam CodomainType         Type defining the codomain of the elements of this space (usually R or R^3)
-template < typename DiscretizationType = Undefined, typename CodomainType = real_t >
+template < class DiscretizationType = Undefined, typename CodomainType = real_t >
 class L2Space
 {
  public:
@@ -179,66 +166,7 @@ class L2Space
                const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& v,
                std::map< PrimitiveID, real_t >&                                           uv_T,
                uint_t                                                                     q   = DEFAULT,
-               uint_t                                                                     lvl = DEFAULT ) const
-   {
-      if ( q == DEFAULT )
-         q = _q;
-      if ( lvl == DEFAULT )
-         lvl = _lvl;
-
-      // inner product of the CodomainType space
-      auto innerProduct = [&]( const CodomainType& ux, const CodomainType& vx ) -> real_t {
-         if constexpr ( std::is_same_v< CodomainType, real_t > )
-         {
-            return ux * vx;
-         }
-         if constexpr ( std::is_same_v< CodomainType, Point3D > )
-         {
-            return ux.dot( vx );
-         }
-
-         WALBERLA_ABORT( "L2 dot product not implemented for CodomainType" )
-      };
-
-      real_t localsum = 0.0;
-
-      if ( _storage->hasGlobalCells() )
-      {
-         // 3D: integrate over all cells
-         std::vector< PrimitiveID > cellIDs = _storage->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for reduction( + : localsum )
-#endif
-         for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
-         {
-            auto id   = cellIDs[uint_c( i )];
-            auto uv   = [&]( const Point3D& x ) { return innerProduct( u( x, id ), v( x, id ) ); };
-            auto part = integrate<>( *_storage->getCell( id ), uv, q, lvl );
-            uv_T[id]  = part;
-            localsum += part;
-         }
-      }
-      else
-      {
-         // 2D: integrate over all faces
-         std::vector< PrimitiveID > faceIDs = _storage->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
-#pragma omp parallel for reduction( + : localsum )
-#endif
-         for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
-         {
-            auto id   = faceIDs[uint_c( i )];
-            auto uv   = [&]( const Point3D& x ) { return innerProduct( u( x, id ), v( x, id ) ); };
-            auto part = integrate<>( *_storage->getFace( id ), uv, q, lvl );
-            uv_T[id]  = part;
-            localsum += part;
-         }
-      }
-
-      // compute global sum
-      walberla::mpi::allReduceInplace( localsum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-      return localsum;
-   }
+               uint_t                                                                     lvl = DEFAULT ) const;
 
    /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
    /// @param f      L2 function
@@ -249,33 +177,6 @@ class L2Space
              DiscretizationType&                                    b,
              uint_t                                                 q   = DEFAULT,
              uint_t                                                 lvl = DEFAULT ) const;
-   // {
-   //    if ( q == DEFAULT )
-   //       q = _q;
-   //    if ( lvl == DEFAULT )
-   //       lvl = _lvl;
-
-   //    if constexpr ( std::is_same_v< CodomainType, real_t > )
-   //    {
-   //       if constexpr ( std::is_same_v< FE, P1Function< real_t > > )
-   //       {
-   //          switch ( q )
-   //          {
-   //          case 5:
-   //             return this->applyLinearForm< OpP1 >( P1Q5( f, f ), b, lvl );
-   //          }
-   //       }
-   //       if constexpr ( std::is_same_v< FE, P2Function< real_t > > )
-   //       {
-   //          // todo: implement for P2 functions, ...
-   //       }
-   //    }
-   //    if constexpr ( std::is_same_v< CodomainType, Point3D > )
-   //    {
-   //       // todo: implement for vector functions
-   //    }
-   //    WALBERLA_ABORT( "(u,f)_L2 not implemented for selected combination of CodomainType, FE discretization and quadrature rule" );
-   // }
 
  private:
    /// @brief Integrate a function over a given macro element
@@ -285,75 +186,7 @@ class L2Space
    /// @param lvl          operate on level lvl instead of chosen default value
    /// @return ∫_T f(x) dx
    template < class PrimitiveType >
-   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f, uint_t q, uint_t lvl ) const
-   {
-      // setup quadrature rule
-      std::shared_ptr< P0FormHyTeG > quad;
-      switch ( q )
-      {
-      case 5:
-         quad = std::make_shared< forms::p0_linear_form_blending_q5 >( f, f );
-         break;
-
-      default:
-         WALBERLA_ABORT( "Quadrature rule with q = " << q << " for L2 dot product not implemented!" )
-         break;
-      }
-      quad->setGeometryMap( T.getGeometryMap() );
-
-      // compute the integral
-      walberla::math::KahanAccumulator< real_t > integral;       // value of integral over T;
-      Matrixr< 1, 1 >                            integral_micro; // value of integral over micro element
-
-      if constexpr ( std::is_same_v< PrimitiveType, Cell > )
-      {
-         // loop over micro-cells
-         for ( const auto& cType : celldof::allCellTypes )
-         {
-            for ( const auto& micro : celldof::macrocell::Iterator( lvl, cType, 0 ) )
-            {
-               // computational coordinates of micro cell
-               auto                     verts = celldof::macrocell::getMicroVerticesFromMicroCell( micro, cType );
-               std::array< Point3D, 4 > coords;
-               for ( uint_t k = 0; k < 4; ++k )
-               {
-                  coords[k] = vertexdof::macrocell::coordinateFromIndex( lvl, T, verts[k] );
-               }
-
-               // integral over micro cell
-               integral_micro.setZero();
-               quad->integrateAll( coords, integral_micro );
-
-               integral += integral_micro( 0, 0 );
-            }
-         }
-      }
-      else
-      {
-         // loop over micro-faces
-         for ( const auto& fType : facedof::allFaceTypes )
-         {
-            for ( const auto& micro : facedof::macroface::Iterator( lvl, fType, 0 ) )
-            {
-               // computational coordinates of micro face
-               auto                     verts = facedof::macroface::getMicroVerticesFromMicroFace( micro, fType );
-               std::array< Point3D, 3 > coords;
-               for ( uint_t k = 0; k < 3; ++k )
-               {
-                  coords[k] = vertexdof::macroface::coordinateFromIndex( lvl, T, verts[k] );
-               }
-
-               // integral over micro face
-               integral_micro.setZero();
-               quad->integrateAll( coords, integral_micro );
-
-               integral += integral_micro( 0, 0 );
-            }
-         }
-      }
-
-      return integral.get();
-   }
+   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f, uint_t q, uint_t lvl ) const;
 
    /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
    /// @tparam Op          Type of operator fitting for the FE space, e.g P1VariableOperator
@@ -362,59 +195,11 @@ class L2Space
    /// @param b      output vector to store the values of the integral
    /// @param lvl    operate on level lvl instead of chosen default value
    template < template < class > class Op, class LinearForm >
-   void dot( const std::function< real_t( const Point3D& ) >& f, const DiscretizationType& b, uint_t lvl ) const
-   {
-      // apply linear form
-      LinearForm       form( f, f );
-      Op< LinearForm > _b( _storage, lvl, lvl, form );
-      _b.computeDiagonalOperatorValues();
-      b.copyFrom( *_b.getDiagonalValues(), lvl );
-
-      // free memory of diagonal
-      // !this should not be necessary -> maybe fix destructor of FE Function!
-      for ( const auto& it : _storage->getVertices() )
-      {
-         _b.getDiagonalValues()->deleteMemory( lvl, *( it.second ) );
-      }
-      for ( const auto& it : _storage->getEdges() )
-      {
-         _b.getDiagonalValues()->deleteMemory( lvl, *( it.second ) );
-      }
-      for ( const auto& it : _storage->getFaces() )
-      {
-         _b.getDiagonalValues()->deleteMemory( lvl, *( it.second ) );
-      }
-      for ( const auto& it : _storage->getCells() )
-      {
-         _b.getDiagonalValues()->deleteMemory( lvl, *( it.second ) );
-      }
-   }
+   void dot( const std::function< real_t( const Point3D& ) >& f, const DiscretizationType& b, uint_t lvl ) const;
 
    std::shared_ptr< PrimitiveStorage > _storage; // storage corresponding to domain discretization
    uint_t                              _lvl;     // grid level to work on
    uint_t                              _q;       // order of quadrature rule used for computing integrals
 };
-
-template <>
-void L2Space< P1Function< real_t > >::dot( const std::function< real_t( const Point3D& ) >& f,
-                                           P1Function< real_t >&                            b,
-                                           uint_t                                           q,
-                                           uint_t                                           lvl ) const
-{
-   if ( q == DEFAULT )
-      q = _q;
-   if ( lvl == DEFAULT )
-      lvl = _lvl;
-
-   using namespace forms;
-
-   switch ( q )
-   {
-   case 5:
-      return dot< P1VariableOperator, p1_linear_form_blending_q5 >( f, b, lvl );
-   default:
-      WALBERLA_ABORT( "(v_i,f)_L2 not implemented for P1 with selected quadrature rule" );
-   }
-}
 
 } // namespace hyteg
