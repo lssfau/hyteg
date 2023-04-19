@@ -40,9 +40,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/SORSmoother.hpp"
-#include "hyteg/solvers/SymmetricGaussSeidelSmoother.hpp"
 #include "hyteg/solvers/SymmetricSORSmoother.hpp"
-#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
 using walberla::real_c;
