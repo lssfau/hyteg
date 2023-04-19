@@ -656,9 +656,11 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest>)
 endif ()
 
-
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest>)
+
+waLBerla_compile_test(FILES blending/BasicBlendingMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME BasicBlendingMapTest)
 
 waLBerla_compile_test(FILES blending/IcosahedralShellMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME IcosahedralShellMapTest COMMAND $<TARGET_FILE:IcosahedralShellMapTest>)
