@@ -21,7 +21,6 @@
 #include "N1E1ElementwiseOperator.hpp"
 
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg::n1e1 {
 
@@ -118,7 +117,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
       // Therefore we first zero out everything that is flagged, and then, later,
       // the halos of the highest dim primitives.
 
-      dst.interpolate( Eigen::Vector3r{ 0, 0, 0 }, level, flag );
+      dst.interpolate( Point3D{ 0, 0, 0 }, level, flag );
    }
 
    // we only perform computations on cell primitives
@@ -430,4 +429,4 @@ template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
 // N1E1ElementwiseLinearFormOperatorQ6
 template class N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
 
-} // namespace hyteg
+} // namespace hyteg::n1e1

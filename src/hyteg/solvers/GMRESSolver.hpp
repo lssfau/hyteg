@@ -25,7 +25,6 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -142,7 +141,7 @@ class GMRESSolver : public Solver< OperatorType >
          {
             WALBERLA_LOG_INFO_ON_ROOT( " [GMRES] approximated residual after " << j << " iterations : " << approxERR );
          }
-         vecV_[currentIndex].assign( { real_c(1.0) / wNorm }, { vecV_[currentIndex] }, level, flag_ );
+         vecV_[currentIndex].assign( { real_c( 1.0 ) / wNorm }, { vecV_[currentIndex] }, level, flag_ );
 
          if ( wNorm <= arnoldiTOL_ || approxERR <= approxTOL_ )
          {
@@ -171,8 +170,8 @@ class GMRESSolver : public Solver< OperatorType >
 
       beta_ = std::sqrt( r0_.dotGlobal( r0_, level, flag_ ) );
 
-      H_ = Eigen::MatrixXr::Zero( 0, 0 );
-      Q_ = Eigen::MatrixXr::Ones( 1, 1 );
+      H_ = MatrixXr::Zero( 0, 0 );
+      Q_ = MatrixXr::Ones( 1, 1 );
 
       if ( isFirstInit )
       {
@@ -200,9 +199,9 @@ class GMRESSolver : public Solver< OperatorType >
 
    real_t                      beta_;
    std::vector< FunctionType > vecV_;
-   Eigen::MatrixXr             H_;
-   Eigen::MatrixXr             Q_;
-   Eigen::VectorXr             y_;
+   MatrixXr                    H_;
+   MatrixXr                    Q_;
+   VectorXr                    y_;
    FunctionType                r0_;
    FunctionType                rPrec_;
    FunctionType                wPrec_;
@@ -218,23 +217,23 @@ class GMRESSolver : public Solver< OperatorType >
       }
    }
 
-   Eigen::VectorXr getUnitVector( int length, int j )
+   VectorXr getUnitVector( int length, int j )
    {
-      Eigen::VectorXr answer = Eigen::VectorXr::Zero( length );
-      answer( j )            = 1;
+      VectorXr answer = VectorXr::Zero( length );
+      answer( j )     = 1;
       return answer;
    }
 
-   Eigen::VectorXr getUnitVector( int length, int j, real_t val )
+   VectorXr getUnitVector( int length, int j, real_t val )
    {
-      Eigen::VectorXr answer = Eigen::VectorXr::Zero( length );
-      answer( j )            = val;
+      VectorXr answer = VectorXr::Zero( length );
+      answer( j )     = val;
       return answer;
    }
 
-   Eigen::MatrixXr getIdentity( int rowsNew, int colsNew )
+   MatrixXr getIdentity( int rowsNew, int colsNew )
    {
-      Eigen::MatrixXr answer = Eigen::MatrixXr::Zero( rowsNew, colsNew );
+      MatrixXr answer = MatrixXr::Zero( rowsNew, colsNew );
       for ( int i = 0; i < std::min( rowsNew, colsNew ); i++ )
       {
          answer( i, i ) = 1;
@@ -242,9 +241,9 @@ class GMRESSolver : public Solver< OperatorType >
       return answer;
    }
 
-   Eigen::MatrixXr matrixResize( Eigen::MatrixXr inputMatrix, int rowsNew, int colsNew )
+   MatrixXr matrixResize( MatrixXr inputMatrix, int rowsNew, int colsNew )
    {
-      Eigen::MatrixXr outputMatrix = Eigen::MatrixXr::Zero( rowsNew, colsNew );
+      MatrixXr outputMatrix = MatrixXr::Zero( rowsNew, colsNew );
       for ( uint_t j = 0; j < std::min( rowsNew, (int) inputMatrix.rows() ); j++ )
       {
          for ( int i = 0; i < std::min( colsNew, (int) inputMatrix.cols() ); i++ )
@@ -255,9 +254,9 @@ class GMRESSolver : public Solver< OperatorType >
       return outputMatrix;
    }
 
-   Eigen::MatrixXr expandQMatrix( Eigen::MatrixXr inputMatrix, int expandBy )
+   MatrixXr expandQMatrix( MatrixXr inputMatrix, int expandBy )
    {
-      Eigen::MatrixXr outputMatrix = getIdentity( inputMatrix.rows() + expandBy, inputMatrix.cols() + expandBy );
+      MatrixXr outputMatrix = getIdentity( inputMatrix.rows() + expandBy, inputMatrix.cols() + expandBy );
       for ( int i = 0; i < inputMatrix.rows(); i++ )
       {
          for ( int j = 0; j < inputMatrix.cols(); j++ )
@@ -268,9 +267,9 @@ class GMRESSolver : public Solver< OperatorType >
       return outputMatrix;
    }
 
-   Eigen::VectorXr triangSolver( Eigen::MatrixXr triMat, Eigen::VectorXr targetVector )
+   VectorXr triangSolver( MatrixXr triMat, VectorXr targetVector )
    {
-      Eigen::VectorXr answer = Eigen::VectorXr::Zero( triMat.cols() );
+      VectorXr answer = VectorXr::Zero( triMat.cols() );
       for ( int i = triMat.cols() - 1; i >= 0; i-- )
       {
          real_t targetOffset = 0;
@@ -283,10 +282,9 @@ class GMRESSolver : public Solver< OperatorType >
       return answer;
    }
 
-   Eigen::VectorXr
-       hessenbergMinimizer( real_t beta, Eigen::MatrixXr& H, Eigen::MatrixXr& Q, int numUnfinishedColumns, real_t& approxERR )
+   VectorXr hessenbergMinimizer( real_t beta, MatrixXr& H, MatrixXr& Q, int numUnfinishedColumns, real_t& approxERR )
    {
-      Eigen::VectorXr approxVector;
+      VectorXr approxVector;
 
       if ( H.rows() != Q.rows() )
       {
@@ -304,9 +302,9 @@ class GMRESSolver : public Solver< OperatorType >
          {
             continue;
          }
-         real_t          s    = H( i + 1, i ) / std::sqrt( std::pow( H( i, i ), 2 ) + std::pow( H( i + 1, i ), 2 ) );
-         real_t          c    = H( i, i ) / std::sqrt( std::pow( H( i, i ), 2 ) + std::pow( H( i + 1, i ), 2 ) );
-         Eigen::MatrixXr QNew = getIdentity( H.rows(), H.rows() );
+         real_t   s           = H( i + 1, i ) / std::sqrt( std::pow( H( i, i ), 2 ) + std::pow( H( i + 1, i ), 2 ) );
+         real_t   c           = H( i, i ) / std::sqrt( std::pow( H( i, i ), 2 ) + std::pow( H( i + 1, i ), 2 ) );
+         MatrixXr QNew        = getIdentity( H.rows(), H.rows() );
          QNew( i, i )         = c;
          QNew( i + 1, i + 1 ) = c;
          QNew( i + 1, i )     = -s;
@@ -316,10 +314,10 @@ class GMRESSolver : public Solver< OperatorType >
          Q = QNew * Q;
       }
 
-      Eigen::MatrixXr equationLeftSide  = H.block( 0, 0, H.cols(), H.cols() );
-      Eigen::VectorXr targetVector      = Q * getUnitVector( H.rows(), 0, beta );
-      Eigen::VectorXr equationRightSide = targetVector.head( H.cols() );
-      approxERR                         = std::abs( targetVector( targetVector.rows() - 1 ) );
+      MatrixXr equationLeftSide  = H.block( 0, 0, H.cols(), H.cols() );
+      VectorXr targetVector      = Q * getUnitVector( H.rows(), 0, beta );
+      VectorXr equationRightSide = targetVector.head( H.cols() );
+      approxERR                  = std::abs( targetVector( targetVector.rows() - 1 ) );
 
       return triangSolver( equationLeftSide, equationRightSide );
    }

@@ -24,7 +24,6 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
@@ -45,12 +44,12 @@ using walberla::uint_t;
 template < typename ValueType >
 using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
 
-inline Eigen::Vector3r microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
+inline Point3D microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
-   const real_t          stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
-   const Eigen::Vector3r xDir          = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
-   const Eigen::Vector3r yDir          = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
-   const Eigen::Vector3r zDir          = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
+   const real_t  stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const Point3D xDir          = ( cell.getCoordinates()[1] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Point3D yDir          = ( cell.getCoordinates()[2] - cell.getCoordinates()[0] ) * stepFrequency;
+   const Point3D zDir          = ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
 
    switch ( orientation )
    {
@@ -134,7 +133,7 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
    // transform to affine space (covariant Piola mapping)
 
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
-   Eigen::Matrix3r A;
+   Matrix3r A;
    A.row( 0 ) = microTet1 - microTet0;
    A.row( 1 ) = microTet2 - microTet0;
    A.row( 2 ) = microTet3 - microTet0;
@@ -282,11 +281,11 @@ inline void
       for ( uint_t k = 0; k < srcFunctions.size(); ++k )
       {
          srcFunctions[k].get().evaluate( xBlend, level, srcVectorX[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorY[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorZ[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorXY[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorXZ[k] );
-         srcFunctions[k].get().evaluate( xBlend, level, srcVectorYZ[k] );
+         srcFunctions[k].get().evaluate( yBlend, level, srcVectorY[k] );
+         srcFunctions[k].get().evaluate( zBlend, level, srcVectorZ[k] );
+         srcFunctions[k].get().evaluate( xyBlend, level, srcVectorXY[k] );
+         srcFunctions[k].get().evaluate( xzBlend, level, srcVectorXZ[k] );
+         srcFunctions[k].get().evaluate( yzBlend, level, srcVectorYZ[k] );
       }
 
       // x ↦ ∫ₑ x·t dΓ, direction = tangent·length

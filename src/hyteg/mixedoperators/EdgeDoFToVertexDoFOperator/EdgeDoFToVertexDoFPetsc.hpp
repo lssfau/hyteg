@@ -153,9 +153,9 @@ inline void saveEdgeOperator( const uint_t&                                     
                               const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
                               const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
-   const real_t*   opr_data = edge.getData( operatorId )->getPointer( Level );
-   const idx_t*    src      = edge.getData( srcId )->getPointer( Level );
-   const idx_t*    dst      = edge.getData( dstId )->getPointer( Level );
+   const real_t* opr_data = edge.getData( operatorId )->getPointer( Level );
+   const idx_t*  src      = edge.getData( srcId )->getPointer( Level );
+   const idx_t*  dst      = edge.getData( dstId )->getPointer( Level );
 
    idx_t srcInt;
    idx_t dstInt;
@@ -287,7 +287,7 @@ inline void saveEdgeOperator3D( const uint_t&                                   
 
                   const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
                   leafArrayIndexOnEdge         = edgedof::macroedge::indexOnNeighborFace(
-                              level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
+                      level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
                }
                else
                {
@@ -313,9 +313,9 @@ inline void saveFaceOperator( const uint_t&                                     
                               const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
                               const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
-   const real_t*   opr_data = face.getData( operatorId )->getPointer( Level );
-   const idx_t*    src      = face.getData( srcId )->getPointer( Level );
-   const idx_t*    dst      = face.getData( dstId )->getPointer( Level );
+   const real_t* opr_data = face.getData( operatorId )->getPointer( Level );
+   const idx_t*  src      = face.getData( srcId )->getPointer( Level );
+   const idx_t*  dst      = face.getData( dstId )->getPointer( Level );
 
    idx_t srcInt;
    idx_t dstInt;
@@ -366,7 +366,7 @@ inline void saveFaceOperator3D( const uint_t&                                   
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
 
-               const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+               const auto leafOrientationInFace = edgedof::macrocell::getOrientationInNeighboringMacroFace(
                    leafOrientation, neighborCell, localFaceID, storage );
 
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
@@ -408,9 +408,9 @@ inline void
                       const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                                      dstId,
                       const std::shared_ptr< SparseMatrixProxy >&                                                  mat )
 {
-   auto      opr_data = cell.getData( operatorId )->getData( Level );
-   idx_t*    src      = cell.getData( srcId )->getPointer( Level );
-   idx_t*    dst      = cell.getData( dstId )->getPointer( Level );
+   auto   opr_data = cell.getData( operatorId )->getData( Level );
+   idx_t* src      = cell.getData( srcId )->getPointer( Level );
+   idx_t* dst      = cell.getData( dstId )->getPointer( Level );
 
    for ( const auto& it : vertexdof::macrocell::Iterator( Level, 1 ) )
    {

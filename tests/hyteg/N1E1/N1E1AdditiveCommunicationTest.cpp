@@ -23,7 +23,6 @@
 #include "core/debug/TestSubsystem.h"
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -40,9 +39,9 @@ static void
     testN1E1AdditiveCommunication3D( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode,
                                      const std::string&                                                 meshFile )
 {
-   const uint_t          level        = 3;
-   const Eigen::Vector3r testValue    = { 1.0, 2.0, 3.0 };
-   const real_t          someConstant = 6.345;
+   const uint_t  level        = 3;
+   const Point3D testValue    = { 1.0, 2.0, 3.0 };
+   const real_t  someConstant = 6.345;
 
    auto                  meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
