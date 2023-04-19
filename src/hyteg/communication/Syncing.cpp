@@ -19,6 +19,7 @@
  */
 #include "Syncing.hpp"
 
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -67,6 +68,23 @@ void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& vecFu
    }
 }
 
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const dg::DGVectorFunction< vType >& vecFunc, const uint_t& level )
+{
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+   {
+      syncDGFunctionBetweenPrimitives( vecFunc[idx], level );
+   }
+}
+
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& p1dgeFunc, const uint_t& level )
+{
+   auto& vecFunc = *( p1dgeFunc.getConformingPart() );
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+      syncFunctionBetweenPrimitives< hyteg::vertexdof::VertexDoFFunction< vType > >( vecFunc[idx], level );
+}
+
 template void syncP2FunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
 template void syncP2FunctionBetweenPrimitives( const P2Function< float >& function, const uint_t& level );
 template void syncP2FunctionBetweenPrimitives( const P2Function< int32_t >& function, const uint_t& level );
@@ -96,6 +114,10 @@ template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< doubl
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< float >& function, const uint_t& level );
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int32_t >& function, const uint_t& level );
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int64_t >& function, const uint_t& level );
+
+template void syncVectorFunctionBetweenPrimitives( const EGFunction< double >& function, const uint_t& level );
+template void syncVectorFunctionBetweenPrimitives( const EGFunction< int32_t >& function, const uint_t& level );
+template void syncVectorFunctionBetweenPrimitives( const EGFunction< int64_t >& function, const uint_t& level );
 
 } // namespace communication
 } // namespace hyteg

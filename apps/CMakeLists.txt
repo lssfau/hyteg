@@ -104,3 +104,5 @@ add_subdirectory(Surrogates)
 add_subdirectory(blockOperators)
 
 add_subdirectory(2023-bauer-mt)
+
+add_subdirectory(2022-eg-varvisc)

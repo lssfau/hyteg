@@ -243,6 +243,8 @@ inline std::string FunctionIteratorDoF< FunctionType >::toString() const
    return os.str();
 }
 
+
+
 template < typename FunctionType >
 inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )
 {

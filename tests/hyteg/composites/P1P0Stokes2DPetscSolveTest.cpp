@@ -51,7 +51,7 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-   writeDomainPartitioningVTK( storage, "../../output", "P1P0Stokes2DPetscSolve_Domain" );
+   //writeDomainPartitioningVTK( storage, "../../output", "P1P0Stokes2DPetscSolve_Domain" );
 
    P1P0StokesFunction< real_t > x( "x", storage, level, level );
    P1P0StokesFunction< real_t > x_exact( "x_exact", storage, level, level );
@@ -62,15 +62,16 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
    P1P0StokesOperator A( storage, level, level, 0.1 );
 
    // output matrix
-   std::string                             fileName = "../../output/p1p0stokes.m";
+   /*
    PETScSparseMatrix< P1P0StokesOperator > mat;
    P1P0StokesFunction< idx_t >             numeratorSrc( "numerator", storage, level, level );
    P1P0StokesFunction< idx_t >             numeratorDst( "numerator", storage, level, level );
    numeratorSrc.enumerate( level );
    numeratorDst.enumerate( level );
    mat.createMatrixFromOperator( A, level, numeratorSrc, numeratorDst );
+   std::string                             fileName = "../../output/p1p0stokes.m";
    mat.print( fileName, false, PETSC_VIEWER_ASCII_MATLAB );
-
+*/
    std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) {
       return real_c( 20 ) * xx[0] * std::pow( xx[1], 3.0 );
    };
@@ -97,7 +98,7 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
    vtkOutput.add( err.p() );
    vtkOutput.add( b.uvw() );
    vtkOutput.add( b.p() );
-   vtkOutput.write( level, 0 );
+   //vtkOutput.write( level, 0 );
 
    uint_t velocitydofs = numberOfGlobalDoFs( x.uvw(), level );
    uint_t pressuredofs = numberOfGlobalDoFs( x.p(), level );
@@ -119,7 +120,7 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
 
    err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
 
-   vtkOutput.write( level, 1 );
+   //vtkOutput.write( level, 1 );
 
    real_t discr_l2_err_u = std::sqrt( err.uvw().dotGlobal( err.uvw(), level ) / (real_t) velocitydofs );
    real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) pressuredofs );
@@ -128,7 +129,7 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
-
+   WALBERLA_LOG_INFO_ON_ROOT( "errEpsU=" << errEpsU << ", errEpsP=" << errEpsP );
    WALBERLA_CHECK_LESS( discr_l2_err_u, errEpsU );
    WALBERLA_CHECK_LESS( discr_l2_err_p, errEpsP );
 }

@@ -170,7 +170,7 @@ int main( int argc, char** argv )
                        cos( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) ) );
       };
 
-      hyteg::runTest( 3, 5, 1, 1, meshInfo, solFunc, rhsFunc );
+      hyteg::runTest( 3, 4, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -188,7 +188,7 @@ int main( int argc, char** argv )
          return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
       };
 
-      hyteg::runTest( 2, 4, 1, 1, meshInfo, solFunc, rhsFunc );
+      hyteg::runTest( 3, 4, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -201,26 +201,10 @@ int main( int argc, char** argv )
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
       std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
 
-      hyteg::runTest( 2, 4, 1, 1, meshInfo, solFunc, rhsFunc );
+      hyteg::runTest( 3, 4, 1, 1, meshInfo, solFunc, rhsFunc );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs != 0 ###" );
-
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
-
-      std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-         return sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-      };
-
-      std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-         return 3 * sin( x[0] ) * sin( x[1] ) * sin( x[2] );
-      };
-
-      hyteg::runTest( 2, 4, 1, 1, meshInfo, solFunc, rhsFunc );
-   }
 
    return EXIT_SUCCESS;
 }

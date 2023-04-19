@@ -26,10 +26,14 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -45,6 +49,7 @@
 
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
+#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKN1E1Writer.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
@@ -82,6 +87,11 @@ class VTKOutput
    {
       dgFunctions_.push_back( *function.getDGFunction() );
    }
+   template < typename value_t >
+   inline void add( const DG1Function< value_t >& function )
+   {
+      dgFunctions_.push_back( *function.getDGFunction() );
+   }
 
    template < typename value_t >
    inline void add( const P1Function< value_t >& function )
@@ -105,6 +115,18 @@ class VTKOutput
    inline void add( const P2VectorFunction< value_t >& function )
    {
       p2VecFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const dg::DGVectorFunction< value_t >& function )
+   {
+      dgVecFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const EGFunction< value_t >& function )
+   {
+      p1dgeVecFunctions_.push_back( function );
    }
 
    template < typename value_t >
@@ -139,6 +161,7 @@ class VTKOutput
 
    void add( const P1StokesFunction< real_t >& function );
    void add( const P2P1TaylorHoodFunction< real_t >& function );
+   void add( const EGP0StokesFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -250,6 +273,10 @@ class VTKOutput
    FunctionMultiStore< dg::DGFunction >           dgFunctions_;
    FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;
 
+   FunctionMultiStore< dg::DGVectorFunction > dgVecFunctions_;
+
+   FunctionMultiStore< EGFunction > p1dgeVecFunctions_;
+
    std::shared_ptr< PrimitiveStorage > storage_;
 
    vtk::DataFormat vtkDataFormat_;
@@ -261,6 +288,7 @@ class VTKOutput
    friend class VTKP1Writer;
    friend class VTKP2Writer;
    friend class VTKDGWriter;
+   friend class VTKP1DGEWriter;
    friend class VTKN1E1Writer;
 };
 

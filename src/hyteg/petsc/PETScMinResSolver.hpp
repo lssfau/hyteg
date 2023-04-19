@@ -41,9 +41,23 @@ class PETScMinResSolver : public Solver< OperatorType >
                       const real_t                               relativeTolerance = 1e-30,
                       const real_t                               absoluteTolerance = 1e-12,
                       const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max() )
+   : PETScMinResSolver( storage,
+                        level,
+                        typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ),
+                        relativeTolerance,
+                        absoluteTolerance,
+                        maxIterations )
+   {}
+
+   PETScMinResSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
+                      const uint_t&                                                         level,
+                      const typename OperatorType::srcType::template FunctionType< idx_t >& numerator,
+                      const real_t                                                          relativeTolerance = 1e-30,
+                      const real_t                                                          absoluteTolerance = 1e-12,
+                      const PetscInt maxIterations = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
-   , num( "numerator", storage, level, level )
+   , num( numerator )
    , Amat( "Amat", petscCommunicator_ )
    , AmatNonEliminatedBC( "AmatNonEliminatedBC", petscCommunicator_ )
    , xVec( "xVec", petscCommunicator_ )
@@ -52,7 +66,10 @@ class PETScMinResSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
+   , setFromOptions_( false )
+   , disableApplicationBC_( false )
    {
+       num.enumerate(level);
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
@@ -69,12 +86,19 @@ class PETScMinResSolver : public Solver< OperatorType >
 
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
+   void disableApplicationBC( bool dis ) { disableApplicationBC_ = dis; }
+
    void setNullSpace( const FunctionType& nullspace )
    {
       nullSpaceSet_ = true;
       nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
+      real_t norm = 0;
+      VecNormalize( nullspaceVec_.get(), &norm );
       MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
+
+   void setFromOptions( bool doIt ) { setFromOptions_ = doIt; }
+
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
@@ -102,14 +126,18 @@ class PETScMinResSolver : public Solver< OperatorType >
       }
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), SAME_NONZERO_PATTERN );
 
-      Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+      if ( !disableApplicationBC_ )
+         Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       if ( nullSpaceSet_ )
       {
          MatSetNullSpace( Amat.get(), nullspace_ );
       }
       KSPSetOperators( ksp, Amat.get(), Amat.get() );
-      KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCNONE );
+      if ( !setFromOptions_ )
+      {
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCNONE );
+      }
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
@@ -134,6 +162,8 @@ class PETScMinResSolver : public Solver< OperatorType >
    hyteg::DoFType flag_;
    bool           nullSpaceSet_;
    bool           reassembleMatrix_;
+   bool           setFromOptions_;
+   bool           disableApplicationBC_;
 };
 
 } // namespace hyteg

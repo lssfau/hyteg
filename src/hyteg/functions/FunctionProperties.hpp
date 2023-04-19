@@ -35,6 +35,8 @@ template < typename value_t >
 class BlockFunction;
 template < typename value_t >
 class GenericFunction;
+template < typename VectorFunctionType >
+class CSFVectorFunction;
 
 template < typename FunctionTag_T, typename PrimitiveType >
 inline uint_t numberOfInnerDoFs( const uint_t& level );
@@ -195,7 +197,11 @@ inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
    if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+                  std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
+                  std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< DG1Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< EGFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfLocalDoFs( level );
    }
@@ -233,7 +239,11 @@ inline uint_t numberOfGlobalDoFs( const func_t&   func,
    if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+                  std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
+                  std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< DG1Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< EGFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }

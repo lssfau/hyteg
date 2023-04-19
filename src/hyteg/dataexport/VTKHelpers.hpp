@@ -46,7 +46,8 @@ enum class DoFType
    DG,
    FACEDOF_OLD,
    P2,
-   N1E1
+   N1E1,
+   P1DGE
 };
 
 inline void writeXMLHeader( std::ostream& output )

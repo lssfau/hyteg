@@ -36,6 +36,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    typedef P2ConstantVectorLaplaceOperator         VelocityBlockOperator_T;
    typedef P2ConstantLaplaceOperator               VelocityOperator_T;
    typedef P2P1TaylorHoodStokesBlockPreconditioner BlockPreconditioner_T;
+   typedef VelocityBlockOperator_T                 EnergyNormOperator_T;
 
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
@@ -44,6 +45,8 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    , divT( storage, minLevel, maxLevel )
    , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , energyNormOp( Lapl )
+   , blockPrec( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -68,15 +71,18 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   const P2ConstantLaplaceOperator& getA() const {
-     auto ptr = Lapl.getSubOperator( 0, 0 );
-     return dynamic_cast< const P2ConstantLaplaceOperator& >( *ptr );
+   const P2ConstantLaplaceOperator& getA() const
+   {
+      auto ptr = Lapl.getSubOperator( 0, 0 );
+      return dynamic_cast< const P2ConstantLaplaceOperator& >( *ptr );
    }
 
    VelocityBlockOperator_T    Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;
 
+   EnergyNormOperator_T& energyNormOp;
+   BlockPreconditioner_T blockPrec;
    // this operator is needed in the uzawa smoother
    P1PSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;

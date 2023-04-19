@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
@@ -72,7 +73,6 @@ class CGSolver : public Solver< OperatorType >
       //    return;
 
       timingTree_->start( "CG Solver" );
-
       p_.copyBoundaryConditionFromFunction( x );
       z_.copyBoundaryConditionFromFunction( x );
       ap_.copyBoundaryConditionFromFunction( x );
@@ -99,14 +99,14 @@ class CGSolver : public Solver< OperatorType >
          pAp = p_.dotGlobal( ap_, level, flag_ );
 
          alpha = prsold / pAp;
-         x.add( {alpha}, {p_}, level, flag_ );
-         r_.add( {-alpha}, {ap_}, level, flag_ );
+         x.add( { alpha }, { p_ }, level, flag_ );
+         r_.add( { -alpha }, { ap_ }, level, flag_ );
          rsnew   = r_.dotGlobal( r_, level, flag_ );
          sqrsnew = std::sqrt( rsnew );
 
          if ( printInfo_ )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( "[CG] residual: " << sqrsnew );
+            WALBERLA_LOG_INFO_ON_ROOT( "[CG] iter: " << i << ", residual: " << sqrsnew );
          }
 
          if ( sqrsnew < tolerance_ )
@@ -122,7 +122,7 @@ class CGSolver : public Solver< OperatorType >
          prsnew = r_.dotGlobal( z_, level, flag_ );
          beta   = prsnew / prsold;
 
-         p_.assign( {1.0, beta}, {z_, p_}, level, flag_ );
+         p_.assign( { 1.0, beta }, { z_, p_ }, level, flag_ );
          prsold = prsnew;
 
          if ( i > 0 && i % restartFrequency_ == 0 )
@@ -193,8 +193,8 @@ class CGSolver : public Solver< OperatorType >
 
       // init CG
       A.apply( x, p_, level, flag_, Replace );
-      r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );
-      p_.assign( {1.0}, {r_}, level, flag_ );
+      r_.assign( { 1.0, -1.0 }, { b, p_ }, level, flag_ );
+      p_.assign( { 1.0 }, { r_ }, level, flag_ );
       prsold = r_.dotGlobal( r_, level, flag_ );
 
       // required for diagonal entries, set values
@@ -213,14 +213,14 @@ class CGSolver : public Solver< OperatorType >
          alpha = prsold / pAp;
          mainDiag.push_back( 1.0 / alpha + beta / alpha_old );
 
-         x.add( {alpha}, {p_}, level, flag_ );
-         r_.add( {-alpha}, {ap_}, level, flag_ );
+         x.add( { alpha }, { p_ }, level, flag_ );
+         r_.add( { -alpha }, { ap_ }, level, flag_ );
 
          prsnew = r_.dotGlobal( r_, level, flag_ );
          beta   = prsnew / prsold;
          subDiag.push_back( std::sqrt( beta ) / alpha );
 
-         p_.assign( {1.0, beta}, {r_, p_}, level, flag_ );
+         p_.assign( { 1.0, beta }, { r_, p_ }, level, flag_ );
          prsold = prsnew;
 
          alpha_old = alpha;
@@ -235,6 +235,7 @@ class CGSolver : public Solver< OperatorType >
    }
 
    void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
+   void setDoFType( hyteg::DoFType flag ) { flag_ = flag; }
 
  private:
    void init( const OperatorType&               A,

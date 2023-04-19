@@ -22,6 +22,9 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
 
@@ -51,7 +54,6 @@ class P0Function : public Function< P0Function< ValueType > >
    : P0Function( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-   virtual uint_t getDimension() const { return dgFunction_->getDimension(); }
 
    const std::shared_ptr< DGFunction< ValueType > > getDGFunction() const { return dgFunction_; }
 
@@ -59,19 +61,26 @@ class P0Function : public Function< P0Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
+   uint_t getDimension() const { return dgFunction_->getDimension(); };
+
    void setDoNotWarnOnInterpolateFlag() { doNotWarnOnInterpolate_ = true; }
 
    // template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { WALBERLA_ABORT( "Not implemented." ); };
+
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { dgFunction_->add( scalar, level, flag ); };
 
    void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
              uint_t                                                                        level,
              DoFType                                                                       flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+      std::vector< ValueType > new_scalars( scalars );
+      new_scalars.push_back( 1.0 );
+      std::vector< std::reference_wrapper< const P0Function< ValueType > > > new_functions( functions );
+      new_functions.push_back( *this );
+      assign( new_scalars, new_functions, level, flag );
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
@@ -296,7 +305,8 @@ class P0Function : public Function< P0Function< ValueType > >
 
    void swap( const P0Function< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+       WALBERLA_UNUSED(flag);
+       dgFunction_->swap(*other.getDGFunction(),level,flag);
    };
 
    void copyFrom( const P0Function< ValueType >&         other,
@@ -322,13 +332,15 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          dgFunctions.push_back( *f.get().getDGFunction() );
       }
-      dgFunction_->assign( scalars, dgFunctions, level );
+      dgFunction_->assign( scalars, dgFunctions, level, flag );
    }
 
    ValueType dotGlobal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
       return dgFunction_->dotGlobal( *rhs.getDGFunction(), level );
    }
+
+   ValueType sumGlobal( uint_t level, const DoFType& flag = All ) const { return dgFunction_->sumGlobal( level ); }
 
    ValueType dotLocal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
@@ -367,6 +379,12 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
+    template < typename OtherValueType >
+    void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
+    {
+        dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
+    }
+
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
       if ( flag != All && flag != Inner )
@@ -396,8 +414,25 @@ class P0Function : public Function< P0Function< ValueType > >
 
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
-   bool doNotWarnOnInterpolate_ = false;
+   bool doNotWarnOnInterpolate_ = true;
 
 };
+
+namespace dg {
+/// \brief removes the mean value of func to project it onto the space of functions with mean value 0
+///
+/// \param func             [in] function to project
+/// \param level            [in] refinement level
+inline void projectMean( P0Function< real_t >& func, const uint_t& level )
+{
+   if ( func.isDummy() )
+   {
+      return;
+   }
+   const uint_t numGlobalVertices = func.getNumberOfGlobalDoFs( level );
+   const real_t sum               = func.sumGlobal( level, Inner );
+   func.add( -sum / ( real_c( numGlobalVertices ) ), level, Inner );
+}
+} // namespace dg
 
 } // namespace hyteg

@@ -1,3 +1,4 @@
+
 target_sources( hyteg
     PRIVATE
     p1_epsilonvar_blending_q2.hpp
@@ -36,6 +37,9 @@ target_sources( hyteg
     p1_epsiloncc_affine_q2.hpp
     p1_pspg_affine_q2.hpp
     p1_k_mass_affine_q4.hpp
+    p1_invk_mass_affine_q4.cpp
+    p1_invk_mass_affine_q4.hpp
+    
     p1_full_stokesvar_affine_q1.hpp
     p1_mass_affine_qe.hpp
     p1_diffusion_blending_q1.hpp

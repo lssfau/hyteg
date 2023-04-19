@@ -21,11 +21,11 @@
 #pragma once
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
-
 namespace hyteg {
 namespace dg {
 
@@ -59,7 +59,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     initialPolyDegree,
                BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
-   virtual uint_t getDimension() const { return 1; }
 
    void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                          uint_t                                                                        level,
@@ -71,13 +70,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
-   {
-      WALBERLA_UNUSED( constant );
-      WALBERLA_UNUSED( level );
-      WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "Not implemented." );
-   };
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
    {
@@ -97,24 +90,20 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    };
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
-   {
-      WALBERLA_UNUSED( scalar );
-      WALBERLA_UNUSED( level );
-      WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "Not implemented." );
-   };
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { volumeDoFFunction_->add( scalar, level, flag ); };
 
    void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
              uint_t                                                                        level,
              DoFType                                                                       flag = All ) const
    {
-      WALBERLA_UNUSED( scalars );
-      WALBERLA_UNUSED( functions );
-      WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "Not implemented." );
+      std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > > vFunctions;
+      for ( const auto& f : functions )
+      {
+         vFunctions.push_back( *( f.get().volumeDoFFunction_ ) );
+      }
+      volumeDoFFunction_->add( scalars, vFunctions, level );
    };
 
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
@@ -146,6 +135,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    {
       WALBERLA_UNUSED( flag );
       return volumeDoFFunction_->dotGlobal( *rhs.volumeDoFFunction_, level );
+   }
+
+   /// \brief Evaluates the sum on all DoFs
+   ValueType sumGlobal( uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_UNUSED( flag );
+      return volumeDoFFunction_->sumGlobal( level );
    }
 
    /// \brief Evaluate finite element function at a specific coordinates.
@@ -297,6 +293,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                  const bool&     onRootOnly   = false ) const;
 
+   uint_t getDimension() const { return storage_->hasGlobalCells() ? 3 : 2; };
    /// \brief Updates ghost-layers.
    void communicate( uint_t level ) const { volumeDoFFunction_->communicate( level ); }
 
@@ -333,10 +330,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      WALBERLA_UNUSED( other );
-      WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "DGFunction::swap() not implemented." )
+      volumeDoFFunction_->swap(*(other.volumeDoFFunction()), level);
    }
 
    /// \brief Returns the max absolute DoF value.
@@ -389,5 +384,7 @@ void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
                                DoFType                               flag );
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
+
+
 
 } // namespace hyteg

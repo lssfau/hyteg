@@ -11,6 +11,8 @@ target_sources( hyteg
     Form.hpp
     P1ZeroForm.hpp
     P1LinearCombinationForm.hpp
+    CoefficientQuadratureAveraging.hpp
+    P1LinearCombinationForm.hpp
     N1E1Form.hpp
     N1E1LinearCombinationForm.hpp
 )

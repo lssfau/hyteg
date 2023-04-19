@@ -36,8 +36,6 @@ namespace hyteg {
 // Tag dispatching //
 /////////////////////
 
-struct P0FunctionTag
-{};
 struct VertexDoFFunctionTag
 {};
 typedef VertexDoFFunctionTag P1FunctionTag;
@@ -48,6 +46,10 @@ struct VolumeFunctionTag
 struct DGFunctionTag
 {};
 struct N1E1VectorFunctionTag
+{};
+struct P0FunctionTag
+{};
+struct DG1FunctionTag
 {};
 struct P2FunctionTag
 {};
@@ -63,13 +65,16 @@ struct P1VectorFunctionTag
 {};
 struct P2VectorFunctionTag
 {};
+struct DGVectorFunctionTag
+{};
+struct EGFunctionTag
+{};
+struct EGP0StokesFunctionTag
+{};
 
 //////////////////////////
 // Forward declarations //
 //////////////////////////
-
-template < typename VType >
-class P0Function;
 
 namespace vertexdof {
 
@@ -89,8 +94,12 @@ class VolumeDoFFunction;
 namespace dg {
 template < typename VType >
 class DGFunction;
-}
+} // namespace dg
 
+template < typename VType >
+class P0Function;
+template < typename VType >
+class DG1Function;
 namespace n1e1 {
 template < typename VType >
 class N1E1VectorFunction;
@@ -122,6 +131,17 @@ class P1VectorFunction_AltKind;
 template < typename VType >
 class P2VectorFunction;
 
+namespace dg {
+template < typename VType >
+class DGVectorFunction;
+
+} // namespace dg
+
+template < typename VType >
+class EGFunction;
+template < typename VType >
+class EGP0StokesFunction;
+
 ///////////////////////////////////////////////////////////////////
 // Enum for getting info on type of a GenericFunction
 ///////////////////////////////////////////////////////////////////
@@ -131,6 +151,7 @@ namespace functionTraits {
 typedef enum
 {
    P0_FUNCTION,
+   DG1_FUNCTION,
    P1_FUNCTION,
    P2_FUNCTION,
    EDGE_DOF_FUNCTION,
@@ -139,6 +160,8 @@ typedef enum
    N1E1_VECTOR_FUNCTION,
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
+   DG_VECTOR_FUNCTION,
+   EG_FUNCTION,
    OTHER_FUNCTION
 } FunctionKind;
 
@@ -151,18 +174,6 @@ typedef enum
 /// Empty trait
 template < typename FunctionType >
 struct FunctionTrait;
-
-/// P0 DoF specialization
-template < typename VType >
-struct FunctionTrait< P0Function< VType > >
-{
-   typedef VType         ValueType;
-   typedef P0FunctionTag Tag;
-
-   static std::string getTypeName() { return "P0Function"; }
-
-   static const functionTraits::FunctionKind kind = functionTraits::P0_FUNCTION;
-};
 
 /// Vertex DoF specialization
 template < typename VType >
@@ -223,6 +234,30 @@ struct FunctionTrait< n1e1::N1E1VectorFunction< VType > >
    static std::string getTypeName() { return "N1E1VectorFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::N1E1_VECTOR_FUNCTION;
+};
+
+/// P0 DoF specialization
+template < typename VType >
+struct FunctionTrait< P0Function< VType > >
+{
+   typedef VType         ValueType;
+   typedef P0FunctionTag Tag;
+
+   static std::string getTypeName() { return "P0Function"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P0_FUNCTION;
+};
+
+/// DG1 DoF specialization
+template < typename VType >
+struct FunctionTrait< DG1Function< VType > >
+{
+   typedef VType          ValueType;
+   typedef DG1FunctionTag Tag;
+
+   static std::string getTypeName() { return "DG1Function"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::DG1_FUNCTION;
 };
 
 /// P2 specialization
@@ -313,6 +348,44 @@ struct FunctionTrait< P2VectorFunction< VType > >
    static std::string getTypeName() { return "P2VectorFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::P2_VECTOR_FUNCTION;
+};
+
+/// DGVectorFunction specialization
+template < typename VType >
+struct FunctionTrait< dg::DGVectorFunction< VType > >
+{
+   typedef VType                   ValueType;
+   typedef DGVectorFunctionTag     Tag;
+   typedef dg::DGFunction< VType > VectorComponentType;
+
+   static std::string getTypeName() { return "DGVectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::DG_VECTOR_FUNCTION;
+};
+
+/// EGFunction specialization
+template < typename VType >
+struct FunctionTrait< EGFunction< VType > >
+{
+   typedef VType               ValueType;
+   typedef EGFunctionTag       Tag;
+   typedef EGFunction< VType > VectorComponentType;
+
+   static std::string getTypeName() { return "EGVectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::EG_FUNCTION;
+};
+
+/// EGP0StokesFunction specialization
+template < typename VType >
+struct FunctionTrait< EGP0StokesFunction< VType > >
+{
+   typedef VType                 ValueType;
+   typedef EGP0StokesFunctionTag Tag;
+
+   static std::string getTypeName() { return "EGP0StokesFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
 
 } // namespace hyteg
