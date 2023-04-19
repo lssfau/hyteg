@@ -105,7 +105,7 @@ bool N1E1VectorFunction< ValueType >::evaluate( const Point3D& physicalCoords,
 }
 
 template < typename ValueType >
-void N1E1VectorFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
+void N1E1VectorFunction< ValueType >::evaluateOnMicroElement( const Point3D&         xComp,
                                                               uint_t                 level,
                                                               const PrimitiveID&     cellID,
                                                               hyteg::indexing::Index elementIndex,
@@ -114,7 +114,7 @@ void N1E1VectorFunction< ValueType >::evaluateOnMicroElement( const Point3D&    
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
-      WALBERLA_UNUSED( coordinates );
+      WALBERLA_UNUSED( xComp );
       WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( cellID );
       WALBERLA_UNUSED( elementIndex );
@@ -127,7 +127,7 @@ void N1E1VectorFunction< ValueType >::evaluateOnMicroElement( const Point3D&    
    else
    {
       const Cell& cell = *storage_->getCell( cellID );
-      value = n1e1::macrocell::evaluateOnMicroElement( level, cell, elementIndex, cellType, coordinates, dofs_->getCellDataID() );
+      value = n1e1::macrocell::evaluateOnMicroElement( level, cell, elementIndex, cellType, xComp, dofs_->getCellDataID() );
    }
 }
 

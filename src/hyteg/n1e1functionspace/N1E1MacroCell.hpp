@@ -74,11 +74,15 @@ inline Point3D microEdgeDirection( const uint_t& level, const Cell& cell, const 
    }
 }
 
+/// Evaluates the element local function at the specified coordinates.
+/// If `xComp` is outside the specified element, the function is extrapolated.
+/// \param xComp Coordinates in computational coordinate system.
+/// \returns The function value transformed to the physical coordinate system.
 inline VectorType< real_t > evaluateOnMicroElement( const uint_t&                                            level,
                                                     const Cell&                                              cell,
-                                                    const hyteg::indexing::Index                             elementIndex,
+                                                    const indexing::Index                                    elementIndex,
                                                     const celldof::CellType                                  cellType,
-                                                    const Point3D&                                           coordinates,
+                                                    const Point3D&                                           xComp,
                                                     const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dataID )
 {
    using ValueType = real_t;
@@ -96,7 +100,7 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
    auto microTet2 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[2] );
    auto microTet3 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[3] );
 
-   auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
+   auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, xComp );
 
    auto x = xLocal[0];
    auto y = xLocal[1];
@@ -135,7 +139,7 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
    // transform to affine space (covariant Piola mapping)
 
    Matrix3r DF;
-   cell.getGeometryMap()->evalDF( coordinates, DF );
+   cell.getGeometryMap()->evalDF( xComp, DF );
 
    // TODO precompute and store foctorized A (for each cell type), use also to find xLocal
    Matrix3r A;
@@ -146,14 +150,16 @@ inline VectorType< real_t > evaluateOnMicroElement( const uint_t&               
    return ( A * DF.transpose() ).fullPivLu().solve( localValue );
 }
 
+/// \param xComp Coordinates in computational coordinate system.
+/// \returns The function value transformed to the physical coordinate system.
 inline VectorType< real_t > evaluate( const uint_t&                                            level,
                                       const Cell&                                              cell,
-                                      const Point3D&                                           coordinates,
+                                      const Point3D&                                           xComp,
                                       const PrimitiveDataID< FunctionMemory< real_t >, Cell >& dataID )
 {
    using ValueType = real_t;
 
-   // find microcell which contains `coordinates`
+   // find microcell which contains `xComp`
    // note that local coordinates are determined with respect to a different vertex ordering
    // and are therefore wrong!
 
@@ -162,9 +168,9 @@ inline VectorType< real_t > evaluate( const uint_t&                             
    Point3D           wrongLocalCoordinates;
 
    volumedofspace::getLocalElementFromCoordinates< ValueType >(
-       level, cell, coordinates, elementIndex, cellType, wrongLocalCoordinates );
+       level, cell, xComp, elementIndex, cellType, wrongLocalCoordinates );
 
-   return evaluateOnMicroElement( level, cell, elementIndex, cellType, coordinates, dataID );
+   return evaluateOnMicroElement( level, cell, elementIndex, cellType, xComp, dataID );
 }
 
 inline void add( const uint_t&                                            level,
