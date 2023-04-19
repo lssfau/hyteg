@@ -48,8 +48,6 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
    {
    case Type::IDENTITY:
       return std::make_shared< IdentityMap >();
-   case Type::AFFINE:
-      return std::make_shared< AffineMap2D >( recvBuffer );
    case Type::CIRCULAR:
       return std::make_shared< CircularMap >( recvBuffer );
    case Type::POLAR_COORDS:
@@ -58,12 +56,13 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< AnnulusMap >( recvBuffer );
    case Type::ICOSAHEDRAL_SHELL:
       return std::make_shared< IcosahedralShellMap >( recvBuffer );
+   case Type::AFFINE:
    case Type::AFFINE_2D:
       return std::make_shared< AffineMap2D >( recvBuffer );
    case Type::AFFINE_3D:
       return std::make_shared< AffineMap3D >( recvBuffer );
    default:
-      WALBERLA_ABORT( "Error in deserializing GeometryMap: Unknown Type" )
+      WALBERLA_ABORT( "Error in deserializing GeometryMap: Unsupported Map Type" )
    }
 }
 
