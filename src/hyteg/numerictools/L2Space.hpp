@@ -40,8 +40,13 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
+class Undefined
+{};
+
 /// @brief Class representing an L2 space
-template < typename ValueType >
+/// @tparam DiscretizationType   Functiontype defining a discrete subspace
+/// @tparam CodomainType         Type defining the codomain of the elements of this space (usually R or R^3)
+template < typename DiscretizationType = Undefined, typename CodomainType = real_t >
 class L2Space
 {
  public:
@@ -70,7 +75,7 @@ class L2Space
    /// @param q use quadrature of order q instead of the chosen default value
    /// @param lvl operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< ValueType( const Point3D& ) >& u, uint_t q = DEFAULT, uint_t lvl = DEFAULT ) const
+   real_t norm( const std::function< CodomainType( const Point3D& ) >& u, uint_t q = DEFAULT, uint_t lvl = DEFAULT ) const
    {
       return std::sqrt( this->dot( u, u, q, lvl ) );
    }
@@ -81,10 +86,10 @@ class L2Space
    /// @param q      use quadrature of order q instead of the chosen default value
    /// @param lvl    operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< ValueType( const Point3D& ) >& u,
-                std::map< PrimitiveID, real_t >&                    u2_T,
-                uint_t                                              q   = DEFAULT,
-                uint_t                                              lvl = DEFAULT ) const
+   real_t norm( const std::function< CodomainType( const Point3D& ) >& u,
+                std::map< PrimitiveID, real_t >&                       u2_T,
+                uint_t                                                 q   = DEFAULT,
+                uint_t                                                 lvl = DEFAULT ) const
    {
       return std::sqrt( this->dot( u, u, u2_T, q, lvl ) );
    }
@@ -94,9 +99,9 @@ class L2Space
    /// @param q use quadrature of order q instead of the chosen default value
    /// @param lvl operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< ValueType( const Point3D&, const PrimitiveID& ) >& u,
-                uint_t                                                                  q   = DEFAULT,
-                uint_t                                                                  lvl = DEFAULT ) const
+   real_t norm( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
+                uint_t                                                                     q   = DEFAULT,
+                uint_t                                                                     lvl = DEFAULT ) const
    {
       return std::sqrt( this->dot( u, u, q, lvl ) );
    }
@@ -107,10 +112,10 @@ class L2Space
    /// @param q use quadrature of order q instead of the chosen default value
    /// @param lvl operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< ValueType( const Point3D&, const PrimitiveID& ) >& u,
-                std::map< PrimitiveID, real_t >&                                        u2_T,
-                uint_t                                                                  q   = DEFAULT,
-                uint_t                                                                  lvl = DEFAULT ) const
+   real_t norm( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
+                std::map< PrimitiveID, real_t >&                                           u2_T,
+                uint_t                                                                     q   = DEFAULT,
+                uint_t                                                                     lvl = DEFAULT ) const
    {
       return std::sqrt( this->dot( u, u, u2_T, q, lvl ) );
    }
@@ -121,10 +126,10 @@ class L2Space
    /// @param q      use quadrature of order q instead of the chosen default value
    /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
-   real_t dot( const std::function< ValueType( const Point3D& ) >& u,
-               const std::function< ValueType( const Point3D& ) >& v,
-               uint_t                                              q   = DEFAULT,
-               uint_t                                              lvl = DEFAULT ) const
+   real_t dot( const std::function< CodomainType( const Point3D& ) >& u,
+               const std::function< CodomainType( const Point3D& ) >& v,
+               uint_t                                                 q   = DEFAULT,
+               uint_t                                                 lvl = DEFAULT ) const
    {
       std::map< PrimitiveID, real_t > _;
       return this->dot( u, v, _, q, lvl );
@@ -137,11 +142,11 @@ class L2Space
    /// @param q      use quadrature of order q instead of the chosen default value
    /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
-   real_t dot( const std::function< ValueType( const Point3D& ) >& u,
-               const std::function< ValueType( const Point3D& ) >& v,
-               std::map< PrimitiveID, real_t >&                    uv_T,
-               uint_t                                              q   = DEFAULT,
-               uint_t                                              lvl = DEFAULT ) const
+   real_t dot( const std::function< CodomainType( const Point3D& ) >& u,
+               const std::function< CodomainType( const Point3D& ) >& v,
+               std::map< PrimitiveID, real_t >&                       uv_T,
+               uint_t                                                 q   = DEFAULT,
+               uint_t                                                 lvl = DEFAULT ) const
    {
       auto uid = [&]( const Point3D& x, const PrimitiveID& ) { return u( x ); };
       auto vid = [&]( const Point3D& x, const PrimitiveID& ) { return v( x ); };
@@ -154,10 +159,10 @@ class L2Space
    /// @param q      use quadrature of order q instead of the chosen default value
    /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
-   real_t dot( const std::function< ValueType( const Point3D&, const PrimitiveID& ) >& u,
-               const std::function< ValueType( const Point3D&, const PrimitiveID& ) >& v,
-               uint_t                                                                  q   = DEFAULT,
-               uint_t                                                                  lvl = DEFAULT ) const
+   real_t dot( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
+               const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& v,
+               uint_t                                                                     q   = DEFAULT,
+               uint_t                                                                     lvl = DEFAULT ) const
    {
       std::map< PrimitiveID, real_t > _;
       return this->dot( u, v, _, q, lvl );
@@ -170,29 +175,29 @@ class L2Space
    /// @param q      use quadrature of order q instead of the chosen default value
    /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
-   real_t dot( const std::function< ValueType( const Point3D&, const PrimitiveID& ) >& u,
-               const std::function< ValueType( const Point3D&, const PrimitiveID& ) >& v,
-               std::map< PrimitiveID, real_t >&                                        uv_T,
-               uint_t                                                                  q   = DEFAULT,
-               uint_t                                                                  lvl = DEFAULT ) const
+   real_t dot( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
+               const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& v,
+               std::map< PrimitiveID, real_t >&                                           uv_T,
+               uint_t                                                                     q   = DEFAULT,
+               uint_t                                                                     lvl = DEFAULT ) const
    {
       if ( q == DEFAULT )
          q = _q;
       if ( lvl == DEFAULT )
          lvl = _lvl;
 
-      // inner product of the ValueType space
-      auto innerProduct = [&]( const ValueType& ux, const ValueType& vx ) -> real_t {
-         if constexpr ( std::is_same_v< ValueType, real_t > )
+      // inner product of the CodomainType space
+      auto innerProduct = [&]( const CodomainType& ux, const CodomainType& vx ) -> real_t {
+         if constexpr ( std::is_same_v< CodomainType, real_t > )
          {
             return ux * vx;
          }
-         if constexpr ( std::is_same_v< ValueType, Point3D > )
+         if constexpr ( std::is_same_v< CodomainType, Point3D > )
          {
             return ux.dot( vx );
          }
 
-         WALBERLA_ABORT( "L2 dot product not implemented for ValueType" )
+         WALBERLA_ABORT( "L2 dot product not implemented for CodomainType" )
       };
 
       real_t localsum = 0.0;
@@ -235,53 +240,44 @@ class L2Space
       return localsum;
    }
 
-   /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the FE space where b is from
-   /// @tparam FE type of finite element
+   /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
    /// @param f      L2 function
    /// @param b      output vector to store the values of the integral
    /// @param q      use quadrature of order q instead of the chosen default value
    /// @param lvl    operate on level lvl instead of chosen default value
-   template < class FE >
-   void dot( const std::function< ValueType( const Point3D& ) >& f, FE& b, uint_t q = DEFAULT, uint_t lvl = DEFAULT ) const
-   {
-      if ( q == DEFAULT )
-         q = _q;
-      if ( lvl == DEFAULT )
-         lvl = _lvl;
+   void dot( const std::function< CodomainType( const Point3D& ) >& f,
+             DiscretizationType&                                    b,
+             uint_t                                                 q   = DEFAULT,
+             uint_t                                                 lvl = DEFAULT ) const;
+   // {
+   //    if ( q == DEFAULT )
+   //       q = _q;
+   //    if ( lvl == DEFAULT )
+   //       lvl = _lvl;
 
-      if constexpr ( std::is_same_v< ValueType, real_t > )
-      {
-         if constexpr ( std::is_same_v< FE, P1Function< real_t > > )
-         {
-            switch ( q )
-            {
-            case 5:
-               return this->applyLinearForm< OpP1 >( P1Q5( f, f ), b, lvl );
-            }
-         }
-         if constexpr ( std::is_same_v< FE, P2Function< real_t > > )
-         {
-            // todo: implement for P2 functions, ...
-         }
-      }
-      if constexpr ( std::is_same_v< ValueType, Point3D > )
-      {
-         // todo: implement for vector functions
-      }
-      WALBERLA_ABORT( "(u,f)_L2 not implemented for selected combination of ValueType, FE discretization and quadrature rule" );
-   }
+   //    if constexpr ( std::is_same_v< CodomainType, real_t > )
+   //    {
+   //       if constexpr ( std::is_same_v< FE, P1Function< real_t > > )
+   //       {
+   //          switch ( q )
+   //          {
+   //          case 5:
+   //             return this->applyLinearForm< OpP1 >( P1Q5( f, f ), b, lvl );
+   //          }
+   //       }
+   //       if constexpr ( std::is_same_v< FE, P2Function< real_t > > )
+   //       {
+   //          // todo: implement for P2 functions, ...
+   //       }
+   //    }
+   //    if constexpr ( std::is_same_v< CodomainType, Point3D > )
+   //    {
+   //       // todo: implement for vector functions
+   //    }
+   //    WALBERLA_ABORT( "(u,f)_L2 not implemented for selected combination of CodomainType, FE discretization and quadrature rule" );
+   // }
 
  private:
-   // p0 forms
-   using P0Q5 = forms::p0_linear_form_blending_q5;
-
-   // p1 forms and operator
-   using P1Q5 = forms::p1_linear_form_blending_q5;
-   template < class Quad >
-   using OpP1 = P1VariableOperator< Quad >;
-
-   // todo: add operators (and forms) for other discretizations
-
    /// @brief Integrate a function over a given macro element
    /// @param T            primitive over which f shall be integrated
    /// @param f            integrand
@@ -296,7 +292,7 @@ class L2Space
       switch ( q )
       {
       case 5:
-         quad = std::make_shared< P0Q5 >( f, f );
+         quad = std::make_shared< forms::p0_linear_form_blending_q5 >( f, f );
          break;
 
       default:
@@ -359,18 +355,18 @@ class L2Space
       return integral.get();
    }
 
-   /// @brief Apply a linear form to each basis function of an FE space
-   /// @tparam Op    Type of operator fitting for the FE space, e.g OpP1 for P1Function
-   /// @tparam Form  Type of quadrature rule to evaluate the integrals
-   /// @tparam FE    Type of FE function
-   /// @param form   Linear form
-   /// @param b      Function to store the values of each integral
+   /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
+   /// @tparam Op          Type of operator fitting for the FE space, e.g P1VariableOperator
+   /// @tparam LinearForm  Form defining quadrature rule to evaluate the integrals
+   /// @param f      L2 function
+   /// @param b      output vector to store the values of the integral
    /// @param lvl    operate on level lvl instead of chosen default value
-   template < template < class > class Op, class Form, class FE >
-   void applyLinearForm( const Form& form, FE& b, uint_t lvl ) const
+   template < template < class > class Op, class LinearForm >
+   void dot( const std::function< real_t( const Point3D& ) >& f, const DiscretizationType& b, uint_t lvl ) const
    {
       // apply linear form
-      Op< Form > _b( _storage, lvl, lvl, form );
+      LinearForm       form( f, f );
+      Op< LinearForm > _b( _storage, lvl, lvl, form );
       _b.computeDiagonalOperatorValues();
       b.copyFrom( *_b.getDiagonalValues(), lvl );
 
@@ -398,5 +394,27 @@ class L2Space
    uint_t                              _lvl;     // grid level to work on
    uint_t                              _q;       // order of quadrature rule used for computing integrals
 };
+
+template <>
+void L2Space< P1Function< real_t > >::dot( const std::function< real_t( const Point3D& ) >& f,
+                                           P1Function< real_t >&                            b,
+                                           uint_t                                           q,
+                                           uint_t                                           lvl ) const
+{
+   if ( q == DEFAULT )
+      q = _q;
+   if ( lvl == DEFAULT )
+      lvl = _lvl;
+
+   using namespace forms;
+
+   switch ( q )
+   {
+   case 5:
+      return dot< P1VariableOperator, p1_linear_form_blending_q5 >( f, b, lvl );
+   default:
+      WALBERLA_ABORT( "(v_i,f)_L2 not implemented for P1 with selected quadrature rule" );
+   }
+}
 
 } // namespace hyteg
