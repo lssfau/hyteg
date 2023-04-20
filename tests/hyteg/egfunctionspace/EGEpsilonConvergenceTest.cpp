@@ -65,7 +65,6 @@ int main( int argc, char* argv[] )
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
 
-   uint_t minLevel = 3;
 
    if constexpr ( true )
    {
@@ -77,15 +76,14 @@ int main( int argc, char* argv[] )
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
 
-      uint_t maxLevel = 4;
 
-      hyteg::dg::eg::SmoothViscosityTest2D( minLevel, maxLevel, storage );
+      hyteg::dg::eg::SmoothViscosityTest2D( 3,4, storage );
    }
 
    if constexpr ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Testing varying viscosity Epsilon 3D ###" )
-      hyteg::dg::eg::SmoothViscosityTest3D( minLevel, 4 );
+      hyteg::dg::eg::SmoothViscosityTest3D( 2, 3 );
    }
 
    return 0;
