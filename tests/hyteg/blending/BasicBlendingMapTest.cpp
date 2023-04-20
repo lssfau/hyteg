@@ -17,15 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <cfenv>
-#include <core/Environment.h>
-#include <core/math/Constants.h>
-#include <core/timing/Timer.h>
 
-#include "hyteg/PrimitiveID.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+// This test checks that we can generate instances for each blending map,
+// that querying for affineness and identity works correctly and that
+// we can (de)serialize a map and obtain a new map of the same type
+
+#include <core/Environment.h>
+
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
@@ -37,9 +35,7 @@
 #include "hyteg/geometry/TokamakMap.hpp"
 
 using walberla::real_t;
-using walberla::uint_c;
 using walberla::uint_t;
-using walberla::math::pi;
 
 using namespace hyteg;
 
@@ -51,8 +47,7 @@ bool blendingMapIsIdentity( const GeometryMap& map )
 bool blendingMapIsAffine( const GeometryMap& map )
 {
    return ( dynamic_cast< const IdentityMap* >( &map ) != nullptr ) ||
-             ( dynamic_cast< const AffineMap2D* >( &map ) != nullptr ) ||
-             ( dynamic_cast< const AffineMap3D* >( &map ) != nullptr );
+          ( dynamic_cast< const AffineMap2D* >( &map ) != nullptr ) || ( dynamic_cast< const AffineMap3D* >( &map ) != nullptr );
 }
 
 struct MapProperties
@@ -104,6 +99,59 @@ auto genMap( const std::string& variant )
       map = std::make_shared< CircularMap >( face, setupStorage, center, real_c( 0.5 ) );
    }
 
+   else if ( variant == "IcosahedralShellMap" )
+   {
+      MeshInfo              meshInfo = MeshInfo::meshSphericalShell( 2, 2, real_c( 1.0 ), real_c( 2.0 ) );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      Cell                  cell = *( setupStorage.getCells().begin()->second );
+      map                        = std::make_shared< IcosahedralShellMap >( cell, setupStorage );
+   }
+
+   else if ( variant == "ThinShellMap" )
+   {
+      real_t                radius{ real_c( 2 ) };
+      MeshInfo              meshInfo = MeshInfo::meshThinSphericalShell( 2, radius );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      Face                  face = *( setupStorage.getFaces().begin()->second );
+      map                        = std::make_shared< ThinShellMap >( face, setupStorage, radius );
+   }
+
+   else if ( variant == "TokamakMap" )
+   {
+      const uint_t                numToroidalSlices          = 2;
+      const uint_t                numPoloidalSlices          = 2;
+      const real_t                radiusOriginToCenterOfTube = real_c( 6.2 );
+      const std::vector< real_t > tubeLayerRadii             = { real_c( 1.2 ), real_c( 2.2 ), real_c( 3 ) };
+      const real_t                torodialStartAngle         = real_c( 0 );
+      const real_t                polodialStartAngle         = real_c( 0 );
+
+      real_t delta = std::sin( real_c( 0.33 ) );
+      real_t r1    = real_c( 2.0 );
+      real_t r2    = real_c( 3.7 );
+
+      MeshInfo meshInfo = MeshInfo::meshTorus( numToroidalSlices,
+                                               numPoloidalSlices,
+                                               radiusOriginToCenterOfTube,
+                                               tubeLayerRadii,
+                                               torodialStartAngle,
+                                               polodialStartAngle );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      Cell                  cell = *( setupStorage.getCells().begin()->second );
+
+      map = std::make_shared< TokamakMap >( cell,
+                                            setupStorage,
+                                            numToroidalSlices,
+                                            numPoloidalSlices,
+                                            radiusOriginToCenterOfTube,
+                                            tubeLayerRadii,
+                                            torodialStartAngle,
+                                            polodialStartAngle,
+                                            delta,
+                                            r1,
+                                            r2 );
+   }
+
    else
    {
       WALBERLA_ABORT( "Map variant '" << variant << "' not supported!" );
@@ -120,22 +168,54 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    // generate a list of maps to check
-   std::vector< std::string > mapVariants{
-       "IdentityMap", "PolarCoordsMap", "AffineMap2D", "AffineMap3D", "AnnulusMap", "CircularMap" };
+   std::vector< std::string > mapVariants{ "IdentityMap",
+                                           "PolarCoordsMap",
+                                           "AffineMap2D",
+                                           "AffineMap3D",
+                                           "AnnulusMap",
+                                           "CircularMap",
+                                           "IcosahedralShellMap",
+                                           "ThinShellMap",
+                                           "TokamakMap" };
 
-   // test property query methods
+   // run tests
+   const auto badGuy = genMap( "TokamakMap" );
+
    for ( const auto& variant : mapVariants )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "*** Testing " << variant << " ***" );
       auto candidate = genMap( variant );
-      WALBERLA_LOG_INFO_ON_ROOT( "isIdentity = " << std::boolalpha << candidate->isIdentity() );
-      WALBERLA_LOG_INFO_ON_ROOT( "isAffine   = " << std::boolalpha << candidate->isAffine() );
-      WALBERLA_CHECK_EQUAL( candidate->isIdentity(), blendingMapIsIdentity( *candidate ) );
-      WALBERLA_CHECK_EQUAL( candidate->isAffine(), blendingMapIsAffine( *candidate ) );
-   }
 
-   // test (de)serialisation
-   // TODO
+      // test property query methods
+      WALBERLA_LOG_INFO_ON_ROOT( "isIdentity = " << std::boolalpha << candidate->isIdentity() );
+      WALBERLA_CHECK_EQUAL( candidate->isIdentity(), blendingMapIsIdentity( *candidate ) );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "isAffine   = " << std::boolalpha << candidate->isAffine() );
+      WALBERLA_CHECK_EQUAL( candidate->isAffine(), blendingMapIsAffine( *candidate ) );
+
+      // test (de)serialisation
+      if ( variant != "TokamakMap" && variant != "ThinShellMap" )
+      {
+         walberla::mpi::SendBuffer sendBuffer;
+
+         WALBERLA_LOG_INFO_ON_ROOT( "serializing map" );
+         GeometryMap::serialize( candidate, sendBuffer );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "deserializing map" );
+         walberla::mpi::RecvBuffer      recvBuffer( sendBuffer );
+         std::shared_ptr< GeometryMap > clone = GeometryMap::deserialize( recvBuffer );
+
+         // check that clone has identical type
+         WALBERLA_LOG_INFO_ON_ROOT( "checking type of deserialized map" );
+         const GeometryMap& candidateRef = *candidate;
+         const GeometryMap& cloneRef     = *clone;
+         const GeometryMap& badGuyRef    = *badGuy;
+         WALBERLA_CHECK( typeid( candidateRef ) == typeid( cloneRef ) );
+         WALBERLA_CHECK( !( typeid( cloneRef ) == typeid( badGuyRef ) ) ); // avoid problems with false positives
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+   }
 
    return 0;
 }
