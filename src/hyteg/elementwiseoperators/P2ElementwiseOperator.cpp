@@ -20,6 +20,8 @@
 
 #include "P2ElementwiseOperator.hpp"
 
+#include "hyteg/forms/form_hyteg_generated/p2/p2_linear_form_blending_q6.hpp"
+
 namespace hyteg {
 
 template < class P2Form >
@@ -225,8 +227,8 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       {
          Face& face = *it.second;
 
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
+         Point3D         v0, v1, v2;
+         indexing::Index nodeIdx;
          indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
@@ -439,11 +441,11 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
          {
             Face& face = *it.second;
 
-            uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
-            uint_t                   inner_rowsize = rowsize;
-            idx_t                    xIdx, yIdx;
-            Point3D                  v0, v1, v2;
-            indexing::Index          nodeIdx;
+            uint_t          rowsize       = levelinfo::num_microvertices_per_edge( level );
+            uint_t          inner_rowsize = rowsize;
+            idx_t           xIdx, yIdx;
+            Point3D         v0, v1, v2;
+            indexing::Index nodeIdx;
             indexing::Index offset;
 
             // get hold of the actual numerical data in the two functions
@@ -571,12 +573,12 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
                                                                            real_t* const                dstVertexData,
                                                                            real_t* const                dstEdgeData )
 {
-   Matrix6r                 elMat;
-   indexing::Index          nodeIdx;
-   indexing::Index offset;
-   Point3D                  v0, v1, v2;
-   std::array< uint_t, 6 >  dofDataIdx;
-   P2Form                   form( form_ );
+   Matrix6r                elMat;
+   indexing::Index         nodeIdx;
+   indexing::Index         offset;
+   Point3D                 v0, v1, v2;
+   std::array< uint_t, 6 > dofDataIdx;
+   P2Form                  form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -641,11 +643,11 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    // add contributions for central stencil weights
    for ( int k = 0; k < 4; ++k )
    {
-      vertexData[vertexDoFIndices[uint_c(k)]] += elMat( k, k );
+      vertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
    }
    for ( int k = 4; k < 10; ++k )
    {
-      edgeData[edgeDoFIndices[uint_c(k - 4)]] += elMat( k, k );
+      edgeData[edgeDoFIndices[uint_c( k - 4 )]] += elMat( k, k );
    }
 }
 template < class P2Form >
@@ -709,11 +711,11 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
       {
          Face& face = *it.second;
 
-         uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t                   inner_rowsize = rowsize;
-         idx_t                    xIdx, yIdx;
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
+         uint_t          rowsize       = levelinfo::num_microvertices_per_edge( level );
+         uint_t          inner_rowsize = rowsize;
+         idx_t           xIdx, yIdx;
+         Point3D         v0, v1, v2;
+         indexing::Index nodeIdx;
          indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
@@ -799,12 +801,12 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
                                                              const idx_t* const                          dstVertexIdx,
                                                              const idx_t* const                          dstEdgeIdx ) const
 {
-   Matrix6r                 elMat;
-   indexing::Index          nodeIdx;
-   indexing::Index offset;
-   Point3D                  v0, v1, v2;
-   std::array< uint_t, 6 >  dofDataIdx;
-   P2Form                   form( form_ );
+   Matrix6r                elMat;
+   indexing::Index         nodeIdx;
+   indexing::Index         offset;
+   Point3D                 v0, v1, v2;
+   std::array< uint_t, 6 > dofDataIdx;
+   P2Form                  form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -940,6 +942,8 @@ template class P2ElementwiseOperator< P2LinearCombinationForm >;
 template class P2ElementwiseOperator< P2RowSumForm >;
 
 template class P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 >;
+
+template class P2ElementwiseOperator< forms::p2_linear_form_blending_q6 >;
 
 template class P2ElementwiseOperator< forms::p2_epsiloncc_0_0_affine_q2 >;
 template class P2ElementwiseOperator< forms::p2_epsiloncc_0_1_affine_q2 >;

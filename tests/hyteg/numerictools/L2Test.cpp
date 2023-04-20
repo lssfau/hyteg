@@ -22,6 +22,7 @@
 #include "core/logging/Logging.h"
 #include "core/math/all.h"
 
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/L2Space.hpp"
@@ -58,7 +59,8 @@ void testRHS( const std::shared_ptr< PrimitiveStorage >&       storage,
               const std::function< real_t( const Point3D& ) >& f,
               const uint_t&                                    lvl,
               const uint_t&                                    quad,
-              const real_t&                                    accuracy )
+              const real_t&                                    min_error,
+              const real_t&                                    max_error )
 {
    L2Space< FE, ValueType > L2( storage, lvl, quad );
 
@@ -74,12 +76,13 @@ void testRHS( const std::shared_ptr< PrimitiveStorage >&       storage,
 
    // compare (φ_i, f)_i with [Mf]_i
    f_proj.interpolate( f, lvl, All );
-   M.apply( f_proj, b_M, lvl, All ); // compute rhs using mass matrix
-   L2.dot( f, b_q );                 // compute rhs using quadrature
-   e.assign( { 1.0, -1.0 }, { b_q, b_M }, lvl, All );
-   auto err = std::sqrt( e.dotGlobal( e, lvl ) / real_c( n_dof ) ); // weighted error
-   WALBERLA_LOG_INFO_ON_ROOT( "||(v_i, f)_q - [Mf]_i|| = " << err );
-   WALBERLA_CHECK_LESS( err, real_c( n_dof ) * accuracy );
+   M.apply( f_proj, b_M, lvl, All );                  // compute rhs using mass matrix
+   L2.dot( f, b_q );                                  // compute rhs using quadrature
+   e.assign( { 1.0, -1.0 }, { b_q, b_M }, lvl, All ); // compute error
+   auto err = e.getMaxMagnitude( lvl, All, true );    // max norm of error
+   WALBERLA_LOG_INFO_ON_ROOT( "max_i |(v_i, f)_q - [Mf]_i| = " << err );
+   WALBERLA_CHECK_LESS_EQUAL( min_error, err );
+   WALBERLA_CHECK_LESS_EQUAL( err, max_error );
 }
 
 int main( int argc, char* argv[] )
@@ -104,10 +107,9 @@ int main( int argc, char* argv[] )
    const real_t eps = ( std::is_same_v< real_t, double > ) ? 5e-12 : 5e-5;
 
    using P1     = P1Function< real_t >;
+   using P2     = P2Function< real_t >;
    using P1Mass = P1BlendingMassOperator;
-
-   uint_t quad = 5;
-   uint_t lvl  = 5;
+   using P2Mass = P2ElementwiseBlendingMassOperator;
 
    // === test annulus ===
 
@@ -124,8 +126,9 @@ int main( int argc, char* argv[] )
    f = [&]( const Point3D& x ) { return u( x ) * v( x ); }; // f(x) = u(x)v(x)
 
    WALBERLA_LOG_INFO_ON_ROOT( "Test: Annulus" );
-   testL2Dot< real_t >( storage, u, v, 60.0 * pi, lvl, quad, eps );
-   testRHS< P1Mass, P1, real_t >( storage, f, lvl, quad, 1e-5 );
+   testL2Dot< real_t >( storage, u, v, 60.0 * pi, 5, 5, eps );
+   testRHS< P1Mass, P1, real_t >( storage, f, 5, 5, 5e-6, 2e-5 );
+   testRHS< P2Mass, P2, real_t >( storage, f, 5, 6, 5e-5, 2e-4 );
 
    // === test polynomials 3D ===
 
@@ -139,10 +142,9 @@ int main( int argc, char* argv[] )
    v = [&]( const Point3D& x ) { return c.dot( x ); };   // v(x) = c⋅x
 
    WALBERLA_LOG_INFO_ON_ROOT( "Test: Polynomial 3D" );
-   testL2Dot< real_t >( storage, u, v, 5.0, lvl, quad, eps );
-   testRHS< P1Mass, P1, real_t >( storage, v, lvl, quad, eps );
-
-   // todo implement tests for other discretizations
+   testL2Dot< real_t >( storage, u, v, 5.0, 4, 5, eps );
+   testRHS< P1Mass, P1, real_t >( storage, v, 4, 5, 0, eps );
+   testRHS< P2Mass, P2, real_t >( storage, v, 4, 6, 0, eps );
 
    return EXIT_SUCCESS;
 }

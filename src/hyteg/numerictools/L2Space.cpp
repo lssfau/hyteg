@@ -23,8 +23,10 @@
 #include "core/Abort.h"
 #include "core/math/KahanSummation.h"
 
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p0/p0_linear_form_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_linear_form_blending_q5.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_linear_form_blending_q6.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
@@ -231,6 +233,29 @@ void L2Space< P1Function< real_t > >::dot( const std::function< real_t( const Po
       return dot< P1VariableOperator, p1_linear_form_blending_q5 >( f, b, lvl );
    default:
       WALBERLA_ABORT( "(v_i,f)_L2 not implemented for P1 with selected quadrature rule" );
+   }
+}
+
+// P2
+template <>
+void L2Space< P2Function< real_t > >::dot( const std::function< real_t( const Point3D& ) >& f,
+                                           P2Function< real_t >&                            b,
+                                           uint_t                                           q,
+                                           uint_t                                           lvl ) const
+{
+   if ( q == DEFAULT )
+      q = _q;
+   if ( lvl == DEFAULT )
+      lvl = _lvl;
+
+   using namespace forms;
+
+   switch ( q )
+   {
+   case 6:
+      return dot< P2ElementwiseOperator, p2_linear_form_blending_q6 >( f, b, lvl );
+   default:
+      WALBERLA_ABORT( "(v_i,f)_L2 not implemented for P2 with selected quadrature rule" );
    }
 }
 
