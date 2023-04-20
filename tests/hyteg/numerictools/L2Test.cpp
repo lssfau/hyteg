@@ -71,9 +71,6 @@ void testRHS( const std::shared_ptr< PrimitiveStorage >&       storage,
    FE           b_q( "b_q", storage, lvl, lvl );
    FE           e( "b_q - b_M", storage, lvl, lvl );
 
-   // number of global DoFs
-   auto n_dof = numberOfGlobalDoFs< typename FE::Tag >( *storage, lvl );
-
    // compare (φ_i, f)_i with [Mf]_i
    f_proj.interpolate( f, lvl, All );
    M.apply( f_proj, b_M, lvl, All );                  // compute rhs using mass matrix
