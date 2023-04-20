@@ -24,6 +24,7 @@
 #include "IcosahedralShellMap.hpp"
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
+#include "ThinShellMap.hpp"
 
 namespace hyteg {
 
@@ -46,21 +47,23 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
 
    switch ( type )
    {
-   case Type::IDENTITY:
-      return std::make_shared< IdentityMap >();
-   case Type::CIRCULAR:
-      return std::make_shared< CircularMap >( recvBuffer );
-   case Type::POLAR_COORDS:
-      return std::make_shared< PolarCoordsMap >();
-   case Type::ANNULUS:
-      return std::make_shared< AnnulusMap >( recvBuffer );
-   case Type::ICOSAHEDRAL_SHELL:
-      return std::make_shared< IcosahedralShellMap >( recvBuffer );
    case Type::AFFINE:
    case Type::AFFINE_2D:
       return std::make_shared< AffineMap2D >( recvBuffer );
    case Type::AFFINE_3D:
       return std::make_shared< AffineMap3D >( recvBuffer );
+   case Type::ANNULUS:
+      return std::make_shared< AnnulusMap >( recvBuffer );
+   case Type::CIRCULAR:
+      return std::make_shared< CircularMap >( recvBuffer );
+   case Type::IDENTITY:
+      return std::make_shared< IdentityMap >();
+   case Type::ICOSAHEDRAL_SHELL:
+      return std::make_shared< IcosahedralShellMap >( recvBuffer );
+   case Type::THIN_SHELL:
+      return std::make_shared< ThinShellMap >( recvBuffer );
+   case Type::POLAR_COORDS:
+      return std::make_shared< PolarCoordsMap >();
    default:
       WALBERLA_ABORT( "Error in deserializing GeometryMap: Unsupported Map Type" )
    }

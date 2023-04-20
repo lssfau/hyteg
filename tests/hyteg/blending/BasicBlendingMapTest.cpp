@@ -194,7 +194,7 @@ int main( int argc, char* argv[] )
       WALBERLA_CHECK_EQUAL( candidate->isAffine(), blendingMapIsAffine( *candidate ) );
 
       // test (de)serialisation
-      if ( variant != "TokamakMap" && variant != "ThinShellMap" )
+      if ( variant != "TokamakMap" )
       {
          walberla::mpi::SendBuffer sendBuffer;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Marcus Mohr.
+ * Copyright (c) 2022-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -86,9 +86,13 @@ class ThinShellMap : public GeometryMap
       DFx( 2, 2 ) = x[0] * x[0] + x[1] * x[1];
 
       DFx *= factor;
+
+      return DFx( 0, 0 ) * DFx( 1, 1 ) * DFx( 2, 2 ) - DFx( 0, 0 ) * DFx( 2, 1 ) * DFx( 1, 2 ) -
+             DFx( 1, 0 ) * DFx( 0, 1 ) * DFx( 2, 2 ) + DFx( 1, 0 ) * DFx( 2, 1 ) * DFx( 0, 2 ) +
+             DFx( 2, 0 ) * DFx( 0, 1 ) * DFx( 1, 2 ) - DFx( 2, 0 ) * DFx( 1, 1 ) * DFx( 0, 2 );
    };
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override { sendBuffer << radius_; }
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override { sendBuffer << Type::THIN_SHELL << radius_; }
 
    static void setMap( SetupPrimitiveStorage& setupStorage, real_t radius )
    {
