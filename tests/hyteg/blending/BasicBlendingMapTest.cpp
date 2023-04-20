@@ -113,7 +113,7 @@ auto genMap( const std::string& variant )
       MeshInfo              meshInfo = MeshInfo::meshThinSphericalShell( 2, radius );
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       Face                  face = *( setupStorage.getFaces().begin()->second );
-      map                        = std::make_shared< ThinShellMap >( face, setupStorage, radius );
+      map                        = std::make_shared< ThinShellMap >( face, radius );
    }
 
    else if ( variant == "TokamakMap" )
