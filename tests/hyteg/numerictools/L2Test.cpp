@@ -36,16 +36,15 @@ using walberla::math::pi;
 
 using namespace hyteg;
 
-template < typename ValueType >
-void testL2Dot( const std::shared_ptr< PrimitiveStorage >&       storage,
-                const std::function< real_t( const Point3D& ) >& u,
-                const std::function< real_t( const Point3D& ) >& v,
-                const real_t&                                    uv_expected,
-                const uint_t&                                    lvl,
-                const uint_t&                                    quad,
-                const real_t&                                    accuracy )
+template < typename ValueType, uint_t Quad >
+void testL2Dot( const std::shared_ptr< PrimitiveStorage >&          storage,
+                const std::function< ValueType( const Point3D& ) >& u,
+                const std::function< ValueType( const Point3D& ) >& v,
+                const real_t&                                       uv_expected,
+                const uint_t&                                       lvl,
+                const real_t&                                       accuracy )
 {
-   L2Space< Undefined, ValueType > L2( storage, lvl, quad );
+   L2Space< Quad, Undefined, ValueType > L2( storage, lvl );
 
    // compute (u,v)_0
    auto uv  = L2.dot( u, v );
@@ -54,15 +53,14 @@ void testL2Dot( const std::shared_ptr< PrimitiveStorage >&       storage,
    WALBERLA_CHECK_LESS( err, accuracy );
 }
 
-template < class MassOperator, class FE, typename ValueType >
-void testRHS( const std::shared_ptr< PrimitiveStorage >&       storage,
-              const std::function< real_t( const Point3D& ) >& f,
-              const uint_t&                                    lvl,
-              const uint_t&                                    quad,
-              const real_t&                                    min_error,
-              const real_t&                                    max_error )
+template < class MassOperator, class FE, typename ValueType, uint_t Quad >
+void testRHS( const std::shared_ptr< PrimitiveStorage >&          storage,
+              const std::function< ValueType( const Point3D& ) >& f,
+              const uint_t&                                       lvl,
+              const real_t&                                       min_error,
+              const real_t&                                       max_error )
 {
-   L2Space< FE, ValueType > L2( storage, lvl, quad );
+   L2Space< Quad, FE, ValueType > L2( storage, lvl );
 
    // operators and functions
    MassOperator M( storage, lvl, lvl );
@@ -95,7 +93,8 @@ int main( int argc, char* argv[] )
    std::shared_ptr< PrimitiveStorage > storage;
 
    // functions
-   std::function< real_t( const Point3D& ) > u, v, f;
+   std::function< real_t( const Point3D& ) >  u, v, f;
+   std::function< Point3D( const Point3D& ) > u3, v3, f3;
 
    // -------
    //  TESTS
@@ -122,10 +121,13 @@ int main( int argc, char* argv[] )
    };                                                       // v(r,φ) = sin^2(φ)
    f = [&]( const Point3D& x ) { return u( x ) * v( x ); }; // f(x) = u(x)v(x)
 
+   u3 = [&]( const Point3D& x ) { return std::sin( std::atan2( x[1], x[0] ) ) * x; }; //u3(x) = sin(φ) x
+
    WALBERLA_LOG_INFO_ON_ROOT( "Test: Annulus" );
-   testL2Dot< real_t >( storage, u, v, 60.0 * pi, 5, 5, eps );
-   testRHS< P1Mass, P1, real_t >( storage, f, 5, 5, 5e-6, 2e-5 );
-   testRHS< P2Mass, P2, real_t >( storage, f, 5, 6, 5e-5, 2e-4 );
+   testL2Dot< real_t, 5 >( storage, u, v, 60.0 * pi, 5, eps );
+   testL2Dot< Point3D, 5 >( storage, u3, u3, 60.0 * pi, 5, eps );
+   testRHS< P1Mass, P1, real_t, 5 >( storage, f, 5, 5e-6, 2e-5 );
+   testRHS< P2Mass, P2, real_t, 7 >( storage, f, 5, 5e-5, 2e-4 );
 
    // === test polynomials 3D ===
 
@@ -133,15 +135,22 @@ int main( int argc, char* argv[] )
    setupStorage = SetupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    storage      = std::make_shared< PrimitiveStorage >( setupStorage );
 
+   Matrix3r C;
+   C << 2.0, 3.0, 4.0, //
+       3.0, 4.0, 5.0,  //
+       4.0, 5.0, 6.0;
+   Point3D c = C.diagonal();
    Point3D one{ 1.0, 1.0, 1.0 };
-   Point3D c{ 1.0, 2.0, 3.0 };
-   u = [&]( const Point3D& x ) { return one.dot( x ); }; // u(x) = x+y+z
-   v = [&]( const Point3D& x ) { return c.dot( x ); };   // v(x) = c⋅x
+   u  = [&]( const Point3D& x ) { return one.dot( x ); };     // u(x) = x+y+z
+   v  = [&]( const Point3D& x ) { return c.dot( x ); };       // v(x) = c⋅x
+   u3 = [&]( const Point3D& x ) { return x; };                //u3(x) = x
+   v3 = [&]( const Point3D& x ) -> Point3D { return C * x; }; //v3(x) = Cx
 
    WALBERLA_LOG_INFO_ON_ROOT( "Test: Polynomial 3D" );
-   testL2Dot< real_t >( storage, u, v, 5.0, 4, 5, eps );
-   testRHS< P1Mass, P1, real_t >( storage, v, 4, 5, 0, eps );
-   testRHS< P2Mass, P2, real_t >( storage, v, 4, 6, 0, eps );
+   testL2Dot< real_t, 5 >( storage, u, v, 10.0, 4, eps );
+   testL2Dot< Point3D, 5 >( storage, u3, v3, 10.0, 4, eps );
+   testRHS< P1Mass, P1, real_t, 5 >( storage, v, 4, 0, eps );
+   testRHS< P2Mass, P2, real_t, 7 >( storage, v, 4, 0, eps );
 
    return EXIT_SUCCESS;
 }

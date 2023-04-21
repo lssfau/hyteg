@@ -34,27 +34,27 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p2_linear_form_blending_q6
+/// - name:        p2_linear_form_blending_q7
 /// - description: Implements a linear form of type: (k(x), psi) where psi a test function and k = k(x) a scalar, external function.
 /// - trial space: Lagrange, degree: 2
 /// - test space:  Lagrange, degree: 2
 ///
-class p2_linear_form_blending_q6 : public P2FormHyTeG
+class p2_linear_form_blending_q7 : public P2FormHyTeG
 {
 
  public:
 
-   p2_linear_form_blending_q6() { WALBERLA_ABORT("Not implemented."); }
+   p2_linear_form_blending_q7() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_linear_form_blending_q6( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k )
-   : callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
-   , callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
+   p2_linear_form_blending_q7( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )
+   : callback_Scalar_Variable_Coefficient_2D_k(_callback_Scalar_Variable_Coefficient_2D_k)
+   , callback_Scalar_Variable_Coefficient_3D_k(_callback_Scalar_Variable_Coefficient_3D_k)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
    std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_k;
+   std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
 
 
  public:
@@ -63,11 +63,11 @@ class p2_linear_form_blending_q6 : public P2FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (6, 6)
-   /// - quadrature rule:                        Griener-Schmid 1 | points: 10, degree: 6, test tolerance: 3.886e-16
+   /// - quadrature rule:                        Gatermann | points: 12, degree: 7, test tolerance: 1.4445166104262934e-15
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              239     286       0       0     11            229                30
+   ///                                              287     342       0       0     13            259                36
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
@@ -75,11 +75,11 @@ class p2_linear_form_blending_q6 : public P2FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (6, 6)
-   /// - quadrature rule:                        Griener-Schmid 1 | points: 10, degree: 6, test tolerance: 3.886e-16
+   /// - quadrature rule:                        Gatermann | points: 12, degree: 7, test tolerance: 1.4445166104262934e-15
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              104     176       0       0     11             89                30
+   ///                                              124     210       0       0     13            103                36
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const override;
 
@@ -87,11 +87,11 @@ class p2_linear_form_blending_q6 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 6 | points: 23, degree: 6, test tolerance: 7.137e-17
+   /// - quadrature rule:                        Keast 8 | points: 31, degree: 7, test tolerance: 1.19e-16
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1186    1370       0       0     24            869                69
+   ///                                             1510    1753       0       0     32           1093                93
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -99,11 +99,11 @@ class p2_linear_form_blending_q6 : public P2FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (10, 10)
-   /// - quadrature rule:                        Xiao-Gimbutas 6 | points: 23, degree: 6, test tolerance: 7.137e-17
+   /// - quadrature rule:                        Keast 8 | points: 31, degree: 7, test tolerance: 1.19e-16
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              597     979       0       0     24            367                69
+   ///                                              714    1214       0       0     31            479                93
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 

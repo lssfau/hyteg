@@ -31,175 +31,134 @@ class Undefined
 {};
 
 /// @brief Class representing an L2 space
+/// @tparam Quad                 Order of quadrature rule used to compute integrals on each micro element
 /// @tparam DiscretizationType   Functiontype defining a discrete subspace
 /// @tparam CodomainType         Type defining the codomain of the elements of this space (usually R or R^3)
-template < class DiscretizationType = Undefined, typename CodomainType = real_t >
+template < uint_t Quad, class DiscretizationType = Undefined, typename CodomainType = real_t >
 class L2Space
 {
  public:
-   static constexpr uint_t DEFAULT = 0xdef;
-
    /// @brief Construct a L2 space corresponding to the domain discretized by storage at a certain grid level
    /// @param storage   PrimitiveStorage object
-   /// @param lvl       Default grid level to work on
-   /// @param q         Default order of quadrature rule to use for computing integrals.
-   L2Space( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& lvl, const uint_t& q )
+   /// @param lvl       grid level to work on
+   L2Space( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& lvl )
    : _storage( storage )
    , _lvl( lvl )
-   , _q( q )
    {}
 
-   /// @brief Set default order of quadrature rule
-   /// @param q
-   void setQuad( const uint_t q ) { _q = q; }
-
-   /// @brief Set default working grid level
+   /// @brief Set working grid level
    /// @param lvl
    void setLvl( const uint_t lvl ) { _lvl = lvl; }
 
    /// @brief Compute the L2 norm ||u||_0
    /// @param u function in L2
-   /// @param q use quadrature of order q instead of the chosen default value
-   /// @param lvl operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< CodomainType( const Point3D& ) >& u, uint_t q = DEFAULT, uint_t lvl = DEFAULT ) const
-   {
-      return std::sqrt( this->dot( u, u, q, lvl ) );
-   }
+   real_t norm( const std::function< CodomainType( const Point3D& ) >& u ) const { return std::sqrt( this->dot( u, u ) ); }
 
    /// @brief Compute the L2 norm ||u||_0
    /// @param u      function in L2
    /// @param u2_T   map to store partial result (u,u)_L2(T) on each macro element T
-   /// @param q      use quadrature of order q instead of the chosen default value
-   /// @param lvl    operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< CodomainType( const Point3D& ) >& u,
-                std::map< PrimitiveID, real_t >&                       u2_T,
-                uint_t                                                 q   = DEFAULT,
-                uint_t                                                 lvl = DEFAULT ) const
+   real_t norm( const std::function< CodomainType( const Point3D& ) >& u, std::map< PrimitiveID, real_t >& u2_T ) const
    {
-      return std::sqrt( this->dot( u, u, u2_T, q, lvl ) );
+      return std::sqrt( this->dot( u, u, u2_T ) );
    }
 
    /// @brief Compute the L2 norm ||u||_0
    /// @param u function in L2
-   /// @param q use quadrature of order q instead of the chosen default value
-   /// @param lvl operate on level lvl instead of chosen default value
    /// @return ||u||_0
-   real_t norm( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
-                uint_t                                                                     q   = DEFAULT,
-                uint_t                                                                     lvl = DEFAULT ) const
+   real_t norm( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u ) const
    {
-      return std::sqrt( this->dot( u, u, q, lvl ) );
+      return std::sqrt( this->dot( u, u ) );
    }
 
    /// @brief Compute the L2 norm ||u||_0
    /// @param u function in L2
    /// @param u2_T   map to store partial result (u,u)_L2(T) on each macro element T
-   /// @param q use quadrature of order q instead of the chosen default value
-   /// @param lvl operate on level lvl instead of chosen default value
    /// @return ||u||_0
    real_t norm( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
-                std::map< PrimitiveID, real_t >&                                           u2_T,
-                uint_t                                                                     q   = DEFAULT,
-                uint_t                                                                     lvl = DEFAULT ) const
+                std::map< PrimitiveID, real_t >&                                           u2_T ) const
    {
-      return std::sqrt( this->dot( u, u, u2_T, q, lvl ) );
+      return std::sqrt( this->dot( u, u, u2_T ) );
    }
 
    /// @brief Compute an approximation to the L2 dot product (u,v)_0
    /// @param u      function in L2
    /// @param v      function in L2
-   /// @param q      use quadrature of order q instead of the chosen default value
-   /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
    real_t dot( const std::function< CodomainType( const Point3D& ) >& u,
-               const std::function< CodomainType( const Point3D& ) >& v,
-               uint_t                                                 q   = DEFAULT,
-               uint_t                                                 lvl = DEFAULT ) const
+               const std::function< CodomainType( const Point3D& ) >& v ) const
    {
       std::map< PrimitiveID, real_t > _;
-      return this->dot( u, v, _, q, lvl );
+      return this->dot( u, v, _ );
    }
 
    /// @brief Compute an approximation to the L2 dot product (u,v)_0
    /// @param u      function in L2
    /// @param v      function in L2
    /// @param uv_T   map to store partial result of dot product on each macro element T
-   /// @param q      use quadrature of order q instead of the chosen default value
-   /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
    real_t dot( const std::function< CodomainType( const Point3D& ) >& u,
                const std::function< CodomainType( const Point3D& ) >& v,
-               std::map< PrimitiveID, real_t >&                       uv_T,
-               uint_t                                                 q   = DEFAULT,
-               uint_t                                                 lvl = DEFAULT ) const
+               std::map< PrimitiveID, real_t >&                       uv_T ) const
    {
       auto uid = [&]( const Point3D& x, const PrimitiveID& ) { return u( x ); };
       auto vid = [&]( const Point3D& x, const PrimitiveID& ) { return v( x ); };
-      return this->dot( uid, vid, uv_T, q, lvl );
+      return this->dot( uid, vid, uv_T );
    }
 
    /// @brief Compute an approximation to the L2 dot product (u,v)_0
    /// @param u      function in L2
    /// @param v      function in L2
-   /// @param q      use quadrature of order q instead of the chosen default value
-   /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
    real_t dot( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
-               const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& v,
-               uint_t                                                                     q   = DEFAULT,
-               uint_t                                                                     lvl = DEFAULT ) const
+               const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& v ) const
    {
       std::map< PrimitiveID, real_t > _;
-      return this->dot( u, v, _, q, lvl );
+      return this->dot( u, v, _ );
    }
 
    /// @brief Compute an approximation to the L2 dot product (u,v)_0
    /// @param u      function in L2
    /// @param v      function in L2
    /// @param uv_T   map to store partial result of dot product on each macro element T
-   /// @param q      use quadrature of order q instead of the chosen default value
-   /// @param lvl    operate on level lvl instead of chosen default value
    /// @return (u,v)_0
    real_t dot( const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& u,
                const std::function< CodomainType( const Point3D&, const PrimitiveID& ) >& v,
-               std::map< PrimitiveID, real_t >&                                           uv_T,
-               uint_t                                                                     q   = DEFAULT,
-               uint_t                                                                     lvl = DEFAULT ) const;
+               std::map< PrimitiveID, real_t >&                                           uv_T ) const;
 
    /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
    /// @param f      L2 function
    /// @param b      output vector to store the values of the integral
-   /// @param q      use quadrature of order q instead of the chosen default value
-   /// @param lvl    operate on level lvl instead of chosen default value
-   void dot( const std::function< CodomainType( const Point3D& ) >& f,
-             DiscretizationType&                                    b,
-             uint_t                                                 q   = DEFAULT,
-             uint_t                                                 lvl = DEFAULT ) const;
+   void dot( const std::function< CodomainType( const Point3D& ) >& f, DiscretizationType& b ) const;
 
  private:
    /// @brief Integrate a function over a given macro element
-   /// @param T            primitive over which f shall be integrated
-   /// @param f            integrand
-   /// @param q            use quadrature of order q instead of the chosen default value
-   /// @param lvl          operate on level lvl instead of chosen default value
+   /// @param T  primitive over which f shall be integrated
+   /// @param f  integrand
    /// @return ∫_T f(x) dx
    template < class PrimitiveType >
-   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f, uint_t q, uint_t lvl ) const;
+   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f ) const;
+
+   /// @brief Integrate a function over a given macro element
+   /// @tparam QuadratureRule
+   /// @tparam PrimitiveType
+   /// @param T  primitive over which f shall be integrated
+   /// @param f  integrand
+   /// @return ∫_T f(x) dx
+   template < class QuadratureRule, class PrimitiveType >
+   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f ) const;
 
    /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
    /// @tparam Op          Type of operator fitting for the FE space, e.g P1VariableOperator
    /// @tparam LinearForm  Form defining quadrature rule to evaluate the integrals
    /// @param f      L2 function
    /// @param b      output vector to store the values of the integral
-   /// @param lvl    operate on level lvl instead of chosen default value
    template < template < class > class Op, class LinearForm >
-   void dot( const std::function< real_t( const Point3D& ) >& f, const DiscretizationType& b, uint_t lvl ) const;
+   void dot( const std::function< real_t( const Point3D& ) >& f, const DiscretizationType& b ) const;
 
    std::shared_ptr< PrimitiveStorage > _storage; // storage corresponding to domain discretization
    uint_t                              _lvl;     // grid level to work on
-   uint_t                              _q;       // order of quadrature rule used for computing integrals
 };
 
 } // namespace hyteg

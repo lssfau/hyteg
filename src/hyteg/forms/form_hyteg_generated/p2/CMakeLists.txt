@@ -38,7 +38,7 @@ target_sources( hyteg
 
     p2_invk_mass_affine_q6.cpp
     p2_invk_mass_affine_q6.hpp
-    p2_linear_form_blending_q6.hpp
-    p2_linear_form_blending_q6.cpp
+    p2_linear_form_blending_q7.hpp
+    p2_linear_form_blending_q7.cpp
 )
 

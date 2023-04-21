@@ -20,7 +20,7 @@
 
 #include "P2ElementwiseOperator.hpp"
 
-#include "hyteg/forms/form_hyteg_generated/p2/p2_linear_form_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_linear_form_blending_q7.hpp"
 
 namespace hyteg {
 
@@ -943,7 +943,7 @@ template class P2ElementwiseOperator< P2RowSumForm >;
 
 template class P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 >;
 
-template class P2ElementwiseOperator< forms::p2_linear_form_blending_q6 >;
+template class P2ElementwiseOperator< forms::p2_linear_form_blending_q7 >;
 
 template class P2ElementwiseOperator< forms::p2_epsiloncc_0_0_affine_q2 >;
 template class P2ElementwiseOperator< forms::p2_epsiloncc_0_1_affine_q2 >;
