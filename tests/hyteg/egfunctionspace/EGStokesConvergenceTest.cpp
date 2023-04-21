@@ -374,36 +374,6 @@ void Stokes3D( const uint_t minLevel, const uint_t maxLevel )
              maxLevel,
              2 );
       }
-
-      // P2P1
-      if constexpr ( false )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "### P2P1 cube_6el, inhom. ###" );
-         StokesConvergenceOrderTest< hyteg::P2P1TaylorHoodStokesOperator >(
-             "P2P1StokesOperator3D_cube_6el_inhom",
-             std::make_tuple( []( const hyteg::Point3D& xx ) { return -real_c( 4 ) * std::cos( real_c( 4 ) * xx[2] ); },
-                              []( const hyteg::Point3D& xx ) { return real_c( 8 ) * std::cos( real_c( 8 ) * xx[0] ); },
-                              []( const hyteg::Point3D& xx ) { return -real_c( 2 ) * std::cos( real_c( 2 ) * xx[1] ); },
-                              []( const hyteg::Point3D& xx ) {
-                                 return std::sin( 4 * xx[0] ) * std::sin( 8 * xx[1] ) * std::sin( 2 * xx[2] );
-                              } ),
-             std::make_tuple(
-                 []( const hyteg::Point3D& xx ) {
-                    return 4 * std::sin( 8 * xx[1] ) * std::sin( 2 * xx[2] ) * std::cos( 4 * xx[0] ) - 64 * std::cos( 4 * xx[2] );
-                 },
-                 []( const hyteg::Point3D& xx ) {
-                    return 8 * std::sin( 4 * xx[0] ) * std::sin( 2 * xx[2] ) * std::cos( 8 * xx[1] ) +
-                           512 * std::cos( 8 * xx[0] );
-                 },
-                 []( const hyteg::Point3D& xx ) {
-                    return 2 * std::sin( 4 * xx[0] ) * std::sin( 8 * xx[1] ) * std::cos( 2 * xx[2] ) - 8 * std::cos( 2 * xx[1] );
-                 },
-                 []( const hyteg::Point3D& ) { return 0; } ),
-             std::make_shared< hyteg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel ),
-             storage,
-             minLevel,
-             maxLevel,
-             2 );
       }
    }
 }
