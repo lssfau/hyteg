@@ -104,10 +104,10 @@ void VTKN1E1Writer::writeVectorFunction( std::ostream&                          
          {
             const std::array< indexing::Index, 4 > vertexIndices =
                 n1e1::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
-            const auto vtkPoint = 0.25 * ( vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[0] ) +
-                                           vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[1] ) +
-                                           vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[2] ) +
-                                           vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[3] ) );
+            const Point3D vtkPoint = 0.25 * ( vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[0] ) +
+                                              vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[1] ) +
+                                              vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[2] ) +
+                                              vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[3] ) );
 
             typename n1e1::N1E1VectorFunction< value_t >::VectorType value;
             function.evaluateOnMicroElement( vtkPoint, level, cellId, idxIt, cellType, value );
