@@ -373,7 +373,7 @@ void Stokes3D( const uint_t minLevel, const uint_t maxLevel )
              minLevel,
              maxLevel,
              2 );
-      }
+
       }
    }
 }
