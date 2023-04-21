@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Marcus Mohr.
+ * Copyright (c) 2022-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -37,15 +37,29 @@ using walberla::real_c;
 class ThinShellMap : public GeometryMap
 {
  public:
-   ThinShellMap( const Face& face, const SetupPrimitiveStorage& storage, real_t radius )
+   ThinShellMap( const Face& face, real_t radius )
    : radius_( radius )
-   {}
+   {
+      primitiveVertices.reserve( 3 );
+      const auto coords = face.getCoordinates();
+      for ( const auto& point : coords )
+      {
+         primitiveVertices.push_back( point );
+      }
+   }
 
-   ThinShellMap( const Edge& edge, const SetupPrimitiveStorage& storage, real_t radius )
+   ThinShellMap( const Edge& edge, real_t radius )
    : radius_( radius )
-   {}
+   {
+      primitiveVertices.reserve( 2 );
+      const auto coords = edge.getCoordinates();
+      for ( const auto& point : coords )
+      {
+         primitiveVertices.push_back( point );
+      }
+   }
 
-   ThinShellMap( walberla::mpi::RecvBuffer& recvBuffer ) { recvBuffer >> radius_; }
+   ThinShellMap( walberla::mpi::RecvBuffer& recvBuffer ) { recvBuffer >> radius_ >> primitiveVertices; }
 
    void evalF( const Point3D& xComp, Point3D& xPhys ) const override
    {
@@ -56,7 +70,12 @@ class ThinShellMap : public GeometryMap
       xPhys[2] = xComp[2] * radius_ / oldRad;
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override {}
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override
+   {
+      WALBERLA_UNUSED( xPhys );
+      WALBERLA_UNUSED( xComp );
+      WALBERLA_ABORT( "ThinShellMap::evalFinv() not implemented, yet!" );
+   }
 
    void evalDF( const Point3D&, Matrix2r& ) const final override
    {
@@ -86,27 +105,35 @@ class ThinShellMap : public GeometryMap
       DFx( 2, 2 ) = x[0] * x[0] + x[1] * x[1];
 
       DFx *= factor;
+
+      return DFx( 0, 0 ) * DFx( 1, 1 ) * DFx( 2, 2 ) - DFx( 0, 0 ) * DFx( 2, 1 ) * DFx( 1, 2 ) -
+             DFx( 1, 0 ) * DFx( 0, 1 ) * DFx( 2, 2 ) + DFx( 1, 0 ) * DFx( 2, 1 ) * DFx( 0, 2 ) +
+             DFx( 2, 0 ) * DFx( 0, 1 ) * DFx( 1, 2 ) - DFx( 2, 0 ) * DFx( 1, 1 ) * DFx( 0, 2 );
    };
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override { sendBuffer << radius_; }
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
+   {
+      sendBuffer << Type::THIN_SHELL << radius_ << primitiveVertices;
+   }
 
    static void setMap( SetupPrimitiveStorage& setupStorage, real_t radius )
    {
       for ( auto it : setupStorage.getFaces() )
       {
          Face& face = *it.second;
-         setupStorage.setGeometryMap( face.getID(), std::make_shared< ThinShellMap >( face, setupStorage, radius ) );
+         setupStorage.setGeometryMap( face.getID(), std::make_shared< ThinShellMap >( face, radius ) );
       }
 
       for ( auto it : setupStorage.getEdges() )
       {
          Edge& edge = *it.second;
-         setupStorage.setGeometryMap( edge.getID(), std::make_shared< ThinShellMap >( edge, setupStorage, radius ) );
+         setupStorage.setGeometryMap( edge.getID(), std::make_shared< ThinShellMap >( edge, radius ) );
       }
    }
 
  private:
-   real_t radius_;
+   real_t                 radius_;
+   std::vector< Point3D > primitiveVertices; // macro-vertex coordinates of the map's primitive for evalFinv()
 };
 
 } // namespace hyteg

@@ -50,21 +50,21 @@ int main( int argc, char* argv[] )
 
    const uint_t                numToroidalSlices          = 20;
    const uint_t                numPoloidalSlices          = 8;
-   const real_t                radiusOriginToCenterOfTube = 6.2;
-   const std::vector< real_t > tubeLayerRadii             = { 1.2, 2.2, 3 };
-   const real_t                torodialStartAngle         = 0.0;
-   const real_t                polodialStartAngle         = 0; // 2.0 * pi / real_c( 2 * numPoloidalSlices );
+   const real_t                radiusOriginToCenterOfTube = real_c( 6.2 );
+   const std::vector< real_t > tubeLayerRadii             = { real_c( 1.2 ), real_c( 2.2 ), real_c( 3 ) };
+   const real_t                torodialStartAngle         = real_c( 0 );
+   const real_t                polodialStartAngle         = real_c( 0 ); // 2.0 * pi / real_c( 2 * numPoloidalSlices );
 
-   real_t delta = sin( 0.33 );
-   real_t r1    = 2.0;
-   real_t r2    = 3.7;
+   real_t delta = std::sin( real_c( 0.33 ) );
+   real_t r1    = real_c( 2.0 );
+   real_t r2    = real_c( 3.7 );
 
    // set to true to map an actual torus, not the tokamak
    const bool mapTorus = false;
 
    if ( mapTorus )
    {
-      delta = 0;
+      delta = real_c( 0 );
       r1    = tubeLayerRadii.back();
       r2    = tubeLayerRadii.back();
    }
@@ -104,7 +104,8 @@ int main( int argc, char* argv[] )
 
    auto globalStorageInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( globalStorageInfo );
-   WALBERLA_LOG_INFO_ON_ROOT( "DoFs on max level (" << maxLevel << "): " << numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "DoFs on max level (" << maxLevel
+                                                    << "): " << numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) );
 
    if ( writeVTK )
    {
