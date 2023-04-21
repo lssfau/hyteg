@@ -210,10 +210,9 @@ gcc_8_mpionly_dbg_petsc-complex_trilinos:
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
       PETSC_DIR: "/opt/spack/install"
-   stage: pretest
-   #only:
-   #   variables:
-   #      - $ENABLE_NIGHTLY_BUILDS
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
