@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -55,8 +55,9 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    virtual uint_t getDimension() const { return 1; }
 
-   inline vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
-   inline EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }
+   // These functions to me are highly misleading, as the "copy" will address the same data
+   // inline vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
+   // inline EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }
 
    inline const vertexdof::VertexDoFFunction< ValueType >& getVertexDoFFunction() const { return vertexDoFFunction_; }
    inline const EdgeDoFFunction< ValueType >&              getEdgeDoFFunction() const { return edgeDoFFunction_; }
