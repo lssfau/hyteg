@@ -28,7 +28,6 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/forms/form_hyteg_base/P0FormHyTeG.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg {
 namespace forms {
