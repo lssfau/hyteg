@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2023 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,7 +20,12 @@
 #pragma once
 
 #include "hyteg/forms/N1E1LinearCombinationForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
@@ -194,10 +199,21 @@ void localMatrixVectorMultiply3D( uint_t                 level,
                                   real_t* const          dstEdgeData,
                                   const Matrix6r&        elMat );
 
-using N1E1ElementwiseCurlCurlOperator          = N1E1ElementwiseOperator< N1E1Form_curl_curl >;
-using N1E1ElementwiseMassOperator              = N1E1ElementwiseOperator< N1E1Form_mass >;
+// curl-curl
+using N1E1ElementwiseCurlCurlOperator = N1E1ElementwiseOperator< N1E1Form_curl_curl >;
+// TODO
+// using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
+using N1E1ElementwiseBlendingCurlCurlOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_curl_curl_blending_q2 >;
+// mass
+using N1E1ElementwiseMassOperator = N1E1ElementwiseOperator< N1E1Form_mass >;
+// TODO remove manual mass form
+// using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
+using N1E1ElementwiseBlendingMassOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
+// linear combination
 using N1E1ElementwiseLinearCombinationOperator = N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
-using N1E1ElementwiseLinearFormOperatorQ6      = N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
+// linear form
+using N1E1ElementwiseLinearFormOperatorQ6         = N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
+using N1E1ElementwiseBlendingLinearFormOperatorQ6 = N1E1ElementwiseOperator< forms::n1e1_linear_form_blending_q6 >;
 
 } // namespace n1e1
 } // namespace hyteg
