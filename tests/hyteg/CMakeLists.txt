@@ -844,13 +844,17 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME EGApplyTest)
 
     waLBerla_compile_test(FILES egfunctionspace/EGMatfreeConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGMatfreeConvergenceTest LABELS longrun)
+    waLBerla_execute_test(NAME EGMatfreeConvergenceTest COMMAND $<TARGET_FILE:EGMatfreeConvergenceTest> -ksp_type
+            minres
+            -pc_type
+            none
+            -ksp_monitor)
 
     waLBerla_compile_test(FILES egfunctionspace/EGStokesConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGStokesConvergenceTest COMMAND $<TARGET_FILE:EGStokesConvergenceTest> LABELS longrun)
+    waLBerla_execute_test(NAME EGStokesConvergenceTest COMMAND $<TARGET_FILE:EGStokesConvergenceTest> )
 
     waLBerla_compile_test(FILES egfunctionspace/EGEpsilonConvergenceTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME EGEpsilonConvergenceTest COMMAND $<TARGET_FILE:EGEpsilonConvergenceTest> LABELS longrun)
+    waLBerla_execute_test(NAME EGEpsilonConvergenceTest COMMAND $<TARGET_FILE:EGEpsilonConvergenceTest> )
 
 
     waLBerla_compile_test(FILES dg/DGPetscApplyTest.cpp DEPENDS hyteg core)

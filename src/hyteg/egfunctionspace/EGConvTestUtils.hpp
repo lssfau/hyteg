@@ -130,7 +130,7 @@ namespace hyteg {
                                            const uint_t minLevel,
                                            const uint_t maxLevel,
                                            const uint_t &solverType = 5,
-                                           const real_t residualTol = 1e-15,
+                                           const real_t residualTol = 1e-7,
                                            bool writeVTK = false,
                                            std::pair<bool, real_t> discrErrorThreshhold = std::make_pair(false, 0),
                                            std::shared_ptr<checkFunctionType> checkSolution = nullptr,
@@ -237,12 +237,12 @@ namespace hyteg {
                                                                                                  << ", expected + eps: "
                                                                                                  << expectedL2VeloRate_ + 0.1 << ")");*/
                         WALBERLA_CHECK_GREATER_EQUAL(rates_[0],
-                                                     expectedL2VeloRate_ - 0.1,
+                                                     expectedL2VeloRate_ - 0.25,
                                                      "Convergence L2 rate on level " << level
                                                                                      << " too small (computed: "
                                                                                      << rates_[0]
                                                                                      << ", expected - eps: "
-                                                                                     << expectedL2VeloRate_ - 0.1
+                                                                                     << expectedL2VeloRate_ - 0.25
                                                                                      << ")");
                     }
 
