@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2023 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -35,16 +35,23 @@
 
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 
+#include <memory>
+
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
+
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
+#include "hyteg/geometry/AffineMap3D.hpp"
+#include "hyteg/geometry/IdentityMap.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
 
-void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
+template < typename Form >
+void test( Form form, const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
 {
-   n1e1::N1E1Form_curl_curl form;
-   Matrix6r                 elMat;
+   Matrix6r elMat;
 
    form.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMat );
 
@@ -55,6 +62,38 @@ void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
          WALBERLA_CHECK_FLOAT_EQUAL( elMat( i, j ), correct( i, j ) )
       }
    }
+}
+
+void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
+{
+   auto testForms = [&]( auto&&... forms ) { ( test( forms, coords, correct ), ... ); };
+
+   forms::n1e1_curl_curl_blending_q2 formBlendingId;
+   formBlendingId.setGeometryMap( std::make_shared< IdentityMap >() );
+
+   testForms( n1e1::N1E1Form_curl_curl{}, forms::n1e1_curl_curl_affine_qe{}, formBlendingId );
+
+   // blending
+
+   Matrix3r B;
+   // clang-format off
+   B <<  0.1, 0.2, 0.3,
+        -0.8, 0.5, 0.0,
+         1.0, 1.0, 0.5;
+   // clang-format on
+   const Point3D b{ 2.0, 3.0, 4.0 };
+   auto          affineMap = std::make_shared< AffineMap3D >( B, b );
+
+   std::array< Point3D, 4 > coordsBlending;
+   for ( size_t i = 0; i < 4; ++i )
+   {
+      affineMap->evalFinv( coords[i], coordsBlending[i] );
+   }
+
+   forms::n1e1_curl_curl_blending_q2 formBlendingAf;
+   formBlendingAf.setGeometryMap( affineMap );
+
+   test( formBlendingAf, coordsBlending, correct );
 }
 
 int main( int argc, char** argv )
@@ -113,14 +152,14 @@ int main( int argc, char** argv )
          -1,  2,  0, -1, -1,  2;
    // clang-format on
 
-   test( { v0, v1, v3, v6 }, 4.0 / 3.0 * Matrix6r{ wu } );
-   test( { v1, v2, v4, v7 }, 4.0 / 3.0 * Matrix6r{ wu } );
-   test( { v3, v4, v5, v8 }, 4.0 / 3.0 * Matrix6r{ wu } );
-   test( { v6, v7, v8, v9 }, 4.0 / 3.0 * Matrix6r{ wu } );
-   test( { v1, v3, v6, v7 }, 4.0 / 3.0 * Matrix6r{ gu } );
-   test( { v1, v3, v4, v7 }, 4.0 / 3.0 * Matrix6r{ bu } );
-   test( { v3, v6, v7, v8 }, 4.0 / 3.0 * Matrix6r{ bd } );
-   test( { v3, v4, v7, v8 }, 4.0 / 3.0 * Matrix6r{ gd } );
+   test( { v0, v1, v3, v6 }, 4.0 / 3.0 * wu );
+   test( { v1, v2, v4, v7 }, 4.0 / 3.0 * wu );
+   test( { v3, v4, v5, v8 }, 4.0 / 3.0 * wu );
+   test( { v6, v7, v8, v9 }, 4.0 / 3.0 * wu );
+   test( { v1, v3, v6, v7 }, 4.0 / 3.0 * gu );
+   test( { v1, v3, v4, v7 }, 4.0 / 3.0 * bu );
+   test( { v3, v6, v7, v8 }, 4.0 / 3.0 * bd );
+   test( { v3, v4, v7, v8 }, 4.0 / 3.0 * gd );
 
    return EXIT_SUCCESS;
 }
