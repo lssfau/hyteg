@@ -67,7 +67,7 @@ class p2_linear_form_blending_q7 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              287     342       0       0     13            259                36
+   ///                                              179     271       0       0     13            179                36
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
@@ -91,7 +91,7 @@ class p2_linear_form_blending_q7 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1510    1753       0       0     32           1093                93
+   ///                                              866    1331       0       0     32            700                93
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
@@ -103,7 +103,7 @@ class p2_linear_form_blending_q7 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              714    1214       0       0     31            479                93
+   ///                                              622    1008       0       0     26            373                75
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const override;
 

@@ -67,7 +67,7 @@ class p1_linear_form_blending_q5 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               86     146       0       0      8             81                21
+   ///                                               82     131       0       0      8             88                21
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -79,7 +79,7 @@ class p1_linear_form_blending_q5 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               74     125       0       0      8             62                21
+   ///                                               74     123       0       0      8             64                21
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const override;
 
@@ -91,7 +91,7 @@ class p1_linear_form_blending_q5 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              397     638       0       0     15            253                42
+   ///                                              386     598       0       0     15            272                42
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 
@@ -103,7 +103,7 @@ class p1_linear_form_blending_q5 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              358     582       0       0     15            215                42
+   ///                                              358     575       0       0     15            219                42
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const override;
 
