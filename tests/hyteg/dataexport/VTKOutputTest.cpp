@@ -339,13 +339,13 @@ static void testVTKQuadraticTriangle( uint_t meshType )
       std::string fName = "VTKQuadraticTriangle-false";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutputA( fPath, fName, storage );
+      vtkOutputA.setUseVTKQuadraticTriangle( false );
       vtkOutputA.add( p2ScalarFunc );
       vtkOutputA.write( maxLevel );
 
       fName = "VTKQuadraticTriangle-true";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutputB( fPath, fName, storage );
-      vtkOutputB.setUseVTKQuadraticTriangle( true );
       vtkOutputB.add( p2ScalarFunc );
       vtkOutputB.write( maxLevel );
    }

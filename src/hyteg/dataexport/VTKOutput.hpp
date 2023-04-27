@@ -268,7 +268,7 @@ class VTKOutput
    bool write2D_;
 
    /// Temporary flag used as part of implementing VTK_QUADRATIC_TRIANGLE for P2Function output
-   bool useVTKQuadraticTriangle_{ false };
+   bool useVTKQuadraticTriangle_{ true };
 
    FunctionMultiStore< P1Function > p1Functions_;
    FunctionMultiStore< P2Function > p2Functions_;
