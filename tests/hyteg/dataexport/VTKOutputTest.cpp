@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,6 +24,7 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
+#include "core/math/Constants.h"
 #include "core/timing/all.h"
 
 #include "hyteg/communication/Syncing.hpp"
@@ -31,6 +32,7 @@
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -293,6 +295,62 @@ static void exportIntegerFunctions()
    }
 }
 
+static void testVTKQuadraticTriangle( uint_t meshType )
+{
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = 2;
+
+   using walberla::math::pi;
+
+   std::shared_ptr< MeshInfo > mesh;
+
+   switch ( meshType )
+   {
+   case 1:
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ) );
+      break;
+   case 2:
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../data/meshes/penta_5el.msh" ) );
+      break;
+   case 3:
+      mesh = std::make_shared< MeshInfo >(
+          MeshInfo::meshAnnulus( real_c( 1 ), real_c( 2 ), real_c( 0.25 ) * pi, real_c( 0.75 ) * pi, MeshInfo::CROSS, 4, 2 ) );
+      break;
+   default:
+      WALBERLA_ABORT( "meshType = " << meshType << " is not supported!" );
+   }
+
+   SetupPrimitiveStorage setupStorage( *mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   if ( meshType == 3 )
+      AnnulusMap::setMap( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   // Setup test function
+   P2Function< real_t >                             p2ScalarFunc( "P2 scalar function", storage, minLevel, maxLevel );
+   std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& p ) -> real_t {
+      return real_c( -2.0 ) * p[0] + p[1] + real_c( 3 );
+   };
+   p2ScalarFunc.interpolate( expr, maxLevel, All );
+
+   bool beVerbose = true;
+   if ( beVerbose )
+   {
+      std::string fPath = "../../output";
+      std::string fName = "VTKQuadraticTriangle-false";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputA( fPath, fName, storage );
+      vtkOutputA.add( p2ScalarFunc );
+      vtkOutputA.write( maxLevel );
+
+      fName = "VTKQuadraticTriangle-true";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputB( fPath, fName, storage );
+      vtkOutputB.setUseVTKQuadraticTriangle( true );
+      vtkOutputB.add( p2ScalarFunc );
+      vtkOutputB.write( maxLevel );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -314,6 +372,9 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = int64_t:" );
    hyteg::exportIntegerFunctions< int64_t >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export with VTK_QUADRATIC_TRIANGLE:" );
+   hyteg::testVTKQuadraticTriangle( 2 );
 
    return EXIT_SUCCESS;
 }

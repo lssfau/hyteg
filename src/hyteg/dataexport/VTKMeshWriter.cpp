@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -291,6 +291,8 @@ void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr
 
    for ( auto& it : storage->getFaces() )
    {
+      WALBERLA_UNUSED( it );
+
       if ( discontinuous )
       {
          for ( auto faceType : facedof::allFaceTypes )
@@ -323,11 +325,10 @@ void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr
             offset += 2;
             --inner_rowsize;
          }
-
-         ++offset;
       }
 
-      WALBERLA_UNUSED( it );
+      // prepare offset for next cell
+      ++offset;
    }
 
    streamWriterCells.toStream( output );
@@ -370,6 +371,168 @@ void VTKMeshWriter::writeCells2D( const VTKOutput&                           mgr
       for ( size_t i = 0; i < numberOfCells; ++i )
       {
          streamWriterTypes << 5;
+      }
+   }
+
+   streamWriterTypes.toStream( output );
+
+   output << "\n</DataArray>\n";
+   output << "</Cells>\n";
+}
+
+void VTKMeshWriter::writeConnectivityP2Triangles( const VTKOutput&                           mgr,
+                                                  std::ostream&                              output,
+                                                  const std::shared_ptr< PrimitiveStorage >& storage,
+                                                  uint_t                                     level,
+                                                  bool                                       discontinuous )
+{
+// #define DEBUG_VTK_QUADRATIC_TRIANGLE
+#ifdef DEBUG_VTK_QUADRATIC_TRIANGLE
+#define VTK_QUADRATIC_TRIANGLE_LOG( msg ) WALBERLA_LOG_INFO_ON_ROOT( msg );
+#else
+#define VTK_QUADRATIC_TRIANGLE_LOG( msg )
+#endif
+
+   using CellType = uint32_t;
+
+   output << "<Cells>\n";
+   vtk::openDataElement( output, typeToString< CellType >(), "connectivity", 0, mgr.vtkDataFormat_ );
+
+   VTKOutput::VTKStreamWriter< CellType > streamWriterCells( mgr.vtkDataFormat_ );
+
+   const uint_t numberOfCells = levelinfo::num_microfaces_per_face( level );
+
+   // connectivity
+   CellType offset = 0;
+
+   for ( auto& it : storage->getFaces() )
+   {
+      WALBERLA_UNUSED( it );
+
+      if ( discontinuous )
+      {
+         WALBERLA_ABORT( "writeConnectivityP2Triangles does not support discontinous == true, yet!" );
+      }
+      else
+      {
+         // we execute the loops on a (virtually) refined mesh, so indices will fit to the vertices written
+         // with writePointsForMicroVertices for P2 on (level+1)
+         CellType rowsize       = static_cast< CellType >( levelinfo::num_microvertices_per_edge( level + 1 ) ) - 1;
+         CellType inner_rowsize = rowsize;
+         CellType idx0{}, idx1{}, idx2{}, idx3{}, idx4{}, idx5{};
+
+         for ( CellType i = 0; i <= rowsize - 3; i += 2 )
+         {
+            for ( CellType j = 0; j <= inner_rowsize - 4; j += 2 )
+            {
+               // lower left triangle
+               idx0 = offset;
+               idx1 = offset + 2 * inner_rowsize + 1;
+               idx2 = offset + 2;
+               idx3 = offset + inner_rowsize + 1;
+               idx4 = offset + inner_rowsize + 2;
+               idx5 = offset + 1;
+
+               streamWriterCells << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
+               VTK_QUADRATIC_TRIANGLE_LOG( "[" << i << " , " << j << "]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 )
+                                               << idx1 << " " << std::setw( 2 ) << idx2 << " " << std::setw( 2 ) << idx3 << " "
+                                               << std::setw( 2 ) << idx4 << " " << std::setw( 2 ) << idx5 );
+
+               // upper right triangle
+               idx0 = offset + 2 * inner_rowsize + 1;
+               idx1 = idx0 + 2;
+               idx2 = offset + 2;
+               idx3 = idx0 + 1;
+               idx4 = offset + inner_rowsize + 3;
+               idx5 = idx4 - 1;
+
+               streamWriterCells << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
+               VTK_QUADRATIC_TRIANGLE_LOG( "[" << i << " , " << j << "]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 )
+                                               << idx1 << " " << std::setw( 2 ) << idx2 << " " << std::setw( 2 ) << idx3 << " "
+                                               << std::setw( 2 ) << idx4 << " " << std::setw( 2 ) << idx5 );
+
+               // triangles live on refinement level "level"
+               offset += 2;
+            }
+
+            // lower left triangle on top of column
+            idx0 = offset;
+            idx1 = offset + 2 * inner_rowsize + 1;
+            idx2 = offset + 2;
+            idx3 = offset + inner_rowsize + 1;
+            idx4 = offset + inner_rowsize + 2;
+            idx5 = offset + 1;
+
+            streamWriterCells << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
+            VTK_QUADRATIC_TRIANGLE_LOG( "[" << i << " , *]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 ) << idx1 << " "
+                                            << std::setw( 2 ) << idx2 << " " << std::setw( 2 ) << idx3 << " " << std::setw( 2 )
+                                            << idx4 << " " << std::setw( 2 ) << idx5 );
+
+            // skip on column w.r.t. fine level
+            offset += 2 + inner_rowsize + 1;
+            inner_rowsize -= 2;
+         }
+
+         // lower left triangle on the very "right"
+         idx0 = offset;
+         idx1 = offset + 2 * inner_rowsize + 1;
+         idx2 = offset + 2;
+         idx3 = offset + inner_rowsize + 1;
+         idx4 = offset + inner_rowsize + 2;
+         idx5 = offset + 1;
+
+         streamWriterCells << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
+         VTK_QUADRATIC_TRIANGLE_LOG( "[* , *]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 ) << idx1 << " "
+                                                << std::setw( 2 ) << idx2 << " " << std::setw( 2 ) << idx3 << " "
+                                                << std::setw( 2 ) << idx4 << " " << std::setw( 2 ) << idx5 );
+      }
+
+      // prepare offset for next cell
+      offset += 6;
+   }
+
+   streamWriterCells.toStream( output );
+
+   output << "\n</DataArray>\n";
+
+   using OffsetType = uint32_t;
+
+   vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, mgr.vtkDataFormat_ );
+
+   VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( mgr.vtkDataFormat_ );
+
+   // offsets
+   offset = 6;
+   for ( auto& it : storage->getFaces() )
+   {
+      WALBERLA_UNUSED( it );
+
+      for ( OffsetType i = 0; i < numberOfCells; ++i )
+      {
+         streamWriterOffsets << offset;
+         offset += 6;
+      }
+   }
+
+   streamWriterOffsets.toStream( output );
+
+   output << "\n</DataArray>\n";
+
+   using CellTypeType = uint16_t;
+
+   vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, mgr.vtkDataFormat_ );
+
+   VTKOutput::VTKStreamWriter< CellTypeType > streamWriterTypes( mgr.vtkDataFormat_ );
+
+   // cell types
+   const unsigned char vtkQuadraticTriangleID = 22;
+
+   for ( auto& it : storage->getFaces() )
+   {
+      WALBERLA_UNUSED( it );
+      for ( size_t i = 0; i < numberOfCells; ++i )
+      {
+         streamWriterTypes << vtkQuadraticTriangleID;
       }
    }
 

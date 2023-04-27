@@ -44,10 +44,10 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    const uint_t numberOfPoints = mgr.write2D_ ?
                                      storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 ) :
                                      storage->getNumberOfLocalCells() * levelinfo::num_microvertices_per_cell( level + 1 );
+   const uint_t cellCountLevel = mgr.useVTKQuadraticTriangle_ ? level : level + 1;
    const uint_t numberOfCells  = mgr.write2D_ ?
-                                     storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level + 1 ) :
+                                     storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( cellCountLevel ) :
                                      storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level + 1 );
-   ;
 
    vtk::writePieceHeader( output, numberOfPoints, numberOfCells );
 
@@ -61,7 +61,14 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    if ( mgr.write2D_ )
    {
-      VTKMeshWriter::writeCells2D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
+      if ( mgr.useVTKQuadraticTriangle_ )
+      {
+         VTKMeshWriter::writeConnectivityP2Triangles( mgr, output, storage, level, false );
+      }
+      else
+      {
+         VTKMeshWriter::writeCells2D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
+      }
    }
    else
    {
@@ -136,10 +143,9 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
                }
                else
                {
-                  streamWriter
-                      << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                             ->getPointer(
-                                 level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
+                  streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                                      ->getPointer(
+                                          level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
                }
             }
             else
@@ -264,19 +270,19 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
-                     streamWriter
-                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                ->getPointer(
-                                    level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
+                     streamWriter << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                         ->getPointer(
+                                             level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
                   }
                }
                else
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
-                     streamWriter << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                         ->getPointer( level )[edgedof::macroface::diagonalIndex(
-                                             level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
+                     streamWriter
+                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
                   }
                }
             }
