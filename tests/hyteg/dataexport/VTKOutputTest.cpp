@@ -27,6 +27,10 @@
 #include "core/timing/all.h"
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dg1functionspace/DG1Function.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
+#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -39,6 +43,8 @@
 
 // Perform basic I/O test with VTKOutput objects
 
+// using namespace hyteg::n1e1;
+
 namespace hyteg {
 
 static void exportFunctions2D()
@@ -49,19 +55,30 @@ static void exportFunctions2D()
    // MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
    MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/penta_5el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Setup some functions
+   P0Function< real_t > p0ScalarFunc1( "P0 scalar function 1", storageDG, minLevel, maxLevel );
+   P0Function< real_t > p0ScalarFunc2( "P0 scalar function 2", storageDG, minLevel, maxLevel );
+
    P1Function< real_t > p1ScalarFunc1( "P1 scalar function 1", storage, minLevel, maxLevel );
    P1Function< real_t > p1ScalarFunc2( "P1 scalar function 2", storage, minLevel, maxLevel );
 
    P2Function< real_t > p2ScalarFunc1( "P2 scalar function 1", storage, minLevel, maxLevel );
    P2Function< real_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
 
+   DG1Function< real_t > dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
+   DG1Function< real_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
+
    P1VectorFunction< real_t > p1VectorFunc( "P1 vector function", storage, minLevel, maxLevel );
    P2VectorFunction< real_t > p2VectorFunc( "P2 vector function", storage, minLevel, maxLevel );
+   EGFunction< real_t > egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
 
    // Interpolate
+   p0ScalarFunc1.interpolate( 1.0, maxLevel, DoFType::All );
+   p0ScalarFunc2.interpolate( 2.0, maxLevel, DoFType::All );
+
    p1ScalarFunc1.interpolate( 1.0, maxLevel, DoFType::All );
    p1ScalarFunc2.interpolate( 2.0, maxLevel, DoFType::All );
 
@@ -70,27 +87,48 @@ static void exportFunctions2D()
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc };
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
+   egVectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
    // Output VTK
    bool beVerbose = true;
    if ( beVerbose )
    {
       std::string fPath = "../../output";
-      std::string fName = "VTKOutputTest";
+      std::string fName = "VTKOutputTest-P0";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutput( fPath, fName, storage );
-      vtkOutput.add( p1ScalarFunc1 );
-      vtkOutput.add( p1ScalarFunc2 );
-      vtkOutput.add( p1VectorFunc );
-      vtkOutput.write( maxLevel );
+      VTKOutput vtkOutput0( fPath, fName, storageDG );
+      vtkOutput0.add( p0ScalarFunc1 );
+      vtkOutput0.add( p0ScalarFunc2 );
+      vtkOutput0.write( maxLevel );
 
-      fName = "VTKOutputTestP2";
+      fName = "VTKOutputTest-P1";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutput1( fPath, fName, storage );
+      vtkOutput1.add( p1ScalarFunc1 );
+      vtkOutput1.add( p1ScalarFunc2 );
+      vtkOutput1.add( p1VectorFunc );
+      vtkOutput1.write( maxLevel );
+
+      fName = "VTKOutputTest-P2";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput2( fPath, fName, storage );
       vtkOutput2.add( p2ScalarFunc1 );
       vtkOutput2.add( p2ScalarFunc2 );
       vtkOutput2.add( p2VectorFunc );
       vtkOutput2.write( maxLevel );
+
+      fName = "VTKOutputTest-DG1";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputDG1( fPath, fName, storageDG );
+      vtkOutputDG1.add( dg1ScalarFunc1 );
+      vtkOutputDG1.add( dg1ScalarFunc2 );
+      vtkOutputDG1.write( maxLevel );
+
+      fName = "VTKOutputTest-EG";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputEG( fPath, fName, storageDG );
+      vtkOutputEG.add( egVectorFunc );
+      vtkOutputEG.write( maxLevel );
    }
 }
 
@@ -101,7 +139,8 @@ static void exportFunctions3D()
 
    MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Expressions for interpolation
    // std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0*p[0]; };
@@ -111,8 +150,16 @@ static void exportFunctions3D()
    std::function< real_t( const hyteg::Point3D& ) >                yFunc   = []( const Point3D& p ) -> real_t { return p[1]; };
    std::function< real_t( const hyteg::Point3D& ) >                zFunc   = []( const Point3D& p ) -> real_t { return p[2]; };
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc, zFunc };
+   std::function< Point3D( const Point3D& ) >                      vecFunc = []( const Point3D& p ) {
+      Point3D result{ p[0], p[1], p[2] };
+      return result;
+   };
 
    // Setup some functions
+   P0Function< real_t > p0ScalarFunc1( "P0 scalar function 1", storageDG, minLevel, maxLevel );
+   P0Function< real_t > p0ScalarFunc2( "P0 scalar function 2", storageDG, minLevel, maxLevel );
+   P0Function< real_t > p0ScalarFunc3( "P0 scalar function 3", storageDG, minLevel, maxLevel );
+
    P1Function< real_t > p1ScalarFunc1( "P1 scalar function 1", storage, minLevel, maxLevel );
    P1Function< real_t > p1ScalarFunc2( "P1 scalar function 2", storage, minLevel, maxLevel );
    P1Function< real_t > p1ScalarFunc3( "P1 scalar function 3", storage, minLevel, maxLevel );
@@ -121,10 +168,22 @@ static void exportFunctions3D()
    P2Function< real_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
    P1Function< real_t > p2ScalarFunc3( "P2 scalar function 3", storage, minLevel, maxLevel );
 
+   DG1Function< real_t > dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
+   DG1Function< real_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
+   DG1Function< real_t > dg1ScalarFunc3( "DG1 scalar function 3", storageDG, minLevel, maxLevel );
+
    P1VectorFunction< real_t > p1VectorFunc( "P1 vector function", storage, minLevel, maxLevel );
    P2VectorFunction< real_t > p2VectorFunc( "P2 vector function", storage, minLevel, maxLevel );
 
+   EGFunction< real_t > egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
+
+   n1e1::N1E1VectorFunction< real_t > n1e1VectorFunc( "N1E1 vector function", storage, minLevel, maxLevel );
+
    // Interpolate
+   p0ScalarFunc1.interpolate( vecExpr[0], maxLevel, DoFType::All );
+   p0ScalarFunc2.interpolate( vecExpr[1], maxLevel, DoFType::All );
+   p0ScalarFunc3.interpolate( vecExpr[2], maxLevel, DoFType::All );
+
    p1ScalarFunc1.interpolate( vecExpr[0], maxLevel, DoFType::All );
    p1ScalarFunc2.interpolate( vecExpr[1], maxLevel, DoFType::All );
    p1ScalarFunc3.interpolate( vecExpr[2], maxLevel, DoFType::All );
@@ -135,30 +194,62 @@ static void exportFunctions3D()
 
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
+   egVectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
+
+   n1e1VectorFunc.interpolate( vecFunc, maxLevel, DoFType::All );
 
    // Output VTK
    bool beVerbose = true;
    if ( beVerbose )
    {
       std::string fPath = "../../output";
-      std::string fName = "VTKOutputTest3D";
+      std::string fName = "VTKOutputTest3D-P0";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutput( fPath, fName, storage );
-      vtkOutput.add( p1ScalarFunc1 );
-      vtkOutput.add( p1ScalarFunc2 );
-      vtkOutput.add( p1ScalarFunc3 );
-      vtkOutput.add( p1VectorFunc );
-      vtkOutput.write( maxLevel );
+      VTKOutput vtkOutputP0( fPath, fName, storageDG );
+      vtkOutputP0.add( p0ScalarFunc1 );
+      vtkOutputP0.add( p0ScalarFunc2 );
+      vtkOutputP0.add( p0ScalarFunc3 );
+      vtkOutputP0.write( maxLevel );
 
-      fName = "VTKOutputTest3DP2";
+      fName = "VTKOutputTest3D-P1";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutput2( fPath, fName, storage );
-      vtkOutput2.setVTKDataFormat( vtk::DataFormat::BINARY );
-      vtkOutput2.add( p2ScalarFunc1 );
-      vtkOutput2.add( p2ScalarFunc2 );
-      vtkOutput2.add( p2ScalarFunc3 );
-      vtkOutput2.add( p2VectorFunc );
-      vtkOutput2.write( maxLevel );
+      VTKOutput vtkOutputP1( fPath, fName, storage );
+      vtkOutputP1.add( p1ScalarFunc1 );
+      vtkOutputP1.add( p1ScalarFunc2 );
+      vtkOutputP1.add( p1ScalarFunc3 );
+      vtkOutputP1.add( p1VectorFunc );
+      vtkOutputP1.write( maxLevel );
+
+      fName = "VTKOutputTest3D-P2";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputP2( fPath, fName, storage );
+      vtkOutputP2.setVTKDataFormat( vtk::DataFormat::BINARY );
+      vtkOutputP2.add( p2ScalarFunc1 );
+      vtkOutputP2.add( p2ScalarFunc2 );
+      vtkOutputP2.add( p2ScalarFunc3 );
+      vtkOutputP2.add( p2VectorFunc );
+      vtkOutputP2.write( maxLevel );
+
+      fName = "VTKOutputTest3D-DG1";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputDG1( fPath, fName, storageDG );
+      vtkOutputDG1.add( dg1ScalarFunc1 );
+      vtkOutputDG1.add( dg1ScalarFunc2 );
+      vtkOutputDG1.add( dg1ScalarFunc3 );
+      vtkOutputDG1.write( maxLevel );
+
+      fName = "VTKOutputTest3D-N1E1";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputN1E1( fPath, fName, storage );
+      vtkOutputN1E1.add( n1e1VectorFunc );
+      vtkOutputN1E1.write( maxLevel );
+
+      fName = "VTKOutputTest3D-EG";
+      // WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputEG( fPath, fName, storageDG );
+      vtkOutputEG.add( egVectorFunc );
+      // would currently fail as 3D export of EGFunction is not fully implemented, yet
+      // vtkOutputEG.write( maxLevel );
    }
 }
 
@@ -170,15 +261,17 @@ static void exportIntegerFunctions()
 
    MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/penta_5el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Setup some functions
+   P0Function< value_t >       p0Enumerator( "P0", storage, minLevel, maxLevel );
    P1Function< value_t >       p1Enumerator( "P1", storage, minLevel, maxLevel );
    P2Function< value_t >       p2Enumerator( "P2", storage, minLevel, maxLevel );
    EdgeDoFFunction< value_t >  edEnumerator( "EdgeDoF", storage, minLevel, maxLevel );
    P2VectorFunction< value_t > v2Enumerator( "P2Vector", storage, minLevel, maxLevel );
 
    // Fill with values
+   p0Enumerator.enumerate( maxLevel );
    p1Enumerator.enumerate( maxLevel );
    p2Enumerator.enumerate( maxLevel );
    edEnumerator.enumerate( maxLevel );
@@ -192,10 +285,10 @@ static void exportIntegerFunctions()
       std::string fName = "VTKOutputTestIntFuncs" + walberla::vtk::typeToString< value_t >();
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.add( p0Enumerator );
       vtkOutput.add( p1Enumerator );
       vtkOutput.add( p2Enumerator );
       vtkOutput.add( edEnumerator );
-      vtkOutput.add( v2Enumerator );
       vtkOutput.write( maxLevel );
    }
 }
