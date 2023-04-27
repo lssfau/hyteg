@@ -30,6 +30,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -121,7 +122,7 @@ static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles, real_
 
    timer.reset();
 
-   for ( int i = 0; i < cycles; ++i )
+   for ( uint_t i = 0; i < cycles; ++i )
    {
       gmgSolver->solve( A, u, f, maxLevel );
    }
