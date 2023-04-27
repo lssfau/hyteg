@@ -53,7 +53,7 @@ VTKOutput::VTKOutput( std::string                                dir,
 , storage_( storage )
 , vtkDataFormat_( vtk::DataFormat::ASCII )
 {
-   /// set output to 3D is storage contains cells
+   // set output to 3D if storage contains cells
    if ( storage->hasGlobalCells() )
    {
       set3D();
@@ -241,6 +241,7 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
                                                        vtk::DoFType::EDGE_XYZ,
                                                        vtk::DoFType::DG,
                                                        vtk::DoFType::P2,
+                                                       vtk::DoFType::P1DGE,
                                                        vtk::DoFType::N1E1 };
 
       auto dofTypes = write2D_ ? dofTypes2D : dofTypes3D;

@@ -80,7 +80,7 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
    output << "<PointData>\n";
 
-   // write all P2VectorFunctions of supported value type
+   // write all P1DGEVectorFunctions of supported value type
    for ( const auto& function : mgr.p1dgeVecFunctions_.getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -101,7 +101,7 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
 template < typename value_t >
 void VTKP1DGEWriter::writeVectorFunction( std::ostream&                              output,
-                                          const EGFunction< value_t >&            function,
+                                          const EGFunction< value_t >&               function,
                                           const std::shared_ptr< PrimitiveStorage >& storage,
                                           const uint_t&                              level,
                                           bool                                       write2D,
