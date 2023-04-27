@@ -245,11 +245,11 @@ static void exportFunctions3D()
       vtkOutputN1E1.write( maxLevel );
 
       fName = "VTKOutputTest3D-EG";
-      // WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutputEG( fPath, fName, storageDG );
       vtkOutputEG.add( egVectorFunc );
       // would currently fail as 3D export of EGFunction is not fully implemented, yet
-      // vtkOutputEG.write( maxLevel );
+      vtkOutputEG.write( maxLevel );
    }
 }
 
