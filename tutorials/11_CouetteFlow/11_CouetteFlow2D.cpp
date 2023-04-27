@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Ponsuganth Ilangovan P,.
+ * Copyright (c) 2023 Ponsuganth Ilangovan P, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,10 +19,10 @@
  */
 
 /**
- * \page 11_CouetteFlow Tutorial to implement simple Couette flow in HyTeG.
- *
+ * \page 11_CouetteFlow Tutorial to implement simple Couette flow
+ * 
  * \dontinclude tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp
- *
+ * 
  * \brief This tutorial demonstrates the implementation of a Couette flow problem on a circular annulus with different tangential velocities on the inner and outer boundaries of the annulus. On polar coordinates the \f$ u_r = 0\f$ everywhere. After implementation we also perform a convergence analysis to show that FEM solution from HyTeG converges to the analytical solution of the problem with expected order of convergence.
  *
  * \section task Task
@@ -38,14 +38,14 @@
  * \f]
  * Here \f$ \mathbf{u}_c \f$ denotes the equations are written in Cartesian coordinates which we will denote henceforth with just \f$ \mathbf{u} \f$, however for this problem, it is easy to specify the boundary conditions in polar coordinates as \f$\mathbf{u}_\phi(r = r_{min}) = u_{inner},\quad \mathbf{u}_\phi(r = r_{max}) = u_{outer}\f$
  * 
- * The finite element weak form of the boundary value problem is to find \f$ \mathbf{u}_h \in \mathbf{V}_h \f$ and \f$ p_h \in Q_h \f$ such that,
+ * The weak finite element formulation of the boundary value problem is to find \f$ \mathbf{u}_h \in \mathbf{V}_h \f$ and \f$ p_h \in Q_h \f$ such that,
  * \f[
  * \begin{align*}
  *    a(\mathbf{u}_h, \mathbf{v}_h) + b(p_h, \mathbf{v}_h) &= \mathbf{0}\quad\quad\forall\mathbf{v}_h \in \mathbf{V}_h\\[2ex]
  *    c(\mathbf{u}_h, q_h) &= 0\quad\quad\forall q_h \in Q_h
  * \end{align*}
  * \f]
- * where \f$ \mathbf{V}_h \f$ and \f$ Q_h \f$ are appropriate function spaces for our P2P1 Taylor Hood elements which is an inf-sup stable pair for velocity and pressure. We don't have a Neumann integral because the problem we have to solve, specifies Dirichlet boundary condition on all of the boundaries.
+ * where \f$ \mathbf{V}_h \f$ and \f$ Q_h \f$ are appropriate function spaces for our P2P1 Taylor Hood elements which is an inf-sup stable pair for velocity and pressure.
  * 
  * The terms that we have to implement in HyTeG are as follows,
  * \f[
@@ -82,70 +82,103 @@
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp boundary cond
  * 
+ * The `meshAnnulus` function automatically tags the inner and outer boundary of the Annulus, and hence those flags are used to set the required boundary condition. Now this boundary condition object `bcVelocity` must be passed to the FE functions which needs to use this boundary condition.
+ * 
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp bcValues
+ * 
+ * Here `u` is the P2P1 pair FE function which HyTeG provides to hold the velocity and pressure values in a same class. The velocity `u.uvw()` boundary condition (BC) is set using the vector interpolate function by passing the appropriate lambda functions which sets the BC values on the Dirichlet boundary and on the level specified.
+ * 
+ * \subsection FEfns FE Functions
+ * 
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp declare p2p1funcs
+ * 
+ * Here we define the finite element functions needed for our FE computations and error norm calculations. These functions store the DOF values in a distributed fashion on the MPI processes that are running the program.
  * \subsection FEOps FE Operators
+ * 
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp StokesOperator
+ * 
+ * To implement \f$ a(\mathbf{u}_h, \mathbf{v}_h) , b(p_h, \mathbf{v}_h), c(\mathbf{u}_h, q_h)\f$, HyTeG provides two main operators. One is the `P2P1TaylorHoodStokesOperator` but it does not use the blending map in the finite element computations. 
+ * 
+ * The other operator `P2P1ElementwiseBlendingStokesOperator` is compatible with blending maps and hence is a more accurate way to implement the Stokes problem for the annulus.
  * 
  * \subsection gmg Multigrid solver
  * 
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp gmg
+ * Here we set up the Geometric multigrid solver which requires the following,
+ * - smoother \f$ \Rightarrow\f$ we use the Uzawa smoother with Jacobi smoothing for velocity and the Uzawa uses the PSPG operator for further smoothing steps.
+ * - coarse grid solver \f$ \Rightarrow\f$ for this we use the pressure preconditioned MINRES solver which is wrapped as a solver template under `hyteg::solvertemplates::stokesMinResSolver`.
+ * - restriction and prolongation operators \f$ \Rightarrow\f$ the `P2P1StokesToP2P1StokesRestriction(Prolongation)` uses quadratic restriction (prolongation) for velocity and linear for pressure
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp gmgSolve
+ * 
+ * We then call the GMG solver required number of times to solve the system on the level from which we want the V cycle to start.
+ * 
  * \subsection err Error calculation
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp calcErr
+ * The computed finite element solution is projected to a higher level and then the error is computed with the analytical solution on that level. To calculate the L2 norm of the error we would have to use the mass operator which performs the integration of the L2 norm in the FE space.
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp normL2
+ * This function basically computes the L2 norm on the finite element space,
+ * \f[
+ * \begin{equation*}
+ *    ||u||_2 = \left(\int_{\Omega} u^2 d\Omega\right)^{\frac{1}{2}}
+ * \end{equation*}
+ * \f]
+ * In Einstein summation notation,
+ * \f[
+ * \begin{align*}
+ *    ||u_h||_2 &= \left(\sum_{e}^{}\int_{\Omega^e} {}_eu_i^h\ \phi^e_i\ \phi^e_j\ {}_eu_j^h\ d\Omega^e\right)^{\frac{1}{2}}\\
+ *    ||u_h||_2 &= \left(\mathbf{U}^\top \mathbf{M} \mathbf{U}\right)^{\frac{1}{2}}
+ * \end{align*}
+ * \f]
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp massOpErr
+ * Hence we define the appropriate mass operator for our FE space which also supports blending for the annulus to compute the norm of the error.
+ * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp calcErrNorm
  *
  * \subsection res Results
+ * 
+ * ## Convergence plot for P2P1 Taylor Hood elements
+ * <img src="11_CouetteFlow_Convergence.png" width="75%"/>
+ * 
+ * ## Velocity magnitude contour plot on the annulus
+ * <img src="11_CouetteFlow_Contour.png" width="50%"/> 
+ * 
+ * \section fullCode Code without comments
+ * \include tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp
  */
 
 #include <iostream>
 
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"
-
-#include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-
-#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-
-#include "hyteg/solvers/MinresSolver.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
-
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
-
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
-
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
-
-#include "hyteg/geometry/AnnulusMap.hpp"
-
-#include "hyteg/types/PointND.hpp"
-#include "hyteg/MeshQuality.hpp"
-
-#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
-
 #include "core/math/Constants.h"
 #include "core/logging/Logging.h"
 
-#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
-#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
-
-#include "hyteg/operators/VectorMassOperator.hpp"
+#include "hyteg/MeshQuality.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 
-#include <iomanip>
+#include "hyteg/operators/VectorMassOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+
+#include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+
+#include "hyteg/dataexport/VTKOutput.hpp"
 
 using walberla::real_t;
 
-std::function< real_t( const hyteg::Point3D& ) > radius = []( const hyteg::Point3D& x ) {
-   return std::sqrt( x[0] * x[0] + x[1] * x[1] );
-};
-
-std::function< real_t( const hyteg::Point3D& ) > angle = []( const hyteg::Point3D& x ) { return std::atan2( x[1], x[0] ); };
-
+/// [normL2]
 template < typename FunctionType, typename MassOperator >
 real_t normL2( const FunctionType& u, const FunctionType& tmp, const MassOperator& M, const uint_t& level, const hyteg::DoFType& flag )
 {
@@ -153,6 +186,7 @@ real_t normL2( const FunctionType& u, const FunctionType& tmp, const MassOperato
    M.apply( u, tmp, level, flag );
    return std::sqrt( u.dotGlobal( tmp, level, flag ) );
 }
+/// [normL2]
 
 real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t minLevel, const uint_t maxLevel, real_t& hMin)
 {
@@ -192,6 +226,10 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
    hyteg::P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel + 1, bcVelocity );
    hyteg::P2P1TaylorHoodFunction< real_t > rhs( "rhs", storage, minLevel, maxLevel, bcVelocity );
    hyteg::P2P1TaylorHoodFunction< real_t > residual( "res", storage, minLevel, maxLevel, bcVelocity );
+   hyteg::P2P1TaylorHoodFunction< real_t > Au("Au", storage, minLevel, maxLevel);
+   hyteg::P2P1TaylorHoodFunction< real_t > uAnalytical( "uAnalytical", storage, minLevel, maxLevel + 1, bcVelocity );
+   hyteg::P2P1TaylorHoodFunction< real_t > error( "error", storage, minLevel, maxLevel + 1, bcVelocity );
+   hyteg::P2VectorFunction< real_t >       tmp("tmp", storage, minLevel, maxLevel + 1, bcVelocity);
 /// [declare p2p1funcs]
 
    vtkOutput.add( u );
@@ -236,15 +274,17 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
       else return real_c(0.0);
    };
 
+/// [bcValues]
    u.uvw().interpolate({boundaryConditionsX, boundaryConditionsY}, maxLevel, hyteg::DirichletBoundary);
+/// [bcValues]
 
-   typedef hyteg::P2P1ElementwiseBlendingStokesOperator       StokesOperator;
-   typedef hyteg::P2ElementwiseBlendingVectorMassOperator     MassOperator;
-
+/// [StokesOperator]
+   typedef hyteg::P2P1ElementwiseBlendingStokesOperator StokesOperator;
+// typedef hyteg::P2P1TaylorHoodStokesOperator          StokesOperator;
    StokesOperator stokesOperator( storage, minLevel, maxLevel );
+/// [StokesOperator]
 
    const uint_t coarseIter     = mainConf.getParameter<uint_t>("coarseIter");
-   const uint_t fineIter       = mainConf.getParameter<uint_t>("fineIter");
 
    /* Multigrid solver */
 
@@ -255,9 +295,8 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
    const real_t jacobiOmega    = real_c( 0.66 );
    const uint_t numIterations  = 10;
 
+/// [gmg]
    auto coarseGridSolver = hyteg::solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, real_c( 1e-14 ), coarseIter );
-
-   auto fineGridSolver = hyteg::solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, real_c( 1e-14 ), fineIter );
 
    auto restriction    = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction >( true );
    auto prolongation   = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();
@@ -270,16 +309,16 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
    auto gmgSolver = std::make_shared< hyteg::GeometricMultigridSolver< StokesOperator > >(
        storage, uzawaSmoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, uzawaPre, uzawaPost, 2 );
 
-   /* Solve the system */
+/// [gmg]
 
+   /* Solve the system */
+/// [gmgSolve]
    for( uint_t i = 0; i < numIterations; ++i )
    {
       gmgSolver->solve( stokesOperator, u, rhs, maxLevel );
    }
-   
+/// [gmgSolve]
    /* Calculate residual */
-
-   hyteg::P2P1TaylorHoodFunction<real_t> Au("Au", storage, minLevel, maxLevel);
 
    stokesOperator.apply( u, Au, maxLevel, hyteg::Inner );
 
@@ -289,12 +328,11 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
 
    /* Calculate error with analytical solution */
 
-   hyteg::P2P1TaylorHoodFunction< real_t > u_analytical( "u_analytical", storage, minLevel, maxLevel + 1, bcVelocity );
-   hyteg::P2P1TaylorHoodFunction< real_t > error( "error", storage, minLevel, maxLevel + 1, bcVelocity );
-   hyteg::P2VectorFunction< real_t > tmp("tmp", storage, minLevel, maxLevel + 1, bcVelocity);
-   MassOperator M(storage, minLevel, maxLevel + 1);
+/// [massOpErr]
+   typedef hyteg::P2ElementwiseBlendingVectorMassOperator MassOperator;
 
-   std::cout << std::setprecision(14);
+   MassOperator M(storage, minLevel, maxLevel + 1);
+/// [massOpErr]
 
    std::function< real_t( const hyteg::Point3D& ) > analyticalU = [uInner, uOuter, rMin, rMax]( const hyteg::Point3D& x )
    {
@@ -320,18 +358,21 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
       return real_c(-1.0) * u_theta * std::cos(theta);
    };
 
-   u_analytical.uvw().interpolate({analyticalU, analyticalV}, maxLevel, hyteg::All);
+   uAnalytical.uvw().interpolate({analyticalU, analyticalV}, maxLevel, hyteg::All);
 
+
+/// [calcErr]
    hyteg::P2P1StokesToP2P1StokesProlongation StokesProlongation;
 
    StokesProlongation.prolongate(u, maxLevel, hyteg::All);
-   StokesProlongation.prolongate(u_analytical, maxLevel, hyteg::All);
+   StokesProlongation.prolongate(uAnalytical, maxLevel, hyteg::All);
    
 
-   error.assign({real_c(1.0), real_c(-1.0)}, {u, u_analytical}, maxLevel);
-   error.assign({real_c(1.0), real_c(-1.0)}, {u, u_analytical}, maxLevel + 1);
+   error.assign({real_c(1.0), real_c(-1.0)}, {u, uAnalytical}, maxLevel);
+   error.assign({real_c(1.0), real_c(-1.0)}, {u, uAnalytical}, maxLevel + 1);
+/// [calcErr]
 
-   vtkOutput.add(u_analytical);
+   vtkOutput.add(uAnalytical);
    vtkOutput.add(error);
 
    /* Write all out */
@@ -340,11 +381,13 @@ real_t convAnalysis(const walberla::Config::BlockHandle& mainConf, const uint_t 
 
    hyteg::VTKOutput vtkOutputHigher("./output", "SimpleAnnulus", storage);
 
-   vtkOutputHigher.add(u_analytical);
+   vtkOutputHigher.add(uAnalytical);
    vtkOutputHigher.add(error);
    vtkOutputHigher.write(maxLevel + 1);
 
+/// [calcErrNorm]
    real_t errorUV = normL2(error.uvw(), tmp, M, maxLevel + 1, hyteg::Inner);
+/// [calcErrNorm]
 
    real_t residualNorm = std::sqrt(residual.uvw().dotGlobal(residual.uvw(), maxLevel, hyteg::All));
 
@@ -366,9 +409,9 @@ int main(int argc, char* argv[])
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   hyteg::PETScManager petscManager( &argc, &argv );
-#endif
+// #ifdef HYTEG_BUILD_WITH_PETSC
+//    hyteg::PETScManager petscManager( &argc, &argv );
+// #endif
 /// [Create Environment]
 
    /* check if a config was given on command line or load default file otherwise */

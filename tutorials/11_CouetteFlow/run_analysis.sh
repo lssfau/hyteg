@@ -10,7 +10,7 @@ gnuplot -persist <<-EOFMarker
     set xlabel "Minimum edge length"
     set ylabel "L2 norm of error"
     set key left
-    plot 'error_analysis.txt' with linespoints linestyle 1
+    plot 'error_analysis.txt' with linespoints linestyle 1 title "P2P1 TH element"
     replot [5e-3:1] x**2 title "O(h^2)"
     replot [5e-3:1] x**3 title "O(h^3)"
 EOFMarker

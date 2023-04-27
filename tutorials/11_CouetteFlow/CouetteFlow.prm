@@ -9,5 +9,4 @@ Parameters
 
   // Multigrid
   coarseIter 10000;
-  fineIter 10000;
 }
