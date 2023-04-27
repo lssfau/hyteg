@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,9 +21,7 @@
 #include <array>
 #include <vector>
 
-#include "core/debug/CheckFunctions.h"
-#include "core/debug/Debug.h"
-#include "core/logging/Logging.h"
+#include "core/DataTypes.h"
 
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/types/PointND.hpp"
@@ -88,27 +86,27 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
    cellVertices.push_back( { { 2, 0, 5, 6 } } );
    cellVertices.push_back( { { 2, 1, 5, 7 } } );
    cellVertices.push_back( { { 2, 3, 6, 8 } } );
-   cellVertices.push_back( {{2, 4, 7, 8}} );
+   cellVertices.push_back( { { 2, 4, 7, 8 } } );
 
-   cellVertices.push_back( {{0, 9, 5, 6}} );
-   cellVertices.push_back( {{1, 10, 5, 7}} );
-   cellVertices.push_back( {{3, 12, 6, 8}} );
-   cellVertices.push_back( {{4, 13, 7, 8}} );
+   cellVertices.push_back( { { 0, 9, 5, 6 } } );
+   cellVertices.push_back( { { 1, 10, 5, 7 } } );
+   cellVertices.push_back( { { 3, 12, 6, 8 } } );
+   cellVertices.push_back( { { 4, 13, 7, 8 } } );
 
-   cellVertices.push_back( {{2, 5, 6, 8}} );
-   cellVertices.push_back( {{2, 5, 7, 8}} );
-   cellVertices.push_back( {{11, 5, 6, 8}} );
-   cellVertices.push_back( {{11, 5, 7, 8}} );
+   cellVertices.push_back( { { 2, 5, 6, 8 } } );
+   cellVertices.push_back( { { 2, 5, 7, 8 } } );
+   cellVertices.push_back( { { 11, 5, 6, 8 } } );
+   cellVertices.push_back( { { 11, 5, 7, 8 } } );
 
-   cellVertices.push_back( {{11, 9, 5, 6}} );
-   cellVertices.push_back( {{11, 10, 5, 7}} );
-   cellVertices.push_back( {{11, 12, 6, 8}} );
-   cellVertices.push_back( {{11, 13, 7, 8}} );
+   cellVertices.push_back( { { 11, 9, 5, 6 } } );
+   cellVertices.push_back( { { 11, 10, 5, 7 } } );
+   cellVertices.push_back( { { 11, 12, 6, 8 } } );
+   cellVertices.push_back( { { 11, 13, 7, 8 } } );
 
-   cellVertices.push_back( {{11, 9, 10, 5}} );
-   cellVertices.push_back( {{11, 9, 12, 6}} );
-   cellVertices.push_back( {{11, 10, 13, 7}} );
-   cellVertices.push_back( {{11, 12, 13, 8}} );
+   cellVertices.push_back( { { 11, 9, 10, 5 } } );
+   cellVertices.push_back( { { 11, 9, 12, 6 } } );
+   cellVertices.push_back( { { 11, 10, 13, 7 } } );
+   cellVertices.push_back( { { 11, 12, 13, 8 } } );
 
    // We collect all 14 vertices for each sub-cube
    // and build a map to the actual vertex IDs.
@@ -118,11 +116,11 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
    // map[cubeX][cubeY][cubeZ][localID] = vertexID
    std::map< int, std::map< int, std::map< int, std::map< int, int > > > > vertexMapping;
 
-   for ( int z = 0; z < (int)numCubesZ; z++ )
+   for ( int z = 0; z < (int) numCubesZ; z++ )
    {
-      for ( int y = 0; y < (int)numCubesY; y++ )
+      for ( int y = 0; y < (int) numCubesY; y++ )
       {
-         for ( int x = 0; x < (int)numCubesX; x++ )
+         for ( int x = 0; x < (int) numCubesX; x++ )
          {
             if ( x == 0 && y == 0 && z == 0 )
             {
@@ -147,7 +145,7 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
                vertexMapping[x][y][z][9]  = vertexMapping[x][y - 1][z][12];
                vertexMapping[x][y][z][10] = vertexMapping[x][y - 1][z][13];
 
-               for ( auto i : std::vector< int >( {{2, 3, 4, 6, 7, 8, 11, 12, 13}} ) )
+               for ( auto i : std::vector< int >( { { 2, 3, 4, 6, 7, 8, 11, 12, 13 } } ) )
                   vertexMapping[x][y][z][i] = vertexID++;
             }
             else if ( y == 0 && z == 0 )
@@ -158,7 +156,7 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
                vertexMapping[x][y][z][9]  = vertexMapping[x - 1][y][z][10];
                vertexMapping[x][y][z][12] = vertexMapping[x - 1][y][z][13];
 
-               for ( auto i : std::vector< int >( {{1, 2, 4, 5, 7, 8, 10, 11, 13}} ) )
+               for ( auto i : std::vector< int >( { { 1, 2, 4, 5, 7, 8, 10, 11, 13 } } ) )
                   vertexMapping[x][y][z][i] = vertexID++;
             }
             else if ( x == 0 )
@@ -172,7 +170,7 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
                vertexMapping[x][y][z][9]  = vertexMapping[x][y - 1][z][12];
                vertexMapping[x][y][z][10] = vertexMapping[x][y - 1][z][13];
 
-               for ( auto i : std::vector< int >( {{6, 7, 8, 11, 12, 13}} ) )
+               for ( auto i : std::vector< int >( { { 6, 7, 8, 11, 12, 13 } } ) )
                   vertexMapping[x][y][z][i] = vertexID++;
             }
             else if ( y == 0 )
@@ -186,37 +184,37 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
                vertexMapping[x][y][z][9]  = vertexMapping[x - 1][y][z][10];
                vertexMapping[x][y][z][12] = vertexMapping[x - 1][y][z][13];
 
-               for ( auto i : std::vector< int >( {{5, 7, 8, 10, 11, 13}} ) )
+               for ( auto i : std::vector< int >( { { 5, 7, 8, 10, 11, 13 } } ) )
                   vertexMapping[x][y][z][i] = vertexID++;
             }
             else if ( z == 0 )
             {
-              vertexMapping[x][y][z][0]  = vertexMapping[x - 1][y][z][1];
-              vertexMapping[x][y][z][1]  = vertexMapping[x][y - 1][z][4];
-              vertexMapping[x][y][z][3]  = vertexMapping[x - 1][y][z][4];
-              vertexMapping[x][y][z][5]  = vertexMapping[x][y - 1][z][8];
-              vertexMapping[x][y][z][6]  = vertexMapping[x - 1][y][z][7];
-              vertexMapping[x][y][z][9]  = vertexMapping[x - 1][y][z][10];
-              vertexMapping[x][y][z][10] = vertexMapping[x][y - 1][z][13];
-              vertexMapping[x][y][z][12] = vertexMapping[x - 1][y][z][13];
+               vertexMapping[x][y][z][0]  = vertexMapping[x - 1][y][z][1];
+               vertexMapping[x][y][z][1]  = vertexMapping[x][y - 1][z][4];
+               vertexMapping[x][y][z][3]  = vertexMapping[x - 1][y][z][4];
+               vertexMapping[x][y][z][5]  = vertexMapping[x][y - 1][z][8];
+               vertexMapping[x][y][z][6]  = vertexMapping[x - 1][y][z][7];
+               vertexMapping[x][y][z][9]  = vertexMapping[x - 1][y][z][10];
+               vertexMapping[x][y][z][10] = vertexMapping[x][y - 1][z][13];
+               vertexMapping[x][y][z][12] = vertexMapping[x - 1][y][z][13];
 
-               for ( auto i : std::vector< int >( {{2, 4, 7, 8, 11, 13}} ) )
+               for ( auto i : std::vector< int >( { { 2, 4, 7, 8, 11, 13 } } ) )
                   vertexMapping[x][y][z][i] = vertexID++;
             }
             else
             {
-              vertexMapping[x][y][z][0]  = vertexMapping[x][y][z - 1][9];
-              vertexMapping[x][y][z][1]  = vertexMapping[x][y][z - 1][10];
-              vertexMapping[x][y][z][2]  = vertexMapping[x][y][z - 1][11];
-              vertexMapping[x][y][z][3]  = vertexMapping[x][y][z - 1][12];
-              vertexMapping[x][y][z][4]  = vertexMapping[x][y][z - 1][13];
-              vertexMapping[x][y][z][5]  = vertexMapping[x][y - 1][z][8];
-              vertexMapping[x][y][z][6]  = vertexMapping[x - 1][y][z][7];
-              vertexMapping[x][y][z][9]  = vertexMapping[x][y - 1][z][12];
-              vertexMapping[x][y][z][10] = vertexMapping[x][y - 1][z][13];
-              vertexMapping[x][y][z][12] = vertexMapping[x - 1][y][z][13];
+               vertexMapping[x][y][z][0]  = vertexMapping[x][y][z - 1][9];
+               vertexMapping[x][y][z][1]  = vertexMapping[x][y][z - 1][10];
+               vertexMapping[x][y][z][2]  = vertexMapping[x][y][z - 1][11];
+               vertexMapping[x][y][z][3]  = vertexMapping[x][y][z - 1][12];
+               vertexMapping[x][y][z][4]  = vertexMapping[x][y][z - 1][13];
+               vertexMapping[x][y][z][5]  = vertexMapping[x][y - 1][z][8];
+               vertexMapping[x][y][z][6]  = vertexMapping[x - 1][y][z][7];
+               vertexMapping[x][y][z][9]  = vertexMapping[x][y - 1][z][12];
+               vertexMapping[x][y][z][10] = vertexMapping[x][y - 1][z][13];
+               vertexMapping[x][y][z][12] = vertexMapping[x - 1][y][z][13];
 
-              for ( auto i : std::vector< int >( {{7, 8, 11, 13}} ) )
+               for ( auto i : std::vector< int >( { { 7, 8, 11, 13 } } ) )
                   vertexMapping[x][y][z][i] = vertexID++;
             }
          }
@@ -225,23 +223,19 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
 
    // add the actual primitives
 
-   for ( int z = 0; z < (int)numCubesZ; z++ )
+   for ( int z = 0; z < (int) numCubesZ; z++ )
    {
-      for ( int y = 0; y < (int)numCubesY; y++ )
+      for ( int y = 0; y < (int) numCubesY; y++ )
       {
-         for ( int x = 0; x < (int)numCubesX; x++ )
+         for ( int x = 0; x < (int) numCubesX; x++ )
          {
             // vertices
-
-            auto offset = subCubeWidth;
-            offset[0] *= real_c( x );
-            offset[1] *= real_c( y );
-            offset[2] *= real_c( z );
+            const Point3D offset = lowerLeftFront + subCubeWidth.cwiseProduct( Point3D{ real_c( x ), real_c( y ), real_c( z ) } );
 
             for ( int i = 0; i < 14; i++ )
             {
-               const auto coords      = offset + subCubeVertexCoordinates[uint_c(i)];
-               const auto id          = uint_c(vertexMapping[x][y][z][i]);
+               const Point3D coords   = offset + subCubeVertexCoordinates[uint_c( i )];
+               const auto    id       = uint_c( vertexMapping[x][y][z][i] );
                meshInfo.vertices_[id] = Vertex( id, coords, 0 );
             }
 
