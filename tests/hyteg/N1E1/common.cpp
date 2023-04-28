@@ -34,7 +34,7 @@ void L2ConvergenceTest( const uint_t                                            
                         const bool                                                                               writeVTK )
 {
    const real_t l2ConvRate  = 1.0 / 4.0;
-   const real_t convRateEps = l2ConvRate * 0.1;
+   const real_t convRateEps = l2ConvRate * real_c( 0.1 );
    real_t       err         = test( minLevel, system, writeVTK );
 
    WALBERLA_LOG_INFO_ON_ROOT( "expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );

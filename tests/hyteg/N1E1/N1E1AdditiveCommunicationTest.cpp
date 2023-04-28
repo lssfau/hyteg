@@ -41,7 +41,7 @@ static void
 {
    const uint_t  level        = 3;
    const Point3D testValue    = { 1.0, 2.0, 3.0 };
-   const real_t  someConstant = 6.345;
+   const real_t  someConstant = real_c( 6.345 );
 
    auto                  meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

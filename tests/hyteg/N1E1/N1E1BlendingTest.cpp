@@ -150,7 +150,7 @@ std::pair< real_t, real_t > test( std::shared_ptr< PrimitiveStorage > storage,
       vtk.write( level );
    }
 
-   return { sum / n, max };
+   return { sum / real_c( n ), max };
 }
 
 int main( int argc, char** argv )
