@@ -44,10 +44,13 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    const uint_t numberOfPoints = mgr.write2D_ ?
                                      storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 ) :
                                      storage->getNumberOfLocalCells() * levelinfo::num_microvertices_per_cell( level + 1 );
-   const uint_t cellCountLevel = mgr.useVTKQuadraticTriangle_ ? level : level + 1;
+
+   const uint_t faceCountLevel = mgr.useVTKQuadraticTriangle_ ? level : level + 1;
+   const uint_t cellCountLevel = mgr.useVTKQuadraticTetra_ ? level : level + 1;
+
    const uint_t numberOfCells  = mgr.write2D_ ?
-                                     storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( cellCountLevel ) :
-                                     storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level + 1 );
+                                     storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( faceCountLevel ) :
+                                     storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( cellCountLevel );
 
    vtk::writePieceHeader( output, numberOfPoints, numberOfCells );
 
@@ -72,7 +75,14 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    }
    else
    {
-      VTKMeshWriter::writeCells3D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
+      if ( mgr.useVTKQuadraticTetra_ )
+      {
+         VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr, output, storage, level, false );
+      }
+      else
+      {
+         VTKMeshWriter::writeCells3D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
+      }
    }
 
    output << "<PointData>\n";

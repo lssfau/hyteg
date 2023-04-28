@@ -704,4 +704,135 @@ void VTKMeshWriter::writeCells3D( const VTKOutput&                           mgr
    output << "</Cells>\n";
 }
 
+void VTKMeshWriter::writeConnectivityP2Tetrahedrons( const VTKOutput&                           mgr,
+                                                     std::ostream&                              output,
+                                                     const std::shared_ptr< PrimitiveStorage >& storage,
+                                                     uint_t                                     level,
+                                                     bool                                       discontinuous )
+{
+   using CellIdx_T = int32_t;
+
+   // From the vtk documentation:
+   //
+   // vtkQuadraticTetra is a concrete implementation of vtkNonLinearCell to represent a three-dimensional, 10-node,
+   // isoparametric parabolic tetrahedron. The interpolation is the standard finite element, quadratic isoparametric
+   // shape function. The cell includes a mid-edge node on each of the size edges of the tetrahedron. The ordering
+   // of the ten points defining the cell is point ids (0-3,4-9) where ids 0-3 are the four tetra vertices;
+   // and point ids 4-9 are the midedge nodes between (0,1), (1,2), (2,0), (0,3), (1,3), and (2,3).
+   const std::array< std::array< uint_t, 2 >, 6 > edgeByVertexIndices{ 0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3 };
+
+   output << "<Cells>\n";
+   vtk::openDataElement( output, typeToString< CellIdx_T >(), "connectivity", 0, mgr.vtkDataFormat_ );
+
+   VTKOutput::VTKStreamWriter< CellIdx_T > streamWriterCells( mgr.vtkDataFormat_ );
+
+   // calculates the position of the point in the VTK list of points from a logical vertex index
+   auto calcVTKPointArrayPosition = [level]( const indexing::Index& vertexIndex ) -> uint_t {
+      const uint_t width{ levelinfo::num_microvertices_per_edge( level + 1 ) };
+      const uint_t zOffset = levelinfo::num_microvertices_per_cell_from_width( width ) -
+                             levelinfo::num_microvertices_per_cell_from_width( width - uint_c( vertexIndex.z() ) );
+      const uint_t yOffset =
+          levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) ) -
+          levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) - uint_c( vertexIndex.y() ) );
+      const uint_t xOffset = uint_c( vertexIndex.x() );
+      return xOffset + yOffset + zOffset;
+   };
+
+   auto writeConnectivityForAllCellsOfType = [&streamWriterCells, &edgeByVertexIndices, calcVTKPointArrayPosition](
+                                                 const uint_t length, const uint_t baseIdx, celldof::CellType cellType ) {
+      for ( const auto& it : indexing::CellIterator( length ) )
+      {
+         const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, cellType );
+
+         // write indices for the tetrahedrons vertices
+         for ( const auto& spanningVertexIndex : spanningVertexIndices )
+         {
+            streamWriterCells << baseIdx + calcVTKPointArrayPosition( 2 * spanningVertexIndex );
+         }
+
+         // write indices for the tetrahedrons edge midpoints
+         for ( uint_t k = 0; k < 6; ++k )
+         {
+            celldof::Index vtxOne  = spanningVertexIndices[edgeByVertexIndices[k][0]];
+            celldof::Index vtxTwo  = spanningVertexIndices[edgeByVertexIndices[k][1]];
+            celldof::Index edgeIdx = ( vtxOne + vtxTwo );
+            streamWriterCells << baseIdx + calcVTKPointArrayPosition( edgeIdx );
+         }
+      }
+   };
+
+   // This is the number of (virtual) vertices in the mesh, i.e. the number of DoF locations
+   const uint_t numberOfVertices =
+       levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level + 1 ) );
+
+   // This is the number of vtkQuadraticTetra cells in the mesh
+   const uint_t numberOfCells = levelinfo::num_microcells_per_cell( level );
+
+   const uint_t width{ levelinfo::num_microvertices_per_edge( level ) };
+
+   for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
+   {
+      if ( discontinuous )
+      {
+         WALBERLA_ABORT( "writeConnectivityP2Tetrahedrons does not support discontinous == true, yet!" );
+      }
+      else
+      {
+         uint_t baseIdx{ macroCellIdx * numberOfVertices };
+         writeConnectivityForAllCellsOfType( width - 1, baseIdx, celldof::CellType::WHITE_UP );
+         writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::BLUE_UP );
+         writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::GREEN_UP );
+         writeConnectivityForAllCellsOfType( width - 3, baseIdx, celldof::CellType::WHITE_DOWN );
+         writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::BLUE_DOWN );
+         writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::GREEN_DOWN );
+      }
+   }
+
+   streamWriterCells.toStream( output );
+
+   output << "\n</DataArray>\n";
+
+   using OffsetType = uint32_t;
+   vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, mgr.vtkDataFormat_ );
+
+   VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( mgr.vtkDataFormat_ );
+
+   // offsets
+   uint_t offset = 10;
+   for ( const auto& it : storage->getCells() )
+   {
+      WALBERLA_UNUSED( it );
+
+      for ( size_t i = 0; i < numberOfCells; ++i )
+      {
+         streamWriterOffsets << offset;
+         offset += 10;
+      }
+   }
+
+   streamWriterOffsets.toStream( output );
+
+   output << "\n</DataArray>\n";
+
+   using CellTypeType = uint16_t;
+   vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, mgr.vtkDataFormat_ );
+
+   VTKOutput::VTKStreamWriter< CellTypeType > streamWriterTypes( mgr.vtkDataFormat_ );
+
+   // cell types
+   const unsigned char vtkQuadraticTetraID = 24;
+   for ( const auto& it : storage->getCells() )
+   {
+      WALBERLA_UNUSED( it );
+      for ( size_t i = 0; i < numberOfCells; ++i )
+      {
+         streamWriterTypes << vtkQuadraticTetraID;
+      }
+   }
+
+   streamWriterTypes.toStream( output );
+
+   output << "\n</DataArray>\n";
+   output << "</Cells>\n";
+}
 } // namespace hyteg

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -174,6 +174,12 @@ class VTKOutput
    /// Temporary getter method used as part of implementing VTK_QUADRATIC_TRIANGLE for P2Function output
    [[nodiscard]] bool getUseVTKQuadraticTriangle() { return useVTKQuadraticTriangle_; };
 
+   /// Temporary setter method used as part of implementing VTK_QUADRATIC_TETRA for P2Function output
+   void setUseVTKQuadraticTetra( bool flag ) { useVTKQuadraticTetra_ = flag; };
+
+   /// Temporary getter method used as part of implementing VTK_QUADRATIC_TETRA for P2Function output
+   [[nodiscard]] bool getUseVTKQuadraticTetra() { return useVTKQuadraticTetra_; };
+
  private:
    /// Wrapper class that handles writing data in ASCII or binary format.
    ///
@@ -269,6 +275,9 @@ class VTKOutput
 
    /// Temporary flag used as part of implementing VTK_QUADRATIC_TRIANGLE for P2Function output
    bool useVTKQuadraticTriangle_{ true };
+
+   /// Temporary flag used as part of implementing VTK_QUADRATIC_TETRA for P2Function output
+   bool useVTKQuadraticTetra_{ true };
 
    FunctionMultiStore< P1Function > p1Functions_;
    FunctionMultiStore< P2Function > p2Functions_;

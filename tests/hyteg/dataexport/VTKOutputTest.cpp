@@ -351,6 +351,60 @@ static void testVTKQuadraticTriangle( uint_t meshType )
    }
 }
 
+static void testVTKQuadraticTetra( uint_t meshType )
+{
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = 2;
+
+   using walberla::math::pi;
+
+   std::shared_ptr< MeshInfo > mesh;
+
+   switch ( meshType )
+   {
+   case 1:
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ) );
+      break;
+   case 2:
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ) );
+      break;
+   case 3:
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../data/meshes/3D/three_tets_with_two_joint_faces.msh" ) );
+      break;
+   default:
+      WALBERLA_ABORT( "meshType = " << meshType << " is not supported!" );
+   }
+
+   SetupPrimitiveStorage               setupStorage( *mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   // Setup test function
+   P2Function< real_t >                             p2ScalarFunc( "P2 scalar function", storage, minLevel, maxLevel );
+   std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& p ) -> real_t {
+      return real_c( -2.0 ) * p[0] + p[1] + real_c( 3 ) + p[2] * p[0];
+   };
+   p2ScalarFunc.interpolate( expr, maxLevel, All );
+
+   bool beVerbose = true;
+   if ( beVerbose )
+   {
+      std::string fPath = "../../output";
+      std::string fName = "VTKQuadraticTetra-false";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputA( fPath, fName, storage );
+      vtkOutputA.setUseVTKQuadraticTetra( false );
+      vtkOutputA.add( p2ScalarFunc );
+      vtkOutputA.write( maxLevel );
+
+      fName = "VTKQuadraticTetra-true";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputB( fPath, fName, storage );
+      vtkOutputA.setUseVTKQuadraticTetra( true );
+      vtkOutputB.add( p2ScalarFunc );
+      vtkOutputB.write( maxLevel );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -375,6 +429,9 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export with VTK_QUADRATIC_TRIANGLE:" );
    hyteg::testVTKQuadraticTriangle( 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export with VTK_QUADRATIC_TETRA:" );
+   hyteg::testVTKQuadraticTetra( 3 );
 
    return EXIT_SUCCESS;
 }

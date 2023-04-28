@@ -67,7 +67,7 @@ class VTKMeshWriter
    /// \param output        an output stream to write to
    /// \param storage       the associated PrimitiveStorage
    /// \param level         refinement level for output
-   /// \param discontinuous should match what is specified in VTKMeshWriter::writePointsForMicroVertices()
+   /// \param discontinuous only false is currently supported
    static void writeConnectivityP2Triangles( const VTKOutput&                           mgr,
                                              std::ostream&                              output,
                                              const std::shared_ptr< PrimitiveStorage >& storage,
@@ -86,6 +86,20 @@ class VTKMeshWriter
                              const std::shared_ptr< PrimitiveStorage >& storage,
                              uint_t                                     width,
                              bool                                       discontinuous = false );
+
+   /// \brief Writes connectivity information for 3D cells of type VTK_QUADRATIC_TETRA
+   ///
+   /// \param mgr           the corresponding VTKOutput instance
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   /// \param discontinuous only false is currently supported
+   static void writeConnectivityP2Tetrahedrons( const VTKOutput&                           mgr,
+                                                std::ostream&                              output,
+                                                const std::shared_ptr< PrimitiveStorage >& storage,
+                                                uint_t                                     level,
+                                                bool                                       discontinuous = false );
+
 };
 
 } // namespace hyteg
