@@ -57,25 +57,31 @@ static std::vector< MeshInfo::Cell > cellsTopRightPrism( std::vector< uint_t > v
    return cells;
 }
 
-MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
-                              uint_t                numPoloidalSlices,
+MeshInfo MeshInfo::meshTorus( uint_t                toroidalResolution,
+                              uint_t                poloidalResolution,
                               real_t                radiusOriginToCenterOfTube,
                               std::vector< real_t > tubeLayerRadii,
                               real_t                toroidalStartAngle,
-                              real_t                poloidalStartAngle )
+                              real_t                poloidalStartAngle,
+                              uint_t                numToroidalSlices )
 {
+   if ( numToroidalSlices == 0 )
+   {
+      numToroidalSlices = toroidalResolution;
+   }
+
    MeshInfo meshInfo;
 
    uint_t id = 0;
 
-   real_t toroidalAngleIncrement = 2 * pi / real_c( numToroidalSlices );
-   real_t poloidalAngleIncrement = 2 * pi / real_c( numPoloidalSlices );
+   real_t toroidalAngleIncrement = 2 * pi / real_c( toroidalResolution );
+   real_t poloidalAngleIncrement = 2 * pi / real_c( poloidalResolution );
 
    // slices[toroidalSlice][layer][poloidalVertex]
    std::map< uint_t, std::map< uint_t, std::map< uint_t, uint_t > > > slices;
-   // std::vector< std::vector< uint_t > > slices( numToroidalSlices );
+   // std::vector< std::vector< uint_t > > slices( toroidalResolution );
 
-   for ( uint_t toroidalSlice = 0; toroidalSlice < numToroidalSlices; toroidalSlice++ )
+   for ( uint_t toroidalSlice = 0; toroidalSlice < std::min( toroidalResolution, numToroidalSlices + 1 ); toroidalSlice++ )
    {
       real_t toroidalAngle = toroidalStartAngle + real_c( toroidalSlice ) * toroidalAngleIncrement;
 
@@ -85,12 +91,12 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
       auto vertex                 = MeshInfo::Vertex( id++, coords, 0 );
       slices[toroidalSlice][0][0] = vertex.getID();
       meshInfo.addVertex( vertex );
-//      WALBERLA_LOG_DEVEL_ON_ROOT( "Added vertex id " << vertex.getID() << " at: toro " << toroidalSlice << ", layer " << 0
-//                                                     << " polo " << 0 );
+      // WALBERLA_LOG_DEVEL_ON_ROOT( "Added vertex id " << vertex.getID() << " at: toro " << toroidalSlice << ", layer " << 0
+      //                                                << " polo " << 0 );
 
       for ( uint_t layer = 1; layer <= tubeLayerRadii.size(); layer++ )
       {
-         for ( uint_t poloidalSlice = 0; poloidalSlice < numPoloidalSlices; poloidalSlice++ )
+         for ( uint_t poloidalSlice = 0; poloidalSlice < poloidalResolution; poloidalSlice++ )
          {
             real_t poloidalAngle = poloidalStartAngle + real_c( poloidalSlice ) * poloidalAngleIncrement;
 
@@ -106,8 +112,8 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
             vertex                                       = MeshInfo::Vertex( id++, coordsFirstVertex, 0 );
             slices[toroidalSlice][layer][poloidalVertex] = vertex.getID();
             meshInfo.addVertex( vertex );
-//            WALBERLA_LOG_DEVEL_ON_ROOT( "Added vertex id " << vertex.getID() << " at: toro " << toroidalSlice << ", layer "
-//                                                           << layer << " polo " << poloidalVertex );
+            // WALBERLA_LOG_DEVEL_ON_ROOT( "Added vertex id " << vertex.getID() << " at: toro " << toroidalSlice << ", layer "
+            //                                                << layer << " polo " << poloidalVertex );
 
             for ( uint_t l = 1; l < layer; l++ )
             {
@@ -116,8 +122,8 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
                vertex                                       = MeshInfo::Vertex( id++, coords, 0 );
                slices[toroidalSlice][layer][poloidalVertex] = vertex.getID();
                meshInfo.addVertex( vertex );
-//               WALBERLA_LOG_DEVEL_ON_ROOT( " asdfAdded vertex id " << vertex.getID() << " at: toro " << toroidalSlice
-//                                                                   << ", layer " << layer << " polo " << poloidalVertex );
+               // WALBERLA_LOG_DEVEL_ON_ROOT( " asdfAdded vertex id " << vertex.getID() << " at: toro " << toroidalSlice
+               //                                                     << ", layer " << layer << " polo " << poloidalVertex );
             }
          }
       }
@@ -127,10 +133,10 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
    {
       for ( uint_t layer = 0; layer < tubeLayerRadii.size(); layer++ )
       {
-         for ( uint_t poloidalSlice = 0; poloidalSlice < numPoloidalSlices; poloidalSlice++ )
+         for ( uint_t poloidalSlice = 0; poloidalSlice < poloidalResolution; poloidalSlice++ )
          {
             uint_t prismFronSlice = toroidalSlice;
-            uint_t prismBackSlice = toroidalSlice + 1 == numToroidalSlices ? 0 : toroidalSlice + 1;
+            uint_t prismBackSlice = toroidalSlice + 1 == toroidalResolution ? 0 : toroidalSlice + 1;
 
             auto numTriangles = 2 * layer + 1;
 
@@ -150,7 +156,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
                   }
                   else
                   {
-                     if ( poloidalSlice == numPoloidalSlices - 1 && t == numTriangles - 1 )
+                     if ( poloidalSlice == poloidalResolution - 1 && t == numTriangles - 1 )
                      {
                         prismVerticesFront.push_back( slices[prismFronSlice][layer][0] );
                         prismVerticesBack.push_back( slices[prismBackSlice][layer][0] );
@@ -163,7 +169,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
                   }
 
                   // outer nodes
-                  if ( poloidalSlice == numPoloidalSlices - 1 && t == numTriangles - 1 )
+                  if ( poloidalSlice == poloidalResolution - 1 && t == numTriangles - 1 )
                   {
                      prismVerticesFront.push_back( slices[prismFronSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 )] );
                      prismVerticesBack.push_back( slices[prismBackSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 )] );
@@ -200,7 +206,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
                   WALBERLA_CHECK_GREATER( layer, 0 );
 
                   // inner nodes
-                  if ( poloidalSlice == numPoloidalSlices - 1 && t == numTriangles - 2 )
+                  if ( poloidalSlice == poloidalResolution - 1 && t == numTriangles - 2 )
                   {
                      prismVerticesFront.push_back( slices[prismFronSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
                      prismVerticesBack.push_back( slices[prismBackSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );

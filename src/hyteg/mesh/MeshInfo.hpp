@@ -538,19 +538,21 @@ class MeshInfo
    /// The very same map can be parameterized so that is reduces to the special case of a torus.
    ///
    /// \param setupStorage the SetupPrimitiveStorage instance
-   /// \param numToroidalSlices number of prisms in toroidal direction (along the ring)
-   /// \param numPoloidalSlices number of vertices on the boundary of a slice through the tube
+   /// \param toroidalResolution number of prisms in toroidal direction (along the ring) in a complete (360 degree) ring
+   /// \param poloidalResolution number of vertices on the boundary of a slice through the tube
    /// \param radiusOriginToCenterOfTube distance from origin to the center of the tube
    /// \param tubeLayerRadii list of radii of layers of the sliced tube - the last element defines the actual radius of the tube
    /// \param toroidalStartAngle angle (in radians) by which the domain shall be rotated about the z-axis
    /// \param poloidalStartAngle angle (in radians) by which the domain shall be rotated about the ring through the center of the tube
+   /// \param numToroidalSlices number of prisms in toroidal direction in the final mesh (the default value 0 produces a complete ring)
    ///
-   static MeshInfo meshTorus( uint_t                numToroidalSlices,
-                              uint_t                numPoloidalSlices,
+   static MeshInfo meshTorus( uint_t                toroidalResolution,
+                              uint_t                poloidalResolution,
                               real_t                radiusOriginToCenterOfTube,
                               std::vector< real_t > tubeLayerRadii,
                               real_t                toroidalStartAngle = 0,
-                              real_t                poloidalStartAngle = 0 );
+                              real_t                poloidalStartAngle = 0,
+                              uint_t                numToroidalSlices  = 0 );
 
    /// \brief Create a mesh composed of a single triangle
    ///
