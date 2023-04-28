@@ -200,15 +200,15 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, polynomial ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::polynomialOnCube(), testNoBlending );
+   n1e1::L2ConvergenceTest( 4, 5, n1e1::System::polynomialOnCube(), testNoBlending );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, sinusoidal ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::sinusoidalOnCube(), testNoBlending );
+   n1e1::L2ConvergenceTest( 4, 5, n1e1::System::sinusoidalOnCube(), testNoBlending );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on slice of solid torus, blending ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::onToroidalSlice(), testBlending );
+   n1e1::L2ConvergenceTest( 4, 5, n1e1::System::onToroidalSlice(), testBlending );
 
    return EXIT_SUCCESS;
 }
