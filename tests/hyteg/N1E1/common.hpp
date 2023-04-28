@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Daniel Bauer.
+* Copyright (c) 2022-2023 Daniel Bauer.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,7 +25,9 @@
 #include "core/DataTypes.h"
 #include "core/math/Constants.h"
 
+#include "hyteg/geometry/TokamakMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hyteg {
 namespace n1e1 {
@@ -38,14 +40,23 @@ using VectorField = std::function< Point3D( const Point3D& ) >;
 class System
 {
  public:
-   MeshInfo    domain_;
-   VectorField analyticalSol_;
-   VectorField rhs_;
+   MeshInfo                                        domain_;
+   VectorField                                     analyticalSol_;
+   VectorField                                     rhs_;
+   std::function< void( SetupPrimitiveStorage& ) > setMap_;
 
    System( MeshInfo domain, VectorField analyticalSol, VectorField rhs )
    : domain_( domain )
    , analyticalSol_( analyticalSol )
    , rhs_( rhs )
+   , setMap_( []( SetupPrimitiveStorage& ) {} )
+   {}
+
+   System( MeshInfo domain, VectorField analyticalSol, VectorField rhs, std::function< void( SetupPrimitiveStorage& ) > setMap )
+   : domain_( domain )
+   , analyticalSol_( analyticalSol )
+   , rhs_( rhs )
+   , setMap_( setMap )
    {}
 
    static System polynomialOnSingleTet()
@@ -193,6 +204,88 @@ class System
              return Point3D{ sin( 2 * pi * y ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * y ) * sin( 2 * pi * z ),
                              sin( 2 * pi * x ) * sin( 2 * pi * z ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * z ),
                              sin( 2 * pi * x ) * sin( 2 * pi * y ) + 8 * pi * pi * sin( 2 * pi * x ) * sin( 2 * pi * y ) };
+          },
+      };
+   }
+
+   static System onToroidalSlice()
+   {
+      const uint_t                toroidalResolution         = 34;
+      const uint_t                poloidalResolution         = 6;
+      const real_t                radiusOriginToCenterOfTube = 2;
+      const std::vector< real_t > tubeLayerRadii             = { 0.4 };
+      const real_t                torodialStartAngle         = 0.0;
+      const real_t                polodialStartAngle         = 0.0;
+      const uint_t                numToroidalSlices          = 1;
+      const real_t                delta                      = 0;
+      const real_t                r1                         = tubeLayerRadii.back();
+      const real_t                r2                         = tubeLayerRadii.back();
+
+      const real_t R = radiusOriginToCenterOfTube;
+      const real_t r = tubeLayerRadii.back();
+
+      return System{
+          MeshInfo::meshTorus( toroidalResolution,
+                               poloidalResolution,
+                               radiusOriginToCenterOfTube,
+                               tubeLayerRadii,
+                               torodialStartAngle,
+                               polodialStartAngle,
+                               numToroidalSlices ),
+
+          [R, r]( const Point3D& xVec ) {
+             const real_t x    = xVec[0];
+             const real_t y    = xVec[1];
+             const real_t z    = xVec[2];
+             const real_t tmp0 = std::sqrt( std::pow( x, 2 ) + std::pow( y, 2 ) );
+             const real_t tmp1 = ( -std::pow( r, 2 ) + std::pow( z, 2 ) + std::pow( -R + tmp0, 2 ) ) / tmp0;
+             const real_t u0   = tmp1 * y;
+             const real_t u1   = -tmp1 * x;
+             const real_t u2   = 0;
+             return Point3D{ u0, u1, u2 };
+          },
+
+          [R, r]( const Point3D& xVec ) {
+             const real_t x     = xVec[0];
+             const real_t y     = xVec[1];
+             const real_t z     = xVec[2];
+             const real_t tmp0  = std::pow( x, 2 );
+             const real_t tmp1  = std::pow( y, 2 );
+             const real_t tmp2  = tmp0 + tmp1;
+             const real_t tmp3  = std::sqrt( tmp2 );
+             const real_t tmp4  = 1.0 / tmp3;
+             const real_t tmp5  = std::pow( y, 3 );
+             const real_t tmp6  = std::pow( tmp2, -3.0 / 2.0 );
+             const real_t tmp7  = 2 * tmp6;
+             const real_t tmp8  = tmp0 * y;
+             const real_t tmp9  = -R + tmp3;
+             const real_t tmp10 = 8 / tmp2;
+             const real_t tmp11 = std::pow( tmp2, -2 );
+             const real_t tmp12 = -std::pow( r, 2 ) + std::pow( tmp9, 2 ) + std::pow( z, 2 );
+             const real_t tmp13 = 3 * tmp12 / std::pow( tmp2, 5.0 / 2.0 );
+             const real_t tmp14 = tmp4 * x;
+             const real_t tmp15 = std::pow( x, 3 );
+             const real_t tmp16 = tmp1 * x;
+             const real_t tmp17 = 6 * tmp11 * tmp9;
+             const real_t u0    = 6 * tmp0 * tmp11 * tmp9 * y - tmp10 * tmp9 * y + 6 * tmp11 * tmp5 * tmp9 + tmp12 * tmp4 * y +
+                               4 * tmp12 * tmp6 * y - tmp13 * tmp5 - tmp13 * tmp8 - 2 * tmp4 * y - tmp5 * tmp7 - tmp7 * tmp8;
+             const real_t u1 = tmp10 * tmp9 * x - tmp12 * tmp14 - 4 * tmp12 * tmp6 * x + tmp13 * tmp15 + tmp13 * tmp16 +
+                               2 * tmp14 - tmp15 * tmp17 + tmp15 * tmp7 - tmp16 * tmp17 + tmp16 * tmp7;
+             const real_t u2 = 0;
+             return Point3D{ u0, u1, u2 };
+          },
+
+          [=]( SetupPrimitiveStorage& setupStorage ) {
+             TokamakMap::setMap( setupStorage,
+                                 toroidalResolution,
+                                 poloidalResolution,
+                                 radiusOriginToCenterOfTube,
+                                 tubeLayerRadii,
+                                 torodialStartAngle,
+                                 polodialStartAngle,
+                                 delta,
+                                 r1,
+                                 r2 );
           },
       };
    }
