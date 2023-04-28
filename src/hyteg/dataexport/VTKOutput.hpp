@@ -31,7 +31,6 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
@@ -49,8 +48,8 @@
 
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
-#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKN1E1Writer.hpp"
+#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
 
@@ -268,14 +267,12 @@ class VTKOutput
    FunctionMultiStore< P1VectorFunction > p1VecFunctions_;
    FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
-   FunctionMultiStore< EdgeDoFFunction >     edgeDoFFunctions_;
+   FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
 
    FunctionMultiStore< dg::DGFunction >           dgFunctions_;
    FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;
-
-   FunctionMultiStore< dg::DGVectorFunction > dgVecFunctions_;
-
-   FunctionMultiStore< EGFunction > p1dgeVecFunctions_;
+   FunctionMultiStore< dg::DGVectorFunction >     dgVecFunctions_;
+   FunctionMultiStore< EGFunction >               p1dgeVecFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

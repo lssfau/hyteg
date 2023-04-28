@@ -528,6 +528,87 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       value = ValueType( value_conforming + value_discontinuous );
    }
 
+
+   void evaluateOnMicroElement( const Point3D&         coordinates,
+                                uint_t                 level,
+                                const PrimitiveID&     cellID,
+                                hyteg::indexing::Index elementIndex,
+                                celldof::CellType      cellType,
+                                uint_t                 componentIdx,
+                                ValueType&             value ) const
+   {
+      // 3D
+
+      auto storage = u_conforming_->getStorage();
+
+      WALBERLA_ASSERT( storage->hasGlobalCells() );
+
+      WALBERLA_ASSERT( storage->cellExistsLocally( cellID ) );
+      const Cell& cell = *storage->getCell( cellID );
+
+      const uint_t polyDegree = 1;
+      const uint_t ndofsP1    = 4;
+
+      Eigen::Matrix< real_t, 3, 1 > affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
+
+      std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
+      auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType);
+
+      for ( uint_t i = 0; i < 4; i++ )
+      {
+         const auto coord              = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i]);
+         affineElementVertices[i]( 0 ) = coord[0];
+         affineElementVertices[i]( 1 ) = coord[1];
+         affineElementVertices[i]( 2 ) = coord[2];
+      }
+
+      // trafo from affine to reference space
+      Eigen::Matrix< real_t, 3, 3 > A;
+      A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+      A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+      A( 2, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
+
+      A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+      A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+      A( 2, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
+
+      A( 0, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
+      A( 1, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
+      A( 2, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
+      const auto Ainv = A.inverse();
+
+      const Eigen::Matrix< real_t, 3, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+      const Eigen::Matrix< real_t, 3, 1 > refPos = Ainv * affineCoordsTranslated;
+
+      Point3D midpoint( 0., 0., 0. );
+      for ( uint_t i = 0; i < 4; i++ )
+         for ( uint_t d = 0; d < 3; d++ )
+            midpoint[static_cast< long >( d )] += affineElementVertices[i][static_cast< long >( d )] / 4.;
+
+      // evaluate P1 function
+      std::array< uint_t, ndofsP1 > vertexDoFIndices;
+      vertexdof::getVertexDoFDataIndicesFromMicroCell(elementIndex, cellType, level, vertexDoFIndices);
+
+      ValueType* p1Data = cell.getData( u_conforming_->component( componentIdx ).getCellDataID() )->getPointer( level );
+
+      std::vector< real_t > dofs( ndofsP1 );
+      for ( uint_t i = 0; i < ndofsP1; i++ )
+      {
+         dofs[i] = real_t( p1Data[vertexDoFIndices[i]] );
+      }
+
+      real_t value_conforming;
+      basis_conforming_.evaluate( polyDegree, refPos, dofs, value_conforming );
+
+      // evaluate DG function
+      auto dof_discontinuous =
+          u_discontinuous_->getDGFunction()->volumeDoFFunction()->dof( cellID, elementIndex, 0, cellType, level );
+      real_t value_discontinuous = ValueType( dof_discontinuous ) * ( coordinates[componentIdx] - midpoint[componentIdx] );
+
+      value = ValueType( value_conforming + value_discontinuous );
+   }
+
    template < typename OtherValueType >
    void copyBoundaryConditionFromFunction( const EGFunction< OtherValueType >& other )
    {

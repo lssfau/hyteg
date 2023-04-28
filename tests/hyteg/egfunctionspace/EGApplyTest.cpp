@@ -231,8 +231,8 @@ int main( int argc, char* argv[] )
    using namespace hyteg::dg::eg;
    using hyteg::Point3D;
    using walberla::math::pi;
-   const bool writeVTK = true;
-   real_t eps = 1e-13;
+   const bool writeVTK = false;
+   real_t     eps      = 1e-13;
 
    ScalarLambda srcLambda1 = []( const hyteg::Point3D& x ) { return std::sin( 3 * pi * x[0] ) * std::sin( 3 * pi * x[1] ); };
    ScalarLambda srcLambda2 = []( const hyteg::Point3D& ) { return 1; };

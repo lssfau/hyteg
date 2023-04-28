@@ -80,7 +80,7 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
    output << "<PointData>\n";
 
-   // write all P2VectorFunctions of supported value type
+   // write all P1DGEVectorFunctions of supported value type
    for ( const auto& function : mgr.p1dgeVecFunctions_.getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -101,7 +101,7 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
 template < typename value_t >
 void VTKP1DGEWriter::writeVectorFunction( std::ostream&                              output,
-                                          const EGFunction< value_t >&            function,
+                                          const EGFunction< value_t >&               function,
                                           const std::shared_ptr< PrimitiveStorage >& storage,
                                           const uint_t&                              level,
                                           bool                                       write2D,
@@ -141,7 +141,30 @@ void VTKP1DGEWriter::writeVectorFunction( std::ostream&                         
    }
    else
    {
-      WALBERLA_ABORT( "EGFunction VTK not implemented in 3D." );
+      for ( const auto& it : storage->getCells() )
+      {
+         const PrimitiveID cellID = it.first;
+         const Cell&       cell   = *it.second;
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               const std::array< indexing::Index, 4 > vertexIndices =
+                   celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+               for ( uint_t i = 0; i < 4; i++ )
+               {
+                  const auto vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                  value_t    value;
+                  for ( uint_t j = 0; j < 3; j += 1 )
+                  {
+                     function.evaluateOnMicroElement( vtkPoint, level, cellID, idxIt, cellType, j, value );
+                     streamWriter << value;
+                  }
+               }
+            }
+         }
+      }
    }
 
    streamWriter.toStream( output );

@@ -59,10 +59,12 @@ void testEvaluateLinearFunctional()
    vtk.add( *f.getDiscontinuousPart() );
    //vtk.write( maxLevel );
 }
+
 void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
+} // namespace eg
+} // namespace dg
 } // namespace hyteg
-}
-}
+
 int main( int argc, char** argv )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
@@ -71,7 +73,7 @@ int main( int argc, char** argv )
    using namespace hyteg;
    PETScManager petscManager( &argc, &argv );
 
-   uint_t                level = 3;
+   uint_t level = 3;
    {
       SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
                                           uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -148,7 +150,7 @@ void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
       f1.getDiscontinuousPart()->interpolate( 1, level, All );
 
       f.assign( { 1. }, { f1 }, level, Inner );
-      vtk.write( level );
+      // vtk.write( level );
    }
    // test add(constant)
    {
@@ -211,6 +213,6 @@ void checkAll( std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
       WALBERLA_CHECK_FLOAT_EQUAL( f.dotGlobal( f, level ), 0.0 );
    }
 }
-}
-}
-}
+} // namespace eg
+} // namespace dg
+} // namespace hyteg
