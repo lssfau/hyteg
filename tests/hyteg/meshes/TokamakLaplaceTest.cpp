@@ -47,25 +47,29 @@ void testTokamak( uint_t level, real_t errorL2Max )
 
    // ITER configuration
 
-   const uint_t                numToroidalSlices          = 8;
-   const uint_t                numPoloidalSlices          = 6;
+   const uint_t                toroidalResolution         = 8;
+   const uint_t                poloidalResolution         = 6;
    const real_t                radiusOriginToCenterOfTube = 6.2;
    const std::vector< real_t > tubeLayerRadii             = { 3 };
    const real_t                torodialStartAngle         = 0.0;
-   const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * numPoloidalSlices );
+   const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * poloidalResolution );
 
    real_t delta = sin( 0.33 );
    real_t r1    = 2.0;
    real_t r2    = 3.7;
 
-   const auto meshInfo = MeshInfo::meshTorus(
-       numToroidalSlices, numPoloidalSlices, radiusOriginToCenterOfTube, tubeLayerRadii, torodialStartAngle, polodialStartAngle );
+   const auto            meshInfo = MeshInfo::meshTorus( toroidalResolution,
+                                              poloidalResolution,
+                                              radiusOriginToCenterOfTube,
+                                              tubeLayerRadii,
+                                              torodialStartAngle,
+                                              polodialStartAngle );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    TokamakMap::setMap( setupStorage,
-                       numToroidalSlices,
-                       numPoloidalSlices,
+                       toroidalResolution,
+                       poloidalResolution,
                        radiusOriginToCenterOfTube,
                        tubeLayerRadii,
                        torodialStartAngle,

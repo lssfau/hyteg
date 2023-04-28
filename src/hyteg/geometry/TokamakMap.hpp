@@ -40,8 +40,8 @@ class TokamakMap : public GeometryMap
  public:
    TokamakMap( const Cell&                  cell,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numToroidalSlices,
-               uint_t                       numPoloidalSlices,
+               uint_t                       toroidalResolution,
+               uint_t                       poloidalResolution,
                real_t                       radiusOriginToCenterOfTube,
                std::vector< real_t >        tubeLayerRadii,
                real_t                       toroidalStartAngle,
@@ -49,8 +49,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : numToroidalSlices_( numToroidalSlices )
-   , numPoloidalSlices_( numPoloidalSlices )
+   : toroidalResolution( toroidalResolution )
+   , poloidalResolution( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -65,8 +65,8 @@ class TokamakMap : public GeometryMap
 
    TokamakMap( const Face&                  face,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numToroidalSlices,
-               uint_t                       numPoloidalSlices,
+               uint_t                       toroidalResolution,
+               uint_t                       poloidalResolution,
                real_t                       radiusOriginToCenterOfTube,
                std::vector< real_t >        tubeLayerRadii,
                real_t                       toroidalStartAngle,
@@ -74,8 +74,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : numToroidalSlices_( numToroidalSlices )
-   , numPoloidalSlices_( numPoloidalSlices )
+   : toroidalResolution( toroidalResolution )
+   , poloidalResolution( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -93,8 +93,8 @@ class TokamakMap : public GeometryMap
 
    TokamakMap( const Edge&                  edge,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numToroidalSlices,
-               uint_t                       numPoloidalSlices,
+               uint_t                       toroidalResolution,
+               uint_t                       poloidalResolution,
                real_t                       radiusOriginToCenterOfTube,
                std::vector< real_t >        tubeLayerRadii,
                real_t                       toroidalStartAngle,
@@ -102,8 +102,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : numToroidalSlices_( numToroidalSlices )
-   , numPoloidalSlices_( numPoloidalSlices )
+   : toroidalResolution( toroidalResolution )
+   , poloidalResolution( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -121,8 +121,8 @@ class TokamakMap : public GeometryMap
 
    TokamakMap( const Vertex&                vertex,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numToroidalSlices,
-               uint_t                       numPoloidalSlices,
+               uint_t                       toroidalResolution,
+               uint_t                       poloidalResolution,
                real_t                       radiusOriginToCenterOfTube,
                std::vector< real_t >        tubeLayerRadii,
                real_t                       toroidalStartAngle,
@@ -130,8 +130,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : numToroidalSlices_( numToroidalSlices )
-   , numPoloidalSlices_( numPoloidalSlices )
+   : toroidalResolution( toroidalResolution )
+   , poloidalResolution( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -299,8 +299,8 @@ class TokamakMap : public GeometryMap
    /// Can be abused to map to a standard torus by setting delta == 0 and r1 == r2 == tubeLayerRadii.back()
    ///
    /// \param setupStorage the SetupPrimitiveStorage instance
-   /// \param numToroidalSlices number of prisms in toroidal direction (along the ring)
-   /// \param numPoloidalSlices number of vertices on the boundary of a slice through the tube
+   /// \param toroidalResolution number of prisms in toroidal direction (along the ring) in a complete (360 degree) ring
+   /// \param poloidalResolution number of vertices on the boundary of a slice through the tube
    /// \param radiusOriginToCenterOfTube distance from origin to the center of the tube
    /// \param tubeLayerRadii list of radii of layers of the sliced tube - the last element defines the actual radius of the tube
    /// \param toroidalStartAngle angle (in radians) by which the domain shall be rotated about the z-axis
@@ -310,8 +310,8 @@ class TokamakMap : public GeometryMap
    /// \param r2 semi-major axis radius
    ///
    static void setMap( SetupPrimitiveStorage& setupStorage,
-                       uint_t                 numToroidalSlices,
-                       uint_t                 numPoloidalSlices,
+                       uint_t                 toroidalResolution,
+                       uint_t                 poloidalResolution,
                        real_t                 radiusOriginToCenterOfTube,
                        std::vector< real_t >  tubeLayerRadii,
                        real_t                 toroidalStartAngle,
@@ -326,8 +326,8 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( cell.getID(),
                                       std::make_shared< TokamakMap >( cell,
                                                                       setupStorage,
-                                                                      numToroidalSlices,
-                                                                      numPoloidalSlices,
+                                                                      toroidalResolution,
+                                                                      poloidalResolution,
                                                                       radiusOriginToCenterOfTube,
                                                                       tubeLayerRadii,
                                                                       toroidalStartAngle,
@@ -343,8 +343,8 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( face.getID(),
                                       std::make_shared< TokamakMap >( face,
                                                                       setupStorage,
-                                                                      numToroidalSlices,
-                                                                      numPoloidalSlices,
+                                                                      toroidalResolution,
+                                                                      poloidalResolution,
                                                                       radiusOriginToCenterOfTube,
                                                                       tubeLayerRadii,
                                                                       toroidalStartAngle,
@@ -360,8 +360,8 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( edge.getID(),
                                       std::make_shared< TokamakMap >( edge,
                                                                       setupStorage,
-                                                                      numToroidalSlices,
-                                                                      numPoloidalSlices,
+                                                                      toroidalResolution,
+                                                                      poloidalResolution,
                                                                       radiusOriginToCenterOfTube,
                                                                       tubeLayerRadii,
                                                                       toroidalStartAngle,
@@ -377,8 +377,8 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( vertex.getID(),
                                       std::make_shared< TokamakMap >( vertex,
                                                                       setupStorage,
-                                                                      numToroidalSlices,
-                                                                      numPoloidalSlices,
+                                                                      toroidalResolution,
+                                                                      poloidalResolution,
                                                                       radiusOriginToCenterOfTube,
                                                                       tubeLayerRadii,
                                                                       toroidalStartAngle,
@@ -415,8 +415,8 @@ class TokamakMap : public GeometryMap
    {
       tubeLayerRadiiBack_ = tubeLayerRadii_.back();
 
-      toroidalAngleIncrement_ = 2 * pi / real_c( numToroidalSlices_ );
-      poloidalAngleIncrement_ = 2 * pi / real_c( numPoloidalSlices_ );
+      toroidalAngleIncrement_ = 2 * pi / real_c( toroidalResolution );
+      poloidalAngleIncrement_ = 2 * pi / real_c( poloidalResolution );
 
       auto    coords = cell.getCoordinates();
       Point3D centroid( 0, 0, 0 );
@@ -452,12 +452,12 @@ class TokamakMap : public GeometryMap
       // then we rotate the mapped centroid around the z-axis and translate it to the origin
       // this way we can find the angle and therefore the prism ID via polar coordinates in the x-z-plane
 
-      auto C                     = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle, 0 );
+      auto    C                     = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle, 0 );
       Point3D centroidTrafoToOrigin = centroid - C;
-      centroidTrafoToOrigin      = Point3D(
+      centroidTrafoToOrigin         = Point3D(
           { std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] - std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1],
-            std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],
-            centroidTrafoToOrigin[2] } );
+                    std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],
+                    centroidTrafoToOrigin[2] } );
 
       auto poloidalAngle = std::atan2( centroidTrafoToOrigin[2], centroidTrafoToOrigin[0] );
       poloidalAngle -= poloidalStartAngle_;
@@ -468,8 +468,8 @@ class TokamakMap : public GeometryMap
       poloidalPrism_ = uint_c( ( poloidalAngle ) / poloidalAngleIncrement_ );
    }
 
-   uint_t                numToroidalSlices_;
-   uint_t                numPoloidalSlices_;
+   uint_t                toroidalResolution;
+   uint_t                poloidalResolution;
    real_t                radiusOriginToCenterOfTube_;
    std::vector< real_t > tubeLayerRadii_;
    real_t                toroidalStartAngle_;

@@ -48,12 +48,12 @@ int main( int argc, char* argv[] )
 
    // ITER configuration
 
-   const uint_t                numToroidalSlices          = 20;
-   const uint_t                numPoloidalSlices          = 8;
+   const uint_t                toroidalResolution         = 20;
+   const uint_t                poloidalResolution         = 8;
    const real_t                radiusOriginToCenterOfTube = real_c( 6.2 );
    const std::vector< real_t > tubeLayerRadii             = { real_c( 1.2 ), real_c( 2.2 ), real_c( 3 ) };
    const real_t                torodialStartAngle         = real_c( 0 );
-   const real_t                polodialStartAngle         = real_c( 0 ); // 2.0 * pi / real_c( 2 * numPoloidalSlices );
+   const real_t                polodialStartAngle         = real_c( 0 ); // 2.0 * pi / real_c( 2 * poloidalResolution );
 
    real_t delta = std::sin( real_c( 0.33 ) );
    real_t r1    = real_c( 2.0 );
@@ -69,14 +69,18 @@ int main( int argc, char* argv[] )
       r2    = tubeLayerRadii.back();
    }
 
-   const auto meshInfo = MeshInfo::meshTorus(
-       numToroidalSlices, numPoloidalSlices, radiusOriginToCenterOfTube, tubeLayerRadii, torodialStartAngle, polodialStartAngle );
+   const auto            meshInfo = MeshInfo::meshTorus( toroidalResolution,
+                                              poloidalResolution,
+                                              radiusOriginToCenterOfTube,
+                                              tubeLayerRadii,
+                                              torodialStartAngle,
+                                              polodialStartAngle );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    TokamakMap::setMap( setupStorage,
-                       numToroidalSlices,
-                       numPoloidalSlices,
+                       toroidalResolution,
+                       poloidalResolution,
                        radiusOriginToCenterOfTube,
                        tubeLayerRadii,
                        torodialStartAngle,
