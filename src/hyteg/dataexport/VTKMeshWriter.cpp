@@ -421,9 +421,11 @@ void VTKMeshWriter::writeConnectivityP2Triangles( const VTKOutput&              
          CellType inner_rowsize = rowsize;
          CellType idx0{}, idx1{}, idx2{}, idx3{}, idx4{}, idx5{};
 
-         for ( CellType i = 0; i <= rowsize - 3; i += 2 )
+         VTK_QUADRATIC_TRIANGLE_LOG( "rowsize = " << rowsize );
+
+         for ( int i = 0; i <= static_cast< int >( rowsize ) - 3; i += 2 )
          {
-            for ( CellType j = 0; j <= inner_rowsize - 4; j += 2 )
+            for ( int j = 0; j <= static_cast< int >( inner_rowsize ) - 4; j += 2 )
             {
                // lower left triangle
                idx0 = offset;
