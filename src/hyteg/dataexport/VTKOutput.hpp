@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -168,6 +168,18 @@ class VTKOutput
    /// Note: files will be overwritten if called twice with the same time step!
    void write( const uint_t& level, const uint_t& timestep = 0 ) const;
 
+   /// Temporary setter method used as part of implementing VTK_QUADRATIC_TRIANGLE for P2Function output
+   void setUseVTKQuadraticTriangle( bool flag ) { useVTKQuadraticTriangle_ = flag; };
+
+   /// Temporary getter method used as part of implementing VTK_QUADRATIC_TRIANGLE for P2Function output
+   [[nodiscard]] bool getUseVTKQuadraticTriangle() { return useVTKQuadraticTriangle_; };
+
+   /// Temporary setter method used as part of implementing VTK_QUADRATIC_TETRA for P2Function output
+   void setUseVTKQuadraticTetra( bool flag ) { useVTKQuadraticTetra_ = flag; };
+
+   /// Temporary getter method used as part of implementing VTK_QUADRATIC_TETRA for P2Function output
+   [[nodiscard]] bool getUseVTKQuadraticTetra() { return useVTKQuadraticTetra_; };
+
  private:
    /// Wrapper class that handles writing data in ASCII or binary format.
    ///
@@ -232,7 +244,7 @@ class VTKOutput
 
    /// Writes only macro-cells.
    void set3D() { write2D_ = false; }
-
+  
    template < template < typename > class WrapperFunc, typename func_t >
    void unwrapAndAdd( const WrapperFunc< func_t >& function )
    {
@@ -260,6 +272,12 @@ class VTKOutput
    uint_t writeFrequency_;
 
    bool write2D_;
+
+   /// Temporary flag used as part of implementing VTK_QUADRATIC_TRIANGLE for P2Function output
+   bool useVTKQuadraticTriangle_{ true };
+
+   /// Temporary flag used as part of implementing VTK_QUADRATIC_TETRA for P2Function output
+   bool useVTKQuadraticTetra_{ true };
 
    FunctionMultiStore< P1Function > p1Functions_;
    FunctionMultiStore< P2Function > p2Functions_;

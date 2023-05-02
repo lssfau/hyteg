@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -61,6 +61,19 @@ class VTKMeshWriter
                              uint_t                                     faceWidth,
                              bool                                       discontinuous = false );
 
+   /// \brief Writes connectivity information for 2D cells of type VTK_QUADRATIC_TRIANGLE
+   ///
+   /// \param mgr           the corresponding VTKOutput instance
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   /// \param discontinuous only false is currently supported
+   static void writeConnectivityP2Triangles( const VTKOutput&                           mgr,
+                                             std::ostream&                              output,
+                                             const std::shared_ptr< PrimitiveStorage >& storage,
+                                             uint_t                                     level,
+                                             bool                                       discontinuous = false );
+
    /// \brief Writes the 3D cells.
    ///
    /// \param mgr           the corresponding VTKOutput instance
@@ -73,6 +86,20 @@ class VTKMeshWriter
                              const std::shared_ptr< PrimitiveStorage >& storage,
                              uint_t                                     width,
                              bool                                       discontinuous = false );
+
+   /// \brief Writes connectivity information for 3D cells of type VTK_QUADRATIC_TETRA
+   ///
+   /// \param mgr           the corresponding VTKOutput instance
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   /// \param discontinuous only false is currently supported
+   static void writeConnectivityP2Tetrahedrons( const VTKOutput&                           mgr,
+                                                std::ostream&                              output,
+                                                const std::shared_ptr< PrimitiveStorage >& storage,
+                                                uint_t                                     level,
+                                                bool                                       discontinuous = false );
+
 };
 
 } // namespace hyteg
