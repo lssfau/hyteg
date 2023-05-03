@@ -15,6 +15,8 @@ target_sources( hyteg
     P1LinearCombinationForm.hpp
     N1E1Form.hpp
     N1E1LinearCombinationForm.hpp
+    P0Form.hpp
+    P0Form.cpp
 )
 add_subdirectory( form_hyteg_base )
 add_subdirectory( form_hyteg_manual )

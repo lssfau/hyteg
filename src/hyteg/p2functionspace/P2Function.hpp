@@ -114,14 +114,17 @@ class P2Function final : public Function< P2Function< ValueType > >
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
    /// \return true if the function was evaluated successfully, false otherwise
    ///
-   bool evaluate( const Point3D& physicalCoords, uint_t level, ValueType& value, real_t searchToleranceRadius = real_c(1e-05) ) const;
+   bool evaluate( const Point3D& physicalCoords,
+                  uint_t         level,
+                  ValueType&     value,
+                  real_t         searchToleranceRadius = real_c( 1e-05 ) ) const;
 
    inline void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
    /// @name Member functions for interpolation using BoundaryUID flags
    //@{
    void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
- 
+
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
    //@}
 
@@ -169,8 +172,8 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const P2Function< ValueType >&                 other,
-                  const uint_t&                                  level,
+   void copyFrom( const P2Function< ValueType >&         other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
 
@@ -226,7 +229,7 @@ class P2Function final : public Function< P2Function< ValueType > >
    ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
-   void setBoundaryCondition( BoundaryCondition bc );
+   void              setBoundaryCondition( BoundaryCondition bc );
 
    template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const P2Function< OtherFunctionValueType >& other )
@@ -266,7 +269,6 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
    EdgeDoFFunction< ValueType >              edgeDoFFunction_;
-
 };
 
 extern template class P2Function< double >;
@@ -277,14 +279,14 @@ namespace p2function {
 
 void projectMean( const P2Function< real_t >& pressure, const uint_t& level );
 
-inline unsigned long long localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+inline unsigned long long localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
 {
    return vertexDoFLocalFunctionMemorySize( level, storage ) + edgedof::edgeDoFLocalFunctionMemorySize( level, storage );
 }
 
-inline unsigned long long globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+inline unsigned long long globalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
 {
-   const auto memLocal = localFunctionMemorySize( level, storage );
+   const auto memLocal  = localFunctionMemorySize( level, storage );
    const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
    return memGlobal;
 }
