@@ -264,28 +264,6 @@ class P2Function final : public Function< P2Function< ValueType > >
    };
    /// @}
 
-   void deleteMemory( const uint_t& level, const Vertex& vertex )
-   {
-      vertexDoFFunction_.deleteMemory( level, vertex );
-      edgeDoFFunction_.deleteMemory( level, vertex );
-   }
-   void deleteMemory( const uint_t& level, const Edge& edge )
-   {
-      vertexDoFFunction_.deleteMemory( level, edge );
-      edgeDoFFunction_.deleteMemory( level, edge );
-   }
-   void deleteMemory( const uint_t& level, const Face& face )
-   {
-      vertexDoFFunction_.deleteMemory( level, face );
-      edgeDoFFunction_.deleteMemory( level, face );
-   }
-
-   void deleteMemory( const uint_t& level, const Cell& cell )
-   {
-      vertexDoFFunction_.deleteMemory( level, cell );
-      edgeDoFFunction_.deleteMemory( level, cell );
-   }
-
  private:
    using Function< P2Function< ValueType > >::communicators_;
 
