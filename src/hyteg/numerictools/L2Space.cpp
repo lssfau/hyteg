@@ -98,14 +98,14 @@ real_t L2Space< Quad, Discr, Codomain >::dot( const std::function< Codomain( con
 
 template < uint_t Quad, class Discr, typename Codomain >
 template < class QuadratureRule, class PrimitiveType >
-real_t L2Space< Quad, Discr, Codomain >::integrate( const PrimitiveType&                             T,
+real_t L2Space< Quad, Discr, Codomain >::integrate( const PrimitiveType&                             primitive,
                                                     const std::function< real_t( const Point3D& ) >& f ) const
 {
    QuadratureRule q( f, f );
-   q.setGeometryMap( T.getGeometryMap() );
+   q.setGeometryMap( primitive.getGeometryMap() );
 
    // compute the integral
-   walberla::math::KahanAccumulator< real_t > integral;       // value of integral over T;
+   walberla::math::KahanAccumulator< real_t > integral;       // value of integral over primitive;
    Matrixr< 1, 1 >                            integral_micro; // value of integral over micro element
 
    if constexpr ( std::is_same_v< PrimitiveType, Cell > )
@@ -120,7 +120,7 @@ real_t L2Space< Quad, Discr, Codomain >::integrate( const PrimitiveType&        
             std::array< Point3D, 4 > coords;
             for ( uint_t k = 0; k < 4; ++k )
             {
-               coords[k] = vertexdof::macrocell::coordinateFromIndex( _lvl, T, verts[k] );
+               coords[k] = vertexdof::macrocell::coordinateFromIndex( _lvl, primitive, verts[k] );
             }
 
             // integral over micro cell
@@ -143,7 +143,7 @@ real_t L2Space< Quad, Discr, Codomain >::integrate( const PrimitiveType&        
             std::array< Point3D, 3 > coords;
             for ( uint_t k = 0; k < 3; ++k )
             {
-               coords[k] = vertexdof::macroface::coordinateFromIndex( _lvl, T, verts[k] );
+               coords[k] = vertexdof::macroface::coordinateFromIndex( _lvl, primitive, verts[k] );
             }
 
             // integral over micro face
@@ -167,25 +167,6 @@ void L2Space< Quad, Discr, Codomain >::dot( const std::function< real_t( const P
    Op< LinearForm > _b( _storage, _lvl, _lvl, form );
    _b.computeDiagonalOperatorValues();
    b.copyFrom( *_b.getDiagonalValues(), _lvl );
-
-   // free memory of diagonal
-   // !this should not be necessary -> maybe fix destructor of FE Function!
-   for ( const auto& it : _storage->getVertices() )
-   {
-      _b.getDiagonalValues()->deleteMemory( _lvl, *( it.second ) );
-   }
-   for ( const auto& it : _storage->getEdges() )
-   {
-      _b.getDiagonalValues()->deleteMemory( _lvl, *( it.second ) );
-   }
-   for ( const auto& it : _storage->getFaces() )
-   {
-      _b.getDiagonalValues()->deleteMemory( _lvl, *( it.second ) );
-   }
-   for ( const auto& it : _storage->getCells() )
-   {
-      _b.getDiagonalValues()->deleteMemory( _lvl, *( it.second ) );
-   }
 }
 
 // === template specializations ===
@@ -195,18 +176,18 @@ void L2Space< Quad, Discr, Codomain >::dot( const std::function< real_t( const P
 // * implement the corresponding specialization of L2Space<?,?,?>::dot()
 //!!!
 
-// P0 quadratre rules for integrating arbitrary functions over the domain
+// P0 quadrature rules for integrating arbitrary functions over the domain
 template < uint_t Quad, class Discr, typename Codomain >
 template < class PrimitiveType >
-real_t L2Space< Quad, Discr, Codomain >::integrate( const PrimitiveType&                             T,
+real_t L2Space< Quad, Discr, Codomain >::integrate( const PrimitiveType&                             primitive,
                                                     const std::function< real_t( const Point3D& ) >& f ) const
 {
    switch ( Quad )
    {
    case 5:
-      return integrate< forms::p0_linear_form_blending_q5 >( T, f );
+      return integrate< forms::p0_linear_form_blending_q5 >( primitive, f );
    case 7:
-      return integrate< forms::p0_linear_form_blending_q7 >( T, f );
+      return integrate< forms::p0_linear_form_blending_q7 >( primitive, f );
    default:
       WALBERLA_ABORT( "Quadrature rule not implemented" )
    }

@@ -134,20 +134,20 @@ class L2Space
 
  private:
    /// @brief Integrate a function over a given macro element
-   /// @param T  primitive over which f shall be integrated
+   /// @param primitive over which f shall be integrated
    /// @param f  integrand
    /// @return ∫_T f(x) dx
    template < class PrimitiveType >
-   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f ) const;
+   real_t integrate( const PrimitiveType& primitive, const std::function< real_t( const Point3D& ) >& f ) const;
 
    /// @brief Integrate a function over a given macro element
    /// @tparam QuadratureRule
    /// @tparam PrimitiveType
-   /// @param T  primitive over which f shall be integrated
+   /// @param primitive  primitive over which f shall be integrated
    /// @param f  integrand
    /// @return ∫_T f(x) dx
    template < class QuadratureRule, class PrimitiveType >
-   real_t integrate( const PrimitiveType& T, const std::function< real_t( const Point3D& ) >& f ) const;
+   real_t integrate( const PrimitiveType& primitive, const std::function< real_t( const Point3D& ) >& f ) const;
 
    /// @brief Compute b_i = ∫ φ_i f for all basis functions φ_i of the discrete subspace
    /// @tparam Op          Type of operator fitting for the FE space, e.g P1VariableOperator
