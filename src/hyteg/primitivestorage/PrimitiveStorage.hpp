@@ -679,6 +679,12 @@ class PrimitiveStorage : private walberla::NonCopyable
    std::map< uint_t, FaceMap >   faces_;
    std::map< uint_t, CellMap >   cells_;
 
+   //maps that only contain leaf primitives that do not have any children
+   VertexMap leafVertices_;
+   EdgeMap   leafEdges_;
+   FaceMap   leafFaces_;
+   CellMap   leafCells_;
+
    std::map< uint_t, VertexMap > neighborVertices_;
    std::map< uint_t, EdgeMap >   neighborEdges_;
    std::map< uint_t, FaceMap >   neighborFaces_;
@@ -824,6 +830,10 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    void   wasModified() { modificationStamp_++; }
    uint_t modificationStamp_;
+
+   /// updates the maps that contain the leaf primitives (primitives without any children
+   /// has to be called if the primitives in the storage have changed
+   void updateLeafPrimitiveMaps();
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 

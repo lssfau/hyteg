@@ -126,6 +126,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    }
 
    splitCommunicatorByPrimitiveDistribution();
+   updateLeafPrimitiveMaps();
 
 #ifndef NDEBUG
    checkConsistency();
@@ -456,6 +457,7 @@ PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
    neighborRanks_[0] = neighborRanks;
 
    splitCommunicatorByPrimitiveDistribution();
+   updateLeafPrimitiveMaps();
 
 #ifndef NDEBUG
    checkConsistency();
@@ -727,72 +729,28 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap& primitiveMap ) const
    WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices.size() + edges.size() + faces.size() + cells.size() );
 }
 
+/// returns all vertices without any children
 PrimitiveStorage::VertexMap PrimitiveStorage::getVertices() const
 {
-   PrimitiveStorage::VertexMap pmap;
-   for ( const auto& [level, primitives] : vertices_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafVertices_;
 }
 
+/// returns all edges without any children
 PrimitiveStorage::EdgeMap PrimitiveStorage::getEdges() const
 {
-   PrimitiveStorage::EdgeMap pmap;
-   for ( const auto& [level, primitives] : edges_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafEdges_;
 }
 
+/// returns all faces without any children
 PrimitiveStorage::FaceMap PrimitiveStorage::getFaces() const
 {
-   PrimitiveStorage::FaceMap pmap;
-   for ( const auto& [level, primitives] : faces_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafFaces_;
 }
 
+/// returns all cells without any children
 PrimitiveStorage::CellMap PrimitiveStorage::getCells() const
 {
-   PrimitiveStorage::CellMap pmap;
-   for ( const auto& [level, primitives] : cells_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafCells_;
 }
 
 PrimitiveStorage::VertexMap PrimitiveStorage::getNeighborVertices() const
@@ -1791,6 +1749,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
    splitCommunicatorByPrimitiveDistribution();
 
    wasModified();
+   updateLeafPrimitiveMaps();
 
    WALBERLA_DEBUG_SECTION()
    {
@@ -3224,6 +3183,61 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
    }
 
    wasModified();
+   updateLeafPrimitiveMaps();
+}
+void PrimitiveStorage::updateLeafPrimitiveMaps()
+{
+   leafVertices_.clear();
+   for ( const auto& [level, primitives] : vertices_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafVertices_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
+
+   leafEdges_.clear();
+   for ( const auto& [level, primitives] : edges_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafEdges_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
+
+   leafFaces_.clear();
+   for ( const auto& [level, primitives] : faces_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafFaces_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
+
+   leafCells_.clear();
+   for ( const auto& [level, primitives] : cells_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafCells_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
 }
 
 } // namespace hyteg
