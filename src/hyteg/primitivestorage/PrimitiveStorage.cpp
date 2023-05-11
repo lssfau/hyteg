@@ -708,6 +708,7 @@ std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
    copiedStorage->neighborRanks_  = neighborRanks_;
    copiedStorage->hasGlobalCells_ = hasGlobalCells_;
    copiedStorage->splitComm_      = splitComm_;
+   copiedStorage->updateLeafPrimitiveMaps();
 
    return copiedStorage;
 }
