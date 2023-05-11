@@ -360,13 +360,16 @@ inline void writeBlendedCoarseMeshVTK( const PrimitiveStorage& storage,
    {
       // header
       rankOut << "<?xml version=\"1.0\"?>\n";
-      rankOut << "  <VTKFile type=\"UnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
-      rankOut << "    <UnstructuredGrid>\n";
+      rankOut << "  <VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+      rankOut << "    <PolyData>\n";
    }
 
    rankOut << "      <Piece"
            << " NumberOfPoints=\"" << numLocalEdges * resolution << "\""
-           << " NumberOfCells=\"" << numLocalEdges * ( resolution - 1 ) << "\""
+           << " NumberOfVerts=\"0\""
+           << " NumberOfLines=\"" << numLocalEdges << "\""
+           << " NumberOfStrips=\"0\""
+           << " NumberOfPolys=\"0\""
            << ">\n";
 
    /////////////////////////////
@@ -374,7 +377,7 @@ inline void writeBlendedCoarseMeshVTK( const PrimitiveStorage& storage,
    /////////////////////////////
 
    rankOut << "        <Points>\n";
-   rankOut << "          <DataArray type=\"Float32\" NumberOfComponents=\"3\">\n";
+   rankOut << "          <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">\n";
 
    // write coordinates
    for ( const auto& edgeIt : storage.getEdges() )
@@ -395,56 +398,49 @@ inline void writeBlendedCoarseMeshVTK( const PrimitiveStorage& storage,
    rankOut << "          </DataArray>\n";
    rankOut << "        </Points>\n";
 
-   ///////////////////////////////////////
-   // local cell connectivity and types //
-   ///////////////////////////////////////
+   /////////////////
+   // local edges //
+   /////////////////
 
-   rankOut << "        <Cells>\n";
+   rankOut << "        <Lines>\n";
 
    // write connectivity
-   rankOut << "          <DataArray type=\"Int32\" Name=\"connectivity\">\n";
+   rankOut << "          <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
    for ( uint_t edgeIdx = 0; edgeIdx < numLocalEdges; edgeIdx++ )
    {
-      for ( uint_t i = 0; i < resolution - 1; i++ )
+      rankOut << "           ";
+      for ( uint_t i = 0; i < resolution; i++ )
       {
-         const uint_t idx = edgeIdx * resolution + i;
-         rankOut << "            " << idx << " " << idx + 1 << "\n";
+         rankOut << " " << edgeIdx * resolution + i;
       }
+      rankOut << "\n";
    }
    rankOut << "          </DataArray>\n";
 
    // write offsets
-   rankOut << "          <DataArray type=\"Int32\" Name=\"offsets\">\n";
-   for ( uint_t i = 0; i < numLocalEdges * ( resolution - 1 ); i++ )
+   rankOut << "          <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
+   for ( uint_t i = 0; i < numLocalEdges; i++ )
    {
-      rankOut << "            " << 2 * ( i + 1 ) << "\n";
+      rankOut << "            " << ( i + 1 ) * resolution << "\n";
    }
    rankOut << "          </DataArray>\n";
 
-   // write cell type
-   rankOut << "          <DataArray type=\"UInt8\" Name=\"types\">\n";
-   for ( uint_t i = 0; i < numLocalEdges * ( resolution - 1 ); i++ )
-   {
-      rankOut << "            " << (uint_t) VTK_LINE << "\n";
-   }
-   rankOut << "          </DataArray>\n";
-
-   rankOut << "        </Cells>\n";
+   rankOut << "        </Lines>\n";
 
    rankOut << "      </Piece>\n";
 
    // write in parallel
-   std::string vtu_filename( walberla::format( "%s/%s.vtu", dir.c_str(), filename.c_str() ) );
-   walberla::mpi::writeMPITextFile( vtu_filename, rankOut.str() );
+   std::string vtp_filename( walberla::format( "%s/%s.vtp", dir.c_str(), filename.c_str() ) );
+   walberla::mpi::writeMPITextFile( vtp_filename, rankOut.str() );
 
    WALBERLA_ROOT_SECTION()
    {
-      std::ofstream pvtu_file;
-      pvtu_file.open( vtu_filename.c_str(), std::ofstream::out | std::ofstream::app );
-      WALBERLA_CHECK( !!pvtu_file, "[VTKWriter (domain partitioning)] Error opening file: " << vtu_filename );
-      pvtu_file << "    </UnstructuredGrid>\n";
-      pvtu_file << "  </VTKFile>\n";
-      pvtu_file.close();
+      std::ofstream pvtp_file;
+      pvtp_file.open( vtp_filename.c_str(), std::ofstream::out | std::ofstream::app );
+      WALBERLA_CHECK( !!pvtp_file, "[VTKWriter (blended coarse mesh)] Error opening file: " << vtp_filename );
+      pvtp_file << "    </PolyData>\n";
+      pvtp_file << "  </VTKFile>\n";
+      pvtp_file.close();
    }
 }
 
