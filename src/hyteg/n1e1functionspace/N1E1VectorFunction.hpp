@@ -161,6 +161,14 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
                 uint_t                                                                                level,
                 DoFType                                                                               flag = All ) const;
 
+   /// \brief Adds the specified constant vector to this function.
+   ///
+   /// `vector` is interpreted as a vector in computational space, i.e. even in
+   /// case of blending, no transformation is applied to `vector`.
+   ///
+   /// \param vector constant vector in computational space
+   /// \param level  refinement level
+   /// \param flag   on which primitives the addition is performed
    void add( VectorType vector, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                                       scalars,
