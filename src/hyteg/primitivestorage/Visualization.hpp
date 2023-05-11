@@ -21,12 +21,15 @@
 
 #include <memory>
 
+#include "core/DataTypes.h"
 #include "core/Format.hpp"
 #include "core/debug/CheckFunctions.h"
 #include "core/mpi/MPITextFile.h"
 
+#include "hyteg/primitives/Edge.hpp"
 #include "hyteg/primitives/Vertex.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 
@@ -330,6 +333,128 @@ inline void writePrimitiveStorageDistributionCSV( const std::shared_ptr< Primiti
           << fractionOfLocalNeighbors << delimiter << "\n";
 
    walberla::mpi::writeMPITextFile( filename, output.str(), walberla::mpi::MPIManager::instance()->comm() );
+}
+
+/// \brief Writes the coarse mesh as it appears in physical space.
+///
+/// This function takes all macro edges and places `resolution` many vertices on them (evenly spaced in computational space).
+/// It then transforms all vertices by the blending function and writes the edges to the specified VTK file.
+/// Meshes on finer levels can be written by refining the mesh first with MeshInfo::refinedCoarseMesh.
+///
+/// \param storage    PrimitiveStorage defining the mesh.
+/// \param dir        Directory where the files are stored.
+/// \param filename   Basename of the VTK files.
+/// \param resolution Number of vertices to put on each edge. Must be >= 2.
+inline void writeBlendedCoarseMeshVTK( const PrimitiveStorage& storage,
+                                       const std::string&      dir,
+                                       const std::string&      filename,
+                                       const uint_t            resolution )
+{
+   WALBERLA_ASSERT_GREATER_EQUAL( resolution, 2 );
+
+   const uint_t numLocalEdges = storage.getNumberOfLocalEdges();
+
+   std::ostringstream rankOut;
+
+   WALBERLA_ROOT_SECTION()
+   {
+      // header
+      rankOut << "<?xml version=\"1.0\"?>\n";
+      rankOut << "  <VTKFile type=\"UnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
+      rankOut << "    <UnstructuredGrid>\n";
+   }
+
+   rankOut << "      <Piece"
+           << " NumberOfPoints=\"" << numLocalEdges * resolution << "\""
+           << " NumberOfCells=\"" << numLocalEdges * ( resolution - 1 ) << "\""
+           << ">\n";
+
+   /////////////////////////////
+   // local point coordinates //
+   /////////////////////////////
+
+   rankOut << "        <Points>\n";
+   rankOut << "          <DataArray type=\"Float32\" NumberOfComponents=\"3\">\n";
+
+   // write coordinates
+   for ( const auto& edgeIt : storage.getEdges() )
+   {
+      const std::shared_ptr< Edge > edge   = edgeIt.second;
+      const auto                    coords = edge->getCoordinates();
+
+      for ( uint_t i = 0; i < resolution; ++i )
+      {
+         const double  t     = walberla::numeric_cast< double >( i ) / walberla::numeric_cast< double >( resolution - 1 );
+         const Point3D xComp = ( 1 - t ) * coords[0] + t * coords[1];
+         Point3D       xPhys;
+         edge->getGeometryMap()->evalF( xComp, xPhys );
+
+         rankOut << "            " << xPhys[0] << " " << xPhys[1] << " " << xPhys[2] << "\n";
+      }
+   }
+   rankOut << "          </DataArray>\n";
+   rankOut << "        </Points>\n";
+
+   ///////////////////////////////////////
+   // local cell connectivity and types //
+   ///////////////////////////////////////
+
+   rankOut << "        <Cells>\n";
+
+   // write connectivity
+   rankOut << "          <DataArray type=\"Int32\" Name=\"connectivity\">\n";
+   for ( uint_t edgeIdx = 0; edgeIdx < numLocalEdges; edgeIdx++ )
+   {
+      for ( uint_t i = 0; i < resolution - 1; i++ )
+      {
+         const uint_t idx = edgeIdx * resolution + i;
+         rankOut << "            " << idx << " " << idx + 1 << "\n";
+      }
+   }
+   rankOut << "          </DataArray>\n";
+
+   // write offsets
+   rankOut << "          <DataArray type=\"Int32\" Name=\"offsets\">\n";
+   for ( uint_t i = 0; i < numLocalEdges * ( resolution - 1 ); i++ )
+   {
+      rankOut << "            " << 2 * ( i + 1 ) << "\n";
+   }
+   rankOut << "          </DataArray>\n";
+
+   // write cell type
+   rankOut << "          <DataArray type=\"UInt8\" Name=\"types\">\n";
+   for ( uint_t i = 0; i < numLocalEdges * ( resolution - 1 ); i++ )
+   {
+      rankOut << "            " << (uint_t) VTK_LINE << "\n";
+   }
+   rankOut << "          </DataArray>\n";
+
+   rankOut << "        </Cells>\n";
+
+   rankOut << "      </Piece>\n";
+
+   // write in parallel
+   std::string vtu_filename( walberla::format( "%s/%s.vtu", dir.c_str(), filename.c_str() ) );
+   walberla::mpi::writeMPITextFile( vtu_filename, rankOut.str() );
+
+   WALBERLA_ROOT_SECTION()
+   {
+      std::ofstream pvtu_file;
+      pvtu_file.open( vtu_filename.c_str(), std::ofstream::out | std::ofstream::app );
+      WALBERLA_CHECK( !!pvtu_file, "[VTKWriter (domain partitioning)] Error opening file: " << vtu_filename );
+      pvtu_file << "    </UnstructuredGrid>\n";
+      pvtu_file << "  </VTKFile>\n";
+      pvtu_file.close();
+   }
+}
+
+/// See void writeBlendedCoarseMeshVTK( const PrimitiveStorage& storage, const std::string& dir, const std::string& filename, const uint_t resolution ).
+inline void writeBlendedCoarseMeshVTK( const std::shared_ptr< PrimitiveStorage >& storage,
+                                       const std::string&                         dir,
+                                       const std::string&                         filename,
+                                       const uint_t                               resolution = 9 )
+{
+   writeBlendedCoarseMeshVTK( *storage, dir, filename, resolution );
 }
 
 } // namespace hyteg
