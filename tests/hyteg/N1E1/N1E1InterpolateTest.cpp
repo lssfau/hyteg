@@ -105,13 +105,13 @@ void test3D()
          const auto  cellData = cell.getData( dofs->getCellDataID() )->getPointer( level );
          const auto  nEdges   = real_c( levelinfo::num_microedges_per_edge( level ) );
 
-         const real_t correctX   = 1.0 / nEdges;
-         const real_t correctY   = 3.0 / nEdges;
-         const real_t correctZ   = 6.0 / nEdges;
-         const real_t correctXY  = 2.0 / nEdges;
-         const real_t correctXZ  = 5.0 / nEdges;
-         const real_t correctYZ  = 3.0 / nEdges;
-         const real_t correctXYZ = 4.0 / nEdges;
+         const real_t correctX   = real_c( 1.0 / nEdges );
+         const real_t correctY   = real_c( 3.0 / nEdges );
+         const real_t correctZ   = real_c( 6.0 / nEdges );
+         const real_t correctXY  = real_c( 2.0 / nEdges );
+         const real_t correctXZ  = real_c( 5.0 / nEdges );
+         const real_t correctYZ  = real_c( 3.0 / nEdges );
+         const real_t correctXYZ = real_c( 4.0 / nEdges );
 
          for ( const auto& it : edgedof::macrocell::Iterator( level ) )
          {

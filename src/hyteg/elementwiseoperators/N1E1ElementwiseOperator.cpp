@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2023 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -420,13 +420,18 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
-// N1E1ElementwiseCurlCurlOperator
+// curl-curl
 template class N1E1ElementwiseOperator< N1E1Form_curl_curl >;
-// N1E1ElementwiseMassOperator
+template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
+template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_blending_q2 >;
+// mass
 template class N1E1ElementwiseOperator< N1E1Form_mass >;
-// N1E1ElementwiseLinearCombinationOperator
+template class N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
+template class N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
+// linear combination
 template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
-// N1E1ElementwiseLinearFormOperatorQ6
+// linear form
 template class N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
+template class N1E1ElementwiseOperator< forms::n1e1_linear_form_blending_q6 >;
 
 } // namespace hyteg::n1e1

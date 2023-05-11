@@ -106,8 +106,8 @@ struct Discretization
 
 struct TokamakDomain
 {
-   uint_t                numToroidalSlices{};
-   uint_t                numPoloidalSlices{};
+   uint_t                toroidalResolution{};
+   uint_t                poloidalResolution{};
    real_t                radiusOriginToCenterOfTube{};
    std::vector< real_t > tubeLayerRadii;
    real_t                torodialStartAngle{};
@@ -132,8 +132,8 @@ struct TokamakDomain
       std::stringstream ss;
       ss << "Tokamak domain and PDE config"
          << "\n";
-      ss << "  - toroidal slices:     " << numToroidalSlices << "\n";
-      ss << "  - poloidal slices:     " << numPoloidalSlices << "\n";
+      ss << "  - toroidal slices:     " << toroidalResolution << "\n";
+      ss << "  - poloidal slices:     " << poloidalResolution << "\n";
       ss << "  - tube layer radii:    [";
       for ( auto r : tubeLayerRadii )
       {
@@ -245,8 +245,8 @@ void tokamak( TokamakDomain         tokamakDomain,
       db->setConstantEntry( "minLevel", discretization.minLevel );
       db->setConstantEntry( "maxLevel", discretization.maxLevel );
 
-      db->setConstantEntry( "numToroidalSlices", tokamakDomain.numToroidalSlices );
-      db->setConstantEntry( "numPoloidalSlices", tokamakDomain.numPoloidalSlices );
+      db->setConstantEntry( "toroidalResolution", tokamakDomain.toroidalResolution );
+      db->setConstantEntry( "poloidalResolution", tokamakDomain.poloidalResolution );
       db->setConstantEntry( "radiusOriginToCenterOfTube", tokamakDomain.radiusOriginToCenterOfTube );
       for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
       {
@@ -276,8 +276,8 @@ void tokamak( TokamakDomain         tokamakDomain,
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up torus mesh ..." )
 
-   auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
-                                        tokamakDomain.numPoloidalSlices,
+   auto meshInfo = MeshInfo::meshTorus( tokamakDomain.toroidalResolution,
+                                        tokamakDomain.poloidalResolution,
                                         tokamakDomain.radiusOriginToCenterOfTube,
                                         tokamakDomain.tubeLayerRadii,
                                         tokamakDomain.torodialStartAngle,
@@ -293,8 +293,8 @@ void tokamak( TokamakDomain         tokamakDomain,
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up tokamak blending map ..." )
 
    TokamakMap::setMap( setupStorage,
-                       tokamakDomain.numToroidalSlices,
-                       tokamakDomain.numPoloidalSlices,
+                       tokamakDomain.toroidalResolution,
+                       tokamakDomain.poloidalResolution,
                        tokamakDomain.radiusOriginToCenterOfTube,
                        tokamakDomain.tubeLayerRadii,
                        tokamakDomain.torodialStartAngle,
@@ -774,8 +774,8 @@ void run( int argc, char** argv )
    SolverSettings solverSettings;
    AppSettings    appSettings;
 
-   tokamakDomain.numToroidalSlices          = mainConf.getParameter< uint_t >( "numToroidalSlices" );
-   tokamakDomain.numPoloidalSlices          = mainConf.getParameter< uint_t >( "numPoloidalSlices" );
+   tokamakDomain.toroidalResolution         = mainConf.getParameter< uint_t >( "toroidalResolution" );
+   tokamakDomain.poloidalResolution         = mainConf.getParameter< uint_t >( "poloidalResolution" );
    tokamakDomain.radiusOriginToCenterOfTube = mainConf.getParameter< real_t >( "radiusOriginToCenterOfTube" );
    tokamakDomain.tubeLayerRadii     = parseStringToVector< real_t >( mainConf.getParameter< std::string >( "tubeLayerRadii" ) );
    tokamakDomain.torodialStartAngle = mainConf.getParameter< real_t >( "torodialStartAngle" );

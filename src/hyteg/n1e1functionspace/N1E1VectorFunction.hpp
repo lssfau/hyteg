@@ -143,13 +143,13 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    /// Furthermore, determining the macro- and micro-elements from global coordinates is quite expensive.
    /// Favor this method over evaluate() in case the elements are already known.
    ///
-   /// \param coordinates  coordinates in computational domain where the function shall be evaluated
+   /// \param xComp        coordinates in computational domain where the function shall be evaluated
    /// \param level        refinement level
    /// \param cellID       the macro-cell where the (micro-)element is located on
    /// \param elementIndex the logical index of the micro-element
    /// \param cellType     the type of the local micro-element
    /// \param value        the evaluation
-   void evaluateOnMicroElement( const Point3D&               coordinates,
+   void evaluateOnMicroElement( const Point3D&               xComp,
                                 const uint_t                 level,
                                 const PrimitiveID&           cellID,
                                 const hyteg::indexing::Index elementIndex,
@@ -161,6 +161,14 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
                 uint_t                                                                                level,
                 DoFType                                                                               flag = All ) const;
 
+   /// \brief Adds the specified constant vector to this function.
+   ///
+   /// `vector` is interpreted as a vector in computational space, i.e. even in
+   /// case of blending, no transformation is applied to `vector`.
+   ///
+   /// \param vector constant vector in computational space
+   /// \param level  refinement level
+   /// \param flag   on which primitives the addition is performed
    void add( VectorType vector, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                                       scalars,

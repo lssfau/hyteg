@@ -118,8 +118,8 @@ auto genMap( const std::string& variant )
 
    else if ( variant == "TokamakMap" )
    {
-      const uint_t                numToroidalSlices          = 2;
-      const uint_t                numPoloidalSlices          = 2;
+      const uint_t                toroidalResolution         = 2;
+      const uint_t                poloidalResolution         = 2;
       const real_t                radiusOriginToCenterOfTube = real_c( 6.2 );
       const std::vector< real_t > tubeLayerRadii             = { real_c( 1.2 ), real_c( 2.2 ), real_c( 3 ) };
       const real_t                torodialStartAngle         = real_c( 0 );
@@ -129,8 +129,8 @@ auto genMap( const std::string& variant )
       real_t r1    = real_c( 2.0 );
       real_t r2    = real_c( 3.7 );
 
-      MeshInfo meshInfo = MeshInfo::meshTorus( numToroidalSlices,
-                                               numPoloidalSlices,
+      MeshInfo meshInfo = MeshInfo::meshTorus( toroidalResolution,
+                                               poloidalResolution,
                                                radiusOriginToCenterOfTube,
                                                tubeLayerRadii,
                                                torodialStartAngle,
@@ -141,8 +141,8 @@ auto genMap( const std::string& variant )
 
       map = std::make_shared< TokamakMap >( cell,
                                             setupStorage,
-                                            numToroidalSlices,
-                                            numPoloidalSlices,
+                                            toroidalResolution,
+                                            poloidalResolution,
                                             radiusOriginToCenterOfTube,
                                             tubeLayerRadii,
                                             torodialStartAngle,

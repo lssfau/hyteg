@@ -44,8 +44,7 @@ inline void add( const uint_t&                                            level,
 {
    using ValueType = real_t;
 
-   const VectorType< ValueType > microEdgeDirection =
-       edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const VectorType< ValueType > microEdgeDirection = edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
 
    // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
    const ValueType dofScalar = vector.dot( microEdgeDirection );
@@ -56,28 +55,6 @@ inline void add( const uint_t&                                            level,
    {
       const uint_t idx = edgedof::macroedge::index( level, it.x() );
       dstData[idx] += dofScalar;
-   }
-}
-
-inline void interpolate( const uint_t&                                            level,
-                         Edge&                                                    edge,
-                         const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeMemoryId,
-                         const VectorType< real_t >&                              constant )
-{
-   using ValueType = real_t;
-
-   const VectorType< ValueType > microEdgeDirection =
-       edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
-
-   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   const ValueType dofScalar = constant.dot( microEdgeDirection );
-
-   auto edgeData = edge.getData( edgeMemoryId )->getPointer( level );
-
-   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
-   {
-      const uint_t idx = edgedof::macroedge::index( level, it.x() );
-      edgeData[idx]    = dofScalar;
    }
 }
 
@@ -97,25 +74,62 @@ inline void
    const Point3D rightCoords = edge.getCoordinates()[1];
 
    const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( level ) );
-   const VectorType< ValueType > microEdgeDirection =
-       edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
+   const VectorType< ValueType > microEdgeDirection = edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
 
-   Point3D xBlend;
+   Point3D  xBlend;
+   Matrix3r DF;
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
       const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 * it.x() ) * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xBlend );
+      edge.getGeometryMap()->evalDF( currentCoordinates, DF );
 
       for ( uint_t k = 0; k < srcFunctions.size(); ++k )
       {
          srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
       }
 
-      const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+      const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
       const ValueType               dofScalar = vector.dot( microEdgeDirection );
 
       edgeData[edgedof::macroedge::index( level, it.x() )] = dofScalar;
+   }
+}
+
+inline void interpolate( const uint_t&                                            level,
+                         Edge&                                                    edge,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeMemoryId,
+                         const VectorType< real_t >&                              constant )
+{
+   using ValueType = real_t;
+
+   const auto geometryMap = edge.getGeometryMap();
+   if ( !geometryMap->isAffine() )
+   {
+      // If the blending map is not affine, the vector field is not constant in computational space.
+      // In that case, we delegate to the non-constant interpolation routine.
+      interpolate(
+          level, edge, edgeMemoryId, {}, [&]( const Point3D&, const std::vector< VectorType< real_t > >& ) { return constant; } );
+      return;
+   }
+
+   // Geometry map is affine ⇒ DF is constant
+   Matrix3r DF;
+   geometryMap->evalDF( {}, DF );
+   const VectorType< real_t > valComp = DF.transpose() * constant;
+
+   const VectorType< ValueType > microEdgeDirection = edge.getDirection() / real_c( levelinfo::num_microedges_per_edge( level ) );
+
+   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
+   const ValueType dofScalar = valComp.dot( microEdgeDirection );
+
+   auto edgeData = edge.getData( edgeMemoryId )->getPointer( level );
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
+   {
+      const uint_t idx = edgedof::macroedge::index( level, it.x() );
+      edgeData[idx]    = dofScalar;
    }
 }
 

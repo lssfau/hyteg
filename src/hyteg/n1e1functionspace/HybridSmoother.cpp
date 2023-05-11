@@ -21,6 +21,7 @@
 #include "HybridSmoother.hpp"
 
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/gridtransferoperators/N1E1toP1Lifting.hpp"
 #include "hyteg/gridtransferoperators/P1toN1E1Gradient.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -99,6 +100,7 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
 
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLaplaceOperator >;
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLinearCombinationOperator >;
+template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ElementwiseBlendingLaplaceOperator >;
 
 } // namespace n1e1
 } // namespace hyteg
