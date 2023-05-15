@@ -33,8 +33,6 @@
 //
 // The integration is implemented in curl-curl-test.py.
 
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-
 #include <memory>
 
 #include "core/debug/TestSubsystem.h"
@@ -71,7 +69,7 @@ void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
    forms::n1e1_curl_curl_blending_q2 formBlendingId;
    formBlendingId.setGeometryMap( std::make_shared< IdentityMap >() );
 
-   testForms( n1e1::N1E1Form_curl_curl{}, forms::n1e1_curl_curl_affine_qe{}, formBlendingId );
+   testForms( forms::n1e1_curl_curl_affine_qe{}, formBlendingId );
 
    // blending
 

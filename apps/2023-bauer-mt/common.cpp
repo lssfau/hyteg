@@ -22,9 +22,9 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/n1e1functionspace/HybridSmoother.hpp"
@@ -58,8 +58,8 @@ Results solve( const Params& params, const bool useGmg )
    }
 
    // Operators
-   N1E1Form_curl_curl curlCurlForm;
-   N1E1Form_mass      massForm;
+   forms::n1e1_curl_curl_affine_qe curlCurlForm;
+   forms::n1e1_mass_affine_qe      massForm;
 
    N1E1ElementwiseMassOperator              M( storage, params.minLevel, params.maxLevel );
    N1E1ElementwiseLinearCombinationOperator A(

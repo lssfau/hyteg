@@ -21,12 +21,12 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/n1e1functionspace/HybridSmoother.hpp"
@@ -164,8 +164,8 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
 
 real_t testNoBlending( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
 {
-   return test< n1e1::N1E1Form_curl_curl,
-                n1e1::N1E1Form_mass,
+   return test< forms::n1e1_curl_curl_affine_qe,
+                forms::n1e1_mass_affine_qe,
                 forms::n1e1_linear_form_affine_q6,
                 n1e1::N1E1ElementwiseMassOperator,
                 P1ConstantLaplaceOperator,

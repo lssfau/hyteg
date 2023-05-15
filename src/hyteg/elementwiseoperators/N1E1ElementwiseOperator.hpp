@@ -24,8 +24,6 @@
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -201,14 +199,10 @@ void assembleLinearForm( const uint_t                  minLevel,
                          N1E1VectorFunction< real_t >& f );
 
 // curl-curl
-using N1E1ElementwiseCurlCurlOperator = N1E1ElementwiseOperator< N1E1Form_curl_curl >;
-// TODO
-// using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
+using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
 using N1E1ElementwiseBlendingCurlCurlOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_curl_curl_blending_q2 >;
 // mass
-using N1E1ElementwiseMassOperator = N1E1ElementwiseOperator< N1E1Form_mass >;
-// TODO remove manual mass form
-// using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
+using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
 using N1E1ElementwiseBlendingMassOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
 // linear combination
 using N1E1ElementwiseLinearCombinationOperator = N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
