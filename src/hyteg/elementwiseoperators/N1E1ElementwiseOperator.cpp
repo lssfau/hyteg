@@ -20,7 +20,11 @@
 
 #include "N1E1ElementwiseOperator.hpp"
 
+#include "core/DataTypes.h"
+
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
 
 namespace hyteg::n1e1 {
 
@@ -101,13 +105,11 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
    this->storage_->getTimingTree()->start( "sync source communication" );
    // Make sure that halos are up-to-date
    //
-   // Note: The order of communication is important, since the face -> cell communication may overwrite
-   //       parts of the halos that carry the macro-edge unknowns.
-   // Note: Edge directions can only be handled by the form.
-   //       Therefore, the communication must be performed on the DoFs,
-   //       otherwise signs would get flipped (again).
-   src.getDoFs()->communicate< Face, Cell >( level );
-   src.getDoFs()->communicate< Edge, Cell >( level );
+   // NOTE: The order of communication is important, since the face -> cell
+   //       communication may overwrite parts of the halos that carry the macro-
+   //       edge unknowns.
+   src.communicate< Face, Cell >( level );
+   src.communicate< Edge, Cell >( level );
    this->storage_->getTimingTree()->stop( "sync source communication" );
 
    if ( updateType == Replace )
@@ -128,11 +130,9 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
       // get hold of the actual numerical data in the two functions
       PrimitiveDataID< FunctionMemory< real_t >, Cell > srcEdgeDoFIdx = src.getDoFs()->getCellDataID();
       PrimitiveDataID< FunctionMemory< real_t >, Cell > dstEdgeDoFIdx = dst.getDoFs()->getCellDataID();
-      PrimitiveDataID< FunctionMemory< real_t >, Cell > edgeDirsId    = edgeDirs_.getDoFs()->getCellDataID();
 
-      real_t* srcEdgeData  = cell.getData( srcEdgeDoFIdx )->getPointer( level );
-      real_t* dstEdgeData  = cell.getData( dstEdgeDoFIdx )->getPointer( level );
-      real_t* edgeDirsData = cell.getData( edgeDirsId )->getPointer( level );
+      real_t* srcEdgeData = cell.getData( srcEdgeDoFIdx )->getPointer( level );
+      real_t* dstEdgeData = cell.getData( dstEdgeDoFIdx )->getPointer( level );
 
       // Zero out dst halos only
       //
@@ -153,7 +153,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
             }
             else
             {
-               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, edgeDirsData, elMat );
+               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
             }
 
             localMatrixVectorMultiply3D( level, micro, cType, srcEdgeData, dstEdgeData, elMat );
@@ -163,14 +163,8 @@ void N1E1ElementwiseOperator< N1E1FormType >::apply( const N1E1VectorFunction< r
 
    this->storage_->getTimingTree()->start( "additive communication" );
    // Push result to lower-dimensional primitives
-   //
-   // Note: Edge directions can only be handled by the form.
-   //       Therefore, the communication must be performed on the DoFs,
-   //       otherwise signs would get flipped (again).
-   // Note: We could avoid communication here by implementing the apply() also for the respective
-   //       lower dimensional primitives!
-   dst.getDoFs()->communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
-   dst.getDoFs()->communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+   dst.communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+   dst.communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
    this->storage_->getTimingTree()->stop( "additive communication" );
 
    this->stopTiming( "apply" );
@@ -188,8 +182,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
          const PrimitiveID cellID = it.first;
          Cell&             cell   = *it.second;
 
-         real_t* edgeDirsData = cell.getData( edgeDirs_.getDoFs()->getCellDataID() )->getPointer( level );
-
          auto& elementMatrices = localElementMatrices3D_[cellID][level];
 
          if ( !localElementMatricesPrecomputed_ )
@@ -203,7 +195,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
             {
                Matrix6r& elMat = localElementMatrix3D( cell, level, micro, cType );
                elMat.setZero();
-               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, edgeDirsData, elMat );
+               assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
             }
          }
       }
@@ -213,42 +205,17 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeAndStoreLocalElementMatrice
 }
 
 template < class N1E1FormType >
-void N1E1ElementwiseOperator< N1E1FormType >::computeDiagonalOperatorValues()
-{
-   computeDiagonalOperatorValues( false );
-}
-
-template < class N1E1FormType >
 void N1E1ElementwiseOperator< N1E1FormType >::computeInverseDiagonalOperatorValues()
 {
-   computeDiagonalOperatorValues( true );
-}
-
-template < class N1E1FormType >
-void N1E1ElementwiseOperator< N1E1FormType >::computeDiagonalOperatorValues( const bool invert )
-{
-   std::shared_ptr< N1E1VectorFunction< real_t > > targetFunction;
-   if ( invert )
+   if ( inverseDiagonalValues_ == nullptr )
    {
-      if ( inverseDiagonalValues_ == nullptr )
-      {
-         inverseDiagonalValues_ =
-             std::make_shared< N1E1VectorFunction< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
-      }
-      targetFunction = inverseDiagonalValues_;
-   }
-   else
-   {
-      if ( diagonalValues_ == nullptr )
-      {
-         diagonalValues_ = std::make_shared< N1E1VectorFunction< real_t > >( "diagonal entries", storage_, minLevel_, maxLevel_ );
-      }
-      targetFunction = diagonalValues_;
+      inverseDiagonalValues_ =
+          std::make_shared< N1E1VectorFunction< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
    }
 
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
-      targetFunction->setToZero( level );
+      inverseDiagonalValues_->setToZero( level );
 
       // we only perform computations on cell primitives
       for ( auto& macroIter : storage_->getCells() )
@@ -256,7 +223,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeDiagonalOperatorValues( con
          Cell& cell = *macroIter.second;
 
          // get hold of the actual numerical data
-         real_t* diagData     = cell.getData( targetFunction->getDoFs()->getCellDataID() )->getPointer( level );
+         real_t* diagData     = cell.getData( inverseDiagonalValues_->getDoFs()->getCellDataID() )->getPointer( level );
          real_t* edgeDirsData = cell.getData( edgeDirs_.getDoFs()->getCellDataID() )->getPointer( level );
 
          // loop over micro-cells
@@ -271,25 +238,14 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeDiagonalOperatorValues( con
 
       // Push result to lower-dimensional primitives.
       //
-      // Note: Edge directions can only be handled by the form.
-      //       Therefore, the communication must be performed on the DoFs,
-      //       otherwise signs would get flipped (again).
-      targetFunction->getDoFs()->communicateAdditively< Cell, Face >( level );
-      targetFunction->getDoFs()->communicateAdditively< Cell, Edge >( level );
+      // NOTE: The diagonal is not an element of N1E1 in the mathematical
+      //       sense. Communication must therefore be performed without basis
+      //       transformations (flipping signs on misoriented edges).
+      inverseDiagonalValues_->getDoFs()->communicateAdditively< Cell, Face >( level );
+      inverseDiagonalValues_->getDoFs()->communicateAdditively< Cell, Edge >( level );
 
-      if ( invert )
-      {
-         targetFunction->getDoFs()->invertElementwise( level );
-      }
+      inverseDiagonalValues_->getDoFs()->invertElementwise( level );
    }
-}
-
-template < class N1E1FormType >
-std::shared_ptr< N1E1VectorFunction< real_t > > N1E1ElementwiseOperator< N1E1FormType >::getDiagonalValues() const
-{
-   WALBERLA_CHECK_NOT_NULLPTR(
-       diagonalValues_, "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
-   return diagonalValues_;
 }
 
 template < class N1E1FormType >
@@ -362,8 +318,14 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeLocalDiagonal( const Cell& 
    }
    else
    {
-      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, edgeDirsData, elMat );
+      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, elMat );
    }
+
+   // NOTE: In general we must apply the basis transformations to `elMat` here,
+   //       just like below in the full matrix assembly. However, in N1E1 the
+   //       diagonal is not affected by edge orientations, so we can skip this
+   //       step here.
+   WALBERLA_UNUSED( edgeDirsData );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 6 > edgeDoFIndices{};
@@ -393,11 +355,13 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    }
    else
    {
-      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, edgeDirsData, elMat );
+      assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, elMat );
    }
 
+   Eigen::Matrix< real_t, 6, 1 > edgeDirections;
+
    // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 6 > edgeDoFIndices{};
+   std::array< uint_t, 6 > edgeDoFIndices;
    n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    std::vector< uint_t > rowIdx( 6 );
@@ -405,9 +369,23 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
 
    for ( uint_t k = 0; k < 6; ++k )
    {
+      edgeDirections[numeric_cast< Eigen::Index >( k )] = edgeDirsData[edgeDoFIndices[k]];
+
       rowIdx[k] = uint_c( dstEdgeIdx[edgeDoFIndices[k]] );
       colIdx[k] = uint_c( srcEdgeIdx[edgeDoFIndices[k]] );
    }
+
+   // Apply basis transformations
+   // ---------------------------
+   // In the matrix-free operator application, DoFs are transformed to the
+   // local basis of the current macro by the communication. All following
+   // computations can then be performed in the local space. On the other hand,
+   // when assembling the operator matrix, the basis transformations must be
+   // explicitly included in the matrix.
+   //
+   // NOTE: Eigen has special implementations for diagonal products so we can
+   //       write this in linear algebra notation without performance penalties.
+   elMat = edgeDirections.asDiagonal() * elMat * edgeDirections.asDiagonal();
 
    const uint_t          elMatSize = 36;
    std::vector< real_t > blockMatData( elMatSize );
@@ -420,6 +398,59 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
+template < class N1E1FormType >
+void assembleLinearForm( const uint_t minLevel, const uint_t maxLevel, const N1E1FormType& form, N1E1VectorFunction< real_t >& f )
+{
+   std::shared_ptr< PrimitiveStorage > storage = f.getStorage();
+   if ( !storage->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "`hyteg::n1e1::assembleLinearForm` is not implemented for 2D." )
+   }
+
+   storage->getTimingTree()->start( "assemble linear form" );
+
+   for ( uint_t level = minLevel; level <= maxLevel; ++level )
+   {
+      f.setToZero( level );
+
+      // we only perform computations on cell primitives
+      for ( auto& macroIter : storage->getCells() )
+      {
+         Cell&   cell    = *macroIter.second;
+         real_t* dstData = cell.getData( f.getDoFs()->getCellDataID() )->getPointer( level );
+
+         // loop over micro-cells
+         for ( const auto& cellType : celldof::allCellTypes )
+         {
+            for ( const auto& microCell : celldof::macrocell::Iterator( level, cellType, 0 ) )
+            {
+               Matrix6r elMat;
+               assembleLocalElementMatrix3D( cell, level, microCell, cellType, form, elMat );
+
+               // obtain data indices of dofs associated with micro-cell
+               std::array< uint_t, 6 > edgeDoFIndices;
+               n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cellType, level, edgeDoFIndices );
+
+               // add contributions for central stencil weights
+               for ( int k = 0; k < 6; ++k )
+               {
+                  dstData[edgeDoFIndices[uint_c( k )]] += elMat( k, k );
+               }
+            }
+         }
+      }
+
+      storage->getTimingTree()->start( "additive communication" );
+
+      // Push result to lower-dimensional primitives.
+      f.communicateAdditively< Cell, Face >( level );
+      f.communicateAdditively< Cell, Edge >( level );
+
+      storage->getTimingTree()->stop( "additive communication" );
+   }
+   storage->getTimingTree()->stop( "assemble linear form" );
+}
+
 // curl-curl
 template class N1E1ElementwiseOperator< N1E1Form_curl_curl >;
 template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
@@ -430,8 +461,15 @@ template class N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
 template class N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
 // linear combination
 template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
-// linear form
-template class N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
-template class N1E1ElementwiseOperator< forms::n1e1_linear_form_blending_q6 >;
+
+// linear forms
+template void assembleLinearForm( const uint_t                             minLevel,
+                                  const uint_t                             maxLevel,
+                                  const forms::n1e1_linear_form_affine_q6& form,
+                                  N1E1VectorFunction< real_t >&            f );
+template void assembleLinearForm( const uint_t                               minLevel,
+                                  const uint_t                               maxLevel,
+                                  const forms::n1e1_linear_form_blending_q6& form,
+                                  N1E1VectorFunction< real_t >&              f );
 
 } // namespace hyteg::n1e1

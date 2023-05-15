@@ -22,6 +22,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
@@ -78,9 +79,7 @@ Results solve( const Params& params, const bool useGmg )
    N1E1VectorFunction< real_t > tmp( "tmp", storage, params.minLevel, params.maxLevel );
 
    // Assemble RHS.
-   N1E1ElementwiseLinearFormOperatorQ6 rhsOperator( storage, params.maxLevel, params.maxLevel, { params.system.rhs_ } );
-   rhsOperator.computeDiagonalOperatorValues();
-   f.copyFrom( *rhsOperator.getDiagonalValues(), params.maxLevel );
+   assembleLinearForm< forms::n1e1_linear_form_affine_q6 >( params.maxLevel, params.maxLevel, { params.system.rhs_ }, f );
 
    // Initialize
    if ( params.initialGuess.has_value() )

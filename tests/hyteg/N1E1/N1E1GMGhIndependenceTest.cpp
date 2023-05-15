@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Daniel Bauer.
+* Copyright (c) 2022-2023 Daniel Bauer.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,6 +22,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
 #include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
@@ -70,9 +71,7 @@ uint_t test( const uint_t maxLevel, const uint_t numMaxVCycles, const n1e1::Syst
    N1E1VectorFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
    // Assemble RHS.
-   N1E1ElementwiseLinearFormOperatorQ6 rhsOperator( storage, maxLevel, maxLevel, { system.rhs_ } );
-   rhsOperator.computeDiagonalOperatorValues();
-   f.copyFrom( *rhsOperator.getDiagonalValues(), maxLevel );
+   assembleLinearForm< forms::n1e1_linear_form_affine_q6 >( maxLevel, maxLevel, { system.rhs_ }, f );
 
    // Boundary conditions: homogeneous tangential trace
    u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
