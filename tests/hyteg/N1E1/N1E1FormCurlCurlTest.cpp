@@ -51,7 +51,7 @@ void test( Form form, const std::array< Point3D, 4 >& coords, const Matrix6r& co
 {
    Matrix6r elMat;
 
-   form.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMat );
+   form.integrateAll( coords, elMat );
 
    for ( int i = 0; i < 6; ++i )
    {

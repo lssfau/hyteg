@@ -54,9 +54,9 @@ class n1e1_curl_curl_affine_qe : public n1e1::N1E1Form
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              236     340       1       0      1            181                 0
+   ///                                              122     116       1       0      1            186                 0
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, const std::array< int, 6 >& edgeDirections, Matrix< real_t, 6, 6 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
 };
 

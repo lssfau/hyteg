@@ -53,15 +53,13 @@ class N1E1LinearCombinationForm : public N1E1Form
    //  3D versions for tetrahedra (using new interface)
    // --------------------------------------------------
 
-   void integrateAll( const std::array< Point3D, 4 >& coords,
-                      const std::array< int, 6 >&     edgeDirections,
-                      Matrix6r&                       elMat ) const override
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix6r& elMat ) const override
    {
       elMat.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Matrix6r tmpOut;
-         forms_[i]->integrateAll( coords, edgeDirections, tmpOut );
+         forms_[i]->integrateAll( coords, tmpOut );
          elMat += scalars_[i] * tmpOut;
       }
    }

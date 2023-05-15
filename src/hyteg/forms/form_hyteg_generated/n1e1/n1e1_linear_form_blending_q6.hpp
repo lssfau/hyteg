@@ -65,9 +65,9 @@ class n1e1_linear_form_blending_q6 : public n1e1::N1E1Form
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             2317    3924      24       0     24           1436                69
+   ///                                             2317    3234      24       0     24           1643                69
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, const std::array< int, 6 >& edgeDirections, Matrix< real_t, 6, 6 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
  private:
 

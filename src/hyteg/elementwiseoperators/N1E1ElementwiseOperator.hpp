@@ -159,7 +159,7 @@ void assembleLocalElementMatrix3D( const Cell&            cell,
 
    // assemble local element matrix
    form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMat );
+   form.integrateAll( coords, elMat );
 }
 
 /// compute product of element local vector with element matrix
