@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2023 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,7 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+
 #include "core/debug/TestSubsystem.h"
+#include "core/logging/Logging.h"
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
@@ -35,15 +38,15 @@ class Result
    static Result zero() { return Result( true ); };
    static Result notZero() { return Result( false ); };
 
-   void check( const real_t dof ) const
+   void check( const real_t eval ) const
    {
       if ( isZero_ )
       {
-         WALBERLA_CHECK_FLOAT_EQUAL( dof, 0.0 )
+         WALBERLA_CHECK_FLOAT_EQUAL( eval, 0.0 )
       }
       else
       {
-         WALBERLA_CHECK_FLOAT_UNEQUAL_EPSILON( dof, 0.0, 10e-8 )
+         WALBERLA_CHECK_FLOAT_UNEQUAL_EPSILON( eval, 0.0, real_c( 1e-7 ) )
       }
    };
 
@@ -53,10 +56,11 @@ class Result
    bool isZero_;
 };
 
+template < class CurlCurlOperator >
 void test( const std::function< Point3D( const Point3D& ) >& f, const Result& result )
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   MeshInfo                            meshInfo = MeshInfo::meshSymmetricCuboid( { 0, 0, 0 }, { 1, 1, 1 }, 1, 1, 1 );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    const size_t minLevel = 2;
@@ -66,12 +70,13 @@ void test( const std::function< Point3D( const Point3D& ) >& f, const Result& re
 
    const uint_t numRandomEvaluations = 1000;
 
-   n1e1::N1E1VectorFunction< real_t >    x( "x", storage, minLevel, maxLevel );
-   n1e1::N1E1VectorFunction< real_t >    b( "b", storage, minLevel, maxLevel );
-   n1e1::N1E1ElementwiseCurlCurlOperator curlCurl( storage, minLevel, maxLevel );
+   n1e1::N1E1VectorFunction< real_t > x( "x", storage, minLevel, maxLevel );
+   n1e1::N1E1VectorFunction< real_t > b( "b", storage, minLevel, maxLevel );
+   CurlCurlOperator                   curlCurl( storage, minLevel, maxLevel );
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
+      WALBERLA_LOG_DEVEL_VAR_ON_ROOT( level )
       x.interpolate( f, level );
       curlCurl.apply( x, b, level, DoFType::All );
 
@@ -99,12 +104,42 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test( []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; }, Result::zero() );
-   WALBERLA_LOG_INFO_ON_ROOT( "Passed (1)" )
-   test( []( const Point3D& p ) { return Point3D{ p[0], p[1], p[2] }; }, Result::zero() );
-   WALBERLA_LOG_INFO_ON_ROOT( "Passed (2)" )
-   test( []( const Point3D& p ) { return Point3D{ p[0] * p[0], p[0] * p[0], p[0] * p[0] }; }, Result::notZero() );
-   WALBERLA_LOG_INFO_ON_ROOT( "Passed (3)" )
+   for ( auto [f, result] : std::vector< std::pair< std::function< Point3D( const Point3D& ) >, Result > >{
+             {
+                 []( const Point3D& ) {
+                    return Point3D{ 0.0, 0.0, 0.0 };
+                 },
+                 Result::zero(),
+             },
+
+             {
+                 []( const Point3D& ) {
+                    return Point3D{ real_c( 4.3 ), real_c( 3.1 ), real_c( 2.7 ) };
+                 },
+                 Result::zero(),
+             },
+
+             {
+                 []( const Point3D& p ) {
+                    return Point3D{ p[0], p[1], p[2] };
+                 },
+                 Result::zero(),
+             },
+
+             {
+                 []( const Point3D& p ) {
+                    return Point3D{ p[0] * p[0], p[0] * p[0], p[0] * p[0] };
+                 },
+                 Result::notZero(),
+             },
+         } )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "N1E1ElementwiseCurlCurlOperator" )
+      test< n1e1::N1E1ElementwiseCurlCurlOperator >( f, result );
+      WALBERLA_LOG_INFO_ON_ROOT( "N1E1ElementwiseBlendingCurlCurlOperatorQ2" )
+      test< n1e1::N1E1ElementwiseBlendingCurlCurlOperatorQ2 >( f, result );
+      WALBERLA_LOG_INFO_ON_ROOT( "\n" )
+   }
 
    return EXIT_SUCCESS;
 }
