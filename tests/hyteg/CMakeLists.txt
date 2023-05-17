@@ -553,21 +553,21 @@ waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
 
 
 
-waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES primitives/PrimitiveIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveIDTest)
 
-waLBerla_compile_test(FILES PrimitiveDataTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES primitives/PrimitiveDataTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveDataTest)
 
 waLBerla_compile_test(FILES LevelinfoTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME LevelinfoTest)
 
-waLBerla_compile_test(FILES PrimitiveStorageTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES primitives/PrimitiveStorageTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveStorageTest1 COMMAND $<TARGET_FILE:PrimitiveStorageTest>)
 waLBerla_execute_test(NAME PrimitiveStorageTest3 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 3)
 waLBerla_execute_test(NAME PrimitiveStorageTest8 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 8)
 
-waLBerla_compile_test(FILES PrimitiveRelativeOrderingTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES primitives/PrimitiveRelativeOrderingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveRelativeOrderingTest)
 
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS hyteg core)
