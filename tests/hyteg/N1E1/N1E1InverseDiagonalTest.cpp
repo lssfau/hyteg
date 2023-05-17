@@ -19,7 +19,7 @@
 */
 
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -42,7 +42,7 @@ void test( uint_t level, MeshInfo meshInfo )
    N1E1VectorFunction< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
-   forms::n1e1_curl_curl_affine_qe          curlCurlForm;
+   forms::n1e1_curl_curl_affine_q0          curlCurlForm;
    forms::n1e1_mass_affine_qe               massForm;
    N1E1ElementwiseLinearCombinationOperator A( storage, level, level, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
 

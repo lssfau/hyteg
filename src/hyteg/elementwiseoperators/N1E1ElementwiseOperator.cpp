@@ -452,7 +452,7 @@ void assembleLinearForm( const uint_t minLevel, const uint_t maxLevel, const N1E
 }
 
 // curl-curl
-template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
+template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_q0 >;
 template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_blending_q2 >;
 // mass
 template class N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;

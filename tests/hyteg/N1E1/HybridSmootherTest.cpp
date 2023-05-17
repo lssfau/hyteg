@@ -26,7 +26,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -68,7 +68,7 @@ void test( const uint_t        level,
    N1E1VectorFunction< real_t > tmp( "tmp", storage, level, level );
 
    // operators
-   forms::n1e1_curl_curl_affine_qe          curlCurlForm;
+   forms::n1e1_curl_curl_affine_q0          curlCurlForm;
    forms::n1e1_mass_affine_qe               massForm;
    N1E1ElementwiseMassOperator              M( storage, level, level );
    N1E1ElementwiseLinearCombinationOperator A( storage, minLevel, maxLevel, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );

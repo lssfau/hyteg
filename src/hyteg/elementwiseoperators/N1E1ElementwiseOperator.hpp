@@ -20,7 +20,7 @@
 #pragma once
 
 #include "hyteg/forms/N1E1LinearCombinationForm.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
@@ -199,7 +199,7 @@ void assembleLinearForm( const uint_t                  minLevel,
                          N1E1VectorFunction< real_t >& f );
 
 // curl-curl
-using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
+using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_q0 >;
 using N1E1ElementwiseBlendingCurlCurlOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_curl_curl_blending_q2 >;
 // mass
 using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;

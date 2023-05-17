@@ -21,7 +21,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
@@ -164,7 +164,7 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
 
 real_t testNoBlending( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
 {
-   return test< forms::n1e1_curl_curl_affine_qe,
+   return test< forms::n1e1_curl_curl_affine_q0,
                 forms::n1e1_mass_affine_qe,
                 forms::n1e1_linear_form_affine_q6,
                 n1e1::N1E1ElementwiseMassOperator,

@@ -20,7 +20,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
@@ -42,7 +42,7 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   forms::n1e1_curl_curl_affine_qe curlCurlForm;
+   forms::n1e1_curl_curl_affine_q0 curlCurlForm;
    forms::n1e1_mass_affine_qe      massForm;
 
    N1E1ElementwiseMassOperator              M( storage, level, level );
