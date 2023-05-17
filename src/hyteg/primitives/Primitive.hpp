@@ -106,6 +106,18 @@ class Primitive
 
    virtual ~Primitive() {}
 
+   /// Enumeration to differentiate different kinds of primitives
+   enum PrimitiveTypeEnum
+   {
+      VERTEX = 0,
+      EDGE   = 1,
+      FACE   = 2,
+      CELL   = 3
+   };
+
+   /// Return the type of the actual primitive
+   virtual PrimitiveTypeEnum getType() const = 0;
+
    /// Returns true if the data that belongs to the passed \ref PrimitiveDataID is allocated.
    /// \param index the \ref PrimitiveDataID of the data that shall be asked for
    template < typename DataType >

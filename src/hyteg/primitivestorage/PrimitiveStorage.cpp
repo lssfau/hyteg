@@ -1885,6 +1885,7 @@ void PrimitiveStorage::getNeighboringRanks( std::set< walberla::mpi::MPIRank >& 
    }
 }
 
+#ifdef OLD_GET_PRIMITIVE_TYPE
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID& primitiveID ) const
 {
    if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) )
@@ -1897,6 +1898,16 @@ PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const Pr
       return CELL;
    return INVALID;
 }
+#else
+PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID& primitiveID ) const
+{
+   if ( primitiveExistsLocally( primitiveID ) || primitiveExistsInNeighborhood( primitiveID ) )
+   {
+      return static_cast< PrimitiveStorage::PrimitiveTypeEnum >( getPrimitive( primitiveID )->getType() );
+   }
+   return INVALID;
+}
+#endif
 
 PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuffer& recvBuffer, const bool& isNeighborPrimitive )
 {

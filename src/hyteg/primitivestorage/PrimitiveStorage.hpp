@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Bartuschat, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Bartuschat, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -587,14 +587,16 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Calling this function several times allows us to enlarge our geometric halos.
    void addDirectNeighborsDistributed();
 
-   // needed to differentiate when migrating primitives
+   /// needed to differentiate when migrating primitives (this enum extends Primitive::PrimitiveType
+   /// by INVALID as marker for a primitive that is neither locally present on this MPI process nor
+   /// in its neighbourhood)
    enum PrimitiveTypeEnum
    {
-      VERTEX,
-      EDGE,
-      FACE,
-      CELL,
-      INVALID
+      VERTEX  = 0,
+      EDGE    = 1,
+      FACE    = 2,
+      CELL    = 3,
+      INVALID = 4
    };
 
    /// \brief Splits the current communicator of the walberla MPI manager into two
