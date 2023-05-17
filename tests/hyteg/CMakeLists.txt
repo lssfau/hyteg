@@ -553,8 +553,8 @@ waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
 
 
 
-waLBerla_compile_test(FILES primitives/PrimitiveIDTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME PrimitiveIDTest)
+waLBerla_compile_test(FILES primitives/PrimitiveID+TypeTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME PrimitiveID+TypeTest)
 
 waLBerla_compile_test(FILES primitives/PrimitiveDataTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveDataTest)
