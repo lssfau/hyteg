@@ -117,6 +117,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
+   using PrimitiveTypeEnum = Primitive::PrimitiveTypeEnum;
+
    explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0 );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                      const std::shared_ptr< walberla::WcTimingTree >& timingTree,
@@ -586,18 +588,6 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Calling this function several times allows us to enlarge our geometric halos.
    void addDirectNeighborsDistributed();
-
-   /// needed to differentiate when migrating primitives (this enum extends Primitive::PrimitiveType
-   /// by INVALID as marker for a primitive that is neither locally present on this MPI process nor
-   /// in its neighbourhood)
-   enum PrimitiveTypeEnum
-   {
-      VERTEX  = 0,
-      EDGE    = 1,
-      FACE    = 2,
-      CELL    = 3,
-      INVALID = 4
-   };
 
    /// \brief Splits the current communicator of the walberla MPI manager into two
    ///        sub-communicators. One of them contains all processes with primitives

@@ -109,10 +109,11 @@ class Primitive
    /// Enumeration to differentiate different kinds of primitives
    enum PrimitiveTypeEnum
    {
-      VERTEX = 0,
-      EDGE   = 1,
-      FACE   = 2,
-      CELL   = 3
+      VERTEX,
+      EDGE,
+      FACE,
+      CELL,
+      INVALID
    };
 
    /// Return the type of the actual primitive
