@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -63,6 +63,9 @@ class Cell : public Primitive
    {
       deserializeSubclass( recvBuffer );
    }
+
+   /// Returns CELL
+   virtual PrimitiveTypeEnum getType() const final { return CELL; };
 
    virtual void getLowerDimNeighbors( std::vector< PrimitiveID >& lowerDimNeighbors ) const
    {

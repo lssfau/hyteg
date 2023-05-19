@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -56,6 +56,9 @@ class Vertex : public Primitive
    {
       deserializeSubclass( recvBuffer );
    }
+
+   /// Returns VERTEX
+   virtual PrimitiveTypeEnum getType() const final { return VERTEX; };
 
    /// Returns the Vertex-local index of \p edge
    /// \param edge Edge

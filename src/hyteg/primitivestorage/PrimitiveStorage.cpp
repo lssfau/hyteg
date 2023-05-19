@@ -1551,7 +1551,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
       const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
       const Primitive*        primitive     = getPrimitive( primitiveID );
 
-      WALBERLA_CHECK_NOT_IDENTICAL( primitiveType, INVALID, "Sending invalid primitive type..." );
+      WALBERLA_CHECK_NOT_IDENTICAL( primitiveType, PrimitiveTypeEnum::INVALID, "Sending invalid primitive type..." );
 
       sendBuffer << true;
       sendBuffer << primitiveType;
@@ -1887,15 +1887,11 @@ void PrimitiveStorage::getNeighboringRanks( std::set< walberla::mpi::MPIRank >& 
 
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID& primitiveID ) const
 {
-   if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) )
-      return VERTEX;
-   if ( edgeExistsLocally( primitiveID ) || edgeExistsInNeighborhood( primitiveID ) )
-      return EDGE;
-   if ( faceExistsLocally( primitiveID ) || faceExistsInNeighborhood( primitiveID ) )
-      return FACE;
-   if ( cellExistsLocally( primitiveID ) || cellExistsInNeighborhood( primitiveID ) )
-      return CELL;
-   return INVALID;
+   if ( primitiveExistsLocally( primitiveID ) || primitiveExistsInNeighborhood( primitiveID ) )
+   {
+      return getPrimitive( primitiveID )->getType();
+   }
+   return PrimitiveTypeEnum::INVALID;
 }
 
 PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuffer& recvBuffer, const bool& isNeighborPrimitive )
@@ -1909,7 +1905,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
 
    switch ( primitiveType )
    {
-   case VERTEX: {
+   case PrimitiveTypeEnum::VERTEX: {
       std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer );
       primitiveID                      = vertex->getID();
       if ( isNeighborPrimitive )
@@ -1922,7 +1918,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
       }
       break;
    }
-   case EDGE: {
+   case PrimitiveTypeEnum::EDGE: {
       std::shared_ptr< Edge > edge = std::make_shared< Edge >( recvBuffer );
       primitiveID                  = edge->getID();
       if ( isNeighborPrimitive )
@@ -1935,7 +1931,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
       }
       break;
    }
-   case FACE: {
+   case PrimitiveTypeEnum::FACE: {
       std::shared_ptr< Face > face = std::make_shared< Face >( recvBuffer );
       primitiveID                  = face->getID();
       if ( isNeighborPrimitive )
@@ -1948,7 +1944,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
       }
       break;
    }
-   case CELL: {
+   case PrimitiveTypeEnum::CELL: {
       std::shared_ptr< Cell > cell = std::make_shared< Cell >( recvBuffer );
       primitiveID                  = cell->getID();
       if ( isNeighborPrimitive )
@@ -1977,7 +1973,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
    const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
    switch ( primitiveType )
    {
-   case VERTEX: {
+   case PrimitiveTypeEnum::VERTEX: {
       WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
       auto vertex = vertices_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -1990,7 +1986,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
       }
       break;
    }
-   case EDGE: {
+   case PrimitiveTypeEnum::EDGE: {
       WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
       auto edge = edges_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2003,7 +1999,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
       }
       break;
    }
-   case FACE: {
+   case PrimitiveTypeEnum::FACE: {
       WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
       auto face = faces_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2016,7 +2012,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
       }
       break;
    }
-   case CELL: {
+   case PrimitiveTypeEnum::CELL: {
       WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
       auto cell = cells_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2044,7 +2040,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
    const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
    switch ( primitiveType )
    {
-   case VERTEX: {
+   case PrimitiveTypeEnum::VERTEX: {
       WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
       auto vertex = vertices_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -2065,7 +2061,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
       }
       break;
    }
-   case EDGE: {
+   case PrimitiveTypeEnum::EDGE: {
       WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
       auto edge = edges_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -2086,7 +2082,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
       }
       break;
    }
-   case FACE: {
+   case PrimitiveTypeEnum::FACE: {
       WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
       auto face = faces_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -2107,7 +2103,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
       }
       break;
    }
-   case CELL: {
+   case PrimitiveTypeEnum::CELL: {
       WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
       auto cell = cells_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )

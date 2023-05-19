@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Bartuschat, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Bartuschat, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -116,6 +116,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    typedef std::map< PrimitiveID, std::shared_ptr< Edge > >      EdgeMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
+
+   using PrimitiveTypeEnum = Primitive::PrimitiveTypeEnum;
 
    explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0 );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
@@ -586,16 +588,6 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Calling this function several times allows us to enlarge our geometric halos.
    void addDirectNeighborsDistributed();
-
-   // needed to differentiate when migrating primitives
-   enum PrimitiveTypeEnum
-   {
-      VERTEX,
-      EDGE,
-      FACE,
-      CELL,
-      INVALID
-   };
 
    /// \brief Splits the current communicator of the walberla MPI manager into two
    ///        sub-communicators. One of them contains all processes with primitives
