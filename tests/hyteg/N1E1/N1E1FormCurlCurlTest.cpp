@@ -33,14 +33,12 @@
 //
 // The integration is implemented in curl-curl-test.py.
 
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-
 #include <memory>
 
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
@@ -53,7 +51,7 @@ void test( Form form, const std::array< Point3D, 4 >& coords, const Matrix6r& co
 {
    Matrix6r elMat;
 
-   form.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMat );
+   form.integrateAll( coords, elMat );
 
    for ( int i = 0; i < 6; ++i )
    {
@@ -71,7 +69,7 @@ void test( const std::array< Point3D, 4 >& coords, const Matrix6r& correct )
    forms::n1e1_curl_curl_blending_q2 formBlendingId;
    formBlendingId.setGeometryMap( std::make_shared< IdentityMap >() );
 
-   testForms( n1e1::N1E1Form_curl_curl{}, forms::n1e1_curl_curl_affine_qe{}, formBlendingId );
+   testForms( forms::n1e1_curl_curl_affine_q0{}, formBlendingId );
 
    // blending
 

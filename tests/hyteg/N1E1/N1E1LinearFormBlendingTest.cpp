@@ -88,8 +88,8 @@ void test()
       Matrix6r elMatNoBlending;
       Matrix6r elMatBlending;
 
-      formNoBlending.integrateAll( coords, { 1, 1, 1, 1, 1, 1 }, elMatNoBlending );
-      formBlending.integrateAll( coordsBlending, { 1, 1, 1, 1, 1, 1 }, elMatBlending );
+      formNoBlending.integrateAll( coords, elMatNoBlending );
+      formBlending.integrateAll( coordsBlending, elMatBlending );
 
       for ( int i = 0; i < 6; ++i )
       {

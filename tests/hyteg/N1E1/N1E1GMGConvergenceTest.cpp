@@ -21,10 +21,12 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/n1e1functionspace/HybridSmoother.hpp"
@@ -46,8 +48,8 @@ using walberla::real_t;
 /// Returns the approximate L2 error.
 template < class N1E1CurlCurlForm,
            class N1E1MassForm,
+           class N1E1LinearForm,
            class N1E1MassOperator,
-           class N1E1LinearFormOperator,
            class P1LaplaceOperator,
            class P1Smoother >
 real_t test( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
@@ -82,9 +84,7 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
 
    // Assemble RHS.
-   N1E1LinearFormOperator rhsOperator( storage, maxLevel, maxLevel, { system.rhs_ } );
-   rhsOperator.computeDiagonalOperatorValues();
-   f.copyFrom( *rhsOperator.getDiagonalValues(), maxLevel );
+   assembleLinearForm< N1E1LinearForm >( maxLevel, maxLevel, { system.rhs_ }, f );
 
    // Boundary conditions: homogeneous tangential trace
    u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
@@ -164,10 +164,10 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
 
 real_t testNoBlending( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
 {
-   return test< n1e1::N1E1Form_curl_curl,
-                n1e1::N1E1Form_mass,
+   return test< forms::n1e1_curl_curl_affine_q0,
+                forms::n1e1_mass_affine_qe,
+                forms::n1e1_linear_form_affine_q6,
                 n1e1::N1E1ElementwiseMassOperator,
-                n1e1::N1E1ElementwiseLinearFormOperatorQ6,
                 P1ConstantLaplaceOperator,
                 GaussSeidelSmoother< P1ConstantLaplaceOperator > >( maxLevel, system, writeVTK );
 }
@@ -176,8 +176,8 @@ real_t testBlending( const uint_t maxLevel, const n1e1::System& system, const bo
 {
    return test< forms::n1e1_curl_curl_blending_q2,
                 forms::n1e1_mass_blending_q2,
+                forms::n1e1_linear_form_blending_q6,
                 n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
-                n1e1::N1E1ElementwiseBlendingLinearFormOperatorQ6,
                 P1ElementwiseBlendingLaplaceOperator,
                 WeightedJacobiSmoother< P1ElementwiseBlendingLaplaceOperator > >( maxLevel, system, writeVTK );
 }

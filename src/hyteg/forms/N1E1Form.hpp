@@ -31,9 +31,7 @@ class N1E1Form : public Form
    virtual ~N1E1Form() {}
 
    // 3D
-   virtual void integrateAll( const std::array< Point3D, 4 >& coords,
-                              const std::array< int, 6 >&     edgeDirections,
-                              Matrix6r&                       elMat ) const = 0;
+   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix6r& elMat ) const = 0;
 };
 
 } // namespace n1e1

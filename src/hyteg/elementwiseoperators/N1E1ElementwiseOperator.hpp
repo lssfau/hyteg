@@ -20,14 +20,10 @@
 #pragma once
 
 #include "hyteg/forms/N1E1LinearCombinationForm.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -65,11 +61,6 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
    /// If the local element matrices need to be recomputed again, simply call this method again.
    void computeAndStoreLocalElementMatrices();
-
-   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
-   /// Allocates the required memory if the function was not yet allocated.
-   void                                            computeDiagonalOperatorValues();
-   std::shared_ptr< N1E1VectorFunction< real_t > > getDiagonalValues() const;
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
@@ -138,7 +129,6 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
 
    N1E1FormType form_;
 
-   std::shared_ptr< N1E1VectorFunction< real_t > > diagonalValues_;
    std::shared_ptr< N1E1VectorFunction< real_t > > inverseDiagonalValues_;
 
    // TODO this is possible without allocating a new function
@@ -157,7 +147,6 @@ void assembleLocalElementMatrix3D( const Cell&            cell,
                                    const indexing::Index& microCell,
                                    celldof::CellType      cType,
                                    N1E1FormType           form,
-                                   const real_t* const    edgeDirsData,
                                    Matrix6r&              elMat )
 {
    // determine coordinates of vertices of micro-element
@@ -168,18 +157,9 @@ void assembleLocalElementMatrix3D( const Cell&            cell,
       coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
    }
 
-   // determine edge orienations
-   std::array< int, 6 >    edgeDirections;
-   std::array< uint_t, 6 > edgeDoFIndices;
-   n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
-   for ( uint_t i = 0; i < 6; ++i )
-   {
-      edgeDirections[i] = numeric_cast< int >( edgeDirsData[edgeDoFIndices[i]] );
-   }
-
    // assemble local element matrix
    form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, edgeDirections, elMat );
+   form.integrateAll( coords, elMat );
 }
 
 /// compute product of element local vector with element matrix
@@ -199,21 +179,33 @@ void localMatrixVectorMultiply3D( uint_t                 level,
                                   real_t* const          dstEdgeData,
                                   const Matrix6r&        elMat );
 
+/// \brief Evaluates a linear form on all elements and assembles the result in `f`.
+///
+/// Evaluation of the form is done by collecting the diagonal entries of the
+/// local element matrices. Because the space of linear forms is identified
+/// with the FEM-space (N1E1 in this case) the result can be stored as a
+/// function `f`.
+/// Note that the local element matrices are determined wrt. the local
+/// bases (edge orientations). During communication the DoFs of `f` will
+/// be transformed to the respective basis of the neighboring primitives.
+/// The result is therefore different from the diagonal of the assembled
+/// matrix. The diagonal of the assembled matrix must not be altered during
+/// communication (because it is not an element of the FEM-space but just a
+/// bunch of numbers).
+template < class N1E1FormType >
+void assembleLinearForm( const uint_t                  minLevel,
+                         const uint_t                  maxLevel,
+                         const N1E1FormType&           form,
+                         N1E1VectorFunction< real_t >& f );
+
 // curl-curl
-using N1E1ElementwiseCurlCurlOperator = N1E1ElementwiseOperator< N1E1Form_curl_curl >;
-// TODO
-// using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_qe >;
+using N1E1ElementwiseCurlCurlOperator           = N1E1ElementwiseOperator< forms::n1e1_curl_curl_affine_q0 >;
 using N1E1ElementwiseBlendingCurlCurlOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_curl_curl_blending_q2 >;
 // mass
-using N1E1ElementwiseMassOperator = N1E1ElementwiseOperator< N1E1Form_mass >;
-// TODO remove manual mass form
-// using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
+using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
 using N1E1ElementwiseBlendingMassOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
 // linear combination
 using N1E1ElementwiseLinearCombinationOperator = N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
-// linear form
-using N1E1ElementwiseLinearFormOperatorQ6         = N1E1ElementwiseOperator< forms::n1e1_linear_form_affine_q6 >;
-using N1E1ElementwiseBlendingLinearFormOperatorQ6 = N1E1ElementwiseOperator< forms::n1e1_linear_form_blending_q6 >;
 
 } // namespace n1e1
 } // namespace hyteg

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Daniel Bauer.
+* Copyright (c) 2022-2023 Daniel Bauer.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,8 +19,8 @@
 */
 
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
@@ -42,8 +42,8 @@ void test( uint_t level, MeshInfo meshInfo )
    N1E1VectorFunction< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
-   n1e1::N1E1Form_curl_curl                 curlCurlForm;
-   n1e1::N1E1Form_mass                      massForm;
+   forms::n1e1_curl_curl_affine_q0          curlCurlForm;
+   forms::n1e1_mass_affine_qe               massForm;
    N1E1ElementwiseLinearCombinationOperator A( storage, level, level, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
 
    PETScSparseMatrix< N1E1ElementwiseLinearCombinationOperator > matrix;
@@ -78,7 +78,7 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 
    test( 3, MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ) );
-   test( 1, MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ) );
+   test( 1, MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ) );
 
    return EXIT_SUCCESS;
 }

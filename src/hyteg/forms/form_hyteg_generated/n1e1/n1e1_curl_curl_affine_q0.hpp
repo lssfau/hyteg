@@ -34,12 +34,12 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        n1e1_curl_curl_affine_qe
+/// - name:        n1e1_curl_curl_affine_q0
 /// - description: 
 /// - trial space: N1E1
 /// - test space:  N1E1
 ///
-class n1e1_curl_curl_affine_qe : public n1e1::N1E1Form
+class n1e1_curl_curl_affine_q0 : public n1e1::N1E1Form
 {
 
 
@@ -50,11 +50,11 @@ class n1e1_curl_curl_affine_qe : public n1e1::N1E1Form
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (6, 6)
-   /// - quadrature rule:                        exact
+   /// - quadrature rule:                        Vioreanu-Rokhlin 0 | points: 1, degree: 1, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              122     116       1       0      1            186                 0
+   ///                                               83     133       1       0      1            148                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 

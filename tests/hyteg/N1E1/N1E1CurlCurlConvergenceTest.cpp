@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Daniel Bauer.
+* Copyright (c) 2022-2023 Daniel Bauer.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,8 +20,9 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -41,8 +42,8 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   N1E1Form_curl_curl curlCurlForm;
-   N1E1Form_mass      massForm;
+   forms::n1e1_curl_curl_affine_q0 curlCurlForm;
+   forms::n1e1_mass_affine_qe      massForm;
 
    N1E1ElementwiseMassOperator              M( storage, level, level );
    N1E1ElementwiseLinearCombinationOperator A( storage, level, level, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
@@ -57,9 +58,7 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << level << ": " << nDoFs );
 
    // Assemble RHS.
-   N1E1ElementwiseLinearFormOperatorQ6 rhsOperator( storage, level, level, { system.rhs_ } );
-   rhsOperator.computeDiagonalOperatorValues();
-   f.copyFrom( *rhsOperator.getDiagonalValues(), level );
+   assembleLinearForm< forms::n1e1_linear_form_affine_q6 >( level, level, { system.rhs_ }, f );
 
    // Boundary conditions: homogeneous tangential trace
    u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, level, DoFType::Boundary );
