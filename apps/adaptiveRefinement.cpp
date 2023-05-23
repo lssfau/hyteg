@@ -33,6 +33,8 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
+#include "hyteg/numerictools/L2Space.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -76,9 +78,9 @@ struct ModelProblem
       WAVES,
       __VARIABLE_COEFFICIENT,
       // variable coefficient
+      WAVES_K,
       JUMP_COEFF,
       JUMP_COEFF_REGULARIZED,
-      SPIKE,
       __NOT_AVAILABLE
    };
 
@@ -86,13 +88,10 @@ struct ModelProblem
    : type( Type( mp_type ) )
    , dim( spacial_dim )
    , sigma( 0.0 )
-   , offset_err( 0.0 )
-   , ignore_offset_for_refinement( false )
    , n_w( 1.0 )
    , p_w( 1.0 )
    , k_lo( 1.0 )
    , k_hi( 1.0 )
-   , k_spike( 1.0 )
    {
       if ( mp_type >= Type::__NOT_AVAILABLE )
       {
@@ -115,9 +114,7 @@ struct ModelProblem
       switch ( type )
       {
       case DIRAC:
-         ss << "dirac"; // << "_" << offset_err;
-         if ( ignore_offset_for_refinement )
-            ss << "_fullyRefined";
+         ss << "dirac";
          break;
 
       case DIRAC_REGULARIZED:
@@ -136,16 +133,16 @@ struct ModelProblem
          ss << "waves";
          break;
 
+      case WAVES_K:
+         ss << "waves_k";
+         break;
+
       case JUMP_COEFF:
          ss << "jump_coeff";
          break;
 
       case JUMP_COEFF_REGULARIZED:
          ss << "jump_coeff_regularized";
-         break;
-
-      case SPIKE:
-         ss << "spike";
          break;
 
       default:
@@ -157,25 +154,13 @@ struct ModelProblem
       return ss.str();
    }
 
-   void set_params( real_t sig,
-                    real_t offset,
-                    bool   refine_all,
-                    uint_t n_waves,
-                    uint_t squeeze_waves,
-                    real_t kLo,
-                    real_t kHi,
-                    real_t kSpike )
+   void set_params( real_t sig, uint_t n_waves, uint_t squeeze_waves, real_t kLo, real_t kHi )
    {
-      if ( type == DIRAC )
-      {
-         offset_err                   = offset;
-         ignore_offset_for_refinement = refine_all;
-      }
-      if ( type == DIRAC_REGULARIZED )
+      if ( type == DIRAC_REGULARIZED || type == JUMP_COEFF_REGULARIZED )
       {
          sigma = sig;
       }
-      if ( type == WAVES )
+      if ( type == WAVES || type == WAVES_K )
       {
          n_w = real_c( n_waves );
          p_w = real_c( squeeze_waves );
@@ -185,14 +170,6 @@ struct ModelProblem
          k_lo = kLo;
          k_hi = kHi;
       }
-      if ( type == JUMP_COEFF_REGULARIZED )
-      {
-         sigma = sig;
-      }
-      if ( type == SPIKE )
-      {
-         k_spike = kSpike;
-      }
       // todo: add parameters when adding new problems
    }
 
@@ -200,6 +177,8 @@ struct ModelProblem
 
    auto coeff() const
    {
+      using walberla::math::pi;
+
       std::function< real_t( const Point3D& ) > k;
 
       if ( constant_coefficient() )
@@ -220,22 +199,29 @@ struct ModelProblem
             return ( 2 * exp( sigma * ( x[0] - 0.5 ) ) + 1 ) / ( exp( sigma * ( x[0] - 0.5 ) ) + 1 );
          };
       }
-      if ( type == SPIKE )
+      if ( type == WAVES_K )
       {
-         k = [=]( const hyteg::Point3D& x ) { return exp( k_spike * ( x[0] - x[0] * x[0] ) * ( x[1] - x[1] * x[1] ) ); };
+         k = [=]( const hyteg::Point3D& x ) {
+            const auto xy = x[0] * x[1];
+            const auto c1 = n_w * p_w * 2 * pi;
+            const auto c2 = log( c1 );
+            const auto c3 = c1 * c2 / p_w;
+            const auto c4 = pow( c1, xy ) / p_w;
+            const auto c5 = -sin( c4 ) * c4 * c2 + c3;
+            return 1. / c5;
+         };
       }
       // todo: add required coefficients
 
       return k;
    }
 
-   void init( std::shared_ptr< PrimitiveStorage > storage,
-              P1Function< real_t >&               u,
-              P1Function< real_t >&               f,
-              P1Function< real_t >&               u_h,
-              P1Function< real_t >&               b,
-              uint_t                              lvl,
-              uint_t                              additional_lvl ) const
+   void init( std::shared_ptr< PrimitiveStorage >        storage,
+              std::function< real_t( const Point3D& ) >& u,
+              P1Function< real_t >&                      f,
+              P1Function< real_t >&                      u_h,
+              P1Function< real_t >&                      b,
+              uint_t                                     lvl ) const
    {
       using walberla::math::one_div_root_two;
       using walberla::math::pi;
@@ -313,31 +299,49 @@ struct ModelProblem
             WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
          }
 
-         const real_t rot1 = real_c( 0.1 );
-         const real_t rot2 = real_c( 0.7 );
-
          _u = [=]( const hyteg::Point3D& x ) {
-            return ( exp( p_w * ( -pow( x[0], 2 ) + x[0] ) * ( -pow( x[1], 2 ) + x[1] ) ) - 1 ) *
-                   sin( 2 * n_w * pi * ( x[0] + x[1] ) );
+            auto x0 = 1.0 / p_w;
+            auto x1 = 2 * n_w * p_w * pi;
+            return x[0] * x[1] * ( 1 - cos( x0 * pow( x1, x[0] ) ) ) * ( 1 - cos( x0 * pow( x1, x[1] ) ) );
          };
          _f = [=]( const hyteg::Point3D& x ) {
-            auto x0  = n_w * pi;
-            auto x1  = 2 * x0 * ( x[0] + x[1] );
-            auto x2  = sin( x1 );
-            auto x3  = -pow( x[1], 2 ) + x[1];
-            auto x4  = -pow( x[0], 2 ) + x[0];
-            auto x5  = p_w * x4;
-            auto x6  = exp( x3 * x5 );
-            auto x7  = x2 * x6;
-            auto x8  = 2 * x7;
-            auto x9  = p_w * x3;
-            auto x10 = 1 - 2 * x[0];
-            auto x11 = 4 * x0 * x6 * cos( x1 );
-            auto x12 = 1 - 2 * x[1];
-            auto x13 = pow( p_w, 2 ) * x7;
-            return 8 * pow( n_w, 2 ) * pow( pi, 2 ) * x2 * ( x6 - 1 ) - pow( x10, 2 ) * x13 * pow( x3, 2 ) - x10 * x11 * x9 -
-                   x11 * x12 * x5 - pow( x12, 2 ) * x13 * pow( x4, 2 ) + x5 * x8 + x8 * x9;
+            auto x0  = 2 * n_w * p_w * pi;
+            auto x1  = log( x0 );
+            auto x2  = 2 * x[0];
+            auto x3  = 1.0 / p_w;
+            auto x4  = pow( x0, x[0] ) * x3;
+            auto x5  = cos( x4 );
+            auto x6  = 1 - x5;
+            auto x7  = pow( x0, x[1] ) * x3;
+            auto x8  = x6 * x7 * sin( x7 );
+            auto x9  = 2 * x[1];
+            auto x10 = cos( x7 );
+            auto x11 = 1 - x10;
+            auto x12 = x11 * x4 * sin( x4 );
+            auto x13 = x[0] * pow( x1, 2 ) * x[1];
+            auto x14 = x13 / pow( p_w, 2 );
+            return -pow( x0, x2 ) * x11 * x14 * x5 - pow( x0, x9 ) * x10 * x14 * x6 - x1 * x12 * x9 - x1 * x2 * x8 - x12 * x13 -
+                   x13 * x8;
          };
+      }
+
+      if ( type == WAVES_K )
+      {
+         if ( dim == 3 )
+         {
+            WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
+         }
+
+         _u = [=]( const hyteg::Point3D& x ) {
+            const auto xy = x[0] * x[1];
+            const auto c1 = n_w * p_w * 2 * pi;
+            const auto c2 = log( c1 );
+            const auto c3 = c1 * c2 / p_w;
+            const auto c4 = pow( c1, xy ) / p_w;
+            return cos( c4 ) + c3 * xy;
+         };
+
+         _f = [=]( const hyteg::Point3D& ) { return 0; };
       }
 
       if ( type == JUMP_COEFF )
@@ -387,21 +391,6 @@ struct ModelProblem
 
          _f = []( const Point3D& ) -> real_t { return 0.0; };
       }
-      if ( type == SPIKE )
-      {
-         if ( dim == 3 )
-         {
-            WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
-         }
-
-         _u = [=]( const hyteg::Point3D& x ) {
-            return real_c( 1.0 ) - exp( -k_spike * ( x[0] - x[0] * x[0] ) * ( x[1] - x[1] * x[1] ) );
-         };
-
-         _f = [=]( const hyteg::Point3D& x ) {
-            return real_c( 2.0 ) * k_spike * ( ( x[0] - x[0] * x[0] ) + ( x[1] - x[1] * x[1] ) );
-         };
-      }
 
       // interpolate rhs of pde
       f.interpolate( _f, lvl );
@@ -414,57 +403,29 @@ struct ModelProblem
       }
       else
       {
-         // ∫f φ_i = [Mf]_i
-         Mass M( storage, lvl, lvl );
-         M.apply( f, b, lvl, All );
+         // b_i = ∫f φ_i = (f,φ_i)_0
+         L2Space< 5, P1Function< real_t > > L2( storage, lvl );
+         L2.dot( _f, b );
       }
 
-      // interpolate analytic solution
-      u.interpolate( _u, lvl );
-      if ( additional_lvl )
-      {
-         u.interpolate( _u, lvl + additional_lvl );
-      }
+      // analytic solution
+      u = _u;
 
       // initialize u_h
       u_h.setToZero( lvl );
       u_h.interpolate( _u, lvl, DirichletBoundary );
-      if ( additional_lvl )
-      {
-         u_h.setToZero( lvl + additional_lvl );
-         u_h.interpolate( _u, lvl + additional_lvl, DirichletBoundary );
-      }
-   }
-
-   void apply_error_filter( const P1Function< real_t >& e, P1Function< real_t >& e_f, uint_t lvl ) const
-   {
-      e.communicate< Vertex, Edge >( lvl );
-      e.communicate< Edge, Face >( lvl );
-      e.communicate< Face, Cell >( lvl );
-
-      auto filter = [this]( const Point3D& x, const std::vector< real_t >& val ) -> real_t {
-         return ( x.norm() >= offset_err ) ? val[0] : 0.0;
-      };
-      e_f.interpolate( filter, { e }, lvl );
-
-      e_f.communicate< Vertex, Edge >( lvl );
-      e_f.communicate< Edge, Face >( lvl );
-      e_f.communicate< Face, Cell >( lvl );
    }
 
    // general setting
    const Type   type;
    const uint_t dim;
    // parameters
-   real_t sigma;      // standard deviation
-   real_t offset_err; // offset from singularity for error computation
-   bool   ignore_offset_for_refinement;
+   real_t sigma;          // standard deviation
    real_t n_w;            // number of waves
    real_t p_w;            // 'squeeze' parameter of waves
    real_t k_lo, k_hi;     // values of jump coefficient
    real_t x_jump_0 = 0.4; // position of jump
    real_t x_jump_1 = 0.6;
-   real_t k_spike; // severity of spike
 };
 
 SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::string& inputMsh )
@@ -487,8 +448,8 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::
          auto   filename = "data/meshes/LShape_" + std::to_string( n_el ) + "el.msh";
          meshInfo        = MeshInfo::fromGmshFile( filename );
       }
-      else if ( problem.type == ModelProblem::WAVES || problem.type == ModelProblem::JUMP_COEFF ||
-                problem.type == ModelProblem::SPIKE )
+      else if ( problem.type == ModelProblem::WAVES || problem.type == ModelProblem::WAVES_K ||
+                problem.type == ModelProblem::JUMP_COEFF )
       {
          // (0,1)^2
          Point2D n( { 1, 1 } );
@@ -562,11 +523,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     writePartitioning,
                                        bool                                     writeMeshfile,
                                        uint_t                                   refinement_step,
-                                       uint_t                                   accurate_error,
                                        bool                                     l2_error_each_iteration = true )
 {
-   auto l_err = l_max + accurate_error;
-
    double t0, t1;
    double t_loadbalancing = 0;
    if ( u0 == 0 || u_old == nullptr )
@@ -593,7 +551,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // operators
    t0 = walberla::timing::getWcTime();
    std::shared_ptr< A_t > A;
-   auto                   M = std::make_shared< Mass >( storage, l_min, l_err );
+   auto                   M = std::make_shared< Mass >( storage, l_min, l_max );
    auto                   P = std::make_shared< P1toP1LinearProlongation<> >();
    auto                   R = std::make_shared< P1toP1LinearRestriction<> >();
 
@@ -605,18 +563,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    }
    else
    {
-      A = std::make_shared< A_t >( storage, l_min, l_err );
+      A = std::make_shared< A_t >( storage, l_min, l_max );
    }
 
    // FE functions
-   auto                 u = std::make_shared< P1Function< real_t > >( "u_h", storage, l_min, l_err );
+   auto                 u = std::make_shared< P1Function< real_t > >( "u_h", storage, l_min, l_max );
    P1Function< real_t > f( "f", storage, l_max, l_max );
    P1Function< real_t > b( "b(f)", storage, l_min, l_max );
    P1Function< real_t > r( "r", storage, l_max, l_max );
-   P1Function< real_t > u_anal( "u_anal", storage, l_max, l_err );
-   P1Function< real_t > err( "e_h", storage, l_max, l_err );
-   P1Function< real_t > tmp( "tmp", storage, l_min, l_err );
-   P1Function< real_t > err_f( "e_h_filtered", storage, l_max, l_err );
+   P1Function< real_t > tmp( "tmp", storage, l_min, l_max );
+
+   std::function< real_t( const Point3D& ) > u_anal;
 
    // global DoF
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_max, Inner | NeumannBoundary );
@@ -630,13 +587,15 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
    // computation of residual and L2 error
+
+   L2Space< 5, P1Function< real_t > > L2( storage, l_max );
+   std::map< PrimitiveID, real_t >    err_el;
+
    t0 = walberla::timing::getWcTime();
-   err.setToZero( l_max );
-   err.setToZero( l_err );
    tmp.setToZero( l_max );
-   tmp.setToZero( l_err );
    double t_residual = 0, t_error = 0;
-   auto   compute_residual = [&]() -> real_t {
+
+   auto compute_residual = [&]() -> real_t {
       auto my_t0 = walberla::timing::getWcTime();
       A->apply( *u, tmp, l_max, Inner | NeumannBoundary, Replace );
       r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, Inner | NeumannBoundary );
@@ -648,21 +607,20 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    };
    auto compute_L2error = [&]() -> real_t {
       auto my_t0 = walberla::timing::getWcTime();
-      for ( uint_t lvl = l_max; lvl < l_err; ++lvl )
-      {
-         P->prolongate( *u, lvl, Inner | NeumannBoundary );
-      }
-      err.assign( { 1.0, -1.0 }, { *u, u_anal }, l_err, Inner | NeumannBoundary );
-      problem.apply_error_filter( err, err_f, l_err );
-      M->apply( err_f, tmp, l_err, Inner | NeumannBoundary, Replace );
-      auto norm_e = std::sqrt( err_f.dotGlobal( tmp, l_err, Inner | NeumannBoundary ) );
+      err_el.clear();
+      auto err = [&]( const Point3D& x, const PrimitiveID& id ) {
+         real_t ux;
+         u->evaluate( x, l_max, ux, 1e-5, id );
+         return u_anal( x ) - ux;
+      };
+      auto norm_e = L2.norm( err, err_el );
       auto my_t1  = walberla::timing::getWcTime();
       t_error += my_t1 - my_t0;
       return norm_e;
    };
 
    // initialize analytic solution, rhs and boundary values
-   problem.init( storage, u_anal, f, *u, b, l_max, accurate_error );
+   problem.init( storage, u_anal, f, *u, b, l_max );
 
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
@@ -750,50 +708,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // compute elementwise error
    t0 = walberla::timing::getWcTime();
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
-
-   P1Function< real_t >& err_for_refinement = ( problem.ignore_offset_for_refinement ) ? err : err_f;
-
-   if ( problem.dim == 3 )
+   for ( auto& [id, err] : err_el )
    {
-      for ( auto& [id, cell] : storage->getCells() )
-      {
-         real_t err_2_cell = vertexdof::macrocell::dot< real_t >(
-             l_err, *cell, err_for_refinement.getCellDataID(), err_for_refinement.getCellDataID(), 0 );
-
-         // scale squared error by cell-volume
-         std::array< Point3D, 3 + 1 > vertices;
-         uint_t                       i = 0;
-         for ( auto& vid : cell->neighborVertices() )
-         {
-            vertices[i] = storage->getVertex( vid )->getCoordinates();
-            ++i;
-         }
-         err_2_cell *= adaptiveRefinement::Simplex3::volume( vertices );
-
-         err_2_elwise_loc.push_back( { err_2_cell, id } );
-      }
+      err_2_elwise_loc.push_back( { err, id } );
    }
-   else // dim == 2
-   {
-      for ( auto& [id, face] : storage->getFaces() )
-      {
-         real_t err_2_face = vertexdof::macroface::dot< real_t >(
-             l_err, *face, err_for_refinement.getFaceDataID(), err_for_refinement.getFaceDataID(), 0 );
-
-         // scale squared error by face-volume
-         std::array< Point3D, 2 + 1 > vertices;
-         uint_t                       i = 0;
-         for ( auto& vid : face->neighborVertices() )
-         {
-            vertices[i] = storage->getVertex( vid )->getCoordinates();
-            ++i;
-         }
-         err_2_face *= adaptiveRefinement::Simplex2::volume( vertices );
-
-         err_2_elwise_loc.push_back( { err_2_face, id } );
-      }
-   }
-
    t1                  = walberla::timing::getWcTime();
    auto t_elwise_error = t1 - t0;
 
@@ -811,19 +729,19 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       k.interpolate( problem.coeff(), l_max );
 
       // error
-      for ( uint_t lvl = l_err; lvl > l_max; --lvl )
-      {
-         R->restrict( err, lvl, Inner | NeumannBoundary );
-      }
-
-      // squared error
-      P1Function< real_t > err_2( "err^2", storage, l_min, l_max );
+      P1Function< real_t > err( "err", storage, l_max, l_max );
+      P1Function< real_t > err_2( "err^2", storage, l_max, l_max );
+      auto                 _err = [&]( const Point3D& x ) {
+         real_t ux;
+         u->evaluate( x, l_max, ux, 1e-5 );
+         return u_anal( x ) - ux;
+      };
+      err.interpolate( _err, l_max );
       err_2.multElementwise( { err, err }, l_max, All );
 
       // write vtkfile
       VTKOutput vtkOutput( "output", vtkname, storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
-      vtkOutput.add( u_anal );
       vtkOutput.add( k );
       vtkOutput.add( f );
       vtkOutput.add( *u );
@@ -875,7 +793,6 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 uint_t                       max_iter_final,
                                 real_t                       tol_final,
                                 real_t                       cg_tol,
-                                uint_t                       accurate_error,
                                 std::string                  vtkname,
                                 bool                         writePartitioning,
                                 bool                         writeMeshfile )
@@ -903,8 +820,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           vtkname,
                                           writePartitioning,
                                           writeMeshfile,
-                                          refinement,
-                                          accurate_error );
+                                          refinement );
       else
          local_errors = solve< DivkGrad >( mesh,
                                            problem,
@@ -919,8 +835,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            vtkname,
                                            writePartitioning,
                                            writeMeshfile,
-                                           refinement,
-                                           accurate_error );
+                                           refinement );
 
       if ( refinement >= n_ref )
       {
@@ -998,8 +913,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            vtkname,
                            writePartitioning,
                            writeMeshfile,
-                           refinement,
-                           accurate_error );
+                           refinement );
       }
       else
       {
@@ -1016,8 +930,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             vtkname,
                             writePartitioning,
                             writeMeshfile,
-                            refinement,
-                            accurate_error );
+                            refinement );
       }
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -1052,13 +965,10 @@ int main( int argc, char* argv[] )
    const uint_t mp            = parameters.getParameter< uint_t >( "modelProblem" );
    const uint_t dim           = parameters.getParameter< uint_t >( "dim" );
    const real_t sigma         = parameters.getParameter< real_t >( "sigma", 0.0 );
-   const real_t offset        = parameters.getParameter< real_t >( "offset", 0.0 );
-   const bool   refine_all    = parameters.getParameter< bool >( "refine_all", false );
    const uint_t n_waves       = parameters.getParameter< uint_t >( "n_waves", 1u );
    const uint_t squeeze_waves = parameters.getParameter< uint_t >( "squeeze_waves", 1u );
    const real_t kLo           = parameters.getParameter< real_t >( "k_low", 1.0 );
    const real_t kHi           = parameters.getParameter< real_t >( "k_high", 1.0 );
-   const real_t kSpike        = parameters.getParameter< real_t >( "k_spike", 1.0 );
 
    // todo: add parameters when adding new problems
 
@@ -1085,8 +995,6 @@ int main( int argc, char* argv[] )
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
    const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
 
-   const uint_t accurate_error = parameters.getParameter< uint_t >( "compute_error_on_higher_lvl", 0 );
-
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
 #endif
@@ -1097,7 +1005,7 @@ int main( int argc, char* argv[] )
    {
       vtkname = problem.name();
    }
-   problem.set_params( sigma, offset, refine_all, n_waves, squeeze_waves, kLo, kHi, kSpike );
+   problem.set_params( sigma, n_waves, squeeze_waves, kLo, kHi );
 
    // setup domain
    auto setupStorage = domain( problem, N, inputmesh );
@@ -1114,24 +1022,7 @@ int main( int argc, char* argv[] )
          WALBERLA_LOG_WARNING_ON_ROOT( "Sigma should be greater than zero to prevent singularity in the solution at (0,0,0)!" )
       }
    }
-   if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "offset", offset ) );
-      if ( refine_all )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "", "(but refine elements within offset)" ) );
-      }
-      else
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "", "(also no refinement within offset)" ) );
-      }
-      if ( offset <= real_t( 0.0 ) )
-      {
-         WALBERLA_LOG_WARNING_ON_ROOT(
-             "Choosing an offset of zero will produce NaNs in the L2-error due to the singularity at (0,0,0)!" )
-      }
-   }
-   if ( ModelProblem::Type( mp ) == ModelProblem::WAVES )
+   if ( ModelProblem::Type( mp ) == ModelProblem::WAVES || ModelProblem::Type( mp ) == ModelProblem::WAVES_K )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2d", "n_waves", n_waves ) );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2d", "squeeze", squeeze_waves ) );
@@ -1140,10 +1031,6 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "k_low", kLo ) );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "k_high", kHi ) );
-   }
-   if ( ModelProblem::Type( mp ) == ModelProblem::SPIKE )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "k_spike", kSpike ) );
    }
    if ( ModelProblem::Type( mp ) == ModelProblem::JUMP_COEFF_REGULARIZED )
    {
@@ -1173,7 +1060,6 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write domain partitioning", writePartitioning ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export final mesh as file", writeMeshfile ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "use higher level for L2 error", accurate_error ) );
 
    // solve/refine iteratively
    solve_for_each_refinement( setupStorage,
@@ -1190,7 +1076,6 @@ int main( int argc, char* argv[] )
                               max_iter_final,
                               tol_final,
                               cg_tol,
-                              accurate_error,
                               vtkname,
                               writePartitioning,
                               writeMeshfile );

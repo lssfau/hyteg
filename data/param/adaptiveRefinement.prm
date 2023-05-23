@@ -1,51 +1,50 @@
 Parameters
 {
   // model problem
+  // :: constant coefficient ::
   // 0: dirac on rhs
   // 1: regularized dirac on rhs
   // 2: slit domain
   // 3: domain with reentrant corner
-  // 4: waves
-  // 6: jump coefficient
-  // 7: jump coefficient regularized
-  // 8: spike
-  modelProblem 7;
+  // 4: wave shape induced by rhs
+  // :: variable coefficient ::
+  // 6: wave shape induced by coefficient
+  // 7: jump coefficient
+  // 8: jump coefficient regularized
+  modelProblem 6;
   // spacial dimension of domain
   dim 2;
 
-  // offset 1e-10; // offset from singularity where the error will be ignored (unused if the solution has no singularity)
-  // refine_all 0; // only use offset for computation of total error but still consider the respective elements for refinement
-  sigma 0.1; // standard deviation used when mp=1
-  // n_waves 1; // number of waves for model problem 4
-  // squeeze_waves 1000; // factor to 'squeeze' the waves towards the corners
-  // k_low 1; // value of coefficient before jump
-  // k_high 100;// value of coefficient after jump
-  // k_spike -200; // severity of spike
+  // sigma 1000; // regularization parameter (problem 2)
+  n_waves 10; // number of waves (problem 4/5)
+  squeeze_waves 1000; // factor to 'squeeze' the waves towards the corners (problem 4/5)
+  // k_low 1; // value of coefficient before jump (problem 6)
+  // k_high 100;// value of coefficient after jump (problem 6)
 
 
-  initial_resolution 3; // initial number of elements in each direction
+  initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 0; // number of refinement steps
-  percentile 0.01; // minimum proportion of elements to refine in each step [0,1]
-  // n_el_max 6144; // max number of macro elements
+  n_refinements 40; // number of refinement steps
+  percentile 0.05; // minimum proportion of elements to refine in each step [0,1]
+  n_el_max 1000; // max number of macro elements
 
   // local regular refinement
-  microlevel 8;
+  microlevel 5;
   // microlevel_final 4; // use different micro level for final solve step
 
 
   // // linear solver (GMG)
 
-  n_iterations 15;
+  n_iterations 10;
   // n_iterations_final 5; // use different number of iterations for final solve step
-  tolerance 1e-12;
+  tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
   // cg_level 2; // defaults to 0
-  cg_tolerance 1e-12;
+  cg_tolerance 1e-9;
   // initial_guess 1; // 0: zero, 1: u_h from previous refinement
 
   // // misc
@@ -53,10 +52,9 @@ Parameters
   // vtkName auto;
   // writeDomainPartitioning 1;
   // writeMeshfile 1;
-  // initialMesh output/waves_2D_mesh_6.msh; // use custom initial mesh e.g. written from previous run
+  // initialMesh output/_mesh_25.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/reentrant_corner_2D_mesh_25.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/jump_coeff_2D_mesh_20.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/spike_2D_mesh_20.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/jump_coeff_regularized_2D_mesh_10.msh; // use custom initial mesh e.g. written from previous run
-  compute_error_on_higher_lvl 1;
 }
