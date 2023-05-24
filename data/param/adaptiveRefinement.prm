@@ -11,13 +11,13 @@ Parameters
   // 6: wave shape induced by coefficient
   // 7: jump coefficient
   // 8: jump coefficient regularized
-  modelProblem 6;
+  modelProblem 4;
   // spacial dimension of domain
-  dim 2;
+  dim 3;
 
   // sigma 1000; // regularization parameter (problem 2)
-  n_waves 10; // number of waves (problem 4/5)
-  squeeze_waves 1000; // factor to 'squeeze' the waves towards the corners (problem 4/5)
+  n_waves 5; // number of waves (problem 4/5)
+  squeeze_waves 100; // factor to 'squeeze' the waves towards the corners (problem 4/5)
   // k_low 1; // value of coefficient before jump (problem 6)
   // k_high 100;// value of coefficient after jump (problem 6)
 
@@ -28,18 +28,18 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 40; // number of refinement steps
-  percentile 0.05; // minimum proportion of elements to refine in each step [0,1]
-  n_el_max 1000; // max number of macro elements
+  n_refinements 30; // number of refinement steps
+  percentile 0.02; // minimum proportion of elements to refine in each step [0,1]
+  // n_el_max 1000; // max number of macro elements
 
   // local regular refinement
-  microlevel 5;
+  microlevel 3;
   // microlevel_final 4; // use different micro level for final solve step
 
 
   // // linear solver (GMG)
 
-  n_iterations 10;
+  n_iterations 8;
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
@@ -49,7 +49,7 @@ Parameters
 
   // // misc
 
-  // vtkName auto;
+  vtkName auto;
   // writeDomainPartitioning 1;
   // writeMeshfile 1;
   // initialMesh output/_mesh_25.msh; // use custom initial mesh e.g. written from previous run

@@ -201,15 +201,22 @@ struct ModelProblem
       }
       if ( type == WAVES_K )
       {
-         k = [=]( const hyteg::Point3D& x ) {
-            const auto xy = x[0] * x[1];
+         auto v = [=]( const real_t& t ) {
             const auto c1 = n_w * p_w * 2 * pi;
             const auto c2 = log( c1 );
             const auto c3 = c1 * c2 / p_w;
-            const auto c4 = pow( c1, xy ) / p_w;
+            const auto c4 = pow( c1, t ) / p_w;
             const auto c5 = -sin( c4 ) * c4 * c2 + c3;
             return 1. / c5;
          };
+         if ( dim == 3 )
+         {
+            k = [=]( const hyteg::Point3D& x ) { return v( x[0] * x[1] * x[2] ); };
+         }
+         else
+         {
+            k = [=]( const hyteg::Point3D& x ) { return v( x[0] * x[1] ); };
+         }
       }
       // todo: add required coefficients
 
@@ -294,52 +301,62 @@ struct ModelProblem
 
       if ( type == WAVES )
       {
-         if ( dim == 3 )
-         {
-            WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
-         }
-
-         _u = [=]( const hyteg::Point3D& x ) {
+         auto v = [=]( const real_t& t ) {
             auto x0 = 1.0 / p_w;
             auto x1 = 2 * n_w * p_w * pi;
-            return x[0] * x[1] * ( 1 - cos( x0 * pow( x1, x[0] ) ) ) * ( 1 - cos( x0 * pow( x1, x[1] ) ) );
+            return t * ( 1 - cos( x0 * pow( x1, t ) ) );
          };
-         _f = [=]( const hyteg::Point3D& x ) {
-            auto x0  = 2 * n_w * p_w * pi;
-            auto x1  = log( x0 );
-            auto x2  = 2 * x[0];
-            auto x3  = 1.0 / p_w;
-            auto x4  = pow( x0, x[0] ) * x3;
-            auto x5  = cos( x4 );
-            auto x6  = 1 - x5;
-            auto x7  = pow( x0, x[1] ) * x3;
-            auto x8  = x6 * x7 * sin( x7 );
-            auto x9  = 2 * x[1];
-            auto x10 = cos( x7 );
-            auto x11 = 1 - x10;
-            auto x12 = x11 * x4 * sin( x4 );
-            auto x13 = x[0] * pow( x1, 2 ) * x[1];
-            auto x14 = x13 / pow( p_w, 2 );
-            return -pow( x0, x2 ) * x11 * x14 * x5 - pow( x0, x9 ) * x10 * x14 * x6 - x1 * x12 * x9 - x1 * x2 * x8 - x12 * x13 -
-                   x13 * x8;
+         auto d2v = [=]( const real_t& t ) {
+            auto x0 = 1.0 / p_w;
+            auto x1 = 2 * n_w * p_w * pi;
+            auto x2 = x0 * pow( x1, t );
+            auto x3 = log( x1 );
+            return x2 * x3 * ( x2 * t * cos( x2 ) * x3 + ( 2 + t * x3 ) * sin( x2 ) );
          };
+
+         if ( dim == 3 )
+         {
+            _u = [=]( const hyteg::Point3D& x ) { return v( x[0] ) * v( x[1] ) * v( x[2] ); };
+            _f = [=]( const hyteg::Point3D& x ) {
+               auto vx   = v( x[0] );
+               auto vy   = v( x[1] );
+               auto vz   = v( x[2] );
+               auto d2vx = d2v( x[0] );
+               auto d2vy = d2v( x[1] );
+               auto d2vz = d2v( x[2] );
+               return -d2vx * vy * vz - vx * d2vy * vz - vx * vy * d2vz;
+            };
+         }
+         else
+         {
+            _u = [=]( const hyteg::Point3D& x ) { return v( x[0] ) * v( x[1] ); };
+            _f = [=]( const hyteg::Point3D& x ) {
+               auto vx   = v( x[0] );
+               auto vy   = v( x[1] );
+               auto d2vx = d2v( x[0] );
+               auto d2vy = d2v( x[1] );
+               return -d2vx * vy - vx * d2vy;
+            };
+         }
       }
 
       if ( type == WAVES_K )
       {
-         if ( dim == 3 )
-         {
-            WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
-         }
-
-         _u = [=]( const hyteg::Point3D& x ) {
-            const auto xy = x[0] * x[1];
+         auto v = [=]( const real_t& t ) {
             const auto c1 = n_w * p_w * 2 * pi;
             const auto c2 = log( c1 );
             const auto c3 = c1 * c2 / p_w;
-            const auto c4 = pow( c1, xy ) / p_w;
-            return cos( c4 ) + c3 * xy;
+            const auto c4 = pow( c1, t ) / p_w;
+            return cos( c4 ) + c3 * t;
          };
+         if ( dim == 3 )
+         {
+            _u = [=]( const hyteg::Point3D& x ) { return v( x[0] * x[1] * x[2] ); };
+         }
+         else
+         {
+            _u = [=]( const hyteg::Point3D& x ) { return v( x[0] * x[1] ); };
+         }
 
          _f = [=]( const hyteg::Point3D& ) { return 0; };
       }
@@ -378,15 +395,8 @@ struct ModelProblem
          {
             WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
          }
-         const auto scaling_factor_u = real_c( 1.0 );
-         // real_t du_dx_min = real_c( 1.0 ) / k_lo;
-         // real_t du_dx_max = real_c( 1.0 ) / k_hi;
-         // real_t du_dy_min = ( x_jump_0 - x_jump_1 ) / k_lo;
-         // real_t du_dy_max = ( x_jump_0 - x_jump_1 ) / k_hi;
-         // real_t u_jump    = du_dx_min * x_jump_0;
-
          _u = [=]( const hyteg::Point3D& x ) {
-            return scaling_factor_u * ( -2 * sigma * x[0] + log( 2 * exp( sigma * ( x[0] - 0.5 ) ) + 1 ) ) / sigma;
+            return ( -2 * sigma * x[0] + log( 2 * exp( sigma * ( x[0] - 0.5 ) ) + 1 ) ) / sigma;
          };
 
          _f = []( const Point3D& ) -> real_t { return 0.0; };
@@ -472,6 +482,11 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::
          }
          Point3D n( { 1, 1, 0.1 } );
          meshInfo = MeshInfo::meshCuboid( -n, n, N, N, 1 );
+      }
+      else if ( problem.type == ModelProblem::WAVES || problem.type == ModelProblem::WAVES_K )
+      {
+         Point3D n( { 1, 1, 1 } );
+         meshInfo = MeshInfo::meshCuboid( 0 * n, n, N, N, N );
       }
       else
       {
@@ -652,8 +667,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // solver
    t0 = walberla::timing::getWcTime();
    // smoother
-   // auto smoother         = std::make_shared< WeightedJacobiSmoother< A_t > >(storage, l_min, l_max, 0.66);
-   auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
+   uint_t n1       = ( problem.dim == 3 ) ? 3 : 2;
+   uint_t n2       = ( problem.dim == 3 ) ? 3 : 1;
+   auto   smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
+   // auto   smoother = std::make_shared< WeightedJacobiSmoother< A_t > >( storage, l_min, l_max, 0.66 );
    // coarse grid solver
    auto cgIter = std::max( uint_t( 5 ), n_dof_coarse );
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -662,7 +679,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
    // multigrid
-   GeometricMultigridSolver< A_t > gmg( storage, smoother, cgs, R, P, l_min, l_max, 3, 3 );
+   GeometricMultigridSolver< A_t > gmg( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
 
