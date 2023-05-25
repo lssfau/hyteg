@@ -39,7 +39,6 @@ typedef boost::geometry::model::polygon<spherical_point> polygon_on_sphere;
 ///
 /// The function returns a bool to indicate whether any plate matched, the plate's ID and
 /// the distance from this plate's boundary
-
 inline std::tuple< bool, uint_t, real_t >
     findPlateAndDistance( const real_t age, const PlateStorage& plateStore, const vec3D& point, uint_t idWhenNoPlateFound )
 {

@@ -30,7 +30,7 @@ using terraneo::plates::FiniteRotation;
 using terraneo::plates::rotIter_t;
 
 /// Computes a matrix for rotation around a given axis vector by given angle
-mat3D xyzRotationMatrix( const vec3D& vector, real_t angle )
+inline mat3D xyzRotationMatrix( const vec3D& vector, real_t angle )
 {
    mat3D  rotMat;
    real_t x       = vector( 0 );
@@ -49,7 +49,7 @@ mat3D xyzRotationMatrix( const vec3D& vector, real_t angle )
 }
 
 /// Obtains the rotation matrix to move a plate polygon with a center to (0,0,0)
-mat3D getRotationMatrixPolygon( const vec3D& axis )
+inline mat3D getRotationMatrixPolygon( const vec3D& axis )
 {
    real_t xm    = axis( 0 );
    real_t ym    = axis( 1 );
@@ -60,7 +60,7 @@ mat3D getRotationMatrixPolygon( const vec3D& axis )
 }
 
 /// Determine rotation matrix for a finite rotation
-mat3D rotationMatrix( const real_t lon, const real_t lat, const real_t angleInDegree )
+inline mat3D rotationMatrix( const real_t lon, const real_t lat, const real_t angleInDegree )
 {
    real_t angleInRadians = conversions::degToRad( angleInDegree );
    vec3D  eXYZ           = conversions::sph2cart( { lon, lat } );
@@ -68,7 +68,7 @@ mat3D rotationMatrix( const real_t lon, const real_t lat, const real_t angleInDe
 }
 
 /// Calculate longitude, latitude and angle of rotation for the reconstruction path from the data of the rotational file
-vec3D rotMatrix2LonLatW( const mat3D& Rot )
+inline vec3D rotMatrix2LonLatW( const mat3D& Rot )
 {
    vec3D  lonlatang;
    real_t sqrtRot = sqrt( ( Rot( 2, 1 ) - Rot( 1, 2 ) ) * ( Rot( 2, 1 ) - Rot( 1, 2 ) ) +
@@ -96,7 +96,7 @@ vec3D rotMatrix2LonLatW( const mat3D& Rot )
 }
 
 /// Calculate stage Pole for a pair of rotations
-vec3D stagePoleF( const vec3D& rot1, const vec3D& rot2 )
+inline vec3D stagePoleF( const vec3D& rot1, const vec3D& rot2 )
 {
    mat3D R1     = rotationMatrix( rot1[0], rot1[1], rot1[2] );
    mat3D R2     = rotationMatrix( rot2[0], rot2[1], rot2[2] * real_c( -1 ) );
@@ -105,7 +105,8 @@ vec3D stagePoleF( const vec3D& rot1, const vec3D& rot2 )
 }
 
 /// Get the intermediate rotations of the reconstruction tree
-vec3D intermediateRotations( const terraneo::plates::RotationInfo& rot1, const terraneo::plates::RotationInfo& rot2, real_t time )
+inline vec3D
+    intermediateRotations( const terraneo::plates::RotationInfo& rot1, const terraneo::plates::RotationInfo& rot2, real_t time )
 {
    real_t dT        = ( rot2.time - time ) / ( rot2.time - rot1.time );
    mat3D  R2        = rotationMatrix( rot2.longitude, rot2.latitude, rot2.angle );
@@ -118,10 +119,10 @@ vec3D intermediateRotations( const terraneo::plates::RotationInfo& rot1, const t
 
 /// Given the input data from the rotational find the lines of the specific
 /// time asked and get the rotations
-int determineSeriesOfFiniteRotations( const rotIter_t&               rangeBegin,
-                                      const rotIter_t&               rangeEnd,
-                                      const std::array< real_t, 2 >& time,
-                                      std::vector< FiniteRotation >& finRot )
+inline int determineSeriesOfFiniteRotations( const rotIter_t&               rangeBegin,
+                                             const rotIter_t&               rangeEnd,
+                                             const std::array< real_t, 2 >& time,
+                                             std::vector< FiniteRotation >& finRot )
 {
    std::vector< terraneo::plates::RotationInfo > fin0;
    int                                           pID = -1;
@@ -174,7 +175,7 @@ int determineSeriesOfFiniteRotations( const rotIter_t&               rangeBegin,
 }
 
 /// Combine a sequence of finite rotations
-std::array< FiniteRotation, 2 > combineSeriesOfFiniteRotations( const std::vector< FiniteRotation >& FinRot )
+inline std::array< FiniteRotation, 2 > combineSeriesOfFiniteRotations( const std::vector< FiniteRotation >& FinRot )
 {
    std::array< FiniteRotation, 2 > absFin;
 
