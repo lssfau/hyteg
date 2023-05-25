@@ -1413,30 +1413,34 @@ std::set< std::shared_ptr< Simplex3 > >
 
    for ( auto& el : U )
    {
-      uint_t n_red = 0;
-
-      for ( auto& face : el->get_faces() )
+      // iteratively apply red refinement to faces
+      bool repeat = true;
+      while ( repeat )
       {
-         if ( face->vertices_on_edges() > 1 )
+         repeat = false;
+
+         for ( auto& face : el->get_faces() )
          {
-            if ( face->get_children().size() == 2 )
+            if ( face->vertices_on_edges() > 1 )
             {
-               // remove green edge from face
-               face->kill_children();
-            }
+               if ( face->get_children().size() == 2 )
+               {
+                  // remove green edge from face
+                  face->kill_children();
+               }
 
-            if ( !face->has_children() )
-            {
-               // apply red refinement to face
-               refine_face_red( _vertices, _V, face );
+               if ( !face->has_children() )
+               {
+                  // apply red refinement to face
+                  refine_face_red( _vertices, _V, face );
+                  repeat = true;
+               }
             }
-
-            ++n_red;
          }
       }
 
       // if more than one face has been red-refined, mark cell for red refinement
-      if ( n_red > 1 )
+      if (el->vertices_on_edges() > 3)
       {
          R.insert( el );
       }
