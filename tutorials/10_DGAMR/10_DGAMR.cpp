@@ -50,7 +50,7 @@
  * For details on the discretization we refer to the literature, for example <em>Rivière, B. (2008). Discontinuous Galerkin methods
  * for solving elliptic and parabolic equations: theory and implementation</em>.
  *
- * \section domainsetuprefinement Domain setup and refinement.
+ * \section T10-domainsetuprefinement Domain setup and refinement.
  *
  * We first create the PrimitiveStorage from a mesh file has has been done in previous examples.
  *
@@ -97,7 +97,7 @@
  *
  *
  *
- * \section dg Discontinuous Galerkin
+ * \section T10-dg Discontinuous Galerkin
  * 
  * DG functions and operators are almost used as it's done for other conforming discretizations. The main difference is that
  * the basis and degree are passed in the constructor. This also applied for the operators - the form has to be passed here, too.

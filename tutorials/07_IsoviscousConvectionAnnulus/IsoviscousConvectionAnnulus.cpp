@@ -26,7 +26,7 @@
  * \brief In this tutorial we will set up a complete app that solves a coupled system
  * of the Stokes equations and the advection-diffusion equation.
  *
- * \section IsoviscousConvectionAnnulus-equations Governing equations
+ * \section T07-IsoviscousConvectionAnnulus-equations Governing equations
  *
  * We are in this tutorial considering a 2D simulation of isoviscous convection on an annular domain.
  * The convection is modeled using the Boussinesq-approximation, by coupling the Stokes equations to an advection-diffusion
@@ -46,7 +46,7 @@
  * Also we assume no internal heating.
  *
  *
- * \section IsoviscousConvectionAnnulus-domain Domain
+ * \section T07-IsoviscousConvectionAnnulus-domain Domain
  *
  * The annulus domain is created in four steps.
  * 1. We define the unstructured mesh through a MeshInfo object. There are some pre-defined mesh generators, for example for the
@@ -57,7 +57,7 @@
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Domain setup
  *
- * \section IsoviscousConvectionAnnulus-functionsandoperators Function spaces and operators
+ * \section T07-IsoviscousConvectionAnnulus-functionsandoperators Function spaces and operators
  *
  * We now define the function spaces and operators that we need in our app.
  *
@@ -78,14 +78,14 @@
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function setup
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Operator setup
  *
- * \section IsoviscousConvectionAnnulus-initialcondition Initial and boundary conditions
+ * \section T07-IsoviscousConvectionAnnulus-initialcondition Initial and boundary conditions
  *
  * Analytical functions can be interpolated (think 'sampled') into the finite element functions by a call to interpolate.
  * Here we define an initial (and boundary) temperature function for the mantle.
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Initial temperature
  *
- * \section IsoviscousConvectionAnnulus-solvers Solvers
+ * \section T07-IsoviscousConvectionAnnulus-solvers Solvers
  *
  * We solve the non-linear system by splitting it into three components that are solved in an alternating fashion.
  *
@@ -130,7 +130,7 @@
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Max velocity
  *
- * \section IsoviscousConvectionAnnulus-output Output
+ * \section T07-IsoviscousConvectionAnnulus-output Output
  *
  * VTK output is pretty straightforward ...
  *
@@ -142,7 +142,7 @@
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp DB
  *
- * \section IsoviscousConvectionAnnulus-timeloop Time loop
+ * \section T07-IsoviscousConvectionAnnulus-timeloop Time loop
  *
  * As discussed, we compute the time-step size via a CFL condition.
  *
@@ -164,7 +164,7 @@
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes
  *
- * \section IsoviscousConvectionAnnulus-results Results
+ * \section T07-IsoviscousConvectionAnnulus-results Results
  *
  * The resulting temperature field after a simulation over 1000 time-steps is shown below.
  * Plumes are rising from the heated inner boundary outwards to the outer boundary.
@@ -194,7 +194,7 @@
   \endhtmlonly
  *
  *
- * \section IsoviscousConvectionAnnulus-fullApp Full Application
+ * \section T07-IsoviscousConvectionAnnulus-fullApp Full Application
  * \include tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
 */
 
