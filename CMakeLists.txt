@@ -186,7 +186,7 @@ add_subdirectory( tutorials )
 ############################################################################################################################
 if (HYTEG_BUILD_DOC)
 
-  find_package ( Doxygen  )
+  find_package ( Doxygen REQUIRED )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
@@ -195,18 +195,17 @@ if (HYTEG_BUILD_DOC)
     set ( HTML_HELP_FOUND "YES" )
   endif ( )
 
-  if ( DOXYGEN_FOUND )
-    set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
-    set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
-    set ( DOXYGEN_HTML_OUTPUT "html" )
+  set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
+  set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
+  set ( DOXYGEN_HTML_OUTPUT "html" )
 
-    configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
+  configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
-    add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
-      COMMENT "Generating API documentation with Doxygen" VERBATIM )
+  add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
+    COMMENT "Generating API documentation with Doxygen" VERBATIM )
 
-  endif ( )
 endif ( )
+
 ############################################################################################################################
 
 
