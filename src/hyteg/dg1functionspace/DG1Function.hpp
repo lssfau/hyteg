@@ -185,14 +185,14 @@ class DG1Function : public Function< DG1Function< ValueType > >
    }
 
    /// Evaluates the linear functional
-   ///
-   ///   l( v ) = \int_\Omega f * v
-   ///
+   /// \f[
+   ///   l( v ) = \int_\Omega f \cdot v
+   /// \f]
    /// by integration over the local basis functions and writes the result into the vector, i.e.
-   ///
-   ///   u_i <- \int_T f * \phi_i
-   ///
-   /// where \phi_i is the basis function associated with the DoF u_i and f a given analytical function.
+   /// \f[
+   ///   u_i \leftarrow \int_T f \cdot \phi_i
+   /// \f]
+   /// where \f$\phi_i\f$ is the basis function associated with the DoF \f$u_i\f$ and \f$f\f$ a given analytical function.
    void evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level )
    {
       dgFunction_->evaluateLinearFunctional( f, level );
