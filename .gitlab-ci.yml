@@ -1131,6 +1131,7 @@ msvc-14.2_MpiOnly:
       WALBERLA_BUILD_WITH_MPI: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
+      HYTEG_BUILD_DOC: "OFF"
 
 msvc-14.2_Serial_Dbg:
    <<: *win_build_definition
@@ -1141,6 +1142,7 @@ msvc-14.2_Serial_Dbg:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
+      HYTEG_BUILD_DOC: "OFF"
 
 msvc-14.2_MpiOnly_Dbg:
    <<: *win_build_definition
@@ -1151,6 +1153,7 @@ msvc-14.2_MpiOnly_Dbg:
       WALBERLA_BUILD_WITH_MPI: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
+      HYTEG_BUILD_DOC: "OFF"
 
 ###############################################################################
 ##                                                                           ##
