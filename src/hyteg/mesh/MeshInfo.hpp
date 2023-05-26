@@ -457,10 +457,11 @@ class MeshInfo
 
    /// Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
    ///
-   /// \param ntan    number of nodes along spherical diamond edge
-   /// \param nrad    number of radial layers
-   /// \param rmin    radius of innermost shell (core-mantle-boundary)
-   /// \param rmax    radius of outermost shell
+   /// \param ntan      number of nodes along spherical diamond edge
+   /// \param nrad      number of radial layers
+   /// \param rmin      radius of innermost shell (core-mantle-boundary)
+   /// \param rmax      radius of outermost shell
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do) 
    static MeshInfo meshSphericalShell( uint_t        ntan,
                                        uint_t        nrad,
                                        real_t        rmin,
@@ -469,9 +470,10 @@ class MeshInfo
 
    /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
    ///
-   /// \param ntan    number of nodes along spherical diamond edge
-   /// \param layers  vector that gives the radii of all layers, sorted from the
-   ///                CMB outwards
+   /// \param ntan      number of nodes along spherical diamond edge
+   /// \param layers    vector that gives the radii of all layers, sorted from the
+   ///                  CMB outwards
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do) 
    static MeshInfo meshSphericalShell( uint_t                       ntan,
                                        const std::vector< real_t >& layers,
                                        shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
@@ -537,7 +539,6 @@ class MeshInfo
    /// The GeometryMap TokamakMap provides a blending function that maps this mesh onto a tokamak geometry.
    /// The very same map can be parameterized so that is reduces to the special case of a torus.
    ///
-   /// \param setupStorage the SetupPrimitiveStorage instance
    /// \param toroidalResolution number of prisms in toroidal direction (along the ring) in a complete (360 degree) ring
    /// \param poloidalResolution number of vertices on the boundary of a slice through the tube
    /// \param radiusOriginToCenterOfTube distance from origin to the center of the tube
@@ -568,12 +569,12 @@ class MeshInfo
 
    /// \brief Creates a finer coarse mesh from a given mesh
    ///
-   /// Takes a given MeshInfo and refines it with the default refinment algorithm.
+   /// Takes a given MeshInfo and refines it with the default refinement algorithm.
    /// Afterwards a new MeshInfo based on that refinement is created.
    /// This allows to refine the coarse mesh
    ///
    /// \param oldMesh Original MeshIfno
-   /// \param refinmentSteps number of refinements
+   /// \param refinementSteps number of refinements
    static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
 
    /// Returns vertices of the mesh
