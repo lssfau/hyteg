@@ -25,7 +25,7 @@
  * 
  * \brief This tutorial demonstrates the implementation of a Couette flow problem on a circular annulus with different tangential velocities on the inner and outer boundaries of the annulus. On polar coordinates the \f$ u_r = 0\f$ everywhere. After implementation we also perform a convergence analysis to show that FEM solution from HyTeG converges to the analytical solution of the problem with expected order of convergence.
  *
- * \section task Task
+ * \section T11-task Task
  * 
  * <img src="11_CouetteFlow_Outline.png" width="30%" />
  * 
@@ -55,21 +55,21 @@
  * \end{align*}
  * \f]
  * 
- * \section CouetteImplementation Implementation
+ * \section T11-CouetteImplementation Implementation
  * 
  * Let us start with our implementation in HyTeG,
  * 
  * Here we set up the MPI environment with walberla functions and also the PETSc manager if needed.
  * 
- * \subsection env Environment
+ * \subsection T11-env Environment
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp Create Environment
  * 
- * \subsection readPrm Read parameter file
+ * \subsection T11-readPrm Read parameter file
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp Read prm file
  * 
  * HyTeG provides a function `MeshInfo::meshAnnulus` to create an Annulus mesh with an inner and outer radius. Here we also specify the type of mesh CRISS or CROSS which decides the orientation of triangles and also the number of initial refinements in the radial and tangential direction. 
  * 
- * \subsection setupMesh Setup the annulus mesh
+ * \subsection T11-setupMesh Setup the annulus mesh
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp annulus mesh
  * 
  * Then the `SetupPrimitiveStorage` object is set with the annulus mesh and the MPI manager which sets up the distributed data structure in the MPI processes to store the mesh
@@ -80,7 +80,7 @@
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp blending map
  * 
- * \subsection BCs Boundary conditions
+ * \subsection T11-BCs Boundary conditions
  * 
  * The `meshAnnulus` function automatically tags the inner and outer boundary of the Annulus, and hence those flags are used to set the required boundary condition, which in our case we set the Dirichlet boundary condition on the inner and outer boundaries of the annulus. Now this boundary condition object `bcVelocity` must be passed to the FE functions which needs to use this boundary condition.
  * 
@@ -92,13 +92,13 @@
  * 
  * The lambda functions `boundaryConditionsX` and `boundaryConditionsY` are used to set the boundary values for velocity. In our example, the velocities are radial in the boundaries and hence we calculate the appropriate cartesian components and impose them on the boundary. The lambda functions that are passed will receive the coordinates of the boundary point and the user has to check it's position and impose the correct values by returning the same.
  * 
- * \subsection FEfns FE Functions
+ * \subsection T11-FEfns FE Functions
  * 
  * Here we define the finite element functions needed for our FE computations and error norm calculations. These functions store the DOF values in a distributed fashion on the MPI processes that are running the program.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp declare p2p1funcs
  * 
- * \subsection FEOps FE Operators
+ * \subsection T11-FEOps FE Operators
  * 
  * To implement \f$ a(\mathbf{u}_h, \mathbf{v}_h) , b(p_h, \mathbf{v}_h), c(\mathbf{u}_h, q_h)\f$, HyTeG provides two main operators. One is the `P2P1TaylorHoodStokesOperator` but it does not use the blending map in the finite element computations. 
  * 
@@ -106,7 +106,7 @@
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp StokesOperator
  * 
- * \subsection gmg Multigrid solver
+ * \subsection T11-gmg Multigrid solver
  * 
  * Here we set up the Geometric multigrid solver which requires the following,
  * - smoother \f$ \Rightarrow\f$ we use the Uzawa smoother with Jacobi smoothing for velocity.
@@ -119,7 +119,7 @@
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp gmgSolve
  * 
- * \subsection err Error calculation
+ * \subsection T11-err Error calculation
  * 
  * The computed finite element solution is projected to a higher level and then the error is computed with the analytical solution on that level. To calculate the L2 norm of the error we would have to use the mass operator which performs the integration of the L2 norm in the FE space.
  * 
@@ -147,7 +147,7 @@
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp massOpErr
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp calcErrNorm
  *
- * \subsection res Results
+ * \subsection T11-res Results
  * 
  * ## Convergence plot for P2P1 Taylor Hood elements
  * <img src="11_CouetteFlow_Convergence.png" width="75%"/>
@@ -158,7 +158,7 @@
  * ## Velocity magnitude contour plot on the annulus
  * <img src="11_CouetteFlow_Pressure.png" width="50%"/> 
  * 
- * \section fullCode Code without comments
+ * \section T11-fullCode Code without comments
  * \include tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp
  */
 
