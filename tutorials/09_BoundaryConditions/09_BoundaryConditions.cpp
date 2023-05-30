@@ -26,7 +26,7 @@
  * \brief In this tutorial, we are going to demonstrate how one can set different types of boundary conditions
  * on different parts of the boundary and/or for different components of the problem.
  *
- * \section Task
+ * \section T09-Task Task
  * Assume that we want to solve a convection problem for a strongly viscous fluid. We assume that convection
  * is driven by thermally induced density differences and that a Boussinesq approximation is employed. This
  * will leads us, in a simple case, to a PDE system similar to the following one:
@@ -74,11 +74,11 @@
  * \f]
  * which both must hold for all times \f$t\in(t_0,t_1)\f$.
  *
- * \section Implementation
+ * \section T09-Implementation Implementation
  * 
  * We will now take a look at how we can set these boundary conditions in HyTeG.
  *
- * \subsection Step1 Step #1: Mark parts of the Boundary
+ * \subsection T09-Step1 Step #1: Mark parts of the Boundary
  * 
  * The first step we need to perform is mark the four different parts of the boundary of our problem domain,
  * i.e. the four edges of our rectangle, by setting corresponding **MeshBoundaryFlags**. These are simple
@@ -100,7 +100,7 @@
  * 
  * \snippet tutorials/09_BoundaryConditions/09_BoundaryConditions.cpp Flag_Boundaries_Parts
  *
- * \subsection Step2 Step #2: Create BoundaryCondition objects
+ * \subsection T09-Step2 Step #2: Create BoundaryCondition objects
  * 
  * The next step is to create one object of type \link hyteg::BoundaryCondition `BoundaryCondition` \endlink
  * for each unknown function we have in our
@@ -119,7 +119,7 @@
  * 
  * \snippet tutorials/09_BoundaryConditions/09_BoundaryConditions.cpp BC_Objects
  * 
- * \subsection Step3 Step #3: Create Functions
+ * \subsection T09-Step3 Step #3: Create Functions
  * 
  * Now we can instantiate function objects for our unknown functions. We are going to use a P<sub>2</sub> space for temperature
  * and velocity and a P<sub>1</sub> space for pressure. Note that in HyTeG each function knowns about its boundary condition.
@@ -161,7 +161,7 @@
  * 
  * \snippet tutorials/09_BoundaryConditions/09_BoundaryConditions.cpp Function_Creation
  * 
- * \subsection Step4 Step #4: Setting Boundary and Initial Conditions
+ * \subsection T09-Step4 Step #4: Setting Boundary and Initial Conditions
  *
  * Setting values on our function is done by using the `%interpolate()` method. There are two possible ways
  * to specify which degrees of freedom we want to change:

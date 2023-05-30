@@ -33,7 +33,7 @@ namespace hyteg {
  *
  * \brief In this tutorial we will set up a distributed simulation domain using the PrimitiveStorage class.
  *
- * \section intro Introduction
+ * \section T01-intro Introduction
  *
  * A PrimitiveStorage contains references to all local Primitive instances
  * and therefore implements a totally distributed data structure that represents the simulation domain.
@@ -47,7 +47,7 @@ namespace hyteg {
  * -# creating a SetupPrimitiveStorage from the MeshInfo object
  * -# creating a distributed PrimitiveStorage from the SetupPrimitiveStorage
  *
- * \section mesh Creating a MeshInfo
+ * \section T01-mesh Creating a MeshInfo
  *
  * The MeshInfo class is used to load / parse mesh files of different formats and store the
  * information in an instance. This extra step was introduced to provide an interface for
@@ -67,7 +67,7 @@ namespace hyteg {
  * rectangle, annulus, thick spherical shell. See the MeshInfo class documentation for
  * a complete list and their options.
  *
- * \section setupstorage Creating a SetupPrimitiveStorage
+ * \section T01-setupstorage Creating a SetupPrimitiveStorage
  *
  * Before we create the distributed storage, we introduce another intermediate step:
  * we create a SetupPrimitiveStorage.
@@ -86,7 +86,7 @@ namespace hyteg {
  *
  * \snippet tutorials/01_PrimitiveStorage.cpp Loadbalancing
  *
- * \section storage Creating a distributed PrimitiveStorage
+ * \section T01-storage Creating a distributed PrimitiveStorage
  *
  * Finally we are able to create the distributed PrimitiveStorage instance. It requires us to specify
 {Paraview/link_002_tomo_SEMUCB_T_angle_}{0}{35}}; * the rank it is located on.

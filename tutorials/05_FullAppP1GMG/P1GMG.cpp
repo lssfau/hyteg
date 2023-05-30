@@ -45,14 +45,14 @@ using walberla::uint_t;
  * \brief In this tutorial we will set up a complete app using P1 elements which will perform geometric
  * multigrid to solve the Laplace equation.
  *
- * \section FullAppP1GMG-setup Setup MPI
+ * \section T05-FullAppP1GMG-setup Setup MPI
  *
  * At we first we create a walberla Environment which handles mpi init and set the communicator for all
  * prozesses to WorldComm
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Create Environment
  *
- * \section FullAppP1GMG-parameters Set Parameters
+ * \section T05-FullAppP1GMG-parameters Set Parameters
  *
  * One way to set the parameters for the simulation is to use a parameter file.
  *
@@ -67,7 +67,7 @@ using walberla::uint_t;
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Get Parameters
  *
  *
- * \section FullAppP1GMG-storage Primitive Storage
+ * \section T05-FullAppP1GMG-storage Primitive Storage
  *
  * In this step we create a fully distributed PrimitiveStorage from a mesh file
  *
@@ -76,7 +76,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Primitive Storage
  *
- * \section FullAppP1GMG-functionSpaces Create P1 Function Spaces
+ * \section T05-FullAppP1GMG-functionSpaces Create P1 Function Spaces
  *
  * Here we allocate the necessary P1 Functions.
  *
@@ -91,7 +91,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Function Spaces
  *
- * \section FullAppP1GMG-boundaries Create functions for boundary conditions
+ * \section T05-FullAppP1GMG-boundaries Create functions for boundary conditions
  *
  * To set the boundary conditions we create a function using a lamba function. The functions needs to return
  * a real_t and take and hyteg::Point3D as an argument.
@@ -111,7 +111,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Boundary Conditions
  *
- * \section FullAppP1GMG-solver Solver
+ * \section T05-FullAppP1GMG-solver Solver
  *
  * Now we will setup the solvers.
  *
@@ -129,7 +129,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Solvers
  *
- * \section FullAppP1GMG-multigrid Perform Multigrid
+ * \section T05-FullAppP1GMG-multigrid Perform Multigrid
  *
  * In order to perform the multigrid iterations we call the function solve.
  *
@@ -153,7 +153,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Multigrid
  *
- * \section FullAppP1GMG-Calculate Residual
+ * \section T05-FullAppP1GMG-Calculate Residual
  *
  * To validate the result we calculate the residual by first writing the result of multiplying the
  * Laplace operator with the function into the laplaceTimesFunction function.
@@ -166,7 +166,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Residual
  *
- * \section FullAppP1GMG-output Write VTK Output
+ * \section T05-FullAppP1GMG-output Write VTK Output
  *
  * If set in the parameter file the results are written onto disc in the vtk file format.
  *
@@ -180,7 +180,7 @@ using walberla::uint_t;
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Output
  *
- * \section FullAppP1GMG-fullApp Full Application
+ * \section T05-FullAppP1GMG-fullApp Full Application
  * \include tutorials/05_FullAppP1GMG/P1GMG.cpp
  *
  */
