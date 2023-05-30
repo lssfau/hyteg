@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -54,9 +54,12 @@ inline void writeXMLHeader( std::ostream& output )
 {
    WALBERLA_ROOT_SECTION()
    {
-      output << "<?xml version=\"1.0\"?>\n";
-      output << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n";
-      output << "<UnstructuredGrid>\n";
+      output << R"(<?xml version="1.0"?>)"
+                "\n";
+      output << R"(<VTKFile type="UnstructuredGrid" version="0.1">)"
+                "\n";
+      output << R"(<UnstructuredGrid>)"
+                "\n";
    }
 }
 
@@ -64,16 +67,18 @@ inline void writeXMLFooter( std::ostream& output )
 {
    WALBERLA_ROOT_SECTION()
    {
-      output << "</UnstructuredGrid>\n";
-      output << "</VTKFile>\n";
+      output << R"(</UnstructuredGrid>)"
+                "\n";
+      output << R"(</VTKFile>)"
+                "\n";
    }
 }
 
 inline void writePieceHeader( std::ostream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells )
 {
    output << "<Piece "
-          << "NumberOfPoints=\"" << numberOfPoints << "\" "
-          << "NumberOfCells=\"" << numberOfCells << "\""
+          << R"(NumberOfPoints=")" << numberOfPoints << R"(" )"
+          << R"(NumberOfCells=")" << numberOfCells << R"(")"
           << ">\n";
 }
 
@@ -86,32 +91,34 @@ inline void
     openDataElement( std::ostream& output, const std::string& type, const std::string& name, uint_t nComponents, DataFormat fmt )
 {
    // open element and write type
-   output << "<DataArray type=\"" << type << "\"";
+   output << R"(<DataArray type=")" << type << R"(")";
 
    // write name, if given
    if ( name.length() > 0 )
    {
-      output << " Name=\"" << name << "\"";
+      output << R"( Name=")" << name << R"(")";
    }
 
    // write number of components, if required
    if ( nComponents > 0 )
    {
-      output << " NumberOfComponents=\"" << nComponents << "\"";
+      output << R"( NumberOfComponents=")" << nComponents << R"(")";
    }
 
    // specify format
    if ( fmt == DataFormat::ASCII )
    {
-      output << " format=\"ascii\">\n";
+      output << R"( format="ascii">)"
+                "\n";
    }
    else if ( fmt == DataFormat::BINARY )
    {
-      output << " format=\"binary\">\n";
+      output << R"( format="binary">)"
+                "\n";
    }
    else
    {
-      WALBERLA_ABORT( "VTK format not supported." );
+      WALBERLA_ABORT( "Specified VTK format not supported." );
    }
 }
 
