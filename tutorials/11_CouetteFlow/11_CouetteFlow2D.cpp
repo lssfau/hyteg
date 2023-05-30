@@ -281,7 +281,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
    std::function< real_t( const Point3D& ) > boundaryConditionsX = [uInner, uOuter, rMean]( const Point3D& x ) {
       real_t r = std::sqrt( x[0] * x[0] + x[1] * x[1] );
 
-      real_t sin_theta = x[1] / r;
+      real_t sin_theta = -x[1] / r;
 
       if ( r < rMean )
       {
@@ -298,7 +298,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
    std::function< real_t( const Point3D& ) > boundaryConditionsY = [uInner, uOuter, rMean]( const Point3D& x ) {
       real_t r = std::sqrt( x[0] * x[0] + x[1] * x[1] );
 
-      real_t cos_theta = -x[0] / r;
+      real_t cos_theta = x[0] / r;
 
       if ( r < rMean )
       {
@@ -363,7 +363,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
    /// [massOpErr]
    typedef P2ElementwiseBlendingVectorMassOperator MassOperator;
 
-   MassOperator M( storage, maxLevel+1, maxLevel + 1 );
+   MassOperator M( storage, maxLevel + 1, maxLevel + 1 );
    /// [massOpErr]
 
    std::function< real_t( const Point3D& ) > analyticalU = [uInner, uOuter, rMin, rMax]( const Point3D& x ) {
@@ -374,7 +374,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
       real_t c1      = ( uInner / rMin ) - ( c2 / ( rMin * rMin ) );
       real_t u_theta = c1 * r + c2 * ( real_c( 1.0 ) / r );
 
-      return u_theta * std::sin( theta );
+      return real_c( -1.0 ) * u_theta * std::sin( theta );
    };
 
    std::function< real_t( const Point3D& ) > analyticalV = [uInner, uOuter, rMin, rMax]( const Point3D& x ) {
@@ -385,7 +385,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
       real_t c1      = ( uInner / rMin ) - ( c2 / ( rMin * rMin ) );
       real_t u_theta = c1 * r + c2 * ( real_c( 1.0 ) / r );
 
-      return real_c( -1.0 ) * u_theta * std::cos( theta );
+      return u_theta * std::cos( theta );
    };
 
    uAnalytical.uvw().interpolate( { analyticalU, analyticalV }, maxLevel, All );
@@ -413,7 +413,10 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
 
    real_t residualNorm = std::sqrt( residual.uvw().dotGlobal( residual.uvw(), maxLevel, All ) );
 
-   WALBERLA_ROOT_SECTION() { std::cout << "Residual = " << residualNorm << std::endl << "errorUV = " << errorUV << std::endl; }
+   WALBERLA_ROOT_SECTION()
+   {
+      std::cout << "Residual = " << residualNorm << std::endl << "errorUV = " << errorUV << std::endl;
+   }
 
    return errorUV;
 }
@@ -440,7 +443,10 @@ int main( int argc, char* argv[] )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   WALBERLA_ROOT_SECTION() { mainConf.listParameters(); }
+   WALBERLA_ROOT_SECTION()
+   {
+      mainConf.listParameters();
+   }
 
    real_t hMin = real_c( 0.0 );
 
