@@ -391,6 +391,7 @@ static void testVTKQuadraticTetra( uint_t meshType, uint_t level )
       std::string fName = "VTKQuadraticTetra";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( p2ScalarFunc );
       vtkOutput.write( maxLevel );
    }

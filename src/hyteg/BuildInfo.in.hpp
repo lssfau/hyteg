@@ -45,6 +45,11 @@ std::string compilerInfo()
    return "@HYTEG_COMPILER_INFO@";
 }
 
+std::string systemEndianess()
+{
+   return "@CMAKE_CXX_BYTE_ORDER@";
+}
+
 std::string mpiVersion()
 {
 #ifdef WALBERLA_BUILD_WITH_MPI
@@ -79,6 +84,7 @@ void printBuildInfo()
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler ......... " << compilerInfo() );
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler flags ... " << compilerFlags() );
    WALBERLA_LOG_INFO_ON_ROOT( " - mpi version ...... " << mpiVersion() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - byte order ....... " << systemEndianess() );
 }
 
 } // namespace hyteg

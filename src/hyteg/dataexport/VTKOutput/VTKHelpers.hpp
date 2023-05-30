@@ -54,9 +54,16 @@ inline void writeXMLHeader( std::ostream& output )
 {
    WALBERLA_ROOT_SECTION()
    {
+#if HYTEG_ARCH_ENDIANESS == LITTLE_ENDIAN
+      std::string byteOrder{ "LittleEndian" };
+#else
+      std::string byteOrder{ "BigEndian" };
+#endif
+
       output << R"(<?xml version="1.0"?>)"
                 "\n";
-      output << R"(<VTKFile type="UnstructuredGrid" version="0.1">)"
+      output << R"(<VTKFile type="UnstructuredGrid" version="0.1" byte_order=")" << byteOrder
+             << R"(">)"
                 "\n";
       output << R"(<UnstructuredGrid>)"
                 "\n";

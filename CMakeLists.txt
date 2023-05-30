@@ -297,3 +297,7 @@ add_dependencies(hyteg_all_apps ${_apps_targets} ${_tutorials_targets})
 add_custom_target(hyteg_all)
 add_dependencies(hyteg_all ${_apps_targets} ${_tutorials_targets} ${_tests_targets})
 ############################################################################################################################
+
+message(STATUS "Detected Byte Order is: " ${CMAKE_CXX_BYTE_ORDER} )
+
+############################################################################################################################
