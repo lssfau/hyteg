@@ -23,43 +23,50 @@
  * 
  * \dontinclude tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp
  * 
- * \brief This tutorial demonstrates the implementation of a Couette flow problem on a circular annulus with different tangential velocities on the inner and outer boundaries of the annulus. On polar coordinates the \f$ u_r = 0\f$ everywhere. After implementation we also perform a convergence analysis to show that FEM solution from HyTeG converges to the analytical solution of the problem with expected order of convergence.
+ * \brief This tutorial demonstrates the implementation of a Couette flow problem on an annulus, i.e. the flow
+ * is driven purely by different tangential velocities on the inner and outer boundary of the annulus. Additionally
+ * we perform a convergence analysis to show that the FE solution converges to the analytical solution with expected
+ * order of convergence.
  *
  * \section T11-task Task
  * 
  * <img src="11_CouetteFlow_Outline.png" width="30%" />
  * 
- * The problem that needs to be solved is the Stokes equation on the annulus which is given as below
+ * The problem that needs to be solved is the Stokes equation on the annulus which is given as
  * \f[
    \begin{align*}
       -\Delta\mathbf{u}_c + \nabla p &= 0\\[2ex]
       \nabla\cdot\mathbf{u}_c &= 0
    \end{align*}
  * \f]
- * Here \f$ \mathbf{u}_c \f$ denotes the equations are written in Cartesian coordinates which we will denote henceforth with just \f$ \mathbf{u} \f$, however for this problem, it is easy to specify the boundary conditions in polar coordinates as \f$\mathbf{u}_\phi(r = r_{min}) = u_{inner},\quad \mathbf{u}_\phi(r = r_{max}) = u_{outer}\f$
+ * Here \f$ \mathbf{u}_c \f$ denotes the solution in Cartesian coordinates. This is the coordinate system that will
+ * be used for the implementation. We henceforth drop the subscript, though. The boundary conditions can, however,
+ * be more easily specified in polar coordinates. We want the flow field to satisfy
+ * \f$\mathbf{u}_\phi(r = r_{min}) = {u}_{inner},\quad {u}_\phi(r = r_{max}) = \mathbf{u}_{outer}\f$ and
+ * a no outflow conditions, i.e. \f$ u_r = 0\f$ on both boundaries.
  * 
- * The weak finite element formulation of the boundary value problem is to find \f$ \mathbf{u}_h \in \mathbf{V}_h \f$ and \f$ p_h \in Q_h \f$ such that,
+ * The weak finite element formulation of the boundary value problem is to find \f$\left(\mathbf{u}_h,p_h\right) \in \mathbf{V}_h \times Q_h \f$ such that,
  * \f[
  * \begin{align*}
  *    a(\mathbf{u}_h, \mathbf{v}_h) + b(p_h, \mathbf{v}_h) &= \mathbf{0}\quad\quad\forall\mathbf{v}_h \in \mathbf{V}_h\\[2ex]
  *    b(q_h, \mathbf{u}_h) &= 0\quad\quad\forall q_h \in Q_h
  * \end{align*}
  * \f]
- * where \f$ \mathbf{V}_h \f$ and \f$ Q_h \f$ are appropriate function spaces for our P2P1 Taylor Hood elements which is an inf-sup stable pair for velocity and pressure.
- * 
- * The terms that we have to implement in HyTeG are as follows,
+ * where \f$ \mathbf{V}_h \f$ and \f$ Q_h \f$ are appropriate function spaces and the (bi-)linear forms are given by
+ *
  * \f[
  * \begin{align*}
  *    a(\mathbf{u}_h, \mathbf{v}_h) &= \int_{\Omega} \nabla\mathbf{u}_h : \nabla\mathbf{v}_h d\Omega\\[2ex]
  *    b(p_h, \mathbf{v}_h) &= \int_{\Omega} (\nabla\cdot\mathbf{v}_h)p_h d\Omega
  * \end{align*}
  * \f]
+ *
+ * We will use a classical P2-P1 Taylor-Hood element which is an inf-sup stable pair for velocity and pressure.
  * 
  * \section T11-CouetteImplementation Implementation
  * 
- * Let us start with our implementation in HyTeG,
- * 
- * Here we set up the MPI environment with walberla functions and also the PETSc manager if needed.
+ * Our implementation in HyTeG starts with the standard preparation of the environment for waLBerla and MPI and,
+ * as we would like to steer computations by providing parameters through a file, handling the latter:
  * 
  * \subsection T11-env Environment
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp Create Environment
@@ -67,61 +74,78 @@
  * \subsection T11-readPrm Read parameter file
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp Read prm file
  * 
- * HyTeG provides a function `MeshInfo::meshAnnulus` to create an Annulus mesh with an inner and outer radius. Here we also specify the type of mesh CRISS or CROSS which decides the orientation of triangles and also the number of initial refinements in the radial and tangential direction. 
- * 
  * \subsection T11-setupMesh Setup the annulus mesh
+ * 
+ * Next we need to generate our computational domain. For this HyTeG provides a function `MeshInfo::meshAnnulus`. Given an inner and outer radius it generates a structured
+ * triangulation of the associated annulus. We can also specify the type of mesh, CRISS or CROSS, which decides the orientation of triangles, and, of course also the number
+ * of subdivisions in the radial and tangential direction. 
+ *
+ * \note Currently using CRISSCROSS as meshing flavour is not compatible with using blending (below).
+ *
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp annulus mesh
  * 
- * Then the `SetupPrimitiveStorage` object is set with the annulus mesh and the MPI manager which sets up the distributed data structure in the MPI processes to store the mesh
+ * Next the `SetupPrimitiveStorage` object is set with the annulus mesh and the MPI manager which sets up the distributed data structure in the MPI processes to store the mesh
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp setup setupstorage
  * 
- * When the mesh is refined upto the maximum level from an initial coarse mesh, the curvature of the annulus will not be captured by the fine mesh. The appropriate blending map (`AnnulusMap` here) is set and the mesh is mapped accordingly. This map is also essential for blending compatible operators which takes this into account in the finite element integration.
+ * When the mesh is refined up to the maximum level from an initial coarse mesh, the curvature of the annulus will not be captured by the fine mesh. This is fixed by using
+ * a blending map. In our case, unsurprisingly, the `AnnulusMap` is appropriate. We set this, so that the mesh is mapped accordingly. Note that using blending implies that
+ * compatible blending-aware operators need to be used later.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp blending map
  * 
  * \subsection T11-BCs Boundary conditions
  * 
- * The `meshAnnulus` function automatically tags the inner and outer boundary of the Annulus, and hence those flags are used to set the required boundary condition, which in our case we set the Dirichlet boundary condition on the inner and outer boundaries of the annulus. Now this boundary condition object `bcVelocity` must be passed to the FE functions which needs to use this boundary condition.
+ * The `meshAnnulus` function automatically tags the primitives of the annulus mesh. When setting the Dirichlet boundary conditions of the inner and outer boundary we can
+ * use the corresponding flags.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp boundary cond
  * 
- * Here `u` is the P2P1 pair FE function which HyTeG provides to hold the velocity and pressure values in a same class. The value of the velocity `u.uvw()` boundary condition (BC) is set using the vector interpolate function by passing the appropriate lambda functions which sets the BC values on the Dirichlet boundary and on the level specified.
+ * Let `u` be our `P2P1TaylorHoodFunction< real_t >`, i.e. a function object storing both, the P2 velocity field and the P1 pressure field.
+ * We can access the velocity component of `u` as `u.uvw()` and can pass our boundary condition object `bcVelocity`, when we want to interpolate the Dirichlet values for
+ * the boundary conditions by passing an appropriate lambda functions which sets the BC values on the Dirichlet boundary and on the level specified.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp bcValues
  * 
- * The lambda functions `boundaryConditionsX` and `boundaryConditionsY` are used to set the boundary values for velocity. In our example, the velocities are radial in the boundaries and hence we calculate the appropriate cartesian components and impose them on the boundary. The lambda functions that are passed will receive the coordinates of the boundary point and the user has to check it's position and impose the correct values by returning the same.
+ * The lambda functions `boundaryConditionsX` and `boundaryConditionsY` are used to set the boundary values for velocity. In our example, the prescribed velocity vectors
+ * are tangent to the boundaries. In the lambda functions we calculate their cartesian components and impose those on the boundary. The lambda functions that are passed
+ * will receive the coordinates of an evaluation point (in our case on the boundary) and the user has to check its position to impose the correct values by returning the same.
  * 
  * \subsection T11-FEfns FE Functions
  * 
- * Here we define the finite element functions needed for our FE computations and error norm calculations. These functions store the DOF values in a distributed fashion on the MPI processes that are running the program.
+ * Here we define the finite element functions needed for our FE computations and error norm calculations. These functions store thevalues of the degrees of freedom in a
+ * distributed fashion on the MPI processes that are running the program.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp declare p2p1funcs
  * 
  * \subsection T11-FEOps FE Operators
  * 
- * To implement \f$ a(\mathbf{u}_h, \mathbf{v}_h) , b(p_h, \mathbf{v}_h), c(\mathbf{u}_h, q_h)\f$, HyTeG provides two main operators. One is the `P2P1TaylorHoodStokesOperator` but it does not use the blending map in the finite element computations. 
- * 
- * The other operator `P2P1ElementwiseBlendingStokesOperator` is compatible with blending maps and hence is a more accurate way to implement the Stokes problem for the annulus.
+ * To implement \f$ a(\mathbf{u}_h, \mathbf{v}_h)\f$ and \f$b(p_h, \mathbf{v}_h)\f$, HyTeG provides two main operators. One is the `P2P1TaylorHoodStokesOperator`,
+ * but the latter does not use the blending map in the finite element computations.
+ *
+ * The other operator `P2P1ElementwiseBlendingStokesOperator` is compatible with blending maps and hence, the one we are going to use for our Stokes problem on the annulus.
+ * The operator will 'live' on all levels of our mesh hierarchy, starting from `minLevel` up to `maxLevel`. As we intend to employ a geometric multigrid solver for the linear
+ * system of equations resulting from the FE discretisation of the problem, we allow to specify different values for the latter.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp StokesOperator
  * 
  * \subsection T11-gmg Multigrid solver
  * 
- * Here we set up the Geometric multigrid solver which requires the following,
- * - smoother \f$ \Rightarrow\f$ we use the Uzawa smoother with Jacobi smoothing for velocity.
- * - coarse grid solver \f$ \Rightarrow\f$ for this we use the pressure preconditioned MINRES solver which is wrapped as a solver template under `solvertemplates::stokesMinResSolver`.
- * - restriction and prolongation operators \f$ \Rightarrow\f$ the `P2P1StokesToP2P1StokesRestriction(Prolongation)` uses quadratic interpolation for prolongation of velocity, linear one for prolongation of pressure and the transpose of prolongation for restriction
+ * The next step is to set up a solver. We want to use geometric multigrid for this purpose. This solver requires the following components:
+ * - smoother \f$ \Rightarrow\f$ we use an Uzawa smoother with a Jacobi sub-smoother for velocity
+ * - coarse grid solver \f$ \Rightarrow\f$ for this we use a pressure preconditioned MINRES solver which is wrapped as a solver template under `solvertemplates::stokesMinResSolver`
+ * - restriction and prolongation operators \f$ \Rightarrow\f$ the `P2P1StokesToP2P1StokesProlongation` operator is appropriate here; it uses quadratic interpolation for prolongation of velocity and a linear one for prolongation of pressure; the tranpose operatgor is used for restriction
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp gmg
  * 
- * We then call the GMG solver required number of times to solve the system on the level from which we want the V cycle to start.
+ * We then call the GMG solver a certain number of times to solve the system on our desired target level `maxLevel`, i.e. where we start our V-cycle:
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp gmgSolve
  * 
  * \subsection T11-err Error calculation
  * 
- * The computed finite element solution is projected to a higher level and then the error is computed with the analytical solution on that level. To calculate the L2 norm of the error we would have to use the mass operator which performs the integration of the L2 norm in the FE space.
+ * The computed finite element solution is projected to a higher level and then the error is computed with the analytical solution on that level. To approximate the L2-norm of the
+ * error we use the mass operator which performs the integration of the L2 norm in the FE space.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp calcErr
  * 
@@ -142,7 +166,7 @@
  * \end{align*}
  * \f]
  * 
- * Hence we define the appropriate mass operator for our FE space which also supports blending for the annulus to compute the norm of the error.
+ * Hence we define the appropriate mass operator for our FE space which also supports blending for the annulus to compute the norm of the velocity error.
  * 
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp massOpErr
  * \snippet tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp calcErrNorm
@@ -339,7 +363,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
    /// [massOpErr]
    typedef P2ElementwiseBlendingVectorMassOperator MassOperator;
 
-   MassOperator M( storage, minLevel, maxLevel + 1 );
+   MassOperator M( storage, maxLevel+1, maxLevel + 1 );
    /// [massOpErr]
 
    std::function< real_t( const Point3D& ) > analyticalU = [uInner, uOuter, rMin, rMax]( const Point3D& x ) {
@@ -389,10 +413,7 @@ real_t convAnalysis( const walberla::Config::BlockHandle& mainConf, uint_t minLe
 
    real_t residualNorm = std::sqrt( residual.uvw().dotGlobal( residual.uvw(), maxLevel, All ) );
 
-   WALBERLA_ROOT_SECTION()
-   {
-      std::cout << "Residual = " << residualNorm << std::endl << "errorUV = " << errorUV << std::endl;
-   }
+   WALBERLA_ROOT_SECTION() { std::cout << "Residual = " << residualNorm << std::endl << "errorUV = " << errorUV << std::endl; }
 
    return errorUV;
 }
@@ -419,10 +440,7 @@ int main( int argc, char* argv[] )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   WALBERLA_ROOT_SECTION()
-   {
-      mainConf.listParameters();
-   }
+   WALBERLA_ROOT_SECTION() { mainConf.listParameters(); }
 
    real_t hMin = real_c( 0.0 );
 
@@ -431,7 +449,7 @@ int main( int argc, char* argv[] )
    const uint minLevel = mainConf.getParameter< uint >( "minLevel" );
    const uint maxLevel = mainConf.getParameter< uint >( "maxLevel" );
 
-   for ( uint_t level = 1U; level < maxLevel; level++ )
+   for ( uint_t level = 1u; level <= maxLevel; level++ )
    {
       real_t l2Error = convAnalysis( mainConf, minLevel, level, hMin );
       WALBERLA_MPI_BARRIER()
