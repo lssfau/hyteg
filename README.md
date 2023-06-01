@@ -87,7 +87,7 @@ as written above, to set up waLBerla automatically.
 
 Required:
 
-* [CMake](https://cmake.org/ "CMake homepage")
+* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.14 )
 * a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
 * [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
   
