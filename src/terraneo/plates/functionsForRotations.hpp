@@ -144,7 +144,14 @@ inline int determineSeriesOfFiniteRotations( const rotIter_t&               rang
    for ( int ii = 0; ii < time.size(); ++ii )
    {
       real_t t = time[ii];
-
+      // keep it flexible for possible for finite rotation ending with the age we are interested in.
+      // thus age time+1 will not exist, and we won't be able to calculate the velocity. 
+      // fix take the approach of [time-1, time]
+      if (time[time.size()-1] > fin0[fin0.size()-1].time)
+      {
+         t = time[ii]-1;
+      }
+      
       // determine in which position of the asked time to grab the corresponding lines
       //
       // NOTE: if loop does not return a hit, the 0 remains unchanged!
