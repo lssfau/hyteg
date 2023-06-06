@@ -148,7 +148,7 @@ void exportOperator( OperatorType&                       op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Exporting Operator to file '" << fName << "'" )
    }
-   petscMatrix.print( fName.c_str(), format );
+   petscMatrix.print( fName.c_str(), false, format );
 
    // Enhance output depending on format
    switch ( format )
