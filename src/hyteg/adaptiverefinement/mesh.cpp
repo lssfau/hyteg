@@ -1443,11 +1443,12 @@ std::set< std::shared_ptr< Simplex3 > >
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Something went wrong: Cell has only "
                                     << n_red << " red faces but " << el->vertices_on_edges() << " vertices on its edges." );
-         uint_t k;
+         uint_t k = 0;
          for ( auto& face : el->get_faces() )
          {
             auto n = face->vertices_on_edges();
             WALBERLA_LOG_INFO_ON_ROOT( "     face << " << k << " has " << n << " vertices on its edges," );
+            ++k;
          }
          WALBERLA_ABORT( "ERROR: Illegal mesh configuration!" )
       }
