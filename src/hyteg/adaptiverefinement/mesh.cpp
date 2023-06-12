@@ -1413,36 +1413,43 @@ std::set< std::shared_ptr< Simplex3 > >
 
    for ( auto& el : U )
    {
-      // iteratively apply red refinement to faces
-      bool repeat = true;
-      while ( repeat )
+      // find red faces
+      uint_t n_red = 0;
+      for ( auto& face : el->get_faces() )
       {
-         repeat = false;
-
-         for ( auto& face : el->get_faces() )
+         if ( face->vertices_on_edges() > 1 )
          {
-            if ( face->vertices_on_edges() > 1 )
-            {
-               if ( face->get_children().size() == 2 )
-               {
-                  // remove green edge from face
-                  face->kill_children();
-               }
+            n_red += 1;
 
-               if ( !face->has_children() )
-               {
-                  // apply red refinement to face
-                  refine_face_red( _vertices, _V, face );
-                  repeat = true;
-               }
+            if ( face->get_children().size() == 2 )
+            {
+               // remove green edge from face
+               face->kill_children();
+            }
+            if ( !face->has_children() )
+            {
+               // apply red refinement to face
+               refine_face_red( _vertices, _V, face );
             }
          }
       }
 
-      // if more than one face has been red-refined, mark cell for red refinement
-      if (el->vertices_on_edges() > 3)
+      // if there is more than one red face, mark cell for red refinement
+      if ( n_red > 1 )
       {
          R.insert( el );
+      }
+      else if ( el->vertices_on_edges() > 3 ) // this actually can't happen
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Something went wrong: Cell has only "
+                                    << n_red << " red faces but " << el->vertices_on_edges() << " vertices on its edges." );
+         uint_t k;
+         for ( auto& face : el->get_faces() )
+         {
+            auto n = face->vertices_on_edges();
+            WALBERLA_LOG_INFO_ON_ROOT( "     face << " << k << " has " << n << " vertices on its edges," );
+         }
+         WALBERLA_ABORT( "ERROR: Illegal mesh configuration!" )
       }
    }
 
