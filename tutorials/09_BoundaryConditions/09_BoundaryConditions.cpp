@@ -82,7 +82,7 @@
  * 
  * The first step we need to perform is mark the four different parts of the boundary of our problem domain,
  * i.e. the four edges of our rectangle, by setting corresponding **MeshBoundaryFlags**. These are simple
- * integer values that will allows us to differentiate between the parts when setting the boundary conditions.
+ * integer values that will allow us to differentiate between the parts when setting the boundary conditions.
  * We are going to use the following values:
  *
  * <img src="09_BoundaryConditions_Flags.png" width="45%" /></td>
@@ -168,7 +168,7 @@
  *
  * 1. Each degree of freedom has a type attached. Thus, we can specify a flag of type `hyteg::DoFType` to
  *    select certain degrees of freedom. The possible values are `All`, `Boundary`, `Inner`, `DirichletBoundary`,
- *    `NeumannBoundary`, `FreeslipBoundary`. These can be combine by `|`.  
+ *    `NeumannBoundary`, `FreeslipBoundary`. These can be combined with `|`.  
  *
  *    Note that by calling `bcTemperature.createNeumannBC( "neumannWalls", { 3, 4 } )` in step #2 and passing
  *    `bcTemperature` to the constructor of our temperature function in step #3, we have set the DoFType of
@@ -178,8 +178,9 @@
  *
  * Let us set the Dirichlet values for temperature now. Normally, if the value we want to set is a constant,
  * we can directly use it without the need for an `std::function`. However, our problem features two different
- * Dirichlet values on top and bottom. As there is no way to express this via the DoFType flag, we have to write
- * a short lambda expression:
+ * Dirichlet values on top and bottom. As there is no way to express this via the DoFType flag, we would have to
+ * write a corresponding lambda expression to use as callback. However, it is more convenient to simply work
+ * with the corresponding BoundaryUIDs instead:
  *
  * \snippet tutorials/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Temp
  *
