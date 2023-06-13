@@ -814,7 +814,7 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
 
     waLBerla_compile_test(FILES Petsc/PetscApplyDirichletBoundaryUIDTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME PetscApplyDirichletBoundaryUIDTest COMMAND $<TARGET_FILE:PetscApplyDirichletBoundaryUIDTest)
+    waLBerla_execute_test(NAME PetscApplyDirichletBoundaryUIDTest)
 endif ()
 
 waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)
