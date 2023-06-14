@@ -13,8 +13,9 @@ Parameters
     // # domain #
     // ##########
 
-    toroidalResolution         8;
-    poloidalResolution         6;
+    numToroidalSlices          8;
+    numPoloidalSlices          5;
+
     radiusOriginToCenterOfTube 6.2;
     tubeLayerRadii             3; // list
     torodialStartAngle         0;
