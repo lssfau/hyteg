@@ -52,7 +52,11 @@ class PETScLUSolver : public Solver< OperatorType >
    : PETScLUSolver( storage,
                     level,
                     typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
-   {}
+
+   {
+      // remember that the numerator object was not passed to the constructor
+      selfConstructedNumerator_ = true;
+   }
 
    PETScLUSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
                   const uint_t&                                                         level,
@@ -224,6 +228,14 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "PETSc LU Solver" );
       storage_->getTimingTree()->start( "Setup" );
 
+      // if the numerator was constructed internally we should copy the Boundary Condition info
+      // to it, because that is the only way to get it into hyteg::applyDirichletBC() where
+      // the corresponding DoF indices will be computed
+      if ( selfConstructedNumerator_ )
+      {
+         num_.copyBoundaryConditionFromFunction( x );
+      }
+
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
       {
@@ -233,9 +245,6 @@ class PETScLUSolver : public Solver< OperatorType >
       const double matrixAssemblyAndFactorizationTime = timer.last();
 
       storage_->getTimingTree()->start( "RHS vector setup" );
-
-      //num_.copyBoundaryConditionFromFunction(x);
-      //num_.enum_erate(level);
 
       if ( !disableApplicationBC_ )
       {
@@ -281,13 +290,14 @@ class PETScLUSolver : public Solver< OperatorType >
    }
 
  private:
-   std::shared_ptr< PrimitiveStorage >                                                           storage_;
-   uint_t                                                                                        allocatedLevel_;
-   MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< idx_t >                                num_;
-   PETScSparseMatrix< OperatorType >                                                             Amat_;
-   PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric_;
-   PETScSparseMatrix< OperatorType >                                                             AmatTmp_;
+   std::shared_ptr< PrimitiveStorage >                            storage_;
+   uint_t                                                         allocatedLevel_;
+   MPI_Comm                                                       petscCommunicator_;
+   typename OperatorType::srcType::template FunctionType< idx_t > num_;
+   bool                                                           selfConstructedNumerator_{ false };
+   PETScSparseMatrix< OperatorType >                              Amat_;
+   PETScSparseMatrix< OperatorType >                              AmatUnsymmetric_;
+   PETScSparseMatrix< OperatorType >                              AmatTmp_;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec_;
    PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec_;
