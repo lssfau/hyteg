@@ -317,7 +317,7 @@ void tokamak( TokamakDomain         tokamakDomain,
    {
       const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, l );
       const auto numDoFs      = numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *storage, l );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5u | %14u | %14u", l, numInnerDoFs, numDoFs ) )
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5lu | %14lu | %14lu", l, numInnerDoFs, numDoFs ) )
       if ( appSettings.database )
       {
          db->setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
@@ -338,6 +338,7 @@ void tokamak( TokamakDomain         tokamakDomain,
       }
    }
 
+   return;
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Allocation of functions and operator setup ..." )
 
    // parameters for analytic solution and diffusion coefficient:
