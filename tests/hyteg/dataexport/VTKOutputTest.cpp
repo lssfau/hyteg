@@ -342,18 +342,11 @@ static void testVTKQuadraticTriangle( uint_t meshType, uint_t level )
    if ( beVerbose )
    {
       std::string fPath = "../../output";
-      std::string fName = "VTKQuadraticTriangle-false";
+      std::string fName = "VTKQuadraticTriangle";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutputA( fPath, fName, storage );
-      vtkOutputA.setUseVTKQuadraticTriangle( false );
-      vtkOutputA.add( p2ScalarFunc );
-      vtkOutputA.write( maxLevel );
-
-      fName = "VTKQuadraticTriangle-true";
-      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutputB( fPath, fName, storage );
-      vtkOutputB.add( p2ScalarFunc );
-      vtkOutputB.write( maxLevel );
+      VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.add( p2ScalarFunc );
+      vtkOutput.write( maxLevel );
    }
 }
 
@@ -395,19 +388,11 @@ static void testVTKQuadraticTetra( uint_t meshType, uint_t level )
    if ( beVerbose )
    {
       std::string fPath = "../../output";
-      std::string fName = "VTKQuadraticTetra-false";
+      std::string fName = "VTKQuadraticTetra";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutputA( fPath, fName, storage );
-      vtkOutputA.setUseVTKQuadraticTetra( false );
-      vtkOutputA.add( p2ScalarFunc );
-      vtkOutputA.write( maxLevel );
-
-      fName = "VTKQuadraticTetra-true";
-      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutputB( fPath, fName, storage );
-      vtkOutputA.setUseVTKQuadraticTetra( true );
-      vtkOutputB.add( p2ScalarFunc );
-      vtkOutputB.write( maxLevel );
+      VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.add( p2ScalarFunc );
+      vtkOutput.write( maxLevel );
    }
 }
 
