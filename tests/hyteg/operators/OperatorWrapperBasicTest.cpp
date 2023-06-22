@@ -25,7 +25,7 @@
 #include "core/timing/all.h"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionWrapper.hpp"
 #include "hyteg/operators/GenericOperator.hpp"
 #include "hyteg/operators/OperatorWrapper.hpp"

@@ -26,7 +26,7 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/generatedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/dummy.hpp"

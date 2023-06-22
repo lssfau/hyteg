@@ -19,7 +19,7 @@
 */
 #pragma once
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 namespace hyteg {
 

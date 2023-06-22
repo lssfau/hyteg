@@ -28,7 +28,7 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 using walberla::real_t;
 using walberla::real_c;

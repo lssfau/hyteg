@@ -18,9 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/dataexport/VTKN1E1Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKN1E1Writer.hpp"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 

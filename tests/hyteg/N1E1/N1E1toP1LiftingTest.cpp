@@ -25,7 +25,7 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1toN1E1Gradient.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/petsc/PETScManager.hpp"

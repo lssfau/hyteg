@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKEdgeDoFWriter.hpp"
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKHelpers.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 
 // from walberla

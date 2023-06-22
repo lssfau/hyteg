@@ -19,8 +19,8 @@
  */
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKHelpers.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"

@@ -36,7 +36,7 @@ WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -
 #include "hyteg/composites/P1P0StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"

@@ -43,15 +43,15 @@
 
 // clang off
 // ordering matters here, otherwise we need to add forward declarations
-#include "hyteg/dataexport/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 // clang on
 
-#include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
-#include "hyteg/dataexport/VTKMeshWriter.hpp"
-#include "hyteg/dataexport/VTKN1E1Writer.hpp"
-#include "hyteg/dataexport/VTKP1DGEWriter.hpp"
-#include "hyteg/dataexport/VTKP1Writer.hpp"
-#include "hyteg/dataexport/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKEdgeDoFWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKN1E1Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP1DGEWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
 
 // from walblera
 #include "vtk/Base64Writer.h"

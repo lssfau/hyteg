@@ -19,7 +19,7 @@
  */
 #include <hyteg/composites/P2P1TaylorHoodFunction.hpp>
 #include <hyteg/composites/P2P1TaylorHoodStokesOperator.hpp>
-#include <hyteg/dataexport/VTKOutput.hpp>
+#include <hyteg/dataexport/VTKOutput/VTKOutput.hpp>
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"

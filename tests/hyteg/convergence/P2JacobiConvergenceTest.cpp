@@ -22,7 +22,7 @@
 #include "core/timing/Timer.h"
 
 #include "core/Format.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"

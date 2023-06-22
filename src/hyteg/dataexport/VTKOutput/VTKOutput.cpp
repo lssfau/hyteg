@@ -17,13 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 #include "core/Format.hpp"
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/VTKDGWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKDGWriter.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"

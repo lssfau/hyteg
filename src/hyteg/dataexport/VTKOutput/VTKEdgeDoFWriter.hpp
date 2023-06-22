@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,24 +19,32 @@
  */
 #pragma once
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 namespace hyteg {
 
+// need these forward declarations, otherwise
+// we get include-order-dependencies
 class VTKOutput;
 
-class VTKN1E1Writer
+namespace vtk {
+enum class DoFType;
+enum class DataFormat;
+} // namespace vtk
+
+class VTKEdgeDoFWriter
 {
  public:
-   static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
+   static void write( const VTKOutput& mgr, std::ostream& output, uint_t level, const vtk::DoFType& dofType );
 
  private:
    template < typename value_t >
-   static void writeVectorFunction( std::ostream&                              output,
-                                    const n1e1::N1E1VectorFunction< value_t >& function,
+   static void writeScalarFunction( const VTKOutput&                           mgr,
+                                    std::ostream&                              output,
+                                    const EdgeDoFFunction< value_t >&          function,
                                     const std::shared_ptr< PrimitiveStorage >& storage,
-                                    const uint_t&                              level,
-                                    vtk::DataFormat                            vtkDataFormat );
+                                    uint_t                                     level,
+                                    const vtk::DoFType&                        dofType );
 };
 
 } // namespace hyteg

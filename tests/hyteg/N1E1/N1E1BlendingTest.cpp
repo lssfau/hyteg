@@ -24,7 +24,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"

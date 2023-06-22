@@ -18,11 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/dataexport/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 
 #include "vtk/UtilityFunctions.h"

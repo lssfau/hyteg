@@ -20,7 +20,7 @@
 #include "core/Environment.h"
 #include "core/debug/all.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"

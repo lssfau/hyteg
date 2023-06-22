@@ -26,7 +26,7 @@
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/geometry/TokamakMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"

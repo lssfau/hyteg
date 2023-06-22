@@ -27,7 +27,7 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
