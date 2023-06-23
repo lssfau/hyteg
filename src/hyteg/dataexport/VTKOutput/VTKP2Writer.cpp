@@ -73,29 +73,29 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    output << "<PointData>\n";
 
    // write all scalar P2Functions of supported value type
-   for ( const auto& function : mgr.p2Functions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< double >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< int64_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
    // write all P2VectorFunctions of supported value type
-   for ( const auto& function : mgr.p2VecFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2VecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2VecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< int64_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

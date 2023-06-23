@@ -62,15 +62,15 @@ void VTKN1E1Writer::write( const VTKOutput& mgr, std::ostream& output, const uin
    output << "<CellData>\n";
 
    // write all N1E1VectorFunctions of supported value type
-   for ( const auto& function : mgr.n1e1Functions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.n1e1Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.n1e1Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int64_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.vtkDataFormat_ );
    }

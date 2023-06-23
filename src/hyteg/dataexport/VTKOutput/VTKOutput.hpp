@@ -29,6 +29,7 @@
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
@@ -81,86 +82,12 @@ class VTKOutput
 
    void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
-   template < typename value_t >
-   inline void add( const P0Function< value_t >& function )
+   /// Add an FE Function to became part of the next dataexport phase
+   template < template < typename > class func_t, typename value_t >
+   inline void add( const func_t< value_t >& function )
    {
-      dgFunctions_.push_back( *function.getDGFunction() );
+      feFunctionRegistry_.add< func_t, value_t >( function );
    }
-   template < typename value_t >
-   inline void add( const DG1Function< value_t >& function )
-   {
-      dgFunctions_.push_back( *function.getDGFunction() );
-   }
-
-   template < typename value_t >
-   inline void add( const P1Function< value_t >& function )
-   {
-      p1Functions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const P2Function< value_t >& function )
-   {
-      p2Functions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const P1VectorFunction< value_t >& function )
-   {
-      p1VecFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const P2VectorFunction< value_t >& function )
-   {
-      p2VecFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const dg::DGVectorFunction< value_t >& function )
-   {
-      dgVecFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const EGFunction< value_t >& function )
-   {
-      p1dgeVecFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const EdgeDoFFunction< value_t >& function )
-   {
-      edgeDoFFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const dg::DGFunction< value_t >& function )
-   {
-      dgFunctions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const n1e1::N1E1VectorFunction< value_t >& function )
-   {
-      n1e1Functions_.push_back( function );
-   }
-
-   template < typename value_t >
-   inline void add( const BlockFunction< value_t >& function )
-   {
-      for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
-      {
-         add( function[k] );
-      }
-   }
-
-   template < typename value_t >
-   void add( const GenericFunction< value_t >& function );
-
-   void add( const P1StokesFunction< real_t >& function );
-   void add( const P2P1TaylorHoodFunction< real_t >& function );
-   void add( const EGP0StokesFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -232,47 +159,23 @@ class VTKOutput
 
    /// Writes only macro-cells.
    void set3D() { write2D_ = false; }
-  
+
    template < template < typename > class WrapperFunc, typename func_t >
    void unwrapAndAdd( const WrapperFunc< func_t >& function )
    {
       add( function.unwrap() );
    }
 
-   template < typename WrapperFunc, typename value_t >
-   bool tryUnwrapAndAdd( const GenericFunction< value_t >& function )
-   {
-      bool               success = false;
-      const WrapperFunc* aux     = dynamic_cast< const WrapperFunc* >( &function );
-      if ( aux != nullptr )
-      {
-         add( aux->unwrap() );
-         success = true;
-      }
-      return success;
-   }
-
    std::string dir_;
    std::string filename_;
 
-   const std::string defaultFMT_ = "format=\"ascii\"";
+   const std::string defaultFMT_ = R"(format="ascii")";
 
    uint_t writeFrequency_;
 
    bool write2D_;
 
-   FunctionMultiStore< P1Function > p1Functions_;
-   FunctionMultiStore< P2Function > p2Functions_;
-
-   FunctionMultiStore< P1VectorFunction > p1VecFunctions_;
-   FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
-
-   FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
-
-   FunctionMultiStore< dg::DGFunction >           dgFunctions_;
-   FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;
-   FunctionMultiStore< dg::DGVectorFunction >     dgVecFunctions_;
-   FunctionMultiStore< EGFunction >               p1dgeVecFunctions_;
+   FEFunctionRegistry feFunctionRegistry_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

@@ -1,0 +1,254 @@
+/*
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+#pragma once
+
+#include "core/DataTypes.h"
+
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
+#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/egfunctionspace/EGFunction.hpp"
+#include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/functions/FunctionMultiStore.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+
+namespace hyteg {
+
+class FEFunctionRegistry
+{
+ public:
+   /// Add an FE Function to the registry
+   template < template < typename > class func_t, typename value_t >
+   inline void add( const func_t< value_t >& function )
+   {
+      // -------------
+      //  CGFunctions
+      // -------------
+
+      // P1Functions
+      if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > )
+      {
+         p1Functions_.push_back( function );
+      }
+
+      // P1VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
+      {
+         p1VecFunctions_.push_back( function );
+      }
+
+      // P2Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > )
+      {
+         p2Functions_.push_back( function );
+      }
+
+      // P2VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+      {
+         p2VecFunctions_.push_back( function );
+      }
+
+      // EdgeDoFFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
+      {
+         edgeDoFFunctions_.push_back( function );
+      }
+
+      // -------------
+      //  DGFunctions
+      // -------------
+
+      // P0Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P0Function< value_t > > )
+      {
+         dgFunctions_.push_back( *function.getDGFunction() );
+      }
+
+      // DG1Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, DG1Function< value_t > > )
+      {
+         dgFunctions_.push_back( *function.getDGFunction() );
+      }
+
+      // DGFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, dg::DGFunction< value_t > > )
+      {
+         dgFunctions_.push_back( function );
+      }
+
+      // DGVectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, dg::DGVectorFunction< value_t > > )
+      {
+         dgVecFunctions_.push_back( function );
+      }
+
+      // ---------------------------------
+      //  Special and Composite Functions
+      // ---------------------------------
+
+      // N1E1VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > )
+      {
+         n1e1Functions_.push_back( function );
+      }
+
+      // EGFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, EGFunction< value_t > > )
+      {
+         p1dgeVecFunctions_.push_back( function );
+      }
+
+      // P1StokesFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, P1StokesFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // P2P1TaylorHoodFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // EGP0StokesFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, EGP0StokesFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // -----------------------
+      //  "Technical" Functions
+      // -----------------------
+
+      // BlockFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, BlockFunction< value_t > > )
+      {
+         for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+         {
+            this->add( function[k] );
+         }
+      }
+
+      // GenericFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, GenericFunction< value_t > > )
+      {
+         addGenericFunction( function );
+      }
+
+      // NO MATCH !!!
+      else
+      {
+        WALBERLA_ABORT( "Could not add function of type " << FunctionTrait< func_t< value_t > >::getTypeName() << " to FEFunctionRegistry!" );
+      }
+   }
+
+   const FunctionMultiStore< P1Function >&               getP1Functions() const { return p1Functions_; }
+   const FunctionMultiStore< P2Function >&               getP2Functions() const { return p2Functions_; }
+   const FunctionMultiStore< P1VectorFunction >&         getP1VectorFunctions() const { return p1VecFunctions_; }
+   const FunctionMultiStore< P2VectorFunction >&         getP2VectorFunctions() const { return p2VecFunctions_; }
+   const FunctionMultiStore< EdgeDoFFunction >&          getEdgeDoFFunctions() const { return edgeDoFFunctions_; }
+   const FunctionMultiStore< dg::DGFunction >&           getDGFunctions() const { return dgFunctions_; }
+   const FunctionMultiStore< dg::DGVectorFunction >&     getDGVectorFunctions() const { return dgVecFunctions_; }
+   const FunctionMultiStore< n1e1::N1E1VectorFunction >& getN1E1VectorFunctions() const { return n1e1Functions_; }
+   const FunctionMultiStore< EGFunction >&               getEGFunctions() const { return p1dgeVecFunctions_; }
+
+ private:
+   FunctionMultiStore< P1Function >               p1Functions_;
+   FunctionMultiStore< P2Function >               p2Functions_;
+   FunctionMultiStore< P1VectorFunction >         p1VecFunctions_;
+   FunctionMultiStore< P2VectorFunction >         p2VecFunctions_;
+   FunctionMultiStore< EdgeDoFFunction >          edgeDoFFunctions_;
+   FunctionMultiStore< dg::DGFunction >           dgFunctions_;
+   FunctionMultiStore< dg::DGVectorFunction >     dgVecFunctions_;
+   FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;
+   FunctionMultiStore< EGFunction >               p1dgeVecFunctions_;
+
+   template < typename value_t >
+   void addGenericFunction( const GenericFunction< value_t >& function )
+   {
+      bool matchFound = false;
+      switch ( function.getFunctionKind() )
+      {
+      case functionTraits::P1_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< value_t > > >( function );
+         break;
+
+      case functionTraits::P2_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< value_t > > >( function );
+         break;
+
+      case functionTraits::P1_VECTOR_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< value_t > > >( function );
+         break;
+
+      case functionTraits::P2_VECTOR_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< value_t > > >( function );
+         break;
+
+      case functionTraits::DG_VECTOR_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGVectorFunction< value_t > > >( function );
+         break;
+
+      case functionTraits::EDGE_DOF_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< value_t > > >( function );
+         break;
+
+      case functionTraits::DG_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGFunction< value_t > > >( function );
+         break;
+
+      case functionTraits::N1E1_VECTOR_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< n1e1::N1E1VectorFunction< value_t > > >( function );
+         break;
+
+      default:
+         matchFound = false;
+      }
+
+      if ( !matchFound )
+      {
+         WALBERLA_ABORT( "FEFunctionRegistry: Failed to add GenericFunction object!" );
+      }
+   }
+
+   template < typename WrapperFunc, typename value_t >
+   bool tryUnwrapAndAdd( const GenericFunction< value_t >& function )
+   {
+      bool               success = false;
+      const WrapperFunc* aux     = dynamic_cast< const WrapperFunc* >( &function );
+      if ( aux != nullptr )
+      {
+         add( aux->unwrap() );
+         success = true;
+      }
+      return success;
+   }
+};
+
+} // namespace hyteg
