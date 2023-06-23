@@ -48,23 +48,13 @@ class PETScLUSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
-   : PETScLUSolver( storage,
-                    level,
-                    typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
-
-   {
-      // remember that the numerator object was not passed to the constructor
-      selfConstructedNumerator_ = true;
-   }
 
    PETScLUSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
-                  const uint_t&                                                         level,
-                  const typename OperatorType::srcType::template FunctionType< idx_t >& numerator )
+                  const uint_t&                                                         level)
    : storage_( storage )
    , allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
-   , num_( numerator )
+   , num_( typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
    , Amat_( "Amat", petscCommunicator_ )
    , AmatUnsymmetric_( "AmatUnsymmetric", petscCommunicator_ )
    , AmatTmp_( "AmatTmp", petscCommunicator_ )
@@ -231,10 +221,8 @@ class PETScLUSolver : public Solver< OperatorType >
       // if the numerator was constructed internally we should copy the Boundary Condition info
       // to it, because that is the only way to get it into hyteg::applyDirichletBC() where
       // the corresponding DoF indices will be computed
-      if ( selfConstructedNumerator_ )
-      {
-         num_.copyBoundaryConditionFromFunction( x );
-      }
+      num_.copyBoundaryConditionFromFunction( x );
+
 
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
@@ -269,9 +257,6 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "Solver" );
       timer.start();
 
-      //Amat_.print("LU_A.m", false,PETSC_VIEWER_ASCII_MATLAB);
-      //WALBERLA_ABORT("bye.")
-
       KSPSolve( ksp_, bVec_.get(), xVec_.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
@@ -294,7 +279,6 @@ class PETScLUSolver : public Solver< OperatorType >
    uint_t                                                         allocatedLevel_;
    MPI_Comm                                                       petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< idx_t > num_;
-   bool                                                           selfConstructedNumerator_{ false };
    PETScSparseMatrix< OperatorType >                              Amat_;
    PETScSparseMatrix< OperatorType >                              AmatUnsymmetric_;
    PETScSparseMatrix< OperatorType >                              AmatTmp_;

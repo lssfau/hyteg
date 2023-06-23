@@ -552,7 +552,7 @@ namespace hyteg {
                             break;
                         }
                         case 1: {
-                            PETScLUSolver<StokesOperatorType> solver(storage_, level, numerator);
+                            PETScLUSolver<StokesOperatorType> solver(storage_, level);
                             solver.disableApplicationBC(usesNitscheBCs<StokesOperatorType>());
                             /*StokesFunctionType nullSpace("ns", storage_, level, level);
                                                nullSpace.uvw().interpolate(0, level, All);
