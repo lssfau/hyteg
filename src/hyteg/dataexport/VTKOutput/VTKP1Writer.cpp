@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/VTKP1Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKHelpers.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 // from walberla
 #include "vtk/UtilityFunctions.h"
@@ -75,28 +75,28 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    output << "<PointData>\n";
 
    // write all scalar P1Functions of supported value type
-   for ( const auto& function : mgr.p1Functions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1Functions().getFunctions< double >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p1Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1Functions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p1Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1Functions().getFunctions< int64_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
-   for ( const auto& function : mgr.p1VecFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1VectorFunctions().getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p1VecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1VectorFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p1VecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1VectorFunctions().getFunctions< int64_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

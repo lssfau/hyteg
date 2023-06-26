@@ -499,7 +499,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"

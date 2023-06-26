@@ -27,7 +27,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
 #include "hyteg/forms/form_fenics_generated/p2_mass.h"

@@ -208,7 +208,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 

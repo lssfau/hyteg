@@ -22,7 +22,7 @@
 #include "core/math/Random.h"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"

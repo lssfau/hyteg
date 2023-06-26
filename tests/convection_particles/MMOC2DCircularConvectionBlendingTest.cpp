@@ -23,7 +23,7 @@
 #include <hyteg/geometry/AnnulusMap.hpp>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

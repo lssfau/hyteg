@@ -28,7 +28,7 @@
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScManager.hpp"

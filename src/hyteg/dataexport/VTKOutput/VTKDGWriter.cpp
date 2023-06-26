@@ -17,12 +17,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#include "hyteg/dataexport/VTKDGWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKDGWriter.hpp"
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKHelpers.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 
 // from walberla
@@ -82,29 +82,29 @@ void VTKDGWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_
    output << "<PointData>\n";
 
    // write all scalar DGFunctions of supported value type
-   for ( const auto& function : mgr.dgFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGFunctions().getFunctions< double >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.dgFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGFunctions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.dgFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGFunctions().getFunctions< int64_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
    // write all P2VectorFunctions of supported value type
-   for ( const auto& function : mgr.dgVecFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGVectorFunctions().getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.dgVecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGVectorFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.dgVecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGVectorFunctions().getFunctions< int64_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

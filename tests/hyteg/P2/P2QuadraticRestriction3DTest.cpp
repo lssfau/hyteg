@@ -23,7 +23,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"

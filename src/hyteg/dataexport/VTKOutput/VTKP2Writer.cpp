@@ -18,11 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/dataexport/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 
 #include "vtk/UtilityFunctions.h"
@@ -45,12 +44,12 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
                                      storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 ) :
                                      storage->getNumberOfLocalCells() * levelinfo::num_microvertices_per_cell( level + 1 );
 
-   const uint_t faceCountLevel = mgr.useVTKQuadraticTriangle_ ? level : level + 1;
-   const uint_t cellCountLevel = mgr.useVTKQuadraticTetra_ ? level : level + 1;
+   const uint_t faceCountLevel = level;
+   const uint_t cellCountLevel = level;
 
-   const uint_t numberOfCells  = mgr.write2D_ ?
-                                     storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( faceCountLevel ) :
-                                     storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( cellCountLevel );
+   const uint_t numberOfCells = mgr.write2D_ ?
+                                    storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( faceCountLevel ) :
+                                    storage->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( cellCountLevel );
 
    vtk::writePieceHeader( output, numberOfPoints, numberOfCells );
 
@@ -64,53 +63,39 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    if ( mgr.write2D_ )
    {
-      if ( mgr.useVTKQuadraticTriangle_ )
-      {
-         VTKMeshWriter::writeConnectivityP2Triangles( mgr, output, storage, level, false );
-      }
-      else
-      {
-         VTKMeshWriter::writeCells2D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
-      }
+      VTKMeshWriter::writeConnectivityP2Triangles( mgr, output, storage, level, false );
    }
    else
    {
-      if ( mgr.useVTKQuadraticTetra_ )
-      {
-         VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr, output, storage, level, false );
-      }
-      else
-      {
-         VTKMeshWriter::writeCells3D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
-      }
+      VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr, output, storage, level, false );
    }
 
    output << "<PointData>\n";
 
    // write all scalar P2Functions of supported value type
-   for ( const auto& function : mgr.p2Functions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< double >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< int64_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
    // write all P2VectorFunctions of supported value type
-   for ( const auto& function : mgr.p2VecFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2VecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-   for ( const auto& function : mgr.p2VecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< int64_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

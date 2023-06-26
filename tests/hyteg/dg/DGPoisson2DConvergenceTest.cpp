@@ -21,7 +21,7 @@
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"

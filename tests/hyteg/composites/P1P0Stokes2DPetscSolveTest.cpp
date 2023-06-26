@@ -25,7 +25,7 @@
 
 #include "hyteg/composites/P1P0StokesFunction.hpp"
 #include "hyteg/composites/P1P0StokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"

@@ -27,7 +27,7 @@
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"

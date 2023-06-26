@@ -25,7 +25,7 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

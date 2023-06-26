@@ -38,7 +38,7 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "core/Format.hpp"
 

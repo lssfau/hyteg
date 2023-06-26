@@ -28,7 +28,7 @@
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

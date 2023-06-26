@@ -48,7 +48,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "core/Format.hpp"

@@ -24,7 +24,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/generatedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

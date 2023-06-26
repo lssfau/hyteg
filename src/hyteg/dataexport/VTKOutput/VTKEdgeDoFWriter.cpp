@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKEdgeDoFWriter.hpp"
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/VTKHelpers.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 
 // from walberla
@@ -38,7 +38,7 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
                     dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||
                     dofType == vtk::DoFType::EDGE_XYZ );
 
-   if ( mgr.edgeDoFFunctions_.size() == 0 )
+   if ( mgr.feFunctionRegistry_.getEdgeDoFFunctions().size() == 0 )
    {
       return;
    }
@@ -81,15 +81,15 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
 
    output << "<PointData>\n";
 
-   for ( const auto& function : mgr.edgeDoFFunctions_.getFunctions< double >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< double >() )
    {
       writeScalarFunction( mgr, output, function, storage, level, dofType );
    }
-   for ( const auto& function : mgr.edgeDoFFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< int32_t >() )
    {
       writeScalarFunction( mgr, output, function, storage, level, dofType );
    }
-   for ( const auto& function : mgr.edgeDoFFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : mgr.feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< int64_t >() )
    {
       writeScalarFunction( mgr, output, function, storage, level, dofType );
    }

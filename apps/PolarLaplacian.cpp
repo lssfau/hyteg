@@ -21,7 +21,7 @@
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"

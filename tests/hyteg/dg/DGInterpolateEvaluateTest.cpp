@@ -22,7 +22,7 @@
 #include "core/math/Constants.h"
 #include "core/math/Random.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"

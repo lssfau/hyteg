@@ -35,7 +35,7 @@
 #include "hyteg/composites/P2P2StabilizedStokesOperator.hpp"
 #include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"

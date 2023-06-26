@@ -22,7 +22,7 @@
 #include "core/timing/Timer.h"
 #include "core/math/Random.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/solvers/CGSolver.hpp"

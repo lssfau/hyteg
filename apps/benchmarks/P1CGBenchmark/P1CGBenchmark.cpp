@@ -22,7 +22,7 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"

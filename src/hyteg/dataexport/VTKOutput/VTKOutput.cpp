@@ -17,13 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 #include "core/Format.hpp"
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/VTKDGWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKDGWriter.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
@@ -57,72 +57,6 @@ VTKOutput::VTKOutput( std::string                                dir,
    if ( storage->hasGlobalCells() )
    {
       set3D();
-   }
-}
-
-void VTKOutput::add( const P1StokesFunction< real_t >& function )
-{
-   add( function.uvw() );
-   add( function.p() );
-}
-
-void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
-{
-   add( function.uvw() );
-   add( function.p() );
-}
-
-void VTKOutput::add( const EGP0StokesFunction< real_t >& function )
-{
-   add( function.uvw() );
-   add( function.p() );
-}
-
-template < typename value_t >
-void VTKOutput::add( const GenericFunction< value_t >& function )
-{
-   bool matchFound = false;
-   switch ( function.getFunctionKind() )
-   {
-   case functionTraits::P1_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< value_t > > >( function );
-      break;
-
-   case functionTraits::P2_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< value_t > > >( function );
-      break;
-
-   case functionTraits::P1_VECTOR_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< value_t > > >( function );
-      break;
-
-   case functionTraits::P2_VECTOR_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< value_t > > >( function );
-      break;
-
-   case functionTraits::DG_VECTOR_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGVectorFunction< value_t > > >( function );
-      break;
-
-   case functionTraits::EDGE_DOF_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< value_t > > >( function );
-      break;
-
-   case functionTraits::DG_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< dg::DGFunction< value_t > > >( function );
-      break;
-
-   case functionTraits::N1E1_VECTOR_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< n1e1::N1E1VectorFunction< value_t > > >( function );
-      break;
-
-   default:
-      matchFound = false;
-   }
-
-   if ( !matchFound )
-   {
-      WALBERLA_ABORT( "VTKOutput: Failed to add GenericFunction object!" );
    }
 }
 
@@ -185,7 +119,7 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
    switch ( dofType )
    {
    case vtk::DoFType::VERTEX:
-      return p1Functions_.size() + p1VecFunctions_.size();
+      return feFunctionRegistry_.getP1Functions().size() + feFunctionRegistry_.getP1VectorFunctions().size();
    case vtk::DoFType::EDGE_X:
    case vtk::DoFType::EDGE_Y:
    case vtk::DoFType::EDGE_Z:
@@ -193,16 +127,16 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
    case vtk::DoFType::EDGE_XZ:
    case vtk::DoFType::EDGE_YZ:
    case vtk::DoFType::EDGE_XYZ:
-      return edgeDoFFunctions_.size();
+      return feFunctionRegistry_.getEdgeDoFFunctions().size();
    case vtk::DoFType::DG:
-      return dgFunctions_.size() + dgVecFunctions_.size();
+      return feFunctionRegistry_.getDGFunctions().size() + feFunctionRegistry_.getDGVectorFunctions().size();
    case vtk::DoFType::P2:
-      return p2Functions_.size() + p2VecFunctions_.size();
+      return feFunctionRegistry_.getP2Functions().size() + feFunctionRegistry_.getP2VectorFunctions().size();
    case vtk::DoFType::P1DGE:
-      return p1dgeVecFunctions_.size();
+      return feFunctionRegistry_.getEGFunctions().size();
       break;
    case vtk::DoFType::N1E1:
-      return n1e1Functions_.size();
+      return feFunctionRegistry_.getN1E1VectorFunctions().size();
       break;
    default:
       WALBERLA_ABORT( "[VTK] DoFType not supported!" );
@@ -282,15 +216,15 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------
    //  P1Functions [double, int32_t, int64_t]
    // ----------------------------------------
-   for ( const auto& function : p1Functions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getP1Functions().getFunctions< double >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< double > >( function, level );
    }
-   for ( const auto& function : p1Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP1Functions().getFunctions< int32_t >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int32_t > >( function, level );
    }
-   for ( const auto& function : p1Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP1Functions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int64_t > >( function, level );
    }
@@ -298,15 +232,15 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------------
    //  P1VectorFunctions [double, int32_t, int64_t]
    // ----------------------------------------------
-   for ( const auto& function : p1VecFunctions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getP1VectorFunctions().getFunctions< double >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p1VecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP1VectorFunctions().getFunctions< int32_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p1VecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP1VectorFunctions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
@@ -314,15 +248,15 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------
    //  P2Functions [double, int32_t, int64_t]
    // ----------------------------------------
-   for ( const auto& function : p2Functions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getP2Functions().getFunctions< double >() )
    {
       hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p2Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP2Functions().getFunctions< int32_t >() )
    {
       hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p2Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP2Functions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
    }
@@ -330,15 +264,15 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ----------------------------------------------
    //  P2VectorFunctions [double, int32_t, int64_t]
    // ----------------------------------------------
-   for ( const auto& function : p2VecFunctions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getP2VectorFunctions().getFunctions< double >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p2VecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP2VectorFunctions().getFunctions< int32_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p2VecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getP2VectorFunctions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
@@ -352,15 +286,15 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ---------------------------------------------
    //  EdgeDoFFunctions [double, int32_t, int64_t]
    // ---------------------------------------------
-   for ( const auto& function : edgeDoFFunctions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< double >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : edgeDoFFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< int32_t >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : edgeDoFFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
@@ -374,17 +308,17 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // -----------------------------------------------
    //  N1E1VectorFunction [double, int32_t, int64_t]
    // -----------------------------------------------
-   for ( const auto& function : n1e1Functions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< double >() )
    {
       function.communicate< Face, Cell >( level );
       function.communicate< Edge, Cell >( level );
    }
-   for ( const auto& function : n1e1Functions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int32_t >() )
    {
       function.communicate< Face, Cell >( level );
       function.communicate< Edge, Cell >( level );
    }
-   for ( const auto& function : n1e1Functions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int64_t >() )
    {
       function.communicate< Face, Cell >( level );
       function.communicate< Edge, Cell >( level );
@@ -393,15 +327,15 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    // ---------------------------------------------
    //  EGFunction [double, int32_t, int64_t]
    // ---------------------------------------------
-   for ( const auto& function : p1dgeVecFunctions_.getFunctions< double >() )
+   for ( const auto& function : feFunctionRegistry_.getEGFunctions().getFunctions< double >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p1dgeVecFunctions_.getFunctions< int32_t >() )
+   for ( const auto& function : feFunctionRegistry_.getEGFunctions().getFunctions< int32_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
-   for ( const auto& function : p1dgeVecFunctions_.getFunctions< int64_t >() )
+   for ( const auto& function : feFunctionRegistry_.getEGFunctions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }

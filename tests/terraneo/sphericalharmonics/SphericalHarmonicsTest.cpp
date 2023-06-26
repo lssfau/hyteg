@@ -1,0 +1,157 @@
+/*
+ * Copyright (c) 2023 Marcus Mohr.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// Perform some basic tests on the spherical harmonics computed by
+// the SphericalHarmonicsTool. In detail we pick a number of test
+// candidates and check for a range of spherical harmonics of
+// varying degree and order orthogonality and geodetic normalisation.
+
+#include <cmath>
+
+#include "core/DataTypes.h"
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/math/Constants.h"
+#include "core/mpi/MPIManager.h"
+
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/experimental/SphericalElementFunction.hpp"
+#include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/geometry/ThinShellMap.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
+
+using terraneo::SphericalHarmonicsTool;
+using walberla::real_c;
+using walberla::real_t;
+using walberla::math::pi;
+using namespace hyteg;
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   // =========
+   //  Meshing
+   // =========
+   const uint_t nTan = 3;
+
+   std::shared_ptr< hyteg::MeshInfo > meshInfo;
+   meshInfo = std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::meshThinSphericalShell( nTan, real_c( 1 ) ) );
+
+   hyteg::SetupPrimitiveStorage setupStorage( *meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::loadbalancing::roundRobin( setupStorage );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+   ThinShellMap::setMap( setupStorage, real_c( 1 ) );
+
+   std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
+
+   // =============================
+   //  Prepare Spherical Harmonics
+   // =============================
+   const uint_t level     = 5;
+   const uint_t maxDegree = 5; // maximal degree \ell of spherical harmonics we are going to use
+
+   // This will be our analytic spherical harmonics function
+   std::shared_ptr< SphericalHarmonicsTool > sphTool           = std::make_shared< SphericalHarmonicsTool >( maxDegree );
+   uint_t                                    degree            = 0; // need this here to capture references
+   int                                       order             = 0; // same here
+   std::function< real_t( const Point3D& ) > sphericalHarmonic = [sphTool, &degree, &order]( const Point3D& x ) {
+      return sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
+   };
+
+   // Setup three test candidates as FE functions
+   std::vector< SphericalElementFunction< real_t > > candidates;
+   std::vector< uint_t >                             degrees{ 2, 3, 5 };
+   std::vector< int >                                orders{ 0, 3, -4 };
+
+   for ( uint_t idx = 0; idx < degrees.size(); ++idx )
+   {
+      candidates.emplace_back( "spherical harmonic", storage, level, level );
+      degree = degrees[idx];
+      order  = orders[idx];
+      candidates[idx].interpolate( sphericalHarmonic, level, All );
+   }
+
+   // =========
+   //  Testing
+   // =========
+   SphericalElementFunction< real_t > auxFunc( "auxilliary function", storage, level, level );
+   SphericalElementFunction< real_t > sphFunc( "spherical harmonics test function", storage, level, level );
+
+   P1ElementwiseOperator< SphericalElementFormMass > SphericalMass( storage, level, level );
+
+   uint_t countFails = 0;
+
+   for ( uint_t idx = 0; idx < degrees.size(); ++idx )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "--- TESTING CANDIDATE #" << idx << " [degree = " << degrees[idx] << ", order = " << orders[idx]
+                                                           << "] ---" );
+
+      SphericalMass.apply( candidates[idx], auxFunc, level, All );
+
+      for ( degree = 2; degree <= 5; ++degree )
+      {
+         for ( order = int_c( -degree ); order <= int_c( degree ); ++order )
+         {
+            sphFunc.interpolate( sphericalHarmonic, level, All );
+            real_t checkVal = sphFunc.dotGlobal( auxFunc, level, All );
+            real_t tolerance = real_c( 5e-13 );
+            if ( degree == degrees[idx] && order == orders[idx] )
+            {
+                checkVal -= real_c( 4 ) * pi;
+               tolerance = real_c( 1e-13 );
+            }
+            checkVal = std::abs( checkVal );
+            WALBERLA_LOG_INFO_ON_ROOT( "(degree, order) = (" << degree << ", " << std::showpos << std::scientific << order
+                                                             << ") --> check value = " << checkVal << (checkVal < tolerance ? "" : " *********" ) );
+            if ( !( checkVal < tolerance ) ) {
+              countFails++;
+            }
+            {
+               std::stringstream stream;
+               stream << "SphericalHarmonicsTest-l=" << degree << "-m=" << order;
+               VTKOutput vtkOutput( "../../output", stream.str(), storage );
+               vtkOutput.add( auxFunc );
+               vtkOutput.add( candidates[idx] );
+               vtkOutput.add( sphFunc );
+               vtkOutput.write( level );
+            }
+            // WALBERLA_CHECK_LESS( checkVal, tolerance );
+         }
+      }
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "# of FAILS = " << countFails );
+
+   return EXIT_SUCCESS;
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2022 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,32 +19,23 @@
  */
 #pragma once
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 namespace hyteg {
 
 class VTKOutput;
 
-class VTKP2Writer
+class VTKN1E1Writer
 {
  public:
    static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
 
  private:
    template < typename value_t >
-   static void writeScalarFunction( std::ostream&                              output,
-                                    const P2Function< value_t >&               function,
-                                    const std::shared_ptr< PrimitiveStorage >& storage,
-                                    const uint_t&                              level,
-                                    bool                                       write2D,
-                                    vtk::DataFormat                            vtkDataFormat );
-
-   template < typename value_t >
    static void writeVectorFunction( std::ostream&                              output,
-                                    const P2VectorFunction< value_t >&         function,
+                                    const n1e1::N1E1VectorFunction< value_t >& function,
                                     const std::shared_ptr< PrimitiveStorage >& storage,
                                     const uint_t&                              level,
-                                    bool                                       write2D,
                                     vtk::DataFormat                            vtkDataFormat );
 };
 
