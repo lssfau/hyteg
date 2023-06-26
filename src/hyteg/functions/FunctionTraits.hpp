@@ -173,7 +173,10 @@ typedef enum
 
 /// Empty trait
 template < typename FunctionType >
-struct FunctionTrait;
+struct FunctionTrait
+{
+   static std::string getTypeName() { return "Unknown Type"; }
+};
 
 /// Vertex DoF specialization
 template < typename VType >
