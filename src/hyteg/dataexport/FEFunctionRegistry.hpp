@@ -155,6 +155,14 @@ class FEFunctionRegistry
          }
       }
 
+      else if constexpr ( std::is_base_of_v< BlockFunction< value_t >, func_t< value_t > > )
+      {
+         for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+         {
+            this->add( function[k] );
+         }
+      }
+
       // GenericFunction
       else if constexpr ( std::is_same_v< func_t< value_t >, GenericFunction< value_t > > )
       {
@@ -164,7 +172,7 @@ class FEFunctionRegistry
       // NO MATCH !!!
       else
       {
-        WALBERLA_ABORT( "Could not add function of type " << FunctionTrait< func_t< value_t > >::getTypeName() << " to FEFunctionRegistry!" );
+        WALBERLA_ABORT( "Could not add function of type '" << FunctionTrait< func_t< value_t > >::getTypeName() << "' to FEFunctionRegistry!" );
       }
    }
 
