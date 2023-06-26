@@ -26,19 +26,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
-#include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/FEFunctionRegistry.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
-#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/egfunctionspace/EGFunction.hpp"
-#include "hyteg/functions/BlockFunction.hpp"
-#include "hyteg/functions/FunctionMultiStore.hpp"
-#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/dataexport/FEFunctionWriter.hpp"
 
 // our friends and helpers
 
