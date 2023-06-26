@@ -743,7 +743,8 @@ if (HYTEG_BUILD_WITH_TRILINOS)
     waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
 
     waLBerla_compile_test(FILES trilinos/TrilinosDirectSolverTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME TrilinosDirectSolverTest)
+    #TODO: renable test one the spack installed trilinos contains MUMPS (spack v0.20)
+    #waLBerla_execute_test(NAME TrilinosDirectSolverTest)
 endif ()
 
 waLBerla_compile_test(FILES meshes/TokamakLaplaceTest.cpp DEPENDS hyteg core)
