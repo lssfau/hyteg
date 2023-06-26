@@ -27,7 +27,6 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dataexport/FEFunctionRegistry.hpp"
-#include "hyteg/dataexport/FEFunctionWriter.hpp"
 
 // our friends and helpers
 
