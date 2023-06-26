@@ -36,6 +36,13 @@
 
 namespace hyteg {
 
+/// Class to hold different Finite Element functions
+///
+/// This class allows registering Finite Element functions of different kind
+/// and different value types (real_t, int64_t, ...). This functionality is
+/// for example used by the VTKOutput class. For every supported kind of
+/// FE function there exists a corresponding getter method which returns a
+/// reference to the associated FunctionMultiStore onject.
 class FEFunctionRegistry
 {
  public:
