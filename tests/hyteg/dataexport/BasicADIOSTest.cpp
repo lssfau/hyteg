@@ -27,7 +27,7 @@
 #include "core/timing/all.h"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

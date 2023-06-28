@@ -25,6 +25,10 @@
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#endif
+
 // from walberla
 #include "vtk/UtilityFunctions.h"
 
@@ -350,8 +354,8 @@ void VTKMeshWriter::writeElementNodeAssociationP1Triangles( dstStream_t&        
             const uint_t numMicroFacesAtBoundary = faceType == facedof::FaceType::GRAY ? faceWidth - 1 : faceWidth - 2;
             for ( const auto& idxIt : indexing::FaceIterator( numMicroFacesAtBoundary ) )
             {
-               dstStream << offset << offset + 1 << offset + 2;
-               offset += 3;
+               dstStream << offset << offset + 1u << offset + 2u;
+               offset += 3u;
                WALBERLA_UNUSED( idxIt );
             }
          }
@@ -365,14 +369,14 @@ void VTKMeshWriter::writeElementNodeAssociationP1Triangles( dstStream_t&        
          {
             for ( CellType j = 0; j < inner_rowsize - 1; ++j )
             {
-               dstStream << offset << offset + 1 << offset + inner_rowsize + 1;
-               dstStream << offset + 1 << offset + inner_rowsize + 2 << offset + inner_rowsize + 1;
+               dstStream << offset << offset + 1u << offset + inner_rowsize + 1u;
+               dstStream << offset + 1 << offset + inner_rowsize + 2u << offset + inner_rowsize + 1u;
                ++offset;
             }
 
-            dstStream << offset << offset + 1 << offset + inner_rowsize + 1;
+            dstStream << offset << offset + 1u << offset + inner_rowsize + 1u;
 
-            offset += 2;
+            offset += 2u;
             --inner_rowsize;
          }
       }
@@ -877,7 +881,6 @@ template void VTKMeshWriter::writePointsForMicroEdges( bool                     
                                                        const vtk::DoFType&                        dofType );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-
 template void VTKMeshWriter::writePointsForMicroVertices( bool                                       write2D,
                                                           AdiosWriter::StreamAccessBuffer< real_t >& dstStream,
                                                           const std::shared_ptr< PrimitiveStorage >& storage,

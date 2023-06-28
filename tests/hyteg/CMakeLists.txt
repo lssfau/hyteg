@@ -183,6 +183,9 @@ waLBerla_execute_test(NAME VTKOutputTest)
 if (HYTEG_BUILD_WITH_ADIOS2)
   waLBerla_compile_test(FILES dataexport/BasicADIOSTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME BasicADIOSTest)
+
+  waLBerla_compile_test(FILES dataexport/AdiosWriterTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME AdiosWriterTest)
 endif ()
 
 ## Forms ##
