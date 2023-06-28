@@ -146,10 +146,15 @@ class VTKOutput : public FEFunctionWriter
          if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
          {
             os << outputAscii_.str();
+            // reset string stream
+            // outputAscii_.str( std::string() );
+            // outputAscii_.clear();
          }
          else if ( vtkDataFormat_ == vtk::DataFormat::BINARY )
          {
             outputBase64_.toStream( os );
+            // Base64Writer::toStream() already reset the object
+            // so nothing left to do for us here
          }
       }
 
@@ -173,12 +178,6 @@ class VTKOutput : public FEFunctionWriter
 
    /// Writes only macro-cells.
    void set3D() { write2D_ = false; }
-
-   template < template < typename > class WrapperFunc, typename func_t >
-   void unwrapAndAdd( const WrapperFunc< func_t >& function )
-   {
-      add( function.unwrap() );
-   }
 
    std::string dir_;
    std::string filename_;

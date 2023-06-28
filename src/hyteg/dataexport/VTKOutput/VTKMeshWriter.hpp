@@ -30,32 +30,42 @@ class VTKMeshWriter
  public:
    /// \brief Writes the point coordinates for all micro vertices.
    ///
-   /// \param mgr           the corresponding VTKOutput instance
-   /// \param output        an output stream to write to
+   /// \param write2D       flag for toggling 2D and 3D
+   /// \param dstStream     an object that behaves like an output stream, i.e. we can write to it using the << operator
    /// \param storage       the associated PrimitiveStorage
    /// \param level         refinement level to write
    /// \param discontinuous if true, vertices are written for _each_ element - that means eventually each vertex is written
    ///                      multiple times so that discontinuous elements can be output
-   static void writePointsForMicroVertices( const VTKOutput&                           mgr,
-                                            std::ostream&                              output,
+   template < typename dstStream_t >
+   static void writePointsForMicroVertices( bool                                       write2D,
+                                            dstStream_t&                               dstStream,
                                             const std::shared_ptr< PrimitiveStorage >& storage,
                                             uint_t                                     level,
                                             bool                                       discontinuous = false );
 
-   static void writePointsForMicroEdges( const VTKOutput&                           mgr,
-                                         std::ostream&                              output,
+   /// \brief Writes the point coordinates for all micro edges, i.e. midpoint coordinates.
+   ///
+   /// \param write2D       flag for toggling 2D and 3D
+   /// \param dstStream     an object that behaves like an output stream, i.e. we can write to it using the << operator
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level to write
+   /// \param discontinuous if true, vertices are written for _each_ element - that means eventually each vertex is written
+   ///                      multiple times so that discontinuous elements can be output
+   template < typename dstStream_t >
+   static void writePointsForMicroEdges( bool                                       write2D,
+                                         dstStream_t&                               dstStream,
                                          const std::shared_ptr< PrimitiveStorage >& storage,
                                          uint_t                                     level,
                                          const vtk::DoFType&                        dofType );
 
    /// \brief Writes the 2D cells.
    ///
-   /// \param mgr           the corresponding VTKOutput instance
+   /// \param vtkDataFormat format in which data is stored in the VTK file
    /// \param output        an output stream to write to
    /// \param storage       the associated PrimitiveStorage
    /// \param faceWidth     number of micro-vertices per macro-edge
    /// \param discontinuous should match what is specified in VTKMeshWriter::writePointsForMicroVertices()
-   static void writeCells2D( const VTKOutput&                           mgr,
+   static void writeCells2D( vtk::DataFormat                            vtkDataFormat,
                              std::ostream&                              output,
                              const std::shared_ptr< PrimitiveStorage >& storage,
                              uint_t                                     faceWidth,
@@ -63,12 +73,12 @@ class VTKMeshWriter
 
    /// \brief Writes connectivity information for 2D cells of type VTK_QUADRATIC_TRIANGLE
    ///
-   /// \param mgr           the corresponding VTKOutput instance
+   /// \param vtkDataFormat format in which data is stored in the VTK file
    /// \param output        an output stream to write to
    /// \param storage       the associated PrimitiveStorage
    /// \param level         refinement level for output
    /// \param discontinuous only false is currently supported
-   static void writeConnectivityP2Triangles( const VTKOutput&                           mgr,
+   static void writeConnectivityP2Triangles( vtk::DataFormat                            vtkDataFormat,
                                              std::ostream&                              output,
                                              const std::shared_ptr< PrimitiveStorage >& storage,
                                              uint_t                                     level,
@@ -76,12 +86,12 @@ class VTKMeshWriter
 
    /// \brief Writes the 3D cells.
    ///
-   /// \param mgr           the corresponding VTKOutput instance
+   /// \param vtkDataFormat format in which data is stored in the VTK file
    /// \param output        an output stream to write to
    /// \param storage       the associated PrimitiveStorage
    /// \param faceWidth     number of micro-vertices per macro-edge
    /// \param discontinuous should match what is specified in VTKMeshWriter::writePointsForMicroVertices()
-   static void writeCells3D( const VTKOutput&                           mgr,
+   static void writeCells3D( vtk::DataFormat                            vtkDataFormat,
                              std::ostream&                              output,
                              const std::shared_ptr< PrimitiveStorage >& storage,
                              uint_t                                     width,
@@ -89,17 +99,62 @@ class VTKMeshWriter
 
    /// \brief Writes connectivity information for 3D cells of type VTK_QUADRATIC_TETRA
    ///
-   /// \param mgr           the corresponding VTKOutput instance
+   /// \param vtkDataFormat format in which data is stored in the VTK file
    /// \param output        an output stream to write to
    /// \param storage       the associated PrimitiveStorage
    /// \param level         refinement level for output
    /// \param discontinuous only false is currently supported
-   static void writeConnectivityP2Tetrahedrons( const VTKOutput&                           mgr,
+   static void writeConnectivityP2Tetrahedrons( vtk::DataFormat                            vtkDataFormat,
                                                 std::ostream&                              output,
                                                 const std::shared_ptr< PrimitiveStorage >& storage,
                                                 uint_t                                     level,
                                                 bool                                       discontinuous = false );
 
+   /// \brief Writes element <-> node association information for 2D cells of type VTK_QUADRATIC_TRIANGLE
+   ///
+   /// \param dstStream     stream-like object to write data to, must support operator<<
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   template < typename dstStream_t >
+   static void writeElementNodeAssociationP2Triangles( dstStream_t&                               dstStream,
+                                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                                       uint_t                                     level );
+
+   /// \brief Writes element <-> node association information for 3D cells of type VTK_QUADRATIC_TETRA
+   ///
+   /// \param dstStream     stream-like object to write data to, must support operator<<
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   template < typename dstStream_t >
+   static void writeElementNodeAssociationP2Tetrahedrons( dstStream_t&                               dstStream,
+                                                          const std::shared_ptr< PrimitiveStorage >& storage,
+                                                          uint_t                                     level );
+
+   /// \brief Writes element <-> node association information for 2D cells of type VTK_TRIANGLE
+   ///
+   /// \param dstStream     stream-like object to write data to, must support operator<<
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   /// \param discontinuous if true, vertices are written for _each_ element - that means eventually each vertex is written
+   ///                      multiple times so that discontinuous elements can be output
+   template < typename dstStream_t >
+   static void writeElementNodeAssociationP1Triangles( dstStream_t&                               dstStream,
+                                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                                       uint_t                                     faceWidth,
+                                                       bool                                       discontinuous = false );
+
+   /// \brief Writes element <-> node association information for 3D cells of type VTK_TETRAHEDRON
+   ///
+   /// \param dstStream     stream-like object to write data to, must support operator<<
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   /// \param discontinuous if true, vertices are written for _each_ element - that means eventually each vertex is written
+   ///                      multiple times so that discontinuous elements can be output
+   template < typename dstStream_t >
+   static void writeElementNodeAssociationP1Tetrahedrons( dstStream_t&                               dstStream,
+                                                          const std::shared_ptr< PrimitiveStorage >& storage,
+                                                          uint_t                                     width,
+                                                          bool                                       discontinuous = false );
 };
 
 } // namespace hyteg

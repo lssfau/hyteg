@@ -56,18 +56,22 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    output << "<Points>\n";
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
-   VTKMeshWriter::writePointsForMicroVertices( mgr, output, storage, level + 1 );
+   {
+      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level + 1 );
+      streamWriter.toStream( output );
+   }
 
    output << "\n</DataArray>\n";
    output << "</Points>\n";
 
    if ( mgr.write2D_ )
    {
-      VTKMeshWriter::writeConnectivityP2Triangles( mgr, output, storage, level, false );
+      VTKMeshWriter::writeConnectivityP2Triangles( mgr.vtkDataFormat_, output, storage, level, false );
    }
    else
    {
-      VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr, output, storage, level, false );
+      VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr.vtkDataFormat_, output, storage, level, false );
    }
 
    output << "<PointData>\n";
