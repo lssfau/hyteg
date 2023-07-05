@@ -171,8 +171,6 @@ class VTKOutput : public FEFunctionWriter
 
    std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
-   void syncAllFunctions( const uint_t& level ) const;
-
    /// Writes only macro-faces.
    void set2D() { write2D_ = true; }
 
