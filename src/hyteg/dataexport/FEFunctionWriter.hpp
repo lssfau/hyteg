@@ -37,7 +37,7 @@ class FEFunctionWriter
 
    /// Writes output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
-   virtual void write( const uint_t& level, const uint_t& timestep = 0 ) const = 0;
+   virtual void write( const uint_t level, const uint_t timestep = 0 ) = 0;
 
    /// Set parameter specified by string key to the value specified by string value
    virtual void setParameter( const std::string& key, const std::string& value ) = 0;
