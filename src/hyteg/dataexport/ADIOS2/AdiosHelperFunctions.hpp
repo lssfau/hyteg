@@ -28,4 +28,22 @@ namespace hyteg::adiosHelpers {
 std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointDataFunctions,
                                  const std::vector< std::string >& namesOfCellDataFunctions );
 
+/// Name of scalar variable to be used in exporting time-step information
+///
+/// We use this variable to ensure consistency between the different places where this
+/// variable name is needed, e.g in genewrateVTKMetaInfo and putTimeStepInfo. Note, though,
+/// that currently TIME is the only allowed value.
+extern const std::string nameOfTimeStepVariable;
+
+/// Schedule information on current time step to be exported
+inline void putTimeStepInfo( adios2::IO& io, adios2::Engine& engine, uint_t timestep )
+{
+   adios2::Variable< real_t > varTimeStep = io.InquireVariable< real_t >( nameOfTimeStepVariable );
+   if ( !varTimeStep )
+   {
+      varTimeStep = io.DefineVariable< real_t >( nameOfTimeStepVariable );
+   }
+   engine.Put( varTimeStep, real_c( timestep ) );
+}
+
 } // namespace hyteg::adiosHelpers

@@ -63,12 +63,12 @@ class AdiosWriterForP1
 
  private:
    /// Store the mesh on which our functions live in the output file
-   void writeMesh( const std::vector< std::string >& p1FunctionList ) const;
+   void writeMesh( const std::vector< std::string >& p1FunctionList );
 
-   /// central ADIOS2 interface objects (mutable because write() is marked as const !)
-   mutable adios2::ADIOS  adios_;
-   mutable adios2::IO     io_;
-   mutable adios2::Engine engine_;
+   /// central ADIOS2 interface objects
+   adios2::ADIOS  adios_;
+   adios2::IO     io_;
+   adios2::Engine engine_;
 
    /// storage associated with the P1 type functions
    std::shared_ptr< PrimitiveStorage > storage_{ nullptr };
@@ -80,19 +80,19 @@ class AdiosWriterForP1
    std::string fileName_;
 
    /// need to keep track of chronology (better use TIME later on?)
-   mutable bool firstWriteCompleted_{ false };
+   bool firstWriteCompleted_{ false };
 
    /// associate ADIOS variables with P1 type functions in the registry
    ///
    /// \note function will abort, if it encounters and already defined variable
    template < typename value_t >
-   void defineVariables( const FEFunctionRegistry& registry ) const;
+   void defineVariables( const FEFunctionRegistry& registry );
 
    template < typename value_t >
-   void scheduleScalarFunctionForExport( const P1Function< value_t >& func ) const;
+   void scheduleScalarFunctionForExport( const P1Function< value_t >& func );
 
    template < typename value_t >
-   void scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func ) const;
+   void scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func );
 };
 
 } // namespace hyteg

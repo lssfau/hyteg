@@ -95,10 +95,6 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
       engine_.BeginStep();
       writeMesh( p1FunctionList );
 
-      // for testing
-      adios2::Variable< real_t > varTime = io_.DefineVariable< real_t >( "TIME" );
-      engine_.Put( varTime, real_c( 0 ) );
-
       // define ADIOS variables to be associated with our functions
       defineVariables< real_t >( registry );
 
@@ -114,6 +110,9 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
       engine_.BeginStep();
    }
 
+   // set time-step info
+   adiosHelpers::putTimeStepInfo( io_, engine_, timestep );
+
    for ( const auto& func : registry.getP1Functions().getFunctions< real_t >() )
    {
       scheduleScalarFunctionForExport( func );
@@ -125,11 +124,9 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
    }
 
    engine_.EndStep();
-
-   WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriterForP1::write() not fully functional, yet!" );
 }
 
-void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionList ) const
+void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionList )
 {
    // store the generic XML file as attribute as part of the binary data
    std::vector< std::string > emptyList;
@@ -150,8 +147,6 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
       numVertices = storage_->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level_ );
       numElements = storage_->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level_ );
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "writeMesh: numVertices = " << numVertices );
-   WALBERLA_LOG_INFO_ON_ROOT( "writeMesh: numElements = " << numElements );
 
    // store entity counts as scalar variables
    adios2::Variable< uint32_t > varNumberOfNodes =
@@ -195,13 +190,13 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
 }
 
 template < typename value_t >
-void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry ) const
+void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry )
 {
    auto checkAndDefine = [this]( std::string funcName, uint_t funcDim ) {
       adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( funcName );
       if ( !varDoFData )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Defining ADIOS2 variable '" << funcName << "'" );
+         // WALBERLA_LOG_INFO_ON_ROOT( "Defining ADIOS2 variable '" << funcName << "'" );
          uint_t extent{ 0 };
          if ( !storage_->hasGlobalCells() )
          {
@@ -211,7 +206,6 @@ void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry ) con
          {
             extent = levelinfo::num_microvertices_per_cell( level_ ) * storage_->getNumberOfLocalCells();
          }
-         WALBERLA_LOG_INFO_ON_ROOT( " -> extent = " << extent );
          if ( funcDim == 1 )
          {
             io_.DefineVariable< value_t >( funcName, {}, {}, { extent } );
@@ -243,7 +237,7 @@ void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry ) con
 }
 
 template < typename value_t >
-void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_t >& func ) const
+void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_t >& func )
 {
    adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
    if ( !varDoFData )
@@ -253,7 +247,7 @@ void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
       adios2::Variable< real_t >::Span dofData = engine_.Put< value_t >( varDoFData );
       if ( !storage_->hasGlobalCells() )
       {
@@ -267,7 +261,6 @@ void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_
                 &dofData[currentPos], face.getData( func.getFaceDataID() )->getPointer( level_ ), blockSize * sizeof( value_t ) );
             currentPos += blockSize;
          }
-         WALBERLA_LOG_INFO_ON_ROOT( "Put " << currentPos << " data items!" );
       }
       else
       {
@@ -286,7 +279,7 @@ void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_
 }
 
 template < typename value_t >
-void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func ) const
+void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func )
 {
    adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
    if ( !varDoFData )
@@ -296,7 +289,6 @@ void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< 
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
       adios2::Variable< real_t >::Span dofData = engine_.Put< value_t >( varDoFData );
       if ( !storage_->hasGlobalCells() )
       {

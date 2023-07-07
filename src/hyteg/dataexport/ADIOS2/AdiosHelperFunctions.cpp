@@ -25,6 +25,9 @@
 
 namespace hyteg::adiosHelpers {
 
+// Note: Currently only the name "TIME" is allowed.
+const std::string nameOfTimeStepVariable{ "TIME" };
+
 std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointDataFunctions,
                                  const std::vector< std::string >& namesOfCellDataFunctions )
 {
@@ -63,7 +66,7 @@ std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointD
       oStream << myIndent4 << R"(<DataArray Name=")" << name << R"("/>)" << '\n';
    }
    // seems we always need this?
-   oStream << myIndent4 << R"(<DataArray Name="TIME">TIME</DataArray>)" << '\n';
+   oStream << myIndent4 << R"(<DataArray Name="TIME">)" << nameOfTimeStepVariable << R"(</DataArray>)" << '\n';
    oStream << myIndent3 << R"(</PointData>)" << '\n';
 
    // REMARK:
