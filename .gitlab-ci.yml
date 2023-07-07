@@ -1044,6 +1044,7 @@ benchmark_build_time:
 
 benchmark_ClangBuildAnalyzer:
    script:
+      - pip3 install ninja
       - cmake --version
       - ccache --version
       - mpirun --version
