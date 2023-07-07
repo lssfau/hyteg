@@ -65,13 +65,32 @@ class AdiosWriter : public FEFunctionWriter
    : storage_( storage )
    , filePath_( filePath )
    , fileBaseName_( fileBaseName )
-   , configFile_( configFile )
-   {}
+   {
+      // setup central ADIOS2 interface object
+#ifdef WALBERLA_BUILD_WITH_MPI
+      if ( configFile.empty() )
+      {
+         adios_ = adios2::ADIOS( walberla::MPIManager::instance()->comm() );
+      }
+      else
+      {
+         adios_ = adios2::ADIOS( configFile, walberla::MPIManager::instance()->comm() );
+      }
+#else
+      if ( configFile.empty() )
+      {
+         adios_ = adios2::ADIOS();
+      }
+      else
+      {
+         adios_ = adios2::ADIOS( configFile );
+      }
+#endif
+
+   }
 
    /// The destructor takes care of ... nothing
-   ~AdiosWriter() {
-      WALBERLA_LOG_INFO_ON_ROOT( "D'tor of AdiosWriter called" );
-   }
+   ~AdiosWriter() { WALBERLA_LOG_INFO_ON_ROOT( "D'tor of AdiosWriter called" ); }
 
    /// Add an FE Function to became part of the next dataexport phase
    template < template < typename > class func_t, typename value_t >
@@ -148,12 +167,20 @@ class AdiosWriter : public FEFunctionWriter
    /// described be this PrimitiveStorage object
    std::shared_ptr< PrimitiveStorage > storage_{ nullptr };
 
-   mutable std::map< uint_t, std::unique_ptr< AdiosWriterForP1 > > p1Writers_;
+   // ATTENTION: Order is important here! The adios_ member must come
+   //            before all maps, so that it is destroyed after the
+   //            writers in the maps!
+   // std::shared_ptr< adios2::ADIOS > adios_{ nullptr };
+   adios2::ADIOS adios_;
+
+   std::map< uint_t, std::unique_ptr< AdiosWriterForP1 > > p1Writers_;
    // std::map< uint_t, AdiosWriterForP2 > p2Writers_;
 
+   /// path to output files
    std::string filePath_;
+
+   /// basename of output files
    std::string fileBaseName_;
-   std::string configFile_;
 };
 
 } // namespace hyteg

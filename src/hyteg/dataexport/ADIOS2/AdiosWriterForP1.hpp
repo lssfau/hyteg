@@ -34,14 +34,14 @@ class AdiosWriter;
 class AdiosWriterForP1
 {
  public:
-   /// \param adios
-   /// \param dir             Directory where the files are stored
-   /// \param filename        Basename of the vtk files
-   /// \param storage         PrimitiveStorage containing the functions
-   /// \param writeFrequency  Specifies the frequency of the VTK output see write()
-   AdiosWriterForP1( std::string&                               filePath,
+   /// \param adios          top-level ADIOS2 interface object
+   /// \param filePath       Path to directory where the files are stored
+   /// \param fileBaseName   Basename of the vtk files
+   /// \param storage        PrimitiveStorage associated with functions to export
+   /// \param level          fixed refinement level associated with the writer object
+   AdiosWriterForP1( adios2::ADIOS&                             adios,
+                     std::string&                               filePath,
                      std::string&                               fileBaseName,
-                     std::string&                               configFile,
                      uint_t                                     level,
                      const std::shared_ptr< PrimitiveStorage >& storage );
 
@@ -49,7 +49,7 @@ class AdiosWriterForP1
    ~AdiosWriterForP1()
    {
       WALBERLA_LOG_INFO_ON_ROOT( "D'tor of AdiosWriterForP1 called" );
-      // if ( firstWriteCompleted_ )
+      if ( firstWriteCompleted_ )
       {
          engine_.Close();
       }
@@ -65,8 +65,8 @@ class AdiosWriterForP1
    /// Store the mesh on which our functions live in the output file
    void writeMesh( const std::vector< std::string >& p1FunctionList );
 
-   /// central ADIOS2 interface objects
-   adios2::ADIOS  adios_;
+   /// central ADIOS2 interface objects specific to this writer object
+   // adios2::ADIOS  adios_;
    adios2::IO     io_;
    adios2::Engine engine_;
 

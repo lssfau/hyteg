@@ -41,7 +41,7 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
    {
       if ( p1Writers_.count( level ) == 0 )
       {
-        p1Writers_[level] = std::make_unique< AdiosWriterForP1 >( filePath_, fileBaseName_, configFile_, level, storage_ );
+        p1Writers_[level] = std::make_unique< AdiosWriterForP1 >( adios_, filePath_, fileBaseName_, level, storage_ );
       }
 
       p1Writers_[level]->write( feFunctionRegistry_, timestep );

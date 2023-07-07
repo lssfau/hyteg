@@ -33,46 +33,26 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-AdiosWriterForP1::AdiosWriterForP1( std::string&                               filePath,
+AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&          adios,
+                                    std::string&                               filePath,
                                     std::string&                               fileBaseName,
-                                    std::string&                               configFile,
                                     uint_t                                     level,
                                     const std::shared_ptr< PrimitiveStorage >& storage )
 : storage_( storage )
 , level_( level )
 {
-   // setup central ADIOS2 interface object
-#ifdef WALBERLA_BUILD_WITH_MPI
-   if ( configFile.empty() )
-   {
-      adios_ = adios2::ADIOS( walberla::MPIManager::instance()->comm() );
-   }
-   else
-   {
-      adios_ = adios2::ADIOS( configFile, walberla::MPIManager::instance()->comm() );
-   }
-#else
-   if ( configFile.empty() )
-   {
-      adios_ = adios2::ADIOS;
-   }
-   else
-   {
-      adios_ = adios2::ADIOS( configFile );
-   }
-#endif
-
-   // create our writer
-   io_ = adios_.DeclareIO( "AdiosWriter" );
-
-   // we will use the BP format, but the most recent "BP5" format
-   // is unsupported by ParaView 5.11.1
-   io_.SetEngine( "BP4" );
 
    // create the name of the output file
    std::stringstream tag;
    tag << "-P1_level" << level_ << ".bp";
    fileName_ = filePath + "/" + fileBaseName + tag.str();
+
+   // create our own writer
+   io_ = adios.DeclareIO( "AdiosWriterForP1" + tag.str() );
+
+   // we will use the BP format, but the most recent "BP5" format
+   // is unsupported by ParaView 5.11.1
+   io_.SetEngine( "BP4" );
 }
 
 void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timestep )
@@ -212,8 +192,8 @@ void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry )
          }
          else
          {
-           // dofs for vector-valued functions need to be collected together in node-based fashion
-           io_.DefineVariable< value_t >( funcName, {}, {}, { extent, funcDim } );
+            // dofs for vector-valued functions need to be collected together in node-based fashion
+            io_.DefineVariable< value_t >( funcName, {}, {}, { extent, funcDim } );
          }
       }
       else
@@ -307,7 +287,7 @@ void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< 
       }
       else
       {
-        uint_t      currentPos{ 0 };
+         uint_t currentPos{ 0 };
          for ( const auto& it : storage_->getCells() )
          {
             const Cell& cell      = *it.second;
