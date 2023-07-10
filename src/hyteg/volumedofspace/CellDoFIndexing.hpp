@@ -151,6 +151,7 @@ inline constexpr uint_t index( const uint_t& level, const idx_t& x, const idx_t&
 }
 
 /// Returns an array of the four logical micro-vertex-indices that span the micro-cell of the given indices and cell type.
+/// \sa hyteg::n1e1::macrocell::getMicroVerticesFromMicroCell
 inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index& microCellIndex, const CellType& microCellType )
 {
    const idx_t cellX = microCellIndex.x();

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Daniel Bauer.
+* Copyright (c) 2022-2023 Daniel Bauer.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,11 +18,15 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/n1e1functionspace/HybridSmoother.hpp"
@@ -34,6 +38,7 @@
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
 #include "common.hpp"
 
@@ -41,13 +46,17 @@ using namespace hyteg;
 using walberla::real_t;
 
 /// Returns the approximate L2 error.
+template < class N1E1CurlCurlForm,
+           class N1E1MassForm,
+           class N1E1LinearForm,
+           class N1E1MassOperator,
+           class P1LaplaceOperator,
+           class P1Smoother >
 real_t test( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
 {
    using namespace n1e1;
 
-   using P1LaplaceOperator = P1ConstantLaplaceOperator;
-   using N1E1Smoother      = ChebyshevSmoother< N1E1ElementwiseLinearCombinationOperator >;
-   using P1Smoother        = GaussSeidelSmoother< P1LaplaceOperator >;
+   using N1E1Smoother = ChebyshevSmoother< N1E1ElementwiseLinearCombinationOperator >;
 
    const uint_t minLevel                = 0;
    const uint_t spectralRadiusEstLevel  = std::min( uint_c( 3 ), maxLevel );
@@ -56,12 +65,13 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
 
    SetupPrimitiveStorage setupStorage( system.domain_, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   system.setMap_( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   N1E1Form_curl_curl curlCurlForm;
-   N1E1Form_mass      massForm;
+   N1E1CurlCurlForm curlCurlForm;
+   N1E1MassForm     massForm;
 
-   N1E1ElementwiseMassOperator              M( storage, minLevel, maxLevel );
+   N1E1MassOperator                         M( storage, minLevel, maxLevel );
    N1E1ElementwiseLinearCombinationOperator A( storage, minLevel, maxLevel, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
 
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
@@ -74,17 +84,24 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
 
    // Assemble RHS.
-   tmp.interpolate( system.rhs_, maxLevel );
-   M.apply( tmp, f, maxLevel, DoFType::All );
+   assembleLinearForm< N1E1LinearForm >( maxLevel, maxLevel, { system.rhs_ }, f );
 
    // Boundary conditions: homogeneous tangential trace
-   u.interpolate( Eigen::Vector3r{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
+   u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
 
    // Hybrid smoother
    auto p1LaplaceOperator = std::make_shared< P1LaplaceOperator >( storage, minLevel, maxLevel );
-
    auto chebyshevSmoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
-   auto p1Smoother        = std::make_shared< P1Smoother >();
+
+   std::shared_ptr< P1Smoother > p1Smoother;
+   if constexpr ( std::is_same< P1Smoother, WeightedJacobiSmoother< P1LaplaceOperator > >::value )
+   {
+      p1Smoother = std::make_shared< P1Smoother >( storage, minLevel, maxLevel, 2.0 / 3.0 );
+   }
+   else
+   {
+      p1Smoother = std::make_shared< P1Smoother >();
+   }
 
    sol.interpolate( system.analyticalSol_, spectralRadiusEstLevel );
    const real_t spectralRadius =
@@ -124,6 +141,12 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
       M.apply( err, tmp, maxLevel, DoFType::All );
       discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( discrL2 )
+
+      // determine residual
+      A.apply( u, tmp, maxLevel, DoFType::Inner );
+      tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
+      const real_t residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+      WALBERLA_LOG_DEVEL_VAR_ON_ROOT( residual )
    }
 
    if ( writeVTK )
@@ -139,6 +162,26 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
    return discrL2;
 }
 
+real_t testNoBlending( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
+{
+   return test< forms::n1e1_curl_curl_affine_q0,
+                forms::n1e1_mass_affine_qe,
+                forms::n1e1_linear_form_affine_q6,
+                n1e1::N1E1ElementwiseMassOperator,
+                P1ConstantLaplaceOperator,
+                GaussSeidelSmoother< P1ConstantLaplaceOperator > >( maxLevel, system, writeVTK );
+}
+
+real_t testBlending( const uint_t maxLevel, const n1e1::System& system, const bool writeVTK = false )
+{
+   return test< forms::n1e1_curl_curl_blending_q2,
+                forms::n1e1_mass_blending_q2,
+                forms::n1e1_linear_form_blending_q6,
+                n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
+                P1ElementwiseBlendingLaplaceOperator,
+                WeightedJacobiSmoother< P1ElementwiseBlendingLaplaceOperator > >( maxLevel, system, writeVTK );
+}
+
 int main( int argc, char** argv )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
@@ -148,20 +191,24 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 #endif
 
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, polynomial ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::polynomialOnSingleTet(), test );
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, polynomial ###" );
+   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::polynomialOnSingleTet(), testNoBlending );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, sinusoidal ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::sinusoidalOnSingleTet(), test );
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, sinusoidal ###" );
+   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::sinusoidalOnSingleTet(), testNoBlending );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, polynomial ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::polynomialOnCube(), test );
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, polynomial ###" );
+   n1e1::L2ConvergenceTest( 4, 5, n1e1::System::polynomialOnCube(), testNoBlending );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, sinusoidal ###" );
-   n1e1::L2ConvergenceTest( 4, 6, n1e1::System::sinusoidalOnCube(), test );
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, sinusoidal ###" );
+   n1e1::L2ConvergenceTest( 4, 5, n1e1::System::sinusoidalOnCube(), testNoBlending );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "### Test on slice of solid torus, blending ###" );
+   n1e1::L2ConvergenceTest( 4, 5, n1e1::System::onToroidalSlice(), testBlending );
 
    return EXIT_SUCCESS;
 }

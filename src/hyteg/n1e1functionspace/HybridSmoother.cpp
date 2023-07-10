@@ -21,6 +21,7 @@
 #include "HybridSmoother.hpp"
 
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/gridtransferoperators/N1E1toP1Lifting.hpp"
 #include "hyteg/gridtransferoperators/P1toN1E1Gradient.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -65,12 +66,12 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
    // This is Ok, since Neumann and Inner DoFs are treated equally.
    scalarPotential_.setBoundaryCondition( BoundaryCondition::createAllInnerBC() );
 
-   timingTree_->start( "Smoother in 𝒩 (curl)^⊥" );
+   timingTree_->start( "Smoother in N(curl)^⊥" );
    for ( uint_t i = 0; i < n1e1SmoothSteps_; ++i )
    {
       n1e1Smoother_->solve( A, x, b, level );
    }
-   timingTree_->stop( "Smoother in 𝒩 (curl)^⊥" );
+   timingTree_->stop( "Smoother in N(curl)^⊥" );
 
    A.apply( x, vectorResidual_, level, flag_ );
    vectorResidual_.assign( { 1.0, -1.0 }, { b, vectorResidual_ }, level, flag_ );
@@ -81,12 +82,12 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
 
    scalarPotential_.setToZero( level );
 
-   timingTree_->start( "Smoother in 𝒩 (curl)" );
+   timingTree_->start( "Smoother in N(curl)" );
    for ( uint_t i = 0; i < p1SmoothSteps_; ++i )
    {
       p1Smoother_->solve( *p1LaplaceOperator_, scalarPotential_, scalarResidual_, level );
    }
-   timingTree_->stop( "Smoother in 𝒩 (curl)" );
+   timingTree_->stop( "Smoother in N(curl)" );
 
    timingTree_->start( "Gradient" );
    P1toN1E1Gradient( scalarPotential_, vectorResidual_, level, flag_ );
@@ -98,6 +99,8 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
 }
 
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLaplaceOperator >;
+template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLinearCombinationOperator >;
+template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ElementwiseBlendingLaplaceOperator >;
 
 } // namespace n1e1
 } // namespace hyteg

@@ -294,7 +294,8 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), sD::VERTEX_C )] =
-             ( real_c( 1.0 ) - relax ) * dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), sD::VERTEX_C )] +
+             ( real_c( 1.0 ) - relax ) *
+                 dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), sD::VERTEX_C )] +
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
@@ -335,7 +336,8 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.x(), it.y(), sD::EDGE_VE_C )] =
-             ( real_c( 1.0 ) - relax ) * dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.x(), it.y(), sD::EDGE_VE_C )] +
+             ( real_c( 1.0 ) - relax ) *
+                 dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.x(), it.y(), sD::EDGE_VE_C )] +
              relax * invEdgeYCenter * tmpEdgeVE;
       }
       ////////// DIAGONAL EDGE //////////
@@ -355,7 +357,8 @@ void smoothSOR( const uint_t&                                            level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.x(), it.y(), sD::EDGE_DI_C )] =
-             ( real_c( 1.0 ) - relax ) * dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.x(), it.y(), sD::EDGE_DI_C )] +
+             ( real_c( 1.0 ) - relax ) *
+                 dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.x(), it.y(), sD::EDGE_DI_C )] +
              relax * invEdgeXYCenter * tmpEdgeDI;
       }
    }
@@ -455,7 +458,7 @@ void smoothSOR3D(
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
 
-               const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+               const auto leafOrientationInFace = edgedof::macrocell::getOrientationInNeighboringMacroFace(
                    leafOrientation, neighborCell, localFaceID, storage );
 
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
@@ -517,7 +520,7 @@ void smoothSOR3D(
             const auto centerIndexInCell =
                 edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
             const auto cellCenterOrientation =
-                edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+                edgedof::macroface::getOrientationInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
             // vertex leaves
             for ( const auto& stencilIt : v2e_operator[neighborCellID][cellCenterOrientation] )
@@ -559,7 +562,7 @@ void smoothSOR3D(
                      continue;
                   }
 
-                  const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+                  const auto leafOrientationInFace = edgedof::macrocell::getOrientationInNeighboringMacroFace(
                       leafOrientation, neighborCell, localFaceID, storage );
 
                   const auto leafIndexInCell = centerIndexInCell + stencilOffset;
@@ -618,4 +621,4 @@ void smoothGaussSeidel( const uint_t&                                           
               rhsEdgeDoFID );
 }
 
-} // namespace hyteg
+} // namespace hyteg::P2::macroface

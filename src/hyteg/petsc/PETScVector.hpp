@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
@@ -110,6 +111,8 @@ class PETScVector
    inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) vec, name ); }
 
    inline Vec& get() { return vec; }
+   
+   inline void set(Vec v) { vec = v; }
 
  protected:
    std::string name_;

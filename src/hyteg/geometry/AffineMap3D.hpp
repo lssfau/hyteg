@@ -159,6 +159,8 @@ class AffineMap3D : public GeometryMap
    }
    ///@}
 
+   bool isAffine() const final { return true; }
+
  private:
    /// matrix using in affine mapping
    Matrix3r mat_;

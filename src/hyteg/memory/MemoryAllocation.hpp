@@ -63,20 +63,23 @@ inline double getCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
 {
    if ( type == MemoryUsageDeterminationType::C_RUSAGE )
    {
-      #if defined(_MSC_VER)
-             PROCESS_MEMORY_COUNTERS info;
-            GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );
-            return static_cast< double >(info.PeakWorkingSetSize);
-      #else
-         struct rusage usage;
-         int           gru = getrusage( RUSAGE_SELF, &usage );
-         WALBERLA_ASSERT( gru == 0, "getrusage() returned an error." );
+#if defined( _MSC_VER )
+      PROCESS_MEMORY_COUNTERS info;
+      GetProcessMemoryInfo( GetCurrentProcess(), &info, sizeof( info ) );
+      return static_cast< double >( info.PeakWorkingSetSize );
+#else
+      struct rusage usage;
+      int           gru = getrusage( RUSAGE_SELF, &usage );
+      WALBERLA_ASSERT( gru == 0, "getrusage() returned an error." );
 
-         // printf("ru_maxrss: %ld (maximum resident set size -- MB)\n",usage.ru_maxrss / 1024);
-         // assert(usage.ru_maxrss / 1024 > megabytes );
-
-         return static_cast< double >( usage.ru_maxrss * 1024 );
-      #endif
+      // printf("ru_maxrss: %ld (maximum resident set size -- MB)\n",usage.ru_maxrss / 1024);
+      // assert(usage.ru_maxrss / 1024 > megabytes );
+#ifdef __APPLE__
+      return static_cast< double >( usage.ru_maxrss );
+#else
+      return static_cast< double >( usage.ru_maxrss * 1024 );
+#endif
+#endif
    }
    else if ( type == MemoryUsageDeterminationType::PETSC )
    {

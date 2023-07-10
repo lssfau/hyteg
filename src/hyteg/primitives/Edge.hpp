@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -63,6 +63,9 @@ class Edge : public Primitive
    {
       deserializeSubclass( recvBuffer );
    }
+
+   /// Returns EDGE
+   virtual PrimitiveTypeEnum getType() const final { return EDGE; };
 
    uint_t vertex_index( const PrimitiveID& vertex ) const;
    uint_t face_index( const PrimitiveID& face ) const;

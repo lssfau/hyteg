@@ -12,7 +12,10 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+#include "hyteg/p1functionspace/VertexDoFFunction.cpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/types/PointND.hpp"
+
 
 namespace hyteg {
 

@@ -34,7 +34,7 @@
  * Before we will dive into coding, we will first introduce the equations, motivate our time-integrator, talk about the space-discretization
  * and finally present a simple diagonal preconditioner.
  *
- * \section Problem
+ * \section T08-Problem Problem
  *
  * As an example, we will try to solve the Cahn-Hilliard equation,
  * which simulates the phase separation of a mixture of two fluids.
@@ -59,7 +59,7 @@
  * which minimizes \f$F(\phi(t))\f$ as time passes, i.e. \f$F(\phi(s)) \leq F(\phi(t))\f$ for \f$t \leq s\f$.
  * The equations are a mixed system of the fields \f$\phi\f$ and \f$\mu\f$.
  *
- * \section Time-discretization
+ * \section T08-Time-discretization Time-discretization
  *
  * The energy minimization of $F$ is usually something we want to enforce by our time discretization.
  *
@@ -97,7 +97,7 @@
  *     .
  * \f}
  *
- * \section Space-discretization
+ * \section T08-Space-discretization Space-discretization
  *
  * Applying a FEM discretization on the equations yields the following system of equations
  * \f{align}{
@@ -127,7 +127,7 @@
  * We consider a \f$\mathcal P^1\f$ (continuous, piecewise linear polynomials) discretization of FE-shape functions.
  *
  *
- * \section Preconditioner
+ * \section T08-Preconditioner Preconditioner
  *
  * To solve our problem efficiently we will need a preconditioner.
  * Here, we will follow the approach in [BRENNER2018] and get simply by rescaling the equations
@@ -174,9 +174,9 @@
  *
  * To get an optimal solver, we can use a geometric multigrid to invert the diagonal blocks.
  *
- * \section Implementation
+ * \section T08-Implementation Implementation
  *
- * \subsection defining-the-block-function-space Defining the block function space
+ * \subsection T08-defining-the-block-function-space Defining the block function space
  *
  * We start with defining a block function representing the state of our system at a given time step by inheriting from the hyteg::BlockFunction.
  * The first component will correspond to the chemical potential, while the second is the indicator function for our mixtures.
@@ -207,7 +207,7 @@
  * To keep our type names within "reasonable bounds" we will introduce the shorthand `chType` for our `P1CahnHilliardFunction`:
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction chType-definition
  *
- * \subsection rhs-assembly The right-hand-side assembly
+ * \subsection T08-rhs-assembly The right-hand-side assembly
  *
  * Next, we will implement the assembly of the right-hand-side vector
  * \f{align}{
@@ -258,7 +258,7 @@
  * The calculation of \f$\boldsymbol{f}\f$ is simpler: First, we define the usual mass-matrix in `op_m_1`.
  * We apply it to the \f$\phi\f$-component of `u_prev` and store the result in the \f$\mu\f$-component of `rhs`.
  *
- * \subsection lhs-assembly The left-hand-side assembly
+ * \subsection T08-lhs-assembly The left-hand-side assembly
  *
  * Next, we want to discuss the assembly of the matrix we want to invert, namely
  * \f{align}{
@@ -305,7 +305,7 @@
  *
  * This is all we have to do to get a working operator in HyTeG.
  *
- * \subsection time-evolution The time-evolution operator
+ * \subsection T08-time-evolution The time-evolution operator
  *
  * We will postpone the discussion on how to invert the given operator for now and concentrate on the time-evolution, i.e.
  * given \f$ \boldsymbol u^{(n)} = (\boldsymbol \mu^{(n)}, \boldsymbol \phi^{(n)}) \f$ we want to calculate the values at the next time step
@@ -354,7 +354,7 @@
  * which is essentially the list of operations given before, wrapped by some calls to the timing-tree API.
  * This is especially useful to get a feeling of how long solving the system takes compared to assembling the right-hand side.
  *
- * \subsection minres-solver The solver
+ * \subsection T08-minres-solver The solver
  *
  * We will now discuss how to invert the `lhsOp_` Operator from the previous step.
  * As an outer solver we will use a diagonally preconditioned MINRES, which is configured in the `create_solver` factory function,
@@ -394,7 +394,7 @@
  * We apply the multigrid solver first on the \f$\mu\f$-component of our vector `numVCyclesMu_`-times.
  * After that, we do the same for the lower-right block.
  *
- * \subsection domain The domain
+ * \subsection T08-domain The domain
  *
  * We will solve the Cahn-Hilliard equations on a rectangular or cubic domain, depending on whether we are in 2D or 3D.
  * A rectangular domain can be constructed with
@@ -408,7 +408,7 @@
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp create_storage fun
  * We stress, that this will be the only place in our code where different code paths are taken depending on the spatial dimension.
  *
- * \subsection main The main function
+ * \subsection T08-main The main function
  *
  * We are still in need of the main function to start the simulation, which ties all the previously defined classes and functions together.
  * In principle, it should not contain anything surprising which was not encountered in the previous tutorials yet.
@@ -458,7 +458,7 @@
  * This can be done by printing the walberla::timing::TimingTree of the hyteg::PrimitiveStorage to the console.
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main timing-tree
  *
- * \section results Results in 2D
+ * \section T08-Results Results in 2D
  *
  * \htmlonly
   <center>
@@ -475,7 +475,7 @@
   </center>
   \endhtmlonly
  *
- * \section code Code
+ * \section T08-Code Complete Program
  *
  * The full code is:
  *
@@ -499,7 +499,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"

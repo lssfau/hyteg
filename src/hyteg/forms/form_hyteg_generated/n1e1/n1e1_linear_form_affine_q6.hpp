@@ -20,10 +20,6 @@
 
 /*
  * The entire file was generated with the HyTeG form generator.
- * 
- * Software:
- *
- * - quadpy version: 0.16.6
  *
  * Avoid modifying this file. If buggy, consider fixing the generator itself.
  */
@@ -32,7 +28,6 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/forms/N1E1Form.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 
 namespace hyteg {
 namespace forms {
@@ -51,13 +46,13 @@ class n1e1_linear_form_affine_q6 : public n1e1::N1E1Form
 
    n1e1_linear_form_affine_q6() { WALBERLA_ABORT("Not implemented."); }
 
-   n1e1_linear_form_affine_q6( std::function< Eigen::Vector3r ( const Point3D & ) > _callback_Vector_Variable_Coefficient_3D_k )
+   n1e1_linear_form_affine_q6( std::function< Point3D ( const Point3D & ) > _callback_Vector_Variable_Coefficient_3D_k )
    : callback_Vector_Variable_Coefficient_3D_k(_callback_Vector_Variable_Coefficient_3D_k)
    {}
 
  private:
 
-   std::function< Eigen::Vector3r ( const Point3D & ) > callback_Vector_Variable_Coefficient_3D_k;
+   std::function< Point3D ( const Point3D & ) > callback_Vector_Variable_Coefficient_3D_k;
 
 
  public:
@@ -70,9 +65,9 @@ class n1e1_linear_form_affine_q6 : public n1e1::N1E1Form
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                             1374    2228       1       0      1            568                23
+   ///                                             1374    1670       1       0      1            838                23
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, const std::array< int, 6 >& edgeDirections, Matrix< real_t, 6, 6 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
  private:
 

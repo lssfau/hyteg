@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
  *
@@ -66,10 +67,11 @@ class PETScCGSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , reassembleMatrix_( false )
+   , disableApplicationBC_( false )
    {
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPCG );
-      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
+      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance,  PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
    }
@@ -82,6 +84,8 @@ class PETScCGSolver : public Solver< OperatorType >
    }
 
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
+
+   void disableApplicationBC( bool dis ) { disableApplicationBC_ = dis; }
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -116,7 +120,8 @@ class PETScCGSolver : public Solver< OperatorType >
       }
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), SAME_NONZERO_PATTERN );
 
-      Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+      if ( !disableApplicationBC_ )
+         Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       if ( nullSpaceSet_ )
       {
          MatSetNullSpace( Amat.get(), nullspace_ );
@@ -148,8 +153,10 @@ class PETScCGSolver : public Solver< OperatorType >
    hyteg::DoFType flag_;
    bool           nullSpaceSet_;
    bool           reassembleMatrix_;
+   bool           disableApplicationBC_;
 };
 
 } // namespace hyteg
 
 #endif
+

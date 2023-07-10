@@ -21,7 +21,7 @@
 #include <core/math/Constants.h>
 #include <core/timing/Timer.h>
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"

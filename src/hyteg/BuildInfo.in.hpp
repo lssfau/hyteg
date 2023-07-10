@@ -20,6 +20,12 @@
 
 #pragma once
 
+#ifdef WALBERLA_BUILD_WITH_MPI
+#include <mpi.h>
+#endif
+
+#include <sstream>
+
 #include "core/logging/Logging.h"
 
 namespace hyteg {
@@ -39,12 +45,40 @@ std::string compilerInfo()
    return "@HYTEG_COMPILER_INFO@";
 }
 
+std::string mpiVersion()
+{
+#ifdef WALBERLA_BUILD_WITH_MPI
+
+   // We need to do some C-style string handling here
+   char mpiLibraryVersion[MPI_MAX_LIBRARY_VERSION_STRING];
+   int  stringLength{ 0 };
+   int  status{ 0 };
+
+   // Run the query
+   status = MPI_Get_library_version( mpiLibraryVersion, &stringLength );
+
+   // Process results
+   if ( status != MPI_SUCCESS )
+   {
+      WALBERLA_ABORT( "Problem with MPI_Get_library_version() detected!" );
+   }
+
+   return std::string( mpiLibraryVersion );
+
+#else
+
+   return std::string( "no MPI library info; sequential build!" );
+
+#endif
+}
+
 void printBuildInfo()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Build info:" )
    WALBERLA_LOG_INFO_ON_ROOT( " - build type ....... " << buildType() );
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler ......... " << compilerInfo() );
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler flags ... " << compilerFlags() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - mpi version ...... " << mpiVersion() );
 }
 
-}
+} // namespace hyteg

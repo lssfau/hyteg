@@ -102,12 +102,30 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                 const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level );
 
+/// \brief swaps the content of one volumeDoFFunction with another.
+    void swap( VolumeDoFFunction< ValueType >& rhs, uint_t level );
+
+   /// \brief Adds a scalar to this VolumeDoFFunction.
+   void add( const ValueType scalar, uint_t level, DoFType flag = All );
+
+   /// \brief Adds a series of scalars and functions to this VolumeDoFFunction.
+   void add( const std::vector< ValueType >&                                                      scalars,
+             const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
+             uint_t                                                                               level );
+
    /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
    /// process.
    ValueType dotLocal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
 
    /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
    ValueType dotGlobal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
+
+   /// \brief Evaluates the sum on all local DoFs. No communication is involved and the results may be different on each
+   /// process.
+   ValueType sumLocal( uint_t level ) const;
+
+   /// \brief Evaluates the (global) sum. Involves communication and has to be called collectively.
+   ValueType sumGlobal( uint_t level ) const;
 
    /// \brief Returns a pointer to the array that stores all degrees of freedom.
    ///

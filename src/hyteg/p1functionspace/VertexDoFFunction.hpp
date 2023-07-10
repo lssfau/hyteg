@@ -76,6 +76,15 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
+
+
+    VertexDoFFunction( const std::string&                         name,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       uint_t                                     minLevel,
+                       uint_t                                     maxLevel,
+                       BoundaryCondition                          boundaryCondition,
+                       bool                                       addVolumeGhostLayer );
+
    ~VertexDoFFunction();
 
    /// Copy constructor
@@ -91,6 +100,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
    bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
 
+
    void allocateMemory( const uint_t& level, const Vertex& vertex );
    void allocateMemory( const uint_t& level, const Edge& edge );
    void allocateMemory( const uint_t& level, const Face& face );
@@ -105,6 +115,19 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
+
+   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& getFaceGLDataID( uint_t glID ) const
+   {
+      WALBERLA_CHECK( hasVolumeGhostLayer() );
+      WALBERLA_CHECK( !this->getStorage()->hasGlobalCells() );
+      return faceGhostLayerDataIDs_.at( glID );
+   }
+   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& getCellGLDataID( uint_t glID ) const
+   {
+      WALBERLA_CHECK( hasVolumeGhostLayer() );
+      WALBERLA_CHECK( this->getStorage()->hasGlobalCells() );
+      return cellGhostLayerDataIDs_.at( glID );
+   }
 
    void swap( const VertexDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
@@ -431,6 +454,35 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
 
    using Function< VertexDoFFunction< ValueType > >::isDummy;
 
+   /// \brief Returns the number of DoFs that are allocated on this process.
+   uint_t getNumberOfLocalDoFs( uint_t level ) const { return numberOfLocalDoFs< P1FunctionTag >( *this->storage_, level ); }
+
+   /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
+   ///
+   /// \param level        refinement level
+   /// \param communicator if required, a custom communicator can be passed
+   /// \param onRootOnly   if true, the result is only returned on the root process
+   /// \return
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      return numberOfGlobalDoFs< P1FunctionTag >( *this->storage_, level, communicator, onRootOnly );
+   }
+
+   bool hasVolumeGhostLayer() const
+   {
+      if ( this->getStorage()->hasGlobalCells() )
+      {
+         return !cellGhostLayerDataIDs_.empty();
+      }
+      else
+      {
+         return !faceGhostLayerDataIDs_.empty();
+      }
+   }
+
+
  private:
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
@@ -459,6 +511,11 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// To make sure that functions that are not used anymore are deleted, we need to add this reference counter to the handle.
    /// Once it drops to zero, we can deallocate the memory from the storage.
    std::shared_ptr< internal::ReferenceCounter > referenceCounter_;
+
+   /// One data ID per ghost-layer. Should be up to 3 in 2D and 4 in 3D.
+   /// Maps from the local macro-edge ID (for 2D) or local macro-face ID (for 3D) to the respective ghost-layer memory.
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Face > > faceGhostLayerDataIDs_;
+   std::map< uint_t, PrimitiveDataID< FunctionMemory< ValueType >, Cell > > cellGhostLayerDataIDs_;
 };
 
 inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t& level )

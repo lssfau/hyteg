@@ -21,6 +21,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
@@ -42,6 +43,9 @@ void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& funct
 
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& function, const uint_t& level );
+
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& function, const uint_t& level );
 
 template < typename ValueType >
 void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level );

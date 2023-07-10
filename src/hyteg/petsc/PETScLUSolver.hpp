@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -48,53 +48,48 @@ class PETScLUSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
+
+   PETScLUSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
+                  const uint_t&                                                         level)
    : storage_( storage )
    , allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
-   , num( "numerator", storage, level, level )
-   , Amat( "Amat", petscCommunicator_ )
-   , AmatUnsymmetric( "AmatUnsymmetric", petscCommunicator_ )
-   , AmatTmp( "AmatTmp", petscCommunicator_ )
-   , xVec( "xVec", petscCommunicator_ )
-   , bVec( "bVec", petscCommunicator_ )
-#if 0
-  , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-#endif
+   , num_( typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
+   , Amat_( "Amat", petscCommunicator_ )
+   , AmatUnsymmetric_( "AmatUnsymmetric", petscCommunicator_ )
+   , AmatTmp_( "AmatTmp", petscCommunicator_ )
+   , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
+   , xVec_( "LU_x", petscCommunicator_ )
+   , bVec_( "LU_b", petscCommunicator_ )
+   , nullSpaceSet_( false )
    , flag_( hyteg::All )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
    , assumeSymmetry_( true )
+   , disableApplicationBC_( false )
    , solverType_( PETScDirectSolverType::MUMPS )
    {
-      num.enumerate( level );
-      KSPCreate( petscCommunicator_, &ksp );
-      KSPSetType( ksp, KSPPREONLY );
-      KSPSetFromOptions( ksp );
+      num_.enumerate( level );
+      KSPCreate( petscCommunicator_, &ksp_ );
+      KSPSetType( ksp_, KSPPREONLY );
+      KSPSetFromOptions( ksp_ );
    }
 
-   ~PETScLUSolver() { KSPDestroy( &ksp ); }
+   ~PETScLUSolver() { KSPDestroy( &ksp_ ); }
 
-#if 0
-  void setNullSpace( FunctionType & inKernel, const uint_t & level )
-  {
-    inKernel.createVectorFromFunction( inKernel, *num, level, All );
-    VecNormalize(inKernel.get(), NULL);
-    MatNullSpace nullspace;
-    MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &(inKernel.get()), &nullspace );
-    MatSetNullSpace( Amat.get(), nullspace );
-  }
-#endif
+   void setNullSpace( FunctionType& nullspace, uint_t level )
+   {
+      nullSpaceSet_ = true;
+      nullspaceVec_.createVectorFromFunction( nullspace, num_, level );
+      real_t norm = 0;
+      VecNormalize( nullspaceVec_.get(), &norm );
+      MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
+   }
 
    void setDirectSolverType( PETScDirectSolverType solverType ) { solverType_ = solverType; }
 
-   void setConstantNullSpace()
-   {
-      MatNullSpace nullspace;
-      MatNullSpaceCreate( petscCommunicator_, PETSC_TRUE, 0, NULL, &nullspace );
-      MatSetNullSpace( Amat.get(), nullspace );
-   }
+   void disableApplicationBC( bool dis ) { disableApplicationBC_ = dis; }
 
    void setVerbose( bool verbose ) { verbose_ = verbose; }
 
@@ -114,6 +109,7 @@ class PETScLUSolver : public Solver< OperatorType >
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
    void setMUMPSIcntrl( uint_t key, int value ) { mumpsIcntrl_[key] = value; }
+
    void setMUMPSCntrl( uint_t key, real_t value ) { mumpsCntrl_[key] = value; }
 
    void assembleAndFactorize( const OperatorType& A )
@@ -123,45 +119,55 @@ class PETScLUSolver : public Solver< OperatorType >
       bool matrixAssembledForTheFirstTime;
       if ( reassembleMatrix_ )
       {
-         AmatUnsymmetric.zeroEntries();
-         AmatUnsymmetric.createMatrixFromOperator( A, allocatedLevel_, num, All );
+         AmatUnsymmetric_.zeroEntries();
+         AmatUnsymmetric_.createMatrixFromOperator( A, allocatedLevel_, num_, All );
          matrixAssembledForTheFirstTime = true;
       }
       else
       {
-         matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce( A, allocatedLevel_, num, All );
+         matrixAssembledForTheFirstTime = AmatUnsymmetric_.createMatrixFromOperatorOnce( A, allocatedLevel_, num_, All );
       }
 
       storage_->getTimingTree()->stop( "Matrix assembly" );
 
       if ( matrixAssembledForTheFirstTime )
       {
-         Amat.zeroEntries();
-         Amat.createMatrixFromOperator( A, allocatedLevel_, num, All );
-         AmatTmp.zeroEntries();
-         AmatTmp.createMatrixFromOperator( A, allocatedLevel_, num, All );
+         Amat_.zeroEntries();
+         Amat_.createMatrixFromOperatorOnce( A, allocatedLevel_, num_, All );
+         AmatTmp_.zeroEntries();
+         AmatTmp_.createMatrixFromOperatorOnce( A, allocatedLevel_, num_, All );
 
-         MatCopy( AmatUnsymmetric.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+         MatCopy( AmatUnsymmetric_.get(), Amat_.get(), DIFFERENT_NONZERO_PATTERN );
+
+         if ( !disableApplicationBC_ )
+         {
+            if ( assumeSymmetry_ )
+            {
+               //   Amat_.applyDirichletBCSymmetrically(x, num_, bVec_, allocatedLevel_);
+               Amat_.applyDirichletBCSymmetrically( num_, allocatedLevel_ );
+            }
+            else
+            {
+               Amat_.applyDirichletBC( num_, allocatedLevel_ );
+            }
+         }
+
+         if ( nullSpaceSet_ )
+         {
+            MatSetNullSpace( Amat_.get(), nullspace_ );
+            MatNullSpaceRemove( nullspace_, bVec_.get() );
+         }
+
+         KSPSetOperators( ksp_, Amat_.get(), Amat_.get() );
+         KSPGetPC( ksp_, &pc_ );
 
          if ( assumeSymmetry_ )
          {
-            Amat.applyDirichletBCSymmetrically( num, allocatedLevel_ );
+            PCSetType( pc_, PCCHOLESKY );
          }
          else
          {
-            Amat.applyDirichletBC( num, allocatedLevel_ );
-         }
-
-         KSPSetOperators( ksp, Amat.get(), Amat.get() );
-         KSPGetPC( ksp, &pc );
-
-         if ( assumeSymmetry_ )
-         {
-            PCSetType( pc, PCCHOLESKY );
-         }
-         else
-         {
-            PCSetType( pc, PCLU );
+            PCSetType( pc_, PCLU );
          }
 
          MatSolverType petscSolverType;
@@ -180,25 +186,25 @@ class PETScLUSolver : public Solver< OperatorType >
          default:
             WALBERLA_ABORT( "Invalid PETSc solver type." )
          }
-         HYTEG_PCFactorSetMatSolverType( pc, petscSolverType );
+         HYTEG_PCFactorSetMatSolverType( pc_, petscSolverType );
 
          if ( solverType_ == PETScDirectSolverType::MUMPS )
          {
-            PCFactorSetUpMatSolverType( pc );
-            PCFactorGetMatrix( pc, &F );
+            PCFactorSetUpMatSolverType( pc_ );
+            PCFactorGetMatrix( pc_, &F_ );
 #ifdef PETSC_HAVE_MUMPS
             for ( auto it : mumpsIcntrl_ )
             {
-               MatMumpsSetIcntl( F, it.first, it.second );
+               MatMumpsSetIcntl( F_, it.first, it.second );
             }
             for ( auto it : mumpsCntrl_ )
             {
-               MatMumpsSetCntl( F, it.first, it.second );
+               MatMumpsSetCntl( F_, it.first, it.second );
             }
 #endif
          }
          storage_->getTimingTree()->start( "Factorization" );
-         PCSetUp( pc );
+         PCSetUp( pc_ );
          storage_->getTimingTree()->stop( "Factorization" );
       }
    }
@@ -212,6 +218,12 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "PETSc LU Solver" );
       storage_->getTimingTree()->start( "Setup" );
 
+      // if the numerator was constructed internally we should copy the Boundary Condition info
+      // to it, because that is the only way to get it into hyteg::applyDirichletBC() where
+      // the corresponding DoF indices will be computed
+      num_.copyBoundaryConditionFromFunction( x );
+
+
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
       {
@@ -222,15 +234,20 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "RHS vector setup" );
 
-      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
-      bVec.createVectorFromFunction( b, num, level, All );
-      xVec.createVectorFromFunction( x, num, level, All );
-
+      if ( !disableApplicationBC_ )
+      {
+         b.assign( { 1.0 }, { x }, level, DirichletBoundary );
+      }
+      bVec_.createVectorFromFunction( b, num_, level, All );
+      xVec_.createVectorFromFunction( x, num_, level, All );
       if ( assumeSymmetry_ )
       {
-         AmatTmp.zeroEntries();
-         MatCopy( AmatUnsymmetric.get(), AmatTmp.get(), DIFFERENT_NONZERO_PATTERN );
-         AmatTmp.applyDirichletBCSymmetrically( x, num, bVec, allocatedLevel_ );
+         AmatTmp_.zeroEntries();
+         MatCopy( AmatUnsymmetric_.get(), AmatTmp_.get(), DIFFERENT_NONZERO_PATTERN );
+         if ( !disableApplicationBC_ )
+         {
+            AmatTmp_.applyDirichletBCSymmetrically( x, num_, bVec_, allocatedLevel_ );
+         }
       }
 
       storage_->getTimingTree()->stop( "RHS vector setup" );
@@ -239,12 +256,13 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "Solver" );
       timer.start();
-      KSPSolve( ksp, bVec.get(), xVec.get() );
+
+      KSPSolve( ksp_, bVec_.get(), xVec_.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
       storage_->getTimingTree()->stop( "Solver" );
 
-      xVec.createFunctionFromVector( x, num, level, flag_ );
+      xVec_.createFunctionFromVector( x, num_, level, flag_ );
 
       if ( verbose_ )
       {
@@ -257,28 +275,29 @@ class PETScLUSolver : public Solver< OperatorType >
    }
 
  private:
-   std::shared_ptr< PrimitiveStorage >                                                           storage_;
-   uint_t                                                                                        allocatedLevel_;
-   MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
-   PETScSparseMatrix< OperatorType >                                                             Amat;
-   PETScSparseMatrix< OperatorType >                                                             AmatUnsymmetric;
-   PETScSparseMatrix< OperatorType >                                                             AmatTmp;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec;
-#if 0
-  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
-#endif
+   std::shared_ptr< PrimitiveStorage >                            storage_;
+   uint_t                                                         allocatedLevel_;
+   MPI_Comm                                                       petscCommunicator_;
+   typename OperatorType::srcType::template FunctionType< idx_t > num_;
+   PETScSparseMatrix< OperatorType >                              Amat_;
+   PETScSparseMatrix< OperatorType >                              AmatUnsymmetric_;
+   PETScSparseMatrix< OperatorType >                              AmatTmp_;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec_;
+   PETScVector< typename FunctionType::valueType, OperatorType::dstType::template FunctionType > bVec_;
 
-   KSP                        ksp;
-   PC                         pc;
+   KSP                        ksp_;
+   PC                         pc_;
    hyteg::DoFType             flag_;
    bool                       verbose_;
-   Mat                        F; //factored Matrix
+   Mat                        F_; //factored Matrix
    bool                       manualAssemblyAndFactorization_;
    bool                       reassembleMatrix_;
    bool                       assumeSymmetry_;
    PETScDirectSolverType      solverType_;
+   bool                       nullSpaceSet_;
+   bool                       disableApplicationBC_;
+   MatNullSpace               nullspace_;
    std::map< uint_t, int >    mumpsIcntrl_;
    std::map< uint_t, real_t > mumpsCntrl_;
 };

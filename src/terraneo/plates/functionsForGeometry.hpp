@@ -43,7 +43,7 @@ inline real_t distancePointPoint( const vec3D& lonlat1, const vec3D& lonlat2 )
 /// The following function that calculates the intersection between a point
 /// and a line is inspired by the Python code from geopy, see:
 /// https://github.com/geopy/geopy/blob/master/geopy/distance.py
-vec3D intersectPointWithLine( const vec3D& point, const vec3D& lineStart, const vec3D& lineEnd )
+inline vec3D intersectPointWithLine( const vec3D& point, const vec3D& lineStart, const vec3D& lineEnd )
 {
    WALBERLA_ASSERT( lineStart != lineEnd, "Line in intersectPointWithLine() should not be degenerate." );
 
@@ -82,7 +82,7 @@ vec3D intersectPointWithLine( const vec3D& point, const vec3D& lineStart, const 
 
 /// Calls all the functions to return the distance between the point and the line segment that
 /// constructs the polygon, the returned value is in km
-real_t getDistanceLinePoint( const vec3D& point, const vec3D& pini, const vec3D& pend )
+inline real_t getDistanceLinePoint( const vec3D& point, const vec3D& pini, const vec3D& pend )
 {
    vec3D intersectPoint = intersectPointWithLine( point, pini, pend );
    vec3D pintersect     = conversions::cart2sph( intersectPoint );

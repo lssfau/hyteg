@@ -21,8 +21,8 @@
 
 #include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "hyteg/mixedoperators/P1ToP2Operator.hpp"
-#include "hyteg/mixedoperators/P2ToP1Operator.hpp"
+#include "hyteg/mixedoperators/P1ToP2ConstantOperator.hpp"
+#include "hyteg/mixedoperators/P2ToP1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/solvers/Solver.hpp"
 

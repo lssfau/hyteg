@@ -32,16 +32,21 @@ namespace hyteg {
 class GeometryMap
 {
  public:
+
+   /// These enum values are use in the serialisation of blending maps to mark
+   /// the type of map contained in the stream to allow correct deserialisation
    enum class Type : uint_t
    {
       IDENTITY          = 0,
-      AFFINE            = 1,
+      AFFINE            = 1,  // [keep for backward compatibility or remove?]
       CIRCULAR          = 2,
       POLAR_COORDS      = 3,
       ANNULUS           = 4,
       ICOSAHEDRAL_SHELL = 5,
       AFFINE_2D         = 6,
-      AFFINE_3D         = 7
+      AFFINE_3D         = 7,
+      THIN_SHELL        = 8,
+      TOKAMAK           = 9
    };
 
    virtual ~GeometryMap(){};
@@ -110,6 +115,14 @@ class GeometryMap
                                     const Point3D& physicalCoordinates,
                                     real_t         threshold = real_c( 1e-6 ) ) const;
 #endif
+
+   /// Returns whether this Geometry map implements the identity.
+   /// Intended to enable optimizations.
+   virtual bool isIdentity() const { return false; }
+
+   /// Returns whether this Geometry map implements an affine mapping.
+   /// Intended to enable optimizations.
+   virtual bool isAffine() const { return false; }
 
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );

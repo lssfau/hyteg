@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
@@ -75,9 +76,11 @@ class PETScSparseMatrix
       const uint_t globalRows = numberOfGlobalDoFs( numerator, level, petscCommunicator_ );
       const uint_t globalCols = numberOfGlobalDoFs( numerator, level, petscCommunicator_ );
 
-      allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
+       allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
 
       auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+
+
       op.toMatrix( proxy, numerator, numerator, level, flag );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
@@ -100,6 +103,7 @@ class PETScSparseMatrix
 
       auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
       op.toMatrix( proxy, numeratorSrc, numeratorDst, level, flag );
+      
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -151,13 +155,12 @@ class PETScSparseMatrix
       std::vector< idx_t > bcIndices;
       hyteg::applyDirichletBC( numerator, bcIndices, level );
       std::vector< PetscInt > PetscIntBcIndices = convertToPetscVector< PetscInt >( bcIndices );
-
-      // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
+       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
+     MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -201,6 +204,12 @@ class PETScSparseMatrix
           mat, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
    }
 
+   void multiply( PETScVector< real_t, OperatorType::dstType::template FunctionType >& src,
+                  PETScVector< real_t, OperatorType::dstType::template FunctionType >& dst )
+   {
+      MatMult( mat, src.get(), dst.get() );
+   }
+
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
    ///
    /// \return Vector with global indices of the Dirichlet DoFs
@@ -221,6 +230,7 @@ class PETScSparseMatrix
       return bcIndices;
    }
 
+   
    inline void reset() { assembled_ = false; }
 
    /// \brief Sets all entries of the matrix to zero.

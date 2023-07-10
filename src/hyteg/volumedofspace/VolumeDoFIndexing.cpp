@@ -723,12 +723,16 @@ ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor
          }
       }
 
-      const auto neighborElementVertexIndices =
+      const auto neighborElementVertexIndicesArr =
           celldof::macrocell::getMicroVerticesFromMicroCell( elementIdxNeighborMicro, nCellTypeLocalToNeighbor );
+       newInfo.neighborElementVertexIndices_.clear();
+      newInfo.neighborElementVertexIndices_.insert(
+              newInfo.neighborElementVertexIndices_.begin(), neighborElementVertexIndicesArr.begin(), neighborElementVertexIndicesArr.end() );
 
-      // Find the idx of the opposing micro-vertex. It should not be located on the interface macro.
+
+       // Find the idx of the opposing micro-vertex. It should not be located on the interface macro.
       Index opposingMicroVertexIdx;
-      for ( const auto& nev : neighborElementVertexIndices )
+      for ( const auto& nev : neighborElementVertexIndicesArr )
       {
          const auto localInterfaceIDs = isOnCellFace( nev, level_ );
          if ( !algorithms::contains( localInterfaceIDs, neighborMacroLocalFaceID ) )
@@ -740,7 +744,7 @@ ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor
 
       for ( uint_t i = 0; i < 4; i++ )
       {
-         const auto coord = vertexdof::macrocell::coordinateFromIndex( level_, *neighborCell, neighborElementVertexIndices[i] );
+         const auto coord = vertexdof::macrocell::coordinateFromIndex( level_, *neighborCell, neighborElementVertexIndicesArr[i] );
          newInfo.neighborElementVertexCoords_[neighbor][i]( 0 ) = coord[0];
          newInfo.neighborElementVertexCoords_[neighbor][i]( 1 ) = coord[1];
          newInfo.neighborElementVertexCoords_[neighbor][i]( 2 ) = coord[2];
@@ -818,8 +822,11 @@ ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor
       // In 2D the neighboring micro-face is always of type GRAY since only those are on the boundary.
       const auto nFaceTypeLocalToNeighbor = facedof::FaceType::GRAY;
 
-      const auto neighborElementVertexIndices =
+      const auto neighborElementVertexIndicesArr =
           facedof::macroface::getMicroVerticesFromMicroFace( elementIdxNeighborMicro, nFaceTypeLocalToNeighbor );
+       newInfo.neighborElementVertexIndices_.clear();
+       newInfo.neighborElementVertexIndices_.insert(
+               newInfo.neighborElementVertexIndices_.begin(), neighborElementVertexIndicesArr.begin(), neighborElementVertexIndicesArr.end() );
 
       // Eventually we need to know the coordinates of the micro-vertex that is opposite to the interface.
       // First find out what the local interface ID of the other macro-volume is.
@@ -827,7 +834,7 @@ ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor
 
       // Then find the idx of the opposing micro-vertex.
       Index opposingMicroVertexIdx;
-      for ( const auto& nev : neighborElementVertexIndices )
+      for ( const auto& nev : neighborElementVertexIndicesArr )
       {
          const auto localInterfaceIDs = isOnCellEdge( nev, level_ );
          if ( !algorithms::contains( localInterfaceIDs, neighborMacroLocalEdgeID ) )
@@ -839,7 +846,7 @@ ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor
 
       for ( uint_t i = 0; i < 3; i++ )
       {
-         const auto coord = vertexdof::macroface::coordinateFromIndex( level_, *neighborFace, neighborElementVertexIndices[i] );
+         const auto coord = vertexdof::macroface::coordinateFromIndex( level_, *neighborFace, neighborElementVertexIndicesArr[i] );
          newInfo.neighborElementVertexCoords_[neighbor][i]( 0 ) = coord[0];
          newInfo.neighborElementVertexCoords_[neighbor][i]( 1 ) = coord[1];
          newInfo.neighborElementVertexCoords_[neighbor][i]( 2 ) = 0;
@@ -856,6 +863,7 @@ ElementNeighborInfo ElementNeighborInfo::updateForMacroBoundary( uint_t neighbor
       newInfo.neighborFaceElementTypes_[neighbor] = nFaceTypeLocalToNeighbor;
       newInfo.neighborElementIndices_[neighbor]   = elementIdxNeighborMicro;
    }
+
 
    return newInfo;
 }

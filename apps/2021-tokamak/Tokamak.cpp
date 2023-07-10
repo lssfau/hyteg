@@ -26,7 +26,7 @@
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/geometry/TokamakMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -106,8 +106,8 @@ struct Discretization
 
 struct TokamakDomain
 {
-   uint_t                numToroidalSlices{};
-   uint_t                numPoloidalSlices{};
+   uint_t                toroidalResolution{};
+   uint_t                poloidalResolution{};
    real_t                radiusOriginToCenterOfTube{};
    std::vector< real_t > tubeLayerRadii;
    real_t                torodialStartAngle{};
@@ -132,8 +132,8 @@ struct TokamakDomain
       std::stringstream ss;
       ss << "Tokamak domain and PDE config"
          << "\n";
-      ss << "  - toroidal slices:     " << numToroidalSlices << "\n";
-      ss << "  - poloidal slices:     " << numPoloidalSlices << "\n";
+      ss << "  - toroidal slices:     " << toroidalResolution << "\n";
+      ss << "  - poloidal slices:     " << poloidalResolution << "\n";
       ss << "  - tube layer radii:    [";
       for ( auto r : tubeLayerRadii )
       {
@@ -245,8 +245,8 @@ void tokamak( TokamakDomain         tokamakDomain,
       db->setConstantEntry( "minLevel", discretization.minLevel );
       db->setConstantEntry( "maxLevel", discretization.maxLevel );
 
-      db->setConstantEntry( "numToroidalSlices", tokamakDomain.numToroidalSlices );
-      db->setConstantEntry( "numPoloidalSlices", tokamakDomain.numPoloidalSlices );
+      db->setConstantEntry( "toroidalResolution", tokamakDomain.toroidalResolution );
+      db->setConstantEntry( "poloidalResolution", tokamakDomain.poloidalResolution );
       db->setConstantEntry( "radiusOriginToCenterOfTube", tokamakDomain.radiusOriginToCenterOfTube );
       for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
       {
@@ -276,8 +276,8 @@ void tokamak( TokamakDomain         tokamakDomain,
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up torus mesh ..." )
 
-   auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
-                                        tokamakDomain.numPoloidalSlices,
+   auto meshInfo = MeshInfo::meshTorus( tokamakDomain.toroidalResolution,
+                                        tokamakDomain.poloidalResolution,
                                         tokamakDomain.radiusOriginToCenterOfTube,
                                         tokamakDomain.tubeLayerRadii,
                                         tokamakDomain.torodialStartAngle,
@@ -293,8 +293,8 @@ void tokamak( TokamakDomain         tokamakDomain,
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up tokamak blending map ..." )
 
    TokamakMap::setMap( setupStorage,
-                       tokamakDomain.numToroidalSlices,
-                       tokamakDomain.numPoloidalSlices,
+                       tokamakDomain.toroidalResolution,
+                       tokamakDomain.poloidalResolution,
                        tokamakDomain.radiusOriginToCenterOfTube,
                        tokamakDomain.tubeLayerRadii,
                        tokamakDomain.torodialStartAngle,
@@ -317,7 +317,7 @@ void tokamak( TokamakDomain         tokamakDomain,
    {
       const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, l );
       const auto numDoFs      = numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *storage, l );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5u | %14u | %14u", l, numInnerDoFs, numDoFs ) )
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5lu | %14lu | %14lu", l, numInnerDoFs, numDoFs ) )
       if ( appSettings.database )
       {
          db->setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
@@ -338,6 +338,7 @@ void tokamak( TokamakDomain         tokamakDomain,
       }
    }
 
+   return;
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Allocation of functions and operator setup ..." )
 
    // parameters for analytic solution and diffusion coefficient:
@@ -774,8 +775,8 @@ void run( int argc, char** argv )
    SolverSettings solverSettings;
    AppSettings    appSettings;
 
-   tokamakDomain.numToroidalSlices          = mainConf.getParameter< uint_t >( "numToroidalSlices" );
-   tokamakDomain.numPoloidalSlices          = mainConf.getParameter< uint_t >( "numPoloidalSlices" );
+   tokamakDomain.toroidalResolution         = mainConf.getParameter< uint_t >( "toroidalResolution" );
+   tokamakDomain.poloidalResolution         = mainConf.getParameter< uint_t >( "poloidalResolution" );
    tokamakDomain.radiusOriginToCenterOfTube = mainConf.getParameter< real_t >( "radiusOriginToCenterOfTube" );
    tokamakDomain.tubeLayerRadii     = parseStringToVector< real_t >( mainConf.getParameter< std::string >( "tubeLayerRadii" ) );
    tokamakDomain.torodialStartAngle = mainConf.getParameter< real_t >( "torodialStartAngle" );

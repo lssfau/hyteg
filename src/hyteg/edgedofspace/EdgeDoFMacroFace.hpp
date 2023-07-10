@@ -85,10 +85,10 @@ inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  e
    return indexInMacroCell;
 }
 
-inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroCell( const EdgeDoFOrientation& orientationInMacroFace,
-                                                                          const Face&               face,
-                                                                          const uint_t&             neighborCellID,
-                                                                          const PrimitiveStorage&   storage )
+inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroCell( const EdgeDoFOrientation& orientationInMacroFace,
+                                                                         const Face&               face,
+                                                                         const uint_t&             neighborCellID,
+                                                                         const PrimitiveStorage&   storage )
 {
    const Cell&  neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
    const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
@@ -272,9 +272,8 @@ inline void interpolate( const uint_t&                                          
       const Point3D horizontalMicroEdgePosition =
           faceBottomLeftCoords +
           ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
-      const Point3D verticalMicroEdgePosition =
-          faceBottomLeftCoords +
-          ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+      const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset +
+                                                                         ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
       const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
       // Do not update horizontal DoFs at bottom
@@ -694,8 +693,8 @@ inline void apply( const uint_t&                                            Leve
          tmp = 0.0;
          for ( auto k : neighborsFromHorizontalEdge )
          {
-            tmp += opr_data[edgedof::stencilIndexFromHorizontalEdge( k )] *
-                   src[indexFromHorizontalEdge( Level, it.x(), it.y(), k )];
+            tmp +=
+                opr_data[edgedof::stencilIndexFromHorizontalEdge( k )] * src[indexFromHorizontalEdge( Level, it.x(), it.y(), k )];
          }
          if ( update == Replace )
          {
@@ -711,8 +710,7 @@ inline void apply( const uint_t&                                            Leve
          tmp = 0.0;
          for ( auto k : neighborsFromDiagonalEdge )
          {
-            tmp +=
-                opr_data[edgedof::stencilIndexFromDiagonalEdge( k )] * src[indexFromDiagonalEdge( Level, it.x(), it.y(), k )];
+            tmp += opr_data[edgedof::stencilIndexFromDiagonalEdge( k )] * src[indexFromDiagonalEdge( Level, it.x(), it.y(), k )];
          }
          if ( update == Replace )
          {
@@ -728,8 +726,7 @@ inline void apply( const uint_t&                                            Leve
          tmp = 0.0;
          for ( auto k : neighborsFromVerticalEdge )
          {
-            tmp +=
-                opr_data[edgedof::stencilIndexFromVerticalEdge( k )] * src[indexFromVerticalEdge( Level, it.x(), it.y(), k )];
+            tmp += opr_data[edgedof::stencilIndexFromVerticalEdge( k )] * src[indexFromVerticalEdge( Level, it.x(), it.y(), k )];
          }
 
          if ( update == Replace )
@@ -784,7 +781,7 @@ inline void apply3D( const uint_t&                                              
             const auto centerIndexInCell =
                 getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
             const auto cellCenterOrientation =
-                getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+                getOrientationInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
             {
@@ -794,7 +791,7 @@ inline void apply3D( const uint_t&                                              
                   const auto stencilWeight = stencilIt.second;
 
                   const auto leafOrientationInFace =
-                      macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
+                      macrocell::getOrientationInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
                   const auto leafIndexInCell = centerIndexInCell + stencilOffset;
                   const auto leafIndexInFace =
@@ -851,8 +848,7 @@ inline void
       if ( it.x() == 0 )
          std::cout << std::endl;
       cout << setw( 5 )
-           << faceMemory[hyteg::edgedof::macroface::indexFromHorizontalEdge(
-                  Level, it.x(), it.y(), stencilDirection::EDGE_HO_C )]
+           << faceMemory[hyteg::edgedof::macroface::indexFromHorizontalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_HO_C )]
            << "|";
    }
    cout << endl << "Diagonal Edge";
@@ -861,8 +857,7 @@ inline void
       if ( it.x() == 0 )
          std::cout << std::endl;
       cout << setw( 5 )
-           << faceMemory[hyteg::edgedof::macroface::indexFromDiagonalEdge(
-                  Level, it.x(), it.y(), stencilDirection::EDGE_DI_C )]
+           << faceMemory[hyteg::edgedof::macroface::indexFromDiagonalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_DI_C )]
            << "|";
    }
    cout << endl << "Vertical Edge";
@@ -871,8 +866,7 @@ inline void
       if ( it.x() == 0 )
          std::cout << std::endl;
       cout << setw( 5 )
-           << faceMemory[hyteg::edgedof::macroface::indexFromVerticalEdge(
-                  Level, it.x(), it.y(), stencilDirection::EDGE_VE_C )]
+           << faceMemory[hyteg::edgedof::macroface::indexFromVerticalEdge( Level, it.x(), it.y(), stencilDirection::EDGE_VE_C )]
            << "|";
    }
    cout << endl << setfill( '=' ) << setw( 100 ) << "" << endl << setfill( ' ' );

@@ -39,7 +39,7 @@ class HybridSmoother : public Solver< N1E1OperatorType >
  public:
    /// \brief Hiptmair's hybrid smoother for curl-curl problems.
    ///
-   /// For details see: R. Hiptmair, "Multigrid Method for Maxwell’s Equations," 10.1137/S0036142997326203.
+   /// For details see: R. Hiptmair, "Multigrid Method for Maxwell’s Equations," [10.1137/S0036142997326203](https://doi.org/10.1137/S0036142997326203).
    ///
    /// \param storage           A PrimitiveStorage instance.
    /// \param p1LaplaceOperator The operator in potential space.

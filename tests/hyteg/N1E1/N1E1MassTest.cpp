@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2023 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,18 +41,21 @@
 // determined in an interactive sympy session and no script for reproduction has
 // been passed to present or future generations.
 
+#include <memory>
+
 #include "core/debug/TestSubsystem.h"
+#include "core/logging/Logging.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
+#include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
 
-void testLevel0( std::function< Eigen::Vector3r( const Point3D& ) > func, const std::array< real_t, 6 > correct )
+void testLevel0( std::function< Point3D( const Point3D& ) > func, const std::array< real_t, 6 > correct )
 {
    const size_t level = 0;
 
@@ -77,23 +80,44 @@ void testLevel0( std::function< Eigen::Vector3r( const Point3D& ) > func, const 
    WALBERLA_CHECK_FLOAT_EQUAL( cellData[edgedof::macrocell::xIndex( 0, 0, 0, 0 )], correct[5], "X  Edge (5)" )
 }
 
-void testLevel1()
+template < typename MassOp >
+void testLevel1( const bool blending )
 {
-   const size_t level = 1;
+   const size_t                   level = 1;
+   const std::array< Point3D, 4 > vertices{ Point3D{ 0, 0, 0 }, { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   Matrix3r B;
+   // clang-format off
+      B <<  0.1, 0.2, 0.3,
+           -0.8, 0.5, 0.0,
+            1.0, 1.0, 0.5;
+   // clang-format on
+   const Point3D b{ 2.0, 3.0, 4.0 };
+
+   const AffineMap3D        geometryMap{ B, b };
+   std::array< Point3D, 4 > verticesBlending;
+   for ( size_t i = 0; i < 4; ++i )
+   {
+      geometryMap.evalFinv( vertices[i], verticesBlending[i] );
+   }
+
+   MeshInfo              meshInfo = MeshInfo::singleTetrahedron( blending ? verticesBlending : vertices );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   if ( blending )
+   {
+      AffineMap3D::setMap( setupStorage, B, b );
+   }
+
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    n1e1::N1E1VectorFunction< real_t > tmp( "tmp", storage, level, level );
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, level, level );
-   n1e1::N1E1ElementwiseMassOperator  massOp( storage, level, level );
+   MassOp                             massOp( storage, level, level );
 
-   const Eigen::Vector3r                                    a    = { 1, 2, 3 };
-   const Eigen::Vector3r                                    b    = { 4, 5, 6 };
-   const std::function< Eigen::Vector3r( const Point3D& ) > func = [&]( const Point3D& x ) {
-      return Eigen::Vector3r{ a + b.cross( x ) };
-   };
+   const Point3D                                    a0   = { 1, 2, 3 };
+   const Point3D                                    a1   = { 4, 5, 6 };
+   const std::function< Point3D( const Point3D& ) > func = [&]( const Point3D& x ) { return Point3D{ a0 + a1.cross( x ) }; };
 
    tmp.interpolate( func, level );
    massOp.apply( tmp, f, level, DoFType::All );
@@ -140,45 +164,50 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   testLevel0( []( const Point3D& ) { return Eigen::Vector3r{ 0.0, 0.0, 0.0 }; }, { 0, 0, 0, 0, 0, 0 } );
+   testLevel0( []( const Point3D& ) { return Point3D{ 0.0, 0.0, 0.0 }; }, { 0, 0, 0, 0, 0, 0 } );
    testLevel0(
        []( const Point3D& ) {
-          return Eigen::Vector3r{ 1.0, 0.0, 0.0 };
+          return Point3D{ 1.0, 0.0, 0.0 };
        },
        { 0.0, -1.0 / 24.0, -1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 12.0 } );
    testLevel0(
        []( const Point3D& ) {
-          return Eigen::Vector3r{ 0.0, 1.0, 0.0 };
+          return Point3D{ 0.0, 1.0, 0.0 };
        },
        { -1.0 / 24.0, 0.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 12.0, 1.0 / 24.0 } );
    testLevel0(
        []( const Point3D& ) {
-          return Eigen::Vector3r{ 0.0, 0.0, 1.0 };
+          return Point3D{ 0.0, 0.0, 1.0 };
        },
        { 1.0 / 24.0, 1.0 / 24.0, 0.0, 1.0 / 12.0, 1.0 / 24.0, 1.0 / 24.0 } );
    testLevel0(
        []( const Point3D& p ) {
           const auto y = p[1];
           const auto z = p[2];
-          return Eigen::Vector3r{ 0.0, -z, y };
+          return Point3D{ 0.0, -z, y };
        },
        { 1.0 / 30.0, 1.0 / 120.0, -1.0 / 120.0, 0.0, 0.0, 0.0 } );
    testLevel0(
        []( const Point3D& p ) {
           const auto x = p[0];
           const auto z = p[2];
-          return Eigen::Vector3r{ z, 0.0, -x };
+          return Point3D{ z, 0.0, -x };
        },
        { -1.0 / 120.0, -1.0 / 30.0, -1.0 / 120.0, 0.0, 0.0, 0.0 } );
    testLevel0(
        []( const Point3D& p ) {
           const auto x = p[0];
           const auto y = p[1];
-          return Eigen::Vector3r{ -y, x, 0.0 };
+          return Point3D{ -y, x, 0.0 };
        },
        { -1.0 / 120.0, 1.0 / 120.0, 1.0 / 30.0, 0.0, 0.0, 0.0 } );
 
-   testLevel1();
+   WALBERLA_LOG_INFO_ON_ROOT( "Exact no blending" )
+   testLevel1< n1e1::N1E1ElementwiseMassOperator >( false );
+   WALBERLA_LOG_INFO_ON_ROOT( "Q2 no blending" )
+   testLevel1< n1e1::N1E1ElementwiseBlendingMassOperatorQ2 >( false );
+   WALBERLA_LOG_INFO_ON_ROOT( "Q2 with blending" )
+   testLevel1< n1e1::N1E1ElementwiseBlendingMassOperatorQ2 >( true );
 
    return EXIT_SUCCESS;
 }

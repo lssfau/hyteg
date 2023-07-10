@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Bartuschat, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Bartuschat, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -116,6 +116,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    typedef std::map< PrimitiveID, std::shared_ptr< Edge > >      EdgeMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
+
+   using PrimitiveTypeEnum = Primitive::PrimitiveTypeEnum;
 
    explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0 );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
@@ -587,16 +589,6 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Calling this function several times allows us to enlarge our geometric halos.
    void addDirectNeighborsDistributed();
 
-   // needed to differentiate when migrating primitives
-   enum PrimitiveTypeEnum
-   {
-      VERTEX,
-      EDGE,
-      FACE,
-      CELL,
-      INVALID
-   };
-
    /// \brief Splits the current communicator of the walberla MPI manager into two
    ///        sub-communicators. One of them contains all processes with primitives
    ///        and the other all processes without primitives.
@@ -678,6 +670,12 @@ class PrimitiveStorage : private walberla::NonCopyable
    std::map< uint_t, EdgeMap >   edges_;
    std::map< uint_t, FaceMap >   faces_;
    std::map< uint_t, CellMap >   cells_;
+
+   //maps that only contain leaf primitives that do not have any children
+   VertexMap leafVertices_;
+   EdgeMap   leafEdges_;
+   FaceMap   leafFaces_;
+   CellMap   leafCells_;
 
    std::map< uint_t, VertexMap > neighborVertices_;
    std::map< uint_t, EdgeMap >   neighborEdges_;
@@ -824,6 +822,10 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    void   wasModified() { modificationStamp_++; }
    uint_t modificationStamp_;
+
+   /// updates the maps that contain the leaf primitives (primitives without any children
+   /// has to be called if the primitives in the storage have changed
+   void updateLeafPrimitiveMaps();
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 

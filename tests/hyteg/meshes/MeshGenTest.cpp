@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -57,8 +57,8 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
    switch ( testDomain )
    {
    case RECTANGLE:
-      meshInfo = std::make_shared< MeshInfo >(
-          MeshInfo::meshRectangle( Point2D(  -2.0, 1.0  ), Point2D(  0.0, 3.0  ), flavour, 3, 2 ) );
+      meshInfo =
+          std::make_shared< MeshInfo >( MeshInfo::meshRectangle( Point2D( -2.0, 1.0 ), Point2D( 0.0, 3.0 ), flavour, 3, 2 ) );
       break;
 
    case PARTIAL_ANNULUS:
@@ -135,6 +135,24 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
    PrimitiveStorage storage( setupStorage );
 }
 
+void testCubeBounds()
+{
+   Point3D        bbMin{ -1.0, -5.0, 3.0 };
+   Point3D        bbMax{ 4.0, -2.0, 6.0 };
+   const MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( bbMin, bbMax, 2, 2, 2 );
+
+   for ( auto v : meshInfo.getVertices() )
+   {
+      const Point3D coords = v.second.getCoordinates();
+      WALBERLA_CHECK_GREATER_EQUAL( coords[0], bbMin[0] );
+      WALBERLA_CHECK_GREATER_EQUAL( coords[1], bbMin[1] );
+      WALBERLA_CHECK_GREATER_EQUAL( coords[2], bbMin[2] );
+      WALBERLA_CHECK_LESS_EQUAL( coords[0], bbMax[0] );
+      WALBERLA_CHECK_LESS_EQUAL( coords[1], bbMax[1] );
+      WALBERLA_CHECK_LESS_EQUAL( coords[2], bbMax[2] );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -172,6 +190,8 @@ int main( int argc, char* argv[] )
    // Check mesh generator for thin spherical shell
    // (note that flavour argument is meaningless here)
    hyteg::testMeshGenerator( THIN_SPHERICAL_SHELL, hyteg::MeshInfo::DIAMOND );
+
+   hyteg::testCubeBounds();
 
    return EXIT_SUCCESS;
 }

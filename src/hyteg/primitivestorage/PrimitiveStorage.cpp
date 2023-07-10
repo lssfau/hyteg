@@ -126,6 +126,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    }
 
    splitCommunicatorByPrimitiveDistribution();
+   updateLeafPrimitiveMaps();
 
 #ifndef NDEBUG
    checkConsistency();
@@ -456,6 +457,7 @@ PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
    neighborRanks_[0] = neighborRanks;
 
    splitCommunicatorByPrimitiveDistribution();
+   updateLeafPrimitiveMaps();
 
 #ifndef NDEBUG
    checkConsistency();
@@ -706,6 +708,7 @@ std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
    copiedStorage->neighborRanks_  = neighborRanks_;
    copiedStorage->hasGlobalCells_ = hasGlobalCells_;
    copiedStorage->splitComm_      = splitComm_;
+   copiedStorage->updateLeafPrimitiveMaps();
 
    return copiedStorage;
 }
@@ -727,72 +730,28 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap& primitiveMap ) const
    WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices.size() + edges.size() + faces.size() + cells.size() );
 }
 
+/// returns all vertices without any children
 PrimitiveStorage::VertexMap PrimitiveStorage::getVertices() const
 {
-   PrimitiveStorage::VertexMap pmap;
-   for ( const auto& [level, primitives] : vertices_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafVertices_;
 }
 
+/// returns all edges without any children
 PrimitiveStorage::EdgeMap PrimitiveStorage::getEdges() const
 {
-   PrimitiveStorage::EdgeMap pmap;
-   for ( const auto& [level, primitives] : edges_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafEdges_;
 }
 
+/// returns all faces without any children
 PrimitiveStorage::FaceMap PrimitiveStorage::getFaces() const
 {
-   PrimitiveStorage::FaceMap pmap;
-   for ( const auto& [level, primitives] : faces_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafFaces_;
 }
 
+/// returns all cells without any children
 PrimitiveStorage::CellMap PrimitiveStorage::getCells() const
 {
-   PrimitiveStorage::CellMap pmap;
-   for ( const auto& [level, primitives] : cells_ )
-   {
-      for ( const auto& [pid, primitive] : primitives )
-      {
-         if ( !primitive->hasChildren() )
-         {
-            pmap[pid] = primitive;
-         }
-      }
-      WALBERLA_UNUSED( level );
-   }
-   return pmap;
+   return leafCells_;
 }
 
 PrimitiveStorage::VertexMap PrimitiveStorage::getNeighborVertices() const
@@ -1592,7 +1551,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
       const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
       const Primitive*        primitive     = getPrimitive( primitiveID );
 
-      WALBERLA_CHECK_NOT_IDENTICAL( primitiveType, INVALID, "Sending invalid primitive type..." );
+      WALBERLA_CHECK_NOT_IDENTICAL( primitiveType, PrimitiveTypeEnum::INVALID, "Sending invalid primitive type..." );
 
       sendBuffer << true;
       sendBuffer << primitiveType;
@@ -1791,6 +1750,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
    splitCommunicatorByPrimitiveDistribution();
 
    wasModified();
+   updateLeafPrimitiveMaps();
 
    WALBERLA_DEBUG_SECTION()
    {
@@ -1927,15 +1887,11 @@ void PrimitiveStorage::getNeighboringRanks( std::set< walberla::mpi::MPIRank >& 
 
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID& primitiveID ) const
 {
-   if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) )
-      return VERTEX;
-   if ( edgeExistsLocally( primitiveID ) || edgeExistsInNeighborhood( primitiveID ) )
-      return EDGE;
-   if ( faceExistsLocally( primitiveID ) || faceExistsInNeighborhood( primitiveID ) )
-      return FACE;
-   if ( cellExistsLocally( primitiveID ) || cellExistsInNeighborhood( primitiveID ) )
-      return CELL;
-   return INVALID;
+   if ( primitiveExistsLocally( primitiveID ) || primitiveExistsInNeighborhood( primitiveID ) )
+   {
+      return getPrimitive( primitiveID )->getType();
+   }
+   return PrimitiveTypeEnum::INVALID;
 }
 
 PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuffer& recvBuffer, const bool& isNeighborPrimitive )
@@ -1949,7 +1905,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
 
    switch ( primitiveType )
    {
-   case VERTEX: {
+   case PrimitiveTypeEnum::VERTEX: {
       std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer );
       primitiveID                      = vertex->getID();
       if ( isNeighborPrimitive )
@@ -1962,7 +1918,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
       }
       break;
    }
-   case EDGE: {
+   case PrimitiveTypeEnum::EDGE: {
       std::shared_ptr< Edge > edge = std::make_shared< Edge >( recvBuffer );
       primitiveID                  = edge->getID();
       if ( isNeighborPrimitive )
@@ -1975,7 +1931,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
       }
       break;
    }
-   case FACE: {
+   case PrimitiveTypeEnum::FACE: {
       std::shared_ptr< Face > face = std::make_shared< Face >( recvBuffer );
       primitiveID                  = face->getID();
       if ( isNeighborPrimitive )
@@ -1988,7 +1944,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
       }
       break;
    }
-   case CELL: {
+   case PrimitiveTypeEnum::CELL: {
       std::shared_ptr< Cell > cell = std::make_shared< Cell >( recvBuffer );
       primitiveID                  = cell->getID();
       if ( isNeighborPrimitive )
@@ -2017,7 +1973,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
    const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
    switch ( primitiveType )
    {
-   case VERTEX: {
+   case PrimitiveTypeEnum::VERTEX: {
       WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
       auto vertex = vertices_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2030,7 +1986,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
       }
       break;
    }
-   case EDGE: {
+   case PrimitiveTypeEnum::EDGE: {
       WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
       auto edge = edges_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2043,7 +1999,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
       }
       break;
    }
-   case FACE: {
+   case PrimitiveTypeEnum::FACE: {
       WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
       auto face = faces_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2056,7 +2012,7 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer& sen
       }
       break;
    }
-   case CELL: {
+   case PrimitiveTypeEnum::CELL: {
       WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
       auto cell = cells_[0][primitiveID];
       for ( const auto& serializationFunction : primitiveDataSerializationFunctions_ )
@@ -2084,7 +2040,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
    const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
    switch ( primitiveType )
    {
-   case VERTEX: {
+   case PrimitiveTypeEnum::VERTEX: {
       WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
       auto vertex = vertices_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -2105,7 +2061,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
       }
       break;
    }
-   case EDGE: {
+   case PrimitiveTypeEnum::EDGE: {
       WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
       auto edge = edges_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -2126,7 +2082,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
       }
       break;
    }
-   case FACE: {
+   case PrimitiveTypeEnum::FACE: {
       WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
       auto face = faces_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -2147,7 +2103,7 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
       }
       break;
    }
-   case CELL: {
+   case PrimitiveTypeEnum::CELL: {
       WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
       auto cell = cells_[0][primitiveID];
       for ( const auto& initializationFunction : primitiveDataInitializationFunctions_ )
@@ -3224,6 +3180,61 @@ void PrimitiveStorage::refinementAndCoarseningHanging( const std::vector< Primit
    }
 
    wasModified();
+   updateLeafPrimitiveMaps();
+}
+void PrimitiveStorage::updateLeafPrimitiveMaps()
+{
+   leafVertices_.clear();
+   for ( const auto& [level, primitives] : vertices_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafVertices_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
+
+   leafEdges_.clear();
+   for ( const auto& [level, primitives] : edges_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafEdges_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
+
+   leafFaces_.clear();
+   for ( const auto& [level, primitives] : faces_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafFaces_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
+
+   leafCells_.clear();
+   for ( const auto& [level, primitives] : cells_ )
+   {
+      for ( const auto& [pid, primitive] : primitives )
+      {
+         if ( !primitive->hasChildren() )
+         {
+            leafCells_[pid] = primitive;
+         }
+      }
+      WALBERLA_UNUSED( level );
+   }
 }
 
 } // namespace hyteg

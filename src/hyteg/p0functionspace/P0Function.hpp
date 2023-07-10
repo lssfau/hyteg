@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2023 Ponsuganth Ilangovan, Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,6 +22,9 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
 
@@ -51,7 +54,6 @@ class P0Function : public Function< P0Function< ValueType > >
    : P0Function( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-   virtual uint_t getDimension() const { return dgFunction_->getDimension(); }
 
    const std::shared_ptr< DGFunction< ValueType > > getDGFunction() const { return dgFunction_; }
 
@@ -59,17 +61,26 @@ class P0Function : public Function< P0Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
+   uint_t getDimension() const { return dgFunction_->getDimension(); };
+
+   void setDoNotWarnOnInterpolateFlag() { doNotWarnOnInterpolate_ = true; }
+
    // template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { WALBERLA_ABORT( "Not implemented." ); };
+
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { dgFunction_->add( scalar, level, flag ); };
 
    void add( const std::vector< ValueType >                                                scalars,
              const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
              uint_t                                                                        level,
              DoFType                                                                       flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+      std::vector< ValueType > new_scalars( scalars );
+      new_scalars.push_back( 1.0 );
+      std::vector< std::reference_wrapper< const P0Function< ValueType > > > new_functions( functions );
+      new_functions.push_back( *this );
+      assign( new_scalars, new_functions, level, flag );
    };
 
    void multElementwise( const std::vector< std::reference_wrapper< const P0Function< ValueType > > >& functions,
@@ -79,12 +90,31 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void interpolate( ValueType constant, uint_t level, DoFType ) const
+   void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+      if( !doNotWarnOnInterpolate_ ) WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto  cellID = it.first;
+            const auto& cell   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( cellID ), 0 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 3, 0 ), 1 );
+
+            const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
+            auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayout )] =
+                      constant;
+               }
+            }
+         }
       }
       else
       {
@@ -113,10 +143,46 @@ class P0Function : public Function< P0Function< ValueType > >
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const
    {
       WALBERLA_UNUSED( dofType );
-      WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+      if( !doNotWarnOnInterpolate_ ) WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto  cellID = it.first;
+            const auto& cell   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( cellID ), 0 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 3, 0 ), 1 );
+
+            const auto memLayout = getDGFunction()->volumeDoFFunction()->memoryLayout();
+            auto       dofs      = getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level );
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  const std::array< indexing::Index, 4 > vertexIndices =
+                      celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+                  std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+                  for ( uint_t i = 0; i < 4; i++ )
+                  {
+                     const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                     elementVertices[i]( 0 )  = elementVertex[0];
+                     elementVertices[i]( 1 )  = elementVertex[1];
+                     elementVertices[i]( 2 )  = elementVertex[2];
+                  }
+
+                  const Eigen::Matrix< real_t, 3, 1 > centroid =
+                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
+
+                  const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), centroid( 2 ) ) );
+
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayout )] =
+                      ValueType( val );
+               }
+            }
+         }
       }
       else
       {
@@ -146,7 +212,7 @@ class P0Function : public Function< P0Function< ValueType > >
                   }
 
                   const Eigen::Matrix< real_t, 2, 1 > centroid =
-                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
+                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / real_c( 3 );
 
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
 
@@ -223,7 +289,8 @@ class P0Function : public Function< P0Function< ValueType > >
                   for ( size_t k = 0; k < srcFunctions.size(); ++k )
                   {
                      srcValues[k] =
-                         dofs[k+1][volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayouts[k+1] )];
+                         dofs[k + 1]
+                             [volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayouts[k + 1] )];
                   }
 
                   const auto newValue = expression( Point3D( centroid( 0 ), centroid( 1 ), 0 ), srcValues );
@@ -238,7 +305,8 @@ class P0Function : public Function< P0Function< ValueType > >
 
    void swap( const P0Function< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-      WALBERLA_ABORT( "Not implemented." );
+       WALBERLA_UNUSED(flag);
+       dgFunction_->swap(*other.getDGFunction(),level,flag);
    };
 
    void copyFrom( const P0Function< ValueType >&         other,
@@ -264,13 +332,15 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          dgFunctions.push_back( *f.get().getDGFunction() );
       }
-      dgFunction_->assign( scalars, dgFunctions, level );
+      dgFunction_->assign( scalars, dgFunctions, level, flag );
    }
 
    ValueType dotGlobal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
       return dgFunction_->dotGlobal( *rhs.getDGFunction(), level );
    }
+
+   ValueType sumGlobal( uint_t level, const DoFType& flag = All ) const { return dgFunction_->sumGlobal( level ); }
 
    ValueType dotLocal( const P0Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const
    {
@@ -309,6 +379,12 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
+    template < typename OtherValueType >
+    void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
+    {
+        dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
+    }
+
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
       if ( flag != All && flag != Inner )
@@ -318,8 +394,45 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getMaxMagnitude( level, mpiReduce );
    }
 
+   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   {
+      if ( flag != All && flag != Inner )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMaxValue -> DoFType flag will be ignored!" );
+      }
+      return dgFunction_->getMax( level, mpiReduce );
+   }
+
+   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   {
+      if ( flag != All && flag != Inner )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMinValue -> DoFType flag will be ignored!" );
+      }
+      return dgFunction_->getMin( level, mpiReduce );
+   }
+
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
+   bool doNotWarnOnInterpolate_ = true;
+
 };
+
+namespace dg {
+/// \brief removes the mean value of func to project it onto the space of functions with mean value 0
+///
+/// \param func             [in] function to project
+/// \param level            [in] refinement level
+inline void projectMean( P0Function< real_t >& func, const uint_t& level )
+{
+   if ( func.isDummy() )
+   {
+      return;
+   }
+   const uint_t numGlobalVertices = func.getNumberOfGlobalDoFs( level );
+   const real_t sum               = func.sumGlobal( level, Inner );
+   func.add( -sum / ( real_c( numGlobalVertices ) ), level, Inner );
+}
+} // namespace dg
 
 } // namespace hyteg

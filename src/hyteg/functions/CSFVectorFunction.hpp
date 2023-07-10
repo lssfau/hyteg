@@ -60,7 +60,8 @@ class CSFVectorFunction
    std::shared_ptr< PrimitiveStorage > getStorage() const { return compFunc_[0]->getStorage(); }
 
    /// \note Dimension of VectorFunction is decoupled from storage now
-   uint_t getDimension() const { return compFunc_.size(); }
+   uint_t getDimension() const {
+         return compFunc_.size(); }
    /// @}
 
    /// @name Component access
@@ -227,7 +228,11 @@ class CSFVectorFunction
          compFunc_[k]->setBoundaryCondition( bc );
       }
    }
-
+  /// Set boundary conditions, for certain component functions
+   void setBoundaryCondition( BoundaryCondition bc, uint_t componentIdx )
+   {    
+      compFunc_[componentIdx]->setBoundaryCondition( bc ); 
+   }
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
@@ -318,7 +323,7 @@ class CSFVectorFunction
 
    void enumerate( uint_t level ) const
    {
-      uint_t counterDoFs = hyteg::numberOfLocalDoFs< Tag >( *( getStorage() ), level );
+      uint_t counterDoFs = hyteg::numberOfLocalDoFs( *this, level );
 
       std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
 
@@ -391,6 +396,28 @@ class CSFVectorFunction
       }
    }
    /// @}
+
+   uint_t getNumberOfLocalDoFs( uint_t level ) const
+   {
+      uint_t nDoFs = 0;
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         nDoFs += compFunc_[k]->getNumberOfLocalDoFs( level );
+      }
+      return nDoFs;
+   }
+
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      uint_t nDoFs = 0;
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         nDoFs += compFunc_[k]->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
+      }
+      return nDoFs;
+   }
 
  protected:
    const std::string                                     functionName_;

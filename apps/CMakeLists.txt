@@ -71,9 +71,11 @@ waLBerla_add_executable( NAME annulus
         DEPENDS hyteg)
 endif()
 
+add_subdirectory(2DPlume)
 add_subdirectory(benchmarks)
 add_subdirectory(Blankenbach)
 add_subdirectory(MG_with_mixed_BCs)
+add_subdirectory(profiling)
 add_subdirectory(scaling)
 add_subdirectory(stokesSphere)
 add_subdirectory(stokesCubeTransport)
@@ -102,3 +104,7 @@ add_subdirectory(surfaces)
 add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)
+
+add_subdirectory(2023-bauer-mt)
+
+add_subdirectory(2022-eg-varvisc)

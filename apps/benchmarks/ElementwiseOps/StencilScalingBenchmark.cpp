@@ -28,7 +28,7 @@
 #include <core/math/Constants.h>
 #include <core/timing/Timer.h>
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"

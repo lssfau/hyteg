@@ -25,7 +25,7 @@
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/p1functionspace/P1EpsilonOperator.hpp"

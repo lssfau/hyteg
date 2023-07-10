@@ -87,17 +87,16 @@ as written above, to set up waLBerla automatically.
 
 Required:
 
-* [CMake](https://cmake.org/ "CMake homepage")
+* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.14 )
 * a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
-
-Optional:
-
 * [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
   
-  Eigen is, (like waLBerla) automatically cloned as a git submodule.
+  Eigen (like waLBerla) is automatically cloned as a git submodule.
   
   CMake will automatically find the Eigen submodule, there is no need to specify a path
   or to download Eigen at all.
+
+Optional:
 
 * MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
 * [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage") and/or [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers

@@ -35,158 +35,248 @@ template < typename value_t >
 class BlockFunction;
 template < typename value_t >
 class GenericFunction;
+template < typename VectorFunctionType >
+class CSFVectorFunction;
 
 template < typename FunctionTag_T, typename PrimitiveType >
-inline uint_t numberOfInnerDoFs( const uint_t& level );
-
-template <>
-inline uint_t numberOfInnerDoFs< P1FunctionTag, Vertex >( const uint_t& )
+inline uint_t numberOfInnerDoFs( const uint_t& level )
 {
-   return 1;
-}
+   // =============
+   //  P1Functions
+   // =============
+   if constexpr ( std::is_same_v< FunctionTag_T, P1FunctionTag > )
+   {
+      // Vertex
+      if constexpr ( std::is_same_v< PrimitiveType, Vertex > )
+      {
+         return 1;
+      }
+      // Edge
+      else if constexpr ( std::is_same_v< PrimitiveType, Edge > )
+      {
+         return levelinfo::num_microvertices_per_edge( level ) - 2 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
+      }
+      // Face
+      else if constexpr ( std::is_same_v< PrimitiveType, Face > )
+      {
+         return levelinfo::num_microvertices_per_face( level ) - 3 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) -
+                3 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
+      }
+      // Cell
+      else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
+      {
+         return levelinfo::num_microvertices_per_cell( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Face >( level ) -
+                6 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
+      }
+   }
 
-template <>
-inline uint_t numberOfInnerDoFs< P1FunctionTag, Edge >( const uint_t& level )
-{
-   return levelinfo::num_microvertices_per_edge( level ) - 2 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
-}
+   // ==================
+   //  EdgeDoFFunctions
+   // ==================
+   else if constexpr ( std::is_same_v< FunctionTag_T, EdgeDoFFunctionTag > )
+   {
+      // Vertex
+      if constexpr ( std::is_same_v< PrimitiveType, Vertex > )
+      {
+         return 0;
+      }
+      // Edge
+      else if constexpr ( std::is_same_v< PrimitiveType, Edge > )
+      {
+         return levelinfo::num_microedges_per_edge( level ) - 2 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
+      }
+      // Face
+      else if constexpr ( std::is_same_v< PrimitiveType, Face > )
+      {
+         return levelinfo::num_microedges_per_face( level ) - 3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) -
+                3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
+      }
+      // Cell
+      else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
+      {
+         return levelinfo::num_microedges_per_cell( level ) - 4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level ) -
+                6 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) -
+                4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
+      }
+   }
 
-template <>
-inline uint_t numberOfInnerDoFs< P1FunctionTag, Face >( const uint_t& level )
-{
-   return levelinfo::num_microvertices_per_face( level ) - 3 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) -
-          3 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
-}
+   // =============
+   //  P2Functions
+   // =============
+   else if constexpr ( std::is_same_v< FunctionTag_T, P2FunctionTag > )
+   {
+      // Vertex
+      if constexpr ( std::is_same_v< PrimitiveType, Vertex > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Vertex >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
+      }
+      // Edge
+      else if constexpr ( std::is_same_v< PrimitiveType, Edge > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Edge >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
+      }
+      // Face
+      else if constexpr ( std::is_same_v< PrimitiveType, Face > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Face >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level );
+      }
+      // Cell
+      else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Cell >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
+      }
+   }
 
-template <>
-inline uint_t numberOfInnerDoFs< P1FunctionTag, Cell >( const uint_t& level )
-{
-   return levelinfo::num_microvertices_per_cell( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Face >( level ) -
-          6 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
-}
+   // =============
+   //  P0Functions
+   // =============
+   else if constexpr ( std::is_same_v< FunctionTag_T, P0FunctionTag > )
+   {
+      // Vertex
+      if constexpr ( std::is_same_v< PrimitiveType, Vertex > )
+      {
+         return 0;
+      }
+      // Edge
+      else if constexpr ( std::is_same_v< PrimitiveType, Edge > )
+      {
+         return 0;
+      }
+      // Face
+      else if constexpr ( std::is_same_v< PrimitiveType, Face > )
+      {
+         return levelinfo::num_microfaces_per_face( level );
+      }
+      // Cell
+      else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
+      {
+         return levelinfo::num_microcells_per_cell( level );
+      }
+   }
 
-template <>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( const uint_t& )
-{
+   // =========
+   // NO MATCH
+   // =========
+   else
+   {
+      WALBERLA_ABORT( "Missing implementation in numberOfInnerDoFs()" );
+   }
+
    return 0;
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( const uint_t& level )
-{
-   return levelinfo::num_microedges_per_edge( level ) - 2 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( const uint_t& level )
-{
-   return levelinfo::num_microedges_per_face( level ) - 3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) -
-          3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( const uint_t& level )
-{
-   return levelinfo::num_microedges_per_cell( level ) - 4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level ) -
-          6 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) -
-          4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< P2FunctionTag, Vertex >( const uint_t& level )
-{
-   return numberOfInnerDoFs< P1FunctionTag, Vertex >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< P2FunctionTag, Edge >( const uint_t& level )
-{
-   return numberOfInnerDoFs< P1FunctionTag, Edge >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< P2FunctionTag, Face >( const uint_t& level )
-{
-   return numberOfInnerDoFs< P1FunctionTag, Face >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level );
-}
-
-template <>
-inline uint_t numberOfInnerDoFs< P2FunctionTag, Cell >( const uint_t& level )
-{
-   return numberOfInnerDoFs< P1FunctionTag, Cell >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
-}
+};
 
 template < typename FunctionTag_T >
-inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level );
-
-template <>
-inline uint_t numberOfLocalDoFs< P1FunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-   return numberOfInnerDoFs< P1FunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
-          numberOfInnerDoFs< P1FunctionTag, Edge >( level ) * primitiveStorage.getNumberOfLocalEdges() +
-          numberOfInnerDoFs< P1FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces() +
-          numberOfInnerDoFs< P1FunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells();
-}
+   // ============
+   //  P0Function
+   // ============
+   if constexpr ( std::is_same_v< P0FunctionTag, FunctionTag_T > )
+   {
+      return primitiveStorage.hasGlobalCells() ? numberOfInnerDoFs< P0FunctionTag, Cell >( level ) :
+                                                 numberOfInnerDoFs< P0FunctionTag, Face >( level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P1VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
-}
+   // ============
+   //  P1Function
+   // ============
+   else if constexpr ( std::is_same_v< P1FunctionTag, FunctionTag_T > )
+   {
+      return numberOfInnerDoFs< P1FunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
+             numberOfInnerDoFs< P1FunctionTag, Edge >( level ) * primitiveStorage.getNumberOfLocalEdges() +
+             numberOfInnerDoFs< P1FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces() +
+             numberOfInnerDoFs< P1FunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells();
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< EdgeDoFFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
-          numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) * primitiveStorage.getNumberOfLocalEdges() +
-          numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces() +
-          numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells();
-}
+   // ==================
+   //  P1VectorFunction
+   // ==================
+   else if constexpr ( std::is_same_v< P1VectorFunctionTag, FunctionTag_T > )
+   {
+      return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P2FunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level ) +
-          numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
-}
+   // =================
+   //  EdgeDoFFunction
+   // =================
+   else if constexpr ( std::is_same_v< EdgeDoFFunctionTag, FunctionTag_T > )
+   {
+      return numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
+             numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) * primitiveStorage.getNumberOfLocalEdges() +
+             numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces() +
+             numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells();
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P2VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
-}
+   // ============
+   //  P2Function
+   // ============
+   else if constexpr ( std::is_same_v< P2FunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level ) +
+             numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< N1E1VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
-}
+   // ==================
+   //  P2VectorFunction
+   // ==================
+   else if constexpr ( std::is_same_v< P2VectorFunctionTag, FunctionTag_T > )
+   {
+      return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P1StokesFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
-}
+   // ====================
+   //  N1E1VectorFunction
+   // ====================
+   else if constexpr ( std::is_same_v< N1E1VectorFunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level ) +
-          numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
-}
+   // ==================
+   //  P1StokesFunction
+   // ==================
+   else if constexpr ( std::is_same_v< P1StokesFunctionTag, FunctionTag_T > )
+   {
+      return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P2P1TaylorHoodBlockFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return numberOfLocalDoFs< P2VectorFunctionTag >( primitiveStorage, level ) +
-          numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
-}
+   // ========================
+   //  P2P1TaylorHoodFunction
+   // ========================
+   else if constexpr ( std::is_same_v< P2P1TaylorHoodFunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< P2VectorFunctionTag >( primitiveStorage, level ) +
+             numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+   }
 
-template <>
-inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
-}
+   // =============================
+   //  P2P1TaylorHoodBlockFunction
+   // =============================
+   else if constexpr ( std::is_same_v< P2P1TaylorHoodBlockFunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< P2VectorFunctionTag >( primitiveStorage, level ) +
+             numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+   }
+
+   // ====================
+   //  P2P2StokesFunction
+   // ====================
+   else if constexpr ( std::is_same_v< P2P2StokesFunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< P2VectorFunctionTag >( primitiveStorage, level ) +
+             numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
+   }
+
+   // =========
+   // NO MATCH
+   // =========
+   else
+   {
+      WALBERLA_ABORT( "Missing implementation in numberOfLocalDoFs()" );
+   }
+
+   return 0;
+};
 
 /// variant of numberOfLocalDoFs that works on a function object
 template < typename func_t >
@@ -195,7 +285,11 @@ inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
    if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+                  std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
+                  std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< DG1Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< EGFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfLocalDoFs( level );
    }
@@ -233,7 +327,11 @@ inline uint_t numberOfGlobalDoFs( const func_t&   func,
    if constexpr ( std::is_base_of_v< BlockFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< GenericFunction< typename func_t::valueType >, func_t > ||
                   std::is_same_v< dg::DGFunction< typename func_t::valueType >, func_t > ||
-                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > )
+                  std::is_same_v< CSFVectorFunction< dg::DGVectorFunction< typename func_t::valueType > >, func_t > ||
+                  std::is_same_v< dg::DGVectorFunction< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< P0Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< DG1Function< typename func_t::valueType >, func_t > ||
+                  std::is_same_v< EGFunction< typename func_t::valueType >, func_t > )
    {
       return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
@@ -264,25 +362,30 @@ inline uint_t numberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, 
 {
    uint_t boundaryPoints = 0;
 
-   for ( const auto& it : primitiveStorage.getFaceIDs() )
+   // Logic for continous Galerkin type functions, for DG type functions
+   // we do not need to subtract boundary dofs
+   if constexpr ( !std::is_same_v< FunctionTag_T, P0FunctionTag > )
    {
-      if ( primitiveStorage.onBoundary( it, true ) )
+      for ( const auto& it : primitiveStorage.getFaceIDs() )
       {
-         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
+         if ( primitiveStorage.onBoundary( it, true ) )
+         {
+            boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
+         }
       }
-   }
-   for ( const auto& it : primitiveStorage.getEdgeIDs() )
-   {
-      if ( primitiveStorage.onBoundary( it, true ) )
+      for ( const auto& it : primitiveStorage.getEdgeIDs() )
       {
-         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
+         if ( primitiveStorage.onBoundary( it, true ) )
+         {
+            boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
+         }
       }
-   }
-   for ( const auto& it : primitiveStorage.getVertexIDs() )
-   {
-      if ( primitiveStorage.onBoundary( it, true ) )
+      for ( const auto& it : primitiveStorage.getVertexIDs() )
       {
-         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
+         if ( primitiveStorage.onBoundary( it, true ) )
+         {
+            boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
+         }
       }
    }
 

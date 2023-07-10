@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Daniel Bauer.
+* Copyright (c) 2022-2023 Daniel Bauer.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,11 +18,11 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormCurlCurl.hpp"
-#include "hyteg/forms/form_hyteg_manual/N1E1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -37,12 +37,13 @@ using walberla::real_t;
 real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK = false )
 {
    using namespace n1e1;
+
    SetupPrimitiveStorage setupStorage( system.domain_, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   n1e1::N1E1Form_curl_curl curlCurlForm;
-   n1e1::N1E1Form_mass      massForm;
+   forms::n1e1_curl_curl_affine_q0 curlCurlForm;
+   forms::n1e1_mass_affine_qe      massForm;
 
    N1E1ElementwiseMassOperator              M( storage, level, level );
    N1E1ElementwiseLinearCombinationOperator A( storage, level, level, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
@@ -57,11 +58,10 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << level << ": " << nDoFs );
 
    // Assemble RHS.
-   tmp.interpolate( system.rhs_, level );
-   M.apply( tmp, f, level, DoFType::All );
+   assembleLinearForm< forms::n1e1_linear_form_affine_q6 >( level, level, { system.rhs_ }, f );
 
    // Boundary conditions: homogeneous tangential trace
-   u.interpolate( Eigen::Vector3r{ 0.0, 0.0, 0.0 }, level, DoFType::Boundary );
+   u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, level, DoFType::Boundary );
 
    // Interpolate solution
    sol.interpolate( system.analyticalSol_, level );
@@ -69,10 +69,10 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    // Solve system.
 #ifdef HYTEG_BUILD_WITH_PETSC
    WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto solverA = PETScCGSolver< n1e1::N1E1ElementwiseLinearCombinationOperator >( storage, level );
+   auto solverA = PETScCGSolver< N1E1ElementwiseLinearCombinationOperator >( storage, level );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
-   auto solverA = CGSolver< n1e1::N1E1ElementwiseLinearCombinationOperator >( storage, level, level, 10000, 1e-12 );
+   auto solverA = CGSolver< N1E1ElementwiseLinearCombinationOperator >( storage, level, level, 10000, 1e-12 );
 #endif
    solverA.solve( A, u, f, level );
 

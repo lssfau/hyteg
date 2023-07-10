@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2022 Marcus Mohr.
  *
@@ -21,8 +22,10 @@
 
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
-#include "hyteg/operators/VectorToVectorOperator.hpp"
+
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+
+#include "hyteg/operators/VectorToVectorOperator.hpp"
 
 namespace hyteg {
 
@@ -90,10 +93,12 @@ class P1ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t
  public:
    P1ElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                        size_t                                     minLevel,
-                                       size_t                                     maxLevel,
-                                       std::function< real_t( const Point3D& ) >  viscosity )
+                                       size_t                                     maxLevel
+                                       ,                                       std::function< real_t( const Point3D& ) >  viscosity
+                                        )
    : VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >( storage, minLevel, maxLevel )
    {
+    
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_0_affine_q2 > eps_0_0;
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_1_affine_q2 > eps_0_1;
       typedef P1ElementwiseOperator< forms::p1_epsilonvar_0_2_affine_q2 > eps_0_2;

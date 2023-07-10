@@ -115,10 +115,10 @@ inline indexing::Index getIndexInNeighboringMacroFaceXYZ( const indexing::Index&
    return indexInMacroFace;
 }
 
-inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroFace( const EdgeDoFOrientation& orientationInMacroCell,
-                                                                          const Cell&               cell,
-                                                                          const uint_t&             neighborFaceID,
-                                                                          const PrimitiveStorage&   storage )
+inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroFace( const EdgeDoFOrientation& orientationInMacroCell,
+                                                                         const Cell&               cell,
+                                                                         const uint_t&             neighborFaceID,
+                                                                         const PrimitiveStorage&   storage )
 {
    const auto orientationInMacroFace = edgedof::convertEdgeDoFOrientationCellToFace(
        orientationInMacroCell,

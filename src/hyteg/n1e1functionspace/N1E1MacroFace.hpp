@@ -98,46 +98,6 @@ inline void add( const uint_t&                                            level,
    }
 }
 
-inline void interpolate( const uint_t&                                            level,
-                         Face&                                                    face,
-                         const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceMemoryId,
-                         const VectorType< real_t >&                              constant )
-{
-   using ValueType = real_t;
-
-   auto faceData = face.getData( faceMemoryId )->getPointer( level );
-
-   const Point3D horizontalMicroEdgeDirection = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::X );
-   const Point3D verticalMicroEdgeDirection   = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::Y );
-   const Point3D diagonalMicroEdgeDirection   = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::XY );
-
-   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
-   const ValueType dofScalarHorizontal = constant.dot( horizontalMicroEdgeDirection );
-   const ValueType dofScalarVertical   = constant.dot( verticalMicroEdgeDirection );
-   const ValueType dofScalarDiagonal   = constant.dot( diagonalMicroEdgeDirection );
-
-   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
-   {
-      // Do not update horizontal DoFs at bottom
-      if ( it.y() != 0 )
-      {
-         faceData[edgedof::macroface::horizontalIndex( level, it.x(), it.y() )] = dofScalarHorizontal;
-      }
-
-      // Do not update vertical DoFs at left border
-      if ( it.x() != 0 )
-      {
-         faceData[edgedof::macroface::verticalIndex( level, it.x(), it.y() )] = dofScalarVertical;
-      }
-
-      // Do not update diagonal DoFs at diagonal border
-      if ( ( it.x() + it.y() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
-      {
-         faceData[edgedof::macroface::diagonalIndex( level, it.x(), it.y() )] = dofScalarDiagonal;
-      }
-   }
-}
-
 inline void
     interpolate( const uint_t&                                                                      level,
                  Face&                                                                              face,
@@ -159,29 +119,30 @@ inline void
    const Point3D horizontalMicroEdgeOffset = horizontalMicroEdgeDirection * 0.5;
    const Point3D verticalMicroEdgeOffset   = verticalMicroEdgeDirection * 0.5;
 
-   Point3D xBlend;
+   Point3D  xBlend;
+   Matrix3r DF;
 
    for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
    {
       const Point3D horizontalMicroEdgePosition =
           faceBottomLeftCoords +
           ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
-      const Point3D verticalMicroEdgePosition =
-          faceBottomLeftCoords +
-          ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+      const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset +
+                                                                         ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
       const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
       // Do not update horizontal DoFs at bottom
       if ( it.y() != 0 )
       {
          face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
+         face.getGeometryMap()->evalDF( horizontalMicroEdgePosition, DF );
 
          for ( uint_t k = 0; k < srcFunctions.size(); ++k )
          {
             srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
          }
 
-         const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+         const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
          const ValueType               dofScalar = vector.dot( horizontalMicroEdgeDirection );
 
          faceData[edgedof::macroface::horizontalIndex( level, it.x(), it.y() )] = dofScalar;
@@ -191,13 +152,14 @@ inline void
       if ( it.x() != 0 )
       {
          face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
+         face.getGeometryMap()->evalDF( verticalMicroEdgePosition, DF );
 
          for ( uint_t k = 0; k < srcFunctions.size(); ++k )
          {
             srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
          }
 
-         const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+         const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
          const ValueType               dofScalar = vector.dot( verticalMicroEdgeDirection );
 
          faceData[edgedof::macroface::verticalIndex( level, it.x(), it.y() )] = dofScalar;
@@ -207,16 +169,72 @@ inline void
       if ( ( it.x() + it.y() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
+         face.getGeometryMap()->evalDF( diagonalMicroEdgePosition, DF );
 
          for ( uint_t k = 0; k < srcFunctions.size(); ++k )
          {
             srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
          }
 
-         const VectorType< ValueType > vector    = expr( xBlend, srcVector );
+         const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
          const ValueType               dofScalar = vector.dot( diagonalMicroEdgeDirection );
 
          faceData[edgedof::macroface::diagonalIndex( level, it.x(), it.y() )] = dofScalar;
+      }
+   }
+}
+
+inline void interpolate( const uint_t&                                            level,
+                         Face&                                                    face,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceMemoryId,
+                         const VectorType< real_t >&                              constant )
+{
+   using ValueType = real_t;
+
+   const auto geometryMap = face.getGeometryMap();
+   if ( !geometryMap->isAffine() )
+   {
+      // If the blending map is not affine, the vector field is not constant in computational space.
+      // In that case, we delegate to the non-constant interpolation routine.
+      interpolate(
+          level, face, faceMemoryId, {}, [&]( const Point3D&, const std::vector< VectorType< real_t > >& ) { return constant; } );
+      return;
+   }
+
+   // Geometry map is affine ⇒ DF is constant
+   Matrix3r DF;
+   geometryMap->evalDF( {}, DF );
+   const VectorType< real_t > valComp = DF.transpose() * constant;
+
+   auto faceData = face.getData( faceMemoryId )->getPointer( level );
+
+   const Point3D horizontalMicroEdgeDirection = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::X );
+   const Point3D verticalMicroEdgeDirection   = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::Y );
+   const Point3D diagonalMicroEdgeDirection   = microEdgeDirection( level, face, edgedof::EdgeDoFOrientation::XY );
+
+   // x ↦ ∫ₑ x·t dΓ, direction = tangent·length
+   const ValueType dofScalarHorizontal = valComp.dot( horizontalMicroEdgeDirection );
+   const ValueType dofScalarVertical   = valComp.dot( verticalMicroEdgeDirection );
+   const ValueType dofScalarDiagonal   = valComp.dot( diagonalMicroEdgeDirection );
+
+   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+   {
+      // Do not update horizontal DoFs at bottom
+      if ( it.y() != 0 )
+      {
+         faceData[edgedof::macroface::horizontalIndex( level, it.x(), it.y() )] = dofScalarHorizontal;
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.x() != 0 )
+      {
+         faceData[edgedof::macroface::verticalIndex( level, it.x(), it.y() )] = dofScalarVertical;
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( ( it.x() + it.y() ) != idx_t( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      {
+         faceData[edgedof::macroface::diagonalIndex( level, it.x(), it.y() )] = dofScalarDiagonal;
       }
    }
 }

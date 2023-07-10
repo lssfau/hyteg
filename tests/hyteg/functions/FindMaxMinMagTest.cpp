@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2023 Marcus Mohr, Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,6 +27,7 @@
 #include "core/mpi/SendBuffer.h"
 
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -99,7 +100,7 @@ int main( int argc, char* argv[] )
   // Generate primitives
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   loadbalancing::roundRobin( setupStorage );
-  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>( setupStorage );
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>( setupStorage, 1 );
 
   // ------------
   //  Test cases
@@ -149,6 +150,27 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "epsilon  = " << std::scientific << epsilon );
 
   // =============
+  //  P0Function 
+  // =============
+  hyteg::P0Function< real_t > p0Func2D( "", storage, theLevel, theLevel );
+  p0Func2D.setDoNotWarnOnInterpolateFlag();
+
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nP0Function (DoFType=All)\n" );
+
+  // Special value on macro face
+  xLocPos = 0.50;
+  yLocPos = 0.25;
+
+  runFindTest( "Test #1 (face     ): maximum   = ", FIND_MAX, theLevel, p0Func2D, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p0Func2D, testFuncMin, TEST_MIN_VALUE );
+  runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p0Func2D, testFuncMin, TEST_MAG_VALUE );
+
+  // Combined test
+  runFindTest( "Test #2 (combo    ): maximum   = ", FIND_MAX, theLevel, p0Func2D, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p0Func2D, testFuncMin, TEST_MIN_VALUE );
+  runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p0Func2D, testFuncMin, TEST_MAG_VALUE );
+
+  // =============
   //  P1Function 
   // =============
   hyteg::P1Function< real_t > p1Func2D( "", storage, theLevel, theLevel );
@@ -159,7 +181,7 @@ int main( int argc, char* argv[] )
   xLocPos = 0.50;
   yLocPos = 0.50;
 
-  runFindTest( "Test #1 (edge     ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #3 (edge     ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p1Func2D, testFuncMin, TEST_MAG_VALUE );
 
@@ -167,7 +189,7 @@ int main( int argc, char* argv[] )
   xLocPos = 0.50;
   yLocPos = 0.25;
 
-  runFindTest( "Test #2 (face     ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #4 (face     ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p1Func2D, testFuncMin, TEST_MAG_VALUE );
 
@@ -175,19 +197,19 @@ int main( int argc, char* argv[] )
   xLocPos = 0.0;
   yLocPos = 0.0;
 
-  runFindTest( "Test #3 (vertex   ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #5 (vertex   ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p1Func2D, testFuncMin, TEST_MAG_VALUE );
 
   // Combined test
-  runFindTest( "Test #4 (combo    ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #6 (combo    ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p1Func2D, testFuncMin, TEST_MAG_VALUE );
 
   WALBERLA_LOG_INFO_ON_ROOT( "\n\n P1Function (DoFType=<varying>)\n" );
 
   // DoFType test #1
-  runFindTest( "Test #5 (combo    ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncCombo,  3.0, Inner );
+  runFindTest( "Test #7 (combo    ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncCombo,  3.0, Inner );
   runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p1Func2D, testFuncCombo, -5.0, Inner );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p1Func2D, testFuncCombo,  5.0, Inner );
 
@@ -195,7 +217,7 @@ int main( int argc, char* argv[] )
   xLocPos = 0.00;
   yLocPos = 0.50;
 
-  runFindTest( "Test #6 (bc edge  ): max outer = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE, DirichletBoundary );
+  runFindTest( "Test #8 (bc edge  ): max outer = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE, DirichletBoundary );
   runFindTest( "                     max inner = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, 0.0, Inner );
   runFindTest( "                     min outer = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, TEST_MIN_VALUE, DirichletBoundary );
   runFindTest( "                     min inner = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, 0.0, Inner );
@@ -206,7 +228,7 @@ int main( int argc, char* argv[] )
   xLocPos = 1.00;
   yLocPos = 1.00;
 
-  runFindTest( "Test #7 (bc vertex): max outer = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE, DirichletBoundary );
+  runFindTest( "Test #9 (bc vertex): max outer = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, TEST_MAX_VALUE, DirichletBoundary );
   runFindTest( "                     max inner = ", FIND_MAX, theLevel, p1Func2D, testFuncMax, 0.0, Inner );
   runFindTest( "                     min outer = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, TEST_MIN_VALUE, DirichletBoundary );
   runFindTest( "                     min inner = ", FIND_MIN, theLevel, p1Func2D, testFuncMin, 0.0, Inner );
@@ -214,7 +236,7 @@ int main( int argc, char* argv[] )
   runFindTest( "                     mag inner = ", FIND_MAG, theLevel, p1Func2D, testFuncMin, 0.0, Inner );
 
   // Test case when DoFType is not present in base mesh
-  runFindTest( "Test #8 (Neumann  ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncCombo, -std::numeric_limits<real_t>::max(), NeumannBoundary );
+  runFindTest( "Test #A (Neumann  ): maximum   = ", FIND_MAX, theLevel, p1Func2D, testFuncCombo, -std::numeric_limits<real_t>::max(), NeumannBoundary );
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p1Func2D, testFuncCombo,  std::numeric_limits<real_t>::max(), NeumannBoundary );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p1Func2D, testFuncCombo,  0.0                               , NeumannBoundary );
 
@@ -230,21 +252,21 @@ int main( int argc, char* argv[] )
   // Special value on macro edge (vertexdof)
   xLocPos = 0.25;
   yLocPos = 0.25;
-  runFindTest( "Test #9 (edge/vert): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #B (edge/vert): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p2func, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
   // Special value on macro edge (edgedof)
   xLocPos = 0.125;
   yLocPos = 0.125;
-  runFindTest( "Test #A (edge/edge): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #C (edge/edge): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p2func, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
   // Special value on macro face (edgedof)
   xLocPos = 0.250;
   yLocPos = 0.125;
-  runFindTest( "Test #B (face/edge): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
+  runFindTest( "Test #D (face/edge): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p2func, testFuncMin, TEST_MIN_VALUE );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
@@ -265,10 +287,13 @@ int main( int argc, char* argv[] )
   SetupPrimitiveStorage setupStorage3D( meshInfo3D,
                                         uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   loadbalancing::roundRobin( setupStorage3D );
-  std::shared_ptr<PrimitiveStorage> storage3D = std::make_shared<PrimitiveStorage>( setupStorage3D );
+  std::shared_ptr<PrimitiveStorage> storage3D = std::make_shared<PrimitiveStorage>( setupStorage3D, 1 );
 
+  hyteg::P0Function< real_t > p0Func3D( "", storage3D, theLevel, theLevel );
   hyteg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
   hyteg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
+
+  p0Func3D.setDoNotWarnOnInterpolateFlag();
 
   // --------------------------------------------------------------------------------------------------
   WALBERLA_LOG_INFO_ON_ROOT( "\nSingle point test (micro-vertex-dof)\n" );
@@ -320,6 +345,10 @@ int main( int argc, char* argv[] )
 
   // --------------------------------------------------------------------------------------------------
   WALBERLA_LOG_INFO_ON_ROOT( "\nCombo test\n" );
+
+  runFindTest( "3D Test P0 function: magnitude = ", FIND_MAG, theLevel, p0Func3D, testFuncCombo,  5.0 );
+  runFindTest( "                     maximum   = ", FIND_MAX, theLevel, p0Func3D, testFuncCombo,  3.0 );
+  runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p0Func3D, testFuncCombo, -5.0 );
 
   runFindTest( "3D Test P1 function: magnitude = ", FIND_MAG, theLevel, p1Func3D, testFuncCombo,  5.0 );
   runFindTest( "                     maximum   = ", FIND_MAX, theLevel, p1Func3D, testFuncCombo,  3.0 );

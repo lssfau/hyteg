@@ -37,7 +37,7 @@ using walberla::uint_t;
 
 /// \param fileName  name (including potentially a path) of the input file
 /// \return ifstream for the file
-std::ifstream openFileForReading( std::string& fileName )
+inline std::ifstream openFileForReading( std::string& fileName )
 {
    std::ifstream infile( fileName, std::ios::in );
    if ( !infile.is_open() )
@@ -49,7 +49,7 @@ std::ifstream openFileForReading( std::string& fileName )
 }
 
 /// Imports a file in JSON format
-nlohmann::json readJsonFile( std::string filename )
+inline nlohmann::json readJsonFile( std::string filename )
 {
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Starting to read datafile '" << filename << "'" );
    std::ifstream  infile{ openFileForReading( filename ) };
@@ -60,7 +60,7 @@ nlohmann::json readJsonFile( std::string filename )
 }
 
 /// Imports data from a text file with rotation information
-std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string filename )
+inline std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string filename )
 {
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Starting to read datafile '" << filename << "'" );
    std::ifstream file{ openFileForReading( filename ) };
@@ -120,7 +120,7 @@ std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::string fil
    if ( k != numRotations )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " Imported " << k << " rotations,\n"
-                                 << " but should have been " << numRotations );
+                                              << " but should have been " << numRotations );
       WALBERLA_ABORT( "Data import error" );
    }
 

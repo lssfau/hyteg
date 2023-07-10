@@ -23,7 +23,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"

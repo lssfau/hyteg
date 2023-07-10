@@ -23,7 +23,6 @@
 #include "core/mpi/Environment.h"
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/eigen/typeAliases.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -33,7 +32,7 @@ using namespace hyteg;
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -47,14 +46,10 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    // most general function in N1E1 space
-   const Eigen::Vector3r                                    a          = { 1, 2, 3 };
-   const Eigen::Vector3r                                    b          = { 4, 5, 6 };
-   const std::function< Eigen::Vector3r( const Point3D& ) > testFuncAB = [&]( const Point3D& x ) {
-      return ( a + b.cross( x ) ).eval();
-   };
-   const std::function< Eigen::Vector3r( const Point3D& ) > testFuncBA = [&]( const Point3D& x ) {
-      return ( b + a.cross( x ) ).eval();
-   };
+   const Point3D                                    a          = { 1, 2, 3 };
+   const Point3D                                    b          = { 4, 5, 6 };
+   const std::function< Point3D( const Point3D& ) > testFuncAB = [&]( const Point3D& x ) { return ( a + b.cross( x ) ).eval(); };
+   const std::function< Point3D( const Point3D& ) > testFuncBA = [&]( const Point3D& x ) { return ( b + a.cross( x ) ).eval(); };
 
    n1e1::N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
    f.interpolate( testFuncAB, coarseLevel );
@@ -79,9 +74,9 @@ void test3D()
       coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
       coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
 
-      Eigen::Vector3r evalCoarse, evalFine, evalBA;
-      auto            successCoarse = f.evaluate( coordinates, coarseLevel, evalCoarse );
-      auto            successFine   = f.evaluate( coordinates, fineLevel, evalFine );
+      Point3D evalCoarse, evalFine, evalBA;
+      auto    successCoarse = f.evaluate( coordinates, coarseLevel, evalCoarse );
+      auto    successFine   = f.evaluate( coordinates, fineLevel, evalFine );
       WALBERLA_CHECK( successCoarse );
       WALBERLA_CHECK( successFine );
       WALBERLA_CHECK_FLOAT_EQUAL( evalCoarse[0], evalFine[0], "Test3D: wrong X-coordinate at " << coordinates << "." );

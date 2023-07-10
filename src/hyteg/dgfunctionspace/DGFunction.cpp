@@ -33,789 +33,868 @@
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
-namespace dg {
+    namespace dg {
 
-using walberla::uint_t;
+        using walberla::uint_t;
 
-template < typename ValueType >
-DGFunction< ValueType >::DGFunction( const std::string&                         name,
-                                     const std::shared_ptr< PrimitiveStorage >& storage,
-                                     uint_t                                     minLevel,
-                                     uint_t                                     maxLevel,
-                                     const std::shared_ptr< DGBasisInfo >&      basis,
-                                     uint_t                                     initialPolyDegree,
-                                     BoundaryCondition                          boundaryCondition )
-: Function< DGFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, name_( name )
-, storage_( storage )
-, minLevel_( minLevel )
-, maxLevel_( maxLevel )
-, basis_( basis )
-, boundaryCondition_( std::move( boundaryCondition ) )
-{
-   uint_t dim;
-   if ( storage->hasGlobalCells() )
-   {
-      dim = 3;
-      for ( const auto& pid : storage->getCellIDs() )
-      {
-         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
-      }
-   }
-   else
-   {
-      dim = 2;
-      for ( const auto& pid : storage->getFaceIDs() )
-      {
-         polyDegreesPerPrimitive_[pid] = initialPolyDegree;
-      }
-   }
-
-   volumeDoFFunction_ =
-       std::make_shared< volumedofspace::VolumeDoFFunction< ValueType > >( name,
-                                                                           storage,
-                                                                           minLevel,
-                                                                           maxLevel,
-                                                                           basis->numDoFsPerElement( dim, initialPolyDegree ),
-                                                                           volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
-}
-
-template < typename ValueType >
-bool DGFunction< ValueType >::evaluate( const Point3D& physicalCoords,
-                                        uint_t         level,
-                                        ValueType&     value,
-                                        real_t         searchToleranceRadius ) const
-{
-   if ( !this->storage_->hasGlobalCells() )
-   {
-      auto [found, faceID, computationalCoords] =
-          mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
-      if ( found )
-      {
-         const auto        polyDegree = polyDegreesPerPrimitive_.at( faceID );
-         const auto        ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
-         indexing::Index   elementIndex(indexing::Index::Zero());
-         facedof::FaceType faceType;
-         Point2D           coordinates2D( computationalCoords[0], computationalCoords[1] );
-         Point2D           localCoordinates;
-
-         Face& face = *( this->getStorage()->getFace( faceID ) );
-         volumedofspace::getLocalElementFromCoordinates< ValueType >(
-             level, face, coordinates2D, elementIndex, faceType, localCoordinates );
-
-         Eigen::Matrix< real_t, 2, 1 > refPos( localCoordinates[0], localCoordinates[1] );
-
-         std::vector< real_t > dofs( ndofs );
-         for ( uint_t i = 0; i < ndofs; i++ )
-         {
-            dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
-         }
-
-         real_t value_r;
-         basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-         value = ValueType( value_r );
-         return true;
-      }
-   }
-   else
-   {
-      // 3D
-
-      auto [found, cellID, computationalCoords] =
-          mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
-
-      if ( found )
-      {
-         Cell& cell = *( this->getStorage()->getCell( cellID ) );
-
-         const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
-         const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
-
-         indexing::Index   elementIndex;
-         celldof::CellType cellType;
-         Point3D           localCoordinates;
-
-         volumedofspace::getLocalElementFromCoordinates< ValueType >(
-             level, cell, computationalCoords, elementIndex, cellType, localCoordinates );
-
-         Eigen::Matrix< real_t, 3, 1 > refPos( localCoordinates[0], localCoordinates[1], localCoordinates[2] );
-
-         std::vector< real_t > dofs( ndofs );
-         for ( uint_t i = 0; i < ndofs; i++ )
-         {
-            dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
-         }
-
-         real_t value_r;
-         basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-         value = ValueType( value_r );
-         return true;
-      }
-   }
-   return false;
-}
-
-template < typename ValueType >
-void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
-                                                      uint_t                 level,
-                                                      const PrimitiveID&     faceID,
-                                                      hyteg::indexing::Index elementIndex,
-                                                      facedof::FaceType      faceType,
-                                                      ValueType&             value ) const
-{
-   // 2D
-
-   WALBERLA_ASSERT( !storage_->hasGlobalCells() )
-
-   WALBERLA_ASSERT( storage_->faceExistsLocally( faceID ) )
-   const Face& face = *storage_->getFace( faceID );
-
-   const auto polyDegree = polyDegreesPerPrimitive_.at( faceID );
-   const auto ndofs      = uint_c( basis_->numDoFsPerElement( 2, polyDegree ) );
-
-   Eigen::Matrix< real_t, 2, 1 > affineCoordinates( coordinates[0], coordinates[1] );
-
-   std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
-   auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
-   for ( uint_t i = 0; i < 3; i++ )
-   {
-      const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-      affineElementVertices[i]( 0 ) = coord[0];
-      affineElementVertices[i]( 1 ) = coord[1];
-   }
-
-   // trafo from affine to reference space
-   Eigen::Matrix< real_t, 2, 2 > A;
-   A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
-   A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
-   A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
-   A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
-   const auto Ainv = A.inverse();
-
-   const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
-
-   const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
-
-   std::vector< real_t > dofs( ndofs );
-   for ( uint_t i = 0; i < ndofs; i++ )
-   {
-      dofs[i] = real_t( volumeDoFFunction_->dof( faceID, elementIndex, i, faceType, level ) );
-   }
-
-   real_t value_r;
-   basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-   value = ValueType( value_r );
-}
-
-template < typename ValueType >
-void DGFunction< ValueType >::evaluateOnMicroElement( const Point3D&         coordinates,
-                                                      uint_t                 level,
-                                                      const PrimitiveID&     cellID,
-                                                      hyteg::indexing::Index elementIndex,
-                                                      celldof::CellType      cellType,
-                                                      ValueType&             value ) const
-{
-   // 3D
-
-   WALBERLA_ASSERT( storage_->hasGlobalCells() )
-
-   WALBERLA_ASSERT( storage_->cellExistsLocally( cellID ) )
-   const Cell& cell = *storage_->getCell( cellID );
-
-   const auto polyDegree = polyDegreesPerPrimitive_.at( cellID );
-   const auto ndofs      = uint_c( basis_->numDoFsPerElement( 3, polyDegree ) );
-
-   Eigen::Matrix< real_t, 3, 1 > affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
-
-   std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
-   auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
-   for ( uint_t i = 0; i < 4; i++ )
-   {
-      const auto coord              = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
-      affineElementVertices[i]( 0 ) = coord[0];
-      affineElementVertices[i]( 1 ) = coord[1];
-      affineElementVertices[i]( 2 ) = coord[2];
-   }
-
-   // trafo from affine to reference space
-   Eigen::Matrix< real_t, 3, 3 > A;
-
-   A( 0, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
-   A( 0, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
-   A( 0, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
-
-   A( 1, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
-   A( 1, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
-   A( 1, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
-
-   A( 2, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
-   A( 2, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
-   A( 2, 2 ) = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
-
-   const auto Ainv = A.inverse();
-
-   const Eigen::Matrix< real_t, 3, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
-
-   const Eigen::Matrix< real_t, 3, 1 > refPos = Ainv * affineCoordsTranslated;
-
-   std::vector< real_t > dofs( ndofs );
-   for ( uint_t i = 0; i < ndofs; i++ )
-   {
-      dofs[i] = real_t( volumeDoFFunction_->dof( cellID, elementIndex, i, cellType, level ) );
-   }
-
-   real_t value_r;
-   basis_->evaluate( polyDegree, refPos, dofs, value_r );
-
-   value = ValueType( value_r );
-}
-
-template < typename ValueType >
-void DGFunction< ValueType >::evaluateLinearFunctional( const std::function< real_t( const Point3D& ) >& f, uint_t level )
-{
-   if ( storage_->hasGlobalCells() )
-   {
-      for ( auto& it : this->getStorage()->getCells() )
-      {
-         const auto cellID = it.first;
-         const auto cell   = *it.second;
-
-         const auto degree  = polyDegreesPerPrimitive_.at( cellID );
-         const auto numDofs = basis()->numDoFsPerElement( 3, degree );
-
-         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
-
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               const std::array< indexing::Index, 4 > vertexIndices =
-                   celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
-               std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
-               for ( uint_t i = 0; i < 4; i++ )
-               {
-                  const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
-                  elementVertices[i]( 0 )  = elementVertex[0];
-                  elementVertices[i]( 1 )  = elementVertex[1];
-                  elementVertices[i]( 2 )  = elementVertex[2];
-               }
-
-               std::vector< real_t > dofValues( numDofs );
-               basis()->integrateBasisFunction( degree, elementVertices, f, dofValues );
-
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  dofs[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( dofValues[i] );
-               }
+        template<typename ValueType>
+        DGFunction<ValueType>::DGFunction(const std::string &name,
+                                          const std::shared_ptr<PrimitiveStorage> &storage,
+                                          uint_t minLevel,
+                                          uint_t maxLevel,
+                                          const std::shared_ptr<DGBasisInfo> &basis,
+                                          uint_t initialPolyDegree,
+                                          BoundaryCondition boundaryCondition)
+                : Function<DGFunction<ValueType> >(name, storage, minLevel, maxLevel), name_(name), storage_(storage),
+                  minLevel_(minLevel), maxLevel_(maxLevel), basis_(basis),
+                  boundaryCondition_(std::move(boundaryCondition)) {
+            uint_t dim;
+            if (storage->hasGlobalCells()) {
+                dim = 3;
+                for (const auto &pid: storage->getCellIDs()) {
+                    polyDegreesPerPrimitive_[pid] = initialPolyDegree;
+                }
+            } else {
+                dim = 2;
+                for (const auto &pid: storage->getFaceIDs()) {
+                    polyDegreesPerPrimitive_[pid] = initialPolyDegree;
+                }
             }
-         }
-      }
-   }
-   else
-   {
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         const auto faceID = it.first;
-         const auto face   = *it.second;
 
-         const auto degree  = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( 2, degree );
+            volumeDoFFunction_ =
+                    std::make_shared<volumedofspace::VolumeDoFFunction<ValueType> >(name,
+                                                                                    storage,
+                                                                                    minLevel,
+                                                                                    maxLevel,
+                                                                                    basis->numDoFsPerElement(dim,
+                                                                                                             initialPolyDegree),
+                                                                                    volumedofspace::indexing::VolumeDoFMemoryLayout::SoA);
+        }
 
-         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+        template<typename ValueType>
+        bool DGFunction<ValueType>::evaluate(const Point3D &physicalCoords,
+                                             uint_t level,
+                                             ValueType &value,
+                                             real_t searchToleranceRadius) const {
+            if (!this->storage_->hasGlobalCells()) {
+                auto [found, faceID, computationalCoords] =
+                        mapFromPhysicalToComputationalDomain2D(this->getStorage(), physicalCoords,
+                                                               searchToleranceRadius);
+                if (found) {
+                    const auto polyDegree = polyDegreesPerPrimitive_.at(faceID);
+                    const auto ndofs = uint_c(basis_->numDoFsPerElement(2, polyDegree));
+                    indexing::Index elementIndex(indexing::Index::Zero());
+                    facedof::FaceType faceType;
+                    Point2D coordinates2D(computationalCoords[0], computationalCoords[1]);
+                    Point2D localCoordinates;
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
-            {
-               const std::array< indexing::Index, 3 > vertexIndices =
-                   facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
-               std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
-               for ( uint_t i = 0; i < 3; i++ )
-               {
-                  const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-                  elementVertices[i]( 0 )  = elementVertex[0];
-                  elementVertices[i]( 1 )  = elementVertex[1];
-               }
+                    Face &face = *(this->getStorage()->getFace(faceID));
+                    volumedofspace::getLocalElementFromCoordinates<ValueType>(
+                            level, face, coordinates2D, elementIndex, faceType, localCoordinates);
 
-               std::vector< real_t > dofValues( numDofs );
-               basis()->integrateBasisFunction( degree, elementVertices, f, dofValues );
+                    Eigen::Matrix<real_t, 2, 1> refPos(localCoordinates[0], localCoordinates[1]);
 
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
-                      ValueType( dofValues[i] );
-               }
+                    std::vector<real_t> dofs(ndofs);
+                    for (uint_t i = 0; i < ndofs; i++) {
+                        dofs[i] = real_t(volumeDoFFunction_->dof(faceID, elementIndex, i, faceType, level));
+                    }
+
+                    real_t value_r;
+                    basis_->evaluate(polyDegree, refPos, dofs, value_r);
+
+                    value = ValueType(value_r);
+                    return true;
+                }
+            } else {
+                // 3D
+
+                auto [found, cellID, computationalCoords] =
+                        mapFromPhysicalToComputationalDomain3D(this->getStorage(), physicalCoords,
+                                                               searchToleranceRadius);
+
+                if (found) {
+                    Cell &cell = *(this->getStorage()->getCell(cellID));
+
+                    const auto polyDegree = polyDegreesPerPrimitive_.at(cellID);
+                    const auto ndofs = uint_c(basis_->numDoFsPerElement(3, polyDegree));
+
+                    indexing::Index elementIndex;
+                    celldof::CellType cellType;
+                    Point3D localCoordinates;
+
+                    volumedofspace::getLocalElementFromCoordinates<ValueType>(
+                            level, cell, computationalCoords, elementIndex, cellType, localCoordinates);
+
+                    Eigen::Matrix<real_t, 3, 1> refPos(localCoordinates[0], localCoordinates[1], localCoordinates[2]);
+
+                    std::vector<real_t> dofs(ndofs);
+                    for (uint_t i = 0; i < ndofs; i++) {
+                        dofs[i] = real_t(volumeDoFFunction_->dof(cellID, elementIndex, i, cellType, level));
+                    }
+
+                    real_t value_r;
+                    basis_->evaluate(polyDegree, refPos, dofs, value_r);
+
+                    value = ValueType(value_r);
+                    return true;
+                }
             }
-         }
-      }
-   }
-}
+            return false;
+        }
 
-template < typename ValueType >
-void DGFunction< ValueType >::enumerate( uint_t level ) const
-{
-   uint_t counter = numberOfLocalDoFs( *this, level );
+        template<typename ValueType>
+        void DGFunction<ValueType>::evaluateOnMicroElement(const Point3D &coordinates,
+                                                           uint_t level,
+                                                           const PrimitiveID &faceID,
+                                                           hyteg::indexing::Index elementIndex,
+                                                           facedof::FaceType faceType,
+                                                           ValueType &value) const {
+            // 2D
 
-   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
+            WALBERLA_ASSERT(!storage_->hasGlobalCells())
 
-   auto startOnRank = ValueType( 0 );
+            WALBERLA_ASSERT(storage_->faceExistsLocally(faceID))
+            const Face &face = *storage_->getFace(faceID);
 
-   for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
-   {
-      startOnRank += static_cast< ValueType >( dofs_per_rank[i] );
-   }
+            const auto polyDegree = polyDegreesPerPrimitive_.at(faceID);
+            const auto ndofs = uint_c(basis_->numDoFsPerElement(2, polyDegree));
 
-   this->enumerate( level, startOnRank );
-   communicate( level );
-}
+            Eigen::Matrix<real_t, 2, 1> affineCoordinates(coordinates[0], coordinates[1]);
 
-template < typename ValueType >
-void DGFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
-{
-   if ( storage_->hasGlobalCells() )
-   {
-      // 3D
-      for ( const auto& it : storage_->getCells() )
-      {
-         const auto cellID = it.first;
-         const auto cell   = *it.second;
-
-         const auto degree  = polyDegreesPerPrimitive_.at( cellID );
-         const auto numDofs = basis()->numDoFsPerElement( 3, degree );
-
-         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
-
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  dofs[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = offset++;
-               }
+            std::array<Eigen::Matrix<real_t, 2, 1>, 3> affineElementVertices;
+            auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace(elementIndex, faceType);
+            for (uint_t i = 0; i < 3; i++) {
+                const auto coord = vertexdof::macroface::coordinateFromIndex(level, face, vertexIndices[i]);
+                affineElementVertices[i](0) = coord[0];
+                affineElementVertices[i](1) = coord[1];
             }
-         }
-      }
-   }
-   else
-   {
-      // 2D
-      for ( const auto& it : storage_->getFaces() )
-      {
-         const auto faceID = it.first;
-         const auto face   = *it.second;
 
-         const auto degree  = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( 2, degree );
+            // trafo from affine to reference space
+            Eigen::Matrix<real_t, 2, 2> A;
+            A(0, 0) = (affineElementVertices[1] - affineElementVertices[0])(0);
+            A(0, 1) = (affineElementVertices[2] - affineElementVertices[0])(0);
+            A(1, 0) = (affineElementVertices[1] - affineElementVertices[0])(1);
+            A(1, 1) = (affineElementVertices[2] - affineElementVertices[0])(1);
+            const auto Ainv = A.inverse();
 
-         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+            const Eigen::Matrix<real_t, 2, 1> affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
-                      offset++;
-               }
+            const Eigen::Matrix<real_t, 2, 1> refPos = Ainv * affineCoordsTranslated;
+
+            std::vector<real_t> dofs(ndofs);
+            for (uint_t i = 0; i < ndofs; i++) {
+                dofs[i] = real_t(volumeDoFFunction_->dof(faceID, elementIndex, i, faceType, level));
             }
-         }
-      }
-   }
-}
 
-template < typename ValueType >
-uint_t DGFunction< ValueType >::getNumberOfLocalDoFs( uint_t level ) const
-{
-   uint_t ndofs = 0;
+            real_t value_r;
+            basis_->evaluate(polyDegree, refPos, dofs, value_r);
 
-   if ( storage_->hasGlobalCells() )
-   {
-      for ( auto& it : this->getStorage()->getCells() )
-      {
-         const auto cellID = it.first;
-         const auto cell   = *it.second;
+            value = ValueType(value_r);
+        }
 
-         const auto numElements       = levelinfo::num_microcells_per_cell( level );
-         const auto degree            = polyDegreesPerPrimitive_.at( cellID );
-         const auto numDoFsPerElement = basis()->numDoFsPerElement( 3, degree );
+        template<typename ValueType>
+        void DGFunction<ValueType>::evaluateOnMicroElement(const Point3D &coordinates,
+                                                           uint_t level,
+                                                           const PrimitiveID &cellID,
+                                                           hyteg::indexing::Index elementIndex,
+                                                           celldof::CellType cellType,
+                                                           ValueType &value) const {
+            // 3D
 
-         ndofs += numElements * numDoFsPerElement;
-      }
-   }
-   else
-   {
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         const auto faceID = it.first;
-         const auto face   = *it.second;
+            WALBERLA_ASSERT(storage_->hasGlobalCells())
 
-         const auto numElements       = levelinfo::num_microfaces_per_face( level );
-         const auto degree            = polyDegreesPerPrimitive_.at( faceID );
-         const auto numDoFsPerElement = basis()->numDoFsPerElement( 2, degree );
+            WALBERLA_ASSERT(storage_->cellExistsLocally(cellID))
+            const Cell &cell = *storage_->getCell(cellID);
 
-         ndofs += numElements * numDoFsPerElement;
-      }
-   }
+            const auto polyDegree = polyDegreesPerPrimitive_.at(cellID);
+            const auto ndofs = uint_c(basis_->numDoFsPerElement(3, polyDegree));
 
-   return ndofs;
-}
+            Eigen::Matrix<real_t, 3, 1> affineCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
-template < typename ValueType >
-uint_t DGFunction< ValueType >::getNumberOfGlobalDoFs( uint_t level, const MPI_Comm& communicator, const bool& onRootOnly ) const
-{
-   uint_t ndofs = getNumberOfLocalDoFs( level );
-   if ( onRootOnly )
-   {
-      walberla::mpi::reduceInplace( ndofs, walberla::mpi::SUM, 0, communicator );
-   }
-   else
-   {
-      walberla::mpi::allReduceInplace( ndofs, walberla::mpi::SUM, communicator );
-   }
-   return ndofs;
-}
-
-template < typename ValueType >
-void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::shared_ptr< DGForm >& form, uint_t level )
-{
-   using indexing::Index;
-   using volumedofspace::indexing::ElementNeighborInfo;
-
-   if ( storage_->hasGlobalCells() )
-   {
-      const int dim = 3;
-
-      for ( const auto& cellIt : this->getStorage()->getCells() )
-      {
-         const auto cellId = cellIt.first;
-         const auto cell   = *cellIt.second;
-
-         const auto polyDegree = polynomialDegree( cellId );
-         const auto numDofs    = basis()->numDoFsPerElement( dim, uint_c( polyDegree ) );
-         const auto dofMemory  = volumeDoFFunction()->dofMemory( cellId, level );
-         const auto memLayout  = volumeDoFFunction()->memoryLayout();
-
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               ElementNeighborInfo neighborInfo( elementIdx, cellType, level, boundaryCondition_, cellId, storage_ );
-
-               for ( uint_t n = 0; n < 4; n++ )
-               {
-                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
-                  {
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-                     localMat.resize( Eigen::Index( numDofs ), 1 );
-                     localMat.setZero();
-                     form->integrateRHSDirichletBoundary( dim,
-                                                          neighborInfo.elementVertexCoords(),
-                                                          neighborInfo.interfaceVertexCoords( n ),
-                                                          neighborInfo.oppositeVertexCoords( n ),
-                                                          neighborInfo.outwardNormal( n ),
-                                                          *basis(),
-                                                          polyDegree,
-                                                          localMat );
-
-                     for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
-                     {
-                        dofMemory[volumedofspace::indexing::index(
-                            elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dofIdx, numDofs, level, memLayout )] +=
-                            ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
-                     }
-                  }
-               }
+            std::array<Eigen::Matrix<real_t, 3, 1>, 4> affineElementVertices;
+            auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell(elementIndex, cellType);
+            for (uint_t i = 0; i < 4; i++) {
+                const auto coord = vertexdof::macrocell::coordinateFromIndex(level, cell, vertexIndices[i]);
+                affineElementVertices[i](0) = coord[0];
+                affineElementVertices[i](1) = coord[1];
+                affineElementVertices[i](2) = coord[2];
             }
-         }
-      }
-   }
-   else
-   {
-      const int dim = 2;
 
-      for ( const auto& faceIt : this->getStorage()->getFaces() )
-      {
-         const auto faceId = faceIt.first;
-         const auto face   = *faceIt.second;
+            // trafo from affine to reference space
+            Eigen::Matrix<real_t, 3, 3> A;
 
-         const auto polyDegree = polynomialDegree( faceId );
-         const auto numDofs    = basis()->numDoFsPerElement( dim, uint_c( polyDegree ) );
-         const auto dofMemory  = volumeDoFFunction()->dofMemory( faceId, level );
-         const auto memLayout  = volumeDoFFunction()->memoryLayout();
+            A(0, 0) = (affineElementVertices[1] - affineElementVertices[0])(0);
+            A(0, 1) = (affineElementVertices[2] - affineElementVertices[0])(0);
+            A(0, 2) = (affineElementVertices[3] - affineElementVertices[0])(0);
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
-            {
-               ElementNeighborInfo neighborInfo( elementIdx, faceType, level, boundaryCondition_, faceId, storage_ );
+            A(1, 0) = (affineElementVertices[1] - affineElementVertices[0])(1);
+            A(1, 1) = (affineElementVertices[2] - affineElementVertices[0])(1);
+            A(1, 2) = (affineElementVertices[3] - affineElementVertices[0])(1);
 
-               for ( uint_t n = 0; n < 3; n++ )
-               {
-                  if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
-                  {
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
-                     localMat.resize( Eigen::Index( numDofs ), 1 );
-                     localMat.setZero();
-                     form->integrateRHSDirichletBoundary( dim,
-                                                          neighborInfo.elementVertexCoords(),
-                                                          neighborInfo.interfaceVertexCoords( n ),
-                                                          neighborInfo.oppositeVertexCoords( n ),
-                                                          neighborInfo.outwardNormal( n ),
-                                                          *basis(),
-                                                          polyDegree,
-                                                          localMat );
+            A(2, 0) = (affineElementVertices[1] - affineElementVertices[0])(2);
+            A(2, 1) = (affineElementVertices[2] - affineElementVertices[0])(2);
+            A(2, 2) = (affineElementVertices[3] - affineElementVertices[0])(2);
 
-                     for ( uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++ )
-                     {
-                        dofMemory[volumedofspace::indexing::index(
-                            elementIdx.x(), elementIdx.y(), faceType, dofIdx, numDofs, level, memLayout )] +=
-                            ValueType( localMat( Eigen::Index( dofIdx ), 0 ) );
-                     }
-                  }
-               }
+            const auto Ainv = A.inverse();
+
+            const Eigen::Matrix<real_t, 3, 1> affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+
+            const Eigen::Matrix<real_t, 3, 1> refPos = Ainv * affineCoordsTranslated;
+
+            std::vector<real_t> dofs(ndofs);
+            for (uint_t i = 0; i < ndofs; i++) {
+                dofs[i] = real_t(volumeDoFFunction_->dof(cellID, elementIndex, i, cellType, level));
             }
-         }
-      }
-   }
-}
 
-template < typename ValueType >
-void DGFunction< ValueType >::toVector( const DGFunction< idx_t >&            numerator,
-                                        const std::shared_ptr< VectorProxy >& vec,
-                                        uint_t                                level,
-                                        DoFType                               flag ) const
-{
-   if ( this->getStorage()->hasGlobalCells() )
-   {
-      // 3D
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         const auto cellID = it.first;
-         const auto cell   = *it.second;
+            real_t value_r;
+            basis_->evaluate(polyDegree, refPos, dofs, value_r);
 
-         const auto degree  = polynomialDegree( cellID );
-         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+            value = ValueType(value_r);
+        }
 
-         const auto indices   = numerator.volumeDoFFunction()->dofMemory( cellID, level );
-         const auto dofs      = volumeDoFFunction()->dofMemory( cellID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+        template<typename ValueType>
+        void
+        DGFunction<ValueType>::evaluateLinearFunctional(const std::function<real_t(const Point3D &)> &f, uint_t level) {
+            if (storage_->hasGlobalCells()) {
+                for (auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
 
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  const auto vectorIdx = indices[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
-                  const auto value     = dofs[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
-                  vec->setValue( uint_c( vectorIdx ), real_c( value ) );
-               }
+                    const auto degree = polyDegreesPerPrimitive_.at(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, degree);
+
+                    auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            const std::array<indexing::Index, 4> vertexIndices =
+                                    celldof::macrocell::getMicroVerticesFromMicroCell(idxIt, cellType);
+                            std::array<Eigen::Matrix<real_t, 3, 1>, 4> elementVertices;
+                            for (uint_t i = 0; i < 4; i++) {
+                                const auto elementVertex = vertexdof::macrocell::coordinateFromIndex(level, cell,
+                                                                                                     vertexIndices[i]);
+                                elementVertices[i](0) = elementVertex[0];
+                                elementVertices[i](1) = elementVertex[1];
+                                elementVertices[i](2) = elementVertex[2];
+                            }
+
+                            std::vector<real_t> dofValues(numDofs);
+                            basis()->integrateBasisFunction(degree, elementVertices, f, dofValues);
+
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level,
+                                        memLayout)] = ValueType(dofValues[i]);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polyDegreesPerPrimitive_.at(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, degree);
+
+                    auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            const std::array<indexing::Index, 3> vertexIndices =
+                                    facedof::macroface::getMicroVerticesFromMicroFace(idxIt, faceType);
+                            std::array<Eigen::Matrix<real_t, 2, 1>, 3> elementVertices;
+                            for (uint_t i = 0; i < 3; i++) {
+                                const auto elementVertex = vertexdof::macroface::coordinateFromIndex(level, face,
+                                                                                                     vertexIndices[i]);
+                                elementVertices[i](0) = elementVertex[0];
+                                elementVertices[i](1) = elementVertex[1];
+                            }
+
+                            std::vector<real_t> dofValues(numDofs);
+                            basis()->integrateBasisFunction(degree, elementVertices, f, dofValues);
+
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i, numDofs, level,
+                                                                     memLayout)] =
+                                        ValueType(dofValues[i]);
+                            }
+                        }
+                    }
+                }
             }
-         }
-      }
-   }
-   else
-   {
-      // 2D
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         const auto faceID = it.first;
-         const auto face   = *it.second;
+        }
 
-         const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
+        template<typename ValueType>
+        void DGFunction<ValueType>::enumerate(uint_t level) const {
+            uint_t counter = numberOfLocalDoFs(*this, level);
 
-         const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
-         const auto dofs      = volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+            std::vector<uint_t> dofs_per_rank = walberla::mpi::allGather(counter);
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  const auto vectorIdx =
-                      indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  const auto value =
-                      dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  vec->setValue( uint_c( vectorIdx ), real_c( value ) );
-               }
+            auto startOnRank = ValueType(0);
+
+            for (uint_t i = 0; i < uint_c(walberla::MPIManager::instance()->rank()); ++i) {
+                startOnRank += static_cast< ValueType >( dofs_per_rank[i] );
             }
-         }
-      }
-   }
 
-   WALBERLA_UNUSED( flag );
-}
+            this->enumerate(level, startOnRank);
+            communicate(level);
+        }
 
-template < typename ValueType >
-void DGFunction< ValueType >::fromVector( const DGFunction< idx_t >&            numerator,
-                                          const std::shared_ptr< VectorProxy >& vec,
-                                          uint_t                                level,
-                                          DoFType                               flag ) const
-{
-   if ( this->getStorage()->hasGlobalCells() )
-   {
-      // 3D
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         const auto cellID = it.first;
-         const auto cell   = *it.second;
+        template<typename ValueType>
+        void DGFunction<ValueType>::enumerate(uint_t level, ValueType &offset) const {
+            if (storage_->hasGlobalCells()) {
+                // 3D
+                for (const auto &it: storage_->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
 
-         const auto degree  = polynomialDegree( cellID );
-         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
+                    const auto degree = polyDegreesPerPrimitive_.at(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, degree);
 
-         const auto indices   = numerator.volumeDoFFunction()->dofMemory( cellID, level );
-         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+                    auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
 
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  const auto vectorIdx = indices[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
-                  const auto value     = vec->getValue( uint_c( vectorIdx ) );
-                  dofs[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( value );
-               }
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level,
+                                        memLayout)] = offset++;
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 2D
+                for (const auto &it: storage_->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polyDegreesPerPrimitive_.at(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, degree);
+
+                    auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i, numDofs, level,
+                                                                     memLayout)] =
+                                        offset++;
+                            }
+                        }
+                    }
+                }
             }
-         }
-      }
-   }
-   else
-   {
-      // 2D
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         const auto faceID = it.first;
-         const auto face   = *it.second;
+        }
 
-         const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
+        template<typename ValueType>
+        uint_t DGFunction<ValueType>::getNumberOfLocalDoFs(uint_t level) const {
+            uint_t ndofs = 0;
 
-         const auto indices   = numerator.volumeDoFFunction()->dofMemory( faceID, level );
-         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+            if (storage_->hasGlobalCells()) {
+                for (auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  const auto vectorIdx =
-                      indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
-                  const auto value = vec->getValue( uint_c( vectorIdx ) );
-                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
-                      ValueType( value );
-               }
+                    const auto numElements = levelinfo::num_microcells_per_cell(level);
+                    const auto degree = polyDegreesPerPrimitive_.at(cellID);
+                    const auto numDoFsPerElement = basis()->numDoFsPerElement(3, degree);
+
+                    ndofs += numElements * numDoFsPerElement;
+                }
+            } else {
+                for (auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto numElements = levelinfo::num_microfaces_per_face(level);
+                    const auto degree = polyDegreesPerPrimitive_.at(faceID);
+                    const auto numDoFsPerElement = basis()->numDoFsPerElement(2, degree);
+
+                    ndofs += numElements * numDoFsPerElement;
+                }
             }
-         }
-      }
-   }
 
-   WALBERLA_UNUSED( flag );
-}
+            return ndofs;
+        }
 
-template < typename ValueType >
-ValueType DGFunction< ValueType >::getMaxMagnitude( uint_t level, bool mpiReduce ) const
-{
-   auto localMax = ValueType( 0.0 );
-
-   if ( storage_->hasGlobalCells() )
-   {
-      for ( auto& it : this->getStorage()->getCells() )
-      {
-         const auto cellID = it.first;
-         const auto cell   = *it.second;
-
-         const auto degree  = polynomialDegree( cellID );
-         const auto numDofs = basis()->numDoFsPerElement( 3, uint_c( degree ) );
-
-         auto       dofs      = volumeDoFFunction()->dofMemory( cellID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
-
-         for ( auto cellType : celldof::allCellTypes )
-         {
-            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  const auto val = std::abs( dofs[volumedofspace::indexing::index(
-                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] );
-                  localMax       = std::max( localMax, val );
-               }
+        template<typename ValueType>
+        uint_t DGFunction<ValueType>::getNumberOfGlobalDoFs(uint_t level, const MPI_Comm &communicator,
+                                                            const bool &onRootOnly) const {
+            uint_t ndofs = getNumberOfLocalDoFs(level);
+            if (onRootOnly) {
+                walberla::mpi::reduceInplace(ndofs, walberla::mpi::SUM, 0, communicator);
+            } else {
+                walberla::mpi::allReduceInplace(ndofs, walberla::mpi::SUM, communicator);
             }
-         }
-      }
-   }
-   else
-   {
-      for ( auto& it : this->getStorage()->getFaces() )
-      {
-         const auto faceID = it.first;
-         const auto face   = *it.second;
+            return ndofs;
+        }
 
-         const auto degree  = polynomialDegree( faceID );
-         const auto numDofs = basis()->numDoFsPerElement( 2, uint_c( degree ) );
+        template<typename ValueType>
+        void
+        DGFunction<ValueType>::applyDirichletBoundaryConditions(const std::shared_ptr<DGForm> &form, uint_t level) {
+            using indexing::Index;
+            using volumedofspace::indexing::ElementNeighborInfo;
 
-         auto       dofs      = volumeDoFFunction()->dofMemory( faceID, level );
-         const auto memLayout = volumeDoFFunction()->memoryLayout();
+            if (storage_->hasGlobalCells()) {
+                const int dim = 3;
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
-            {
-               for ( uint_t i = 0; i < numDofs; i++ )
-               {
-                  const auto val = std::abs(
-                      dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] );
-                  localMax = std::max( localMax, val );
-               }
+                for (const auto &cellIt: this->getStorage()->getCells()) {
+                    const auto cellId = cellIt.first;
+                    const auto cell = *cellIt.second;
+
+                    const auto polyDegree = polynomialDegree(cellId);
+                    const auto numDofs = basis()->numDoFsPerElement(dim, uint_c(polyDegree));
+                    const auto dofMemory = volumeDoFFunction()->dofMemory(cellId, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (auto elementIdx: celldof::macrocell::Iterator(level, cellType)) {
+                            ElementNeighborInfo neighborInfo(elementIdx, cellType, level, boundaryCondition_, cellId,
+                                                             storage_);
+
+                            for (uint_t n = 0; n < 4; n++) {
+                                if (neighborInfo.atMacroBoundary(n) &&
+                                    neighborInfo.neighborBoundaryType(n) == DirichletBoundary) {
+                                    Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> localMat;
+                                    localMat.resize(Eigen::Index(numDofs), 1);
+                                    localMat.setZero();
+                                    form->integrateRHSDirichletBoundary(dim,
+                                                                        neighborInfo.elementVertexCoords(),
+                                                                        neighborInfo.interfaceVertexCoords(n),
+                                                                        neighborInfo.oppositeVertexCoords(n),
+                                                                        neighborInfo.outwardNormal(n),
+                                                                        *basis(),
+                                                                        polyDegree,
+                                                                        localMat);
+
+                                    for (uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++) {
+                                        dofMemory[volumedofspace::indexing::index(
+                                                elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dofIdx,
+                                                numDofs, level, memLayout)] +=
+                                                ValueType(localMat(Eigen::Index(dofIdx), 0));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                const int dim = 2;
+
+                for (const auto &faceIt: this->getStorage()->getFaces()) {
+                    const auto faceId = faceIt.first;
+                    const auto face = *faceIt.second;
+
+                    const auto polyDegree = polynomialDegree(faceId);
+                    const auto numDofs = basis()->numDoFsPerElement(dim, uint_c(polyDegree));
+                    const auto dofMemory = volumeDoFFunction()->dofMemory(faceId, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (auto elementIdx: facedof::macroface::Iterator(level, faceType)) {
+                            ElementNeighborInfo neighborInfo(elementIdx, faceType, level, boundaryCondition_, faceId,
+                                                             storage_);
+
+                            for (uint_t n = 0; n < 3; n++) {
+                                if (neighborInfo.atMacroBoundary(n) &&
+                                    neighborInfo.neighborBoundaryType(n) == DirichletBoundary) {
+                                    Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> localMat;
+                                    localMat.resize(Eigen::Index(numDofs), 1);
+                                    localMat.setZero();
+                                    form->integrateRHSDirichletBoundary(dim,
+                                                                        neighborInfo.elementVertexCoords(),
+                                                                        neighborInfo.interfaceVertexCoords(n),
+                                                                        neighborInfo.oppositeVertexCoords(n),
+                                                                        neighborInfo.outwardNormal(n),
+                                                                        *basis(),
+                                                                        polyDegree,
+                                                                        localMat);
+
+                                    for (uint_t dofIdx = 0; dofIdx < numDofs; dofIdx++) {
+                                        dofMemory[volumedofspace::indexing::index(
+                                                elementIdx.x(), elementIdx.y(), faceType, dofIdx, numDofs, level,
+                                                memLayout)] +=
+                                                ValueType(localMat(Eigen::Index(dofIdx), 0));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-         }
-      }
-   }
+        }
 
-   ValueType globalMax = localMax;
-   if ( mpiReduce )
-   {
-      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
-   }
+        template<typename ValueType>
+        void DGFunction<ValueType>::toVector(const DGFunction<idx_t> &numerator,
+                                             const std::shared_ptr<VectorProxy> &vec,
+                                             uint_t level,
+                                             DoFType flag) const {
+            if (this->getStorage()->hasGlobalCells()) {
+                // 3D
+                for (const auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
 
-   return globalMax;
-}
+                    const auto degree = polynomialDegree(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, uint_c(degree));
+
+                    const auto indices = numerator.volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto vectorIdx = indices[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout)];
+                                const auto value = dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout)];
+                                vec->setValue(uint_c(vectorIdx), real_c(value));
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 2D
+                for (const auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polynomialDegree(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    const auto indices = numerator.volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto vectorIdx =
+                                        indices[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i,
+                                                                                numDofs, level, memLayout)];
+                                const auto value =
+                                        dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i, numDofs,
+                                                                             level, memLayout)];
+                                vec->setValue(uint_c(vectorIdx), real_c(value));
+                            }
+                        }
+                    }
+                }
+            }
+
+            WALBERLA_UNUSED(flag);
+        }
+
+        template<typename ValueType>
+        void DGFunction<ValueType>::fromVector(const DGFunction<idx_t> &numerator,
+                                               const std::shared_ptr<VectorProxy> &vec,
+                                               uint_t level,
+                                               DoFType flag) const {
+            if (this->getStorage()->hasGlobalCells()) {
+                // 3D
+                for (const auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
+
+                    const auto degree = polynomialDegree(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, uint_c(degree));
+
+                    const auto indices = numerator.volumeDoFFunction()->dofMemory(cellID, level);
+                    auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto vectorIdx = indices[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout)];
+                                const auto value = vec->getValue(uint_c(vectorIdx));
+                                dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level,
+                                        memLayout)] = ValueType(value);
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 2D
+                for (const auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polynomialDegree(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    const auto indices = numerator.volumeDoFFunction()->dofMemory(faceID, level);
+                    auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto vectorIdx =
+                                        indices[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i,
+                                                                                numDofs, level, memLayout)];
+                                const auto value = vec->getValue(uint_c(vectorIdx));
+                                dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i, numDofs, level,
+                                                                     memLayout)] =
+                                        ValueType(value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            WALBERLA_UNUSED(flag);
+        }
+
+        template<typename ValueType>
+        ValueType DGFunction<ValueType>::getMaxMagnitude(uint_t level, bool mpiReduce) const {
+            auto localMax = ValueType(0.0);
+
+            if (storage_->hasGlobalCells()) {
+                for (auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
+
+                    const auto degree = polynomialDegree(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, uint_c(degree));
+
+                    auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto val = std::abs(dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout)]);
+                                localMax = std::max(localMax, val);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polynomialDegree(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto val = std::abs(
+                                        dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i, numDofs,
+                                                                             level, memLayout)]);
+                                localMax = std::max(localMax, val);
+                            }
+                        }
+                    }
+                }
+            }
+
+            ValueType globalMax = localMax;
+            if (mpiReduce) {
+                globalMax = walberla::mpi::allReduce(localMax, walberla::mpi::MAX);
+            }
+
+            return globalMax;
+        }
+
+        template<typename ValueType>
+        ValueType DGFunction<ValueType>::getMax(uint_t level, bool mpiReduce) const {
+            auto localMax = ValueType(0.0);
+
+            if (storage_->hasGlobalCells()) {
+                for (auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
+
+                    const auto degree = polynomialDegree(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, uint_c(degree));
+
+                    auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto val = dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout)];
+                                localMax = std::max(localMax, val);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polynomialDegree(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto val = dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i,
+                                                                                      numDofs, level, memLayout)];
+                                localMax = std::max(localMax, val);
+                            }
+                        }
+                    }
+                }
+            }
+
+            ValueType globalMax = localMax;
+            if (mpiReduce) {
+                globalMax = walberla::mpi::allReduce(localMax, walberla::mpi::MAX);
+            }
+
+            return globalMax;
+        }
+
+        template<typename ValueType>
+        ValueType DGFunction<ValueType>::getMin(uint_t level, bool mpiReduce) const {
+            auto localMin = ValueType(0.0);
+
+            if (storage_->hasGlobalCells()) {
+                for (auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+                    const auto cell = *it.second;
+
+                    const auto degree = polynomialDegree(cellID);
+                    const auto numDofs = basis()->numDoFsPerElement(3, uint_c(degree));
+
+                    auto dofs = volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto val = dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout)];
+                                localMin = std::min(localMin, val);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+                    const auto face = *it.second;
+
+                    const auto degree = polynomialDegree(faceID);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    auto dofs = volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto memLayout = volumeDoFFunction()->memoryLayout();
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                const auto val = dofs[volumedofspace::indexing::index(idxIt.x(), idxIt.y(), faceType, i,
+                                                                                      numDofs, level, memLayout)];
+                                localMin = std::min(localMin, val);
+                            }
+                        }
+                    }
+                }
+            }
+
+            ValueType globalMin = localMin;
+            if (mpiReduce) {
+                globalMin = walberla::mpi::allReduce(localMin, walberla::mpi::MIN);
+            }
+
+            return globalMin;
+        }
+
+        template<typename ValueType>
+        void DGFunction<ValueType>::interpolate(ValueType constant, uint_t level, DoFType dofType) const {
+            if (this->storage_->hasGlobalCells()) {
+                for (auto &it: this->getStorage()->getCells()) {
+                    const auto cellID = it.first;
+
+
+                    WALBERLA_CHECK_EQUAL(this->polynomialDegree(cellID), 0);
+                    WALBERLA_CHECK_EQUAL(this->basis()->numDoFsPerElement(3, 0), 1);
+
+                    const auto degree = polynomialDegree(cellID);
+                    const auto memLayout = this->volumeDoFFunction()->memoryLayout();
+                    auto dofs = this->volumeDoFFunction()->dofMemory(cellID, level);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    for (auto cellType: celldof::allCellTypes) {
+                        for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level,
+                                        memLayout)] = constant;
+
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (auto &it: this->getStorage()->getFaces()) {
+                    const auto faceID = it.first;
+
+
+                    const auto degree = polynomialDegree(faceID);
+
+                    const auto memLayout = this->volumeDoFFunction()->memoryLayout();
+                    auto dofs = this->volumeDoFFunction()->dofMemory(faceID, level);
+                    const auto numDofs = basis()->numDoFsPerElement(2, uint_c(degree));
+
+                    for (auto faceType: facedof::allFaceTypes) {
+                        for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
+                            for (uint_t i = 0; i < numDofs; i++) {
+                                dofs[volumedofspace::indexing::index(
+                                        idxIt.x(), idxIt.y(), faceType, i, numDofs, level,
+                                        memLayout)] = constant;
+
+                            }
+                        }
+                    }
+                }
+            }
+            WALBERLA_UNUSED(dofType);
+        }
 
 /// explicit instantiation
-template class DGFunction< double >;
-template class DGFunction< float >;
-template class DGFunction< int32_t >;
-template class DGFunction< int64_t >;
+        template
+        class DGFunction<double>;
 
-} // namespace dg
+        template
+        class DGFunction<float>;
 
-void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
-{
-   WALBERLA_UNUSED( numerator );
-   WALBERLA_UNUSED( mat );
-   WALBERLA_UNUSED( level );
-}
+        template
+        class DGFunction<int32_t>;
+
+        template
+        class DGFunction<int64_t>;
+
+    } // namespace dg
+
+    void applyDirichletBC(const dg::DGFunction<idx_t> &numerator, std::vector<idx_t> &mat, uint_t level) {
+        WALBERLA_UNUSED(numerator);
+        WALBERLA_UNUSED(mat);
+        WALBERLA_UNUSED(level);
+    }
 
 } // namespace hyteg

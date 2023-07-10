@@ -274,7 +274,7 @@ uint_t getFaceCouplingsForFace( const uint_t&                                   
          for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
          {
             const auto cellCenterOrientation =
-                edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+                edgedof::macroface::getOrientationInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
             {

@@ -14,7 +14,8 @@ Parameters
     // ##########
 
     numToroidalSlices          8;
-    numPoloidalSlices          6;
+    numPoloidalSlices          5;
+
     radiusOriginToCenterOfTube 6.2;
     tubeLayerRadii             3; // list
     torodialStartAngle         0;

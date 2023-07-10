@@ -46,26 +46,42 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
                      uint_t                                     vectorDim = 0 )
-   : P1VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC(), vectorDim )
+   : P1VectorFunction( _name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC(), false, vectorDim )
    {}
 
    P1VectorFunction( const std::string&                         _name,
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel,
+                     BoundaryCondition                          bc)
+   : P1VectorFunction( _name, storage, minLevel, maxLevel, bc, false, 0 )
+   {}
+    P1VectorFunction( const std::string&                         _name,
+                      const std::shared_ptr< PrimitiveStorage >& storage,
+                      size_t                                     minLevel,
+                      size_t                                     maxLevel,
+                      BoundaryCondition                          bc,
+                      bool                                       addVolumeGhostLayer)
+            : P1VectorFunction( _name, storage, minLevel, maxLevel, bc, addVolumeGhostLayer, 0 )
+    {}
+   P1VectorFunction( const std::string&                         _name,
+                     const std::shared_ptr< PrimitiveStorage >& storage,
+                     size_t                                     minLevel,
+                     size_t                                     maxLevel,
                      BoundaryCondition                          bc,
-                     uint_t                                     vectorDim = 0 )
+                     bool                                       addVolumeGhostLayer,
+                     uint_t                                     vectorDim )
    : CSFVectorFunction< P1VectorFunction< ValueType > >( _name )
    {
       WALBERLA_ASSERT( vectorDim == 0 || vectorDim == 2 || vectorDim == 3, "P1Vectorfunction: vectorDim arg must be from {0,2,3}" );
 
       this->compFunc_.clear();
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc ) );
-      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc ) );
+      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel, bc, addVolumeGhostLayer ) );
+      this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_v", storage, minLevel, maxLevel, bc, addVolumeGhostLayer ) );
 
       if ( ( vectorDim == 0 && storage->hasGlobalCells() ) || vectorDim == 3 )
       {
-         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc ) );
+         this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel, bc, addVolumeGhostLayer ) );
       }
    }
 
