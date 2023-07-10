@@ -42,8 +42,8 @@ class AdiosWriter : public FEFunctionWriter
 {
  public:
 #ifdef WALBERLA_BUILD_WITH_MPI
-   /// \param filePath          Path to directory where the files are stored
-   /// \param fileBaseName      Basename of the vtk files
+   /// \param filePath          Path to directory where the BP files are stored
+   /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param writeFrequency    Specifies the "frequency" of the exports see write()
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
@@ -55,9 +55,8 @@ class AdiosWriter : public FEFunctionWriter
    : AdiosWriter( filePath, fileBaseName, "", storage, writeFrequency, comm )
    {}
 
-   /// \param filePath          Path to directory where the files are stored
-
-   /// \param fileBaseName      Basename of the vtk files
+   /// \param filePath          Path to directory where the BP files are stored
+   /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param writeFrequency    Specifies the "frequency" of the exports see write()
@@ -85,8 +84,8 @@ class AdiosWriter : public FEFunctionWriter
 
 #else
 
-   /// \param filePath          Path to directory where the files are stored
-   /// \param fileBaseName      Basename of the vtk files
+   /// \param filePath          Path to directory where the BP files are stored
+   /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param writeFrequency    Specifies the "frequency" of the exports see write()
    AdiosWriter( std::string                                filePath,
@@ -96,8 +95,8 @@ class AdiosWriter : public FEFunctionWriter
    : AdiosWriter( filePath, fileBaseName, "", storage, writeFrequency )
    {}
 
-   /// \param filePath          Path to directory where the files are stored
-   /// \param fileBaseName      Basename of the vtk files
+   /// \param filePath          Path to directory where the BP files are stored
+   /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param writeFrequency    Specifies the "frequency" of the exports see write()
@@ -122,9 +121,6 @@ class AdiosWriter : public FEFunctionWriter
    }
 
 #endif
-
-   /// The destructor takes care of ... nothing
-   ~AdiosWriter() { WALBERLA_LOG_INFO_ON_ROOT( "D'tor of AdiosWriter called" ); }
 
    /// Add an FE Function to became part of the next dataexport phase
    template < template < typename > class func_t, typename value_t >
