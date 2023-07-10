@@ -33,7 +33,7 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&          adios,
+AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             adios,
                                     std::string&                               filePath,
                                     std::string&                               fileBaseName,
                                     uint_t                                     level,
@@ -41,7 +41,6 @@ AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&          adios,
 : storage_( storage )
 , level_( level )
 {
-
    // create the name of the output file
    std::stringstream tag;
    tag << "-P1_level" << level_ << ".bp";
@@ -57,6 +56,24 @@ AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&          adios,
 
 void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timestep )
 {
+   // working on faces/cells some processes might not have data to export
+   if ( !adiosHelpers::mpiProcessHasMacrosOfHighestDimension( storage_ ) )
+   {
+      // however, open() and close() are collective operations
+      if ( !firstWriteCompleted_ )
+      {
+         // open output file
+         engine_ = io_.Open( fileName_, adios2::Mode::Write );
+         firstWriteCompleted_ = true;
+      }
+
+      // also appears to be collective for BP
+      engine_.BeginStep();
+      engine_.EndStep();
+
+      return;
+   }
+
    // Assemble list of names of node-centred and cell-centred funcions (latter is empty)
    std::vector< std::string > emptyList;
    std::vector< std::string > p1FunctionList;

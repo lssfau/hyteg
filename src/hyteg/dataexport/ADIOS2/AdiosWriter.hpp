@@ -41,6 +41,50 @@ class AdiosWriterForP1;
 class AdiosWriter : public FEFunctionWriter
 {
  public:
+#ifdef WALBERLA_BUILD_WITH_MPI
+   /// \param filePath          Path to directory where the files are stored
+   /// \param fileBaseName      Basename of the vtk files
+   /// \param storage           PrimitiveStorage associated with functions to export
+   /// \param writeFrequency    Specifies the "frequency" of the exports see write()
+   /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
+   AdiosWriter( std::string                                filePath,
+                std::string                                fileBaseName,
+                const std::shared_ptr< PrimitiveStorage >& storage,
+                const uint_t&                              writeFrequency = 1,
+                MPI_Comm                                   comm           = walberla::MPIManager::instance()->comm() )
+   : AdiosWriter( filePath, fileBaseName, "", storage, writeFrequency, comm )
+   {}
+
+   /// \param filePath          Path to directory where the files are stored
+
+   /// \param fileBaseName      Basename of the vtk files
+   /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
+   /// \param storage           PrimitiveStorage associated with functions to export
+   /// \param writeFrequency    Specifies the "frequency" of the exports see write()
+   /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
+   AdiosWriter( std::string                                filePath,
+                std::string                                fileBaseName,
+                std::string                                configFile,
+                const std::shared_ptr< PrimitiveStorage >& storage,
+                const uint_t&                              writeFrequency = 1,
+                MPI_Comm                                   comm           = walberla::MPIManager::instance()->comm() )
+   : storage_( storage )
+   , filePath_( filePath )
+   , fileBaseName_( fileBaseName )
+   {
+      // setup central ADIOS2 interface object
+      if ( configFile.empty() )
+      {
+         adios_ = adios2::ADIOS( comm );
+      }
+      else
+      {
+         adios_ = adios2::ADIOS( configFile, comm );
+      }
+   }
+
+#else
+
    /// \param filePath          Path to directory where the files are stored
    /// \param fileBaseName      Basename of the vtk files
    /// \param storage           PrimitiveStorage associated with functions to export
@@ -67,16 +111,6 @@ class AdiosWriter : public FEFunctionWriter
    , fileBaseName_( fileBaseName )
    {
       // setup central ADIOS2 interface object
-#ifdef WALBERLA_BUILD_WITH_MPI
-      if ( configFile.empty() )
-      {
-         adios_ = adios2::ADIOS( walberla::MPIManager::instance()->comm() );
-      }
-      else
-      {
-         adios_ = adios2::ADIOS( configFile, walberla::MPIManager::instance()->comm() );
-      }
-#else
       if ( configFile.empty() )
       {
          adios_ = adios2::ADIOS();
@@ -85,9 +119,9 @@ class AdiosWriter : public FEFunctionWriter
       {
          adios_ = adios2::ADIOS( configFile );
       }
-#endif
-
    }
+
+#endif
 
    /// The destructor takes care of ... nothing
    ~AdiosWriter() { WALBERLA_LOG_INFO_ON_ROOT( "D'tor of AdiosWriter called" ); }

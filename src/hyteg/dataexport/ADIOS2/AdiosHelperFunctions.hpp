@@ -46,4 +46,19 @@ inline void putTimeStepInfo( adios2::IO& io, adios2::Engine& engine, uint_t time
    engine.Put( varTimeStep, real_c( timestep ) );
 }
 
+/// Check whether the current process owns primitives with data to export (faces, or cell depending on dimension)
+inline bool mpiProcessHasMacrosOfHighestDimension( const std::shared_ptr< PrimitiveStorage >& storage )
+{
+   bool weStoreRelevantData = false;
+   if ( storage->hasGlobalCells() && storage->getCells().size() > 0 )
+   {
+      return true;
+   }
+   else if ( storage->getFaces().size() > 0 )
+   {
+      return true;
+   }
+   return false;
+}
+
 } // namespace hyteg::adiosHelpers
