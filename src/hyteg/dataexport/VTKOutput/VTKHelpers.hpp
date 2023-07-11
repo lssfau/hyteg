@@ -50,19 +50,23 @@ enum class DoFType
    P1DGE
 };
 
-inline void writeXMLHeader( std::ostream& output )
-{
-   WALBERLA_ROOT_SECTION()
-   {
+inline std::string getByteOrder() {
 #if HYTEG_ARCH_ENDIANESS == LITTLE_ENDIAN
       std::string byteOrder{ "LittleEndian" };
 #else
       std::string byteOrder{ "BigEndian" };
 #endif
+      return byteOrder;
+}
+
+inline void writeXMLHeader( std::ostream& output )
+{
+   WALBERLA_ROOT_SECTION()
+   {
 
       output << R"(<?xml version="1.0"?>)"
                 "\n";
-      output << R"(<VTKFile type="UnstructuredGrid" version="0.1" byte_order=")" << byteOrder
+      output << R"(<VTKFile type="UnstructuredGrid" version="0.1" byte_order=")" << getByteOrder()
              << R"(">)"
                 "\n";
       output << R"(<UnstructuredGrid>)"
