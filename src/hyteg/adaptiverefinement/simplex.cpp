@@ -308,6 +308,9 @@ Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices
    // should be: E = [01 02 03 12 13 23]
    //            F = [012 013 023 123]
    uint_t e = 0, f = 0;
+   // e and f are unused in Release build
+   WALBERLA_UNUSED( e );
+   WALBERLA_UNUSED( f );
    for ( uint_t i = 0; i < 4; ++i )
    {
       for ( uint_t j = i + 1; j < 4; ++j )
