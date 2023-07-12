@@ -4,8 +4,8 @@ target_sources( hyteg
     KeyValueStore.hpp
     SQL.cpp
     SQL.hpp
-    TimingOutput.hpp
     Table.hpp
+    TimingOutput.hpp
 )
 
 add_subdirectory( VTKOutput )
