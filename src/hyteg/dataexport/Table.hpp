@@ -32,6 +32,39 @@
 
 namespace hyteg {
 
+/// \brief Export tabular material to whitespace separated text files.
+///
+/// Tables in this format can be directly loaded with pgfplots.
+/// This class is templated by the number of columns.
+///
+/// # Example
+///
+/// ```cpp
+/// Table<2> table( { "Level", "L2error" } );
+///
+/// table.addElement( 0, 0, 0 );
+/// table.addElement( 0, 1, 1e-1 );
+///
+/// table.addElement( 1, 0, 1 );
+/// table.addElement( 1, 1, 2.5e-2 );
+///
+/// table.write("out", "table");
+/// ```
+///
+/// ```latex
+/// \usepackage{booktabs}
+/// \usepackage{pgfplotstable}
+/// \pgfplotstableset{ every head row/.style = { before row = \toprule
+///                                            , after row  = \midrule
+///                                            }
+///                  , every last row/.style = { after row  = \bottomrule }
+///                  }
+///
+/// \begin{table}
+///   \pgfplotstabletypeset[ columns/L2error/.style = { column name = {$\|err\|_{L^2}$} }
+///                        ]{out/table.dat}
+/// \end{table}
+/// ```
 template < std::size_t N >
 class Table
 {
@@ -40,10 +73,15 @@ class Table
    std::stringstream                           stringStream_;
 
  public:
+   /// \brief Create a new `Table` with the given column `headers`.
    Table( std::array< std::string, N >&& headers )
    : rows_{ headers }
    {}
 
+   /// \brief Inserts an element into this table.
+   ///
+   /// Additional rows are added to the table if necessary.
+   /// `T` must support the `stringstream << T` operator.
    template < typename T >
    void addElement( const size_t row, const size_t col, const T& elem )
    {
@@ -57,6 +95,7 @@ class Table
       rows_[row + 1][col] = stringStream_.str();
    }
 
+   /// \brief Write this table in whitespace separated format to `dir/filename.dat`.
    void write( const std::string& dir, const std::string& filename )
    {
       WALBERLA_ROOT_SECTION()
@@ -72,6 +111,7 @@ class Table
    friend std::ostream& operator<<( std::ostream& os, const Table< M >& table );
 };
 
+/// \brief Write `table` in whitespace separated format to `os`.
 template < std::size_t N >
 std::ostream& operator<<( std::ostream& os, const Table< N >& table )
 {
