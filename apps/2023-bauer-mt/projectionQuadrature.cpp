@@ -27,14 +27,13 @@
 #include "core/mpi/Environment.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/dataexport/Table.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
-#include "Table.hpp"
 
 using namespace hyteg;
 using walberla::real_t;

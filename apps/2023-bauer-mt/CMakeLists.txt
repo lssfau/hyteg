@@ -3,7 +3,7 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/output)
 endif()
 
 waLBerla_add_executable(NAME smoothingFactor
-      FILES smoothingFactor.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
+      FILES smoothingFactor.cpp common.hpp common.cpp
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME massForm
@@ -17,25 +17,25 @@ waLBerla_add_executable(NAME massForm
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME projectionQuadrature
-      FILES projectionQuadrature.cpp Table.hpp
+      FILES projectionQuadrature.cpp
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME chebyshevParameters
-      FILES chebyshevParameters.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
+      FILES chebyshevParameters.cpp common.hpp common.cpp
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME hIndependence
-      FILES hIndependence.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
+      FILES hIndependence.cpp common.hpp common.cpp
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME L2Convergence
-      FILES L2Convergence.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
+      FILES L2Convergence.cpp common.hpp common.cpp
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME solverConvergence
-      FILES solverConvergence.cpp common.hpp common.cpp KeyValueStore.hpp Table.hpp
+      FILES solverConvergence.cpp common.hpp common.cpp
       DEPENDS hyteg)
 
 waLBerla_add_executable(NAME performance
-      FILES performance.cpp common.hpp common.cpp KeyValueStore.hpp
+      FILES performance.cpp common.hpp common.cpp
       DEPENDS hyteg)

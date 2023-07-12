@@ -2,8 +2,10 @@ target_sources( hyteg
     PRIVATE
     FEFunctionRegistry.hpp
     FEFunctionWriter.hpp
+    KeyValueStore.hpp
     SQL.cpp
     SQL.hpp
+    Table.hpp
     TimingOutput.hpp
 )
 
