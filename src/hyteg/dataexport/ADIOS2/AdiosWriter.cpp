@@ -40,12 +40,13 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
    //  P1 Type Functions
    // -------------------
    uint_t numP1TypeFunctions = feFunctionRegistry_.getP1Functions().size() + feFunctionRegistry_.getP1VectorFunctions().size();
-   WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter: " << numP1TypeFunctions << " functions of P1 type are registered!" );
+   // WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter: " << numP1TypeFunctions << " functions of P1 type are registered!" );
    if ( numP1TypeFunctions > 0 )
    {
       if ( p1Writers_.count( level ) == 0 )
       {
-        p1Writers_[level] = std::make_unique< AdiosWriterForP1 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
+         p1Writers_[level] =
+             std::make_unique< AdiosWriterForP1 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
       }
 
       p1Writers_[level]->write( feFunctionRegistry_, timestep );
@@ -55,18 +56,17 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
    //  P2 Type Functions
    // -------------------
    uint_t numP2TypeFunctions = feFunctionRegistry_.getP2Functions().size() + feFunctionRegistry_.getP2VectorFunctions().size();
-   WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter: " << numP2TypeFunctions << " functions of P2 type are registered!" );
+   // WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter: " << numP2TypeFunctions << " functions of P2 type are registered!" );
    if ( numP2TypeFunctions > 0 )
    {
       if ( p2Writers_.count( level ) == 0 )
       {
-        p2Writers_[level] = std::make_unique< AdiosWriterForP2 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
+         p2Writers_[level] =
+             std::make_unique< AdiosWriterForP2 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
       }
 
       p2Writers_[level]->write( feFunctionRegistry_, timestep );
    }
-
-   WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::write() not fully functional, yet!" );
 }
 
 } // namespace hyteg

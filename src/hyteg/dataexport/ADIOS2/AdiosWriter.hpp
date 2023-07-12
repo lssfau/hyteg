@@ -38,7 +38,18 @@ using walberla::real_t;
 using walberla::uint_t;
 
 class AdiosWriterForP1;
+class AdiosWriterForP2;
 
+/// Class to export FEFunction data using the ADIOS2 library
+///
+/// This class allows to write FEFunction data to the filesystem using the ADIOS2 library.
+/// Output is using the BP format (currently version BP4). The class currently only supports
+/// the following types of functions:
+/// - P1Function and P1VectorFunction
+/// - P2Function and P2VectorFunction
+/// - P2P1TaylorHoodFunction
+///
+/// which must be using real_t as their value type.
 class AdiosWriter : public FEFunctionWriter
 {
  public:
@@ -46,28 +57,24 @@ class AdiosWriter : public FEFunctionWriter
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
-   /// \param writeFrequency    Specifies the "frequency" of the exports see write()
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
    AdiosWriter( std::string                                filePath,
                 std::string                                fileBaseName,
                 const std::shared_ptr< PrimitiveStorage >& storage,
-                const uint_t&                              writeFrequency = 1,
-                MPI_Comm                                   comm           = walberla::MPIManager::instance()->comm() )
-   : AdiosWriter( filePath, fileBaseName, "", storage, writeFrequency, comm )
+                MPI_Comm                                   comm = walberla::MPIManager::instance()->comm() )
+   : AdiosWriter( filePath, fileBaseName, "", storage, comm )
    {}
 
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
-   /// \param writeFrequency    Specifies the "frequency" of the exports see write()
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
    AdiosWriter( std::string                                filePath,
                 std::string                                fileBaseName,
                 std::string                                configFile,
                 const std::shared_ptr< PrimitiveStorage >& storage,
-                const uint_t&                              writeFrequency = 1,
-                MPI_Comm                                   comm           = walberla::MPIManager::instance()->comm() )
+                MPI_Comm                                   comm = walberla::MPIManager::instance()->comm() )
    : storage_( storage )
    , filePath_( filePath )
    , fileBaseName_( fileBaseName )
@@ -127,15 +134,31 @@ class AdiosWriter : public FEFunctionWriter
    template < template < typename > class func_t, typename value_t >
    inline void add( const func_t< value_t >& function )
    {
+      // Still some places where we would need to add extra code to also
+      // be able to write uint32/64_t
+      if constexpr ( !std::is_same_v< real_t, value_t > )
+      {
+         WALBERLA_ABORT( "AdiosWriter currently only supports exporting FEFunction using real_t as value type!" );
+      }
+
       if constexpr ( !std::is_same_v< func_t< value_t >, P1Function< value_t > > &&
                      !std::is_same_v< func_t< value_t >, P2Function< value_t > > &&
                      !std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > &&
-                     !std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+                     !std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > &&
+                     !std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
       {
          WALBERLA_ABORT( "AdiosWriter only supports P1 and P2 type functions!" );
       }
 
-      feFunctionRegistry_.add( function );
+      if ( p1Writers_.size() > 0 || p2Writers_.size() > 0 )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter class does not support adding functions after the first write.\n"
+                                       << "--> Ignoring function '" << function.getFunctionName() << "'!" );
+      }
+      else
+      {
+         feFunctionRegistry_.add( function );
+      }
    }
 
    /// Set parameter specified by string key to value specified by string value
@@ -175,8 +198,8 @@ class AdiosWriter : public FEFunctionWriter
             WALBERLA_ABORT( " localDims.size() = " << localDims.size() );
          }
 
-         WALBERLA_LOG_INFO_ON_ROOT( "**** capacity of StreamAccessBuffer is " << capacity_ );
-         WALBERLA_LOG_INFO_ON_ROOT( "**** blockStride is " << blockStride );
+         // WALBERLA_LOG_INFO_ON_ROOT( "**** capacity of StreamAccessBuffer is " << capacity_ );
+         // WALBERLA_LOG_INFO_ON_ROOT( "**** blockStride is " << blockStride );
       };
 
       StreamAccessBuffer& operator<<( const entry_t& value )

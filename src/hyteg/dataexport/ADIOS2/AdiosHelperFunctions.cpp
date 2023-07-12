@@ -22,6 +22,7 @@
 #include <adios2.h>
 
 #include "core/logging/Logging.h"
+
 #include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 
 namespace hyteg::adiosHelpers {
@@ -82,9 +83,6 @@ std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointD
 
    // wrap-up
    oStream << myIndent2 << R"(</Piece>)" << '\n' << myIndent1 << R"(</UnstructuredGrid>)" << '\n' << R"(</VTKFile>)";
-
-   // for debbuging during development
-   WALBERLA_LOG_INFO_ON_ROOT( "" << oStream.rdbuf() );
 
    return oStream.str();
 };

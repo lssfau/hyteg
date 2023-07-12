@@ -32,10 +32,10 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-// This test ...
+// This test checks that exporting FE functions with the AdiosWriter
+// class compiles and runs through without aborting.
 
 using namespace hyteg;
 
@@ -76,14 +76,22 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
    P2VectorFunction< real_t > p2VecFunc( "P2VectorTestFunction", storage, level, level );
    initVectorFunction( p2VecFunc, level );
 
+   P2P1TaylorHoodFunction< real_t > stokesFunc( "StokesTestFunction", storage, level, level );
+
    AdiosWriter adiosWriter( "../../output", baseFileName, storage );
    adiosWriter.add( p1Func );
    adiosWriter.add( p2Func );
    adiosWriter.add( p1VecFunc );
    adiosWriter.add( p2VecFunc );
+   adiosWriter.add( stokesFunc );
 
    // perform some write steps
    adiosWriter.write( level, 0 );
+
+   // should produce a warning
+   P1Function< real_t > foo( "foo", storage, level, level );
+   adiosWriter.add( foo );
+   
    adiosWriter.write( level, 1 );
 }
 

@@ -143,9 +143,6 @@ void AdiosWriterForP2::writeMesh( const std::vector< std::string >& p2FunctionLi
       numElements = storage_->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level_ );
    }
 
-   WALBERLA_LOG_INFO( "# local (virtual) vertices = " << numVertices );
-   WALBERLA_LOG_INFO( "# local elements = " << numElements );
-
    // store entity counts as scalar variables
    adios2::Variable< uint32_t > varNumberOfNodes =
        io_.DefineVariable< uint32_t >( "NumberOfVertices", { adios2::LocalValueDim } );
@@ -180,7 +177,6 @@ void AdiosWriterForP2::writeMesh( const std::vector< std::string >& p2FunctionLi
    }
    else
    {
-      WALBERLA_LOG_INFO( "Writing connectivity!!!!" );
       AdiosWriter::StreamAccessBuffer< uint64_t, 7 > connectivityStream( connectivity, varConnectivity.Count() );
       VTKMeshWriter::writeElementNodeAssociationP2Triangles( connectivityStream, storage_, level_ );
    }
@@ -243,7 +239,6 @@ void AdiosWriterForP2::scheduleScalarFunctionForExport( const P2Function< value_
    }
    else
    {
-      WALBERLA_LOG_INFO( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
       typename adios2::Variable< value_t >::Span dofData = engine_.Put< value_t >( varDoFData );
       AdiosWriter::StreamAccessBuffer< value_t > dataStream( dofData, varDoFData.Count() );
       VTKP2Writer::writeP2FunctionData( !storage_->hasGlobalCells(), dataStream, func, storage_, level_ );
@@ -261,7 +256,6 @@ void AdiosWriterForP2::scheduleVectorFunctionForExport( const P2VectorFunction< 
    }
    else
    {
-      WALBERLA_LOG_INFO( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
       typename adios2::Variable< value_t >::Span dofData = engine_.Put< value_t >( varDoFData );
       AdiosWriter::StreamAccessBuffer< value_t > dataStream( dofData, varDoFData.Count() );
       VTKP2Writer::writeP2VectorFunctionData( !storage_->hasGlobalCells(), dataStream, func, storage_, level_ );
