@@ -408,6 +408,24 @@ template void VTKP2Writer::writeP2FunctionData( bool                            
                                                 const std::shared_ptr< PrimitiveStorage >&   storage,
                                                 const uint_t&                                level );
 
+template void VTKP2Writer::writeP2VectorFunctionData( bool                                       write2D,
+                                                      AdiosWriter::StreamAccessBuffer< real_t >& dstStream,
+                                                      const P2VectorFunction< real_t >&          function,
+                                                      const std::shared_ptr< PrimitiveStorage >& storage,
+                                                      const uint_t&                              level );
+
+template void VTKP2Writer::writeP2VectorFunctionData( bool                                         write2D,
+                                                      AdiosWriter::StreamAccessBuffer< uint32_t >& dstStream,
+                                                      const P2VectorFunction< uint32_t >&          function,
+                                                      const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                      const uint_t&                                level );
+
+template void VTKP2Writer::writeP2VectorFunctionData( bool                                         write2D,
+                                                      AdiosWriter::StreamAccessBuffer< uint64_t >& dstStream,
+                                                      const P2VectorFunction< uint64_t >&          function,
+                                                      const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                      const uint_t&                                level );
+
 #endif
 
 } // namespace hyteg

@@ -22,6 +22,7 @@
 #include <adios2.h>
 
 #include "core/logging/Logging.h"
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 
 namespace hyteg::adiosHelpers {
 
@@ -38,8 +39,6 @@ std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointD
    std::string myIndent3 = myIndent1 + myIndent2;
    std::string myIndent4 = myIndent1 + myIndent3;
 
-   std::string byteOrder = "LittleEndian"; // <-- see issue #217
-
    // REMARK:
    //
    // Although we specify the names of the DataArrays in the vtk.xml part, these are
@@ -48,7 +47,7 @@ std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointD
    // - connectivity
    // - types
    // oStream << R"(<?xml version="1.0"?>)" << '\n'
-   oStream << R"(<VTKFile type="UnstructuredGrid" version="0.2" byte_order=")" << byteOrder << R"(">)" << '\n'
+   oStream << R"(<VTKFile type="UnstructuredGrid" version="0.2" byte_order=")" << vtk::getByteOrder() << R"(">)" << '\n'
            << myIndent1 << R"(<UnstructuredGrid>)" << '\n'
            << myIndent2 << R"(<Piece NumberOfPoints="NumberOfVertices" NumberOfCells="NumberOfElements">)" << '\n'
            << myIndent3 << R"(<Points>)" << '\n'

@@ -39,15 +39,17 @@
 
 using namespace hyteg;
 
-void initSrcFunction( const P1Function< real_t >& srcFunc, const uint_t level )
+template < typename func_t >
+void initScalarFunction( const func_t& function, const uint_t level )
 {
    std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& p ) -> real_t {
       return real_c( -2 ) * p[0] + real_c( 3 ) * p[1];
    };
-   srcFunc.interpolate( expr, level, DoFType::All );
+   function.interpolate( expr, level, DoFType::All );
 }
 
-void initSrcFunction( const P1VectorFunction< real_t >& srcFunc, const uint_t level )
+template < typename func_t >
+void initVectorFunction( const func_t& function, const uint_t level )
 {
    std::function< real_t( const hyteg::Point3D& ) > exprX = []( const Point3D& p ) -> real_t {
       return real_c( -2 ) * p[0] + real_c( 3 ) * p[1];
@@ -58,7 +60,31 @@ void initSrcFunction( const P1VectorFunction< real_t >& srcFunc, const uint_t le
    std::function< real_t( const hyteg::Point3D& ) > exprZ = []( const Point3D& p ) -> real_t {
       return std::sin( p[0] + p[2] ) * std::cos( real_c( 3 ) * p[1] * p[2] );
    };
-   srcFunc.interpolate( {exprX, exprY, exprZ}, level, DoFType::All );
+   function.interpolate( { exprX, exprY, exprZ }, level, DoFType::All );
+}
+
+template < typename value_t >
+void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileName, uint_t level )
+{
+   P1Function< real_t > p1Func( "P1TestFunction", storage, level, level );
+   initScalarFunction( p1Func, level );
+   P1VectorFunction< real_t > p1VecFunc( "P1VectorTestFunction", storage, level, level );
+   initVectorFunction( p1VecFunc, level );
+
+   P2Function< real_t > p2Func( "P2TestFunction", storage, level, level );
+   initScalarFunction( p2Func, level );
+   P2VectorFunction< real_t > p2VecFunc( "P2VectorTestFunction", storage, level, level );
+   initVectorFunction( p2VecFunc, level );
+
+   AdiosWriter adiosWriter( "../../output", baseFileName, storage );
+   adiosWriter.add( p1Func );
+   adiosWriter.add( p2Func );
+   adiosWriter.add( p1VecFunc );
+   adiosWriter.add( p2VecFunc );
+
+   // perform some write steps
+   adiosWriter.write( level, 0 );
+   adiosWriter.write( level, 1 );
 }
 
 int main( int argc, char* argv[] )
@@ -69,31 +95,26 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   // MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
-   // MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_4el.msh" );
-   // MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_48el.msh" );
-   // MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/LShape_6el.msh" );
-   MeshInfo mesh = MeshInfo::meshSphericalShell( 2, 2, real_c( 1 ), real_c( 2 ) );
+   // Execute test with a 2D mesh
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing AdiosWriter for 2D Mesh ***" );
+   {
+      MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/LShape_6el.msh" );
+      SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+      runTest< real_t >( storage, "AdiosWriterTest_2D", 3 );
+   }
 
-   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   IcosahedralShellMap::setMap( setupStorage );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
-   const uint_t level = 3;
-
-   P1Function< real_t > p1Func( "P1TestFunction", storage, level, level );
-   initSrcFunction( p1Func, level );
-   P1VectorFunction< real_t > p1VecFunc( "P1VectorTestFunction", storage, level, level );
-   initSrcFunction( p1VecFunc, level );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing AdiosWriter class ***" );
-   AdiosWriter adiosWriter( ".", "AdiosWriterTest", storage );
-   adiosWriter.add( p1Func );
-   adiosWriter.add( p1VecFunc );
-   adiosWriter.write( level );
-
-   adiosWriter.write( level );
+   // Execute test with a 3D mesh
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing AdiosWriter for 3D Mesh ***" );
+   {
+      MeshInfo              mesh = MeshInfo::meshSphericalShell( 2, 2, real_c( 1 ), real_c( 2 ) );
+      SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      IcosahedralShellMap::setMap( setupStorage );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+      runTest< real_t >( storage, "AdiosWriterTest_3D", 2 );
+   }
 
    return EXIT_SUCCESS;
 }

@@ -897,12 +897,12 @@ template void VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons( AdiosWri
                                                                         uint_t                                          width,
                                                                         bool discontinuous );
 
-template void VTKMeshWriter::writeElementNodeAssociationP2Triangles( AdiosWriter::StreamAccessBuffer< uint64_t, 4 >& dstStream_t,
+template void VTKMeshWriter::writeElementNodeAssociationP2Triangles( AdiosWriter::StreamAccessBuffer< uint64_t, 7 >& dstStream_t,
                                                                      const std::shared_ptr< PrimitiveStorage >&      storage,
                                                                      uint_t                                          level );
 
 template void
-    VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( AdiosWriter::StreamAccessBuffer< uint64_t, 5 >& dstStream_t,
+    VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( AdiosWriter::StreamAccessBuffer< uint64_t, 11 >& dstStream_t,
                                                               const std::shared_ptr< PrimitiveStorage >&      storage,
                                                               uint_t                                          level );
 

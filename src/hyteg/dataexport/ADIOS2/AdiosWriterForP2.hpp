@@ -31,16 +31,16 @@ using walberla::uint_t;
 
 class AdiosWriter;
 
-class AdiosWriterForP1
+class AdiosWriterForP2
 {
  public:
    /// \param adios          top-level ADIOS2 interface object
    /// \param filePath       Path to directory where the files are stored
    /// \param fileBaseName   Basename of the vtk files
    /// \param engineType     for file I/O should by a BP format like "BP4"
-   /// \param storage        PrimitiveStorage associated with functions to export
    /// \param level          fixed refinement level associated with the writer object
-   AdiosWriterForP1( adios2::ADIOS&                             adios,
+   /// \param storage        PrimitiveStorage associated with functions to export
+   AdiosWriterForP2( adios2::ADIOS&                             adios,
                      std::string&                               filePath,
                      std::string&                               fileBaseName,
                      const std::string&                         engineType,
@@ -48,7 +48,7 @@ class AdiosWriterForP1
                      const std::shared_ptr< PrimitiveStorage >& storage );
 
    /// The destructor takes care of closing the ADIOS2 output file
-   ~AdiosWriterForP1()
+   ~AdiosWriterForP2()
    {
       if ( firstWriteCompleted_ )
       {
@@ -79,10 +79,10 @@ class AdiosWriterForP1
    /// name of the output file
    std::string fileName_;
 
-   /// need to keep track of chronology
+   /// need to keep track of chronology (better use TIME later on?)
    bool firstWriteCompleted_{ false };
 
-   /// associate ADIOS variables with P1 type functions in the registry
+   /// associate ADIOS variables with P2 type functions in the registry
    ///
    /// \note function will abort, if it encounters an already defined variable
    template < typename value_t >
@@ -90,11 +90,11 @@ class AdiosWriterForP1
 
    /// Copy function data into an ADIOS span to schedule it for export
    template < typename value_t >
-   void scheduleScalarFunctionForExport( const P1Function< value_t >& func );
+   void scheduleScalarFunctionForExport( const P2Function< value_t >& func );
 
    /// Copy function data into an ADIOS span to schedule it for export
    template < typename value_t >
-   void scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func );
+   void scheduleVectorFunctionForExport( const P2VectorFunction< value_t >& func );
 };
 
 } // namespace hyteg

@@ -17,12 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
-
 #include <adios2.h>
 
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
 #include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
@@ -33,7 +32,7 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             adios,
+AdiosWriterForP2::AdiosWriterForP2( adios2::ADIOS&                             adios,
                                     std::string&                               filePath,
                                     std::string&                               fileBaseName,
                                     const std::string&                         engineType,
@@ -44,7 +43,7 @@ AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             a
 {
    // create the name of the output file
    std::stringstream tag;
-   tag << "-P1_level" << level_ << ".bp";
+   tag << "-P2_level" << level_ << ".bp";
    fileName_ = filePath + "/" + fileBaseName + tag.str();
 
    // create our own writer
@@ -54,7 +53,7 @@ AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             a
    io_.SetEngine( engineType );
 }
 
-void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timestep )
+void AdiosWriterForP2::write( const FEFunctionRegistry& registry, uint_t timestep )
 {
    // working on faces/cells some processes might not have data to export
    if ( !adiosHelpers::mpiProcessHasMacrosOfHighestDimension( storage_ ) )
@@ -71,16 +70,14 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
       engine_.BeginStep();
       engine_.EndStep();
 
-      WALBERLA_LOG_INFO( "Nothing to do for this process!" )
-
       return;
    }
 
    // Assemble list of names of node-centred and cell-centred funcions (latter is empty)
    std::vector< std::string > emptyList;
-   std::vector< std::string > p1FunctionList;
-   registry.extractFunctionNames( p1FunctionList, functionTraits::P1_FUNCTION );
-   registry.extractFunctionNames( p1FunctionList, functionTraits::P1_VECTOR_FUNCTION );
+   std::vector< std::string > p2FunctionList;
+   registry.extractFunctionNames( p2FunctionList, functionTraits::P2_FUNCTION );
+   registry.extractFunctionNames( p2FunctionList, functionTraits::P2_VECTOR_FUNCTION );
 
    // ------------------
    //  First write only
@@ -92,7 +89,7 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
 
       // export the mesh information
       engine_.BeginStep();
-      writeMesh( p1FunctionList );
+      writeMesh( p2FunctionList );
 
       // define ADIOS variables to be associated with our functions
       defineVariables< real_t >( registry );
@@ -111,13 +108,12 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
 
    // set time-step info
    adiosHelpers::putTimeStepInfo( io_, engine_, timestep );
-
-   for ( const auto& func : registry.getP1Functions().getFunctions< real_t >() )
+   for ( const auto& func : registry.getP2Functions().getFunctions< real_t >() )
    {
       scheduleScalarFunctionForExport( func );
    }
 
-   for ( const auto& func : registry.getP1VectorFunctions().getFunctions< real_t >() )
+   for ( const auto& func : registry.getP2VectorFunctions().getFunctions< real_t >() )
    {
       scheduleVectorFunctionForExport( func );
    }
@@ -125,11 +121,11 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
    engine_.EndStep();
 }
 
-void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionList )
+void AdiosWriterForP2::writeMesh( const std::vector< std::string >& p2FunctionList )
 {
    // store the generic XML file as attribute as part of the binary data
    std::vector< std::string > emptyList;
-   std::string                vtkMetaInfo = adiosHelpers::generateVTKMetaInfo( p1FunctionList, emptyList );
+   std::string                vtkMetaInfo = adiosHelpers::generateVTKMetaInfo( p2FunctionList, emptyList );
    io_.DefineAttribute( "vtk.xml", vtkMetaInfo, "", "" );
 
    // determine basic entity counts
@@ -138,14 +134,17 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
    uint_t       numVertices = 0u;
    if ( dim == 3 )
    {
-      numVertices = storage_->getNumberOfLocalCells() * levelinfo::num_microvertices_per_cell( level_ );
+      numVertices = storage_->getNumberOfLocalCells() * levelinfo::num_microvertices_per_cell( level_ + 1 );
       numElements = storage_->getNumberOfLocalCells() * levelinfo::num_microcells_per_cell( level_ );
    }
    else
    {
-      numVertices = storage_->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level_ );
+      numVertices = storage_->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level_ + 1 );
       numElements = storage_->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level_ );
    }
+
+   WALBERLA_LOG_INFO( "# local (virtual) vertices = " << numVertices );
+   WALBERLA_LOG_INFO( "# local elements = " << numElements );
 
    // store entity counts as scalar variables
    adios2::Variable< uint32_t > varNumberOfNodes =
@@ -157,9 +156,9 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
    engine_.Put( varNumberOfFaces, static_cast< uint32_t >( numElements ) );
 
    // store the type of elements in the mesh as scalar variable
-   // 5u = "Triangle", 10u = "Tetrahedron"
+   // 22u = "QuadraticTriangle", 24u = "QuadraticTetrahedron"
    using elementMarker_t                               = uint32_t;
-   elementMarker_t                     elementMarker   = dim == 2 ? 5u : 10u;
+   elementMarker_t                     elementMarker   = dim == 2 ? 22u : 24u;
    adios2::Variable< elementMarker_t > varElementTypes = io_.DefineVariable< uint32_t >( "types" );
    engine_.Put( varElementTypes, elementMarker );
 
@@ -167,43 +166,41 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
    adios2::Variable< real_t >                varVertices = io_.DefineVariable< real_t >( "vertices", {}, {}, { numVertices, 3 } );
    adios2::Variable< real_t >::Span          vertices    = engine_.Put< real_t >( varVertices );
    AdiosWriter::StreamAccessBuffer< real_t > vertexStream( vertices, varVertices.Count() );
-   VTKMeshWriter::writePointsForMicroVertices( dim == 2, vertexStream, storage_, level_, false );
+   VTKMeshWriter::writePointsForMicroVertices( dim == 2, vertexStream, storage_, level_ + 1, false );
 
    // store element connectivity
    adios2::Variable< uint64_t > varConnectivity =
-       io_.DefineVariable< uint64_t >( "connectivity", {}, {}, { numElements, dim + 2 } );
+       io_.DefineVariable< uint64_t >( "connectivity", {}, {}, { numElements, dim == 2 ? 7u : 11u } );
    adios2::Variable< uint64_t >::Span connectivity = engine_.Put< uint64_t >( varConnectivity );
 
    if ( dim == 3 )
    {
-      AdiosWriter::StreamAccessBuffer< uint64_t, 5 > connectivityStream( connectivity, varConnectivity.Count() );
-      VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons(
-          connectivityStream, storage_, levelinfo::num_microvertices_per_edge( level_ ), false );
+      AdiosWriter::StreamAccessBuffer< uint64_t, 11 > connectivityStream( connectivity, varConnectivity.Count() );
+      VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( connectivityStream, storage_, level_ );
    }
    else
    {
-      AdiosWriter::StreamAccessBuffer< uint64_t, 4 > connectivityStream( connectivity, varConnectivity.Count() );
-      VTKMeshWriter::writeElementNodeAssociationP1Triangles(
-          connectivityStream, storage_, levelinfo::num_microvertices_per_edge( level_ ), false );
+      WALBERLA_LOG_INFO( "Writing connectivity!!!!" );
+      AdiosWriter::StreamAccessBuffer< uint64_t, 7 > connectivityStream( connectivity, varConnectivity.Count() );
+      VTKMeshWriter::writeElementNodeAssociationP2Triangles( connectivityStream, storage_, level_ );
    }
 }
 
 template < typename value_t >
-void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry )
+void AdiosWriterForP2::defineVariables( const FEFunctionRegistry& registry )
 {
    auto checkAndDefine = [this]( std::string funcName, uint_t funcDim ) {
       adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( funcName );
       if ( !varDoFData )
       {
-         // WALBERLA_LOG_INFO_ON_ROOT( "Defining ADIOS2 variable '" << funcName << "'" );
          uint_t extent{ 0 };
          if ( !storage_->hasGlobalCells() )
          {
-            extent = levelinfo::num_microvertices_per_face( level_ ) * storage_->getNumberOfLocalFaces();
+            extent = levelinfo::num_microvertices_per_face( level_ + 1 ) * storage_->getNumberOfLocalFaces();
          }
          else
          {
-            extent = levelinfo::num_microvertices_per_cell( level_ ) * storage_->getNumberOfLocalCells();
+            extent = levelinfo::num_microvertices_per_cell( level_ + 1 ) * storage_->getNumberOfLocalCells();
          }
          if ( funcDim == 1 )
          {
@@ -222,23 +219,23 @@ void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry )
       }
    };
 
-   std::vector< P1Function< value_t > > p1Funcs = registry.getP1Functions().getFunctions< value_t >();
-   for ( const auto& func : p1Funcs )
+   std::vector< P2Function< value_t > > p2Funcs = registry.getP2Functions().getFunctions< value_t >();
+   for ( const auto& func : p2Funcs )
    {
       checkAndDefine( func.getFunctionName(), func.getDimension() );
    }
 
-   std::vector< P1VectorFunction< value_t > > p1VecFuncs = registry.getP1VectorFunctions().getFunctions< value_t >();
-   for ( const auto& func : p1VecFuncs )
+   std::vector< P2VectorFunction< value_t > > p2VecFuncs = registry.getP2VectorFunctions().getFunctions< value_t >();
+   for ( const auto& func : p2VecFuncs )
    {
       checkAndDefine( func.getFunctionName(), func.getDimension() );
    }
 }
 
 template < typename value_t >
-void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_t >& func )
+void AdiosWriterForP2::scheduleScalarFunctionForExport( const P2Function< value_t >& func )
 {
-   adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
+   adios2::Variable< value_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
    if ( !varDoFData )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 variable '" << func.getFunctionName() << "' does not exists!" );
@@ -246,41 +243,17 @@ void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_
    }
    else
    {
-      // WALBERLA_LOG_INFO_ON_ROOT( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
-      adios2::Variable< real_t >::Span dofData = engine_.Put< value_t >( varDoFData );
-      if ( !storage_->hasGlobalCells() )
-      {
-         uint_t blockSize = levelinfo::num_microvertices_per_face( level_ );
-         uint_t currentPos{ 0 };
-         for ( const auto& it : func.getStorage()->getFaces() )
-         {
-            const Face& face = *it.second;
-            // assuming here that the Span is a contiguous memory buffer
-            memcpy(
-                &dofData[currentPos], face.getData( func.getFaceDataID() )->getPointer( level_ ), blockSize * sizeof( value_t ) );
-            currentPos += blockSize;
-         }
-      }
-      else
-      {
-         uint_t blockSize = levelinfo::num_microvertices_per_cell( level_ );
-         uint_t currentPos{ 0 };
-         for ( const auto& it : func.getStorage()->getCells() )
-         {
-            const Cell& cell = *it.second;
-            // assuming here that the Span is a contiguous memory buffer
-            memcpy(
-                &dofData[currentPos], cell.getData( func.getCellDataID() )->getPointer( level_ ), blockSize * sizeof( value_t ) );
-            currentPos += blockSize;
-         }
-      }
+      WALBERLA_LOG_INFO( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
+      typename adios2::Variable< value_t >::Span dofData = engine_.Put< value_t >( varDoFData );
+      AdiosWriter::StreamAccessBuffer< value_t > dataStream( dofData, varDoFData.Count() );
+      VTKP2Writer::writeP2FunctionData( !storage_->hasGlobalCells(), dataStream, func, storage_, level_ );
    }
 }
 
 template < typename value_t >
-void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func )
+void AdiosWriterForP2::scheduleVectorFunctionForExport( const P2VectorFunction< value_t >& func )
 {
-   adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
+   adios2::Variable< value_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
    if ( !varDoFData )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 variable '" << func.getFunctionName() << "' does not exists!" );
@@ -288,40 +261,10 @@ void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< 
    }
    else
    {
-      adios2::Variable< real_t >::Span dofData = engine_.Put< value_t >( varDoFData );
-      if ( !storage_->hasGlobalCells() )
-      {
-         uint_t currentPos{ 0 };
-         for ( const auto& it : storage_->getFaces() )
-         {
-            const Face& face = *it.second;
-            for ( uint_t i = 0; i < levelinfo::num_microvertices_per_face( level_ ); ++i )
-            {
-               for ( uint_t idx = 0; idx < func.getDimension(); ++idx )
-               {
-                  dofData[currentPos++] = face.getData( func[idx].getFaceDataID() )->getPointer( level_ )[i];
-               }
-            }
-         }
-      }
-      else
-      {
-         uint_t currentPos{ 0 };
-         for ( const auto& it : storage_->getCells() )
-         {
-            const Cell& cell      = *it.second;
-            const auto  cellData0 = cell.getData( func[0].getCellDataID() )->getPointer( level_ );
-            const auto  cellData1 = cell.getData( func[1].getCellDataID() )->getPointer( level_ );
-            const auto  cellData2 = cell.getData( func[2].getCellDataID() )->getPointer( level_ );
-
-            for ( const auto& idxIt : vertexdof::macrocell::Iterator( level_ ) )
-            {
-               dofData[currentPos++] = cellData0[vertexdof::macrocell::index( level_, idxIt.x(), idxIt.y(), idxIt.z() )];
-               dofData[currentPos++] = cellData1[vertexdof::macrocell::index( level_, idxIt.x(), idxIt.y(), idxIt.z() )];
-               dofData[currentPos++] = cellData2[vertexdof::macrocell::index( level_, idxIt.x(), idxIt.y(), idxIt.z() )];
-            }
-         }
-      }
+      WALBERLA_LOG_INFO( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
+      typename adios2::Variable< value_t >::Span dofData = engine_.Put< value_t >( varDoFData );
+      AdiosWriter::StreamAccessBuffer< value_t > dataStream( dofData, varDoFData.Count() );
+      VTKP2Writer::writeP2VectorFunctionData( !storage_->hasGlobalCells(), dataStream, func, storage_, level_ );
    }
 }
 

@@ -1,9 +1,11 @@
 target_sources( hyteg
     PRIVATE
-    AdiosHelperFunctions.hpp
     AdiosHelperFunctions.cpp
-    AdiosWriterForP1.hpp
-    AdiosWriterForP1.cpp
+    AdiosHelperFunctions.hpp
     AdiosWriter.cpp
     AdiosWriter.hpp
+    AdiosWriterForP1.cpp
+    AdiosWriterForP1.hpp
+    AdiosWriterForP2.hpp
+    AdiosWriterForP2.cpp
 )

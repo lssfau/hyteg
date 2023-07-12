@@ -24,6 +24,7 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriterForP2.hpp"
 #include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
@@ -151,18 +152,29 @@ class AdiosWriter : public FEFunctionWriter
    ///
    /// The blockStride template argument is designed to work with the connectivity methods
    /// of the VTKMeshWriter class. If not zero, we will insert data in blocks of size blockStride.
-   /// As first entry of each block we automatically insert (blockstride-1), which then described
+   /// As first entry of each block we automatically insert (blockstride-1), which then describes
    /// the remaining number of entries in the block. For connectivity info these would be the node
    /// indices for the current element.
-   template < typename entry_t, uint_t blockStride = 0 >
+   template < typename entry_t, uint_t blockStride = 0u >
    class StreamAccessBuffer
    {
     public:
       StreamAccessBuffer( typename adios2::Variable< entry_t >::Span& buffer, adios2::Dims localDims )
       : buffer_( buffer )
       {
-         WALBERLA_ASSERT( localDims.size() == 2 );
-         capacity_ = localDims[0] * localDims[1];
+         if ( localDims.size() == 1 )
+         {
+            capacity_ = localDims[0];
+         }
+         else if ( localDims.size() == 2 )
+         {
+            capacity_ = localDims[0] * localDims[1];
+         }
+         else
+         {
+            WALBERLA_ABORT( " localDims.size() = " << localDims.size() );
+         }
+
          WALBERLA_LOG_INFO_ON_ROOT( "**** capacity of StreamAccessBuffer is " << capacity_ );
          WALBERLA_LOG_INFO_ON_ROOT( "**** blockStride is " << blockStride );
       };
@@ -177,7 +189,6 @@ class AdiosWriter : public FEFunctionWriter
                buffer_[position_++] = blockStride - 1u;
             }
          }
-
          WALBERLA_ASSERT( position_ < capacity_ );
          buffer_[position_++] = value;
          return *this;
@@ -197,20 +208,30 @@ class AdiosWriter : public FEFunctionWriter
    /// described be this PrimitiveStorage object
    std::shared_ptr< PrimitiveStorage > storage_{ nullptr };
 
+   /// main ADIOS2 interface object
+   //
    // ATTENTION: Order is important here! The adios_ member must come
    //            before all maps, so that it is destroyed after the
    //            writers in the maps!
-   // std::shared_ptr< adios2::ADIOS > adios_{ nullptr };
    adios2::ADIOS adios_;
 
+   /// we create one writer per level for P1 type functions
    std::map< uint_t, std::unique_ptr< AdiosWriterForP1 > > p1Writers_;
-   // std::map< uint_t, AdiosWriterForP2 > p2Writers_;
+
+   /// we create one writer per level for P2 type functions
+   std::map< uint_t, std::unique_ptr< AdiosWriterForP2 > > p2Writers_;
 
    /// path to output files
    std::string filePath_;
 
    /// basename of output files
    std::string fileBaseName_;
+
+   /// type of engine to be used for export
+   ///
+   /// We will use the BP format, but the most recent "BP5" format is unsupported by ParaView 5.11.1.
+   /// Thus, we still use BP4
+   const std::string engineType_{ "BP4" };
 };
 
 } // namespace hyteg
