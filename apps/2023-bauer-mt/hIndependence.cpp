@@ -23,10 +23,10 @@
 #include "core/logging/Logging.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/dataexport/KeyValueStore.hpp"
+#include "hyteg/dataexport/Table.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
-#include "KeyValueStore.hpp"
-#include "Table.hpp"
 #include "common.hpp"
 
 using namespace hyteg;
