@@ -26,11 +26,11 @@
 
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/dataexport/KeyValueStore.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/types/PointND.hpp"
 
 #include "../tests/hyteg/N1E1/common.hpp"
-#include "KeyValueStore.hpp"
 
 using namespace hyteg;
 

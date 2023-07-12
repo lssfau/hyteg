@@ -25,10 +25,10 @@
 #include "core/math/Constants.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/dataexport/KeyValueStore.hpp"
+#include "hyteg/dataexport/Table.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 
-#include "KeyValueStore.hpp"
-#include "Table.hpp"
 #include "common.hpp"
 
 using namespace hyteg;
