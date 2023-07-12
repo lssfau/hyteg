@@ -32,6 +32,26 @@
 
 namespace hyteg {
 
+/// \brief Export unstructured data in a LaTeX friendly format.
+///
+/// # Example
+///
+/// ```cpp
+/// KeyValueStore store;
+///
+/// store.store( "/example/minLevel", minLevel );
+/// store.store( "/example/maxLevel", maxLevel );
+///
+/// store.writePgfKeys( "out", "example" );
+/// ```
+///
+/// ```latex
+/// \usepackage{pgfkeys}
+/// \usepackage{siunitx}
+///
+/// \input{out/example.tex}
+/// The coarsest and finest grids are on level \num{\pgfkeysvalueof{/example/minLevel}} and \num{\pgfkeysvalueof{/example/maxLevel}}, respectively.
+/// ```
 class KeyValueStore
 {
  private:
@@ -41,6 +61,9 @@ class KeyValueStore
    std::stringstream stringStream_;
 
  public:
+   /// \brief Store a single key-value pair.
+   ///
+   /// `T` must support the `stringstream << T` operator.
    template < typename T >
    void store( std::string key, T value )
    {
@@ -51,6 +74,7 @@ class KeyValueStore
       maxKeyLength_ = std::max( maxKeyLength_, key.length() );
    }
 
+   /// \brief Write a tex-file defining pgfkeys key-value pairs to `dir/filename.tex`.
    void writePgfKeys( const std::string& dir, const std::string& filename )
    {
       WALBERLA_ROOT_SECTION()
@@ -68,6 +92,7 @@ class KeyValueStore
    friend std::ostream& operator<<( std::ostream& os, const KeyValueStore& store );
 };
 
+/// \brief Write all key-value pairs in a human-readable format to `os`.
 inline std::ostream& operator<<( std::ostream& os, const KeyValueStore& store )
 {
    for ( auto it = store.keyValues_.begin(); it != store.keyValues_.end(); ++it )
