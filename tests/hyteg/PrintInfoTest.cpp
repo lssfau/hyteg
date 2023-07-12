@@ -31,6 +31,18 @@
 
 using namespace hyteg;
 
+// check for the unlikely event that the byte order specified during
+// compilation is different to the one at executation time
+void checkEndianess()
+{
+   // do some classical C magic
+   uint16_t i = 1u;
+   uint8_t* c = (uint8_t*) &i;
+
+   std::string byteOrder = ( *c ) ? "LITTLE_ENDIAN" : "BIG_ENDIAN";
+   WALBERLA_CHECK( byteOrder == systemEndianess(), "Byte order inconsistent between compile and execute architecture!" );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
@@ -41,16 +53,18 @@ int main( int argc, char* argv[] )
 
    printBuildInfo();
    WALBERLA_LOG_INFO_ON_ROOT( separator );
-   WALBERLA_LOG_INFO_ON_ROOT( "buildType() returned ........ " << buildType() );
-   WALBERLA_LOG_INFO_ON_ROOT( "compilerInfo() returned ..... " << compilerInfo() );
-   WALBERLA_LOG_INFO_ON_ROOT( "compilerFlags() returned .... " << compilerFlags() );
-   WALBERLA_LOG_INFO_ON_ROOT( "mpiVersion() returned ....... " << mpiVersion() );
+   WALBERLA_LOG_INFO_ON_ROOT( "buildType() returned ......... " << buildType() );
+   WALBERLA_LOG_INFO_ON_ROOT( "compilerInfo() returned ...... " << compilerInfo() );
+   WALBERLA_LOG_INFO_ON_ROOT( "compilerFlags() returned ..... " << compilerFlags() );
+   WALBERLA_LOG_INFO_ON_ROOT( "mpiVersion() returned ........ " << mpiVersion() );
+   WALBERLA_LOG_INFO_ON_ROOT( "systemEndianess() returned ... " << systemEndianess() );
+   checkEndianess();
 
    WALBERLA_LOG_INFO_ON_ROOT( separator );
    printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( separator );
-   WALBERLA_LOG_INFO_ON_ROOT( "gitSHA1() returned .......... " << gitSHA1() );
-   WALBERLA_LOG_INFO_ON_ROOT( "gitBranch() returned ........ " << gitBranch() );
+   WALBERLA_LOG_INFO_ON_ROOT( "gitSHA1() returned ........... " << gitSHA1() );
+   WALBERLA_LOG_INFO_ON_ROOT( "gitBranch() returned ......... " << gitBranch() );
 
    return 0;
 }

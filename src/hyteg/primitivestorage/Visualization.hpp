@@ -26,6 +26,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/mpi/MPITextFile.h"
 
+#include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 #include "hyteg/primitives/Edge.hpp"
 #include "hyteg/primitives/Vertex.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -87,7 +88,7 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
    {
       // header
       rankOut << "<?xml version=\"1.0\"?>\n";
-      rankOut << "  <VTKFile type=\"UnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
+      rankOut << "  <VTKFile type=\"UnstructuredGrid\" version=\"0.1\"  byte_order=\"" << vtk::getByteOrder() << "\">\n";
       rankOut << "    <UnstructuredGrid>\n";
    }
 
@@ -360,7 +361,7 @@ inline void writeBlendedCoarseMeshVTK( const PrimitiveStorage& storage,
    {
       // header
       rankOut << "<?xml version=\"1.0\"?>\n";
-      rankOut << "  <VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+      rankOut << "  <VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"" << vtk::getByteOrder() << "\">\n";
       rankOut << "    <PolyData>\n";
    }
 
