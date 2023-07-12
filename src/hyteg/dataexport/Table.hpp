@@ -30,6 +30,8 @@
 #include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
 
+namespace hyteg {
+
 template < std::size_t N >
 class Table
 {
@@ -88,3 +90,5 @@ std::ostream& operator<<( std::ostream& os, const Table< N >& table )
 
    return os;
 }
+
+} // namespace hyteg

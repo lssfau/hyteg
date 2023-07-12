@@ -30,6 +30,8 @@
 #include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
 
+namespace hyteg {
+
 class KeyValueStore
 {
  private:
@@ -74,3 +76,5 @@ inline std::ostream& operator<<( std::ostream& os, const KeyValueStore& store )
    }
    return os;
 }
+
+} // namespace hyteg
