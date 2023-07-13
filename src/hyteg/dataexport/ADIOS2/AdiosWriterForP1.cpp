@@ -94,6 +94,9 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
       engine_.BeginStep();
       writeMesh( p1FunctionList );
 
+      // add meta data on simulation software
+      adiosHelpers::generateSoftwareMetaData( io_ );
+
       // define ADIOS variables to be associated with our functions
       defineVariables< real_t >( registry );
 

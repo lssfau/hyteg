@@ -21,6 +21,8 @@
 
 #include <adios2.h>
 
+#include "hyteg/BuildInfo.hpp"
+#include "hyteg/Git.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 
 namespace hyteg::adiosHelpers {
@@ -59,6 +61,34 @@ inline bool mpiProcessHasMacrosOfHighestDimension( const std::shared_ptr< Primit
       return true;
    }
    return false;
+}
+
+/// Write meta data on the software used for simulation into the given stream
+inline std::ostream& printSoftwareMetaData( std::ostream& outStream )
+{
+   // clang-format off
+   outStream << "Data generated with HyTeG (https://i10git.cs.fau.de/hyteg)\n"
+             << "git branch         : " << gitBranch()     << '\n'
+             << "SHA1 of last commit: " << gitSHA1()       << '\n'
+             << "build type         : " << buildType()     << '\n'
+             << "compiler           : " << compilerInfo()  << '\n'
+             << "compiler flags     : " << compilerFlags() << '\n'
+             << "mpi version        : " << mpiVersion()    << std::endl;
+   // clang-format on
+
+   return outStream;
+}
+
+/// Schedule meta data on the software used for simulation for export
+inline void generateSoftwareMetaData( adios2::IO& io )
+{
+   adios2::Attribute< std::string > infoSoftware = io.InquireAttribute< std::string >( "Software" );
+   if ( !infoSoftware )
+   {
+      std::stringstream oStream;
+      printSoftwareMetaData( oStream );
+      infoSoftware = io.DefineAttribute( "Software", oStream.str(), "", "" );
+   }
 }
 
 } // namespace hyteg::adiosHelpers
