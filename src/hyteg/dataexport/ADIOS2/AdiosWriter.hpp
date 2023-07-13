@@ -95,24 +95,20 @@ class AdiosWriter : public FEFunctionWriter
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
-   /// \param writeFrequency    Specifies the "frequency" of the exports see write()
    AdiosWriter( std::string                                filePath,
                 std::string                                fileBaseName,
-                const std::shared_ptr< PrimitiveStorage >& storage,
-                const uint_t&                              writeFrequency = 1 )
-   : AdiosWriter( filePath, fileBaseName, "", storage, writeFrequency )
+                const std::shared_ptr< PrimitiveStorage >& storage )
+   : AdiosWriter( filePath, fileBaseName, "", storage )
    {}
 
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
-   /// \param writeFrequency    Specifies the "frequency" of the exports see write()
    AdiosWriter( std::string                                filePath,
                 std::string                                fileBaseName,
                 std::string                                configFile,
-                const std::shared_ptr< PrimitiveStorage >& storage,
-                const uint_t&                              writeFrequency = 1 )
+                const std::shared_ptr< PrimitiveStorage >& storage )
    : storage_( storage )
    , filePath_( filePath )
    , fileBaseName_( fileBaseName )
