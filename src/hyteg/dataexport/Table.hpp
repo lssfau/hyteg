@@ -71,6 +71,19 @@ class Table
  private:
    std::vector< std::array< std::string, N > > rows_;
    std::stringstream                           stringStream_;
+   size_t                                      lastColIdx_{0};
+
+   /// Auxilliary method for use by appendRow()
+   template < typename T, class... Args >
+   void addRowElement( size_t rowIdx, T& firstArg, Args... args )
+   {
+      size_t colIdx = N - 1 - sizeof...( Args );
+      addElement( rowIdx, colIdx, firstArg );
+      if constexpr ( sizeof...( Args ) > 0 )
+      {
+         addRowElement( rowIdx, args... );
+      }
+   }
 
  public:
    /// \brief Create a new `Table` with the given column `headers`.
@@ -93,6 +106,8 @@ class Table
          rows_.resize( row + 2 );
       }
       rows_[row + 1][col] = stringStream_.str();
+
+      lastColIdx_ = row > lastColIdx_ ? row : lastColIdx_;
    }
 
    /// \brief Write this table in whitespace separated format to `dir/filename.dat`.
@@ -105,6 +120,17 @@ class Table
 
          file << *this;
       }
+   }
+
+   /// Append a new row to the end of the table
+   template < class... Args >
+   void appendRow( Args... args )
+   {
+      if constexpr ( N != sizeof...( Args ) )
+      {
+         WALBERLA_ABORT( "Can only use appendRow() with " << N << " arguments!" );
+      }
+      addRowElement( lastColIdx_ + 1, args... );
    }
 
    template < std::size_t M >

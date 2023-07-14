@@ -188,6 +188,9 @@ if (HYTEG_BUILD_WITH_ADIOS2)
   waLBerla_execute_test(NAME AdiosWriterTest)
 endif ()
 
+waLBerla_compile_test(FILES dataexport/TableTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TableTest)
+
 ## Forms ##
 
 waLBerla_compile_test(FILES forms/P2LinearCombinationFormTest.cpp DEPENDS hyteg core)
