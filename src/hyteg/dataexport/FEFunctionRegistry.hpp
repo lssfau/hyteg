@@ -179,7 +179,8 @@ class FEFunctionRegistry
       // NO MATCH !!!
       else
       {
-        WALBERLA_ABORT( "Could not add function of type '" << FunctionTrait< func_t< value_t > >::getTypeName() << "' to FEFunctionRegistry!" );
+         WALBERLA_ABORT( "Could not add function of type '" << FunctionTrait< func_t< value_t > >::getTypeName()
+                                                            << "' to FEFunctionRegistry!" );
       }
    }
 
@@ -192,6 +193,47 @@ class FEFunctionRegistry
    const FunctionMultiStore< dg::DGVectorFunction >&     getDGVectorFunctions() const { return dgVecFunctions_; }
    const FunctionMultiStore< n1e1::N1E1VectorFunction >& getN1E1VectorFunctions() const { return n1e1Functions_; }
    const FunctionMultiStore< EGFunction >&               getEGFunctions() const { return p1dgeVecFunctions_; }
+
+   /// Append names of all registered functions of a certain kind to the provided vector.
+   void extractFunctionNames( std::vector< std::string >& names, functionTraits::FunctionKind funcKind ) const
+   {
+      std::vector< std::string > namesFound;
+
+      switch ( funcKind )
+      {
+      case functionTraits::P1_FUNCTION:
+         namesFound = p1Functions_.getFunctionNames();
+         break;
+      case functionTraits::P1_VECTOR_FUNCTION:
+         namesFound = p1VecFunctions_.getFunctionNames();
+         break;
+      case functionTraits::P2_FUNCTION:
+         namesFound = p2Functions_.getFunctionNames();
+         break;
+      case functionTraits::P2_VECTOR_FUNCTION:
+         namesFound = p2VecFunctions_.getFunctionNames();
+         break;
+      case functionTraits::EDGE_DOF_FUNCTION:
+         namesFound = edgeDoFFunctions_.getFunctionNames();
+         break;
+      case functionTraits::DG_FUNCTION:
+         namesFound = dgFunctions_.getFunctionNames();
+         break;
+      case functionTraits::DG_VECTOR_FUNCTION:
+         namesFound = dgVecFunctions_.getFunctionNames();
+         break;
+      case functionTraits::N1E1_VECTOR_FUNCTION:
+         namesFound = n1e1Functions_.getFunctionNames();
+         break;
+      case functionTraits::EG_FUNCTION:
+         namesFound = p1dgeVecFunctions_.getFunctionNames();
+         break;
+      default:
+         WALBERLA_ABORT( "Unimplemented case found in FEFunctionRegistry::extractFunctionNames()!" );
+      }
+
+      names.insert( names.end(), namesFound.begin(), namesFound.end() );
+   }
 
  private:
    FunctionMultiStore< P1Function >               p1Functions_;

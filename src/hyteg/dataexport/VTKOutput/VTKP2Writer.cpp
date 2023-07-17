@@ -26,6 +26,10 @@
 
 #include "vtk/UtilityFunctions.h"
 
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#endif
+
 namespace hyteg {
 
 using walberla::vtk::typeToString;
@@ -56,18 +60,22 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    output << "<Points>\n";
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
-   VTKMeshWriter::writePointsForMicroVertices( mgr, output, storage, level + 1 );
+   {
+      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level + 1 );
+      streamWriter.toStream( output );
+   }
 
    output << "\n</DataArray>\n";
    output << "</Points>\n";
 
    if ( mgr.write2D_ )
    {
-      VTKMeshWriter::writeConnectivityP2Triangles( mgr, output, storage, level, false );
+      VTKMeshWriter::writeConnectivityP2Triangles( mgr.vtkDataFormat_, output, storage, level, false );
    }
    else
    {
-      VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr, output, storage, level, false );
+      VTKMeshWriter::writeConnectivityP2Tetrahedrons( mgr.vtkDataFormat_, output, storage, level, false );
    }
 
    output << "<PointData>\n";
@@ -119,7 +127,39 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
    VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   writeP2FunctionData( write2D, streamWriter, function, storage, level );
+   streamWriter.toStream( output );
 
+   output << "\n</DataArray>\n";
+}
+
+template < typename value_t >
+void VTKP2Writer::writeVectorFunction( std::ostream&                              output,
+                                       const P2VectorFunction< value_t >&         function,
+                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                       const uint_t&                              level,
+                                       bool                                       write2D,
+                                       vtk::DataFormat                            vtkDataFormat )
+{
+   WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
+
+   uint_t dim = function.getDimension();
+   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), dim, vtkDataFormat );
+
+   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   writeP2VectorFunctionData( write2D, streamWriter, function, storage, level );
+   streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
+}
+
+template < typename dstStream_t, typename value_t >
+void VTKP2Writer::writeP2FunctionData( bool                                       write2D,
+                                       dstStream_t&                               dstStream,
+                                       const P2Function< value_t >&               function,
+                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                       const uint_t&                              level )
+{
    if ( write2D )
    {
       for ( const auto& itFaces : storage->getFaces() )
@@ -132,28 +172,28 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
             {
                if ( it.x() % 2 == 0 )
                {
-                  streamWriter << face.getData( function.getVertexDoFFunction().getFaceDataID() )
-                                      ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
+                  dstStream << face.getData( function.getVertexDoFFunction().getFaceDataID() )
+                                   ->getPointer( level )[vertexdof::macroface::indexFromVertex(
+                                       level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
                }
                else
                {
-                  streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
+                  dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                                   ->getPointer(
+                                       level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
                }
             }
             else
             {
                if ( it.x() % 2 == 0 )
                {
-                  streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
+                  dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                                   ->getPointer(
+                                       level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
                }
                else
                {
-                  streamWriter
+                  dstStream
                       << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
                                  level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
@@ -180,54 +220,45 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
             switch ( mod )
             {
             case 0b000:
-               streamWriter
+               dstStream
                    << vertexData[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
                break;
             case 0b100:
-               streamWriter << edgeData[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
+               dstStream << edgeData[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
                break;
             case 0b010:
-               streamWriter << edgeData[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b001:
-               streamWriter << edgeData[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b110:
-               streamWriter << edgeData[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b101:
-               streamWriter << edgeData[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b011:
-               streamWriter << edgeData[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             case 0b111:
-               streamWriter << edgeData[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             }
          }
       }
    }
-
-   streamWriter.toStream( output );
-
-   output << "\n</DataArray>\n";
 }
 
-template < typename value_t >
-void VTKP2Writer::writeVectorFunction( std::ostream&                              output,
-                                       const P2VectorFunction< value_t >&         function,
-                                       const std::shared_ptr< PrimitiveStorage >& storage,
-                                       const uint_t&                              level,
-                                       bool                                       write2D,
-                                       vtk::DataFormat                            vtkDataFormat )
+template < typename dstStream_t, typename value_t >
+void VTKP2Writer::writeP2VectorFunctionData( bool                                       write2D,
+                                             dstStream_t&                               dstStream,
+                                             const P2VectorFunction< value_t >&         function,
+                                             const std::shared_ptr< PrimitiveStorage >& storage,
+                                             const uint_t&                              level )
+
 {
-   WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
-
    uint_t dim = function.getDimension();
-   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), dim, vtkDataFormat );
-
-   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
 
    if ( write2D )
    {
@@ -243,19 +274,18 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
-                     streamWriter << face.getData( function[idx].getVertexDoFFunction().getFaceDataID() )
-                                         ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                             level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
+                     dstStream << face.getData( function[idx].getVertexDoFFunction().getFaceDataID() )
+                                      ->getPointer( level )[vertexdof::macroface::indexFromVertex(
+                                          level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
                   }
                }
                else
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
-                     streamWriter
-                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                ->getPointer(
-                                    level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
+                     dstStream << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                      ->getPointer(
+                                          level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
                   }
                }
             }
@@ -265,16 +295,16 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
-                     streamWriter << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                         ->getPointer(
-                                             level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
+                     dstStream << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+                                      ->getPointer(
+                                          level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
                   }
                }
                else
                {
                   for ( uint_t idx = 0; idx < dim; ++idx )
                   {
-                     streamWriter
+                     dstStream
                          << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
                                     level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
@@ -308,56 +338,94 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
             switch ( mod )
             {
             case 0b000:
-               streamWriter << vertexData0[vertexdof::macrocell::indexFromVertex(
+               dstStream << vertexData0[vertexdof::macrocell::indexFromVertex(
                    level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               streamWriter << vertexData1[vertexdof::macrocell::indexFromVertex(
+               dstStream << vertexData1[vertexdof::macrocell::indexFromVertex(
                    level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               streamWriter << vertexData2[vertexdof::macrocell::indexFromVertex(
+               dstStream << vertexData2[vertexdof::macrocell::indexFromVertex(
                    level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
                break;
             case 0b100:
-               streamWriter << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
                break;
             case 0b010:
-               streamWriter << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b001:
-               streamWriter << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b110:
-               streamWriter << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b101:
-               streamWriter << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b011:
-               streamWriter << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             case 0b111:
-               streamWriter << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               streamWriter << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               dstStream << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             }
          }
       }
    }
-
-   streamWriter.toStream( output );
-
-   output << "\n</DataArray>\n";
 }
+
+// ========================
+//  explicit instantiation
+// ========================
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+template void VTKP2Writer::writeP2FunctionData( bool                                       write2D,
+                                                AdiosWriter::StreamAccessBuffer< real_t >& dstStream,
+                                                const P2Function< real_t >&                function,
+                                                const std::shared_ptr< PrimitiveStorage >& storage,
+                                                const uint_t&                              level );
+
+template void VTKP2Writer::writeP2FunctionData( bool                                         write2D,
+                                                AdiosWriter::StreamAccessBuffer< uint32_t >& dstStream,
+                                                const P2Function< uint32_t >&                function,
+                                                const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                const uint_t&                                level );
+
+template void VTKP2Writer::writeP2FunctionData( bool                                         write2D,
+                                                AdiosWriter::StreamAccessBuffer< uint64_t >& dstStream,
+                                                const P2Function< uint64_t >&                function,
+                                                const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                const uint_t&                                level );
+
+template void VTKP2Writer::writeP2VectorFunctionData( bool                                       write2D,
+                                                      AdiosWriter::StreamAccessBuffer< real_t >& dstStream,
+                                                      const P2VectorFunction< real_t >&          function,
+                                                      const std::shared_ptr< PrimitiveStorage >& storage,
+                                                      const uint_t&                              level );
+
+template void VTKP2Writer::writeP2VectorFunctionData( bool                                         write2D,
+                                                      AdiosWriter::StreamAccessBuffer< uint32_t >& dstStream,
+                                                      const P2VectorFunction< uint32_t >&          function,
+                                                      const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                      const uint_t&                                level );
+
+template void VTKP2Writer::writeP2VectorFunctionData( bool                                         write2D,
+                                                      AdiosWriter::StreamAccessBuffer< uint64_t >& dstStream,
+                                                      const P2VectorFunction< uint64_t >&          function,
+                                                      const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                      const uint_t&                                level );
+
+#endif
 
 } // namespace hyteg

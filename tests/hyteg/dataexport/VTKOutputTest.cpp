@@ -211,6 +211,7 @@ static void exportFunctions3D( uint_t level )
       vtkOutputP0.add( p0ScalarFunc1 );
       vtkOutputP0.add( p0ScalarFunc2 );
       vtkOutputP0.add( p0ScalarFunc3 );
+      vtkOutputP0.setVTKDataFormat( vtk::DataFormat::ASCII );
       vtkOutputP0.write( maxLevel );
 
       fName = "VTKOutputTest3D-P1";
@@ -220,6 +221,7 @@ static void exportFunctions3D( uint_t level )
       vtkOutputP1.add( p1ScalarFunc2 );
       vtkOutputP1.add( p1ScalarFunc3 );
       vtkOutputP1.add( p1VectorFunc );
+      vtkOutputP1.setParameter( "vtkDataFormat", "BINARY" );
       vtkOutputP1.write( maxLevel );
 
       fName = "VTKOutputTest3D-P2";

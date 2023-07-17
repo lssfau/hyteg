@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -102,6 +102,25 @@ class FunctionMultiStore
       {
          WALBERLA_ABORT( "FunctionMultiStore::getFunctions() detected unsupported datatype '" << typeid( value_t ).name() );
       }
+   }
+
+   // Return a vector with names of all functions contained in the store
+   std::vector< std::string > getFunctionNames() const {
+     std::vector< std::string > names;
+     names.reserve( size() );
+     for( const auto&func : r64Funcs ) {
+       names.push_back( func.getFunctionName() );
+     }
+     for( const auto&func : r32Funcs ) {
+       names.push_back( func.getFunctionName() );
+     }
+     for( const auto&func : i64Funcs ) {
+       names.push_back( func.getFunctionName() );
+     }
+     for( const auto&func : i32Funcs ) {
+       names.push_back( func.getFunctionName() );
+     }
+     return names;
    }
 
  private:

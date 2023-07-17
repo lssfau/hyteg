@@ -27,6 +27,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dataexport/FEFunctionRegistry.hpp"
+#include "hyteg/dataexport/FEFunctionWriter.hpp"
 
 // our friends and helpers
 
@@ -55,7 +56,7 @@ using walberla::uint_t;
 
 class PrimitiveStorage;
 
-class VTKOutput
+class VTKOutput : public FEFunctionWriter
 {
  public:
    ///
@@ -68,8 +69,6 @@ class VTKOutput
               const std::shared_ptr< PrimitiveStorage >& storage,
               const uint_t&                              writeFrequency = 1 );
 
-   void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
-
    /// Add an FE Function to became part of the next dataexport phase
    template < template < typename > class func_t, typename value_t >
    inline void add( const func_t< value_t >& function )
@@ -81,7 +80,34 @@ class VTKOutput
    /// Therefore always writes output if timestep is 0.
    /// Appends the time step to the filename.
    /// Note: files will be overwritten if called twice with the same time step!
-   void write( const uint_t& level, const uint_t& timestep = 0 ) const;
+   void write( const uint_t level, const uint_t timestep = 0 ) override final;
+
+   /// Set parameter specified by string key to value specified by string value
+   ///
+   /// The only key currently supported by VTKOutput is "vtkDataFormat" with the two possible values
+   /// - ASCII
+   /// - BINARY
+   void setParameter( const std::string& key, const std::string& value ) override final
+   {
+      if ( key != "vtkDataFormat" )
+      {
+         WALBERLA_ABORT( "VTKOutput::setParameter() does not support key = '" << key << "'!" );
+      }
+      else if ( value == "ASCII" )
+      {
+         setVTKDataFormat( vtk::DataFormat::ASCII );
+      }
+      else if ( value == "BINARY" )
+      {
+         setVTKDataFormat( vtk::DataFormat::BINARY );
+      }
+      else
+      {
+         WALBERLA_ABORT( "VTKOutput::setParameter() key vtkDataFormat = '" << value << "' is not supported!" );
+      }
+   };
+
+   void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
  private:
    /// Wrapper class that handles writing data in ASCII or binary format.
@@ -120,10 +146,15 @@ class VTKOutput
          if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
          {
             os << outputAscii_.str();
+            // reset string stream
+            // outputAscii_.str( std::string() );
+            // outputAscii_.clear();
          }
          else if ( vtkDataFormat_ == vtk::DataFormat::BINARY )
          {
             outputBase64_.toStream( os );
+            // Base64Writer::toStream() already reset the object
+            // so nothing left to do for us here
          }
       }
 
@@ -140,19 +171,11 @@ class VTKOutput
 
    std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
-   void syncAllFunctions( const uint_t& level ) const;
-
    /// Writes only macro-faces.
    void set2D() { write2D_ = true; }
 
    /// Writes only macro-cells.
    void set3D() { write2D_ = false; }
-
-   template < template < typename > class WrapperFunc, typename func_t >
-   void unwrapAndAdd( const WrapperFunc< func_t >& function )
-   {
-      add( function.unwrap() );
-   }
 
    std::string dir_;
    std::string filename_;

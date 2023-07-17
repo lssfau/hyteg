@@ -64,18 +64,22 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
    output << "<Points>\n";
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
-   VTKMeshWriter::writePointsForMicroVertices( mgr, output, storage, level, true );
+   {
+      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level, true );
+      streamWriter.toStream( output );
+   }
 
    output << "\n</DataArray>\n";
    output << "</Points>\n";
 
    if ( mgr.write2D_ )
    {
-      VTKMeshWriter::writeCells2D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level ), true );
+      VTKMeshWriter::writeCells2D( mgr.vtkDataFormat_, output, storage, levelinfo::num_microvertices_per_edge( level ), true );
    }
    else
    {
-      VTKMeshWriter::writeCells3D( mgr, output, storage, levelinfo::num_microvertices_per_edge( level ), true );
+      VTKMeshWriter::writeCells3D( mgr.vtkDataFormat_, output, storage, levelinfo::num_microvertices_per_edge( level ), true );
    }
 
    output << "<PointData>\n";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,8 +27,11 @@
 
 namespace hyteg {
 
+// Some forward declarations
 template < typename funcType >
 class P2Function;
+
+class FEFunctionRegistry;
 
 namespace communication {
 
@@ -49,6 +52,14 @@ void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& function, c
 
 template < typename ValueType >
 void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level );
+
+/// Sync all functions registered with the passed FEFunctionRegistry object
+///
+/// \note The function currently only syncs registered functions with the following value types:
+/// - double
+/// - int32_t
+/// - int64_t
+void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint_t level );
 
 } // namespace communication
 } // namespace hyteg

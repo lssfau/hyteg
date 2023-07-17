@@ -74,7 +74,11 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
    output << "<Points>\n";
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
-   VTKMeshWriter::writePointsForMicroEdges( mgr, output, storage, level, dofType );
+   {
+      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, dofType );
+      streamWriter.toStream( output );
+   }
 
    output << "\n</DataArray>\n";
    output << "</Points>\n";
@@ -98,14 +102,14 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
 
    if ( mgr.write2D_ )
    {
-      VTKMeshWriter::writeCells2D( mgr, output, storage, levelinfo::num_microedges_per_edge( level ) );
+      VTKMeshWriter::writeCells2D( mgr.vtkDataFormat_, output, storage, levelinfo::num_microedges_per_edge( level ) );
    }
    else
    {
       if ( dofType == vtk::DoFType::EDGE_XYZ )
-         VTKMeshWriter::writeCells3D( mgr, output, storage, levelinfo::num_microedges_per_edge( level ) - 1 );
+         VTKMeshWriter::writeCells3D( mgr.vtkDataFormat_, output, storage, levelinfo::num_microedges_per_edge( level ) - 1 );
       else
-         VTKMeshWriter::writeCells3D( mgr, output, storage, levelinfo::num_microedges_per_edge( level ) );
+         VTKMeshWriter::writeCells3D( mgr.vtkDataFormat_, output, storage, levelinfo::num_microedges_per_edge( level ) );
    }
 
    vtk::writePieceFooter( output );

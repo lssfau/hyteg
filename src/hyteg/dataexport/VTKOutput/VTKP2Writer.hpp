@@ -30,6 +30,20 @@ class VTKP2Writer
  public:
    static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
 
+   template < typename dstStream_t, typename value_t >
+   static void writeP2FunctionData( bool                                       write2D,
+                                    dstStream_t&                               dstStream,
+                                    const P2Function< value_t >&               function,
+                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const uint_t&                              level );
+
+   template < typename dstStream_t, typename value_t >
+   static void writeP2VectorFunctionData( bool                                       write2D,
+                                          dstStream_t&                               dstStream,
+                                          const P2VectorFunction< value_t >&         function,
+                                          const std::shared_ptr< PrimitiveStorage >& storage,
+                                          const uint_t&                              level );
+
  private:
    template < typename value_t >
    static void writeScalarFunction( std::ostream&                              output,
