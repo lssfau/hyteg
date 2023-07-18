@@ -72,9 +72,8 @@ class Table
  private:
    std::vector< std::array< std::string, N > > rows_;
    std::stringstream                           stringStream_;
-   size_t                                      lastColIdx_{ 0 };
 
-   /// Auxilliary method for use by appendRow()
+   /// Auxilliary method for use by pushRow()
    template < typename T, class... Args >
    void addRowElement( size_t rowIdx, T& firstArg, Args... args )
    {
@@ -107,8 +106,6 @@ class Table
          rows_.resize( row + 2 );
       }
       rows_[row + 1][col] = stringStream_.str();
-
-      lastColIdx_ = row > lastColIdx_ ? row : lastColIdx_;
    }
 
    /// \brief Write this table in whitespace separated format to `dir/filename.dat`.
@@ -125,13 +122,15 @@ class Table
 
    /// Append a new row to the end of the table
    template < class... Args >
-   void appendRow( Args... args )
+   void pushRow( Args... args )
    {
       if constexpr ( N != sizeof...( Args ) )
       {
-         WALBERLA_ABORT( "Can only use appendRow() with " << N << " arguments!" );
+         WALBERLA_ABORT( "Can only use pushRow() with " << N << " arguments!" );
       }
-      addRowElement( lastColIdx_ + 1, args... );
+
+      rows_.emplace_back();
+      addRowElement( rows_.size() - 2, args... );
    }
 
    template < std::size_t M >
