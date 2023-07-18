@@ -190,11 +190,13 @@ endif ()
 
 waLBerla_compile_test(FILES dataexport/TableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TableTest)
+set_tests_properties(TableTest PROPERTIES FIXTURES_SETUP TableTest)
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
       ${CMAKE_CURRENT_SOURCE_DIR}/dataexport/TableTest.dat.ref
       ${CMAKE_CURRENT_BINARY_DIR}/TableTest.dat.ref)
 ADD_TEST(TableTestCheckOutput ${CMAKE_COMMAND} -E compare_files TableTest.dat TableTest.dat.ref)
+set_tests_properties(TableTestCheckOutput PROPERTIES FIXTURES_REQUIRED TableTest)
 
 ## Forms ##
 
