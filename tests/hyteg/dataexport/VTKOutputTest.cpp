@@ -54,7 +54,7 @@ static void exportFunctions2D( uint_t level )
    uint_t minLevel = level;
    uint_t maxLevel = level;
 
-   // MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   // MeshInfo                         mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
    MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/penta_5el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -126,11 +126,12 @@ static void exportFunctions2D( uint_t level )
       vtkOutputDG1.add( dg1ScalarFunc2 );
       vtkOutputDG1.write( maxLevel );
 
+      // Do EG functions and also check "CRTP inheritance"
       fName = "VTKOutputTest-EG";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutputEG( fPath, fName, storageDG );
-      vtkOutputEG.add( egVectorFunc );
-      vtkOutputEG.write( maxLevel );
+      FEFunctionWriter< VTKOutput >* vtkOutputEG = new VTKOutput( fPath, fName, storageDG );
+      vtkOutputEG->add( egVectorFunc );
+      vtkOutputEG->write( maxLevel );
    }
 }
 
