@@ -207,6 +207,36 @@ if (HYTEG_BUILD_DOC)
   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
   set ( DOXYGEN_HTML_OUTPUT "html" )
 
+  # The following checks all our "feature macros" and defines specific
+  # variables for Doxygen, so that we can add the acitvated feature macros
+  # to the list of PREDEFINED macros in Doxygen.
+  #
+  # Yepp, this looks akward. If you have any idea on how to solve this in
+  # a more elegant fashion, please feel free to change this.
+  if( WALBERLA_BUILD_WITH_MPI ) 
+    set( DOXYGEN_WALBERLA_BUILD_WITH_MPI "WALBERLA_BUILD_WITH_MPI" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_ADIOS2 )
+    set( DOXYGEN_HYTEG_BUILD_WITH_ADIOS2 "HYTEG_BUILD_WITH_ADIOS2" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_PETSC )
+    set( DOXYGEN_HYTEG_BUILD_WITH_PETSC "HYTEG_BUILD_WITH_PETSC" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_TRILINOS )
+    set( DOXYGEN_HYTEG_BUILD_WITH_TRILINOS "HYTEG_BUILD_WITH_TRILINOS" )
+  endif()
+
+  if ( HYTEG_USE_GENERATED_KERNELS )
+    set( DOXYGEN_HYTEG_USE_GENERATED_KERNELS "HYTEG_USE_GENERATED_KERNELS" )
+  endif()
+
+  if ( HYTEG_TERRANEO_MODULE )
+    set( DOXYGEN_HYTEG_TERRANEO_MODULE "HYTEG_TERRANEO_MODULE" )
+  endif()
+
   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
