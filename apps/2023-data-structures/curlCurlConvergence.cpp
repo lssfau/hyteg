@@ -332,11 +332,11 @@ int main( int argc, char** argv )
 #endif
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube ###" );
-   convergenceTest( 2, 6, testCube ).write( "output", "curlCurlCube" );
+   convergenceTest( 7, 7, testCube ).write( "output", "curlCurlCube" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on solid torus ###" );
-   convergenceTest( 2, 6, testTorus ).write( "output", "curlCurlTorus" );
+   convergenceTest( 7, 7, testTorus ).write( "output", "curlCurlTorus" );
 
    return EXIT_SUCCESS;
 }
