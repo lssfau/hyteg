@@ -18,11 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/dataexport/Table.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
-#include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/logging/Logging.h"
 #include "core/math/Constants.h"
@@ -44,20 +43,20 @@ int main( int argc, char** argv )
 
    const uint_t nSamples = 10;
 
-   hyteg::Table< 3 > table( { R"(\varphi)", R"(sin(\varphi))", R"(cos(\varphi))" } );
+   hyteg::latex::Table< 3 > table( { R"(\varphi)", R"(sin(\varphi))", R"(cos(\varphi))" } );
 
-   for ( uint_t k = 0; k < nSamples/2; ++k )
-   {
-      real_t phi = real_c( k ) * pi / real_c( nSamples - 1);
-      table.addElement( k, 0, phi *  real_c( 180 ) / pi );
-      table.addElement( k, 1, std::sin(phi) );
-      table.addElement( k, 2, std::cos(phi) );
-   }
-
-   for ( uint_t k = nSamples/2; k < nSamples; ++k )
+   for ( uint_t k = 0; k < nSamples / 2; ++k )
    {
       real_t phi = real_c( k ) * pi / real_c( nSamples - 1 );
-      table.appendRow( phi * real_c( 180 ) / pi, std::sin(phi), std::cos(phi)  );
+      table.addElement( k, 0, phi * real_c( 180 ) / pi );
+      table.addElement( k, 1, std::sin( phi ) );
+      table.addElement( k, 2, std::cos( phi ) );
+   }
+
+   for ( uint_t k = nSamples / 2; k < nSamples; ++k )
+   {
+      real_t phi = real_c( k ) * pi / real_c( nSamples - 1 );
+      table.appendRow( phi * real_c( 180 ) / pi, std::sin( phi ), std::cos( phi ) );
    }
 
    table.write( ".", "TableTest" );

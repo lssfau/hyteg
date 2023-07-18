@@ -31,6 +31,7 @@
 #include "core/mpi/MPIManager.h"
 
 namespace hyteg {
+namespace latex {
 
 /// \brief Export tabular material to whitespace separated text files.
 ///
@@ -71,7 +72,7 @@ class Table
  private:
    std::vector< std::array< std::string, N > > rows_;
    std::stringstream                           stringStream_;
-   size_t                                      lastColIdx_{0};
+   size_t                                      lastColIdx_{ 0 };
 
    /// Auxilliary method for use by appendRow()
    template < typename T, class... Args >
@@ -157,4 +158,5 @@ std::ostream& operator<<( std::ostream& os, const Table< N >& table )
    return os;
 }
 
+} // namespace latex
 } // namespace hyteg

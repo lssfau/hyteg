@@ -23,8 +23,8 @@
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/dataexport/KeyValueStore.hpp"
-#include "hyteg/dataexport/Table.hpp"
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
 #include "common.hpp"
@@ -58,7 +58,7 @@ void solverConvergenceCube()
    params.computeAndStoreLocalElementMatrices = true;
    params.nMaxIterations                      = 12;
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
    WALBERLA_LOG_INFO_ON_ROOT( std::endl << store )
    store.writePgfKeys( "output", params.name );
@@ -66,10 +66,10 @@ void solverConvergenceCube()
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
       params.maxLevel = level;
-      Table< 4 > table( { "alpha\\beta",
-                          walberla::format( "%e", betas[0] ),
-                          walberla::format( "%e", betas[1] ),
-                          walberla::format( "%e", betas[2] ) } );
+      latex::Table< 4 > table( { "alpha\\beta",
+                                 walberla::format( "%e", betas[0] ),
+                                 walberla::format( "%e", betas[1] ),
+                                 walberla::format( "%e", betas[2] ) } );
 
       for ( uint_t a = 0; a < alphas.size(); ++a )
       {
@@ -119,16 +119,16 @@ void solverConvergenceTorus()
    params.computeAndStoreLocalElementMatrices = true;
    params.nMaxIterations                      = 12;
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
    WALBERLA_LOG_INFO_ON_ROOT( std::endl << store )
    store.writePgfKeys( "output", params.name );
 
-   Table< 5 > table( { "level\\beta",
-                       "n_dofs",
-                       walberla::format( "%e", betas[0] ),
-                       walberla::format( "%e", betas[1] ),
-                       walberla::format( "%e", betas[2] ) } );
+   latex::Table< 5 > table( { "level\\beta",
+                              "n_dofs",
+                              walberla::format( "%e", betas[0] ),
+                              walberla::format( "%e", betas[1] ),
+                              walberla::format( "%e", betas[2] ) } );
 
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
