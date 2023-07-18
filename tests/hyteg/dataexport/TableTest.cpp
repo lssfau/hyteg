@@ -56,7 +56,7 @@ int main( int argc, char** argv )
    for ( uint_t k = nSamples / 2; k < nSamples; ++k )
    {
       real_t phi = real_c( k ) * pi / real_c( nSamples - 1 );
-      table.appendRow( phi * real_c( 180 ) / pi, std::sin( phi ), std::cos( phi ) );
+      table.pushRow( phi * real_c( 180 ) / pi, std::sin( phi ), std::cos( phi ) );
    }
 
    table.write( ".", "TableTest" );
