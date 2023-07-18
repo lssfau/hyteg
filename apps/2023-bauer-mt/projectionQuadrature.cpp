@@ -27,7 +27,7 @@
 #include "core/mpi/Environment.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/dataexport/Table.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
@@ -221,7 +221,7 @@ void projectionQuadrature()
                       cos( x * kp ) * sin( y * kp ) * sin( z * kp ) - sin( x * kp ) * cos( y * kp ) * sin( z * kp ) };
    };
 
-   Table< 4 > table( { "level", "gl1", "gl2", "gl3" } );
+   latex::Table< 4 > table( { "level", "gl1", "gl2", "gl3" } );
 
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {

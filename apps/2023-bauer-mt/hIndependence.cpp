@@ -23,8 +23,8 @@
 #include "core/logging/Logging.h"
 #include "core/mpi/Environment.h"
 
-#include "hyteg/dataexport/KeyValueStore.hpp"
-#include "hyteg/dataexport/Table.hpp"
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
 #include "common.hpp"
@@ -47,22 +47,22 @@ void hIndependenceTest()
    params.nMaxIterations     = 12;
    params.residual2Reduction = { 1e-6 };
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
 
-   Table< 13 > table( { "level",
-                        "tet_poly_n_dofs",
-                        "tet_poly_n_its",
-                        "tet_poly_rate",
-                        "tet_sine_n_dofs",
-                        "tet_sine_n_its",
-                        "tet_sine_rate",
-                        "cube_poly_n_dofs",
-                        "cube_poly_n_its",
-                        "cube_poly_rate",
-                        "cube_sine_n_dofs",
-                        "cube_sine_n_its",
-                        "cube_sine_rate" } );
+   latex::Table< 13 > table( { "level",
+                               "tet_poly_n_dofs",
+                               "tet_poly_n_its",
+                               "tet_poly_rate",
+                               "tet_sine_n_dofs",
+                               "tet_sine_n_its",
+                               "tet_sine_rate",
+                               "cube_poly_n_dofs",
+                               "cube_poly_n_its",
+                               "cube_poly_rate",
+                               "cube_sine_n_dofs",
+                               "cube_sine_n_its",
+                               "cube_sine_rate" } );
 
    for ( uint_t i = 0; i < systems.size(); ++i )
    {

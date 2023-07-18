@@ -31,6 +31,7 @@
 #include "core/mpi/MPIManager.h"
 
 namespace hyteg {
+namespace latex {
 
 /// \brief Export unstructured data in a LaTeX friendly format.
 ///
@@ -102,4 +103,5 @@ inline std::ostream& operator<<( std::ostream& os, const KeyValueStore& store )
    return os;
 }
 
+} // namespace latex
 } // namespace hyteg
