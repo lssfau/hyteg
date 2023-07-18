@@ -1,0 +1,4 @@
+\pgfkeyssetvalue{/example/maxLevel}{8}
+\pgfkeyssetvalue{/example/minLevel}{0}
+\pgfkeyssetvalue{/example/real_t}{42}
+\pgfkeyssetvalue{/example/string}{Hello, World!}

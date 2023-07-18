@@ -203,6 +203,16 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
 ADD_TEST(TableTestCheckOutput ${CMAKE_COMMAND} -E compare_files TableTest.dat ${TABLE_REFERENCE_FILE})
 set_tests_properties(TableTestCheckOutput PROPERTIES FIXTURES_REQUIRED TableTest)
 
+waLBerla_compile_test(FILES dataexport/KeyValueStoreTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME KeyValueStoreTest)
+set_tests_properties(KeyValueStoreTest PROPERTIES FIXTURES_SETUP KeyValueStoreTest)
+
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/dataexport/KeyValueStoreTest.tex.ref
+      ${CMAKE_CURRENT_BINARY_DIR}/KeyValueStoreTest.tex.ref)
+ADD_TEST(KeyValueStoreTestCheckOutput ${CMAKE_COMMAND} -E compare_files KeyValueStoreTest.tex KeyValueStoreTest.tex.ref)
+set_tests_properties(KeyValueStoreTestCheckOutput PROPERTIES FIXTURES_REQUIRED KeyValueStoreTest)
+
 ## Forms ##
 
 waLBerla_compile_test(FILES forms/P2LinearCombinationFormTest.cpp DEPENDS hyteg core)
