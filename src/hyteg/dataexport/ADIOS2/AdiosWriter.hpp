@@ -50,7 +50,7 @@ class AdiosWriterForP2;
 /// - P2P1TaylorHoodFunction
 ///
 /// which must be using real_t as their value type.
-class AdiosWriter : public FEFunctionWriter
+class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 {
  public:
 #ifdef WALBERLA_BUILD_WITH_MPI
@@ -160,12 +160,12 @@ class AdiosWriter : public FEFunctionWriter
    /// Set parameter specified by string key to value specified by string value
    ///
    /// Currently not supported for AdiosWriter
-   void setParameter( const std::string& key, const std::string& value ) override final
+   void setParameter( const std::string& key, const std::string& value )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() does not perform any action!" );
    }
 
-   void write( const uint_t level, const uint_t timestep = 0 ) override final;
+   void write( const uint_t level, const uint_t timestep = 0 );
 
    /// Class that wraps an Adios span such that we can insert data with operator<<
    ///

@@ -56,7 +56,7 @@ using walberla::uint_t;
 
 class PrimitiveStorage;
 
-class VTKOutput : public FEFunctionWriter
+class VTKOutput : public FEFunctionWriter< VTKOutput >
 {
  public:
    ///
@@ -80,14 +80,14 @@ class VTKOutput : public FEFunctionWriter
    /// Therefore always writes output if timestep is 0.
    /// Appends the time step to the filename.
    /// Note: files will be overwritten if called twice with the same time step!
-   void write( const uint_t level, const uint_t timestep = 0 ) override final;
+   void write( const uint_t level, const uint_t timestep = 0 );
 
    /// Set parameter specified by string key to value specified by string value
    ///
    /// The only key currently supported by VTKOutput is "vtkDataFormat" with the two possible values
    /// - ASCII
    /// - BINARY
-   void setParameter( const std::string& key, const std::string& value ) override final
+   void setParameter( const std::string& key, const std::string& value )
    {
       if ( key != "vtkDataFormat" )
       {
