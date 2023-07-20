@@ -25,10 +25,10 @@
 #include "core/math/Constants.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 
-#include "KeyValueStore.hpp"
-#include "Table.hpp"
 #include "common.hpp"
 
 using namespace hyteg;
@@ -65,10 +65,10 @@ void smoothingFactor( const uint_t n1e1SmoothSteps,
    params.nMaxIterations                      = nMaxIts;
    params.u2Reduction                         = { 1.0 / errorReductionFactor };
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
 
-   Table< 4 > table( { "k", smootherDesc + "_fourier", smootherDesc + "_curl-free", smootherDesc + "_div-free" } );
+   latex::Table< 4 > table( { "k", smootherDesc + "_fourier", smootherDesc + "_curl-free", smootherDesc + "_div-free" } );
 
    auto fourierMode = []( const int k, const Point3D& p ) {
       const real_t x = p[0];

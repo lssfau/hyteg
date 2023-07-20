@@ -23,9 +23,9 @@
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
-#include "KeyValueStore.hpp"
 #include "common.hpp"
 
 using namespace hyteg;
@@ -68,7 +68,7 @@ real_t sumRec( const walberla::WcTimingNode& root, const std::string& ancestor, 
    return sum;
 }
 
-void collectTimings( const walberla::WcTimingTree& tt, KeyValueStore& store, std::string& name )
+void collectTimings( const walberla::WcTimingTree& tt, latex::KeyValueStore& store, std::string& name )
 {
    const walberla::WcTimingNode root    = tt.getRawData();
    const walberla::WcTimingNode gmgNode = root.tree_.at( "Geometric Multigrid Solver" );
@@ -149,7 +149,7 @@ void performance( const std::string& name, const bool computeAndStoreLocalElemen
    Results results = solve( params );
    WALBERLA_LOG_INFO_ON_ROOT( results.timingTree )
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
    collectTimings( results.timingTree, store, params.name );
 

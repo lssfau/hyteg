@@ -23,10 +23,10 @@
 #include "core/math/Random.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
-#include "KeyValueStore.hpp"
-#include "Table.hpp"
 #include "common.hpp"
 
 using namespace hyteg;
@@ -58,7 +58,7 @@ void chebyshevParameters()
    params.computeAndStoreLocalElementMatrices = true;
    params.nMaxIterations                      = 12;
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
    WALBERLA_LOG_INFO_ON_ROOT( std::endl << store )
    store.writePgfKeys( "output", params.name );
@@ -66,12 +66,12 @@ void chebyshevParameters()
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
       params.maxLevel = level;
-      Table< 6 > table( { "lowerBound\\upperBound",
-                          walberla::format( "%f", upperBounds[0] ),
-                          walberla::format( "%f", upperBounds[1] ),
-                          walberla::format( "%f", upperBounds[2] ),
-                          walberla::format( "%f", upperBounds[3] ),
-                          walberla::format( "%f", upperBounds[4] ) } );
+      latex::Table< 6 > table( { "lowerBound\\upperBound",
+                                 walberla::format( "%f", upperBounds[0] ),
+                                 walberla::format( "%f", upperBounds[1] ),
+                                 walberla::format( "%f", upperBounds[2] ),
+                                 walberla::format( "%f", upperBounds[3] ),
+                                 walberla::format( "%f", upperBounds[4] ) } );
 
       for ( uint_t l = 0; l < lowerBounds.size(); ++l )
       {

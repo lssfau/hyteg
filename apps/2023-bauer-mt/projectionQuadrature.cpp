@@ -27,14 +27,13 @@
 #include "core/mpi/Environment.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
-#include "Table.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -222,7 +221,7 @@ void projectionQuadrature()
                       cos( x * kp ) * sin( y * kp ) * sin( z * kp ) - sin( x * kp ) * cos( y * kp ) * sin( z * kp ) };
    };
 
-   Table< 4 > table( { "level", "gl1", "gl2", "gl3" } );
+   latex::Table< 4 > table( { "level", "gl1", "gl2", "gl3" } );
 
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {

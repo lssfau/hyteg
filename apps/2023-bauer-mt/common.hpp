@@ -26,11 +26,11 @@
 
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/types/PointND.hpp"
 
 #include "../tests/hyteg/N1E1/common.hpp"
-#include "KeyValueStore.hpp"
 
 using namespace hyteg;
 
@@ -84,7 +84,7 @@ class Params
    , writeVTK{ false }
    {}
 
-   void store( KeyValueStore& store )
+   void store( latex::KeyValueStore& store )
    {
       store.store( "/" + name + "/alpha", coefficients[0] );
       store.store( "/" + name + "/beta", coefficients[1] );

@@ -21,10 +21,10 @@
 #include "core/logging/Logging.h"
 #include "core/mpi/Environment.h"
 
+#include "hyteg/dataexport/LaTeX/KeyValueStore.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
-#include "KeyValueStore.hpp"
-#include "Table.hpp"
 #include "common.hpp"
 
 using namespace hyteg;
@@ -46,11 +46,11 @@ void L2ConvergenceTest()
    params.nMaxIterations     = 40;
    params.residual2Reduction = { 1e-11 };
 
-   KeyValueStore store;
+   latex::KeyValueStore store;
    params.store( store );
 
-   Table< 5 > l2Error( { "level", "tet_poly", "tet_sine", "cube_poly", "cube_sine" } );
-   Table< 5 > convergenceFactor( { "level", "tet_poly", "tet_sine", "cube_poly", "cube_sine" } );
+   latex::Table< 5 > l2Error( { "level", "tet_poly", "tet_sine", "cube_poly", "cube_sine" } );
+   latex::Table< 5 > convergenceFactor( { "level", "tet_poly", "tet_sine", "cube_poly", "cube_sine" } );
 
    for ( uint_t i = 0; i < systems.size(); ++i )
    {
