@@ -31,7 +31,7 @@
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
-#include "hyteg/geometry/TokamakMap.hpp"
+#include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -294,9 +294,6 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
    const std::vector< real_t > tubeLayerRadii             = { 0.4 };
    const real_t                torodialStartAngle         = 0.0;
    const real_t                polodialStartAngle         = 0.0;
-   const real_t                delta                      = 0;
-   const real_t                r1                         = tubeLayerRadii.back();
-   const real_t                r2                         = tubeLayerRadii.back();
 
    const real_t R = radiusOriginToCenterOfTube;
    const real_t r = tubeLayerRadii.back();
@@ -310,16 +307,13 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
    SetupPrimitiveStorage setupStorage( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   TokamakMap::setMap( setupStorage,
-                       toroidalResolution,
-                       poloidalResolution,
-                       radiusOriginToCenterOfTube,
-                       tubeLayerRadii,
-                       torodialStartAngle,
-                       polodialStartAngle,
-                       delta,
-                       r1,
-                       r2 );
+   TorusMap::setMap( setupStorage,
+                     toroidalResolution,
+                     poloidalResolution,
+                     radiusOriginToCenterOfTube,
+                     tubeLayerRadii,
+                     torodialStartAngle,
+                     polodialStartAngle );
 
    const auto analyticalSol = [R, r]( const Point3D& xVec ) {
       const real_t x    = xVec[0];
@@ -410,7 +404,7 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 #endif
 
-   SimData simData( SolverType::VCYCLES, 2, 2, 2 );
+   SimData simData( SolverType::FMG, 3, 3, 3 );
 
    //   WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube ###" );
    //   convergenceTest( 7, 7, testCube, simData ).write( "output", "curlCurlCube" );
@@ -421,7 +415,7 @@ int main( int argc, char** argv )
    std::stringstream ss;
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      ss << convergenceTest( level, level, testCube, simData );
+      ss << convergenceTest( level, level, testTorus, simData, true );
    }
    WALBERLA_LOG_INFO_ON_ROOT( ss.str() )
 

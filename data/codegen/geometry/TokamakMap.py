@@ -1,6 +1,7 @@
 import sympy as sp
 import numpy as np
 
+TORUS_MAP_ONLY = False
 
 def torus_coordinates(
     torusRadiusToTubeCenter, tubeRadius, toroidalAngle, poloidalAngle
@@ -123,25 +124,26 @@ def evalF():
 
     # # 3. It's tokamak time
 
-    r1_, r2_, delta_ = sp.symbols("r1_ r2_ delta_")
+    if not TORUS_MAP_ONLY:
+        r1_, r2_, delta_ = sp.symbols("r1_ r2_ delta_")
 
-    poloidalAngle += poloidalStartAngle_
+        poloidalAngle += poloidalStartAngle_
 
-    xnew_0 = (
-        radiusOriginToCenterOfTube_
-        + (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * r1_
-        * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
-    ) * sp.cos(toroidalAngle)
+        xnew_0 = (
+            radiusOriginToCenterOfTube_
+            + (poloidalRadiusNew / tubeLayerRadiiBack_)
+            * r1_
+            * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
+        ) * sp.cos(toroidalAngle)
 
-    xnew_1 = (
-        radiusOriginToCenterOfTube_
-        + (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * r1_
-        * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
-    ) * sp.sin(toroidalAngle)
+        xnew_1 = (
+            radiusOriginToCenterOfTube_
+            + (poloidalRadiusNew / tubeLayerRadiiBack_)
+            * r1_
+            * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
+        ) * sp.sin(toroidalAngle)
 
-    xnew_2 = (poloidalRadiusNew / tubeLayerRadiiBack_) * r2_ * sp.sin(poloidalAngle)
+        xnew_2 = (poloidalRadiusNew / tubeLayerRadiiBack_) * r2_ * sp.sin(poloidalAngle)
 
     tmp_symbols = sp.numbered_symbols("tmp")
     tmp_assignments, xnew = sp.cse([xnew_0, xnew_1, xnew_2], symbols=tmp_symbols)
@@ -186,7 +188,7 @@ def evalDF():
 
     for row in range(rows):
         for col in range(cols):
-            code.append(f"DF({row}, {col}) = {entries[row * cols + col]};")
+            code.append(f"DF({row}, {col}) = {sp.ccode(entries[row * cols + col])};")
 
     code.append("return DF.det();")
 

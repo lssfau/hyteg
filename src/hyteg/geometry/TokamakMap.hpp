@@ -319,6 +319,8 @@ class TokamakMap : public GeometryMap
    ///
    /// Can be abused to map to a standard torus by setting delta == 0 and r1 == r2 == tubeLayerRadii.back()
    ///
+   ///     >>> THERE IS A DEDICATED TORUS MAP THAT AVOIDS UNNECESSARY FLOPS, THOUGH! <<<<
+   ///
    /// \param setupStorage the SetupPrimitiveStorage instance
    /// \param toroidalResolution number of prisms in toroidal direction (along the ring) in a complete (360 degree) ring
    /// \param poloidalResolution number of vertices on the boundary of a slice through the tube
