@@ -459,6 +459,7 @@ template class N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
 template class N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
 // linear combination
 template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
+template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_plus_mass_blending_q2 >;
 
 // linear forms
 template void assembleLinearForm( const uint_t                             minLevel,
