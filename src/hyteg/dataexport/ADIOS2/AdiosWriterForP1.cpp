@@ -195,7 +195,7 @@ template < typename value_t >
 void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry )
 {
    auto checkAndDefine = [this]( std::string funcName, uint_t funcDim ) {
-      adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( funcName );
+      adios2::Variable< value_t > varDoFData = io_.InquireVariable< value_t >( funcName );
       if ( !varDoFData )
       {
          // WALBERLA_LOG_INFO_ON_ROOT( "Defining ADIOS2 variable '" << funcName << "'" );
@@ -241,7 +241,7 @@ void AdiosWriterForP1::defineVariables( const FEFunctionRegistry& registry )
 template < typename value_t >
 void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_t >& func )
 {
-   adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
+   adios2::Variable< value_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
    if ( !varDoFData )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 variable '" << func.getFunctionName() << "' does not exists!" );
@@ -250,7 +250,7 @@ void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_
    else
    {
       // WALBERLA_LOG_INFO_ON_ROOT( "Putting ADIOS2 variable '" << func.getFunctionName() << "'" );
-      adios2::Variable< real_t >::Span dofData = engine_.Put< value_t >( varDoFData );
+      typename adios2::Variable< value_t >::Span dofData = engine_.Put< value_t >( varDoFData );
       if ( !storage_->hasGlobalCells() )
       {
          uint_t blockSize = levelinfo::num_microvertices_per_face( level_ );
@@ -283,7 +283,7 @@ void AdiosWriterForP1::scheduleScalarFunctionForExport( const P1Function< value_
 template < typename value_t >
 void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< value_t >& func )
 {
-   adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
+   adios2::Variable< value_t > varDoFData = io_.InquireVariable< value_t >( func.getFunctionName() );
    if ( !varDoFData )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 variable '" << func.getFunctionName() << "' does not exists!" );
@@ -291,7 +291,7 @@ void AdiosWriterForP1::scheduleVectorFunctionForExport( const P1VectorFunction< 
    }
    else
    {
-      adios2::Variable< real_t >::Span dofData = engine_.Put< value_t >( varDoFData );
+      typename adios2::Variable< value_t >::Span dofData = engine_.Put< value_t >( varDoFData );
       if ( !storage_->hasGlobalCells() )
       {
          uint_t currentPos{ 0 };
