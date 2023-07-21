@@ -156,30 +156,36 @@ class TokamakMap : public GeometryMap
       auto xold_0 = xold[0];
       auto xold_1 = xold[1];
       auto xold_2 = xold[2];
-      auto tmp0   = pow( pow( xold_0, 2 ) + pow( xold_1, 2 ), -1.0 / 2.0 );
-      auto tmp1   = radiusOriginToCenterOfTube_ * tmp0;
-      auto tmp2   = 0.5 * toroidalAngleIncrement_;
-      auto tmp3   = sin( tmp2 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
+      auto tmp0   = pow( xold_2, 2 );
+      auto tmp1   = pow( pow( xold_0, 2 ) + pow( xold_1, 2 ), -1.0 / 2.0 );
+      auto tmp2   = tmp1 * xold_0;
+      auto tmp3   = 0.5 * toroidalAngleIncrement_;
+      auto tmp4   = sin( tmp3 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
                        1.5707963267948966 ) /
-                  sin( tmp2 - 1.5707963267948966 );
-      auto tmp4  = -tmp1 * xold_0 - tmp3 * xold_0;
-      auto tmp5  = tmp0 * xold_0;
-      auto tmp6  = -tmp1 * xold_1 - tmp3 * xold_1;
-      auto tmp7  = tmp0 * xold_1;
-      auto tmp8  = atan2( xold_2, tmp4 * tmp5 + tmp6 * tmp7 );
-      auto tmp9  = -poloidalStartAngle_ + tmp8;
-      auto tmp10 = ( ( poloidalStartAngle_ - tmp8 > 0 ) ? ( tmp9 + 6.2831853071795862 ) : ( tmp9 ) );
-      auto tmp11 = poloidalStartAngle_ + tmp10;
-      auto tmp12 = sin( tmp11 );
-      auto tmp13 = 0.5 * poloidalAngleIncrement_;
-      auto tmp14 = poloidalAngleIncrement_ * poloidalPrism_;
-      auto tmp15 = sqrt( pow( tmp4, 2 ) + pow( tmp6, 2 ) + pow( xold_2, 2 ) ) *
-                   sin( -tmp10 + tmp13 + ( ( tmp14 < 0 ) ? ( tmp14 + 6.2831853071795862 ) : ( tmp14 ) ) + 1.5707963267948966 ) /
-                   ( tubeLayerRadiiBack_ * sin( tmp13 - 1.5707963267948966 ) );
-      auto tmp16 = -r1_ * tmp15 * cos( tmp11 + tmp12 * asin( delta_ ) ) + radiusOriginToCenterOfTube_;
-      xnew[0]    = tmp16 * tmp5;
-      xnew[1]    = tmp16 * tmp7;
-      xnew[2]    = -r2_ * tmp12 * tmp15;
+                  sin( tmp3 - 1.5707963267948966 );
+      auto tmp5  = -radiusOriginToCenterOfTube_ * tmp2 - tmp4 * xold_0;
+      auto tmp6  = tmp1 * xold_1;
+      auto tmp7  = -radiusOriginToCenterOfTube_ * tmp6 - tmp4 * xold_1;
+      auto tmp8  = tmp2 * tmp5 + tmp6 * tmp7;
+      auto tmp9  = sqrt( tmp0 + pow( tmp8, 2 ) ) < 1.0e-14;
+      auto tmp10 = atan2( xold_2, tmp8 );
+      auto tmp11 = -poloidalStartAngle_ + tmp10;
+      auto tmp12 = ( ( poloidalStartAngle_ - tmp10 > 0 ) ? ( tmp11 + 6.2831853071795862 ) : ( tmp11 ) );
+      auto tmp13 = poloidalStartAngle_ + ( ( tmp9 ) ? ( 0 ) : ( tmp12 ) );
+      auto tmp14 = sin( tmp13 );
+      auto tmp15 = 0.5 * poloidalAngleIncrement_;
+      auto tmp16 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp17 =
+          ( ( tmp9 ) ?
+                ( 0 ) :
+                ( -sqrt( tmp0 + pow( tmp5, 2 ) + pow( tmp7, 2 ) ) *
+                  sin( -tmp12 + tmp15 + ( ( tmp16 < 0 ) ? ( tmp16 + 6.2831853071795862 ) : ( tmp16 ) ) + 1.5707963267948966 ) /
+                  sin( tmp15 - 1.5707963267948966 ) ) ) /
+          tubeLayerRadiiBack_;
+      auto tmp18 = r1_ * tmp17 * cos( tmp13 + tmp14 * asin( delta_ ) ) + radiusOriginToCenterOfTube_;
+      xnew[0]    = tmp18 * tmp2;
+      xnew[1]    = tmp18 * tmp6;
+      xnew[2]    = r2_ * tmp14 * tmp17;
    }
 
    real_t evalDF( const Point3D& xold, Matrix3r& DF ) const override final
@@ -193,92 +199,107 @@ class TokamakMap : public GeometryMap
       auto tmp1   = pow( xold_1, 2 );
       auto tmp2   = tmp0 + tmp1;
       auto tmp3   = pow( tmp2, -1.0 / 2.0 );
-      auto tmp4   = asin( delta_ );
-      auto tmp5   = radiusOriginToCenterOfTube_ * tmp3;
-      auto tmp6   = 0.5 * toroidalAngleIncrement_;
-      auto tmp7   = 1.0 / sin( tmp6 - 1.5707963267948966 );
-      auto tmp8 =
-          tmp6 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) + 1.5707963267948966;
-      auto tmp9  = tmp7 * sin( tmp8 );
-      auto tmp10 = -tmp5 * xold_0 - tmp9 * xold_0;
-      auto tmp11 = tmp10 * tmp3;
-      auto tmp12 = -tmp5 * xold_1 - tmp9 * xold_1;
-      auto tmp13 = tmp12 * tmp3;
-      auto tmp14 = tmp11 * xold_0 + tmp13 * xold_1;
-      auto tmp15 = atan2( xold_2, tmp14 );
-      auto tmp16 = -poloidalStartAngle_ + tmp15;
-      auto tmp17 = ( ( poloidalStartAngle_ - tmp15 > 0 ) ? ( tmp16 + 6.2831853071795862 ) : ( tmp16 ) );
-      auto tmp18 = poloidalStartAngle_ + tmp17;
-      auto tmp19 = sin( tmp18 );
-      auto tmp20 = tmp18 + tmp19 * tmp4;
-      auto tmp21 = cos( tmp20 );
-      auto tmp22 = pow( xold_2, 2 );
-      auto tmp23 = sqrt( pow( tmp10, 2 ) + pow( tmp12, 2 ) + tmp22 );
-      auto tmp24 = 1.0 / tubeLayerRadiiBack_;
-      auto tmp25 = 0.5 * poloidalAngleIncrement_;
-      auto tmp26 = 1.0 / sin( tmp25 - 1.5707963267948966 );
-      auto tmp27 = poloidalAngleIncrement_ * poloidalPrism_;
-      auto tmp28 = -tmp17 + tmp25 + ( ( tmp27 < 0 ) ? ( tmp27 + 6.2831853071795862 ) : ( tmp27 ) ) + 1.5707963267948966;
-      auto tmp29 = tmp24 * tmp26 * sin( tmp28 );
-      auto tmp30 = tmp23 * tmp29;
-      auto tmp31 = r1_ * tmp30;
-      auto tmp32 = radiusOriginToCenterOfTube_ - tmp21 * tmp31;
-      auto tmp33 = tmp3 * tmp32;
-      auto tmp34 = pow( tmp2, -3.0 / 2.0 );
-      auto tmp35 = tmp0 * tmp34;
-      auto tmp36 = r1_ * tmp21;
+      auto tmp4   = 1.0 / tubeLayerRadiiBack_;
+      auto tmp5   = pow( xold_2, 2 );
+      auto tmp6   = radiusOriginToCenterOfTube_ * tmp3;
+      auto tmp7   = 0.5 * toroidalAngleIncrement_;
+      auto tmp8   = 1.0 / sin( tmp7 - 1.5707963267948966 );
+      auto tmp9 =
+          tmp7 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) + 1.5707963267948966;
+      auto tmp10 = tmp8 * sin( tmp9 );
+      auto tmp11 = -tmp10 * xold_0 - tmp6 * xold_0;
+      auto tmp12 = tmp11 * tmp3;
+      auto tmp13 = -tmp10 * xold_1 - tmp6 * xold_1;
+      auto tmp14 = tmp13 * tmp3;
+      auto tmp15 = tmp12 * xold_0 + tmp14 * xold_1;
+      auto tmp16 = pow( tmp15, 2 ) + tmp5;
+      auto tmp17 = sqrt( tmp16 ) < 1.0e-14;
+      auto tmp18 = sqrt( pow( tmp11, 2 ) + pow( tmp13, 2 ) + tmp5 );
+      auto tmp19 = 0.5 * poloidalAngleIncrement_;
+      auto tmp20 = 1.0 / sin( tmp19 - 1.5707963267948966 );
+      auto tmp21 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp22 = atan2( xold_2, tmp15 );
+      auto tmp23 = -poloidalStartAngle_ + tmp22;
+      auto tmp24 = ( ( poloidalStartAngle_ - tmp22 > 0 ) ? ( tmp23 + 6.2831853071795862 ) : ( tmp23 ) );
+      auto tmp25 = tmp19 - tmp24 + ( ( tmp21 < 0 ) ? ( tmp21 + 6.2831853071795862 ) : ( tmp21 ) ) + 1.5707963267948966;
+      auto tmp26 = tmp20 * sin( tmp25 );
+      auto tmp27 = tmp4 * ( ( tmp17 ) ? ( 0 ) : ( -tmp18 * tmp26 ) );
+      auto tmp28 = asin( delta_ );
+      auto tmp29 = poloidalStartAngle_ + ( ( tmp17 ) ? ( 0 ) : ( tmp24 ) );
+      auto tmp30 = sin( tmp29 );
+      auto tmp31 = tmp28 * tmp30 + tmp29;
+      auto tmp32 = r1_ * cos( tmp31 );
+      auto tmp33 = radiusOriginToCenterOfTube_ + tmp27 * tmp32;
+      auto tmp34 = tmp3 * tmp33;
+      auto tmp35 = pow( tmp2, -3.0 / 2.0 );
+      auto tmp36 = tmp0 * tmp35;
       auto tmp37 = xold_0 * xold_1;
-      auto tmp38 = tmp34 * tmp37;
+      auto tmp38 = tmp35 * tmp37;
       auto tmp39 = radiusOriginToCenterOfTube_ * tmp38;
       auto tmp40 = 2 * tmp39;
-      auto tmp41 = tmp7 * cos( tmp8 ) / tmp2;
+      auto tmp41 = tmp8 * cos( tmp9 ) / tmp2;
       auto tmp42 = tmp1 * tmp41;
-      auto tmp43 = ( 1.0 / 2.0 ) * tmp12;
-      auto tmp44 = radiusOriginToCenterOfTube_ * tmp35;
+      auto tmp43 = ( 1.0 / 2.0 ) * tmp13;
+      auto tmp44 = radiusOriginToCenterOfTube_ * tmp36;
       auto tmp45 = tmp37 * tmp41;
       auto tmp46 = 2 * tmp45;
-      auto tmp47 = -2 * tmp5 - 2 * tmp9;
-      auto tmp48 = ( 1.0 / 2.0 ) * tmp10;
-      auto tmp49 = tmp29 / tmp23;
-      auto tmp50 = tmp49 * ( tmp43 * ( tmp40 - 2 * tmp42 ) + tmp48 * ( 2 * tmp44 - tmp46 + tmp47 ) );
-      auto tmp51 = tmp3 * xold_1;
-      auto tmp52 = -tmp5 - tmp9;
-      auto tmp53 = tmp3 * xold_0;
-      auto tmp54 = 1.0 / ( pow( tmp14, 2 ) + tmp22 );
-      auto tmp55 = tmp54 * xold_2;
-      auto tmp56 =
-          tmp55 * ( -tmp10 * tmp35 + tmp11 - tmp12 * tmp38 + tmp51 * ( tmp39 - tmp42 ) + tmp53 * ( tmp44 - tmp45 + tmp52 ) );
-      auto tmp57 = tmp23 * tmp24 * tmp26 * cos( tmp28 );
-      auto tmp58 = tmp36 * tmp57;
-      auto tmp59 = cos( tmp18 );
-      auto tmp60 = tmp4 * tmp59;
-      auto tmp61 = tmp31 * sin( tmp20 );
-      auto tmp62 = -tmp36 * tmp50 - tmp56 * tmp58 + tmp61 * ( -tmp56 * tmp60 - tmp56 );
-      auto tmp63 = -tmp32 * tmp38;
-      auto tmp64 = tmp0 * tmp41;
-      auto tmp65 = tmp1 * tmp34;
-      auto tmp66 = radiusOriginToCenterOfTube_ * tmp65;
-      auto tmp67 = tmp43 * ( tmp46 + tmp47 + 2 * tmp66 ) + tmp48 * ( tmp40 + 2 * tmp64 );
-      auto tmp68 = tmp36 * tmp49;
+      auto tmp47 = -2 * tmp10 - 2 * tmp6;
+      auto tmp48 = ( 1.0 / 2.0 ) * tmp11;
+      auto tmp49 = tmp26 / tmp18;
+      auto tmp50 = tmp3 * xold_1;
+      auto tmp51 = -tmp10 - tmp6;
+      auto tmp52 = tmp3 * xold_0;
+      auto tmp53 = 1.0 / tmp16;
+      auto tmp54 = tmp53 * xold_2;
+      auto tmp55 =
+          tmp54 * ( -tmp11 * tmp36 + tmp12 - tmp13 * tmp38 + tmp50 * ( tmp39 - tmp42 ) + tmp52 * ( tmp44 - tmp45 + tmp51 ) );
+      auto tmp56 = tmp18 * tmp20 * cos( tmp25 );
+      auto tmp57 =
+          ( ( tmp17 ) ? ( 0 ) :
+                        ( -tmp49 * ( tmp43 * ( tmp40 - 2 * tmp42 ) + tmp48 * ( 2 * tmp44 - tmp46 + tmp47 ) ) - tmp55 * tmp56 ) );
+      auto tmp58 = tmp32 * tmp4;
+      auto tmp59 = ( ( tmp17 ) ? ( 0 ) : ( -tmp55 ) );
+      auto tmp60 = cos( tmp29 );
+      auto tmp61 = tmp28 * tmp60;
+      auto tmp62 = r1_ * tmp27 * sin( tmp31 );
+      auto tmp63 = tmp57 * tmp58 - tmp62 * ( tmp59 * tmp61 + tmp59 );
+      auto tmp64 = -tmp33 * tmp38;
+      auto tmp65 = tmp0 * tmp41;
+      auto tmp66 = tmp1 * tmp35;
+      auto tmp67 = radiusOriginToCenterOfTube_ * tmp66;
+      auto tmp68 =
+          tmp54 * ( -tmp11 * tmp38 - tmp13 * tmp66 + tmp14 + tmp50 * ( tmp45 + tmp51 + tmp67 ) + tmp52 * ( tmp39 + tmp65 ) );
       auto tmp69 =
-          tmp55 * ( -tmp10 * tmp38 - tmp12 * tmp65 + tmp13 + tmp51 * ( tmp45 + tmp52 + tmp66 ) + tmp53 * ( tmp39 + tmp64 ) );
-      auto tmp70 = -tmp58 * tmp69 + tmp61 * ( -tmp60 * tmp69 - tmp69 ) - tmp67 * tmp68;
-      auto tmp71 = tmp14 * tmp54;
-      auto tmp72 = tmp57 * tmp71;
-      auto tmp73 = tmp36 * tmp72 + tmp61 * ( tmp60 * tmp71 + tmp71 ) - tmp68 * xold_2;
-      auto tmp74 = r2_ * tmp19;
-      auto tmp75 = r2_ * tmp30 * tmp59;
-      auto tmp76 = tmp57 * tmp74;
-      auto tmp77 = tmp49 * tmp74;
-      DF( 0, 0 ) = -tmp32 * tmp35 + tmp33 + tmp53 * tmp62;
-      DF( 0, 1 ) = tmp53 * tmp70 + tmp63;
-      DF( 0, 2 ) = tmp53 * tmp73;
-      DF( 1, 0 ) = tmp51 * tmp62 + tmp63;
-      DF( 1, 1 ) = -tmp32 * tmp65 + tmp33 + tmp51 * tmp70;
-      DF( 1, 2 ) = tmp51 * tmp73;
-      DF( 2, 0 ) = -tmp50 * tmp74 + tmp56 * tmp75 - tmp56 * tmp76;
-      DF( 2, 1 ) = -tmp67 * tmp77 + tmp69 * tmp75 - tmp69 * tmp76;
-      DF( 2, 2 ) = -tmp71 * tmp75 + tmp72 * tmp74 - tmp77 * xold_2;
+          ( ( tmp17 ) ? ( 0 ) :
+                        ( -tmp49 * ( tmp43 * ( tmp46 + tmp47 + 2 * tmp67 ) + tmp48 * ( tmp40 + 2 * tmp65 ) ) - tmp56 * tmp68 ) );
+      auto tmp70 = ( ( tmp17 ) ? ( 0 ) : ( -tmp68 ) );
+      auto tmp71 = tmp58 * tmp69 - tmp62 * ( tmp61 * tmp70 + tmp70 );
+      auto tmp72 = tmp15 * tmp53;
+      auto tmp73 = ( ( tmp17 ) ? ( 0 ) : ( -tmp49 * xold_2 + tmp56 * tmp72 ) );
+      auto tmp74 = ( ( tmp17 ) ? ( 0 ) : ( tmp72 ) );
+      auto tmp75 = tmp58 * tmp73 - tmp62 * ( tmp61 * tmp74 + tmp74 );
+      auto tmp76 = r2_ * tmp27 * tmp60;
+      auto tmp77 = r2_ * tmp30 * tmp4;
+      DF( 0, 0 ) = -tmp33 * tmp36 + tmp34 + tmp52 * tmp63;
+      DF( 0, 1 ) = tmp52 * tmp71 + tmp64;
+      DF( 0, 2 ) = tmp52 * tmp75;
+      DF( 1, 0 ) = tmp50 * tmp63 + tmp64;
+      DF( 1, 1 ) = -tmp33 * tmp66 + tmp34 + tmp50 * tmp71;
+      DF( 1, 2 ) = tmp50 * tmp75;
+      DF( 2, 0 ) = tmp57 * tmp77 + tmp59 * tmp76;
+      DF( 2, 1 ) = tmp69 * tmp77 + tmp70 * tmp76;
+      DF( 2, 2 ) = tmp73 * tmp77 + tmp74 * tmp76;
+
+      WALBERLA_ASSERT( !std::isnan( DF( 0, 0 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 0, 1 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 0, 2 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 1, 0 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 1, 1 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 1, 2 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 2, 0 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 2, 1 ) ), "The tokamap map produces NaNs :( again." )
+      WALBERLA_ASSERT( !std::isnan( DF( 2, 2 ) ), "The tokamap map produces NaNs :( again." )
+
       return DF.determinant();
    }
 
