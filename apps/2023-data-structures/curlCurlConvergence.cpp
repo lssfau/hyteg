@@ -31,7 +31,7 @@
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
-#include "hyteg/geometry/TokamakMap.hpp"
+#include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -42,6 +42,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
+#include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
@@ -49,6 +50,35 @@
 using namespace hyteg;
 using walberla::real_t;
 using VectorField = std::function< Point3D( const Point3D& ) >;
+using walberla::WcTimingPool;
+
+enum class SolverType
+{
+   VCYCLES,
+   FMG
+};
+
+struct SimData
+{
+   SimData( SolverType _solverType, int _numVCyclesFMG, int _preSmooth, int _postSmooth )
+   : solverType( _solverType )
+   , numVCyclesFMG( _numVCyclesFMG )
+   , preSmooth( _preSmooth )
+   , postSmooth( _postSmooth )
+   {}
+
+   // 0 -> v-cycles
+   // 1 -> FMG
+   const SolverType solverType = SolverType::VCYCLES;
+
+   // v-cycles on each FMG level
+   const uint_t numVCyclesFMG = 2;
+
+   const uint_t preSmooth  = 2;
+   const uint_t postSmooth = 2;
+
+   WcTimingPool timingPool;
+};
 
 /// Returns the approximate L2 error.
 template < class N1E1CurlCurlForm,
@@ -61,6 +91,7 @@ real_t test( const uint_t                  maxLevel,
              const SetupPrimitiveStorage&& setupStorage,
              const VectorField             analyticalSol,
              const VectorField             rhs,
+             SimData&                      simData,
              const bool                    writeVTK = false )
 {
    using namespace n1e1;
@@ -71,7 +102,7 @@ real_t test( const uint_t                  maxLevel,
    const uint_t spectralRadiusEstLevel  = std::min( uint_c( 3 ), maxLevel );
    const int    numSpectralRadiusEstIts = 40;
    const int    nMaxVCycles             = 200;
-   const real_t residualReduction       = 1.0e-10;
+   const real_t residualReduction       = 1.0e-3;
 
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -92,10 +123,17 @@ real_t test( const uint_t                  maxLevel,
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
 
    // Assemble RHS.
-   assembleLinearForm< N1E1LinearForm >( maxLevel, maxLevel, { rhs }, f );
+   if ( simData.solverType == SolverType::VCYCLES )
+   {
+      assembleLinearForm< N1E1LinearForm >( maxLevel, maxLevel, { rhs }, f );
+   }
+   else if ( simData.solverType == SolverType::FMG )
+   {
+      assembleLinearForm< N1E1LinearForm >( minLevel, maxLevel, { rhs }, f );
+   }
 
    // Boundary conditions: homogeneous tangential trace
-   u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
+   // u.interpolate( Point3D{ 0.0, 0.0, 0.0 }, maxLevel, DoFType::Boundary );
 
    // Hybrid smoother
    auto p1LaplaceOperator = std::make_shared< P1LaplaceOperator >( storage, minLevel, maxLevel );
@@ -122,7 +160,7 @@ real_t test( const uint_t                  maxLevel,
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
-   WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
+   // WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
    auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
@@ -132,8 +170,16 @@ real_t test( const uint_t                  maxLevel,
    auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
 
-   auto gmgSolver = GeometricMultigridSolver< N1E1ElementwiseLinearCombinationOperator >(
-       storage, hybridSmoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+   auto gmgSolver =
+       std::make_shared< GeometricMultigridSolver< N1E1ElementwiseLinearCombinationOperator > >( storage,
+                                                                                                 hybridSmoother,
+                                                                                                 coarseGridSolver,
+                                                                                                 restrictionOperator,
+                                                                                                 prolongationOperator,
+                                                                                                 minLevel,
+                                                                                                 maxLevel,
+                                                                                                 simData.preSmooth,
+                                                                                                 simData.postSmooth );
 
    // Interpolate solution
    sol.interpolate( analyticalSol, maxLevel );
@@ -147,9 +193,41 @@ real_t test( const uint_t                  maxLevel,
    real_t discrL2  = 0.0;
    real_t residual = initRes;
 
-   for ( int i = 0; ( i < nMaxVCycles ) && ( residual / initRes > residualReduction ); ++i )
+   if ( simData.solverType == SolverType::VCYCLES )
    {
-      gmgSolver.solve( A, u, f, maxLevel );
+      for ( int i = 0; ( i < nMaxVCycles ) && ( residual / initRes > residualReduction ); ++i )
+      {
+         simData.timingPool["solver - level " + std::to_string( maxLevel )].start();
+         gmgSolver->solve( A, u, f, maxLevel );
+         simData.timingPool["solver - level " + std::to_string( maxLevel )].end();
+
+         // determine error
+         err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
+         M.apply( err, tmp, maxLevel, DoFType::All );
+         discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
+         WALBERLA_LOG_DEVEL_VAR_ON_ROOT( discrL2 )
+
+         // determine residual
+         A.apply( u, tmp, maxLevel, DoFType::Inner );
+         tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
+         residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+         WALBERLA_LOG_DEVEL_VAR_ON_ROOT( residual / initRes )
+      }
+   }
+   else if ( simData.solverType == SolverType::FMG )
+   {
+      // This is not 100% optimal since we technically only need to execute the FMG on the finest level for the convergence
+      // studies, collecting all the errors on all FMG level.
+      // But to keep the code simple, and because it does not harm for the time/performance measurements, the entire FMG
+      // is executed just to get the solution on the finest level.
+      // Both approaches are equivalent.
+
+      FullMultigridSolver< N1E1ElementwiseLinearCombinationOperator > fmgSolver(
+          storage, gmgSolver, prolongationOperator, minLevel, maxLevel, simData.numVCyclesFMG );
+
+      simData.timingPool["solver - level " + std::to_string( maxLevel )].start();
+      fmgSolver.solve( A, u, f, maxLevel );
+      simData.timingPool["solver - level " + std::to_string( maxLevel )].end();
 
       // determine error
       err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
@@ -177,7 +255,7 @@ real_t test( const uint_t                  maxLevel,
    return discrL2;
 }
 
-real_t testCube( const uint_t maxLevel, const bool writeVTK = false )
+real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
    const MeshInfo        cube = MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -205,10 +283,10 @@ real_t testCube( const uint_t maxLevel, const bool writeVTK = false )
                 n1e1::N1E1ElementwiseMassOperator,
                 P1ConstantLaplaceOperator,
                 GaussSeidelSmoother< P1ConstantLaplaceOperator > >(
-       maxLevel, std::move( setupStorage ), analyticalSol, rhs, writeVTK );
+       maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
-real_t testTorus( const uint_t maxLevel, const bool writeVTK = false )
+real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
    const uint_t                toroidalResolution         = 34;
    const uint_t                poloidalResolution         = 6;
@@ -216,9 +294,6 @@ real_t testTorus( const uint_t maxLevel, const bool writeVTK = false )
    const std::vector< real_t > tubeLayerRadii             = { 0.4 };
    const real_t                torodialStartAngle         = 0.0;
    const real_t                polodialStartAngle         = 0.0;
-   const real_t                delta                      = 0;
-   const real_t                r1                         = tubeLayerRadii.back();
-   const real_t                r2                         = tubeLayerRadii.back();
 
    const real_t R = radiusOriginToCenterOfTube;
    const real_t r = tubeLayerRadii.back();
@@ -232,16 +307,13 @@ real_t testTorus( const uint_t maxLevel, const bool writeVTK = false )
    SetupPrimitiveStorage setupStorage( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   TokamakMap::setMap( setupStorage,
-                       toroidalResolution,
-                       poloidalResolution,
-                       radiusOriginToCenterOfTube,
-                       tubeLayerRadii,
-                       torodialStartAngle,
-                       polodialStartAngle,
-                       delta,
-                       r1,
-                       r2 );
+   TorusMap::setMap( setupStorage,
+                     toroidalResolution,
+                     poloidalResolution,
+                     radiusOriginToCenterOfTube,
+                     tubeLayerRadii,
+                     torodialStartAngle,
+                     polodialStartAngle );
 
    const auto analyticalSol = [R, r]( const Point3D& xVec ) {
       const real_t x    = xVec[0];
@@ -291,24 +363,25 @@ real_t testTorus( const uint_t maxLevel, const bool writeVTK = false )
                 n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
                 P1ElementwiseBlendingLaplaceOperator,
                 WeightedJacobiSmoother< P1ElementwiseBlendingLaplaceOperator > >(
-       maxLevel, std::move( setupStorage ), analyticalSol, rhs, writeVTK );
+       maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
-Table< 2 > convergenceTest( const uint_t                                                       minLevel,
-                            const uint_t                                                       maxLevel,
-                            std::function< real_t( const uint_t level, const bool writeVtk ) > test,
-                            const bool                                                         writeVTK = false )
+Table< 2 > convergenceTest( const uint_t                                                                         minLevel,
+                            const uint_t                                                                         maxLevel,
+                            std::function< real_t( const uint_t level, SimData& simData, const bool writeVtk ) > test,
+                            SimData&                                                                             simData,
+                            const bool writeVTK = false )
 {
    Table< 2 > table{ { "Level", "L2error" } };
 
-   real_t err = test( minLevel, writeVTK );
+   real_t err = test( minLevel, simData, writeVTK );
    table.addElement( 0, 0, minLevel );
    table.addElement( 0, 1, err );
    WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << std::scientific << err );
 
    for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
    {
-      const real_t errFiner     = test( level, writeVTK );
+      const real_t errFiner     = test( level, simData, writeVTK );
       const real_t computedRate = errFiner / err;
 
       table.addElement( level - minLevel, 0, level );
@@ -331,12 +404,27 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 #endif
 
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube ###" );
-   convergenceTest( 7, 7, testCube ).write( "output", "curlCurlCube" );
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   SimData simData( SolverType::FMG, 3, 3, 3 );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "### Test on solid torus ###" );
-   convergenceTest( 7, 7, testTorus ).write( "output", "curlCurlTorus" );
+   //   WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube ###" );
+   //   convergenceTest( 7, 7, testCube, simData ).write( "output", "curlCurlCube" );
+   //   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   const uint_t      minLevel = 2;
+   const uint_t      maxLevel = 5;
+   std::stringstream ss;
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      ss << convergenceTest( level, level, testTorus, simData, true );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( ss.str() )
+
+   auto timingPoolReduced = simData.timingPool.getReduced();
+
+   WALBERLA_LOG_INFO_ON_ROOT( *timingPoolReduced );
+
+   //   WALBERLA_LOG_INFO_ON_ROOT( "### Test on solid torus ###" );
+   //   convergenceTest( 7, 7, testTorus, simData ).write( "output", "curlCurlTorus" );
 
    return EXIT_SUCCESS;
 }
