@@ -23,6 +23,7 @@
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
+#include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/Table.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -50,6 +51,7 @@
 using namespace hyteg;
 using walberla::real_t;
 using VectorField = std::function< Point3D( const Point3D& ) >;
+using walberla::WcTimer;
 using walberla::WcTimingPool;
 
 enum class SolverType
@@ -105,9 +107,22 @@ struct SimData
    WcTimingPool timingPool;
 };
 
+struct Result
+{
+   Result( const uint_t _dofs, const real_t _l2Error, const WcTimer _solveTimer )
+   : dofs( _dofs )
+   , l2Error( _l2Error )
+   , solveTimer( _solveTimer )
+   {}
+
+   const uint_t  dofs;
+   const real_t  l2Error;
+   const WcTimer solveTimer;
+};
+
 /// Returns the approximate L2 error.
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
-real_t test( const uint_t                  maxLevel,
+Result test( const uint_t                  maxLevel,
              const SetupPrimitiveStorage&& setupStorage,
              const VectorField             analyticalSol,
              const VectorField             rhs,
@@ -310,10 +325,10 @@ real_t test( const uint_t                  maxLevel,
       writeTimingTreeJSON( *timer, simData.baseName + "_timingTreeLevel" + std::to_string( maxLevel ) + ".json" );
    }
 
-   return discrL2;
+   return Result{ nDoFs, discrL2, timer->getReduced()["Solve"] };
 }
 
-real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
+Result testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
    const MeshInfo cube =
        MeshInfo::refinedCoarseMesh( MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
@@ -346,7 +361,7 @@ real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = 
                 P1ConstantLaplaceOperator >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
-real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
+Result testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
    const uint_t                toroidalResolution         = simData.toroidalResolution;
    const uint_t                poloidalResolution         = simData.poloidalResolution;
@@ -428,21 +443,27 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
        maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
-Table< 2 > convergenceTest( const uint_t                                                                         minLevel,
+Table< 6 > convergenceTest( const uint_t                                                                         minLevel,
                             const uint_t                                                                         maxLevel,
-                            std::function< real_t( const uint_t level, SimData& simData, const bool writeVtk ) > test,
+                            std::function< Result( const uint_t level, SimData& simData, const bool writeVtk ) > test,
                             SimData&                                                                             simData,
                             const bool writeVTK = false )
 {
-   Table< 2 > table{ { "Level", "L2error" } };
+   Table< 6 > table{ { "Level", "DoFs", "L2error", "timeMin", "timeMax", "timeAvg" } };
 
    WALBERLA_LOG_INFO_ON_ROOT( "###################" );
    WALBERLA_LOG_INFO_ON_ROOT( "# Running level " << minLevel << " #" );
    WALBERLA_LOG_INFO_ON_ROOT( "###################" );
 
-   real_t err = test( minLevel, simData, writeVTK );
+   const Result res = test( minLevel, simData, writeVTK );
    table.addElement( 0, 0, minLevel );
-   table.addElement( 0, 1, err );
+   table.addElement( 0, 1, res.dofs );
+   table.addElement( 0, 2, res.l2Error );
+   table.addElement( 0, 3, res.solveTimer.min() );
+   table.addElement( 0, 4, res.solveTimer.max() );
+   table.addElement( 0, 5, res.solveTimer.average() );
+
+   real_t err = res.l2Error;
 
    for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
    {
@@ -450,15 +471,19 @@ Table< 2 > convergenceTest( const uint_t                                        
       WALBERLA_LOG_INFO_ON_ROOT( "# Running level " << level << " #" );
       WALBERLA_LOG_INFO_ON_ROOT( "###################" );
 
-      const real_t errFiner     = test( level, simData, writeVTK );
-      const real_t computedRate = errFiner / err;
+      const Result resFiner     = test( level, simData, writeVTK );
+      const real_t computedRate = resFiner.l2Error / err;
 
       WALBERLA_LOG_INFO_ON_ROOT( "# computed rate level " << level << " / " << level - 1 << ": " << computedRate );
 
       table.addElement( level - minLevel, 0, level );
-      table.addElement( level - minLevel, 1, errFiner );
+      table.addElement( level - minLevel, 1, resFiner.dofs );
+      table.addElement( level - minLevel, 2, resFiner.l2Error );
+      table.addElement( level - minLevel, 3, resFiner.solveTimer.min() );
+      table.addElement( level - minLevel, 4, resFiner.solveTimer.max() );
+      table.addElement( level - minLevel, 5, resFiner.solveTimer.average() );
 
-      err = errFiner;
+      err = resFiner.l2Error;
    }
 
    return table;
@@ -503,7 +528,7 @@ int main( int argc, char** argv )
    const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
    const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
 
-   std::function< real_t( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
+   std::function< Result( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
    if ( domainString == "cube" )
    {
       testCase = testCube;
@@ -542,9 +567,9 @@ int main( int argc, char** argv )
                     timingJSON,
                     baseName );
 
-   std::stringstream ss;
-   ss << convergenceTest( minLevel, maxLevel, testCase, simData, vtk );
-   WALBERLA_LOG_INFO_ON_ROOT( ss.str() )
+   Table results = convergenceTest( minLevel, maxLevel, testCase, simData, vtk );
+   WALBERLA_LOG_INFO_ON_ROOT( results )
+   results.write( "output", simData.baseName );
 
    auto timingPoolReduced = simData.timingPool.getReduced();
 
