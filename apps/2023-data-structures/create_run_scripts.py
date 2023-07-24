@@ -1,9 +1,9 @@
 import time
 
 # those are constant for now
-pre_smooth = 3
-post_smooth = 3
-fmg_v_cycles = 3
+pre_smooth = 1
+post_smooth = 1
+fmg_v_cycles = 5
 max_level = 7
 ppn = 128
 
