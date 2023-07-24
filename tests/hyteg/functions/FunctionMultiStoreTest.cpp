@@ -128,5 +128,21 @@ int main( int argc, char* argv[] )
      WALBERLA_CHECK_EQUAL( name, stream.str() );
    }
 
+   // Empty the store of P2VectorFunctions
+   ms2.remove( iVecFunc1 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 6 );
+   ms2.remove( lVecFunc1 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 5 );
+   ms2.remove( dVecFunc1 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 4 );
+   ms2.remove( dVecFunc2 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 3 );
+   ms2.remove( lVecFunc2 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 2 );
+   ms2.remove( dVecFunc3 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 1 );
+   ms2.remove( fVecFunc1 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 0 );
+
    return EXIT_SUCCESS;
 }
