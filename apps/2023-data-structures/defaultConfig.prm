@@ -12,7 +12,7 @@ Parameters
 
   preSmooth     1;
   postSmooth    1;
-  numVCyclesFMG 4;
+  numVCyclesFMG 5;
 
   coarseGridRefinements 0;
 
