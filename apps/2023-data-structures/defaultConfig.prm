@@ -2,17 +2,17 @@ Parameters
 {
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
   minLevel 2;
-  maxLevel 5;
+  maxLevel 3;
 
   // "cube" or "torus"
-  domain cube;
+  domain torus;
 
   // "vcycles" or "fmg"
   solverType fmg;
 
-  preSmooth     3;
-  postSmooth    3;
-  numVCyclesFMG 3;
+  preSmooth     1;
+  postSmooth    1;
+  numVCyclesFMG 4;
 
   coarseGridRefinements 0;
 

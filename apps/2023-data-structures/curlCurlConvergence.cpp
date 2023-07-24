@@ -22,6 +22,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
+#include "core/math/Random.h"
 
 #include "hyteg/dataexport/Table.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -92,7 +93,7 @@ struct SimData
 };
 
 /// Returns the approximate L2 error.
-template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator, class P1Smoother >
+template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
 real_t test( const uint_t                  maxLevel,
              const SetupPrimitiveStorage&& setupStorage,
              const VectorField             analyticalSol,
@@ -103,6 +104,7 @@ real_t test( const uint_t                  maxLevel,
    using namespace n1e1;
 
    using N1E1Smoother = ChebyshevSmoother< N1E1Operator >;
+   using P1Smoother   = ChebyshevSmoother< P1LaplaceOperator >;
 
    const uint_t minLevel                = 0;
    const uint_t spectralRadiusEstLevel  = std::min( uint_c( 3 ), maxLevel );
@@ -152,26 +154,28 @@ real_t test( const uint_t                  maxLevel,
 
    // Hybrid smoother
    auto p1LaplaceOperator = std::make_shared< P1LaplaceOperator >( storage, minLevel, maxLevel );
-   auto chebyshevSmoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
 
-   std::shared_ptr< P1Smoother > p1Smoother;
-   if constexpr ( std::is_same< P1Smoother, WeightedJacobiSmoother< P1LaplaceOperator > >::value )
-   {
-      p1Smoother = std::make_shared< P1Smoother >( storage, minLevel, maxLevel, 2.0 / 3.0 );
-   }
-   else
-   {
-      p1Smoother = std::make_shared< P1Smoother >();
-   }
+   auto                                      p1Smoother = std::make_shared< P1Smoother >( storage, minLevel, maxLevel );
+   P1Function< real_t >                      p1Rand( "p1Rand", storage, spectralRadiusEstLevel, spectralRadiusEstLevel );
+   P1Function< real_t >                      p1Tmp( "p1Tmp", storage, spectralRadiusEstLevel, spectralRadiusEstLevel );
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
+   p1Rand.interpolate( rand, spectralRadiusEstLevel );
+   const real_t p1Rho =
+       chebyshev::estimateRadius( *p1LaplaceOperator, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, p1Rand, p1Tmp );
+   p1Smoother->setupCoefficients( 2, p1Rho );
+   WALBERLA_LOG_DEVEL_VAR_ON_ROOT( p1Rho );
 
+   auto n1e1Smoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
    sol.interpolate( analyticalSol, spectralRadiusEstLevel );
    const real_t spectralRadius =
        chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp );
-   chebyshevSmoother->setupCoefficients( 2, 0.05 * spectralRadius, 1.05 * spectralRadius );
+   n1e1Smoother->setupCoefficients( 2, 0.05 * spectralRadius, 1.05 * spectralRadius );
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( spectralRadius );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
-       storage, p1LaplaceOperator, chebyshevSmoother, p1Smoother, minLevel, maxLevel );
+       storage, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -321,9 +325,7 @@ real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = 
    return test< forms::n1e1_linear_form_affine_q6,
                 n1e1::N1E1ElementwiseMassOperator,
                 n1e1::N1E1ElementwiseCurlCurlPlusMassOperatorQ2,
-                P1ConstantLaplaceOperator,
-                GaussSeidelSmoother< P1ConstantLaplaceOperator > >(
-       maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
+                P1ConstantLaplaceOperator >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
 real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
@@ -404,8 +406,7 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
    return test< forms::n1e1_linear_form_blending_q6,
                 n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
                 n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
-                P1ElementwiseBlendingLaplaceOperator,
-                WeightedJacobiSmoother< P1ElementwiseBlendingLaplaceOperator > >(
+                P1ElementwiseBlendingLaplaceOperator >(
        maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
