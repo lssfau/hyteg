@@ -756,6 +756,7 @@ template class P1ElementwiseOperator< forms::p1_mass_blending_q4 >;
 
 // P1ElementwiseBlendingLaplaceOperator
 template class P1ElementwiseOperator< forms::p1_diffusion_blending_q3 >;
+template class P1ElementwiseOperator< forms::p1_diffusion_blending_q2 >;
 
 // Needed for P1Blending(Inverse)DiagonalOperator
 template class P1ElementwiseOperator< P1RowSumForm >;

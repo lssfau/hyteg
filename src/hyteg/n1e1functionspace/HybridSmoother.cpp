@@ -102,6 +102,7 @@ template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1Const
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLinearCombinationOperator >;
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ElementwiseBlendingLaplaceOperator >;
 template class HybridSmoother< N1E1ElementwiseCurlCurlPlusMassOperatorQ2, P1ConstantLaplaceOperator >;
+template class HybridSmoother< N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2, P1ElementwiseBlendingLaplaceOperatorQ2 >;
 template class HybridSmoother< N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2, P1ElementwiseBlendingLaplaceOperator >;
 
 } // namespace n1e1

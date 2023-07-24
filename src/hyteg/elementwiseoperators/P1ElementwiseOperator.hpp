@@ -23,6 +23,7 @@
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
@@ -330,6 +331,7 @@ typedef P1ElementwiseOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, 
     P1ElementwisePSPGOperator;
 
 typedef P1ElementwiseOperator< forms::p1_diffusion_blending_q3 > P1ElementwiseBlendingLaplaceOperator;
+typedef P1ElementwiseOperator< forms::p1_diffusion_blending_q2 > P1ElementwiseBlendingLaplaceOperatorQ2;
 
 typedef P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >
     P1ElementwiseDivXOperator;
