@@ -164,7 +164,7 @@ real_t test( const uint_t                  maxLevel,
    p1Rand.interpolate( rand, spectralRadiusEstLevel );
    const real_t p1Rho =
        chebyshev::estimateRadius( *p1LaplaceOperator, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, p1Rand, p1Tmp );
-   p1Smoother->setupCoefficients( 2, p1Rho );
+   p1Smoother->setupCoefficients( 2, 0.2 * p1Rho, 1.1 * p1Rho );
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( p1Rho );
 
    auto n1e1Smoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
