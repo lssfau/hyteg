@@ -4,6 +4,8 @@ import time
 pre_smooth = 1
 post_smooth = 1
 fmg_v_cycles = 5
+n1e1SpectralRadius = 3.08346
+p1SpectralRadius   = 2.00736
 max_level = 7
 ppn = 128
 
@@ -33,6 +35,9 @@ Parameters
   preSmooth     {pre_smooth};
   postSmooth    {post_smooth};
   numVCyclesFMG {fmg_v_cycles};
+
+  n1e1SpectralRadius {n1e1SpectralRadius};
+  p1SpectralRadius   {p1SpectralRadius};
 
   coarseGridRefinements {coarse_refinements};
 

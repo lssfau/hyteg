@@ -66,6 +66,8 @@ struct SimData
             uint_t      _numVCyclesFMG,
             uint_t      _preSmooth,
             uint_t      _postSmooth,
+            real_t      _n1e1SpectralRadius,
+            real_t      _p1SpectralRadius,
             uint_t      _coarseGridRefinements,
             uint_t      _poloidalResolution,
             uint_t      _toroidalResolution,
@@ -76,6 +78,8 @@ struct SimData
    , numVCyclesFMG( _numVCyclesFMG )
    , preSmooth( _preSmooth )
    , postSmooth( _postSmooth )
+   , n1e1SpectralRadius( _n1e1SpectralRadius )
+   , p1SpectralRadius( _p1SpectralRadius )
    , coarseGridRefinements( _coarseGridRefinements )
    , poloidalResolution( _poloidalResolution )
    , toroidalResolution( _toroidalResolution )
@@ -93,6 +97,9 @@ struct SimData
 
    const uint_t preSmooth  = 2;
    const uint_t postSmooth = 2;
+
+   const real_t n1e1SpectralRadius;
+   const real_t p1SpectralRadius;
 
    const uint_t coarseGridRefinements = 0;
 
@@ -188,24 +195,31 @@ Result test( const uint_t                  maxLevel,
    // Hybrid smoother
    auto p1LaplaceOperator = std::make_shared< P1LaplaceOperator >( storage, minLevel, maxLevel );
 
-   auto                                      p1Smoother = std::make_shared< P1Smoother >( storage, minLevel, maxLevel );
-   P1Function< real_t >                      p1Rand( "p1Rand", storage, spectralRadiusEstLevel, spectralRadiusEstLevel );
-   P1Function< real_t >                      p1Tmp( "p1Tmp", storage, spectralRadiusEstLevel, spectralRadiusEstLevel );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
-      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
-   };
-   p1Rand.interpolate( rand, spectralRadiusEstLevel );
-   const real_t p1Rho =
-       chebyshev::estimateRadius( *p1LaplaceOperator, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, p1Rand, p1Tmp );
+   real_t p1Rho      = simData.p1SpectralRadius;
+   auto   p1Smoother = std::make_shared< P1Smoother >( storage, minLevel, maxLevel );
+   if ( p1Rho <= real_t( 0.0 ) )
+   {
+      P1Function< real_t >                      p1Rand( "p1Rand", storage, spectralRadiusEstLevel, spectralRadiusEstLevel );
+      P1Function< real_t >                      p1Tmp( "p1Tmp", storage, spectralRadiusEstLevel, spectralRadiusEstLevel );
+      std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+         return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+      };
+      p1Rand.interpolate( rand, spectralRadiusEstLevel );
+      p1Rho = chebyshev::estimateRadius(
+          *p1LaplaceOperator, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, p1Rand, p1Tmp );
+      WALBERLA_LOG_DEVEL_VAR_ON_ROOT( p1Rho );
+   }
    p1Smoother->setupCoefficients( 2, 0.2 * p1Rho, 1.1 * p1Rho );
-   WALBERLA_LOG_DEVEL_VAR_ON_ROOT( p1Rho );
 
-   auto n1e1Smoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
-   sol.interpolate( analyticalSol, spectralRadiusEstLevel );
-   const real_t spectralRadius =
-       chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp );
-   n1e1Smoother->setupCoefficients( 2, 0.05 * spectralRadius, 1.05 * spectralRadius );
-   WALBERLA_LOG_DEVEL_VAR_ON_ROOT( spectralRadius );
+   real_t n1e1Rho      = simData.n1e1SpectralRadius;
+   auto   n1e1Smoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
+   if ( n1e1Rho <= real_t( 0.0 ) )
+   {
+      sol.interpolate( analyticalSol, spectralRadiusEstLevel );
+      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp );
+      WALBERLA_LOG_DEVEL_VAR_ON_ROOT( n1e1Rho );
+   }
+   n1e1Smoother->setupCoefficients( 2, 0.05 * n1e1Rho, 1.05 * n1e1Rho );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
        storage, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
@@ -521,6 +535,8 @@ int main( int argc, char** argv )
    const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
    const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
    const uint_t      numVCyclesFMG         = parameters.getParameter< uint_t >( "numVCyclesFMG" );
+   const real_t      n1e1SpectralRadius    = parameters.getParameter< real_t >( "n1e1SpectralRadius", real_t( -1.0 ) );
+   const real_t      p1SpectralRadius      = parameters.getParameter< real_t >( "p1SpectralRadius", real_t( -1.0 ) );
    const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
    const uint_t      poloidalResolution    = parameters.getParameter< uint_t >( "poloidalResolution" );
    const uint_t      toroidalResolution    = parameters.getParameter< uint_t >( "toroidalResolution" );
@@ -560,6 +576,8 @@ int main( int argc, char** argv )
                     numVCyclesFMG,
                     preSmooth,
                     postSmooth,
+                    n1e1SpectralRadius,
+                    p1SpectralRadius,
                     coarseGridRefinements,
                     poloidalResolution,
                     toroidalResolution,

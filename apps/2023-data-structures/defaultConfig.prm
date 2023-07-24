@@ -14,6 +14,9 @@ Parameters
   postSmooth    1;
   numVCyclesFMG 5;
 
+  n1e1SpectralRadius 3.08346;
+  p1SpectralRadius   2.00736;
+
   coarseGridRefinements 0;
 
   toroidalResolution 34;
