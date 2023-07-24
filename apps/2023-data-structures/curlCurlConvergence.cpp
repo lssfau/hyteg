@@ -19,6 +19,8 @@
 */
 
 #include "core/DataTypes.h"
+#include "core/Environment.h"
+#include "core/config/Config.h"
 #include "core/logging/Logging.h"
 
 #include "hyteg/dataexport/Table.hpp"
@@ -36,6 +38,7 @@
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
@@ -56,11 +59,12 @@ enum class SolverType
 
 struct SimData
 {
-   SimData( SolverType _solverType, int _numVCyclesFMG, int _preSmooth, int _postSmooth )
+   SimData( SolverType _solverType, uint_t _numVCyclesFMG, uint_t _preSmooth, uint_t _postSmooth, uint_t _coarseGridRefinements )
    : solverType( _solverType )
    , numVCyclesFMG( _numVCyclesFMG )
    , preSmooth( _preSmooth )
    , postSmooth( _postSmooth )
+   , coarseGridRefinements( _coarseGridRefinements )
    {}
 
    // 0 -> v-cycles
@@ -72,6 +76,8 @@ struct SimData
 
    const uint_t preSmooth  = 2;
    const uint_t postSmooth = 2;
+
+   const uint_t coarseGridRefinements = 0;
 
    WcTimingPool timingPool;
 };
@@ -95,8 +101,17 @@ real_t test( const uint_t                  maxLevel,
    const int    nMaxVCycles             = 200;
    const real_t residualReduction       = 1.0e-3;
 
-   WALBERLA_LOG_DEVEL_VAR_ON_ROOT( setupStorage );
+   WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
+   WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+   WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   auto storageInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( "PrimitiveStorage info" )
+   WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
+   WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
 
    N1E1MassOperator M( storage, minLevel, maxLevel );
    N1E1Operator     A( storage, minLevel, maxLevel );
@@ -170,14 +185,22 @@ real_t test( const uint_t                  maxLevel,
    // Interpolate solution
    sol.interpolate( analyticalSol, maxLevel );
 
+   // Determine initial error
+   err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
+   M.apply( err, tmp, maxLevel, DoFType::All );
+   real_t discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
+
    // Determine initial residual
    A.apply( u, tmp, maxLevel, DoFType::Inner );
    tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
    const real_t initRes = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
 
    // Solve system.
-   real_t discrL2  = 0.0;
    real_t residual = initRes;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "after iteration | discr. L2 error | rel. residual " )
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------+-----------------+---------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "initial", discrL2, 1.0 ) )
 
    if ( simData.solverType == SolverType::VCYCLES )
    {
@@ -191,13 +214,13 @@ real_t test( const uint_t                  maxLevel,
          err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
          M.apply( err, tmp, maxLevel, DoFType::All );
          discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
-         WALBERLA_LOG_DEVEL_VAR_ON_ROOT( discrL2 )
 
          // determine residual
          A.apply( u, tmp, maxLevel, DoFType::Inner );
          tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
          residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
-         WALBERLA_LOG_DEVEL_VAR_ON_ROOT( residual / initRes )
+
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14d | %15.5e | %13.5e ", i + 1, discrL2, residual / initRes ) )
       }
    }
    else if ( simData.solverType == SolverType::FMG )
@@ -219,13 +242,13 @@ real_t test( const uint_t                  maxLevel,
       err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
       M.apply( err, tmp, maxLevel, DoFType::All );
       discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
-      WALBERLA_LOG_DEVEL_VAR_ON_ROOT( discrL2 )
 
       // determine residual
       A.apply( u, tmp, maxLevel, DoFType::Inner );
       tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
       residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
-      WALBERLA_LOG_DEVEL_VAR_ON_ROOT( residual / initRes )
+
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "after FMG", discrL2, residual / initRes ) )
    }
 
    if ( writeVTK )
@@ -243,9 +266,14 @@ real_t test( const uint_t                  maxLevel,
 
 real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
-   const MeshInfo        cube = MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 );
+   const MeshInfo cube =
+       MeshInfo::refinedCoarseMesh( MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
+                                    simData.coarseGridRefinements );
+
    SetupPrimitiveStorage setupStorage( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+   loadbalancing::roundRobinVolume( setupStorage );
 
    const auto analyticalSol = []( const Point3D& p ) {
       const real_t x = p[0];
@@ -283,14 +311,18 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
    const real_t R = radiusOriginToCenterOfTube;
    const real_t r = tubeLayerRadii.back();
 
-   const MeshInfo        torus = MeshInfo::meshTorus( toroidalResolution,
-                                               poloidalResolution,
-                                               radiusOriginToCenterOfTube,
-                                               tubeLayerRadii,
-                                               torodialStartAngle,
-                                               polodialStartAngle );
+   const MeshInfo torus = MeshInfo::refinedCoarseMesh( MeshInfo::meshTorus( toroidalResolution,
+                                                                            poloidalResolution,
+                                                                            radiusOriginToCenterOfTube,
+                                                                            tubeLayerRadii,
+                                                                            torodialStartAngle,
+                                                                            polodialStartAngle ),
+                                                       simData.coarseGridRefinements );
+
    SetupPrimitiveStorage setupStorage( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+   loadbalancing::roundRobinVolume( setupStorage );
 
    TorusMap::setMap( setupStorage,
                      toroidalResolution,
@@ -358,20 +390,27 @@ Table< 2 > convergenceTest( const uint_t                                        
 {
    Table< 2 > table{ { "Level", "L2error" } };
 
+   WALBERLA_LOG_INFO_ON_ROOT( "###################" );
+   WALBERLA_LOG_INFO_ON_ROOT( "# Running level " << minLevel << " #" );
+   WALBERLA_LOG_INFO_ON_ROOT( "###################" );
+
    real_t err = test( minLevel, simData, writeVTK );
    table.addElement( 0, 0, minLevel );
    table.addElement( 0, 1, err );
-   WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << std::scientific << err );
 
    for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "###################" );
+      WALBERLA_LOG_INFO_ON_ROOT( "# Running level " << level << " #" );
+      WALBERLA_LOG_INFO_ON_ROOT( "###################" );
+
       const real_t errFiner     = test( level, simData, writeVTK );
       const real_t computedRate = errFiner / err;
 
+      WALBERLA_LOG_INFO_ON_ROOT( "# computed rate level " << level << " / " << level - 1 << ": " << computedRate );
+
       table.addElement( level - minLevel, 0, level );
       table.addElement( level - minLevel, 1, errFiner );
-      WALBERLA_LOG_INFO_ON_ROOT( "error level " << level << ": " << std::scientific << errFiner );
-      WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << level << " / " << level - 1 << ": " << computedRate );
 
       err = errFiner;
    }
@@ -381,34 +420,75 @@ Table< 2 > convergenceTest( const uint_t                                        
 
 int main( int argc, char** argv )
 {
-   walberla::mpi::Environment MPIenv( argc, argv );
+   walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    hyteg::PETScManager petscManager( &argc, &argv );
 #endif
 
-   SimData simData( SolverType::FMG, 3, 3, 3 );
+   WALBERLA_LOG_INFO_ON_ROOT( "###############################" )
+   WALBERLA_LOG_INFO_ON_ROOT( "# Curl-curl convergence tests #" )
+   WALBERLA_LOG_INFO_ON_ROOT( "###############################" )
 
-   //   WALBERLA_LOG_INFO_ON_ROOT( "### Test on cube ###" );
-   //   convergenceTest( 7, 7, testCube, simData ).write( "output", "curlCurlCube" );
-   //   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   auto cfg = env.config();
+   WALBERLA_CHECK_NOT_NULLPTR( cfg, "No config file passed. Run 'mpirun -np <np> ./curlCurlConvergence <configFile.prm>'. Bye." );
 
-   const uint_t      minLevel = 2;
-   const uint_t      maxLevel = 5;
-   std::stringstream ss;
-   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   const walberla::Config::BlockHandle parameters = cfg->getBlock( "Parameters" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Parameter file contents:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "------------------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( parameters )
+   WALBERLA_LOG_INFO_ON_ROOT( "------------------------" )
+
+   const uint_t minLevel = parameters.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel = parameters.getParameter< uint_t >( "maxLevel" );
+
+   const std::string domainString          = parameters.getParameter< std::string >( "domain" );
+   const std::string solverTypeString      = parameters.getParameter< std::string >( "solverType" );
+   const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
+   const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
+   const uint_t      numVCyclesFMG         = parameters.getParameter< uint_t >( "numVCyclesFMG" );
+   const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
+   const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
+
+   std::function< real_t( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
+   if ( domainString == "cube" )
    {
-      ss << convergenceTest( level, level, testTorus, simData, true );
+      testCase = testCube;
    }
+   else if ( domainString == "torus" )
+   {
+      testCase = testTorus;
+   }
+   else
+   {
+      WALBERLA_ABORT( "Invalid domain: " << domainString );
+   }
+
+   SolverType solverType;
+   if ( solverTypeString == "vcycles" )
+   {
+      solverType = SolverType::VCYCLES;
+   }
+   else if ( solverTypeString == "fmg" )
+   {
+      solverType = SolverType::FMG;
+   }
+   else
+   {
+      WALBERLA_ABORT( "Invalid solver type: " << solverTypeString );
+   }
+
+   SimData simData( solverType, numVCyclesFMG, preSmooth, postSmooth, coarseGridRefinements );
+
+   std::stringstream ss;
+   ss << convergenceTest( minLevel, maxLevel, testCase, simData, vtk );
    WALBERLA_LOG_INFO_ON_ROOT( ss.str() )
 
    auto timingPoolReduced = simData.timingPool.getReduced();
 
    WALBERLA_LOG_INFO_ON_ROOT( *timingPoolReduced );
-
-   //   WALBERLA_LOG_INFO_ON_ROOT( "### Test on solid torus ###" );
-   //   convergenceTest( 7, 7, testTorus, simData ).write( "output", "curlCurlTorus" );
 
    return EXIT_SUCCESS;
 }
