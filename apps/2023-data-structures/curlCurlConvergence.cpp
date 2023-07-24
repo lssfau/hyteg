@@ -24,6 +24,7 @@
 #include "core/logging/Logging.h"
 
 #include "hyteg/dataexport/Table.hpp"
+#include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
@@ -59,12 +60,18 @@ enum class SolverType
 
 struct SimData
 {
-   SimData( SolverType _solverType, uint_t _numVCyclesFMG, uint_t _preSmooth, uint_t _postSmooth, uint_t _coarseGridRefinements )
+   SimData( SolverType _solverType,
+            uint_t     _numVCyclesFMG,
+            uint_t     _preSmooth,
+            uint_t     _postSmooth,
+            uint_t     _coarseGridRefinements,
+            bool       _outputTimingJSON )
    : solverType( _solverType )
    , numVCyclesFMG( _numVCyclesFMG )
    , preSmooth( _preSmooth )
    , postSmooth( _postSmooth )
    , coarseGridRefinements( _coarseGridRefinements )
+   , outputTimingJSON( _outputTimingJSON )
    {}
 
    // 0 -> v-cycles
@@ -78,6 +85,8 @@ struct SimData
    const uint_t postSmooth = 2;
 
    const uint_t coarseGridRefinements = 0;
+
+   const bool outputTimingJSON = false;
 
    WcTimingPool timingPool;
 };
@@ -106,6 +115,9 @@ real_t test( const uint_t                  maxLevel,
    WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   auto timer = storage->getTimingTree();
+   timer->start( "Setup" );
 
    auto storageInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "PrimitiveStorage info" )
@@ -198,6 +210,8 @@ real_t test( const uint_t                  maxLevel,
    // Solve system.
    real_t residual = initRes;
 
+   timer->stop( "Setup" );
+
    WALBERLA_LOG_INFO_ON_ROOT( "after iteration | discr. L2 error | rel. residual " )
    WALBERLA_LOG_INFO_ON_ROOT( "----------------+-----------------+---------------" )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "initial", discrL2, 1.0 ) )
@@ -206,10 +220,13 @@ real_t test( const uint_t                  maxLevel,
    {
       for ( int i = 0; ( i < nMaxVCycles ) && ( residual / initRes > residualReduction ); ++i )
       {
+         timer->start( "Solve" );
          simData.timingPool["solver - level " + std::to_string( maxLevel )].start();
          gmgSolver->solve( A, u, f, maxLevel );
          simData.timingPool["solver - level " + std::to_string( maxLevel )].end();
+         timer->stop( "Solve" );
 
+         timer->start( "Error" );
          // determine error
          err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
          M.apply( err, tmp, maxLevel, DoFType::All );
@@ -219,6 +236,7 @@ real_t test( const uint_t                  maxLevel,
          A.apply( u, tmp, maxLevel, DoFType::Inner );
          tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
          residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+         timer->stop( "Error" );
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14d | %15.5e | %13.5e ", i + 1, discrL2, residual / initRes ) )
       }
@@ -234,10 +252,13 @@ real_t test( const uint_t                  maxLevel,
       FullMultigridSolver< N1E1Operator > fmgSolver(
           storage, gmgSolver, prolongationOperator, minLevel, maxLevel, simData.numVCyclesFMG );
 
+      timer->start( "Solve" );
       simData.timingPool["solver - level " + std::to_string( maxLevel )].start();
       fmgSolver.solve( A, u, f, maxLevel );
       simData.timingPool["solver - level " + std::to_string( maxLevel )].end();
+      timer->stop( "Solve" );
 
+      timer->start( "Error" );
       // determine error
       err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
       M.apply( err, tmp, maxLevel, DoFType::All );
@@ -247,6 +268,7 @@ real_t test( const uint_t                  maxLevel,
       A.apply( u, tmp, maxLevel, DoFType::Inner );
       tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
       residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+      timer->stop( "Error" );
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "after FMG", discrL2, residual / initRes ) )
    }
@@ -259,6 +281,11 @@ real_t test( const uint_t                  maxLevel,
       vtk.add( sol );
       vtk.add( err );
       vtk.write( maxLevel );
+   }
+
+   if ( simData.outputTimingJSON )
+   {
+      writeTimingTreeJSON( *timer, "timingTreeLevel" + std::to_string( maxLevel ) + ".json" );
    }
 
    return discrL2;
@@ -451,6 +478,7 @@ int main( int argc, char** argv )
    const uint_t      numVCyclesFMG         = parameters.getParameter< uint_t >( "numVCyclesFMG" );
    const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
    const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
+   const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
 
    std::function< real_t( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
    if ( domainString == "cube" )
@@ -480,7 +508,7 @@ int main( int argc, char** argv )
       WALBERLA_ABORT( "Invalid solver type: " << solverTypeString );
    }
 
-   SimData simData( solverType, numVCyclesFMG, preSmooth, postSmooth, coarseGridRefinements );
+   SimData simData( solverType, numVCyclesFMG, preSmooth, postSmooth, coarseGridRefinements, timingJSON );
 
    std::stringstream ss;
    ss << convergenceTest( minLevel, maxLevel, testCase, simData, vtk );

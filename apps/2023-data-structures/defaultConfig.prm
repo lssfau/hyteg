@@ -1,5 +1,6 @@
 Parameters
 {
+  // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
   minLevel 2;
   maxLevel 5;
 
@@ -16,4 +17,5 @@ Parameters
   coarseGridRefinements 0;
 
   vtk false;
+  timingJSON true;
 }
