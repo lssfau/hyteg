@@ -44,9 +44,7 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -406,7 +404,7 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
    return test< forms::n1e1_linear_form_blending_q6,
                 n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
                 n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
-                P1ElementwiseBlendingLaplaceOperator >(
+                P1ElementwiseBlendingLaplaceOperatorQ2 >(
        maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
