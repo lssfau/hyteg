@@ -25,12 +25,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
 #include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
@@ -81,12 +77,7 @@ struct SimData
 };
 
 /// Returns the approximate L2 error.
-template < class N1E1CurlCurlForm,
-           class N1E1MassForm,
-           class N1E1LinearForm,
-           class N1E1MassOperator,
-           class P1LaplaceOperator,
-           class P1Smoother >
+template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator, class P1Smoother >
 real_t test( const uint_t                  maxLevel,
              const SetupPrimitiveStorage&& setupStorage,
              const VectorField             analyticalSol,
@@ -96,7 +87,7 @@ real_t test( const uint_t                  maxLevel,
 {
    using namespace n1e1;
 
-   using N1E1Smoother = ChebyshevSmoother< N1E1ElementwiseLinearCombinationOperator >;
+   using N1E1Smoother = ChebyshevSmoother< N1E1Operator >;
 
    const uint_t minLevel                = 0;
    const uint_t spectralRadiusEstLevel  = std::min( uint_c( 3 ), maxLevel );
@@ -107,11 +98,8 @@ real_t test( const uint_t                  maxLevel,
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   N1E1CurlCurlForm curlCurlForm;
-   N1E1MassForm     massForm;
-
-   N1E1MassOperator                         M( storage, minLevel, maxLevel );
-   N1E1ElementwiseLinearCombinationOperator A( storage, minLevel, maxLevel, { { 1.0, 1.0 }, { &curlCurlForm, &massForm } } );
+   N1E1MassOperator M( storage, minLevel, maxLevel );
+   N1E1Operator     A( storage, minLevel, maxLevel );
 
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
@@ -155,31 +143,29 @@ real_t test( const uint_t                  maxLevel,
    chebyshevSmoother->setupCoefficients( 2, spectralRadius );
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( spectralRadius );
 
-   auto hybridSmoother = std::make_shared< HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1LaplaceOperator > >(
+   auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
        storage, p1LaplaceOperator, chebyshevSmoother, p1Smoother, minLevel, maxLevel );
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
    // WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel );
+   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1Operator > >( storage, minLevel );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
-   auto coarseGridSolver =
-       std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, minLevel, 10000, 1e-12 );
+   auto coarseGridSolver = std::make_shared< CGSolver< N1E1Operator > >( storage, minLevel, minLevel, 10000, 1e-12 );
 #endif
    auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
 
-   auto gmgSolver =
-       std::make_shared< GeometricMultigridSolver< N1E1ElementwiseLinearCombinationOperator > >( storage,
-                                                                                                 hybridSmoother,
-                                                                                                 coarseGridSolver,
-                                                                                                 restrictionOperator,
-                                                                                                 prolongationOperator,
-                                                                                                 minLevel,
-                                                                                                 maxLevel,
-                                                                                                 simData.preSmooth,
-                                                                                                 simData.postSmooth );
+   auto gmgSolver = std::make_shared< GeometricMultigridSolver< N1E1Operator > >( storage,
+                                                                                  hybridSmoother,
+                                                                                  coarseGridSolver,
+                                                                                  restrictionOperator,
+                                                                                  prolongationOperator,
+                                                                                  minLevel,
+                                                                                  maxLevel,
+                                                                                  simData.preSmooth,
+                                                                                  simData.postSmooth );
 
    // Interpolate solution
    sol.interpolate( analyticalSol, maxLevel );
@@ -222,7 +208,7 @@ real_t test( const uint_t                  maxLevel,
       // is executed just to get the solution on the finest level.
       // Both approaches are equivalent.
 
-      FullMultigridSolver< N1E1ElementwiseLinearCombinationOperator > fmgSolver(
+      FullMultigridSolver< N1E1Operator > fmgSolver(
           storage, gmgSolver, prolongationOperator, minLevel, maxLevel, simData.numVCyclesFMG );
 
       simData.timingPool["solver - level " + std::to_string( maxLevel )].start();
@@ -277,10 +263,9 @@ real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = 
                       2 * ( x * ( 1 - x ) + y * ( 1 - y ) ) + x * ( 1 - x ) * y * ( 1 - y ) };
    };
 
-   return test< forms::n1e1_curl_curl_affine_q0,
-                forms::n1e1_mass_affine_qe,
-                forms::n1e1_linear_form_affine_q6,
+   return test< forms::n1e1_linear_form_affine_q6,
                 n1e1::N1E1ElementwiseMassOperator,
+                n1e1::N1E1ElementwiseCurlCurlPlusMassOperatorQ2,
                 P1ConstantLaplaceOperator,
                 GaussSeidelSmoother< P1ConstantLaplaceOperator > >(
        maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
@@ -357,10 +342,9 @@ real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
       return Point3D{ u0, u1, u2 };
    };
 
-   return test< forms::n1e1_curl_curl_blending_q2,
-                forms::n1e1_mass_blending_q2,
-                forms::n1e1_linear_form_blending_q6,
+   return test< forms::n1e1_linear_form_blending_q6,
                 n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
+                n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
                 P1ElementwiseBlendingLaplaceOperator,
                 WeightedJacobiSmoother< P1ElementwiseBlendingLaplaceOperator > >(
        maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
