@@ -16,6 +16,12 @@ Parameters
 
   coarseGridRefinements 0;
 
+  toroidalResolution 34;
+  poloidalResolution 6;
+  tubeLayerRadius 0.4;
+
   vtk false;
   timingJSON true;
+
+  baseName curlcurl;
 }
