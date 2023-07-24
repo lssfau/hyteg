@@ -86,6 +86,7 @@ struct SimData
    , tubeLayerRadius( _tubeLayerRadius )
    , outputTimingJSON( _outputTimingJSON )
    , baseName( _baseName )
+   , table( { "Level", "DoFs", "L2error", "timeMin", "timeMax", "timeAvg" } )
    {}
 
    // 0 -> v-cycles
@@ -112,29 +113,17 @@ struct SimData
    const std::string baseName = "basename";
 
    WcTimingPool timingPool;
-};
-
-struct Result
-{
-   Result( const uint_t _dofs, const real_t _l2Error, const WcTimer _solveTimer )
-   : dofs( _dofs )
-   , l2Error( _l2Error )
-   , solveTimer( _solveTimer )
-   {}
-
-   const uint_t  dofs;
-   const real_t  l2Error;
-   const WcTimer solveTimer;
+   Table< 6 >   table;
 };
 
 /// Returns the approximate L2 error.
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
-Result test( const uint_t                  maxLevel,
-             const SetupPrimitiveStorage&& setupStorage,
-             const VectorField             analyticalSol,
-             const VectorField             rhs,
-             SimData&                      simData,
-             const bool                    writeVTK = false )
+void test( const uint_t                  maxLevel,
+           const SetupPrimitiveStorage&& setupStorage,
+           const VectorField             analyticalSol,
+           const VectorField             rhs,
+           SimData&                      simData,
+           const bool                    writeVTK = false )
 {
    using namespace n1e1;
 
@@ -170,9 +159,6 @@ Result test( const uint_t                  maxLevel,
    N1E1VectorFunction< real_t > sol( "sol", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > err( "err", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
-
-   const uint_t nDoFs = numberOfGlobalDoFs( u, maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
 
    if ( writeVTK )
    {
@@ -245,30 +231,33 @@ Result test( const uint_t                  maxLevel,
                                                                                   simData.preSmooth,
                                                                                   simData.postSmooth );
 
-   // Interpolate solution
-   sol.interpolate( analyticalSol, maxLevel );
-
-   // Determine initial error
-   err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
-   M.apply( err, tmp, maxLevel, DoFType::All );
-   real_t discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
-
-   // Determine initial residual
-   A.apply( u, tmp, maxLevel, DoFType::Inner );
-   tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
-   const real_t initRes = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
-
-   // Solve system.
-   real_t residual = initRes;
-
-   timer->stop( "Setup" );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "after iteration | discr. L2 error | rel. residual " )
-   WALBERLA_LOG_INFO_ON_ROOT( "----------------+-----------------+---------------" )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "initial", discrL2, 1.0 ) )
-
    if ( simData.solverType == SolverType::VCYCLES )
    {
+      // Interpolate solution
+      sol.interpolate( analyticalSol, maxLevel );
+
+      timer->stop( "Setup" );
+
+      // Determine initial error
+      err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
+      M.apply( err, tmp, maxLevel, DoFType::All );
+      real_t discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
+
+      // Determine initial residual
+      A.apply( u, tmp, maxLevel, DoFType::Inner );
+      tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
+      const real_t initRes = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+
+      // Solve system.
+      real_t residual = initRes;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "after iteration | discr. L2 error | rel. residual " )
+      WALBERLA_LOG_INFO_ON_ROOT( "----------------+-----------------+---------------" )
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "initial", discrL2, 1.0 ) )
+
+      const uint_t nDoFs = numberOfGlobalDoFs( u, maxLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
+
       for ( int i = 0; ( i < nMaxVCycles ) && ( residual / initRes > residualReduction ); ++i )
       {
          timer->start( "Solve" );
@@ -291,37 +280,72 @@ Result test( const uint_t                  maxLevel,
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14d | %15.5e | %13.5e ", i + 1, discrL2, residual / initRes ) )
       }
+
+      auto reducedTimer = getReduced(
+          simData.timingPool["solver - level " + std::to_string( maxLevel )], walberla::timing::ReduceType::REDUCE_TOTAL, 0 );
+
+      WALBERLA_ROOT_SECTION()
+      {
+         uint_t row = maxLevel - minLevel;
+         simData.table.addElement( row, 0, maxLevel );
+         simData.table.addElement( row, 1, nDoFs );
+         simData.table.addElement( row, 2, discrL2 );
+         simData.table.addElement( row, 3, reducedTimer->min() );
+         simData.table.addElement( row, 4, reducedTimer->max() );
+         simData.table.addElement( row, 5, reducedTimer->average() );
+      }
    }
    else if ( simData.solverType == SolverType::FMG )
    {
-      // This is not 100% optimal since we technically only need to execute the FMG on the finest level for the convergence
-      // studies, collecting all the errors on all FMG level.
-      // But to keep the code simple, and because it does not harm for the time/performance measurements, the entire FMG
-      // is executed just to get the solution on the finest level.
-      // Both approaches are equivalent.
+      // Interpolate solution
+      for ( uint_t l = minLevel; l <= maxLevel; l++ )
+      {
+         sol.interpolate( analyticalSol, l );
+      }
+
+      timer->stop( "Setup" );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "FMG level | discr. L2 error " )
+      WALBERLA_LOG_INFO_ON_ROOT( "----------+-----------------" )
+
+      std::function< void( uint_t currentLevel ) > postCycleCallback = [&]( const uint_t currentLevel ) {
+         simData.timingPool["solver - level " + std::to_string( currentLevel )].end();
+
+         // determine error
+         err.assign( { 1.0, -1.0 }, { u, sol }, currentLevel );
+         M.apply( err, tmp, currentLevel, DoFType::All );
+         real_t discrL2 = std::sqrt( err.dotGlobal( tmp, currentLevel ) );
+
+         const uint_t nDoFs        = numberOfGlobalDoFs( u, currentLevel );
+         auto         reducedTimer = getReduced( simData.timingPool["solver - level " + std::to_string( currentLevel )],
+                                         walberla::timing::ReduceType::REDUCE_TOTAL,
+                                         0 );
+         WALBERLA_ROOT_SECTION()
+         {
+            uint_t row = currentLevel - minLevel;
+            simData.table.addElement( row, 0, currentLevel );
+            simData.table.addElement( row, 1, nDoFs );
+            simData.table.addElement( row, 2, discrL2 );
+            simData.table.addElement( row, 3, reducedTimer->min() );
+            simData.table.addElement( row, 4, reducedTimer->max() );
+            simData.table.addElement( row, 5, reducedTimer->average() );
+         }
+
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%9d | %15.5e ", currentLevel, discrL2 ) )
+
+         if ( currentLevel < maxLevel )
+         {
+            simData.timingPool["solver - level " + std::to_string( currentLevel + 1 )].start();
+         }
+      };
 
       FullMultigridSolver< N1E1Operator > fmgSolver(
-          storage, gmgSolver, prolongationOperator, minLevel, maxLevel, simData.numVCyclesFMG );
+          storage, gmgSolver, prolongationOperator, minLevel, maxLevel, simData.numVCyclesFMG, postCycleCallback );
 
       timer->start( "Solve" );
-      simData.timingPool["solver - level " + std::to_string( maxLevel )].start();
+      simData.timingPool["solver - level " + std::to_string( minLevel )].start();
       fmgSolver.solve( A, u, f, maxLevel );
-      simData.timingPool["solver - level " + std::to_string( maxLevel )].end();
       timer->stop( "Solve" );
-
-      timer->start( "Error" );
-      // determine error
-      err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
-      M.apply( err, tmp, maxLevel, DoFType::All );
-      discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
-
-      // determine residual
-      A.apply( u, tmp, maxLevel, DoFType::Inner );
-      tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
-      residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
-      timer->stop( "Error" );
-
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14s | %15.5e | %13.5e ", "after FMG", discrL2, residual / initRes ) )
    }
 
    if ( writeVTK )
@@ -338,11 +362,9 @@ Result test( const uint_t                  maxLevel,
    {
       writeTimingTreeJSON( *timer, simData.baseName + "_timingTreeLevel" + std::to_string( maxLevel ) + ".json" );
    }
-
-   return Result{ nDoFs, discrL2, timer->getReduced()["Solve"] };
 }
 
-Result testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
+void testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
    const MeshInfo cube =
        MeshInfo::refinedCoarseMesh( MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
@@ -369,13 +391,13 @@ Result testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = 
                       2 * ( x * ( 1 - x ) + y * ( 1 - y ) ) + x * ( 1 - x ) * y * ( 1 - y ) };
    };
 
-   return test< forms::n1e1_linear_form_affine_q6,
-                n1e1::N1E1ElementwiseMassOperator,
-                n1e1::N1E1ElementwiseCurlCurlPlusMassOperatorQ2,
-                P1ConstantLaplaceOperator >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
+   test< forms::n1e1_linear_form_affine_q6,
+         n1e1::N1E1ElementwiseMassOperator,
+         n1e1::N1E1ElementwiseCurlCurlPlusMassOperatorQ2,
+         P1ConstantLaplaceOperator >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
-Result testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
+void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
    const uint_t                toroidalResolution         = simData.toroidalResolution;
    const uint_t                poloidalResolution         = simData.poloidalResolution;
@@ -450,57 +472,29 @@ Result testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK =
       return Point3D{ u0, u1, u2 };
    };
 
-   return test< forms::n1e1_linear_form_blending_q6,
-                n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
-                n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
-                P1ElementwiseBlendingLaplaceOperatorQ2 >(
-       maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
+   test< forms::n1e1_linear_form_blending_q6,
+         n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
+         n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
+         P1ElementwiseBlendingLaplaceOperatorQ2 >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
 }
 
-Table< 6 > convergenceTest( const uint_t                                                                         minLevel,
-                            const uint_t                                                                         maxLevel,
-                            std::function< Result( const uint_t level, SimData& simData, const bool writeVtk ) > test,
-                            SimData&                                                                             simData,
-                            const bool writeVTK = false )
+void convergenceTest( const uint_t                                                                       minLevel,
+                      const uint_t                                                                       maxLevel,
+                      std::function< void( const uint_t level, SimData& simData, const bool writeVtk ) > test,
+                      SimData&                                                                           simData,
+                      const bool                                                                         writeVTK = false )
 {
-   Table< 6 > table{ { "Level", "DoFs", "L2error", "timeMin", "timeMax", "timeAvg" } };
-
-   WALBERLA_LOG_INFO_ON_ROOT( "###################" );
-   WALBERLA_LOG_INFO_ON_ROOT( "# Running level " << minLevel << " #" );
-   WALBERLA_LOG_INFO_ON_ROOT( "###################" );
-
-   const Result res = test( minLevel, simData, writeVTK );
-   table.addElement( 0, 0, minLevel );
-   table.addElement( 0, 1, res.dofs );
-   table.addElement( 0, 2, res.l2Error );
-   table.addElement( 0, 3, res.solveTimer.min() );
-   table.addElement( 0, 4, res.solveTimer.max() );
-   table.addElement( 0, 5, res.solveTimer.average() );
-
-   real_t err = res.l2Error;
-
-   for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
+   if ( simData.solverType == SolverType::VCYCLES )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "###################" );
-      WALBERLA_LOG_INFO_ON_ROOT( "# Running level " << level << " #" );
-      WALBERLA_LOG_INFO_ON_ROOT( "###################" );
-
-      const Result resFiner     = test( level, simData, writeVTK );
-      const real_t computedRate = resFiner.l2Error / err;
-
-      WALBERLA_LOG_INFO_ON_ROOT( "# computed rate level " << level << " / " << level - 1 << ": " << computedRate );
-
-      table.addElement( level - minLevel, 0, level );
-      table.addElement( level - minLevel, 1, resFiner.dofs );
-      table.addElement( level - minLevel, 2, resFiner.l2Error );
-      table.addElement( level - minLevel, 3, resFiner.solveTimer.min() );
-      table.addElement( level - minLevel, 4, resFiner.solveTimer.max() );
-      table.addElement( level - minLevel, 5, resFiner.solveTimer.average() );
-
-      err = resFiner.l2Error;
+      for ( uint_t level = minLevel + 1; level <= maxLevel; level++ )
+      {
+         test( level, simData, writeVTK );
+      }
    }
-
-   return table;
+   else if ( simData.solverType == SolverType::FMG )
+   {
+      test( maxLevel, simData, writeVTK );
+   }
 }
 
 int main( int argc, char** argv )
@@ -544,7 +538,7 @@ int main( int argc, char** argv )
    const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
    const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
 
-   std::function< Result( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
+   std::function< void( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
    if ( domainString == "cube" )
    {
       testCase = testCube;
@@ -585,9 +579,12 @@ int main( int argc, char** argv )
                     timingJSON,
                     baseName );
 
-   Table results = convergenceTest( minLevel, maxLevel, testCase, simData, vtk );
-   WALBERLA_LOG_INFO_ON_ROOT( results )
-   results.write( "output", simData.baseName );
+   convergenceTest( minLevel, maxLevel, testCase, simData, vtk );
+   WALBERLA_ROOT_SECTION()
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( simData.table )
+      simData.table.write( "output", simData.baseName + ".table" );
+   }
 
    auto timingPoolReduced = simData.timingPool.getReduced();
 

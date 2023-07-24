@@ -1,7 +1,7 @@
 Parameters
 {
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
-  minLevel 2;
+  minLevel 0;
   maxLevel 3;
 
   // "cube" or "torus"
