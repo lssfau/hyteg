@@ -5,7 +5,7 @@ Parameters
   maxLevel 5;
 
   // "cube" or "torus"
-  domain cube;
+  domain torus;
 
   // "vcycles" or "fmg"
   solverType fmg;
@@ -16,6 +16,12 @@ Parameters
 
   coarseGridRefinements 0;
 
+  toroidalResolution 34;
+  poloidalResolution 6;
+  tubeLayerRadius 0.4;
+
   vtk false;
   timingJSON true;
+
+  baseName curlcurl;
 }

@@ -39,6 +39,7 @@
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
@@ -60,18 +61,26 @@ enum class SolverType
 
 struct SimData
 {
-   SimData( SolverType _solverType,
-            uint_t     _numVCyclesFMG,
-            uint_t     _preSmooth,
-            uint_t     _postSmooth,
-            uint_t     _coarseGridRefinements,
-            bool       _outputTimingJSON )
+   SimData( SolverType  _solverType,
+            uint_t      _numVCyclesFMG,
+            uint_t      _preSmooth,
+            uint_t      _postSmooth,
+            uint_t      _coarseGridRefinements,
+            uint_t      _poloidalResolution,
+            uint_t      _toroidalResolution,
+            real_t      _tubeLayerRadius,
+            bool        _outputTimingJSON,
+            std::string _baseName )
    : solverType( _solverType )
    , numVCyclesFMG( _numVCyclesFMG )
    , preSmooth( _preSmooth )
    , postSmooth( _postSmooth )
    , coarseGridRefinements( _coarseGridRefinements )
+   , poloidalResolution( _poloidalResolution )
+   , toroidalResolution( _toroidalResolution )
+   , tubeLayerRadius( _tubeLayerRadius )
    , outputTimingJSON( _outputTimingJSON )
+   , baseName( _baseName )
    {}
 
    // 0 -> v-cycles
@@ -86,7 +95,13 @@ struct SimData
 
    const uint_t coarseGridRefinements = 0;
 
+   const uint_t poloidalResolution = 6;
+   const uint_t toroidalResolution = 34;
+   const real_t tubeLayerRadius    = 0.4;
+
    const bool outputTimingJSON = false;
+
+   const std::string baseName = "basename";
 
    WcTimingPool timingPool;
 };
@@ -136,6 +151,11 @@ real_t test( const uint_t                  maxLevel,
 
    const uint_t nDoFs = numberOfGlobalDoFs( u, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "dofs on level " << maxLevel << ": " << nDoFs );
+
+   if ( writeVTK )
+   {
+      writeDomainPartitioningVTK( *storage, "output", simData.baseName + "_vtk_domain" );
+   }
 
    // Assemble RHS.
    if ( simData.solverType == SolverType::VCYCLES )
@@ -275,7 +295,7 @@ real_t test( const uint_t                  maxLevel,
 
    if ( writeVTK )
    {
-      VTKOutput vtk( "output", "curlCurlConvergence", storage );
+      VTKOutput vtk( "output", simData.baseName + "_vtk", storage );
       vtk.add( u );
       vtk.add( f );
       vtk.add( sol );
@@ -285,7 +305,7 @@ real_t test( const uint_t                  maxLevel,
 
    if ( simData.outputTimingJSON )
    {
-      writeTimingTreeJSON( *timer, "timingTreeLevel" + std::to_string( maxLevel ) + ".json" );
+      writeTimingTreeJSON( *timer, simData.baseName + "_timingTreeLevel" + std::to_string( maxLevel ) + ".json" );
    }
 
    return discrL2;
@@ -328,10 +348,10 @@ real_t testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = 
 
 real_t testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
-   const uint_t                toroidalResolution         = 34;
-   const uint_t                poloidalResolution         = 6;
+   const uint_t                toroidalResolution         = simData.toroidalResolution;
+   const uint_t                poloidalResolution         = simData.poloidalResolution;
    const real_t                radiusOriginToCenterOfTube = 2;
-   const std::vector< real_t > tubeLayerRadii             = { 0.4 };
+   const std::vector< real_t > tubeLayerRadii             = { simData.tubeLayerRadius };
    const real_t                torodialStartAngle         = 0.0;
    const real_t                polodialStartAngle         = 0.0;
 
@@ -471,12 +491,16 @@ int main( int argc, char** argv )
    const uint_t minLevel = parameters.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel = parameters.getParameter< uint_t >( "maxLevel" );
 
+   const std::string baseName              = parameters.getParameter< std::string >( "baseName" );
    const std::string domainString          = parameters.getParameter< std::string >( "domain" );
    const std::string solverTypeString      = parameters.getParameter< std::string >( "solverType" );
    const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
    const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
    const uint_t      numVCyclesFMG         = parameters.getParameter< uint_t >( "numVCyclesFMG" );
    const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
+   const uint_t      poloidalResolution    = parameters.getParameter< uint_t >( "poloidalResolution" );
+   const uint_t      toroidalResolution    = parameters.getParameter< uint_t >( "toroidalResolution" );
+   const real_t      tubeLayerRadius       = parameters.getParameter< real_t >( "tubeLayerRadius" );
    const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
    const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
 
@@ -508,7 +532,16 @@ int main( int argc, char** argv )
       WALBERLA_ABORT( "Invalid solver type: " << solverTypeString );
    }
 
-   SimData simData( solverType, numVCyclesFMG, preSmooth, postSmooth, coarseGridRefinements, timingJSON );
+   SimData simData( solverType,
+                    numVCyclesFMG,
+                    preSmooth,
+                    postSmooth,
+                    coarseGridRefinements,
+                    poloidalResolution,
+                    toroidalResolution,
+                    tubeLayerRadius,
+                    timingJSON,
+                    baseName );
 
    std::stringstream ss;
    ss << convergenceTest( minLevel, maxLevel, testCase, simData, vtk );
