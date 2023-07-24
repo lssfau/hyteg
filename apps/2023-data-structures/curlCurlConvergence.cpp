@@ -167,7 +167,7 @@ real_t test( const uint_t                  maxLevel,
    sol.interpolate( analyticalSol, spectralRadiusEstLevel );
    const real_t spectralRadius =
        chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp );
-   chebyshevSmoother->setupCoefficients( 2, spectralRadius );
+   chebyshevSmoother->setupCoefficients( 2, 0.05 * spectralRadius, 1.05 * spectralRadius );
    WALBERLA_LOG_DEVEL_VAR_ON_ROOT( spectralRadius );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
