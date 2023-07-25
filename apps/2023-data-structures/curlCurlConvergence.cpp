@@ -18,6 +18,8 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sstream>
+
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/config/Config.h"
@@ -62,18 +64,18 @@ enum class SolverType
 
 struct SimData
 {
-   SimData( SolverType  _solverType,
-            uint_t      _numVCyclesFMG,
-            uint_t      _preSmooth,
-            uint_t      _postSmooth,
-            real_t      _n1e1SpectralRadius,
-            real_t      _p1SpectralRadius,
-            uint_t      _coarseGridRefinements,
-            uint_t      _poloidalResolution,
-            uint_t      _toroidalResolution,
-            real_t      _tubeLayerRadius,
-            bool        _outputTimingJSON,
-            std::string _baseName )
+   SimData( SolverType            _solverType,
+            uint_t                _numVCyclesFMG,
+            uint_t                _preSmooth,
+            uint_t                _postSmooth,
+            real_t                _n1e1SpectralRadius,
+            real_t                _p1SpectralRadius,
+            uint_t                _coarseGridRefinements,
+            uint_t                _poloidalResolution,
+            uint_t                _toroidalResolution,
+            std::vector< real_t > _tubeLayerRadii,
+            bool                  _outputTimingJSON,
+            std::string           _baseName )
    : solverType( _solverType )
    , numVCyclesFMG( _numVCyclesFMG )
    , preSmooth( _preSmooth )
@@ -83,7 +85,7 @@ struct SimData
    , coarseGridRefinements( _coarseGridRefinements )
    , poloidalResolution( _poloidalResolution )
    , toroidalResolution( _toroidalResolution )
-   , tubeLayerRadius( _tubeLayerRadius )
+   , tubeLayerRadii( _tubeLayerRadii )
    , outputTimingJSON( _outputTimingJSON )
    , baseName( _baseName )
    , table( { "Level", "DoFs", "L2error", "timeMin", "timeMax", "timeAvg" } )
@@ -104,9 +106,9 @@ struct SimData
 
    const uint_t coarseGridRefinements = 0;
 
-   const uint_t poloidalResolution = 6;
-   const uint_t toroidalResolution = 34;
-   const real_t tubeLayerRadius    = 0.4;
+   const uint_t                poloidalResolution = 6;
+   const uint_t                toroidalResolution = 34;
+   const std::vector< real_t > tubeLayerRadii     = { 0.4 };
 
    const bool outputTimingJSON = false;
 
@@ -402,7 +404,7 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
    const uint_t                toroidalResolution         = simData.toroidalResolution;
    const uint_t                poloidalResolution         = simData.poloidalResolution;
    const real_t                radiusOriginToCenterOfTube = 2;
-   const std::vector< real_t > tubeLayerRadii             = { simData.tubeLayerRadius };
+   const std::vector< real_t > tubeLayerRadii             = simData.tubeLayerRadii;
    const real_t                torodialStartAngle         = 0.0;
    const real_t                polodialStartAngle         = 0.0;
 
@@ -499,6 +501,8 @@ void convergenceTest( const uint_t                                              
 
 int main( int argc, char** argv )
 {
+   using BlockHandle = walberla::config::Config::BlockHandle;
+
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
@@ -534,7 +538,7 @@ int main( int argc, char** argv )
    const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
    const uint_t      poloidalResolution    = parameters.getParameter< uint_t >( "poloidalResolution" );
    const uint_t      toroidalResolution    = parameters.getParameter< uint_t >( "toroidalResolution" );
-   const real_t      tubeLayerRadius       = parameters.getParameter< real_t >( "tubeLayerRadius" );
+   const BlockHandle tubeLayerRadiiBlock   = parameters.getBlock( "tubeLayerRadii" );
    const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
    const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
 
@@ -566,6 +570,16 @@ int main( int argc, char** argv )
       WALBERLA_ABORT( "Invalid solver type: " << solverTypeString );
    }
 
+   std::vector< real_t > tubeLayerRadii;
+   for ( const auto& parameter : tubeLayerRadiiBlock )
+   {
+      real_t             radius = 0.0;
+      std::istringstream iss( parameter.second );
+      iss >> radius;
+
+      tubeLayerRadii.push_back( radius );
+   }
+
    SimData simData( solverType,
                     numVCyclesFMG,
                     preSmooth,
@@ -575,7 +589,7 @@ int main( int argc, char** argv )
                     coarseGridRefinements,
                     poloidalResolution,
                     toroidalResolution,
-                    tubeLayerRadius,
+                    tubeLayerRadii,
                     timingJSON,
                     baseName );
 

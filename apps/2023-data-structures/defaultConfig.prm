@@ -21,7 +21,10 @@ Parameters
 
   toroidalResolution 34;
   poloidalResolution 6;
-  tubeLayerRadius 0.4;
+  tubeLayerRadii
+  {
+    0 0.4;
+  }
 
   vtk false;
   timingJSON true;
