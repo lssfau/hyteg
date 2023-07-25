@@ -32,13 +32,14 @@ using walberla::uint_t;
 /// Class for storing multiple functions from the same family but with (potentially) different value types
 ///
 /// This class allows to store multiple functions from the same family, which can but need not differ in
-/// their value types. The class is currently intended as a replacement for the std::vector< "func_t"< real_t >
-/// containes in VTKOuput and thus tries to behave as much as possbile like an std::vector. Currently
+/// their value types. The class tries to behave as much as possbile like an std::vector. Currently
 /// supported value types are
+///
 /// - double
 /// - float
 /// - int32_t
 /// - int64_t
+///
 /// Extension to other datatypes is straightforward.
 template < template < class > class func_t >
 class FunctionMultiStore
@@ -73,8 +74,10 @@ class FunctionMultiStore
       };
    };
 
+   /// Return the size of the FunctionMultiStore, i.e. the number of all functions stored (independent of their value type)
    uint_t size() const { return r64Funcs.size() + r32Funcs.size() + i32Funcs.size() + i64Funcs.size(); };
 
+   /// Return a vector with all stored functions of a certain value type
    template < typename value_t >
    const std::vector< func_t< value_t > >& getFunctions() const
    {
@@ -104,7 +107,7 @@ class FunctionMultiStore
       }
    }
 
-   // Return a vector with names of all functions contained in the store
+   /// Return a vector with names of all functions contained in the store
    std::vector< std::string > getFunctionNames() const {
      std::vector< std::string > names;
      names.reserve( size() );
