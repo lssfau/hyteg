@@ -189,7 +189,7 @@ template < typename value_t >
 void AdiosWriterForP2::defineVariables( const FEFunctionRegistry& registry )
 {
    auto checkAndDefine = [this]( std::string funcName, uint_t funcDim ) {
-      adios2::Variable< real_t > varDoFData = io_.InquireVariable< value_t >( funcName );
+      adios2::Variable< value_t > varDoFData = io_.InquireVariable< value_t >( funcName );
       if ( !varDoFData )
       {
          uint_t extent{ 0 };

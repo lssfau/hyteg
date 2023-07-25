@@ -31,6 +31,7 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -91,7 +92,7 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
    // should produce a warning
    P1Function< real_t > foo( "foo", storage, level, level );
    adiosWriter.add( foo );
-   
+
    adiosWriter.write( level, 1 );
 }
 
@@ -122,6 +123,18 @@ int main( int argc, char* argv[] )
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
       runTest< real_t >( storage, "AdiosWriterTest_3D", 2 );
+   }
+
+   // Execute test with a 3D mesh
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing AdiosWriter for 2D Surface Mesh in 3D ***" );
+   {
+      real_t                radius{ real_c( 1.5 ) };
+      MeshInfo              mesh = MeshInfo::meshThinSphericalShell( 2, radius );
+      SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      ThinShellMap::setMap( setupStorage, radius );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+      runTest< real_t >( storage, "AdiosWriterTest_3DSurface", 3 );
    }
 
    return EXIT_SUCCESS;
