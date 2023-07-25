@@ -3,7 +3,7 @@ import time
 # those are constant for now
 pre_smooth = 1
 post_smooth = 1
-fmg_v_cycles = 5
+fmg_v_cycles = 4
 n1e1SpectralRadius = 3.08346
 p1SpectralRadius   = 2.00736
 max_level = 7
@@ -23,7 +23,7 @@ def create_file(datestamp, nodes, coarse_refinements, thin_torus):
 Parameters
 {{
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
-  minLevel 2;
+  minLevel 0;
   maxLevel {max_level};
 
   // "cube" or "torus"
@@ -57,7 +57,7 @@ Parameters
 
 #PBS -N {base_name}
 #PBS -l select={nodes}:node_type=rome:mpiprocs={ppn}
-#PBS -l walltime=01:00:00
+#PBS -l walltime=00:12:00
 
 module load petsc
 
