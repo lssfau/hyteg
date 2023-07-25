@@ -103,11 +103,11 @@ class Function
    static std::map< uint_t, uint_t > getLevelWiseFunctionCounter() { return levelWiseFunctionCounter_; }
 
  protected:
-   const std::string                         functionName_;
-   const std::shared_ptr< PrimitiveStorage > storage_;
-   const uint_t                              minLevel_;
-   const uint_t                              maxLevel_;
-   const bool                                isDummy_;
+   std::string                               functionName_;
+   std::shared_ptr< PrimitiveStorage > storage_;
+   uint_t                              minLevel_;
+   uint_t                              maxLevel_;
+   bool                                isDummy_;
 
    std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > communicators_;
    std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > additiveCommunicators_;
