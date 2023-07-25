@@ -184,6 +184,138 @@ class FEFunctionRegistry
       }
    }
 
+   /// Remove an FE Function from the registry
+   template < template < typename > class func_t, typename value_t >
+   inline void remove( const func_t< value_t >& function )
+   {
+      // -------------
+      //  CGFunctions
+      // -------------
+
+      // P1Functions
+      if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > )
+      {
+        p1Functions_.remove( function );
+      }
+
+      // P1VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
+      {
+         p1VecFunctions_.remove( function );
+      }
+
+      // P2Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > )
+      {
+         p2Functions_.remove( function );
+      }
+
+      // P2VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+      {
+         p2VecFunctions_.remove( function );
+      }
+
+      // EdgeDoFFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
+      {
+         edgeDoFFunctions_.remove( function );
+      }
+
+      // -------------
+      //  DGFunctions
+      // -------------
+
+      // P0Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P0Function< value_t > > )
+      {
+         dgFunctions_.remove( *function.getDGFunction() );
+      }
+
+      // DG1Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, DG1Function< value_t > > )
+      {
+         dgFunctions_.remove( *function.getDGFunction() );
+      }
+
+      // DGFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, dg::DGFunction< value_t > > )
+      {
+         dgFunctions_.remove( function );
+      }
+
+      // DGVectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, dg::DGVectorFunction< value_t > > )
+      {
+         dgVecFunctions_.remove( function );
+      }
+
+      // ---------------------------------
+      //  Special and Composite Functions
+      // ---------------------------------
+
+      // N1E1VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > )
+      {
+         n1e1Functions_.remove( function );
+      }
+
+      // EGFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, EGFunction< value_t > > )
+      {
+         p1dgeVecFunctions_.remove( function );
+      }
+
+      // P1StokesFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, P1StokesFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // P2P1TaylorHoodFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // EGP0StokesFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, EGP0StokesFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // -----------------------
+      //  "Technical" Functions
+      // -----------------------
+
+      // BlockFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, BlockFunction< value_t > > )
+      {
+         for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+         {
+            this->remove( function[k] );
+         }
+      }
+
+      else if constexpr ( std::is_base_of_v< BlockFunction< value_t >, func_t< value_t > > )
+      {
+         for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+         {
+            this->remove( function[k] );
+         }
+      }
+
+      // NO MATCH !!!
+      else
+      {
+         WALBERLA_ABORT( "Could not remove function of type '" << FunctionTrait< func_t< value_t > >::getTypeName()
+                                                               << "' from FEFunctionRegistry!" );
+      }
+   }
+
    const FunctionMultiStore< P1Function >&               getP1Functions() const { return p1Functions_; }
    const FunctionMultiStore< P2Function >&               getP2Functions() const { return p2Functions_; }
    const FunctionMultiStore< P1VectorFunction >&         getP1VectorFunctions() const { return p1VecFunctions_; }

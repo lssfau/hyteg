@@ -77,6 +77,14 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms.size() << " P1Functions" );
    WALBERLA_CHECK_EQUAL( ms.size(), 4 );
 
+   // Remove a single of the P1Functions
+   WALBERLA_LOG_INFO_ON_ROOT( "Removing '" << dFunc2.getFunctionName() << "' from FunctionMultiStore" );
+   ms.remove( dFunc2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms.size() << " P1Functions" );
+   WALBERLA_CHECK_EQUAL( ms.size(), 3 );
+
+   hyteg::P1Function< double > aux = dFunc1;
+
    // ==================
    //  P2VectorFunction
    // ==================

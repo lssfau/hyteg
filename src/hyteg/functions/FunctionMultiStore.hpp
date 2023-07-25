@@ -50,23 +50,23 @@ class FunctionMultiStore
    {
       if constexpr ( std::is_same< value_t, double >::value )
       {
-         r64Funcs.push_back( function );
+         r64Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, float >::value )
       {
-         r32Funcs.push_back( function );
+         r32Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, int32_t >::value )
       {
-         i32Funcs.push_back( function );
+         i32Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, int64_t >::value )
       {
-         i64Funcs.push_back( function );
+         i64Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, long long >::value )
       {
-         i64Funcs.push_back( function );
+         i64Funcs_.push_back( function );
       }
       else
       {
@@ -75,7 +75,7 @@ class FunctionMultiStore
    };
 
    /// Return the size of the FunctionMultiStore, i.e. the number of all functions stored (independent of their value type)
-   uint_t size() const { return r64Funcs.size() + r32Funcs.size() + i32Funcs.size() + i64Funcs.size(); };
+   uint_t size() const { return r64Funcs_.size() + r32Funcs_.size() + i32Funcs_.size() + i64Funcs_.size(); };
 
    /// Return a vector with all stored functions of a certain value type
    template < typename value_t >
@@ -83,23 +83,23 @@ class FunctionMultiStore
    {
       if constexpr ( std::is_same< value_t, double >::value )
       {
-         return r64Funcs;
+         return r64Funcs_;
       }
       else if constexpr ( std::is_same< value_t, float >::value )
       {
-         return r32Funcs;
+         return r32Funcs_;
       }
       else if constexpr ( std::is_same< value_t, int >::value )
       {
-         return i32Funcs;
+         return i32Funcs_;
       }
       else if constexpr ( std::is_same< value_t, long >::value )
       {
-         return i64Funcs;
+         return i64Funcs_;
       }
       else if constexpr ( std::is_same< value_t, long long >::value )
       {
-         return i64Funcs;
+         return i64Funcs_;
       }
       else
       {
@@ -108,29 +108,76 @@ class FunctionMultiStore
    }
 
    /// Return a vector with names of all functions contained in the store
-   std::vector< std::string > getFunctionNames() const {
-     std::vector< std::string > names;
-     names.reserve( size() );
-     for( const auto&func : r64Funcs ) {
-       names.push_back( func.getFunctionName() );
-     }
-     for( const auto&func : r32Funcs ) {
-       names.push_back( func.getFunctionName() );
-     }
-     for( const auto&func : i64Funcs ) {
-       names.push_back( func.getFunctionName() );
-     }
-     for( const auto&func : i32Funcs ) {
-       names.push_back( func.getFunctionName() );
-     }
-     return names;
+   std::vector< std::string > getFunctionNames() const
+   {
+      std::vector< std::string > names;
+      names.reserve( size() );
+      for ( const auto& func : r64Funcs_ )
+      {
+         names.push_back( func.getFunctionName() );
+      }
+      for ( const auto& func : r32Funcs_ )
+      {
+         names.push_back( func.getFunctionName() );
+      }
+      for ( const auto& func : i64Funcs_ )
+      {
+         names.push_back( func.getFunctionName() );
+      }
+      for ( const auto& func : i32Funcs_ )
+      {
+         names.push_back( func.getFunctionName() );
+      }
+      return names;
+   }
+
+   /// remove function by name
+   template < typename value_t >
+   inline void remove( const func_t< value_t >& function )
+   {
+      std::string funcName  = function.getFunctionName();
+      uint_t oldSize = this->size();
+
+      std::function< bool( const func_t< value_t >& ) > predicate = [&funcName]( const func_t< value_t >& func ) {
+         return func.getFunctionName() == funcName;
+      };
+
+      if constexpr ( std::is_same< value_t, double >::value )
+      {
+         r64Funcs_.erase( std::remove_if( r64Funcs_.begin(), r64Funcs_.end(), predicate ) );
+      }
+      else if constexpr ( std::is_same< value_t, float >::value )
+      {
+         r32Funcs_.erase( std::remove_if( r32Funcs_.begin(), r32Funcs_.end(), predicate ) );
+      }
+      else if constexpr ( std::is_same< value_t, int >::value )
+      {
+         i32Funcs_.erase( std::remove_if( i32Funcs_.begin(), i32Funcs_.end(), predicate ) );
+      }
+      else if constexpr ( std::is_same< value_t, long >::value )
+      {
+         i64Funcs_.erase( std::remove_if( i64Funcs_.begin(), i64Funcs_.end(), predicate ) );
+      }
+      else if constexpr ( std::is_same< value_t, long long >::value )
+      {
+         i64Funcs_.erase( std::remove_if( i64Funcs_.begin(), i64Funcs_.end(), predicate ) );
+      }
+      else
+      {
+         WALBERLA_ABORT( "FunctionMultiStore::remove() detected unsupported datatype '" << typeid( value_t ).name() );
+      }
+
+      if ( this->size() == oldSize )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "Could not remove function '" << function.getFunctionName() << "' as is is not inside the FunctionMultiStore object!" );
+      }
    }
 
  private:
-   std::vector< func_t< double > >  r64Funcs;
-   std::vector< func_t< float > >   r32Funcs;
-   std::vector< func_t< int32_t > > i32Funcs;
-   std::vector< func_t< int64_t > > i64Funcs;
+   std::vector< func_t< double > >  r64Funcs_;
+   std::vector< func_t< float > >   r32Funcs_;
+   std::vector< func_t< int32_t > > i32Funcs_;
+   std::vector< func_t< int64_t > > i64Funcs_;
 };
 
 } // namespace hyteg
