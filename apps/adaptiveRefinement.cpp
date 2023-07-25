@@ -59,7 +59,8 @@ using walberla::uint_t;
 #define R_min 1.0
 #define R_max 2.0
 
-using Mass    = P1ConstantMassOperator;
+// using Mass    = P1ConstantMassOperator;
+using Mass    = P1ElementwiseMassOperator;
 using Laplace = P1ConstantLaplaceOperator;
 // using Laplace      = P1ElementwiseLaplaceOperator;
 using DivkGradForm = forms::p1_div_k_grad_affine_q3;
@@ -538,6 +539,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     writePartitioning,
                                        bool                                     writeMeshfile,
                                        uint_t                                   refinement_step,
+                                       uint_t                                   refinement_crit,
                                        bool                                     l2_error_each_iteration = true )
 {
    double t0, t1;
@@ -573,19 +575,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    if constexpr ( std::is_same_v< A_t, DivkGrad > )
    {
       auto k = problem.coeff();
-
-      A = std::make_shared< A_t >( storage, l_min, l_max + 1, DivkGradForm( k, k ) );
+      A      = std::make_shared< A_t >( storage, l_min, l_max, DivkGradForm( k, k ) );
    }
    else
    {
       A = std::make_shared< A_t >( storage, l_min, l_max );
    }
-
    // FE functions
    auto                 u = std::make_shared< P1Function< real_t > >( "u_h", storage, l_min, l_max );
-   P1Function< real_t > f( "f", storage, l_max, l_max );
+   P1Function< real_t > f( "f", storage, l_min, l_max );
    P1Function< real_t > b( "b(f)", storage, l_min, l_max );
-   P1Function< real_t > r( "r", storage, l_max, l_max );
+   P1Function< real_t > r( "r", storage, l_min, l_max );
    P1Function< real_t > tmp( "tmp", storage, l_min, l_max );
 
    std::function< real_t( const Point3D& ) > u_anal;
@@ -724,6 +724,59 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // compute elementwise error
    t0 = walberla::timing::getWcTime();
+   if ( 0 < refinement_crit && refinement_crit <= l_max) // use error indicator
+   {
+      // comparison lvl to use for error indicator
+      auto l_ei = l_max - refinement_crit;
+
+      // solve Au=b on lvl l_ei
+      P1Function< real_t > u_ei( "u_ei", storage, l_min, l_max );
+      problem.init( storage, u_anal, f, u_ei, b, l_ei );
+      GeometricMultigridSolver< A_t > gmg_ei( storage, smoother, cgs, R, P, l_min, l_ei, n1, n2 );
+      norm_r = 2 * tol;
+      iter   = 0;
+      while ( norm_r > tol && iter < max_iter )
+      {
+         // run V-cycle on lvl l_ei
+         ++iter;
+         gmg.solve( *A, u_ei, b, l_ei );
+         // compute residual
+         A->apply( u_ei, tmp, l_ei, Inner | NeumannBoundary, Replace );
+         r.assign( { 1.0, -1.0 }, { b, tmp }, l_ei, Inner | NeumannBoundary );
+         M->apply( r, tmp, l_ei, Inner | NeumannBoundary, Replace );
+         norm_r = std::sqrt( r.dotGlobal( tmp, l_ei, Inner | NeumannBoundary ) );
+      }
+
+      // compute error indicator for each macro element
+      err_el.clear();
+      // ei = (P*u_ei - u_h)
+      for ( uint_t lvl = l_ei; lvl < l_max; ++lvl )
+         P->prolongate( u_ei, lvl, Inner | NeumannBoundary );
+      u_ei.add( { -1 }, { *u }, l_max, All );
+      u_ei.interpolate( 0, l_max, DirichletBoundary );
+      // compute local dot product ei*M*ei
+      // (after M.apply(), cell/face data only contains the local result - global stored on interfaces)
+      M->apply( u_ei, tmp, l_max, Inner | NeumannBoundary, Replace );
+      if ( problem.dim == 2 )
+      {
+         auto& e  = u_ei.getFaceDataID();
+         auto& Me = tmp.getFaceDataID();
+         for ( auto& [id, face] : storage->getFaces() )
+         {
+            err_el[id] = std::sqrt( vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 ) );
+         }
+      }
+      else // dim == 3
+      {
+         auto& e  = u_ei.getCellDataID();
+         auto& Me = tmp.getCellDataID();
+         for ( auto& [id, cell] : storage->getCells() )
+         {
+            err_el[id] = std::sqrt( vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 ) );
+         }
+      }
+   } // else: use the last computation of actual L2 error
+
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
    for ( auto& [id, err] : err_el )
    {
@@ -736,7 +789,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "system solve", t_solve ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute residual", t_residual ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute error", t_error ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute elwise err", t_elwise_error ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "error indicator", t_elwise_error ) );
 
    // export to vtk
    if ( vtkname != "" )
@@ -812,7 +865,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 real_t                       cg_tol,
                                 std::string                  vtkname,
                                 bool                         writePartitioning,
-                                bool                         writeMeshfile )
+                                bool                         writeMeshfile,
+                                uint_t                       refinement_crit )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -837,7 +891,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           vtkname,
                                           writePartitioning,
                                           writeMeshfile,
-                                          refinement );
+                                          refinement,
+                                          refinement_crit );
       else
          local_errors = solve< DivkGrad >( mesh,
                                            problem,
@@ -852,7 +907,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            vtkname,
                                            writePartitioning,
                                            writeMeshfile,
-                                           refinement );
+                                           refinement,
+                                           refinement_crit );
 
       if ( refinement >= n_ref )
       {
@@ -930,7 +986,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            vtkname,
                            writePartitioning,
                            writeMeshfile,
-                           refinement );
+                           refinement,
+                           refinement_crit );
       }
       else
       {
@@ -947,7 +1004,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             vtkname,
                             writePartitioning,
                             writeMeshfile,
-                            refinement );
+                            refinement,
+                            refinement_crit );
       }
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -991,10 +1049,11 @@ int main( int argc, char* argv[] )
 
    const uint_t N_default =
        ( ModelProblem::Type( mp ) == ModelProblem::SLIT || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER ) ? 2 : 1;
-   const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", N_default );
-   const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
-   const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
+   const uint_t N               = parameters.getParameter< uint_t >( "initial_resolution", N_default );
+   const uint_t n_refinements   = parameters.getParameter< uint_t >( "n_refinements" );
+   const uint_t n_el_max        = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
+   const real_t p_refinement    = parameters.getParameter< real_t >( "percentile" );
+   const uint_t refinement_crit = parameters.getParameter< uint_t >( "criterion", 0 );
 
    const uint_t l_min   = parameters.getParameter< uint_t >( "cg_level", 0 );
    const uint_t l_max   = parameters.getParameter< uint_t >( "microlevel" );
@@ -1058,6 +1117,15 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion to refine per step", p_refinement ) );
+   if ( refinement_crit == 0 || refinement_crit > l_max)
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u", "refinement criterion", l_max ) );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( " %30s: u_%d - u_%d", "refinement criterion", l_max - refinement_crit, l_max ) );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "initial guess", ( u0 ) ? "interpolated" : "zero" ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
@@ -1095,7 +1163,8 @@ int main( int argc, char* argv[] )
                               cg_tol,
                               vtkname,
                               writePartitioning,
-                              writeMeshfile );
+                              writeMeshfile,
+                              refinement_crit );
 
    return 0;
 }

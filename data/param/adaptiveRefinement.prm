@@ -13,33 +13,34 @@ Parameters
   // 8: jump coefficient regularized
   modelProblem 4;
   // spacial dimension of domain
-  dim 3;
+  dim 2;
 
-  // sigma 1000; // regularization parameter (problem 2)
-  n_waves 5; // number of waves (problem 4/5)
-  squeeze_waves 100; // factor to 'squeeze' the waves towards the corners (problem 4/5)
-  // k_low 1; // value of coefficient before jump (problem 6)
-  // k_high 100;// value of coefficient after jump (problem 6)
+  // sigma 1000; // regularization parameter (problem 2/8)
+  n_waves 10; // number of waves (problem 4/6)
+  squeeze_waves 1000; // factor to 'squeeze' the waves towards the corners (problem 4/6)
+  // k_low 1; // value of coefficient before jump (problem 7)
+  // k_high 100;// value of coefficient after jump (problem 7)
 
 
   initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
+  criterion 0; // 0: actual L2 error (using analyitc solution), 1+: error indicator (using lvl-c solution)
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 30; // number of refinement steps
-  percentile 0.02; // minimum proportion of elements to refine in each step [0,1]
-  // n_el_max 1000; // max number of macro elements
+  n_refinements 10; // number of refinement steps
+  percentile 0.05; // minimum proportion of elements to refine in each step [0,1]
+  // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 3;
-  // microlevel_final 4; // use different micro level for final solve step
+  microlevel 4;
+  // microlevel_final 8; // use different micro level for final solve step
 
 
   // // linear solver (GMG)
 
-  n_iterations 8;
+  n_iterations 15;
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
