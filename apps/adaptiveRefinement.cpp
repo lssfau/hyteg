@@ -45,6 +45,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
@@ -679,8 +680,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
    // multigrid
-   GeometricMultigridSolver< A_t > gmg( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
-   t1 = walberla::timing::getWcTime();
+   // todo: use postcyclecallback to copy u to u_ei on l_ei
+   // std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ){} )
+   auto gmg = std::make_shared< GeometricMultigridSolver< A_t > >( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
+   // todo: parametrize n-v-cycles in FMG
+   auto fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, 4 );
+   t1       = walberla::timing::getWcTime();
    t_init += t1 - t0;
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
@@ -713,7 +718,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
       ++iter;
       t0 = walberla::timing::getWcTime();
-      gmg.solve( *A, *u, b, l_max );
+      if ( iter == 1 )
+         fmg->solve( *A, *u, b, l_max );
+      else
+         gmg->solve( *A, *u, b, l_max );
       t1 = walberla::timing::getWcTime();
       t_solve += t1 - t0;
       norm_r = compute_residual();
@@ -724,22 +732,25 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // compute elementwise error
    t0 = walberla::timing::getWcTime();
-   if ( 0 < refinement_crit && refinement_crit <= l_max) // use error indicator
+   if ( 0 < refinement_crit && refinement_crit <= l_max ) // use error indicator
    {
       // comparison lvl to use for error indicator
       auto l_ei = l_max - refinement_crit;
 
       // solve Au=b on lvl l_ei
+      // todo: use solution from corresponding FMG lvl
       P1Function< real_t > u_ei( "u_ei", storage, l_min, l_max );
       problem.init( storage, u_anal, f, u_ei, b, l_ei );
-      GeometricMultigridSolver< A_t > gmg_ei( storage, smoother, cgs, R, P, l_min, l_ei, n1, n2 );
       norm_r = 2 * tol;
       iter   = 0;
       while ( norm_r > tol && iter < max_iter )
       {
          // run V-cycle on lvl l_ei
          ++iter;
-         gmg.solve( *A, u_ei, b, l_ei );
+         if ( iter == 1 )
+            fmg->solve( *A, u_ei, b, l_ei );
+         else
+            gmg->solve( *A, u_ei, b, l_ei );
          // compute residual
          A->apply( u_ei, tmp, l_ei, Inner | NeumannBoundary, Replace );
          r.assign( { 1.0, -1.0 }, { b, tmp }, l_ei, Inner | NeumannBoundary );
@@ -1117,7 +1128,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion to refine per step", p_refinement ) );
-   if ( refinement_crit == 0 || refinement_crit > l_max)
+   if ( refinement_crit == 0 || refinement_crit > l_max )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u", "refinement criterion", l_max ) );
    }
