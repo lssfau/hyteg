@@ -25,7 +25,7 @@ Parameters
   initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
-  criterion 0; // 0: actual L2 error (using analyitc solution), 1+: error indicator (using lvl-c solution)
+  use_error_indicator 0; // else: compute error using analytic solution
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
