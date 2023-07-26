@@ -39,8 +39,8 @@ Parameters
 
 
   // // linear solver (GMG)
-
-  n_iterations 6;
+  n_cycles 4; // number of V-cycles on each level in FMG
+  n_iterations 6; // first iteration FMG, then V-cycles
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step

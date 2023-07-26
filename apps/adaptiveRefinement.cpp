@@ -105,7 +105,7 @@ struct ModelProblem
       }
       if ( spacial_dim < 2 || 3 < spacial_dim )
       {
-         WALBERLA_ABORT( "Invalid argument for spacial dimension: Must be either 2 or 3" );
+         WALBERLA_ABORT( "Invalid argument for spatial dimension: Must be either 2 or 3" );
       }
    }
 
@@ -508,7 +508,7 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::
    {
       if ( problem.dim == 3 )
       {
-         // neumann boundary on top and bottom of plate
+         // Neumann boundary on top and bottom of plate
          setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
          auto onBoundary = []( const Point3D& x ) -> bool {
             return std::abs( x[0] ) >= 1 - 1e-15 || //
@@ -533,6 +533,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   l_interpolate,
                                        uint_t                                   l_min,
                                        uint_t                                   l_max,
+                                       uint_t                                   n_cycles,
                                        uint_t                                   max_iter,
                                        real_t                                   tol,
                                        real_t                                   cg_tol,
@@ -547,9 +548,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    double t_loadbalancing = 0;
    if ( u0 == 0 || u_old == nullptr )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "* apply Loadbalancing" );
-      // if u0 is initialized with zero, we apply loadbalancing before creating the storage.
-      // else, we first interpolate u before applying loadbalancing
+      WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing" );
+      // if u0 is initialized with zero, we apply load balancing before creating the storage.
+      // else, we first interpolate u before applying load balancing
       t0 = walberla::timing::getWcTime();
       mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
       t1              = walberla::timing::getWcTime();
@@ -652,8 +653,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       u->interpolate( *u_old, l_max, l_interpolate );
       t1            = walberla::timing::getWcTime();
       t_interpolate = t1 - t0;
-      // apply loadbalancing
-      WALBERLA_LOG_INFO_ON_ROOT( " -> apply Loadbalancing" );
+      // apply load balancing
+      WALBERLA_LOG_INFO_ON_ROOT( " -> apply load balancing" );
       t0                 = walberla::timing::getWcTime();
       auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
       storage->migratePrimitives( migrationInfo );
@@ -691,7 +692,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "initialize problem", t_init ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "interpolate u0", t_interpolate ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "loadbalancing", t_loadbalancing ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "load balancing", t_loadbalancing ) );
 
    // solve
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -820,7 +821,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       err.interpolate( _err, l_max );
       err_2.multElementwise( { err, err }, l_max, All );
 
-      // write vtkfile
+      // write vtk file
       VTKOutput vtkOutput( "output", vtkname, storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( k );
@@ -869,6 +870,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 uint_t                       l_max,
                                 uint_t                       l_final,
                                 uint_t                       u0,
+                                uint_t                       n_cycles,
                                 uint_t                       max_iter,
                                 real_t                       tol,
                                 uint_t                       max_iter_final,
@@ -896,6 +898,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           l_max,
                                           l_min,
                                           l_max,
+                                          n_cycles,
                                           max_iter,
                                           tol,
                                           cg_tol,
@@ -912,6 +915,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            l_max,
                                            l_min,
                                            l_max,
+                                           n_cycles,
                                            max_iter,
                                            tol,
                                            cg_tol,
@@ -991,6 +995,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            l_max,
                            l_min,
                            l_final,
+                           n_cycles,
                            max_iter_final,
                            tol_final,
                            cg_tol,
@@ -1009,6 +1014,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             l_max,
                             l_min,
                             l_final,
+                            n_cycles,
                             max_iter_final,
                             tol_final,
                             cg_tol,
@@ -1021,7 +1027,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
       {
-         std::cout << "\nTimingtree final iteration:\n" << *( u_old->getStorage()->getTimingTree() ) << "\n";
+         std::cout << "\nTiming tree final iteration:\n" << *( u_old->getStorage()->getTimingTree() ) << "\n";
       }
    }
 }
@@ -1071,6 +1077,7 @@ int main( int argc, char* argv[] )
    const uint_t l_final = parameters.getParameter< uint_t >( "microlevel_final", l_max );
 
    const uint_t u0             = parameters.getParameter< uint_t >( "initial_guess", 0 );
+   const uint_t n_cycles       = parameters.getParameter< uint_t >( "n_cycles" );
    const uint_t max_iter       = parameters.getParameter< uint_t >( "n_iterations" );
    const uint_t max_iter_final = parameters.getParameter< uint_t >( "n_iterations_final", max_iter );
    const real_t tol            = parameters.getParameter< real_t >( "tolerance" );
@@ -1100,7 +1107,7 @@ int main( int argc, char* argv[] )
    // print parameters
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d (%s)", "model problem", mp, problem.name().c_str() ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "spacial dimensions", dim ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "spatial dimensions", dim ) );
    if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC_REGULARIZED )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "sigma", sigma ) );
@@ -1139,6 +1146,7 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "initial guess", ( u0 ) ? "interpolated" : "zero" ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", n_cycles ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e / %2.1e", "tolerance (CG/MG)", cg_tol, tol ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -1167,6 +1175,7 @@ int main( int argc, char* argv[] )
                               l_max,
                               l_final,
                               u0,
+                              n_cycles,
                               max_iter,
                               tol,
                               max_iter_final,
