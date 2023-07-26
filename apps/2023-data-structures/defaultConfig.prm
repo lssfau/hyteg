@@ -27,6 +27,8 @@ Parameters
   }
 
   vtk false;
+  printSetupStorage true;
+  printPrimitiveStorage true;
   timingJSON true;
 
   baseName curlcurl;

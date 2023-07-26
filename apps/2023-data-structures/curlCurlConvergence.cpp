@@ -74,6 +74,8 @@ struct SimData
             uint_t                _poloidalResolution,
             uint_t                _toroidalResolution,
             std::vector< real_t > _tubeLayerRadii,
+            bool                  _printSetupStorage,
+            bool                  _printPrimitiveStorage,
             bool                  _outputTimingJSON,
             std::string           _baseName )
    : solverType( _solverType )
@@ -86,6 +88,8 @@ struct SimData
    , poloidalResolution( _poloidalResolution )
    , toroidalResolution( _toroidalResolution )
    , tubeLayerRadii( _tubeLayerRadii )
+   , printSetupStorage( _printSetupStorage )
+   , printPrimitiveStorage( _printPrimitiveStorage )
    , outputTimingJSON( _outputTimingJSON )
    , baseName( _baseName )
    , table( { "Level", "DoFs", "L2error", "timeMin", "timeMax", "timeAvg" } )
@@ -110,7 +114,9 @@ struct SimData
    const uint_t                toroidalResolution = 34;
    const std::vector< real_t > tubeLayerRadii     = { 0.4 };
 
-   const bool outputTimingJSON = false;
+   const bool printSetupStorage     = false;
+   const bool printPrimitiveStorage = false;
+   const bool outputTimingJSON      = false;
 
    const std::string baseName = "basename";
 
@@ -138,20 +144,26 @@ void test( const uint_t                  maxLevel,
    const int    nMaxVCycles             = 200;
    const real_t residualReduction       = 1.0e-3;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
-   WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
-   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
-   WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+   if ( simData.printSetupStorage )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
+      WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+      WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+      WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+   }
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
 
-   auto storageInfo = storage->getGlobalInfo();
-   WALBERLA_LOG_INFO_ON_ROOT( "PrimitiveStorage info" )
-   WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
-   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
-   WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
+   if ( simData.printPrimitiveStorage )
+   {
+      auto storageInfo = storage->getGlobalInfo();
+      WALBERLA_LOG_INFO_ON_ROOT( "PrimitiveStorage info" )
+      WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
+      WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
+      WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
+   }
 
    N1E1MassOperator M( storage, minLevel, maxLevel );
    N1E1Operator     A( storage, minLevel, maxLevel );
@@ -540,6 +552,8 @@ int main( int argc, char** argv )
    const uint_t      toroidalResolution    = parameters.getParameter< uint_t >( "toroidalResolution" );
    const BlockHandle tubeLayerRadiiBlock   = parameters.getBlock( "tubeLayerRadii" );
    const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
+   const bool        printSetupStorage     = parameters.getParameter< bool >( "printSetupStorage" );
+   const bool        printPrimitiveStorage = parameters.getParameter< bool >( "printPrimitiveStorage" );
    const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
 
    std::function< void( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
@@ -590,6 +604,8 @@ int main( int argc, char** argv )
                     poloidalResolution,
                     toroidalResolution,
                     tubeLayerRadii,
+                    printSetupStorage,
+                    printPrimitiveStorage,
                     timingJSON,
                     baseName );
 
