@@ -14,7 +14,12 @@ post_smooth = 1
 fmg_v_cycles = 5
 ppn = 128
 
+# og mesh
 mesh0005 = Mesh( 34,  6, [               0.4], 3.08346, 2.00736)
+
+# weak scaling, level 7, 2 cells per process
+mesh0004 = Mesh( 42,  8, [               0.4],    None,    None)
+mesh0032 = Mesh( 85,  8, [     0.2,      0.4],    None,    None)
 mesh0256 = Mesh(136, 10, [0.1, 0.2, 0.3, 0.4], 3.2032 , 2.01869)
 
 def create_file(datestamp, mesh, nodes, max_level):
@@ -41,10 +46,17 @@ Parameters
   preSmooth     {pre_smooth};
   postSmooth    {post_smooth};
   numVCyclesFMG {fmg_v_cycles};
+"""
 
-  n1e1SpectralRadius {mesh.n1e1_spectral_radius};
+    if mesh.n1e1_spectral_radius:
+        prm_file_string += f"""
+  n1e1SpectralRadius {mesh.n1e1_spectral_radius};"""
+    if mesh.p1_spectral_radius:
+        prm_file_string += f"""
   p1SpectralRadius   {mesh.p1_spectral_radius};
+"""
 
+    prm_file_string += f"""
   coarseGridRefinements 0;
 
   toroidalResolution {mesh.toroidal_resolution};
@@ -85,9 +97,16 @@ mpirun -n {nodes * ppn} ./curlCurlConvergence {prm_file} > {base_name + ".out"} 
 
 datestamp = time.strftime('%y_%m_%d-%H_%M_%S')
 
+# strong scaling
 nodes = [256, int(256/8), int(256/8**2)]
 meshes = 3 * [mesh0256]
 max_levels = [7, 6, 5]
 
 for n, m, l in zip(nodes, meshes, max_levels):
     create_file(datestamp, m, n, l)
+
+# weak scaling
+meshes = [mesh0256, mesh0032, mesh0004]
+
+for n, m in zip(nodes, meshes):
+    create_file(datestamp, m, n, 7)
