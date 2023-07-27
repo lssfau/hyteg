@@ -32,8 +32,8 @@ using walberla::uint_t;
 /// Class for storing multiple functions from the same family but with (potentially) different value types
 ///
 /// This class allows to store multiple functions from the same family, which can but need not differ in
-/// their value types. The multistore ensures uniqueness of the functions, but looking at their names.
-/// Added a function multiple times is silently ignored. Currently supported value types are
+/// their value types. The multistore ensures uniqueness of the functions, by looking at their names. An
+/// attempt to add a function a second time will make the program abort. Currently supported value types are
 ///
 /// - double
 /// - float
@@ -45,40 +45,51 @@ template < template < class > class func_t >
 class FunctionMultiStore
 {
  public:
-   /// Adds a function to the multistore (if it is not already stored)
+   /// Adds a function to the multistore
    template < typename value_t >
    inline void add( const func_t< value_t >& function )
    {
       bool        functionPresent{ false };
+      bool        abort{ true }; // abort, if function is present?
       std::string functionName      = function.getFunctionName();
-      auto        isFunctionPresent = [&functionName, &functionPresent]( const auto& func ) {
+
+      auto        isFunctionPresent = [&functionName, &functionPresent, abort]( const auto& func ) {
          functionPresent = functionPresent || func.getFunctionName() == functionName;
+         if ( functionPresent && abort )
+         {
+            WALBERLA_ABORT( "Attempt to add function '" << functionName << "' which is already present in FunctionMultiStore!" );
+         }
       };
 
       if constexpr ( std::is_same< value_t, double >::value )
       {
-        std::for_each( r64Funcs_.begin(), r64Funcs_.end(), isFunctionPresent );
-        if( !functionPresent ) r64Funcs_.push_back( function );
+         std::for_each( r64Funcs_.begin(), r64Funcs_.end(), isFunctionPresent );
+         if ( !functionPresent )
+            r64Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, float >::value )
       {
-        std::for_each( r32Funcs_.begin(), r32Funcs_.end(), isFunctionPresent );
-        if( !functionPresent ) r32Funcs_.push_back( function );
+         std::for_each( r32Funcs_.begin(), r32Funcs_.end(), isFunctionPresent );
+         if ( !functionPresent )
+            r32Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, int32_t >::value )
       {
-        std::for_each( i32Funcs_.begin(), i32Funcs_.end(), isFunctionPresent );
-        if( !functionPresent ) i32Funcs_.push_back( function );
+         std::for_each( i32Funcs_.begin(), i32Funcs_.end(), isFunctionPresent );
+         if ( !functionPresent )
+            i32Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, int64_t >::value )
       {
-        std::for_each( i64Funcs_.begin(), i64Funcs_.end(), isFunctionPresent );
-        if( !functionPresent ) i64Funcs_.push_back( function );
+         std::for_each( i64Funcs_.begin(), i64Funcs_.end(), isFunctionPresent );
+         if ( !functionPresent )
+            i64Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, long long >::value )
       {
-        std::for_each( i64Funcs_.begin(), i64Funcs_.end(), isFunctionPresent );
-        if( !functionPresent ) i64Funcs_.push_back( function );
+         std::for_each( i64Funcs_.begin(), i64Funcs_.end(), isFunctionPresent );
+         if ( !functionPresent )
+            i64Funcs_.push_back( function );
       }
       else
       {
