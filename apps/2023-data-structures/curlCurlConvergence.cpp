@@ -18,6 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <memory>
 #include <sstream>
 
 #include "core/DataTypes.h"
@@ -126,12 +127,12 @@ struct SimData
 
 /// Returns the approximate L2 error.
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
-void test( const uint_t                  maxLevel,
-           const SetupPrimitiveStorage&& setupStorage,
-           const VectorField             analyticalSol,
-           const VectorField             rhs,
-           SimData&                      simData,
-           const bool                    writeVTK = false )
+void test( const uint_t                               maxLevel,
+           std::unique_ptr< SetupPrimitiveStorage >&& setupStorage,
+           const VectorField                          analyticalSol,
+           const VectorField                          rhs,
+           SimData&                                   simData,
+           const bool                                 writeVTK = false )
 {
    using namespace n1e1;
 
@@ -148,10 +149,11 @@ void test( const uint_t                  maxLevel,
    {
       WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
       WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
-      WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+      WALBERLA_LOG_INFO_ON_ROOT( *setupStorage );
       WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
    }
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+   setupStorage.reset();
 
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
@@ -384,10 +386,11 @@ void testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = fa
        MeshInfo::refinedCoarseMesh( MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
                                     simData.coarseGridRefinements );
 
-   SetupPrimitiveStorage setupStorage( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto setupStorage =
+       std::make_unique< SetupPrimitiveStorage >( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   loadbalancing::roundRobinVolume( setupStorage );
+   loadbalancing::roundRobinVolume( *setupStorage );
 
    const auto analyticalSol = []( const Point3D& p ) {
       const real_t x = p[0];
@@ -431,12 +434,13 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
                                                                             polodialStartAngle ),
                                                        simData.coarseGridRefinements );
 
-   SetupPrimitiveStorage setupStorage( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto setupStorage =
+       std::make_unique< SetupPrimitiveStorage >( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   loadbalancing::roundRobinVolume( setupStorage );
+   loadbalancing::roundRobinVolume( *setupStorage );
 
-   TorusMap::setMap( setupStorage,
+   TorusMap::setMap( *setupStorage,
                      toroidalResolution,
                      poloidalResolution,
                      radiusOriginToCenterOfTube,
