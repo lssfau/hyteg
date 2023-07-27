@@ -42,6 +42,31 @@ class HybridSmoother : public Solver< N1E1OperatorType >
    /// For details see: R. Hiptmair, "Multigrid Method for Maxwell’s Equations," [10.1137/S0036142997326203](https://doi.org/10.1137/S0036142997326203).
    ///
    /// \param storage           A PrimitiveStorage instance.
+   /// \param tmpFunction       A vector for temporary storage.
+   /// \param p1LaplaceOperator The operator in potential space.
+   /// \param n1e1Smoother      A Solver instance that smoothes error components in the complement of the null space
+   ///                          of the curl operator.
+   /// \param p1Smoother        A Solver instance that smoothes error components in the null space of the curl operator.
+   /// \param minLevel          Minimum level on which memory for temporary functions is allocated.
+   /// \param maxLevel          Maximum level on which memory for temporary functions is allocated.
+   /// \param n1e1SmoothSteps   The number of smoothing steps in the complement of the null space of the curl operator.
+   /// \param p1SmoothSteps     The number of smoothing steps in the null space of the curl operator.
+   ///
+   HybridSmoother( const std::shared_ptr< PrimitiveStorage >&         storage,
+                   const n1e1::N1E1VectorFunction< real_t >&          tmpFunction,
+                   std::shared_ptr< P1LaplaceOperatorType >           p1LaplaceOperator,
+                   std::shared_ptr< Solver< N1E1OperatorType > >      n1e1Smoother,
+                   std::shared_ptr< Solver< P1LaplaceOperatorType > > p1Smoother,
+                   uint_t                                             minLevel,
+                   uint_t                                             maxLevel,
+                   uint_t                                             n1e1SmoothSteps = 1,
+                   uint_t                                             p1SmoothSteps   = 1 );
+
+   /// \brief Hiptmair's hybrid smoother for curl-curl problems.
+   ///
+   /// For details see: R. Hiptmair, "Multigrid Method for Maxwell’s Equations," [10.1137/S0036142997326203](https://doi.org/10.1137/S0036142997326203).
+   ///
+   /// \param storage           A PrimitiveStorage instance.
    /// \param p1LaplaceOperator The operator in potential space.
    /// \param n1e1Smoother      A Solver instance that smoothes error components in the complement of the null space
    ///                          of the curl operator.
