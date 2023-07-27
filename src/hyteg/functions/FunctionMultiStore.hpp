@@ -47,7 +47,7 @@ class FunctionMultiStore
  public:
    /// Adds a function to the multistore (if it is not already stored)
    template < typename value_t >
-   inline void push_back( const func_t< value_t >& function )
+   inline void add( const func_t< value_t >& function )
    {
       bool        functionPresent{ false };
       std::string functionName      = function.getFunctionName();

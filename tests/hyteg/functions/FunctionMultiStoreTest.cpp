@@ -69,19 +69,19 @@ int main( int argc, char* argv[] )
 
    FunctionMultiStore< P1Function > ms;
 
-   ms.push_back( dFunc1 );
-   ms.push_back( dFunc2 );
-   ms.push_back( iFunc1 );
-   ms.push_back( lFunc1 );
+   ms.add( dFunc1 );
+   ms.add( dFunc2 );
+   ms.add( iFunc1 );
+   ms.add( lFunc1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms.size() << " P1Functions" );
    WALBERLA_CHECK_EQUAL( ms.size(), 4 );
 
    // check uniqueness
-   ms.push_back( dFunc1 );
-   ms.push_back( dFunc2 );
-   ms.push_back( iFunc1 );
-   ms.push_back( lFunc1 );
+   ms.add( dFunc1 );
+   ms.add( dFunc2 );
+   ms.add( iFunc1 );
+   ms.add( lFunc1 );
    WALBERLA_CHECK_EQUAL( ms.size(), 4 );
 
    // Remove a single of the P1Functions
@@ -105,18 +105,18 @@ int main( int argc, char* argv[] )
 
    FunctionMultiStore< P2VectorFunction > ms2;
 
-   ms2.push_back( iVecFunc1 );
-   ms2.push_back( lVecFunc1 );
-   ms2.push_back( dVecFunc1 );
-   ms2.push_back( dVecFunc2 );
-   ms2.push_back( lVecFunc2 );
-   ms2.push_back( dVecFunc3 );
-   ms2.push_back( fVecFunc1 );
+   ms2.add( iVecFunc1 );
+   ms2.add( lVecFunc1 );
+   ms2.add( dVecFunc1 );
+   ms2.add( dVecFunc2 );
+   ms2.add( lVecFunc2 );
+   ms2.add( dVecFunc3 );
+   ms2.add( fVecFunc1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms2.size() << " P2VectorFunctions" );
 
    // check uniqueness
-   ms2.push_back( fVecFunc1 );
+   ms2.add( fVecFunc1 );
    WALBERLA_CHECK_EQUAL( ms2.size(), 7 );
 
    // try obtaining a specific vector from the store

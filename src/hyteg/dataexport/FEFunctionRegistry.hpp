@@ -57,31 +57,31 @@ class FEFunctionRegistry
       // P1Functions
       if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > )
       {
-         p1Functions_.push_back( function );
+         p1Functions_.add( function );
       }
 
       // P1VectorFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
       {
-         p1VecFunctions_.push_back( function );
+         p1VecFunctions_.add( function );
       }
 
       // P2Functions
       else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > )
       {
-         p2Functions_.push_back( function );
+         p2Functions_.add( function );
       }
 
       // P2VectorFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
       {
-         p2VecFunctions_.push_back( function );
+         p2VecFunctions_.add( function );
       }
 
       // EdgeDoFFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
       {
-         edgeDoFFunctions_.push_back( function );
+         edgeDoFFunctions_.add( function );
       }
 
       // -------------
@@ -91,25 +91,25 @@ class FEFunctionRegistry
       // P0Functions
       else if constexpr ( std::is_same_v< func_t< value_t >, P0Function< value_t > > )
       {
-         dgFunctions_.push_back( *function.getDGFunction() );
+         dgFunctions_.add( *function.getDGFunction() );
       }
 
       // DG1Functions
       else if constexpr ( std::is_same_v< func_t< value_t >, DG1Function< value_t > > )
       {
-         dgFunctions_.push_back( *function.getDGFunction() );
+         dgFunctions_.add( *function.getDGFunction() );
       }
 
       // DGFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, dg::DGFunction< value_t > > )
       {
-         dgFunctions_.push_back( function );
+         dgFunctions_.add( function );
       }
 
       // DGVectorFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, dg::DGVectorFunction< value_t > > )
       {
-         dgVecFunctions_.push_back( function );
+         dgVecFunctions_.add( function );
       }
 
       // ---------------------------------
@@ -119,13 +119,13 @@ class FEFunctionRegistry
       // N1E1VectorFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > )
       {
-         n1e1Functions_.push_back( function );
+         n1e1Functions_.add( function );
       }
 
       // EGFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, EGFunction< value_t > > )
       {
-         p1dgeVecFunctions_.push_back( function );
+         p1dgeVecFunctions_.add( function );
       }
 
       // P1StokesFunction
