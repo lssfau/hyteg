@@ -186,6 +186,9 @@ if (HYTEG_BUILD_WITH_ADIOS2)
 
   waLBerla_compile_test(FILES dataexport/AdiosWriterTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME AdiosWriterTest)
+
+  waLBerla_compile_test(FILES dataexport/CheckpointingTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME CheckpointingTest)
 endif ()
 
 waLBerla_compile_test(FILES dataexport/TableTest.cpp DEPENDS hyteg core)
