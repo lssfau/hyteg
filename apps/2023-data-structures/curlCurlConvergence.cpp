@@ -382,12 +382,15 @@ void test( const uint_t                               maxLevel,
 
 void testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
-   const MeshInfo cube =
-       MeshInfo::refinedCoarseMesh( MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
-                                    simData.coarseGridRefinements );
+   std::unique_ptr< SetupPrimitiveStorage > setupStorage;
+   {
+      const MeshInfo cube = MeshInfo::refinedCoarseMesh(
+          MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
+          simData.coarseGridRefinements );
 
-   auto setupStorage =
-       std::make_unique< SetupPrimitiveStorage >( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage =
+          std::make_unique< SetupPrimitiveStorage >( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   }
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    loadbalancing::roundRobinVolume( *setupStorage );
@@ -426,16 +429,19 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
    const real_t R = radiusOriginToCenterOfTube;
    const real_t r = tubeLayerRadii.back();
 
-   const MeshInfo torus = MeshInfo::refinedCoarseMesh( MeshInfo::meshTorus( toroidalResolution,
-                                                                            poloidalResolution,
-                                                                            radiusOriginToCenterOfTube,
-                                                                            tubeLayerRadii,
-                                                                            torodialStartAngle,
-                                                                            polodialStartAngle ),
-                                                       simData.coarseGridRefinements );
+   std::unique_ptr< SetupPrimitiveStorage > setupStorage;
+   {
+      const MeshInfo torus = MeshInfo::refinedCoarseMesh( MeshInfo::meshTorus( toroidalResolution,
+                                                                               poloidalResolution,
+                                                                               radiusOriginToCenterOfTube,
+                                                                               tubeLayerRadii,
+                                                                               torodialStartAngle,
+                                                                               polodialStartAngle ),
+                                                          simData.coarseGridRefinements );
 
-   auto setupStorage =
-       std::make_unique< SetupPrimitiveStorage >( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage =
+          std::make_unique< SetupPrimitiveStorage >( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   }
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    loadbalancing::roundRobinVolume( *setupStorage );
