@@ -224,7 +224,7 @@ void test( const uint_t                               maxLevel,
    n1e1Smoother->setupCoefficients( 2, 0.05 * n1e1Rho, 1.05 * n1e1Rho );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
-       storage, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
+       storage, tmp, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -238,6 +238,7 @@ void test( const uint_t                               maxLevel,
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
 
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< N1E1Operator > >( storage,
+                                                                                  tmp,
                                                                                   hybridSmoother,
                                                                                   coarseGridSolver,
                                                                                   restrictionOperator,
