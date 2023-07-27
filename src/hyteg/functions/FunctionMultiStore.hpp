@@ -32,8 +32,8 @@ using walberla::uint_t;
 /// Class for storing multiple functions from the same family but with (potentially) different value types
 ///
 /// This class allows to store multiple functions from the same family, which can but need not differ in
-/// their value types. The class tries to behave as much as possbile like an std::vector. Currently
-/// supported value types are
+/// their value types. The multistore ensures uniqueness of the functions, but looking at their names.
+/// Added a function multiple times is silently ignored. Currently supported value types are
 ///
 /// - double
 /// - float
@@ -45,28 +45,40 @@ template < template < class > class func_t >
 class FunctionMultiStore
 {
  public:
+   /// Adds a function to the multistore (if it is not already stored)
    template < typename value_t >
    inline void push_back( const func_t< value_t >& function )
    {
+      bool        functionPresent{ false };
+      std::string functionName      = function.getFunctionName();
+      auto        isFunctionPresent = [&functionName, &functionPresent]( const auto& func ) {
+         functionPresent = functionPresent || func.getFunctionName() == functionName;
+      };
+
       if constexpr ( std::is_same< value_t, double >::value )
       {
-         r64Funcs_.push_back( function );
+        std::for_each( r64Funcs_.begin(), r64Funcs_.end(), isFunctionPresent );
+        if( !functionPresent ) r64Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, float >::value )
       {
-         r32Funcs_.push_back( function );
+        std::for_each( r32Funcs_.begin(), r32Funcs_.end(), isFunctionPresent );
+        if( !functionPresent ) r32Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, int32_t >::value )
       {
-         i32Funcs_.push_back( function );
+        std::for_each( i32Funcs_.begin(), i32Funcs_.end(), isFunctionPresent );
+        if( !functionPresent ) i32Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, int64_t >::value )
       {
-         i64Funcs_.push_back( function );
+        std::for_each( i64Funcs_.begin(), i64Funcs_.end(), isFunctionPresent );
+        if( !functionPresent ) i64Funcs_.push_back( function );
       }
       else if constexpr ( std::is_same< value_t, long long >::value )
       {
-         i64Funcs_.push_back( function );
+        std::for_each( i64Funcs_.begin(), i64Funcs_.end(), isFunctionPresent );
+        if( !functionPresent ) i64Funcs_.push_back( function );
       }
       else
       {
@@ -135,8 +147,8 @@ class FunctionMultiStore
    template < typename value_t >
    inline void remove( const func_t< value_t >& function )
    {
-      std::string funcName  = function.getFunctionName();
-      uint_t oldSize = this->size();
+      std::string funcName = function.getFunctionName();
+      uint_t      oldSize  = this->size();
 
       std::function< bool( const func_t< value_t >& ) > predicate = [&funcName]( const func_t< value_t >& func ) {
          return func.getFunctionName() == funcName;
@@ -169,7 +181,8 @@ class FunctionMultiStore
 
       if ( this->size() == oldSize )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "Could not remove function '" << function.getFunctionName() << "' as is is not inside the FunctionMultiStore object!" );
+         WALBERLA_LOG_WARNING_ON_ROOT( "Could not remove function '" << function.getFunctionName()
+                                                                     << "' as is is not inside the FunctionMultiStore object!" );
       }
    }
 

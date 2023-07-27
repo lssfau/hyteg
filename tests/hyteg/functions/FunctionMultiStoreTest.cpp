@@ -77,6 +77,13 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms.size() << " P1Functions" );
    WALBERLA_CHECK_EQUAL( ms.size(), 4 );
 
+   // check uniqueness
+   ms.push_back( dFunc1 );
+   ms.push_back( dFunc2 );
+   ms.push_back( iFunc1 );
+   ms.push_back( lFunc1 );
+   WALBERLA_CHECK_EQUAL( ms.size(), 4 );
+
    // Remove a single of the P1Functions
    WALBERLA_LOG_INFO_ON_ROOT( "Removing '" << dFunc2.getFunctionName() << "' from FunctionMultiStore" );
    ms.remove( dFunc2 );
@@ -107,6 +114,10 @@ int main( int argc, char* argv[] )
    ms2.push_back( fVecFunc1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms2.size() << " P2VectorFunctions" );
+
+   // check uniqueness
+   ms2.push_back( fVecFunc1 );
+   WALBERLA_CHECK_EQUAL( ms2.size(), 7 );
 
    // try obtaining a specific vector from the store
    auto dFuncs = ms2.getFunctions< double >();
