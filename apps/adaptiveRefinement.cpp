@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2021-2023 Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -661,6 +661,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // initialize u_h
    if ( u0 == 1 && u_old != nullptr )
    {
+      // todo: only interpolate on l_min (and apply load balancing before interpolation)
+      // ! this requires implementing a version of migrate that allows having the same primitive on multiple processes
+      // ! alternatively, we could use a separate storage for each process only keeping the local primitives
       // interpolate old solution to new mesh
       t0 = walberla::timing::getWcTime();
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=u_old" );
