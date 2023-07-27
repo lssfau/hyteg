@@ -25,7 +25,7 @@ Parameters
   initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
-  use_error_indicator 0; // else: compute error using analytic solution
+  use_error_indicator 1; // else: compute error using analytic solution
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
@@ -34,13 +34,13 @@ Parameters
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 3;
+  microlevel 4;
   // microlevel_final 8; // use different micro level for final solve step
 
 
   // // linear solver (GMG)
-  n_cycles 4; // number of V-cycles on each level in FMG
-  n_iterations 6; // first iteration FMG, then V-cycles
+  n_cycles 1; // number of V-cycles on each level in FMG
+  n_iterations 4; // first iteration FMG, then V-cycles
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
@@ -50,7 +50,8 @@ Parameters
 
   // // misc
 
-  vtkName auto;
+  // vtkName auto;
+  vtkName err_ind;
   // writeDomainPartitioning 1;
   // writeMeshfile 1;
   // initialMesh output/_mesh_25.msh; // use custom initial mesh e.g. written from previous run

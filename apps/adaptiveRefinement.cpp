@@ -230,7 +230,8 @@ struct ModelProblem
               P1Function< real_t >&                      f,
               P1Function< real_t >&                      u_h,
               P1Function< real_t >&                      b,
-              uint_t                                     lvl ) const
+              uint_t                                     l_min,
+              uint_t                                     l_max ) const
    {
       using walberla::math::one_div_root_two;
       using walberla::math::pi;
@@ -405,26 +406,33 @@ struct ModelProblem
       }
 
       // interpolate rhs of pde
-      f.interpolate( _f, lvl );
+      for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+         f.interpolate( _f, lvl );
       // construct rhs of linear system s.th. b_i = ∫fφ_i
       if ( type == DIRAC )
       {
          // ∫δ_0 φ_i = φ_i(0)
          auto _b = [=]( const Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
-         b.interpolate( _b, lvl );
+         for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+            b.interpolate( _b, lvl );
       }
       else
       {
          // b_i = ∫f φ_i = (f,φ_i)_0
-         L2Space< 5, P1Function< real_t > > L2( storage, lvl );
-         L2.dot( _f, b );
+         L2Space< 5, P1Function< real_t > > L2( storage, l_max );
+         for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+         {
+            L2.setLvl( lvl );
+            L2.dot( _f, b );
+         }
       }
 
       // analytic solution
       u = _u;
 
       // initialize u_h
-      u_h.interpolate( _u, lvl, DirichletBoundary );
+      for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+         u_h.interpolate( _u, lvl, DirichletBoundary );
    }
 
    // general setting
@@ -543,8 +551,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   error_indicator,
                                        bool                                     l2_error_each_iteration = true )
 {
+   // timing
    double t0, t1;
-   double t_loadbalancing = 0;
+   double t_loadbalancing, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
+
+   // load balancing
    if ( u0 == 0 || u_old == nullptr )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing" );
@@ -554,6 +565,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
       t1              = walberla::timing::getWcTime();
       t_loadbalancing = t1 - t0;
+   }
+   else
+   {
+      t_loadbalancing = 0;
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
@@ -599,18 +614,19 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    tmp.interpolate( []( const Point3D& ) { return 1.0; }, l_min, Inner | NeumannBoundary );
    auto n_dof_coarse = uint_t( tmp.dotGlobal( tmp, l_min ) );
 
-   t0          = walberla::timing::getWcTime();
-   auto t_init = t1 - t0;
+   t0     = walberla::timing::getWcTime();
+   t_init = t1 - t0;
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
 
    // computation of residual and L2 error
+   t_residual = 0;
+   t_error    = 0;
 
    L2Space< 5, P1Function< real_t > > L2( storage, l_max );
    std::map< PrimitiveID, real_t >    err_el;
 
    t0 = walberla::timing::getWcTime();
    tmp.setToZero( l_max );
-   double t_residual = 0, t_error = 0;
 
    auto compute_residual = [&]() -> real_t {
       auto my_t0 = walberla::timing::getWcTime();
@@ -637,12 +653,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    };
 
    // initialize analytic solution, rhs and boundary values
-   problem.init( storage, u_anal, f, *u, b, l_max );
+   problem.init( storage, u_anal, f, *u, b, l_min, l_max );
 
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
-
-   double t_interpolate = 0;
 
    // initialize u_h
    if ( u0 == 1 && u_old != nullptr )
@@ -658,11 +672,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       t0                 = walberla::timing::getWcTime();
       auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
       storage->migratePrimitives( migrationInfo );
-      t1              = walberla::timing::getWcTime();
-      t_loadbalancing = t1 - t0;
+      t1 = walberla::timing::getWcTime();
+      t_loadbalancing += t1 - t0;
    }
    else
    {
+      t_interpolate = 0;
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=0" );
    }
 
@@ -683,10 +698,15 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // multigrid
    auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on l_max-1 to use as error indicator
       if ( error_indicator > 0 && lvl == l_max - 1 )
+      {
+         double my_t0 = walberla::timing::getWcTime();
          ei.assign( { 1 }, { *u }, l_max - 1 );
+         double my_t1      = walberla::timing::getWcTime();
+         t_error_indicator = my_t1 - my_t0;
+      }
    };
    auto gmg = std::make_shared< GeometricMultigridSolver< A_t > >( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
-   auto fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, copyUtoEi);
+   auto fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, copyUtoEi );
    t1       = walberla::timing::getWcTime();
    t_init += t1 - t0;
 
@@ -704,8 +724,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // initial residual
    real_t norm_r = compute_residual();
 
-   uint_t iter    = 0;
-   double t_solve = 0;
+   t_solve     = 0;
+   uint_t iter = 0;
    while ( norm_r > tol && iter < max_iter )
    {
       if ( l2_error_each_iteration )
@@ -763,21 +783,25 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             err_el[id] = std::sqrt( vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 ) );
          }
       }
-   } // else: use the last computation of actual L2 error
+   }
+   else // use the last computation of actual L2 error
+   {
+      t_error_indicator = 0;
+   }
 
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
    for ( auto& [id, err] : err_el )
    {
       err_2_elwise_loc.push_back( { err, id } );
    }
-   t1                  = walberla::timing::getWcTime();
-   auto t_elwise_error = t1 - t0;
+   t1 = walberla::timing::getWcTime();
+   t_error_indicator += t1 - t0;
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "system solve", t_solve ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute residual", t_residual ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute error", t_error ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "error indicator", t_elwise_error ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "error indicator", t_error_indicator ) );
 
    // export to vtk
    if ( vtkname != "" )
