@@ -173,7 +173,6 @@ void test( const uint_t                               maxLevel,
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > sol( "sol", storage, minLevel, maxLevel );
-   N1E1VectorFunction< real_t > err( "err", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
    if ( writeVTK )
@@ -250,6 +249,8 @@ void test( const uint_t                               maxLevel,
 
    if ( simData.solverType == SolverType::VCYCLES )
    {
+      N1E1VectorFunction< real_t > err( "err", storage, minLevel, maxLevel );
+
       // Interpolate solution
       sol.interpolate( analyticalSol, maxLevel );
 
@@ -329,9 +330,10 @@ void test( const uint_t                               maxLevel,
          simData.timingPool["solver - level " + std::to_string( currentLevel )].end();
 
          // determine error
-         err.assign( { 1.0, -1.0 }, { u, sol }, currentLevel );
-         M.apply( err, tmp, currentLevel, DoFType::All );
-         real_t discrL2 = std::sqrt( err.dotGlobal( tmp, currentLevel ) );
+         // NOTE f is not needed anymore on currentLevel
+         f.assign( { 1.0, -1.0 }, { u, sol }, currentLevel );
+         M.apply( f, tmp, currentLevel, DoFType::All );
+         real_t discrL2 = std::sqrt( f.dotGlobal( tmp, currentLevel ) );
 
          const uint_t nDoFs        = numberOfGlobalDoFs( u, currentLevel );
          auto         reducedTimer = getReduced( simData.timingPool["solver - level " + std::to_string( currentLevel )],
@@ -371,7 +373,6 @@ void test( const uint_t                               maxLevel,
       vtk.add( u );
       vtk.add( f );
       vtk.add( sol );
-      vtk.add( err );
       vtk.write( maxLevel );
    }
 
