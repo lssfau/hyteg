@@ -11,18 +11,17 @@ class Mesh:
 # those are constant for now
 pre_smooth = 1
 post_smooth = 1
-fmg_v_cycles = 5
 ppn = 128
 
 # og mesh
 mesh0005 = Mesh( 34,  6, [               0.4], 3.08346, 2.00736)
 
 # weak scaling, level 7, 2 cells per process
-mesh0004 = Mesh( 42,  8, [               0.4],    None,    None)
+mesh0004 = Mesh( 42,  8, [               0.4], 3.03678, 1.93394)
 mesh0032 = Mesh( 85,  8, [     0.2,      0.4],    None,    None)
 mesh0256 = Mesh(136, 10, [0.1, 0.2, 0.3, 0.4], 3.2032 , 2.01869)
 
-def create_file(datestamp, mesh, nodes, max_level):
+def create_file(datestamp, mesh, nodes, max_level, fmg_v_cycles):
     base_name = '_'.join(['curlcurl', datestamp, f'nodes_{nodes:04}_lvl_{max_level}'])
 
     prm_file = base_name + ".prm"
@@ -101,12 +100,17 @@ datestamp = time.strftime('%y_%m_%d-%H_%M_%S')
 nodes = [256, int(256/8), int(256/8**2)]
 meshes = 3 * [mesh0256]
 max_levels = [7, 6, 5]
+fmg_v_cycles = 5
 
 for n, m, l in zip(nodes, meshes, max_levels):
-    create_file(datestamp, m, n, l)
+    create_file(datestamp, m, n, l, fmg_v_cycles)
 
 # weak scaling
 meshes = [mesh0256, mesh0032, mesh0004]
+max_level = 7
 
 for n, m in zip(nodes, meshes):
-    create_file(datestamp, m, n, 7)
+    create_file(datestamp, m, n, max_level, fmg_v_cycles)
+
+# big run
+create_file(datestamp, mesh0256, 512, 8, 1)
