@@ -105,21 +105,47 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       }
    }
 
-#ifdef FE_FUNCTION_REGISTRY_HAS_REMOVE
    /// Deregister an FE Function to be no longer included into checkpoints
    ///
    /// By calling this method the passed function object will be excluded from future checkpoints.
    template < template < typename > class func_t, typename value_t >
    inline void deregisterFunction( const func_t< value_t >& function )
    {
-      feFunctionRegistry_.remove( function );
-      size_t numDel = 0;
-      numDel        = functionMinLevel_.erase( function.getFunctionName() );
-      WALBERLA_ASSERT( numDel == 1 );
-      numDel = functionMaxLevel_.erase( function.getFunctionName() );
-      WALBERLA_ASSERT( numDel == 1 );
+      if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                     std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                     std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > ||
+                     std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+      {
+         feFunctionRegistry_.remove( function );
+         size_t numDel = 0;
+         numDel        = functionMinLevel_.erase( function.getFunctionName() );
+         WALBERLA_ASSERT( numDel == 1 );
+         numDel = functionMaxLevel_.erase( function.getFunctionName() );
+         WALBERLA_ASSERT( numDel == 1 );
+      }
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
+      {
+         feFunctionRegistry_.remove( function.uvw() );
+         feFunctionRegistry_.remove( function.p() );
+
+         std::string uComponent = function.getFunctionName() + "_uvw";
+         std::string pComponent = function.getFunctionName() + "_p";
+         size_t      numDel     = 0;
+
+         numDel = functionMinLevel_.erase( uComponent );
+         WALBERLA_ASSERT( numDel == 1 );
+         numDel = functionMaxLevel_.erase( uComponent );
+         WALBERLA_ASSERT( numDel == 1 );
+         numDel = functionMinLevel_.erase( pComponent );
+         WALBERLA_ASSERT( numDel == 1 );
+         numDel = functionMaxLevel_.erase( pComponent );
+         WALBERLA_ASSERT( numDel == 1 );
+      }
+      else
+      {
+         WALBERLA_ABORT( "AdiosCheckpointExporter::deregisterFunction() called with, as of now, unsupported function type!" );
+      }
    }
-#endif
 
    /// Trigger storing of a single checkpoint
    ///
@@ -184,9 +210,10 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       io.DefineAttribute< std::string >( "FunctionTypes", allFunctionTypes_.data(), allFunctionTypes_.size() );
       std::vector< uint_t > allMinLevels;
       std::vector< uint_t > allMaxLevels;
-      for( const auto& funcName: allFunctionNames_ ) {
-        allMinLevels.push_back( functionMinLevel_.at( funcName ) );
-        allMaxLevels.push_back( functionMaxLevel_.at( funcName ) );
+      for ( const auto& funcName : allFunctionNames_ )
+      {
+         allMinLevels.push_back( functionMinLevel_.at( funcName ) );
+         allMaxLevels.push_back( functionMaxLevel_.at( funcName ) );
       }
       io.DefineAttribute< uint_t >( "FunctionMinLevels", allMinLevels.data(), allMinLevels.size() );
       io.DefineAttribute< uint_t >( "FunctionMaxLevels", allMaxLevels.data(), allMaxLevels.size() );
