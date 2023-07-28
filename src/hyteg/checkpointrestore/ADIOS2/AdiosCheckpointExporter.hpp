@@ -25,6 +25,7 @@
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/CheckpointExporter.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/dataexport/FEFunctionRegistry.hpp"
 
 namespace hyteg {
@@ -76,9 +77,32 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
    inline void registerFunction( const func_t< value_t >& function, uint_t minLevel, uint_t maxLevel )
    {
       WALBERLA_ASSERT( minLevel <= maxLevel );
-      feFunctionRegistry_.add( function );
-      functionMinLevel[function.getFunctionName()] = minLevel;
-      functionMaxLevel[function.getFunctionName()] = maxLevel;
+      if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                     std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                     std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > ||
+                     std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+      {
+         feFunctionRegistry_.add( function );
+         functionMinLevel[function.getFunctionName()] = minLevel;
+         functionMaxLevel[function.getFunctionName()] = maxLevel;
+      }
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
+      {
+         std::string uComponent = function.getFunctionName() + "_uvw";
+         std::string pComponent = function.getFunctionName() + "_p";
+
+         feFunctionRegistry_.add( function.uvw() );
+         functionMinLevel[uComponent] = minLevel;
+         functionMaxLevel[uComponent] = maxLevel;
+
+         feFunctionRegistry_.add( function.p() );
+         functionMinLevel[pComponent] = minLevel;
+         functionMaxLevel[pComponent] = maxLevel;
+      }
+      else
+      {
+         WALBERLA_ABORT( "AdiosCheckpointExporter::registerFunction() called with, as of now, unsupported function type!" );
+      }
    }
 
 #ifdef FE_FUNCTION_REGISTRY_HAS_REMOVE
@@ -108,6 +132,10 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
 
       // start the export episode
       engine.BeginStep();
+
+      // export meta-data
+      adiosHelpers::generateSoftwareMetaData( io );
+      addVersionInformation( io );
 
       // schedule data for export
       defineAndExportVariables< P1Function, real_t >( io, engine );
@@ -159,6 +187,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       for ( const auto& function : funcs )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "--> Checkpointing '" << function.getFunctionName() << "'" );
+         WALBERLA_ASSERT( functionMinLevel.at( function.getFunctionName() ) >= 0 );
+         WALBERLA_ASSERT( functionMaxLevel.at( function.getFunctionName() ) >= 0 );
 
          if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                         std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
@@ -208,6 +238,12 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
             WALBERLA_ABORT( "Achievement unlocked: 'Detector of the Missing Implementation'!" );
          }
       }
+   }
+
+   /// Provide information on version of checkpoint (currently 0.1)
+   inline void addVersionInformation( adios2::IO& io )
+   {
+      io.DefineAttribute< std::string >( "Checkpoint_Format", "0.1", "", "" );
    }
 };
 

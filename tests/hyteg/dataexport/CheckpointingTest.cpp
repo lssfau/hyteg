@@ -102,30 +102,33 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   // MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/LShape_6el.msh" );
    MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    const uint_t minLevel = 2;
-   const uint_t maxLevel = 4;
+   const uint_t maxLevel = 3;
 
    P1Function< real_t > funcP1( "P1_Test_Function", storage, minLevel, maxLevel );
    P2Function< real_t > funcP2( "P2_Test_Function", storage, minLevel, maxLevel );
+   P2Function< int64_t > intFunc( "P2_Test_Function<int64>", storage, minLevel, maxLevel );
 
    P1VectorFunction< real_t > funcP1Vec( "P1_Test_Vector_Function", storage, minLevel, maxLevel );
    P2VectorFunction< real_t > funcP2Vec( "P2_Test_Vector_Function", storage, minLevel, maxLevel );
 
-   // AdiosCheckpointExporter checkpointer( ".", "checkpoint.data", "" );
+   P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes Function", storage, minLevel, maxLevel );
+
    AdiosCheckpointExporter checkpointer( "" );
    checkpointer.registerFunction( funcP1, minLevel, maxLevel );
    checkpointer.registerFunction( funcP2, minLevel, maxLevel );
+   checkpointer.registerFunction( intFunc, maxLevel, maxLevel );
    checkpointer.registerFunction( funcP1Vec, minLevel, maxLevel );
    checkpointer.registerFunction( funcP2Vec, minLevel, maxLevel );
+   checkpointer.registerFunction( stokesFunc, maxLevel, maxLevel );
 
    // ...
    // checkTagGenerationForP2( funcP2, maxLevel );
 
-   checkpointer.storeCheckpoint( ".", "checkpoint" );
+   checkpointer.storeCheckpoint( ".", "CheckpointingTest-DATA" );
 }
