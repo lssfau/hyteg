@@ -51,9 +51,9 @@ class FunctionMultiStore
    {
       bool        functionPresent{ false };
       bool        abort{ true }; // abort, if function is present?
-      std::string functionName      = function.getFunctionName();
+      std::string functionName = function.getFunctionName();
 
-      auto        isFunctionPresent = [&functionName, &functionPresent, abort]( const auto& func ) {
+      auto isFunctionPresent = [&functionName, &functionPresent, abort]( const auto& func ) {
          functionPresent = functionPresent || func.getFunctionName() == functionName;
          if ( functionPresent && abort )
          {
@@ -165,25 +165,34 @@ class FunctionMultiStore
          return func.getFunctionName() == funcName;
       };
 
-      if constexpr ( std::is_same< value_t, double >::value )
+      if constexpr ( std::is_same_v< value_t, double > )
       {
-         r64Funcs_.erase( std::remove_if( r64Funcs_.begin(), r64Funcs_.end(), predicate ) );
+         for ( const auto& entry : r64Funcs_ )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " *** before: " << entry.getFunctionName() );
+         }
+         r64Funcs_.erase( std::remove_if( r64Funcs_.begin(), r64Funcs_.end(), predicate ), r64Funcs_.end() );
+         for ( const auto& entry : r64Funcs_ )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " *** after:  " << entry.getFunctionName() );
+         }
       }
-      else if constexpr ( std::is_same< value_t, float >::value )
+
+      else if constexpr ( std::is_same_v< value_t, float > )
       {
-         r32Funcs_.erase( std::remove_if( r32Funcs_.begin(), r32Funcs_.end(), predicate ) );
+         r32Funcs_.erase( std::remove_if( r32Funcs_.begin(), r32Funcs_.end(), predicate ), r32Funcs_.end() );
       }
-      else if constexpr ( std::is_same< value_t, int >::value )
+      else if constexpr ( std::is_same_v< value_t, int > )
       {
-         i32Funcs_.erase( std::remove_if( i32Funcs_.begin(), i32Funcs_.end(), predicate ) );
+         i32Funcs_.erase( std::remove_if( i32Funcs_.begin(), i32Funcs_.end(), predicate ), i32Funcs_.end() );
       }
-      else if constexpr ( std::is_same< value_t, long >::value )
+      else if constexpr ( std::is_same_v< value_t, long > )
       {
-         i64Funcs_.erase( std::remove_if( i64Funcs_.begin(), i64Funcs_.end(), predicate ) );
+         i64Funcs_.erase( std::remove_if( i64Funcs_.begin(), i64Funcs_.end(), predicate ), i64Funcs_.end() );
       }
-      else if constexpr ( std::is_same< value_t, long long >::value )
+      else if constexpr ( std::is_same_v< value_t, long long > )
       {
-         i64Funcs_.erase( std::remove_if( i64Funcs_.begin(), i64Funcs_.end(), predicate ) );
+         i64Funcs_.erase( std::remove_if( i64Funcs_.begin(), i64Funcs_.end(), predicate ), i64Funcs_.end() );
       }
       else
       {
@@ -193,7 +202,7 @@ class FunctionMultiStore
       if ( this->size() == oldSize )
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "Could not remove function '" << function.getFunctionName()
-                                                                     << "' as is is not inside the FunctionMultiStore object!" );
+                                                                     << "' as it is not inside the FunctionMultiStore object!" );
       }
    }
 
