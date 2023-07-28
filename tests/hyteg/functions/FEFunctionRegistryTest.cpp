@@ -125,5 +125,10 @@ int main( int argc, char* argv[] )
    std::vector< P2Function< real_t > > realP2Funcs = p2Funcs.getFunctions< real_t >();
    WALBERLA_CHECK_EQUAL( p2ScalarFunc1.getFunctionName(), realP2Funcs[0].getFunctionName() );
 
+   // test deregistring a function works
+   registry.remove( p2VectorFunc );
+   registry.remove( p0ScalarFunc1 );
+   WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), 0 );
+
    return EXIT_SUCCESS;
 }

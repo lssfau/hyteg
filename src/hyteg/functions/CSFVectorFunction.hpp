@@ -60,8 +60,7 @@ class CSFVectorFunction
    std::shared_ptr< PrimitiveStorage > getStorage() const { return compFunc_[0]->getStorage(); }
 
    /// \note Dimension of VectorFunction is decoupled from storage now
-   uint_t getDimension() const {
-         return compFunc_.size(); }
+   uint_t getDimension() const { return compFunc_.size(); }
    /// @}
 
    /// @name Component access
@@ -228,15 +227,12 @@ class CSFVectorFunction
          compFunc_[k]->setBoundaryCondition( bc );
       }
    }
-  /// Set boundary conditions, for certain component functions
-   void setBoundaryCondition( BoundaryCondition bc, uint_t componentIdx )
-   {    
-      compFunc_[componentIdx]->setBoundaryCondition( bc ); 
-   }
+   /// Set boundary conditions, for certain component functions
+   void setBoundaryCondition( BoundaryCondition bc, uint_t componentIdx ) { compFunc_[componentIdx]->setBoundaryCondition( bc ); }
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
-     setBoundaryCondition( other.getBoundaryCondition() );
+      setBoundaryCondition( other.getBoundaryCondition() );
    }
    /// @}
 
@@ -310,8 +306,8 @@ class CSFVectorFunction
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const VectorFunctionType&                      other,
-                  const uint_t&                                  level,
+   void copyFrom( const VectorFunctionType&              other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
@@ -420,7 +416,7 @@ class CSFVectorFunction
    }
 
  protected:
-   const std::string                                     functionName_;
+   std::string                                           functionName_;
    std::vector< std::shared_ptr< VectorComponentType > > compFunc_;
 };
 
