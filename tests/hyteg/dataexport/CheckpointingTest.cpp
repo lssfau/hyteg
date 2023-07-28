@@ -87,22 +87,17 @@ void checkTagGenerationForP2( const P2Function< real_t >& func, uint_t level )
    {
       Vertex&     vertex = *macroIterator.second;
       std::string tag    = adiosCheckpointHelpers::generateVariableName( func.getFunctionName(), vertex.getID(), level );
-      uint_t      size =
-          vertex.getData( vertexVertexDoFDataIndex )->getSize( level ) + vertex.getData( vertexEdgeDoFDataIndex )->getSize( level );
+      uint_t      size   = vertex.getData( vertexVertexDoFDataIndex )->getSize( level ) +
+                    vertex.getData( vertexEdgeDoFDataIndex )->getSize( level );
       WALBERLA_LOG_INFO( "Generated tag = '" << tag << "'" );
       WALBERLA_LOG_INFO( "Data buffer size = " << size );
    }
 }
 
-int main( int argc, char* argv[] )
+void storeCheckpoint( std::string filePath, std::string fileName )
 {
-   walberla::debug::enterTestMode();
-
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
-
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+   std::string           meshFileName{ "../../data/meshes/3D/pyramid_2el.msh" };
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -110,8 +105,8 @@ int main( int argc, char* argv[] )
    const uint_t minLevel = 2;
    const uint_t maxLevel = 3;
 
-   P1Function< real_t > funcP1( "P1_Test_Function", storage, minLevel, maxLevel );
-   P2Function< real_t > funcP2( "P2_Test_Function", storage, minLevel, maxLevel );
+   P1Function< real_t >  funcP1( "P1_Test_Function", storage, minLevel, maxLevel );
+   P2Function< real_t >  funcP2( "P2_Test_Function", storage, minLevel, maxLevel );
    P2Function< int64_t > intFunc( "P2_Test_Function<int64>", storage, minLevel, maxLevel );
 
    P1VectorFunction< real_t > funcP1Vec( "P1_Test_Vector_Function", storage, minLevel, maxLevel );
@@ -127,8 +122,16 @@ int main( int argc, char* argv[] )
    checkpointer.registerFunction( funcP2Vec, minLevel, maxLevel );
    checkpointer.registerFunction( stokesFunc, maxLevel, maxLevel );
 
-   // ...
-   // checkTagGenerationForP2( funcP2, maxLevel );
+   checkpointer.storeCheckpoint( filePath, fileName, { "MeshFile" }, { meshFileName } );
+}
 
-   checkpointer.storeCheckpoint( ".", "CheckpointingTest-DATA" );
+int main( int argc, char* argv[] )
+{
+   walberla::debug::enterTestMode();
+
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   storeCheckpoint( ".", "CheckpointingTest.bp" );
 }

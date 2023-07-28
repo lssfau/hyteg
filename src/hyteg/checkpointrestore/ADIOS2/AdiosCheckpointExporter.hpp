@@ -83,8 +83,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                      std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
       {
          feFunctionRegistry_.add( function );
-         functionMinLevel[function.getFunctionName()] = minLevel;
-         functionMaxLevel[function.getFunctionName()] = maxLevel;
+         functionMinLevel_[function.getFunctionName()] = minLevel;
+         functionMaxLevel_[function.getFunctionName()] = maxLevel;
       }
       else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
       {
@@ -92,12 +92,12 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
          std::string pComponent = function.getFunctionName() + "_p";
 
          feFunctionRegistry_.add( function.uvw() );
-         functionMinLevel[uComponent] = minLevel;
-         functionMaxLevel[uComponent] = maxLevel;
+         functionMinLevel_[uComponent] = minLevel;
+         functionMaxLevel_[uComponent] = maxLevel;
 
          feFunctionRegistry_.add( function.p() );
-         functionMinLevel[pComponent] = minLevel;
-         functionMaxLevel[pComponent] = maxLevel;
+         functionMinLevel_[pComponent] = minLevel;
+         functionMaxLevel_[pComponent] = maxLevel;
       }
       else
       {
@@ -114,15 +114,33 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
    {
       feFunctionRegistry_.remove( function );
       size_t numDel = 0;
-      numDel        = functionMinLevel.erase( function.getFunctionName() );
+      numDel        = functionMinLevel_.erase( function.getFunctionName() );
       WALBERLA_ASSERT( numDel == 1 );
-      numDel = functionMaxLevel.erase( function.getFunctionName() );
+      numDel = functionMaxLevel_.erase( function.getFunctionName() );
       WALBERLA_ASSERT( numDel == 1 );
    }
 #endif
 
    /// Trigger storing of a single checkpoint
+   ///
+   /// \param filePath             path to checkpoint file
+   /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
    inline void storeCheckpoint( std::string filePath, std::string fileName )
+   {
+      std::vector< std::string > userAttributeNames;
+      std::vector< std::string > userAttributeValues;
+   }
+
+   /// Trigger storing of a single checkpoint
+   ///
+   /// \param filePath             path to checkpoint file
+   /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
+   /// \param userAttributeNames   list of names for additional attributes
+   /// \param userAttributeValues  list of strings with data for the additional attributes
+   inline void storeCheckpoint( std::string                       filePath,
+                                std::string                       fileName,
+                                const std::vector< std::string >& userAttributeNames,
+                                const std::vector< std::string >& userAttributeValues )
    {
       // create the writer and engine for the export
       std::string cpFileName = filePath + "/" + fileName;
@@ -154,11 +172,34 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       defineAndExportVariables< P2VectorFunction, int32_t >( io, engine );
       defineAndExportVariables< P2VectorFunction, int64_t >( io, engine );
 
+      // add user defined attributes
+      WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
+      for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
+      {
+         io.DefineAttribute< std::string >( userAttributeNames[k], userAttributeValues[k] );
+      }
+
+      // add attributes with meta information on functions in the checkpoint
+      io.DefineAttribute< std::string >( "FunctionNames", allFunctionNames_.data(), allFunctionNames_.size() );
+      io.DefineAttribute< std::string >( "FunctionTypes", allFunctionTypes_.data(), allFunctionTypes_.size() );
+      std::vector< uint_t > allMinLevels;
+      std::vector< uint_t > allMaxLevels;
+      for( const auto& funcName: allFunctionNames_ ) {
+        allMinLevels.push_back( functionMinLevel_.at( funcName ) );
+        allMaxLevels.push_back( functionMaxLevel_.at( funcName ) );
+      }
+      io.DefineAttribute< uint_t >( "FunctionMinLevels", allMinLevels.data(), allMinLevels.size() );
+      io.DefineAttribute< uint_t >( "FunctionMaxLevels", allMaxLevels.data(), allMaxLevels.size() );
+
       // actual export performed here (if lazy not overwritten in config file)
       engine.EndStep();
 
       // need to close file before Engine and IO objects get destroyed
       engine.Close();
+
+      // clean-up for next checkpoint
+      allFunctionNames_.clear();
+      allFunctionTypes_.clear();
    };
 
  private:
@@ -166,13 +207,19 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
    FEFunctionRegistry feFunctionRegistry_;
 
    /// map to remember the minLevel for a registered function
-   std::map< std::string, uint_t > functionMinLevel;
+   std::map< std::string, uint_t > functionMinLevel_;
 
    /// map to remember the maxLevel for a registered function
-   std::map< std::string, uint_t > functionMaxLevel;
+   std::map< std::string, uint_t > functionMaxLevel_;
 
    /// central ADIOS2 interface object
    adios2::ADIOS adios_;
+
+   /// auxilliary variable to add management information to checkpoint
+   ///@{
+   std::vector< std::string > allFunctionNames_;
+   std::vector< std::string > allFunctionTypes_;
+   ///@}
 
    template < template < typename > class func_t, typename value_t >
    void defineAndExportVariables( adios2::IO& io, adios2::Engine& engine )
@@ -187,8 +234,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       for ( const auto& function : funcs )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "--> Checkpointing '" << function.getFunctionName() << "'" );
-         WALBERLA_ASSERT( functionMinLevel.at( function.getFunctionName() ) >= 0 );
-         WALBERLA_ASSERT( functionMaxLevel.at( function.getFunctionName() ) >= 0 );
+         WALBERLA_ASSERT( functionMinLevel_.at( function.getFunctionName() ) >= 0 );
+         WALBERLA_ASSERT( functionMaxLevel_.at( function.getFunctionName() ) >= 0 );
 
          if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                         std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
@@ -198,8 +245,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 io,
                 engine,
                 function,
-                functionMinLevel[function.getFunctionName()],
-                functionMaxLevel[function.getFunctionName()],
+                functionMinLevel_[function.getFunctionName()],
+                functionMaxLevel_[function.getFunctionName()],
                 adiosCheckpointHelpers::generateVariableForP1TypeFunction< func_t, value_t > );
 
             // now schedule the variable for export
@@ -207,9 +254,13 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 io,
                 engine,
                 function,
-                functionMinLevel[function.getFunctionName()],
-                functionMaxLevel[function.getFunctionName()],
+                functionMinLevel_[function.getFunctionName()],
+                functionMaxLevel_[function.getFunctionName()],
                 adiosCheckpointHelpers::exportVariableForP1TypeFunction< func_t, value_t > );
+
+            // add information on function for later attribute generation
+            allFunctionNames_.push_back( function.getFunctionName() );
+            allFunctionTypes_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
          }
 
          else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
@@ -220,8 +271,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 io,
                 engine,
                 function,
-                functionMinLevel[function.getFunctionName()],
-                functionMaxLevel[function.getFunctionName()],
+                functionMinLevel_[function.getFunctionName()],
+                functionMaxLevel_[function.getFunctionName()],
                 adiosCheckpointHelpers::generateVariableForP2TypeFunction< func_t, value_t > );
 
             // now schedule the variable for export
@@ -229,9 +280,13 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 io,
                 engine,
                 function,
-                functionMinLevel[function.getFunctionName()],
-                functionMaxLevel[function.getFunctionName()],
+                functionMinLevel_[function.getFunctionName()],
+                functionMaxLevel_[function.getFunctionName()],
                 adiosCheckpointHelpers::exportVariableForP2TypeFunction< func_t, value_t > );
+
+            // add information on function for later attribute generation
+            allFunctionNames_.push_back( function.getFunctionName() );
+            allFunctionTypes_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
          }
          else
          {
@@ -243,7 +298,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
    /// Provide information on version of checkpoint (currently 0.1)
    inline void addVersionInformation( adios2::IO& io )
    {
-      io.DefineAttribute< std::string >( "Checkpoint_Format", "0.1", "", "" );
+      std::vector< std::string > info{ "HyTeG Checkpoint", "0.1" };
+      io.DefineAttribute< std::string >( "CheckpointFormat", info.data(), info.size() );
    }
 };
 

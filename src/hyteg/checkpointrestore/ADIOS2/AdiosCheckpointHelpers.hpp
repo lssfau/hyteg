@@ -27,32 +27,6 @@
 
 namespace hyteg::adiosCheckpointHelpers {
 
-template < typename value_t >
-void exportDoFData( adios2::IO&                                io,
-                    adios2::Engine&                            engine,
-                    const std::string&                         varName,
-                    const std::vector< const value_t const* >& dataBuffers,
-                    const std::vector< uint_t >&               bufferSizes )
-{
-   WALBERLA_ASSERT( dataBuffers.size() == bufferSizes.size() );
-
-   adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
-   if ( !varDoFData )
-   {
-      WALBERLA_ABORT( "ADIOS2 variable '" << varName << "' does not exist!" );
-   }
-   else
-   {
-      typename adios2::Variable< value_t >::Span dofData    = engine.Put< value_t >( varDoFData );
-      uint_t                                     currentPos = 0;
-      for ( uint_t k = 0; k < dataBuffers.size(); ++k )
-      {
-         memcpy( &dofData[currentPos], dataBuffers[k], bufferSizes[k] * sizeof( value_t ) );
-         currentPos += bufferSizes[k];
-      }
-   }
-};
-
 std::string generateVariableName( const std::string& functionName, const PrimitiveID& id, uint_t level )
 {
    std::stringstream sStream;
@@ -142,22 +116,22 @@ void generateVariableForP1TypeFunction( adios2::IO&              io,
    {
    case Primitive::VERTEX: {
       uint_t size = dynamic_cast< const Vertex& >( primitive ).getData( functionPtr->getVertexDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::EDGE: {
       uint_t size = dynamic_cast< const Edge& >( primitive ).getData( functionPtr->getEdgeDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::FACE: {
       uint_t size = dynamic_cast< const Face& >( primitive ).getData( functionPtr->getFaceDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::CELL: {
       uint_t size = dynamic_cast< const Cell& >( primitive ).getData( functionPtr->getCellDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::INVALID:
@@ -300,28 +274,28 @@ void generateVariableForP2TypeFunction( adios2::IO&              io,
       const Vertex& vertex = dynamic_cast< const Vertex& >( primitive );
       uint_t        size   = vertex.getData( functionPtr->getVertexDoFFunction().getVertexDataID() )->getSize( level );
       size += vertex.getData( functionPtr->getEdgeDoFFunction().getVertexDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::EDGE: {
       const Edge& edge = dynamic_cast< const Edge& >( primitive );
       uint_t      size = edge.getData( functionPtr->getVertexDoFFunction().getEdgeDataID() )->getSize( level );
       size += edge.getData( functionPtr->getEdgeDoFFunction().getEdgeDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::FACE: {
       const Face& face = dynamic_cast< const Face& >( primitive );
       uint_t      size = face.getData( functionPtr->getVertexDoFFunction().getFaceDataID() )->getSize( level );
       size += face.getData( functionPtr->getEdgeDoFFunction().getFaceDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::CELL: {
       const Cell& cell = dynamic_cast< const Cell& >( primitive );
       uint_t      size = cell.getData( functionPtr->getVertexDoFFunction().getCellDataID() )->getSize( level );
       size += cell.getData( functionPtr->getEdgeDoFFunction().getCellDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { size * function.getDimension() } );
+      auto var = io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::INVALID:
@@ -351,6 +325,12 @@ void exportVariableForP2TypeFunction( adios2::IO&              io,
    {
       WALBERLA_ABORT( "ADIOS2 variable  '" << varName << "' does not exist!" );
    }
+
+   // adios2::Dims dims = varDoFData.Count();
+   // for ( uint_t k = 0; k < dims.size(); ++k )
+   // {
+   //    WALBERLA_LOG_INFO_ON_ROOT( "Dims[" << k << "] = " << dims[k] );
+   // }
 
    // For a P2VectorFunction we need to work on its component functions, so we do a little abstraction here,
    // to minimise coding
