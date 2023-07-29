@@ -552,8 +552,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     l2_error_each_iteration = true )
 {
    // timing
-   double t0, t1;
-   double t_loadbalancing, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
+   real_t t0, t1;
+   real_t t_loadbalancing, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
 
    // load balancing
    if ( u0 == 0 || u_old == nullptr )
@@ -702,9 +702,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on l_max-1 to use as error indicator
       if ( error_indicator > 0 && lvl == l_max - 1 )
       {
-         double my_t0 = walberla::timing::getWcTime();
+         real_t my_t0 = walberla::timing::getWcTime();
          ei.assign( { 1 }, { *u }, l_max - 1 );
-         double my_t1      = walberla::timing::getWcTime();
+         real_t my_t1      = walberla::timing::getWcTime();
          t_error_indicator = my_t1 - my_t0;
       }
    };
@@ -759,6 +759,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    if ( 0 < error_indicator && 1 <= l_max ) // use error indicator
    {
+      real_t err_est = 0.0;
       // compute error indicator for each macro element
       err_el.clear();
       // ei = (P*u_L-1 - u_L)
@@ -774,7 +775,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          auto& Me = tmp.getFaceDataID();
          for ( auto& [id, face] : storage->getFaces() )
          {
-            err_el[id] = std::sqrt( vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 ) );
+            auto eMe = vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 );
+            err_est += eMe;
+            err_el[id] = std::sqrt( eMe );
          }
       }
       else // dim == 3
@@ -783,9 +786,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          auto& Me = tmp.getCellDataID();
          for ( auto& [id, cell] : storage->getCells() )
          {
-            err_el[id] = std::sqrt( vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 ) );
+            auto eMe = vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 );
+            err_est += eMe;
+            err_el[id] = std::sqrt( eMe );
          }
       }
+
+      // global error estimate
+      walberla::mpi::allReduceInplace( err_est, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+      err_est = std::sqrt( err_est );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( " ->  global error estimate: ||e||_L2 ∈ [%1.1e, %1.1e]", err_est / 5.0, err_est ) );
    }
    else // use the last computation of actual L2 error
    {
