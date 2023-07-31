@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -233,20 +233,12 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
       communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void endCommunication( const uint_t& level ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
@@ -263,10 +255,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void startAdditiveCommunication( const uint_t& level, const bool& zeroOutDestination = true ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
       if ( zeroOutDestination )
       {
          interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
@@ -284,10 +272,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                                            const PrimitiveStorage& primitiveStorage,
                                            const bool&             zeroOutDestination = true ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
       std::vector< PrimitiveID > receiverIDs;
       std::vector< PrimitiveID > receiverNeighborIDs;
       std::vector< PrimitiveID > excludeFromReceiving;
@@ -321,10 +305,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void endAdditiveCommunication( const uint_t& level ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
       additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
@@ -381,8 +361,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                     uint_t                                level,
                     DoFType                               flag ) const;
    /// @}
-
-   using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
  private:
    inline void deleteFunctionMemory()

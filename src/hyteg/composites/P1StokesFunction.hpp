@@ -79,9 +79,6 @@ class P1StokesFunction : public BlockFunction< ValueType >
    {
       return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
    }
-
-   /// \todo Get rid of this
-   bool isDummy() const { return false; }
 };
 
 inline unsigned long long p1p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )

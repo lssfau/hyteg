@@ -211,7 +211,6 @@ VertexDoFFunction< ValueType >& VertexDoFFunction< ValueType >::operator=( const
       WALBERLA_CHECK_EQUAL( this->minLevel_, other.minLevel_ )
       WALBERLA_CHECK_EQUAL( this->maxLevel_, other.maxLevel_ )
       WALBERLA_CHECK_EQUAL( this->storage_, other.storage_ )
-      WALBERLA_CHECK_EQUAL( this->isDummy_, other.isDummy_ )
    }
    else
    {
@@ -243,7 +242,6 @@ VertexDoFFunction< ValueType >& VertexDoFFunction< ValueType >::operator=( const
       this->storage_      = other.storage_;
       this->minLevel_     = other.minLevel_;
       this->maxLevel_     = other.maxLevel_;
-      this->isDummy_      = other.isDummy_;
    }
    return *this;
 }
@@ -384,10 +382,6 @@ void VertexDoFFunction< ValueType >::setBoundaryCondition( BoundaryCondition bc 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
 
    interpolateByPrimitiveType< Vertex >( constant, level, flag );
@@ -409,10 +403,6 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
                                                   uint_t                                              level,
                                                   DoFType                                             flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolate( exprExtended, {}, level, flag );
@@ -423,10 +413,6 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
                                                   uint_t                                              level,
                                                   BoundaryUID                                         boundaryUID ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolate( exprExtended, {}, level, boundaryUID );
@@ -439,10 +425,6 @@ void VertexDoFFunction< ValueType >::interpolate(
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -523,10 +505,6 @@ void VertexDoFFunction< ValueType >::interpolate(
     uint_t                                                                               level,
     BoundaryUID                                                                          boundaryUID ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -605,10 +583,6 @@ void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< Value
                                                   uint_t                                level,
                                                   uint_t                                srcLevel )
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
 
    auto storage       = this->getStorage();
@@ -703,10 +677,6 @@ void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< Value
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::setToZero( uint_t level ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "setToZero" );
 
    for ( const auto& it : this->getStorage()->getVertices() )
@@ -843,10 +813,6 @@ void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType >&
                                            const uint_t&                         level,
                                            const DoFType&                        flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Swap" );
 
    for ( auto& it : this->getStorage()->getVertices() )
@@ -898,10 +864,6 @@ void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueTyp
                                                const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                                                const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Copy" );
 
    walberla::mpi::BufferSystem        bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 9563 );
@@ -1149,10 +1111,6 @@ void VertexDoFFunction< ValueType >::assign(
     size_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Assign" );
 
    WALBERLA_ASSERT_EQUAL( scalars.size(), functions.size() )
@@ -1242,10 +1200,6 @@ void VertexDoFFunction< ValueType >::assign(
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Add" );
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
@@ -1416,10 +1370,6 @@ void VertexDoFFunction< ValueType >::add(
     size_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Add" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -1498,10 +1448,6 @@ void VertexDoFFunction< ValueType >::multElementwise(
     const uint_t                                                                         level,
     const DoFType                                                                        flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Multiply elementwise" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -1732,10 +1678,6 @@ ValueType VertexDoFFunction< ValueType >::dotGlobal( const VertexDoFFunction< Va
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    this->startTiming( "Dot (local)" );
    auto scalarProduct = ValueType( 0 );
 
@@ -1822,10 +1764,6 @@ ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t& level, const 
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    this->startTiming( "Sum (local)" );
    auto sum = ValueType( 0 );
 
@@ -1874,11 +1812,6 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t& level, const D
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
-
    this->startTiming( "Enumerate" );
 
    uint_t counter = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
@@ -1898,11 +1831,6 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
-
    for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
@@ -1940,10 +1868,6 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    auto localMax = -std::numeric_limits< ValueType >::max();
 
    for ( auto& it : this->getStorage()->getCells() )
@@ -1994,10 +1918,6 @@ ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType fla
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    auto localMax = ValueType( 0.0 );
 
    for ( auto& it : this->getStorage()->getCells() )
@@ -2048,10 +1968,6 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    auto localMin = std::numeric_limits< ValueType >::max();
 
    for ( auto& it : this->getStorage()->getCells() )
@@ -2103,10 +2019,6 @@ template < typename ValueType >
 void VertexDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    for ( auto& communicator : communicators_ )
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
@@ -2121,10 +2033,6 @@ template < typename ValueType >
 template < typename PrimitiveType >
 void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
 
    if ( std::is_same< PrimitiveType, Vertex >::value )

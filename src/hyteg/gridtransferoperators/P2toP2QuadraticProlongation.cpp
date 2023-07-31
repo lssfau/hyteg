@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -38,9 +38,6 @@ void P2toP2QuadraticProlongation::prolongate( const P2Function< walberla::real_t
                                               const walberla::uint_t&               sourceLevel,
                                               const DoFType&                        flag ) const
 {
-   if ( function.isDummy() )
-      return;
-
    if ( function.getStorage()->hasGlobalCells() )
    {
       prolongateAdditively3D( function, sourceLevel, flag, Replace );
@@ -55,9 +52,6 @@ void P2toP2QuadraticProlongation::prolongateAndAdd( const P2Function< walberla::
                                                     const walberla::uint_t&               sourceLevel,
                                                     const DoFType&                        flag ) const
 {
-   if ( function.isDummy() )
-      return;
-
    if ( function.getStorage()->hasGlobalCells() )
    {
       prolongateAdditively3D( function, sourceLevel, flag, Add );

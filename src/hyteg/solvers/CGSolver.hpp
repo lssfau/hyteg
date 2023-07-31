@@ -1,6 +1,5 @@
-
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -68,9 +67,6 @@ class CGSolver : public Solver< OperatorType >
    {
       if ( maxIter_ == 0 )
          return;
-
-      // if ( x.isDummy() || b.isDummy() )
-      //    return;
 
       timingTree_->start( "CG Solver" );
       p_.copyBoundaryConditionFromFunction( x );

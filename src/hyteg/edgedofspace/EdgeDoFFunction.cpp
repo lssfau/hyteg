@@ -158,7 +158,6 @@ EdgeDoFFunction< ValueType >& EdgeDoFFunction< ValueType >::operator=( const Edg
       WALBERLA_CHECK_EQUAL( this->minLevel_, other.minLevel_ )
       WALBERLA_CHECK_EQUAL( this->maxLevel_, other.maxLevel_ )
       WALBERLA_CHECK_EQUAL( this->storage_, other.storage_ )
-      WALBERLA_CHECK_EQUAL( this->isDummy_, other.isDummy_ )
    }
    else
    {
@@ -190,7 +189,6 @@ EdgeDoFFunction< ValueType >& EdgeDoFFunction< ValueType >::operator=( const Edg
       this->storage_      = other.storage_;
       this->minLevel_     = other.minLevel_;
       this->maxLevel_     = other.maxLevel_;
-      this->isDummy_      = other.isDummy_;
    }
    return *this;
 }
@@ -302,10 +300,6 @@ void EdgeDoFFunction< ValueType >::deleteMemory( const uint_t& level, const Cell
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
    interpolateByPrimitiveType< Edge >( constant, level, flag );
    interpolateByPrimitiveType< Face >( constant, level, flag );
@@ -324,10 +318,6 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
                                                 uint_t                                              level,
                                                 DoFType                                             flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolate( exprExtended, {}, level, flag );
@@ -338,10 +328,6 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
                                                 uint_t                                              level,
                                                 BoundaryUID                                         boundaryUID ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolate( exprExtended, {}, level, boundaryUID );
@@ -354,10 +340,6 @@ void EdgeDoFFunction< ValueType >::interpolate(
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
@@ -425,10 +407,6 @@ void EdgeDoFFunction< ValueType >::interpolate(
     uint_t                                                                               level,
     BoundaryUID                                                                          boundaryUID ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
@@ -492,11 +470,6 @@ void EdgeDoFFunction< ValueType >::interpolate(
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::setToZero( uint_t level ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
-
    this->startTiming( "setToZero" );
 
    for ( const auto& it : this->getStorage()->getVertices() )
@@ -531,10 +504,6 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
                                          const uint_t&                       level,
                                          const DoFType&                      flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Swap" );
 
    for ( auto& it : this->getStorage()->getEdges() )
@@ -576,10 +545,6 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >& other, const uint_t& level ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Copy" );
 
    for ( auto& it : this->getStorage()->getVertices() )
@@ -631,10 +596,6 @@ void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&
                                              const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                                              const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Copy" );
 
    walberla::mpi::BufferSystem        bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 9563 );
@@ -974,10 +935,6 @@ void EdgeDoFFunction< ValueType >::assign(
     size_t                                                                             level,
     DoFType                                                                            flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Assign" );
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
@@ -1041,10 +998,6 @@ void EdgeDoFFunction< ValueType >::assign(
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Add (scalar)" );
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
@@ -1190,10 +1143,6 @@ void EdgeDoFFunction< ValueType >::add(
     size_t                                                                             level,
     DoFType                                                                            flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Add" );
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
@@ -1259,10 +1208,6 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
                                                   const uint_t                        level,
                                                   const DoFType                       flag ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    this->startTiming( "Dot (local)" );
    auto scalarProduct = ValueType( 0 );
 
@@ -1347,10 +1292,6 @@ ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t& level, const Do
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    this->startTiming( "Sum (local)" );
    auto sum = ValueType( 0 );
 
@@ -1389,10 +1330,6 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoF
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Enumerate" );
 
    auto counter = static_cast< ValueType >( hyteg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level ) );
@@ -1413,11 +1350,6 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
-
    for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
@@ -1448,11 +1380,6 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
-
    auto localMax = -std::numeric_limits< ValueType >::max();
 
    for ( auto& it : this->getStorage()->getEdges() )
@@ -1492,11 +1419,6 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
-
    auto localMin = std::numeric_limits< ValueType >::max();
 
    for ( auto& it : this->getStorage()->getEdges() )
@@ -1536,10 +1458,6 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if ( isDummy() )
-   {
-      return ValueType( 0 );
-   }
    auto localMax = ValueType( 0.0 );
 
    for ( auto& it : this->getStorage()->getEdges() )
@@ -1582,10 +1500,6 @@ void EdgeDoFFunction< ValueType >::multElementwise(
     const uint_t                                                                       level,
     const DoFType                                                                      flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Multiply elementwise" );
 
    // Collect all source IDs in a vector
@@ -1647,10 +1561,6 @@ template < typename ValueType >
 void EdgeDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    for ( auto& communicator : communicators_ )
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
@@ -1674,10 +1584,6 @@ template < typename ValueType >
 template < typename PrimitiveType >
 void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Interpolate" );
 
    if ( std::is_same< PrimitiveType, Edge >::value )
@@ -1938,10 +1844,6 @@ void EdgeDoFFunction< ValueType >::fromVector( const EdgeDoFFunction< idx_t >&  
 template <>
 void EdgeDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
-   if ( isDummy() )
-   {
-      return;
-   }
    this->startTiming( "Invert elementwise" );
 
    if ( workOnHalos )

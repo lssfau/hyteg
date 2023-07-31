@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,9 +31,6 @@ class P1toP1LinearProlongation : public ProlongationOperator< P1Function< ValueT
  public:
    void prolongate( const P1Function< ValueType >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      if ( function.isDummy() )
-         return;
-
       if ( function.getStorage()->hasGlobalCells() )
       {
          prolongate3DAdditively( function, sourceLevel, flag, Replace );
@@ -48,9 +45,6 @@ class P1toP1LinearProlongation : public ProlongationOperator< P1Function< ValueT
                           const walberla::uint_t&        sourceLevel,
                           const DoFType&                 flag ) const override
    {
-      if ( function.isDummy() )
-         return;
-
       if ( function.getStorage()->hasGlobalCells() )
       {
          prolongate3DAdditively( function, sourceLevel, flag, Add );

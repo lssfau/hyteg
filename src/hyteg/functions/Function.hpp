@@ -48,7 +48,6 @@ class Function
    , storage_( storage )
    , minLevel_( 0 )
    , maxLevel_( 0 )
-   , isDummy_( true )
    {}
 
    Function( std::string name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
@@ -56,7 +55,6 @@ class Function
    , storage_( storage )
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
-   , isDummy_( false )
    {
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
@@ -104,8 +102,6 @@ class Function
       }
    }
 
-   bool isDummy() const { return isDummy_; }
-
    static uint_t                     getNumFunctions() { return functionNames_.size(); }
    static std::vector< std::string > getFunctionNames() { return functionNames_; }
    static std::map< uint_t, uint_t > getLevelWiseFunctionCounter() { return levelWiseFunctionCounter_; }
@@ -115,7 +111,6 @@ class Function
    std::shared_ptr< PrimitiveStorage > storage_;
    uint_t                              minLevel_;
    uint_t                              maxLevel_;
-   bool                                isDummy_;
 
    std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > communicators_;
    std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > additiveCommunicators_;
