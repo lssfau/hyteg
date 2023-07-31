@@ -103,7 +103,7 @@ class Function
    static std::map< uint_t, uint_t > getLevelWiseFunctionCounter() { return levelWiseFunctionCounter_; }
 
  protected:
-   std::string                               functionName_;
+   std::string                         functionName_;
    std::shared_ptr< PrimitiveStorage > storage_;
    uint_t                              minLevel_;
    uint_t                              maxLevel_;

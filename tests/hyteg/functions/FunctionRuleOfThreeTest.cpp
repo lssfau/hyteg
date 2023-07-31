@@ -109,9 +109,17 @@ void testRuleOfThree()
 
    {
       vertexdof::VertexDoFFunction< real_t > f( "f", storage, level, level );
+      vertexdof::VertexDoFFunction< real_t > aux( "aux", storage, level, level );
 
       auto f_copy( f );
       auto f_copy_2 = f;
+      WALBERLA_CHECK_EQUAL( f.getFunctionName(), f_copy_2.getFunctionName() );
+
+      aux = f;
+      WALBERLA_LOG_INFO_ON_ROOT( " ** f.getFunctionName() ....... " << f.getFunctionName() );
+      WALBERLA_LOG_INFO_ON_ROOT( " ** aux.getFunctionName() ..... " << aux.getFunctionName() );
+      WALBERLA_CHECK_EQUAL( f.getFunctionName(), aux.getFunctionName() );
+
       f             = f_copy_2;
 
       WALBERLA_LOG_INFO_ON_ROOT( "Just printing to avoid stuff getting optimized away... " << f.getFunctionName() << ", "
