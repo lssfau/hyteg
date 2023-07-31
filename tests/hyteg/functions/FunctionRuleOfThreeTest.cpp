@@ -109,16 +109,10 @@ void testRuleOfThree()
 
    {
       vertexdof::VertexDoFFunction< real_t > f( "f", storage, level, level );
-      vertexdof::VertexDoFFunction< real_t > aux( "aux", storage, level, level );
 
       auto f_copy( f );
       auto f_copy_2 = f;
       WALBERLA_CHECK_EQUAL( f.getFunctionName(), f_copy_2.getFunctionName() );
-
-      aux = f;
-      WALBERLA_LOG_INFO_ON_ROOT( " ** f.getFunctionName() ....... " << f.getFunctionName() );
-      WALBERLA_LOG_INFO_ON_ROOT( " ** aux.getFunctionName() ..... " << aux.getFunctionName() );
-      WALBERLA_CHECK_EQUAL( f.getFunctionName(), aux.getFunctionName() );
 
       f             = f_copy_2;
 
@@ -251,6 +245,32 @@ void testRuleOfThree()
    }
 }
 
+template< typename func_t >
+void testCopyAssignment() {
+
+   WALBERLA_LOG_INFO_ON_ROOT( "**** " << FunctionTrait< func_t >::getTypeName()  << " ****" );
+
+   uint_t level = 2;
+
+   auto                  meshInfo1 = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   SetupPrimitiveStorage setupStorage1( meshInfo1, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   const auto            storage1 = std::make_shared< PrimitiveStorage >( setupStorage1, 1 );
+ 
+   func_t orig( "original", storage1, level, level );
+
+   auto                  meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   const auto            storage2 = std::make_shared< PrimitiveStorage >( setupStorage2, 1 );
+
+   func_t clone( "should become 'original'", storage2, level, level );
+
+   clone = orig;
+   WALBERLA_CHECK_EQUAL( clone.getStorage(), orig.getStorage() );
+   WALBERLA_CHECK_EQUAL( clone.getFunctionName(), orig.getFunctionName() );
+   WALBERLA_CHECK_EQUAL( clone.getMinLevel(), orig.getMinLevel() );
+   WALBERLA_CHECK_EQUAL( clone.getMaxLevel(), orig.getMaxLevel() );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
@@ -264,6 +284,19 @@ int main( int argc, char* argv[] )
    testPrimitiveData();
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------------------------" )
    testRuleOfThree();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "===============================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==> Testing Copy Assignment <==" );
+   WALBERLA_LOG_INFO_ON_ROOT( "===============================" );
+
+   testCopyAssignment< P1Function< real_t > >();
+   testCopyAssignment< P2Function< real_t > >();
+   testCopyAssignment< EdgeDoFFunction< real_t > >();
+
+   testCopyAssignment< P1VectorFunction< real_t > >();
+   testCopyAssignment< P2VectorFunction< real_t > >();
+
+   testCopyAssignment< P0Function< real_t > >();
 
    return 0;
 }
