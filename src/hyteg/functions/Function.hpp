@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Daniel Bauer.
+ * Copyright (c) 2017-2023 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes,
+ * Nils Kohl, Daniel Bauer, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -79,7 +80,14 @@ class Function
 
    const std::string& getFunctionName() const { return functionName_; }
 
+   /// Query function object for the dimension of the field it represents
    virtual uint_t getDimension() const = 0;
+
+   /// Query function object for minimal level on which it defined
+   uint_t getMinLevel() { return minLevel_; }
+
+   /// Query function object for maximal level on which it defined
+   uint_t getMaxLevel() { return maxLevel_; }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 

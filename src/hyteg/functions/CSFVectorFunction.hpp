@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr.
+ * Copyright (c) 2020-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -50,7 +50,12 @@ class CSFVectorFunction
    CSFVectorFunction( const std::string name, const std::vector< std::shared_ptr< VectorComponentType > >& compFunc )
    : functionName_( name )
    , compFunc_( compFunc )
-   {}
+   {
+     for( uint_t idx = 1; idx < compFunc.size(); ++idx ) {
+       WALBERLA_ASSERT( compFunc_[0]->getMinLevel() == compFunc_[idx]->getMinLevel() );
+       WALBERLA_ASSERT( compFunc_[0]->getMaxLevel() == compFunc_[idx]->getMaxLevel() );
+     }
+   }
 
    /// @name Query Functions
    /// Methods for questioning object for certain properties
@@ -61,6 +66,12 @@ class CSFVectorFunction
 
    /// \note Dimension of VectorFunction is decoupled from storage now
    uint_t getDimension() const { return compFunc_.size(); }
+
+   /// Query function object for minimal level on which it defined
+   uint_t getMinLevel() { return compFunc_[0]->getMinLevel(); }
+
+   /// Query function object for maximal level on which it defined
+   uint_t getMaxLevel() { return compFunc_[0]->getMaxLevel(); }
    /// @}
 
    /// @name Component access
