@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,9 +30,6 @@ class P1toP1InjectionRestriction : public RestrictionOperator< P1Function< real_
  public:
    void restrict( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      if ( function.isDummy() )
-         return;
-
       restrict3D( function, sourceLevel, flag );
    }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -74,9 +74,6 @@ class EGP0StokesFunction : public BlockFunction< ValueType >
    }
 
    [[nodiscard]] P0Function< ValueType >& p() { return this->subFunc_[1]->template unwrap< P0Function< ValueType > >(); }
-
-   /// \todo Get rid of this
-   bool isDummy() const { return false; }
 };
 
 void applyDirichletBC( const EGP0StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
