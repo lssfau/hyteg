@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -82,6 +82,10 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
    /// @}
 
    uint_t getDimension() const { return wrappedFunc_->getDimension(); };
+
+   uint_t getMinLevel() const { return wrappedFunc_->getMinLevel(); };
+
+   uint_t getMaxLevel() const { return wrappedFunc_->getMaxLevel(); };
 
    const std::string& getFunctionName() const { return wrappedFunc_->getFunctionName(); };
 

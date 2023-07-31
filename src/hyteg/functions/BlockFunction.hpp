@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -53,6 +53,9 @@ class BlockFunction
    /// @{
    const std::string& getFunctionName() const { return functionName_; }
 
+   /// Return a pointer to the PrimitiveStorage object associated with this BlockFunction
+   ///
+   /// \note We implicitely assume that each sub-function has the same storage attached
    std::shared_ptr< PrimitiveStorage > getStorage() const { return subFunc_[0]->getStorage(); }
 
    /// A block function in itself has no dimension (only its sub-functions do)
@@ -60,6 +63,18 @@ class BlockFunction
 
    /// Query the number of "blocks", i.e. number of sub-functions
    uint_t getNumberOfBlocks() const { return subFunc_.size(); }
+
+   /// Query function object for minimal level on which it defined
+   ///
+   /// \note We implicitely assume that each sub-function has the same
+   /// value for minLevel
+   uint_t getMinLevel() { return subFunc_[0]->getMinLevel(); }
+
+   /// Query function object for maximal level on which it defined
+   ///
+   /// \note We implicitely assume that each sub-function has the same
+   /// value for maxLevel
+   uint_t getMaxLevel() { return subFunc_[0]->getMaxLevel(); }
    /// @}
 
    /// @name Component access
@@ -228,8 +243,8 @@ class BlockFunction
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const BlockFunction< value_t >&                other,
-                  const uint_t&                                  level,
+   void copyFrom( const BlockFunction< value_t >&        other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
@@ -316,7 +331,7 @@ class BlockFunction
    /// @}
 
  protected:
-   const std::string                                            functionName_;
+   std::string                                                  functionName_;
    std::vector< std::shared_ptr< GenericFunction< value_t > > > subFunc_;
 
    // extract a vector of generic sub-functions from a vector of block functions

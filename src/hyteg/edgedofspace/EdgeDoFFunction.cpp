@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -153,13 +153,22 @@ EdgeDoFFunction< ValueType >& EdgeDoFFunction< ValueType >::operator=( const Edg
       WALBERLA_CHECK_EQUAL( faceDataID_, other.faceDataID_ )
       WALBERLA_CHECK_EQUAL( cellDataID_, other.cellDataID_ )
       WALBERLA_CHECK_EQUAL( boundaryCondition_, other.boundaryCondition_ )
+
+      WALBERLA_CHECK_EQUAL( this->functionName_, other.functionName_ )
+      WALBERLA_CHECK_EQUAL( this->minLevel_, other.minLevel_ )
+      WALBERLA_CHECK_EQUAL( this->maxLevel_, other.maxLevel_ )
+      WALBERLA_CHECK_EQUAL( this->storage_, other.storage_ )
+      WALBERLA_CHECK_EQUAL( this->isDummy_, other.isDummy_ )
    }
    else
    {
-      WALBERLA_CHECK_UNEQUAL( vertexDataID_, other.vertexDataID_ )
-      WALBERLA_CHECK_UNEQUAL( edgeDataID_, other.edgeDataID_ )
-      WALBERLA_CHECK_UNEQUAL( faceDataID_, other.faceDataID_ )
-      WALBERLA_CHECK_UNEQUAL( cellDataID_, other.cellDataID_ )
+      if ( this->storage_ == other.storage_ )
+      {
+         WALBERLA_CHECK_UNEQUAL( vertexDataID_, other.vertexDataID_ )
+         WALBERLA_CHECK_UNEQUAL( edgeDataID_, other.edgeDataID_ )
+         WALBERLA_CHECK_UNEQUAL( faceDataID_, other.faceDataID_ )
+         WALBERLA_CHECK_UNEQUAL( cellDataID_, other.cellDataID_ )
+      }
 
       referenceCounter_->decreaseRefs();
 
@@ -176,6 +185,12 @@ EdgeDoFFunction< ValueType >& EdgeDoFFunction< ValueType >::operator=( const Edg
       boundaryCondition_ = other.boundaryCondition_;
       referenceCounter_  = other.referenceCounter_;
       referenceCounter_->increaseRefs();
+
+      this->functionName_ = other.functionName_;
+      this->storage_      = other.storage_;
+      this->minLevel_     = other.minLevel_;
+      this->maxLevel_     = other.maxLevel_;
+      this->isDummy_      = other.isDummy_;
    }
    return *this;
 }

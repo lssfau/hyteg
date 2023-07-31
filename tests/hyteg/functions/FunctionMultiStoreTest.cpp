@@ -63,27 +63,40 @@ int main( int argc, char* argv[] )
    // =============
    hyteg::P1Function< double > dFunc1( "#1", storage, theLevel, theLevel );
    hyteg::P1Function< double > dFunc2( "#2", storage, theLevel, theLevel );
+   hyteg::P1Function< double > dFunc3( "last dFunc to be added", storage, theLevel, theLevel );
+   hyteg::P1Function< double > dFunc4( "foo", storage, theLevel, theLevel );
    // hyteg::P1Function< float > fFunc1( "#3", storage, theLevel, theLevel );
    hyteg::P1Function< int32_t > iFunc1( "#4", storage, theLevel, theLevel );
    hyteg::P1Function< int64_t > lFunc1( "#5", storage, theLevel, theLevel );
 
    FunctionMultiStore< P1Function > ms;
 
+   dFunc4 = dFunc1;
+
    ms.add( dFunc1 );
    ms.add( dFunc2 );
+   ms.add( dFunc3 );
    ms.add( iFunc1 );
    ms.add( lFunc1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms.size() << " P1Functions" );
-   WALBERLA_CHECK_EQUAL( ms.size(), 4 );
+   WALBERLA_CHECK_EQUAL( ms.size(), 5 );
+
+   for( const auto& name: ms.getFunctionNames() ) {
+     WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds function '" << name << "'" );
+   }
 
    // Remove a single of the P1Functions
-   WALBERLA_LOG_INFO_ON_ROOT( "Removing '" << dFunc2.getFunctionName() << "' from FunctionMultiStore" );
-   ms.remove( dFunc2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "Removing '" << dFunc1.getFunctionName() << "' from FunctionMultiStore" );
+   ms.remove( dFunc1 );
    WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds " << ms.size() << " P1Functions" );
-   WALBERLA_CHECK_EQUAL( ms.size(), 3 );
+   WALBERLA_CHECK_EQUAL( ms.size(), 4 );
 
-   hyteg::P1Function< double > aux = dFunc1;
+   for( const auto& name: ms.getFunctionNames() ) {
+     WALBERLA_LOG_INFO_ON_ROOT( "FunctionMultiStore holds function '" << name << "'" );
+     bool notSame = name != dFunc1.getFunctionName();
+     WALBERLA_CHECK_EQUAL( notSame, true );
+   }
 
    // ==================
    //  P2VectorFunction
@@ -149,6 +162,10 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( ms2.size(), 2 );
    ms2.remove( dVecFunc3 );
    WALBERLA_CHECK_EQUAL( ms2.size(), 1 );
+
+   std::vector< std::string > finalName = ms2.getFunctionNames();
+   WALBERLA_CHECK_EQUAL( finalName[0], fVecFunc1.getFunctionName() );
+
    ms2.remove( fVecFunc1 );
    WALBERLA_CHECK_EQUAL( ms2.size(), 0 );
 
