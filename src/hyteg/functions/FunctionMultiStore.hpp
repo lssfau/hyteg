@@ -167,15 +167,7 @@ class FunctionMultiStore
 
       if constexpr ( std::is_same_v< value_t, double > )
       {
-         for ( const auto& entry : r64Funcs_ )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( " *** before: " << entry.getFunctionName() );
-         }
          r64Funcs_.erase( std::remove_if( r64Funcs_.begin(), r64Funcs_.end(), predicate ), r64Funcs_.end() );
-         for ( const auto& entry : r64Funcs_ )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( " *** after:  " << entry.getFunctionName() );
-         }
       }
 
       else if constexpr ( std::is_same_v< value_t, float > )

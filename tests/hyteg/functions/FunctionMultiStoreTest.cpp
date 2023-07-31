@@ -98,8 +98,6 @@ int main( int argc, char* argv[] )
      WALBERLA_CHECK_EQUAL( notSame, true );
    }
 
-   hyteg::P1Function< double > aux = dFunc1;
-
    // ==================
    //  P2VectorFunction
    // ==================
@@ -164,6 +162,10 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( ms2.size(), 2 );
    ms2.remove( dVecFunc3 );
    WALBERLA_CHECK_EQUAL( ms2.size(), 1 );
+
+   std::vector< std::string > finalName = ms2.getFunctionNames();
+   WALBERLA_CHECK_EQUAL( finalName[0], fVecFunc1.getFunctionName() );
+
    ms2.remove( fVecFunc1 );
    WALBERLA_CHECK_EQUAL( ms2.size(), 0 );
 
