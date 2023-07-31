@@ -187,14 +187,14 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
          std::set< std::shared_ptr< K_Simplex > > R_prt( done, prt );
          R_prt.erase( nullptr );
 
-         /* recursively apply red refinement for elements
-         that otherwise would be subject to multiple
-         green refinement steps later on
+         /* iteratively apply red refinement to elements that would otherwise
+            be subject to multiple green refinement steps later on
          */
-         while ( !R_prt.empty() )
+         bool vtxs_added = false;
+         while ( !R_prt.empty() || vtxs_added )
          {
             refined.merge( refine_red( R_prt, U ) );
-            R_prt = find_elements_for_red_refinement( U );
+            R_prt = find_elements_for_red_refinement( U, vtxs_added);
          }
 
          // predict number of elements after required green step
@@ -1390,9 +1390,11 @@ void K_Mesh< K_Simplex >::remove_green_edges()
 
 template <>
 std::set< std::shared_ptr< Simplex2 > >
-    K_Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U )
+    K_Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U, bool& vtxs_added )
 {
    std::set< std::shared_ptr< Simplex2 > > R;
+
+   vtxs_added = false;
 
    for ( auto& el : U )
    {
@@ -1407,9 +1409,11 @@ std::set< std::shared_ptr< Simplex2 > >
 
 template <>
 std::set< std::shared_ptr< Simplex3 > >
-    K_Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U )
+    K_Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U, bool& vtxs_added )
 {
    std::set< std::shared_ptr< Simplex3 > > R;
+
+   vtxs_added = false;
 
    for ( auto& el : U )
    {
@@ -1430,6 +1434,7 @@ std::set< std::shared_ptr< Simplex3 > >
             {
                // apply red refinement to face
                refine_face_red( _vertices, _V, face );
+               vtxs_added = true;
             }
          }
       }

@@ -146,9 +146,10 @@ class K_Mesh
 
    /* find all elements in U which require a red refinement step
       @param U set of unprocessed elements
+      @param vtxs_added Flag that will be set to true if any new vertices are added during this step
       @return set R of elements requiring red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U );
+   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U, bool& vtxs_added );
 
    /*
       apply red refinement to all elements in R and remove them from U
