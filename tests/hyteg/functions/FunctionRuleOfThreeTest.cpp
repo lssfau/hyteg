@@ -297,6 +297,7 @@ int main( int argc, char* argv[] )
    testCopyAssignment< P2VectorFunction< real_t > >();
 
    testCopyAssignment< P0Function< real_t > >();
+   testCopyAssignment< P2P1TaylorHoodFunction< real_t > >();
 
    return 0;
 }

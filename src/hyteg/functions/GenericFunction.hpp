@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 Marcus Mohr.
+ * Copyright (c) 2020-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -68,6 +68,10 @@ class GenericFunction
    ///   d>1   | a vector field with components of dimension d represented by a VectorFunction
    ///     0   | a composite function such as e.g. from a Taylor-Hood discretisation, represented by a BlockFunction
    virtual uint_t getDimension() const = 0;
+
+   virtual uint_t getMinLevel() const = 0;
+
+   virtual uint_t getMaxLevel() const = 0;
 
    virtual const std::string& getFunctionName() const = 0;
 
