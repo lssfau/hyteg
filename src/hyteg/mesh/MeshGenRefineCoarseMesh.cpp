@@ -20,8 +20,6 @@
 
 #include <unordered_map>
 
-#include "core/math/Vector3.h"
-
 #include "MeshInfo.hpp"
 
 namespace hyteg {
