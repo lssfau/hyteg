@@ -27,8 +27,7 @@ namespace hyteg {
 Point3D getMidPoint( MeshInfo::IDType v0, MeshInfo::IDType v1, const MeshInfo& originalMeshInfo )
 {
    auto& originalVertices = originalMeshInfo.getVertices();
-   return originalVertices.at( v0 ).getCoordinates() +
-          walberla::real_c( 0.5 ) * ( originalVertices.at( v1 ).getCoordinates() - originalVertices.at( v0 ).getCoordinates() );
+   return walberla::real_c( 0.5 ) * ( originalVertices.at( v0 ).getCoordinates() + originalVertices.at( v1 ).getCoordinates() );
 }
 
 MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refinementSteps )
