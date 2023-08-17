@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -103,11 +103,6 @@ void P2ConstantOperator< P2Form >::apply( const P2Function< real_t >& src,
                                           UpdateType                  updateType ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
-
-   if ( src.isDummy() )
-   {
-      return;
-   }
 
    vertexToVertex.apply( src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag, updateType );
    edgeToVertex.apply( src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), level, flag, Add );

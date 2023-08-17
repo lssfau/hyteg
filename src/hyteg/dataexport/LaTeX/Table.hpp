@@ -31,6 +31,7 @@
 #include "core/mpi/MPIManager.h"
 
 namespace hyteg {
+namespace latex {
 
 /// \brief Export tabular material to whitespace separated text files.
 ///
@@ -72,6 +73,18 @@ class Table
    std::vector< std::array< std::string, N > > rows_;
    std::stringstream                           stringStream_;
 
+   /// Auxilliary method for use by pushRow()
+   template < typename T, class... Args >
+   void addRowElement( size_t rowIdx, T& firstArg, Args... args )
+   {
+      size_t colIdx = N - 1 - sizeof...( Args );
+      addElement( rowIdx, colIdx, firstArg );
+      if constexpr ( sizeof...( Args ) > 0 )
+      {
+         addRowElement( rowIdx, args... );
+      }
+   }
+
  public:
    /// \brief Create a new `Table` with the given column `headers`.
    Table( std::array< std::string, N >&& headers )
@@ -107,6 +120,19 @@ class Table
       }
    }
 
+   /// Append a new row to the end of the table
+   template < class... Args >
+   void pushRow( Args... args )
+   {
+      if constexpr ( N != sizeof...( Args ) )
+      {
+         WALBERLA_ABORT( "Can only use pushRow() with " << N << " arguments!" );
+      }
+
+      rows_.emplace_back();
+      addRowElement( rows_.size() - 2, args... );
+   }
+
    template < std::size_t M >
    friend std::ostream& operator<<( std::ostream& os, const Table< M >& table );
 };
@@ -131,4 +157,5 @@ std::ostream& operator<<( std::ostream& os, const Table< N >& table )
    return os;
 }
 
+} // namespace latex
 } // namespace hyteg

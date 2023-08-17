@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <vector>
 
 namespace hyteg {
 namespace forms {

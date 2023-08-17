@@ -58,9 +58,9 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
 
    hyteg::P2Function< real_t > x( "x", storage, level, level );
    hyteg::P2Function< real_t > x_exact( "x_exact", storage, level, level );
-   hyteg::P2Function< real_t > b( "x", storage, level, level );
+   hyteg::P2Function< real_t > b( "b", storage, level, level );
    hyteg::P2Function< real_t > err( "err", storage, level, level );
-   hyteg::P2Function< real_t > residuum( "err", storage, level, level );
+   hyteg::P2Function< real_t > residuum( "residuum", storage, level, level );
 
    hyteg::P2ConstantLaplaceOperator A( storage, level, level );
 

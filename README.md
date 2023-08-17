@@ -87,7 +87,7 @@ as written above, to set up waLBerla automatically.
 
 Required:
 
-* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.14 )
+* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.20 )
 * a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
 * [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
   
@@ -99,7 +99,9 @@ Required:
 Optional:
 
 * MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
-* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage") and/or [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers
+* [ADIOS2](https://csmd.ornl.gov/software/adios2 "ADIOS2 homepage")  for efficient parallel I/O (CMake option `-DHYTEG_BUILD_WITH_ADIOS2=yes`)
+* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage")  for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_PETSC=yes`)
+* [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_TRILINOS=yes`)
 * [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
 
 

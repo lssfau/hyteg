@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,9 +31,6 @@ class P1toP1LinearRestriction : public RestrictionOperator< P1Function< ValueTyp
  public:
    void restrict( const P1Function< ValueType >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      if ( function.isDummy() )
-         return;
-
       if ( function.getStorage()->hasGlobalCells() )
       {
          restrict3D( function, sourceLevel, flag );

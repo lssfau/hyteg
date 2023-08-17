@@ -54,7 +54,7 @@ static void exportFunctions2D( uint_t level )
    uint_t minLevel = level;
    uint_t maxLevel = level;
 
-   // MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   // MeshInfo                         mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
    MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/penta_5el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -126,11 +126,12 @@ static void exportFunctions2D( uint_t level )
       vtkOutputDG1.add( dg1ScalarFunc2 );
       vtkOutputDG1.write( maxLevel );
 
+      // Do EG functions and also check "CRTP inheritance"
       fName = "VTKOutputTest-EG";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
-      VTKOutput vtkOutputEG( fPath, fName, storageDG );
-      vtkOutputEG.add( egVectorFunc );
-      vtkOutputEG.write( maxLevel );
+      FEFunctionWriter< VTKOutput >* vtkOutputEG = new VTKOutput( fPath, fName, storageDG );
+      vtkOutputEG->add( egVectorFunc );
+      vtkOutputEG->write( maxLevel );
    }
 }
 
@@ -211,6 +212,7 @@ static void exportFunctions3D( uint_t level )
       vtkOutputP0.add( p0ScalarFunc1 );
       vtkOutputP0.add( p0ScalarFunc2 );
       vtkOutputP0.add( p0ScalarFunc3 );
+      vtkOutputP0.setVTKDataFormat( vtk::DataFormat::ASCII );
       vtkOutputP0.write( maxLevel );
 
       fName = "VTKOutputTest3D-P1";
@@ -220,6 +222,7 @@ static void exportFunctions3D( uint_t level )
       vtkOutputP1.add( p1ScalarFunc2 );
       vtkOutputP1.add( p1ScalarFunc3 );
       vtkOutputP1.add( p1VectorFunc );
+      vtkOutputP1.setParameter( "vtkDataFormat", "BINARY" );
       vtkOutputP1.write( maxLevel );
 
       fName = "VTKOutputTest3D-P2";
@@ -391,6 +394,7 @@ static void testVTKQuadraticTetra( uint_t meshType, uint_t level )
       std::string fName = "VTKQuadraticTetra";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( p2ScalarFunc );
       vtkOutput.write( maxLevel );
    }

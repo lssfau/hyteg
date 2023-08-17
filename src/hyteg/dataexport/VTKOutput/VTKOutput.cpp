@@ -144,18 +144,14 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
    }
 }
 
-void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
+void VTKOutput::write( const uint_t level, const uint_t timestep )
 {
-   // if ( level <= 1 )
-   // {
-   //    return;
-   // }
 
    storage_->getTimingTree()->start( "VTK write" );
 
    if ( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
    {
-      syncAllFunctions( level );
+      communication::syncRegisteredFunctions( feFunctionRegistry_, level );
 
       const std::vector< vtk::DoFType > dofTypes2D = { vtk::DoFType::VERTEX,
                                                        vtk::DoFType::EDGE_X,
@@ -209,136 +205,6 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
    }
 
    storage_->getTimingTree()->stop( "VTK write" );
-}
-
-void VTKOutput::syncAllFunctions( const uint_t& level ) const
-{
-   // ----------------------------------------
-   //  P1Functions [double, int32_t, int64_t]
-   // ----------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getP1Functions().getFunctions< double >() )
-   {
-      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< double > >( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP1Functions().getFunctions< int32_t >() )
-   {
-      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int32_t > >( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP1Functions().getFunctions< int64_t >() )
-   {
-      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int64_t > >( function, level );
-   }
-
-   // ----------------------------------------------
-   //  P1VectorFunctions [double, int32_t, int64_t]
-   // ----------------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getP1VectorFunctions().getFunctions< double >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP1VectorFunctions().getFunctions< int32_t >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP1VectorFunctions().getFunctions< int64_t >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-
-   // ----------------------------------------
-   //  P2Functions [double, int32_t, int64_t]
-   // ----------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getP2Functions().getFunctions< double >() )
-   {
-      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP2Functions().getFunctions< int32_t >() )
-   {
-      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP2Functions().getFunctions< int64_t >() )
-   {
-      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
-   }
-
-   // ----------------------------------------------
-   //  P2VectorFunctions [double, int32_t, int64_t]
-   // ----------------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getP2VectorFunctions().getFunctions< double >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP2VectorFunctions().getFunctions< int32_t >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getP2VectorFunctions().getFunctions< int64_t >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-
-   // ----------------------------------------------
-   //  DGVectorFunctions [double, int32_t, int64_t]
-   // ----------------------------------------------
-
-   // no communication necessary
-
-   // ---------------------------------------------
-   //  EdgeDoFFunctions [double, int32_t, int64_t]
-   // ---------------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< double >() )
-   {
-      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< int32_t >() )
-   {
-      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< int64_t >() )
-   {
-      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
-   }
-
-   // ----------------------------------------
-   //  DGFunctions [double, int32_t, int64_t]
-   // ----------------------------------------
-
-   // no communication necessary
-
-   // -----------------------------------------------
-   //  N1E1VectorFunction [double, int32_t, int64_t]
-   // -----------------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< double >() )
-   {
-      function.communicate< Face, Cell >( level );
-      function.communicate< Edge, Cell >( level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int32_t >() )
-   {
-      function.communicate< Face, Cell >( level );
-      function.communicate< Edge, Cell >( level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int64_t >() )
-   {
-      function.communicate< Face, Cell >( level );
-      function.communicate< Edge, Cell >( level );
-   }
-
-   // ---------------------------------------------
-   //  EGFunction [double, int32_t, int64_t]
-   // ---------------------------------------------
-   for ( const auto& function : feFunctionRegistry_.getEGFunctions().getFunctions< double >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getEGFunctions().getFunctions< int32_t >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
-   for ( const auto& function : feFunctionRegistry_.getEGFunctions().getFunctions< int64_t >() )
-   {
-      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
-   }
 }
 
 // -------------------------

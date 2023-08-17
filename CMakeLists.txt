@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.20)
 
 PROJECT ( hyteg )
 enable_testing()
@@ -10,6 +10,7 @@ endif()
 
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
+option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
@@ -118,13 +119,20 @@ if ( HYTEG_BUILD_WITH_PETSC )
     message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
 endif()
 
-if ( HYTEG_BUILD_WITH_TRILINOS)
+if ( HYTEG_BUILD_WITH_TRILINOS )
    find_package( Trilinos REQUIRED )
    message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
    INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
    list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
 endif()
 
+if ( HYTEG_BUILD_WITH_ADIOS2 )
+  if ( WALBERLA_BUILD_WITH_MPI )
+    find_package( ADIOS2 REQUIRED COMPONENTS CXX MPI )
+  else()
+    find_package( ADIOS2 REQUIRED COMPONENTS CXX )
+  endif()
+endif()
 
 configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
                  src/hyteg/HytegDefinitions.hpp )
@@ -198,6 +206,36 @@ if (HYTEG_BUILD_DOC)
   set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
   set ( DOXYGEN_HTML_OUTPUT "html" )
+
+  # The following checks all our "feature macros" and defines specific
+  # variables for Doxygen, so that we can add the acitvated feature macros
+  # to the list of PREDEFINED macros in Doxygen.
+  #
+  # Yepp, this looks akward. If you have any idea on how to solve this in
+  # a more elegant fashion, please feel free to change this.
+  if( WALBERLA_BUILD_WITH_MPI ) 
+    set( DOXYGEN_WALBERLA_BUILD_WITH_MPI "WALBERLA_BUILD_WITH_MPI" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_ADIOS2 )
+    set( DOXYGEN_HYTEG_BUILD_WITH_ADIOS2 "HYTEG_BUILD_WITH_ADIOS2" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_PETSC )
+    set( DOXYGEN_HYTEG_BUILD_WITH_PETSC "HYTEG_BUILD_WITH_PETSC" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_TRILINOS )
+    set( DOXYGEN_HYTEG_BUILD_WITH_TRILINOS "HYTEG_BUILD_WITH_TRILINOS" )
+  endif()
+
+  if ( HYTEG_USE_GENERATED_KERNELS )
+    set( DOXYGEN_HYTEG_USE_GENERATED_KERNELS "HYTEG_USE_GENERATED_KERNELS" )
+  endif()
+
+  if ( HYTEG_TERRANEO_MODULE )
+    set( DOXYGEN_HYTEG_TERRANEO_MODULE "HYTEG_TERRANEO_MODULE" )
+  endif()
 
   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
@@ -296,4 +334,8 @@ add_dependencies(hyteg_all_apps ${_apps_targets} ${_tutorials_targets})
 
 add_custom_target(hyteg_all)
 add_dependencies(hyteg_all ${_apps_targets} ${_tutorials_targets} ${_tests_targets})
+############################################################################################################################
+
+message(STATUS "Detected Byte Order is: " ${CMAKE_CXX_BYTE_ORDER} )
+
 ############################################################################################################################

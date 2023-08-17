@@ -3,7 +3,15 @@ target_link_libraries(hyteg PUBLIC core vtk)
 if (HYTEG_BUILD_WITH_PETSC)
    target_link_libraries(hyteg PUBLIC PETSc::PETSc)
 endif ()
-target_compile_features(hyteg PUBLIC cxx_std_17)
+
+if ( HYTEG_BUILD_WITH_ADIOS2 )
+  if ( WALBERLA_BUILD_WITH_MPI )
+    target_link_libraries( hyteg PUBLIC adios2::cxx11_mpi )
+  else()
+    target_link_libraries( hyteg PUBLIC adios2::cxx11 )
+  endif()
+endif()
+
 set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF)
 # There seem to be spurious warnings in gcc 12.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366
 # TODO: check if this is still the case for gcc 12.3

@@ -425,10 +425,6 @@ namespace dg {
 /// \param level            [in] refinement level
 inline void projectMean( P0Function< real_t >& func, const uint_t& level )
 {
-   if ( func.isDummy() )
-   {
-      return;
-   }
    const uint_t numGlobalVertices = func.getNumberOfGlobalDoFs( level );
    const real_t sum               = func.sumGlobal( level, Inner );
    func.add( -sum / ( real_c( numGlobalVertices ) ), level, Inner );

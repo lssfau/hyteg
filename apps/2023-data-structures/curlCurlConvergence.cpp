@@ -28,7 +28,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/dataexport/Table.hpp"
+#include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
@@ -121,8 +121,8 @@ struct SimData
 
    const std::string baseName = "basename";
 
-   WcTimingPool timingPool;
-   Table< 6 >   table;
+   WcTimingPool      timingPool;
+   latex::Table< 6 > table;
 };
 
 /// Returns the approximate L2 error.

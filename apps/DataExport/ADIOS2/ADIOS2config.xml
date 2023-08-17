@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<adios-config>
+
+    <io name="BPWriter">
+        <engine type="BP4">
+	    <parameter key="NumAggregators" value="5"/>
+        </engine>
+    </io>
+
+</adios-config>

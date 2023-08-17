@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Daniel Bauer.
+ * Copyright (c) 2017-2023 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes,
+ * Nils Kohl, Daniel Bauer, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -47,7 +48,6 @@ class Function
    , storage_( storage )
    , minLevel_( 0 )
    , maxLevel_( 0 )
-   , isDummy_( true )
    {}
 
    Function( std::string name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
@@ -55,7 +55,6 @@ class Function
    , storage_( storage )
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
-   , isDummy_( false )
    {
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
@@ -79,7 +78,14 @@ class Function
 
    const std::string& getFunctionName() const { return functionName_; }
 
+   /// Query function object for the dimension of the field it represents
    virtual uint_t getDimension() const = 0;
+
+   /// Query function object for minimal level on which it defined
+   uint_t getMinLevel() { return minLevel_; }
+
+   /// Query function object for maximal level on which it defined
+   uint_t getMaxLevel() { return maxLevel_; }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
@@ -96,18 +102,15 @@ class Function
       }
    }
 
-   bool isDummy() const { return isDummy_; }
-
    static uint_t                     getNumFunctions() { return functionNames_.size(); }
    static std::vector< std::string > getFunctionNames() { return functionNames_; }
    static std::map< uint_t, uint_t > getLevelWiseFunctionCounter() { return levelWiseFunctionCounter_; }
 
  protected:
-   const std::string                         functionName_;
-   const std::shared_ptr< PrimitiveStorage > storage_;
-   const uint_t                              minLevel_;
-   const uint_t                              maxLevel_;
-   const bool                                isDummy_;
+   std::string                         functionName_;
+   std::shared_ptr< PrimitiveStorage > storage_;
+   uint_t                              minLevel_;
+   uint_t                              maxLevel_;
 
    std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > communicators_;
    std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > additiveCommunicators_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -684,10 +684,6 @@ namespace p2function {
 
 void projectMean( const P2Function< real_t >& pressure, const uint_t& level )
 {
-   if ( pressure.isDummy() )
-   {
-      return;
-   }
    const uint_t numGlobalVertices = numberOfGlobalDoFs< P2FunctionTag >( *pressure.getStorage(), level );
    const real_t sum               = pressure.sumGlobal( level, All );
    pressure.add( -sum / real_c( numGlobalVertices ), level, All );

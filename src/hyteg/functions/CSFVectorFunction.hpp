@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr.
+ * Copyright (c) 2020-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -50,7 +50,12 @@ class CSFVectorFunction
    CSFVectorFunction( const std::string name, const std::vector< std::shared_ptr< VectorComponentType > >& compFunc )
    : functionName_( name )
    , compFunc_( compFunc )
-   {}
+   {
+     for( uint_t idx = 1; idx < compFunc.size(); ++idx ) {
+       WALBERLA_ASSERT( compFunc_[0]->getMinLevel() == compFunc_[idx]->getMinLevel() );
+       WALBERLA_ASSERT( compFunc_[0]->getMaxLevel() == compFunc_[idx]->getMaxLevel() );
+     }
+   }
 
    /// @name Query Functions
    /// Methods for questioning object for certain properties
@@ -60,8 +65,13 @@ class CSFVectorFunction
    std::shared_ptr< PrimitiveStorage > getStorage() const { return compFunc_[0]->getStorage(); }
 
    /// \note Dimension of VectorFunction is decoupled from storage now
-   uint_t getDimension() const {
-         return compFunc_.size(); }
+   uint_t getDimension() const { return compFunc_.size(); }
+
+   /// Query function object for minimal level on which it defined
+   uint_t getMinLevel() { return compFunc_[0]->getMinLevel(); }
+
+   /// Query function object for maximal level on which it defined
+   uint_t getMaxLevel() { return compFunc_[0]->getMaxLevel(); }
    /// @}
 
    /// @name Component access
@@ -228,15 +238,12 @@ class CSFVectorFunction
          compFunc_[k]->setBoundaryCondition( bc );
       }
    }
-  /// Set boundary conditions, for certain component functions
-   void setBoundaryCondition( BoundaryCondition bc, uint_t componentIdx )
-   {    
-      compFunc_[componentIdx]->setBoundaryCondition( bc ); 
-   }
+   /// Set boundary conditions, for certain component functions
+   void setBoundaryCondition( BoundaryCondition bc, uint_t componentIdx ) { compFunc_[componentIdx]->setBoundaryCondition( bc ); }
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
-     setBoundaryCondition( other.getBoundaryCondition() );
+      setBoundaryCondition( other.getBoundaryCondition() );
    }
    /// @}
 
@@ -310,8 +317,8 @@ class CSFVectorFunction
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const VectorFunctionType&                      other,
-                  const uint_t&                                  level,
+   void copyFrom( const VectorFunctionType&              other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
@@ -420,7 +427,7 @@ class CSFVectorFunction
    }
 
  protected:
-   const std::string                                     functionName_;
+   std::string                                           functionName_;
    std::vector< std::shared_ptr< VectorComponentType > > compFunc_;
 };
 

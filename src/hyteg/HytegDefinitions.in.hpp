@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#cmakedefine HYTEG_BUILD_WITH_ADIOS2
 #cmakedefine HYTEG_BUILD_WITH_PETSC
 #cmakedefine HYTEG_BUILD_WITH_TRILINOS
 #cmakedefine HYTEG_USE_GENERATED_KERNELS
@@ -34,6 +35,10 @@ constexpr bool useGeneratedKernels = true;
 namespace hyteg {
 namespace globalDefines {
 constexpr bool useGeneratedKernels = false;
-} // namesapce globalDefines
+} // namespace globalDefines
 } // namespace hyteg
 #endif
+
+// clang-format off
+#define HYTEG_ARCH_ENDIANESS ${CMAKE_CXX_BYTE_ORDER}
+// clang-format on

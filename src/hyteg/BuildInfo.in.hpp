@@ -30,22 +30,27 @@
 
 namespace hyteg {
 
-std::string buildType()
+inline std::string buildType()
 {
    return "@HYTEG_BUILD_TYPE@";
 }
 
-std::string compilerFlags()
+inline std::string compilerFlags()
 {
    return "@HYTEG_COMPILER_FLAGS@";
 }
 
-std::string compilerInfo()
+inline std::string compilerInfo()
 {
    return "@HYTEG_COMPILER_INFO@";
 }
 
-std::string mpiVersion()
+inline std::string systemEndianess()
+{
+   return "@CMAKE_CXX_BYTE_ORDER@";
+}
+
+inline std::string mpiVersion()
 {
 #ifdef WALBERLA_BUILD_WITH_MPI
 
@@ -72,13 +77,14 @@ std::string mpiVersion()
 #endif
 }
 
-void printBuildInfo()
+inline void printBuildInfo()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Build info:" )
    WALBERLA_LOG_INFO_ON_ROOT( " - build type ....... " << buildType() );
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler ......... " << compilerInfo() );
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler flags ... " << compilerFlags() );
    WALBERLA_LOG_INFO_ON_ROOT( " - mpi version ...... " << mpiVersion() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - byte order ....... " << systemEndianess() );
 }
 
 } // namespace hyteg
