@@ -18,19 +18,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core/math/Vector3.h"
+#include <unordered_map>
+#include <utility>
 
 #include "MeshInfo.hpp"
-
-#include <unordered_map>
 
 namespace hyteg {
 
 Point3D getMidPoint( MeshInfo::IDType v0, MeshInfo::IDType v1, const MeshInfo& originalMeshInfo )
 {
    auto& originalVertices = originalMeshInfo.getVertices();
-   return originalVertices.at( v0 ).getCoordinates() +
-          walberla::real_c( 0.5 ) * ( originalVertices.at( v1 ).getCoordinates() - originalVertices.at( v0 ).getCoordinates() );
+   return walberla::real_c( 0.5 ) * ( originalVertices.at( v0 ).getCoordinates() + originalVertices.at( v1 ).getCoordinates() );
+}
+
+std::pair< MeshInfo::IDType, MeshInfo::IDType > sortedPair( MeshInfo::IDType v0, MeshInfo::IDType v1 )
+{
+   return ( v0 <= v1 ) ? std::pair{ v0, v1 } : std::pair{ v1, v0 };
 }
 
 MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refinementSteps )
@@ -38,6 +41,7 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
    // lambda function to do one refinement step
    auto refineOnce = []( const MeshInfo& oldMesh ) {
       MeshInfo newMesh = MeshInfo::emptyMeshInfo();
+
       // find start for new vertex IDs
       uint_t maxVertexId = 0;
       for ( const auto& vertex : oldMesh.vertices_ )
@@ -49,53 +53,52 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
       }
       uint_t newVertexIdStart = maxVertexId + 1;
       uint_t newVertexIds[6];
+
       // copy vertices from old mesh
       newMesh.vertices_ = oldMesh.vertices_;
-      // create tmpMap for lookup of vertices:
-      std::map< std::array< real_t,3 >, IDType > vertexLookUp;
-      for ( auto& it : newMesh.vertices_ )
-      {
-         const auto coords = it.second.getCoordinates();
-         vertexLookUp[{coords[0],coords[1],coords[2]}] = it.first;
-      }
+      // map from edge (sorted vertex ids) to vertex at mid-point
+      std::map< std::pair< IDType, IDType >, IDType > vertexAtMidPoint;
+
       for ( const auto& cell : oldMesh.cells_ )
       {
          // create new vertices at the middle points ///
          // numbering corresponds to the edge numbering in the macro tet
-         std::vector< IDType > oldVerticesVector = cell.second.getVertices();
+         std::vector< IDType > oldVertexIds = cell.second.getVertices();
+
+         std::array< std::pair< IDType, IDType >, 6 > edges = { sortedPair( oldVertexIds[0], oldVertexIds[1] ),
+                                                                sortedPair( oldVertexIds[0], oldVertexIds[2] ),
+                                                                sortedPair( oldVertexIds[1], oldVertexIds[2] ),
+                                                                sortedPair( oldVertexIds[0], oldVertexIds[3] ),
+                                                                sortedPair( oldVertexIds[1], oldVertexIds[3] ),
+                                                                sortedPair( oldVertexIds[2], oldVertexIds[3] ) };
 
          std::vector< Point3D > newPoints( 6 );
-         newPoints[0] = getMidPoint( oldVerticesVector[0], oldVerticesVector[1], oldMesh );
-         newPoints[1] = getMidPoint( oldVerticesVector[0], oldVerticesVector[2], oldMesh );
-         newPoints[2] = getMidPoint( oldVerticesVector[1], oldVerticesVector[2], oldMesh );
-         newPoints[3] = getMidPoint( oldVerticesVector[0], oldVerticesVector[3], oldMesh );
-         newPoints[4] = getMidPoint( oldVerticesVector[1], oldVerticesVector[3], oldMesh );
-         newPoints[5] = getMidPoint( oldVerticesVector[2], oldVerticesVector[3], oldMesh );
          for ( uint_t i = 0; i < 6; i++ )
          {
+            newPoints[i] = getMidPoint( edges[i].first, edges[i].second, oldMesh );
+
             // check if newPoint already exists in MeshInfo
-            if ( vertexLookUp.count( {newPoints[i][0], newPoints[i][1], newPoints[i][2] } ) != 0 )
+            if ( vertexAtMidPoint.count( edges[i] ) != 0 )
             {
-               newVertexIds[i] = vertexLookUp[{newPoints[i][0], newPoints[i][1], newPoints[i][2] }];
+               newVertexIds[i] = vertexAtMidPoint[edges[i]];
             }
             else
             {
                newVertexIds[i] = newVertexIdStart;
                newVertexIdStart++;
-               auto newVertex = MeshInfo::Vertex( newVertexIds[i], newPoints[i], 0 );
+               MeshInfo::Vertex newVertex{ newVertexIds[i], newPoints[i], 0 };
                newMesh.addVertex( newVertex );
-               const auto coords = newVertex.getCoordinates();
-               vertexLookUp[{coords[0],coords[1],coords[2]}] = newVertexIds[i];
+               vertexAtMidPoint[edges[i]] = newVertexIds[i];
             }
          }
 
          // create new tetrahedrons //
          std::vector< MeshInfo::Cell > newCells( 8 );
          // 4 tets contain the original vertices
-         newCells[0] = Cell( { oldVerticesVector[0], newVertexIds[0], newVertexIds[1], newVertexIds[3] }, 0 );
-         newCells[1] = Cell( { newVertexIds[0], oldVerticesVector[1], newVertexIds[2], newVertexIds[4] }, 0 );
-         newCells[2] = Cell( { newVertexIds[1], newVertexIds[2], oldVerticesVector[2], newVertexIds[5] }, 0 );
-         newCells[3] = Cell( { newVertexIds[3], newVertexIds[4], newVertexIds[5], oldVerticesVector[3] }, 0 );
+         newCells[0] = Cell( { oldVertexIds[0], newVertexIds[0], newVertexIds[1], newVertexIds[3] }, 0 );
+         newCells[1] = Cell( { newVertexIds[0], oldVertexIds[1], newVertexIds[2], newVertexIds[4] }, 0 );
+         newCells[2] = Cell( { newVertexIds[1], newVertexIds[2], oldVertexIds[2], newVertexIds[5] }, 0 );
+         newCells[3] = Cell( { newVertexIds[3], newVertexIds[4], newVertexIds[5], oldVertexIds[3] }, 0 );
 
          // 4 tets are construced from new points
          newCells[4] = Cell( { newVertexIds[0], newVertexIds[1], newVertexIds[2], newVertexIds[4] }, 0 );
