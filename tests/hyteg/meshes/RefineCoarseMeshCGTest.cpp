@@ -89,7 +89,7 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
    WALBERLA_LOG_DEVEL( "Start" )
-   hyteg::MeshInfo  meshInfo      = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   hyteg::MeshInfo  meshInfo      = hyteg::MeshInfo::meshCuboid( { -0.03, 0.05, -0.07 }, { 1.01, 0.99, 1.03 }, 1, 1, 1 );
    walberla::real_t normalLevel3  = hyteg::runTest( 0, 3, meshInfo );
    walberla::real_t coarsenLevel1 = hyteg::runTest( 1, 1, meshInfo );
    walberla::real_t coarsenLevel2 = hyteg::runTest( 1, 2, meshInfo );
