@@ -304,13 +304,7 @@ void test( const uint_t                               maxLevel,
 
       WALBERLA_ROOT_SECTION()
       {
-         uint_t row = maxLevel - minLevel;
-         simData.table.addElement( row, 0, maxLevel );
-         simData.table.addElement( row, 1, nDoFs );
-         simData.table.addElement( row, 2, discrL2 );
-         simData.table.addElement( row, 3, reducedTimer->min() );
-         simData.table.addElement( row, 4, reducedTimer->max() );
-         simData.table.addElement( row, 5, reducedTimer->average() );
+         simData.table.pushRow( maxLevel, nDoFs, discrL2, reducedTimer->min(), reducedTimer->max(), reducedTimer->average() );
       }
    }
    else if ( simData.solverType == SolverType::FMG )
@@ -341,13 +335,8 @@ void test( const uint_t                               maxLevel,
                                          0 );
          WALBERLA_ROOT_SECTION()
          {
-            uint_t row = currentLevel - minLevel;
-            simData.table.addElement( row, 0, currentLevel );
-            simData.table.addElement( row, 1, nDoFs );
-            simData.table.addElement( row, 2, discrL2 );
-            simData.table.addElement( row, 3, reducedTimer->min() );
-            simData.table.addElement( row, 4, reducedTimer->max() );
-            simData.table.addElement( row, 5, reducedTimer->average() );
+            simData.table.pushRow(
+                currentLevel, nDoFs, discrL2, reducedTimer->min(), reducedTimer->max(), reducedTimer->average() );
          }
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%9d | %15.5e ", currentLevel, discrL2 ) )
