@@ -18,11 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <unordered_map>
+
 #include "core/math/Vector3.h"
 
 #include "MeshInfo.hpp"
-
-#include <unordered_map>
 
 namespace hyteg {
 
@@ -52,11 +52,11 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
       // copy vertices from old mesh
       newMesh.vertices_ = oldMesh.vertices_;
       // create tmpMap for lookup of vertices:
-      std::map< std::array< real_t,3 >, IDType > vertexLookUp;
+      std::map< std::array< real_t, 3 >, IDType > vertexLookUp;
       for ( auto& it : newMesh.vertices_ )
       {
-         const auto coords = it.second.getCoordinates();
-         vertexLookUp[{coords[0],coords[1],coords[2]}] = it.first;
+         const auto coords                                 = it.second.getCoordinates();
+         vertexLookUp[{ coords[0], coords[1], coords[2] }] = it.first;
       }
       for ( const auto& cell : oldMesh.cells_ )
       {
@@ -74,9 +74,9 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
          for ( uint_t i = 0; i < 6; i++ )
          {
             // check if newPoint already exists in MeshInfo
-            if ( vertexLookUp.count( {newPoints[i][0], newPoints[i][1], newPoints[i][2] } ) != 0 )
+            if ( vertexLookUp.count( { newPoints[i][0], newPoints[i][1], newPoints[i][2] } ) != 0 )
             {
-               newVertexIds[i] = vertexLookUp[{newPoints[i][0], newPoints[i][1], newPoints[i][2] }];
+               newVertexIds[i] = vertexLookUp[{ newPoints[i][0], newPoints[i][1], newPoints[i][2] }];
             }
             else
             {
@@ -84,8 +84,8 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
                newVertexIdStart++;
                auto newVertex = MeshInfo::Vertex( newVertexIds[i], newPoints[i], 0 );
                newMesh.addVertex( newVertex );
-               const auto coords = newVertex.getCoordinates();
-               vertexLookUp[{coords[0],coords[1],coords[2]}] = newVertexIds[i];
+               const auto coords                                 = newVertex.getCoordinates();
+               vertexLookUp[{ coords[0], coords[1], coords[2] }] = newVertexIds[i];
             }
          }
 
