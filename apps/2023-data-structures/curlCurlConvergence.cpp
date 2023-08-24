@@ -167,7 +167,7 @@ void test( const uint_t                               maxLevel,
       WALBERLA_LOG_INFO_ON_ROOT( "---------------------" )
    }
 
-   N1E1MassOperator M( storage, minLevel, maxLevel );
+   N1E1MassOperator M( storage, minLevel, maxLevel, {}, false );
    N1E1Operator     A( storage, minLevel, maxLevel );
 
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
