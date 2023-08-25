@@ -1027,6 +1027,9 @@ waLBerla_execute_test(NAME N1E1BlendingTest LABELS n1e1)
 waLBerla_compile_test(FILES N1E1/N1E1LinearFormBlendingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME N1E1LinearFormBlendingTest LABELS n1e1)
 
+waLBerla_compile_test(FILES N1E1/N1E1BasisTransformationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME N1E1BasisTransformationTest LABELS n1e1)
+
 ## types ##
 waLBerla_compile_test(FILES types/MatrixConstructFromEigenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MatrixConstructFromEigenTest)
