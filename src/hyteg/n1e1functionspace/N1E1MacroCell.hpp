@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include <initializer_list>
 #include <vector>
 
 #include "core/DataTypes.h"
@@ -458,7 +459,7 @@ inline Eigen::DiagonalMatrix< real_t, 6 >
       const std::map< uint_t, uint_t > faceLocalVertexToCellLocalVertexMap =
           cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId );
 
-      for ( const auto& [v0, v1] : { std::pair< uint_t, uint_t >{ 0, 1 }, { 0, 2 }, { 1, 2 } } )
+      for ( const auto& [v0, v1] : std::initializer_list< std::pair< uint_t, uint_t > >{ { 0, 1 }, { 0, 2 }, { 1, 2 } } )
       {
          const uint_t faceVertex0 = faceLocalVertexToCellLocalVertexMap.at( v0 );
          const uint_t faceVertex1 = faceLocalVertexToCellLocalVertexMap.at( v1 );
@@ -467,10 +468,9 @@ inline Eigen::DiagonalMatrix< real_t, 6 >
          const uint_t       edgeId = indexing::getCellLocalEdgeIDFromCellLocalVertexIDs( faceVertex0, faceVertex1 );
          const Eigen::Index dof    = dofIdx.at( cellType )[edgeId];
 
-         WALBERLA_ASSERT_UNEQUAL( dof, X );
-
          if ( owningEdges.count( edgeId ) == 0 && edgesOwnedByFace.at( cellType ).at( localFaceId ).count( edgeId ) > 0 )
          {
+            WALBERLA_ASSERT_UNEQUAL( dof, X );
             transform.diagonal()( dof ) = sign;
          }
       }
