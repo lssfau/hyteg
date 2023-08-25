@@ -379,7 +379,7 @@ inline Eigen::DiagonalMatrix< real_t, 6 >
    std::set< uint_t > owningFaces; // local indices ∈ {0, …, 3}
 
    // An invalid edge id.
-   const uint_t X = 42;
+   const Eigen::Index X = 42;
 
    // The index of the DoF (in the local element matrix/vector) with the same
    // direction as the macro edge with the given local index (HyTeG ordering).
@@ -400,7 +400,7 @@ inline Eigen::DiagonalMatrix< real_t, 6 >
    //   Macro-cell           Micro-cell
    //   always WHITE UP      e.g. WHITE UP         BLUE UP
    //   HyTeG edge indices   FEniCS edge indices / DoF indices
-   static const std::map< celldof::CellType, std::array< uint_t, 6 > > dofIdx{
+   static const std::map< celldof::CellType, std::array< Eigen::Index, 6 > > dofIdx{
        { celldof::CellType::WHITE_UP, { 5, 4, 2, 3, 1, 0 } },
        { celldof::CellType::WHITE_DOWN, { 0, 1, 2, 3, 4, 5 } }, // unused, only for completeness
        { celldof::CellType::BLUE_UP, { 2, 4, 5, 3, X, 0 } },
@@ -463,9 +463,9 @@ inline Eigen::DiagonalMatrix< real_t, 6 >
          const uint_t faceVertex0 = faceLocalVertexToCellLocalVertexMap.at( v0 );
          const uint_t faceVertex1 = faceLocalVertexToCellLocalVertexMap.at( v1 );
 
-         const real_t sign   = ( faceVertex1 < faceVertex0 ) ? real_c( -1 ) : real_c( 1 );
-         const uint_t edgeId = indexing::getCellLocalEdgeIDFromCellLocalVertexIDs( faceVertex0, faceVertex1 );
-         const uint_t dof    = dofIdx.at( cellType )[edgeId];
+         const real_t       sign   = ( faceVertex1 < faceVertex0 ) ? real_c( -1 ) : real_c( 1 );
+         const uint_t       edgeId = indexing::getCellLocalEdgeIDFromCellLocalVertexIDs( faceVertex0, faceVertex1 );
+         const Eigen::Index dof    = dofIdx.at( cellType )[edgeId];
 
          WALBERLA_ASSERT_UNEQUAL( dof, X );
 
