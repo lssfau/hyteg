@@ -142,7 +142,7 @@ struct SimData
 /// Allocated memory
 ///  - n1e1
 ///   - 1 (A operator)
-///   - 5 (functions)
+///   - 4 (functions)
 ///   - 0 (Chebyshev)
 ///   - 0 (hybrid smoother)
 ///   - [1 (coarse grid numerator)]
@@ -151,7 +151,7 @@ struct SimData
 ///   - 2 (Chebyshev)
 ///   - [2 (spectral radius estimation)]
 ///   - 2 (hybrid smoother)
-/// Total: 6 n1e1 + 5 p1
+/// Total: 5 n1e1 + 5 p1
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
 void test( const uint_t                        maxLevel,
            std::shared_ptr< PrimitiveStorage > storage,
@@ -188,7 +188,6 @@ void test( const uint_t                        maxLevel,
 
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   N1E1VectorFunction< real_t > sol( "sol", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > tmp1( "tmp1", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > tmp2( "tmp2", storage, minLevel, maxLevel );
 
@@ -233,8 +232,8 @@ void test( const uint_t                        maxLevel,
    auto   n1e1Smoother = std::make_shared< N1E1Smoother >( tmp2, tmp1 );
    if ( n1e1Rho <= real_t( 0.0 ) )
    {
-      sol.interpolate( analyticalSol, spectralRadiusEstLevel );
-      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp1 );
+      tmp2.interpolate( analyticalSol, spectralRadiusEstLevel );
+      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, tmp2, tmp1 );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( n1e1Rho );
    }
    n1e1Smoother->setupCoefficients( 2, 0.05 * n1e1Rho, 1.05 * n1e1Rho );
@@ -267,6 +266,7 @@ void test( const uint_t                        maxLevel,
    if ( simData.solverType == SolverType::VCYCLES )
    {
       N1E1VectorFunction< real_t > err( "err", storage, minLevel, maxLevel );
+      N1E1VectorFunction< real_t > sol( "sol", storage, minLevel, maxLevel );
 
       // Interpolate solution
       sol.interpolate( analyticalSol, maxLevel );
@@ -326,12 +326,6 @@ void test( const uint_t                        maxLevel,
    }
    else if ( simData.solverType == SolverType::FMG )
    {
-      // Interpolate solution
-      for ( uint_t l = minLevel; l <= maxLevel; l++ )
-      {
-         sol.interpolate( analyticalSol, l );
-      }
-
       timer->stop( "Setup" );
 
       WALBERLA_LOG_INFO_ON_ROOT( "FMG level | discr. L2 error " )
@@ -342,7 +336,8 @@ void test( const uint_t                        maxLevel,
 
          // determine error
          // NOTE f is not needed anymore on currentLevel
-         f.assign( { 1.0, -1.0 }, { u, sol }, currentLevel );
+         f.interpolate( analyticalSol, currentLevel );
+         f.assign( { 1.0, -1.0 }, { u, f }, currentLevel );
          M.apply( f, tmp1, currentLevel, DoFType::All );
          real_t discrL2 = std::sqrt( f.dotGlobal( tmp1, currentLevel ) );
 
@@ -378,7 +373,6 @@ void test( const uint_t                        maxLevel,
       VTKOutput vtk( "output", simData.baseName + "_vtk", storage );
       vtk.add( u );
       vtk.add( f );
-      vtk.add( sol );
       vtk.write( maxLevel );
    }
 
