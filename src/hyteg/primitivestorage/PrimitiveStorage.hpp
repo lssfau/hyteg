@@ -134,6 +134,13 @@ class PrimitiveStorage : private walberla::NonCopyable
                      const MigrationMap_T& neighborRanks,
                      const bool&           hasGlobalCells );
 
+   /// Creates a PrimitiveStorage from file in parallel. This is only really necessary for large scale runs or for extremely
+   /// large coarse meshes, or if the initial load balancing is extremely expensive such that offline preprocessing is beneficial.
+   /// Uses MPIIO for (hopefully) fast consecutive reads from a single file in parallel.
+   ///
+   /// Please refer to the documentation of the corresponding method in the SetupPrimitiveStorage.
+   PrimitiveStorage( const std::string& file );
+
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
 

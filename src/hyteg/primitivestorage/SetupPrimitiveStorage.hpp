@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -74,16 +74,13 @@ class SetupPrimitiveStorage
    Primitive*       getPrimitive( const PrimitiveID& id );
    const Primitive* getPrimitive( const PrimitiveID& id ) const;
    Vertex*          getVertex( const PrimitiveID& id ) { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
-   const Vertex*    getVertex( const PrimitiveID& id ) const
-   {
-      return vertexExists( id ) ? vertices_.at( id ).get() : nullptr;
-   }
-   Edge*       getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   const Edge* getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   Face*       getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   const Face* getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   Cell*       getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
-   const Cell* getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Vertex*    getVertex( const PrimitiveID& id ) const { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
+   Edge*            getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   const Edge*      getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   Face*            getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   const Face*      getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   Cell*            getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Cell*      getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
 
    void getSetupPrimitives( PrimitiveMap& setupPrimitiveMap ) const;
 
@@ -162,6 +159,24 @@ class SetupPrimitiveStorage
    uint_t getNumEdgesOnBoundary() const;
    uint_t getNumFacesOnBoundary() const;
    uint_t getNumCellsOnBoundary() const;
+
+   /// Writes the SetupPrimitiveStorage to a file that can be used for a fully parallel initialization of the PrimitiveStorage.
+   ///
+   /// Since the SetupStorage is not scalable, large meshes cannot be processed if the memory is limited in a parallel application.
+   /// Instead of creating the PrimitiveStorage directly from the (serial) SetupPrimitiveStorage, a two-step process is initiated
+   /// through this method. It writes the Primitive distribution and all relevant data to a file, that can be loaded via a corresponding
+   /// constructor of the PrimitiveStorage in parallel (using MPIIO).
+   ///
+   /// Load balancing should therefore already be performed in the offline stage on a single process.
+   ///
+   /// \param fileName name of the file
+   /// \param numProcesses number of processes of the application that later reads this output - this must be exact, however, the
+   ///                     actual primitive distribution is independent of this number (all Primitives may be on root)
+   /// \param numberOfFiles should be 1 or larger - currently only a single output file is supported
+   ///
+   void writeToFile( const std::string& fileName,
+                     uint_t             numProcesses,
+                     uint_t             numberOfFiles = 1 ) const;
 
  private:
    typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;
