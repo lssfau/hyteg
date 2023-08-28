@@ -244,7 +244,7 @@ void test( const uint_t                        maxLevel,
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
    // WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1Operator > >( storage, minLevel );
+   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1Operator > >( storage, minLevel, 1e-3, 1e-12, 10000 );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
    auto coarseGridSolver = std::make_shared< CGSolver< N1E1Operator > >( storage, minLevel, minLevel, 10000, 1e-12 );
