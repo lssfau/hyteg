@@ -23,8 +23,10 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
+#include "hyteg/n1e1functionspace/N1E1MacroCell.hpp"
 
 namespace hyteg::n1e1 {
 
@@ -43,16 +45,8 @@ N1E1ElementwiseOperator< N1E1FormType >::N1E1ElementwiseOperator( const std::sha
                                                                   const bool needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
-, edgeDirs_{ "edge directions", storage_, minLevel, maxLevel }
 , localElementMatricesPrecomputed_( false )
 {
-   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-   {
-      edgeDirs_.getDoFs()->interpolate( 1, level );
-      edgeDirs_.communicate< Face, Cell >( level );
-      edgeDirs_.communicate< Edge, Cell >( level );
-   }
-
    if ( !storage_->hasGlobalCells() )
    {
       WALBERLA_ABORT( "Not implemented for 2D." )
@@ -223,15 +217,14 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeInverseDiagonalOperatorValu
          Cell& cell = *macroIter.second;
 
          // get hold of the actual numerical data
-         real_t* diagData     = cell.getData( inverseDiagonalValues_->getDoFs()->getCellDataID() )->getPointer( level );
-         real_t* edgeDirsData = cell.getData( edgeDirs_.getDoFs()->getCellDataID() )->getPointer( level );
+         real_t* diagData = cell.getData( inverseDiagonalValues_->getDoFs()->getCellDataID() )->getPointer( level );
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
          {
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
-               computeLocalDiagonal( cell, level, micro, cType, edgeDirsData, diagData );
+               computeLocalDiagonal( cell, level, micro, cType, diagData );
             }
          }
       }
@@ -284,20 +277,18 @@ void N1E1ElementwiseOperator< N1E1FormType >::toMatrix( const std::shared_ptr< S
       Cell& cell = *macroIter.second;
 
       // get hold of the actual numerical data in the two indexing functions
-      PrimitiveDataID< FunctionMemory< idx_t >, Cell >  srcEdgeDoFId = src.getDoFs()->getCellDataID();
-      PrimitiveDataID< FunctionMemory< idx_t >, Cell >  dstEdgeDoFId = dst.getDoFs()->getCellDataID();
-      PrimitiveDataID< FunctionMemory< real_t >, Cell > edgeDirsId   = edgeDirs_.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcEdgeDoFId = src.getDoFs()->getCellDataID();
+      PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstEdgeDoFId = dst.getDoFs()->getCellDataID();
 
-      idx_t*  srcEdgeIndices = cell.getData( srcEdgeDoFId )->getPointer( level );
-      idx_t*  dstEdgeIndices = cell.getData( dstEdgeDoFId )->getPointer( level );
-      real_t* edgeDirsData   = cell.getData( edgeDirsId )->getPointer( level );
+      idx_t* srcEdgeIndices = cell.getData( srcEdgeDoFId )->getPointer( level );
+      idx_t* dstEdgeIndices = cell.getData( dstEdgeDoFId )->getPointer( level );
 
       // loop over micro-cells
       for ( const auto& cType : celldof::allCellTypes )
       {
          for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
          {
-            localMatrixAssembly3D( mat, cell, level, micro, cType, srcEdgeIndices, dstEdgeIndices, edgeDirsData );
+            localMatrixAssembly3D( mat, cell, level, micro, cType, srcEdgeIndices, dstEdgeIndices );
          }
       }
    }
@@ -308,7 +299,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeLocalDiagonal( const Cell& 
                                                                     const uint_t            level,
                                                                     const indexing::Index&  microCell,
                                                                     const celldof::CellType cType,
-                                                                    const real_t* const     edgeDirsData,
                                                                     real_t* const           diagData )
 {
    Matrix6r elMat;
@@ -325,7 +315,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::computeLocalDiagonal( const Cell& 
    //       just like below in the full matrix assembly. However, in N1E1 the
    //       diagonal is not affected by edge orientations, so we can skip this
    //       step here.
-   WALBERLA_UNUSED( edgeDirsData );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 6 > edgeDoFIndices{};
@@ -345,8 +334,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
                                                                      const indexing::Index&                      microCell,
                                                                      const celldof::CellType                     cType,
                                                                      const idx_t* const                          srcEdgeIdx,
-                                                                     const idx_t* const                          dstEdgeIdx,
-                                                                     const real_t* const edgeDirsData ) const
+                                                                     const idx_t* const dstEdgeIdx ) const
 {
    Matrix6r elMat;
    if ( localElementMatricesPrecomputed_ )
@@ -358,8 +346,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
       assembleLocalElementMatrix3D( cell, level, microCell, cType, form_, elMat );
    }
 
-   Eigen::Matrix< real_t, 6, 1 > edgeDirections;
-
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 6 > edgeDoFIndices;
    n1e1::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
@@ -369,8 +355,6 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
 
    for ( uint_t k = 0; k < 6; ++k )
    {
-      edgeDirections[numeric_cast< Eigen::Index >( k )] = edgeDirsData[edgeDoFIndices[k]];
-
       rowIdx[k] = uint_c( dstEdgeIdx[edgeDoFIndices[k]] );
       colIdx[k] = uint_c( srcEdgeIdx[edgeDoFIndices[k]] );
    }
@@ -382,10 +366,10 @@ void N1E1ElementwiseOperator< N1E1FormType >::localMatrixAssembly3D( const std::
    // computations can then be performed in the local space. On the other hand,
    // when assembling the operator matrix, the basis transformations must be
    // explicitly included in the matrix.
-   //
+   const Eigen::DiagonalMatrix< real_t, 6 > basisTransformation = macrocell::basisTransformation( level, cell, microCell, cType );
    // NOTE: Eigen has special implementations for diagonal products so we can
    //       write this in linear algebra notation without performance penalties.
-   elMat = edgeDirections.asDiagonal() * elMat * edgeDirections.asDiagonal();
+   elMat = basisTransformation * elMat * basisTransformation;
 
    const uint_t          elMatSize = 36;
    std::vector< real_t > blockMatData( elMatSize );
