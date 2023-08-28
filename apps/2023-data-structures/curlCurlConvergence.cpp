@@ -138,6 +138,20 @@ struct SimData
 };
 
 /// Returns the approximate L2 error.
+///
+/// Allocated memory
+///  - n1e1
+///   - 1 (A operator)
+///   - 4 (functions)
+///   - 2 (Chebyshev)
+///   - 0 (hybrid smoother)
+///   - [1 (coarse grid numerator)]
+///  - p1
+///   - 1 (Laplace operator)
+///   - 2 (Chebyshev)
+///   - [2 (spectral radius estimation)]
+///   - 2 (hybrid smoother)
+/// Total: 7 n1e1 + 5 p1
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
 void test( const uint_t                        maxLevel,
            std::shared_ptr< PrimitiveStorage > storage,
