@@ -21,6 +21,7 @@
 
 #include <cmath>
 
+#include "core/DataTypes.h"
 #include "core/math/Constants.h"
 
 #include "hyteg/geometry/GeometryMap.hpp"
@@ -126,7 +127,34 @@ class TorusMap : public GeometryMap
       identifyPrism( cell );
    }
 
-   TorusMap( walberla::mpi::RecvBuffer& recvBuffer ) { WALBERLA_ABORT( "Deserialization not implemented for TorusMap" ); }
+   TorusMap( walberla::mpi::RecvBuffer& recvBuffer )
+   {
+      recvBuffer >> toroidalResolution;
+      recvBuffer >> poloidalResolution;
+      recvBuffer >> radiusOriginToCenterOfTube_;
+
+      size_t n;
+      recvBuffer >> n;
+      tubeLayerRadii_.resize( n );
+      for ( size_t i = 0; i < n; ++i )
+      {
+         recvBuffer >> tubeLayerRadii_[i];
+      }
+
+      recvBuffer >> toroidalStartAngle_;
+      recvBuffer >> poloidalStartAngle_;
+
+      recvBuffer >> toroidalAngleIncrement_;
+      recvBuffer >> poloidalAngleIncrement_;
+
+      recvBuffer >> toroidalPrism_;
+      recvBuffer >> poloidalPrism_;
+
+      recvBuffer >> sliceCenterFront_[0] >> sliceCenterFront_[1] >> sliceCenterFront_[2];
+      recvBuffer >> sliceCenterBack_[0] >> sliceCenterBack_[1] >> sliceCenterBack_[2];
+
+      recvBuffer >> tubeLayerRadiiBack_;
+   }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const override final
    {
@@ -280,7 +308,30 @@ class TorusMap : public GeometryMap
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
-      WALBERLA_ABORT( "Serialization not implemented for TorusMap" );
+      sendBuffer << Type::TORUS;
+      sendBuffer << toroidalResolution;
+      sendBuffer << poloidalResolution;
+      sendBuffer << radiusOriginToCenterOfTube_;
+
+      sendBuffer << tubeLayerRadii_.size();
+      for ( const real_t r : tubeLayerRadii_ )
+      {
+         sendBuffer << r;
+      }
+
+      sendBuffer << toroidalStartAngle_;
+      sendBuffer << poloidalStartAngle_;
+
+      sendBuffer << toroidalAngleIncrement_;
+      sendBuffer << poloidalAngleIncrement_;
+
+      sendBuffer << toroidalPrism_;
+      sendBuffer << poloidalPrism_;
+
+      sendBuffer << sliceCenterFront_[0] << sliceCenterFront_[1] << sliceCenterFront_[2];
+      sendBuffer << sliceCenterBack_[0] << sliceCenterBack_[1] << sliceCenterBack_[2];
+
+      sendBuffer << tubeLayerRadiiBack_;
    }
 
    /// \brief Applies the torus map to the SetupPrimitiveStorage.

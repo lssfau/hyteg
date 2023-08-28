@@ -17,6 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "hyteg/geometry/GeometryMap.hpp"
+
+#include "hyteg/geometry/TokamakMap.hpp"
+#include "hyteg/geometry/TorusMap.hpp"
+
 #include "AffineMap2D.hpp"
 #include "AffineMap3D.hpp"
 #include "AnnulusMap.hpp"
@@ -64,6 +69,10 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< ThinShellMap >( recvBuffer );
    case Type::POLAR_COORDS:
       return std::make_shared< PolarCoordsMap >();
+   case Type::TOKAMAK:
+      return std::make_shared< TokamakMap >( recvBuffer );
+   case Type::TORUS:
+      return std::make_shared< TorusMap >( recvBuffer );
    default:
       WALBERLA_ABORT( "Error in deserializing GeometryMap: Unsupported Map Type" )
    }
