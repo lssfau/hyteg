@@ -19,6 +19,7 @@
 */
 
 #include <memory>
+#include <optional>
 #include <sstream>
 
 #include "core/DataTypes.h"
@@ -43,6 +44,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -65,21 +67,27 @@ enum class SolverType
 
 struct SimData
 {
-   SimData( SolverType            _solverType,
-            uint_t                _numVCyclesFMG,
-            uint_t                _preSmooth,
-            uint_t                _postSmooth,
-            real_t                _n1e1SpectralRadius,
-            real_t                _p1SpectralRadius,
-            uint_t                _coarseGridRefinements,
-            uint_t                _poloidalResolution,
-            uint_t                _toroidalResolution,
-            std::vector< real_t > _tubeLayerRadii,
-            bool                  _printSetupStorage,
-            bool                  _printPrimitiveStorage,
-            bool                  _outputTimingJSON,
-            std::string           _baseName )
-   : solverType( _solverType )
+   SimData( uint_t                       _numProcesses,
+            bool                         _createStorageFile,
+            std::optional< std::string > _storageFileName,
+            SolverType                   _solverType,
+            uint_t                       _numVCyclesFMG,
+            uint_t                       _preSmooth,
+            uint_t                       _postSmooth,
+            real_t                       _n1e1SpectralRadius,
+            real_t                       _p1SpectralRadius,
+            uint_t                       _coarseGridRefinements,
+            uint_t                       _poloidalResolution,
+            uint_t                       _toroidalResolution,
+            std::vector< real_t >        _tubeLayerRadii,
+            bool                         _printSetupStorage,
+            bool                         _printPrimitiveStorage,
+            bool                         _outputTimingJSON,
+            std::string                  _baseName )
+   : numProcesses( _numProcesses )
+   , createStorageFile( _createStorageFile )
+   , storageFileName( _storageFileName )
+   , solverType( _solverType )
    , numVCyclesFMG( _numVCyclesFMG )
    , preSmooth( _preSmooth )
    , postSmooth( _postSmooth )
@@ -95,6 +103,10 @@ struct SimData
    , baseName( _baseName )
    , table( { "Level", "DoFs", "L2error", "timeMin", "timeMax", "timeAvg" } )
    {}
+
+   const uint_t                       numProcesses;
+   const bool                         createStorageFile;
+   const std::optional< std::string > storageFileName;
 
    // 0 -> v-cycles
    // 1 -> FMG
@@ -127,12 +139,12 @@ struct SimData
 
 /// Returns the approximate L2 error.
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
-void test( const uint_t                               maxLevel,
-           std::unique_ptr< SetupPrimitiveStorage >&& setupStorage,
-           const VectorField                          analyticalSol,
-           const VectorField                          rhs,
-           SimData&                                   simData,
-           const bool                                 writeVTK = false )
+void test( const uint_t                        maxLevel,
+           std::shared_ptr< PrimitiveStorage > storage,
+           const VectorField                   analyticalSol,
+           const VectorField                   rhs,
+           SimData&                            simData,
+           const bool                          writeVTK = false )
 {
    using namespace n1e1;
 
@@ -144,16 +156,6 @@ void test( const uint_t                               maxLevel,
    const int    numSpectralRadiusEstIts = 40;
    const int    nMaxVCycles             = 200;
    const real_t residualReduction       = 1.0e-3;
-
-   if ( simData.printSetupStorage )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
-      WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
-      WALBERLA_LOG_INFO_ON_ROOT( *setupStorage );
-      WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
-   }
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
-   setupStorage.reset();
 
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
@@ -373,18 +375,32 @@ void test( const uint_t                               maxLevel,
 
 void testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
 {
-   std::unique_ptr< SetupPrimitiveStorage > setupStorage;
+   std::shared_ptr< PrimitiveStorage > storage;
+   if ( simData.storageFileName.has_value() )
+   {
+      storage = std::make_shared< PrimitiveStorage >( simData.storageFileName.value() );
+   }
+   else
    {
       const MeshInfo cube = MeshInfo::refinedCoarseMesh(
           MeshInfo::meshSymmetricCuboid( Point3D{ 0.0, 0.0, 0.0 }, Point3D{ 1.0, 1.0, 1.0 }, 1, 1, 1 ),
           simData.coarseGridRefinements );
 
-      setupStorage =
-          std::make_unique< SetupPrimitiveStorage >( cube, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   }
-   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      SetupPrimitiveStorage setupStorage( cube, simData.numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   loadbalancing::roundRobinVolume( *setupStorage );
+      if ( simData.printSetupStorage )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
+         WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+         WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+         WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+      }
+
+      loadbalancing::roundRobinVolume( setupStorage );
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   }
 
    const auto analyticalSol = []( const Point3D& p ) {
       const real_t x = p[0];
@@ -405,7 +421,7 @@ void testCube( const uint_t maxLevel, SimData& simData, const bool writeVTK = fa
    test< forms::n1e1_linear_form_affine_q6,
          n1e1::N1E1ElementwiseMassOperator,
          n1e1::N1E1ElementwiseCurlCurlPlusMassOperatorQ2,
-         P1ConstantLaplaceOperator >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
+         P1ConstantLaplaceOperator >( maxLevel, storage, analyticalSol, rhs, simData, writeVTK );
 }
 
 void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = false )
@@ -420,7 +436,12 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
    const real_t R = radiusOriginToCenterOfTube;
    const real_t r = tubeLayerRadii.back();
 
-   std::unique_ptr< SetupPrimitiveStorage > setupStorage;
+   std::shared_ptr< PrimitiveStorage > storage;
+   if ( simData.storageFileName.has_value() && !simData.createStorageFile )
+   {
+      storage = std::make_shared< PrimitiveStorage >( simData.storageFileName.value() );
+   }
+   else
    {
       const MeshInfo torus = MeshInfo::refinedCoarseMesh( MeshInfo::meshTorus( toroidalResolution,
                                                                                poloidalResolution,
@@ -430,20 +451,35 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
                                                                                polodialStartAngle ),
                                                           simData.coarseGridRefinements );
 
-      setupStorage =
-          std::make_unique< SetupPrimitiveStorage >( torus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      SetupPrimitiveStorage setupStorage( torus, simData.numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+      if ( simData.printSetupStorage )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "SetupStorage info" )
+         WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+         WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+         WALBERLA_LOG_INFO_ON_ROOT( "-----------------" )
+      }
+
+      loadbalancing::roundRobinVolume( setupStorage );
+
+      TorusMap::setMap( setupStorage,
+                        toroidalResolution,
+                        poloidalResolution,
+                        radiusOriginToCenterOfTube,
+                        tubeLayerRadii,
+                        torodialStartAngle,
+                        polodialStartAngle );
+
+      if ( simData.createStorageFile )
+      {
+         setupStorage.writeToFile( simData.storageFileName.value(), setupStorage.getNumberOfProcesses() );
+         return;
+      }
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
    }
-   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-
-   loadbalancing::roundRobinVolume( *setupStorage );
-
-   TorusMap::setMap( *setupStorage,
-                     toroidalResolution,
-                     poloidalResolution,
-                     radiusOriginToCenterOfTube,
-                     tubeLayerRadii,
-                     torodialStartAngle,
-                     polodialStartAngle );
 
    const auto analyticalSol = [R, r]( const Point3D& xVec ) {
       const real_t x    = xVec[0];
@@ -490,7 +526,7 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
    test< forms::n1e1_linear_form_blending_q6,
          n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
          n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
-         P1ElementwiseBlendingLaplaceOperatorQ2 >( maxLevel, std::move( setupStorage ), analyticalSol, rhs, simData, writeVTK );
+         P1ElementwiseBlendingLaplaceOperatorQ2 >( maxLevel, storage, analyticalSol, rhs, simData, writeVTK );
 }
 
 void convergenceTest( const uint_t                                                                       minLevel,
@@ -540,8 +576,12 @@ int main( int argc, char** argv )
    const uint_t minLevel = parameters.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel = parameters.getParameter< uint_t >( "maxLevel" );
 
-   const std::string baseName              = parameters.getParameter< std::string >( "baseName" );
-   const std::string domainString          = parameters.getParameter< std::string >( "domain" );
+   const std::string baseName     = parameters.getParameter< std::string >( "baseName" );
+   const std::string domainString = parameters.getParameter< std::string >( "domain" );
+   const uint_t      numProcesses =
+       parameters.getParameter< uint_t >( "numProcesses", uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   const bool        createStorageFile     = parameters.getParameter< bool >( "createStorageFile", false );
+   const std::string storageFileNameString = parameters.getParameter< std::string >( "storageFileName", "" );
    const std::string solverTypeString      = parameters.getParameter< std::string >( "solverType" );
    const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
    const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
@@ -585,6 +625,12 @@ int main( int argc, char** argv )
       WALBERLA_ABORT( "Invalid solver type: " << solverTypeString );
    }
 
+   std::optional< std::string > storageFileName;
+   if ( storageFileNameString != "" )
+   {
+      storageFileName = { storageFileNameString };
+   }
+
    std::vector< real_t > tubeLayerRadii;
    for ( const auto& parameter : tubeLayerRadiiBlock )
    {
@@ -595,7 +641,10 @@ int main( int argc, char** argv )
       tubeLayerRadii.push_back( radius );
    }
 
-   SimData simData( solverType,
+   SimData simData( numProcesses,
+                    createStorageFile,
+                    storageFileName,
+                    solverType,
                     numVCyclesFMG,
                     preSmooth,
                     postSmooth,

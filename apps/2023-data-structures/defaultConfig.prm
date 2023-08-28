@@ -1,5 +1,9 @@
 Parameters
 {
+  // numProcesses      4;
+  // createStorageFile true;
+  // storageFileName   torus.storage;
+
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
   minLevel 0;
   maxLevel 3;

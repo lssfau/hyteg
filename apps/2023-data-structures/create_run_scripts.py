@@ -73,6 +73,10 @@ def create_file(datestamp, email, cluster, mesh, nodes, max_level, fmg_v_cycles)
 
     prm_file_string = f"""Parameters
 {{
+  numProcesses      {nodes * cluster.ppn};
+  createStorageFile true;
+  storageFileName   torus.storage;
+
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
   minLevel 0;
   maxLevel {max_level};
@@ -106,7 +110,7 @@ def create_file(datestamp, email, cluster, mesh, nodes, max_level, fmg_v_cycles)
   }}
 
   vtk false;
-  printSetupStorage false;
+  printSetupStorage true;
   printPrimitiveStorage true;
   timingJSON true;
 
