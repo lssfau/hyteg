@@ -370,6 +370,7 @@ void test( const uint_t                        maxLevel,
    if ( simData.outputTimingJSON )
    {
       writeTimingTreeJSON( *timer, simData.baseName + "_timingTreeLevel" + std::to_string( maxLevel ) + ".json" );
+      writeTimingTreeJSON( *storage->getTimingTree(), simData.baseName + "_timingTreeStorage.json" );
    }
 }
 
