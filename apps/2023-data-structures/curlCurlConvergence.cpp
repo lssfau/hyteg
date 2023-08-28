@@ -142,8 +142,8 @@ struct SimData
 /// Allocated memory
 ///  - n1e1
 ///   - 1 (A operator)
-///   - 4 (functions)
-///   - 2 (Chebyshev)
+///   - 5 (functions)
+///   - 0 (Chebyshev)
 ///   - 0 (hybrid smoother)
 ///   - [1 (coarse grid numerator)]
 ///  - p1
@@ -151,7 +151,7 @@ struct SimData
 ///   - 2 (Chebyshev)
 ///   - [2 (spectral radius estimation)]
 ///   - 2 (hybrid smoother)
-/// Total: 7 n1e1 + 5 p1
+/// Total: 6 n1e1 + 5 p1
 template < class N1E1LinearForm, class N1E1MassOperator, class N1E1Operator, class P1LaplaceOperator >
 void test( const uint_t                        maxLevel,
            std::shared_ptr< PrimitiveStorage > storage,
@@ -189,7 +189,8 @@ void test( const uint_t                        maxLevel,
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > sol( "sol", storage, minLevel, maxLevel );
-   N1E1VectorFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
+   N1E1VectorFunction< real_t > tmp1( "tmp1", storage, minLevel, maxLevel );
+   N1E1VectorFunction< real_t > tmp2( "tmp2", storage, minLevel, maxLevel );
 
    if ( writeVTK )
    {
@@ -229,17 +230,17 @@ void test( const uint_t                        maxLevel,
    p1Smoother->setupCoefficients( 2, 0.2 * p1Rho, 1.1 * p1Rho );
 
    real_t n1e1Rho      = simData.n1e1SpectralRadius;
-   auto   n1e1Smoother = std::make_shared< N1E1Smoother >( storage, minLevel, maxLevel );
+   auto   n1e1Smoother = std::make_shared< N1E1Smoother >( tmp2, tmp1 );
    if ( n1e1Rho <= real_t( 0.0 ) )
    {
       sol.interpolate( analyticalSol, spectralRadiusEstLevel );
-      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp );
+      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, sol, tmp1 );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( n1e1Rho );
    }
    n1e1Smoother->setupCoefficients( 2, 0.05 * n1e1Rho, 1.05 * n1e1Rho );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
-       storage, tmp, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
+       storage, tmp1, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -253,7 +254,7 @@ void test( const uint_t                        maxLevel,
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
 
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< N1E1Operator > >( storage,
-                                                                                  tmp,
+                                                                                  tmp1,
                                                                                   hybridSmoother,
                                                                                   coarseGridSolver,
                                                                                   restrictionOperator,
@@ -274,13 +275,13 @@ void test( const uint_t                        maxLevel,
 
       // Determine initial error
       err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
-      M.apply( err, tmp, maxLevel, DoFType::All );
-      real_t discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
+      M.apply( err, tmp1, maxLevel, DoFType::All );
+      real_t discrL2 = std::sqrt( err.dotGlobal( tmp1, maxLevel ) );
 
       // Determine initial residual
-      A.apply( u, tmp, maxLevel, DoFType::Inner );
-      tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
-      const real_t initRes = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+      A.apply( u, tmp1, maxLevel, DoFType::Inner );
+      tmp1.assign( { 1.0, -1.0 }, { f, tmp1 }, maxLevel, DoFType::Inner );
+      const real_t initRes = std::sqrt( tmp1.dotGlobal( tmp1, maxLevel, DoFType::Inner ) );
 
       // Solve system.
       real_t residual = initRes;
@@ -303,13 +304,13 @@ void test( const uint_t                        maxLevel,
          timer->start( "Error" );
          // determine error
          err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
-         M.apply( err, tmp, maxLevel, DoFType::All );
-         discrL2 = std::sqrt( err.dotGlobal( tmp, maxLevel ) );
+         M.apply( err, tmp1, maxLevel, DoFType::All );
+         discrL2 = std::sqrt( err.dotGlobal( tmp1, maxLevel ) );
 
          // determine residual
-         A.apply( u, tmp, maxLevel, DoFType::Inner );
-         tmp.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, DoFType::Inner );
-         residual = std::sqrt( tmp.dotGlobal( tmp, maxLevel, DoFType::Inner ) );
+         A.apply( u, tmp1, maxLevel, DoFType::Inner );
+         tmp1.assign( { 1.0, -1.0 }, { f, tmp1 }, maxLevel, DoFType::Inner );
+         residual = std::sqrt( tmp1.dotGlobal( tmp1, maxLevel, DoFType::Inner ) );
          timer->stop( "Error" );
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14d | %15.5e | %13.5e ", i + 1, discrL2, residual / initRes ) )
@@ -342,8 +343,8 @@ void test( const uint_t                        maxLevel,
          // determine error
          // NOTE f is not needed anymore on currentLevel
          f.assign( { 1.0, -1.0 }, { u, sol }, currentLevel );
-         M.apply( f, tmp, currentLevel, DoFType::All );
-         real_t discrL2 = std::sqrt( f.dotGlobal( tmp, currentLevel ) );
+         M.apply( f, tmp1, currentLevel, DoFType::All );
+         real_t discrL2 = std::sqrt( f.dotGlobal( tmp1, currentLevel ) );
 
          const uint_t nDoFs        = numberOfGlobalDoFs( u, currentLevel );
          auto         reducedTimer = getReduced( simData.timingPool["solver - level " + std::to_string( currentLevel )],
