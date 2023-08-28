@@ -27,12 +27,33 @@ cm2 = Cluster("cm2", 28, """#!/bin/bash
 #SBATCH --get-user-env
 #SBATCH --clusters=cm2
 #SBATCH --partition=cm2_std
-#SBATCH --nodes=8
+#SBATCH --nodes={nodes}
 #SBATCH --ntasks-per-node={ppn}
 #SBATCH --mail-type=begin,end
 #SBATCH --mail-user={email}
 #SBATCH --export=NONE
-#SBATCH --time=01:00:00
+#SBATCH --time=00:20:00
+
+module load slurm_setup
+module load gcc petsc/3.17.2-intel21-impi-real
+
+mpiexec -n $SLURM_NTASKS ./curlCurlConvergence {prm_file}
+""")
+
+sng = Cluster("sng", 48, """#!/bin/bash
+
+#SBATCH -J {base_name}
+#SBATCH -o ./%x.%j.out
+#SBATCH -D ./
+#SBATCH --get-user-env
+#SBATCH --partition=general
+#SBATCH --nodes={nodes}
+#SBATCH --ntasks-per-node={ppn}
+#SBATCH --mail-type=begin,end
+#SBATCH --mail-user={email}
+#SBATCH --account={account}
+#SBATCH --export=NONE
+#SBATCH --time=00:30:00
 
 module load slurm_setup
 module load gcc petsc/3.17.2-intel21-impi-real
@@ -61,9 +82,12 @@ mesh0032 = Mesh( 85,  8, [     0.2,      0.4],    None,    None)
 mesh0256 = Mesh(136, 10, [0.1, 0.2, 0.3, 0.4], 3.2032 , 2.01869)
 
 # meshes for cm2
-mesh_cm2_0008 = Mesh( 37,  6, [0.4], None, None)
+mesh_cm2_0008 = Mesh( 37,  6, [0.4], 3.08194, 1.96583)
 
-def create_file(datestamp, email, cluster, mesh, nodes, max_level, fmg_v_cycles):
+# meshes for sng
+mesh_sng_0004 = Mesh( 42, 6, [0.4], 3.02763, 1.97804)
+
+def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
     base_name = '_'.join(['curlcurl', cluster.name, datestamp, f'nodes_{nodes:04}_lvl_{max_level}'])
 
     prm_file = base_name + ".prm"
@@ -123,7 +147,8 @@ def create_file(datestamp, email, cluster, mesh, nodes, max_level, fmg_v_cycles)
         nodes     = nodes,
         ppn       = cluster.ppn,
         prm_file  = prm_file,
-        email     = email,
+        email     = args.email,
+        account   = args.account,
     )
 
     with open(prm_file, "w") as f:
@@ -134,8 +159,9 @@ def create_file(datestamp, email, cluster, mesh, nodes, max_level, fmg_v_cycles)
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--cluster', required=True, choices=['hawk', 'cm2'])
+parser.add_argument('--cluster', required=True, choices=['hawk', 'cm2', 'sng'])
 parser.add_argument('--email')
+parser.add_argument('--account')
 args = parser.parse_args()
 
 
@@ -149,18 +175,22 @@ if args.cluster == 'hawk':
     fmg_v_cycles = 5
 
     for n, m, l in zip(nodes, meshes, max_levels):
-        create_file(datestamp, args.email, hawk, m, n, l, fmg_v_cycles)
+        create_file(datestamp, args, hawk, m, n, l, fmg_v_cycles)
 
     # weak scaling
     meshes = [mesh0256, mesh0032, mesh0004]
     max_level = 7
 
     for n, m in zip(nodes, meshes):
-        create_file(datestamp, args.email, hawk, m, n, max_level, fmg_v_cycles)
+        create_file(datestamp, args, hawk, m, n, max_level, fmg_v_cycles)
 
     # big run
-    create_file(datestamp, args.email, hawk, mesh0256, 512, 8, 1)
+    create_file(datestamp, args, hawk, mesh0256, 512, 8, 1)
 
 elif args.cluster == 'cm2':
     # small test run before going to sng
-    create_file(datestamp, args.email, cm2, mesh_cm2_0008, 8, 7, 4)
+    create_file(datestamp, args, cm2, mesh_cm2_0008, 8, 7, 4)
+
+elif args.cluster == 'sng':
+    # small test run
+    create_file(datestamp, args, sng, mesh_sng_0004, 4, 7, 4)
