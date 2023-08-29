@@ -47,7 +47,7 @@ sng = Cluster("sng", 48, """#!/bin/bash
 #SBATCH -o ./%x.%j.out
 #SBATCH -D ./
 #SBATCH --get-user-env
-#SBATCH --partition=general
+#SBATCH --partition={partition}
 #SBATCH --nodes={nodes}
 #SBATCH --ntasks-per-node={ppn}
 #SBATCH --mail-type=begin,end
@@ -63,12 +63,13 @@ mpiexec -n $SLURM_NTASKS ./curlCurlConvergence {prm_file} -ksp_monitor
 """)
 
 class Mesh:
-    def __init__(self, toroidal_resolution, poloidal_resolution, tube_layer_radii, n1e1_spectral_radius, p1_spectral_radius):
-        self.toroidal_resolution  = toroidal_resolution
-        self.poloidal_resolution  = poloidal_resolution
-        self.tube_layer_radii     = tube_layer_radii
-        self.n1e1_spectral_radius = n1e1_spectral_radius
-        self.p1_spectral_radius   = p1_spectral_radius
+    def __init__(self, toroidal_resolution, poloidal_resolution, tube_layer_radii, n1e1_spectral_radius, p1_spectral_radius, coarse_grid_refinements=0):
+        self.toroidal_resolution     = toroidal_resolution
+        self.poloidal_resolution     = poloidal_resolution
+        self.tube_layer_radii        = tube_layer_radii
+        self.n1e1_spectral_radius    = n1e1_spectral_radius
+        self.p1_spectral_radius      = p1_spectral_radius
+        self.coarse_grid_refinements = coarse_grid_refinements
 
 # those are constant for now
 pre_smooth = 1
@@ -88,6 +89,7 @@ mesh_cm2_0008 = Mesh( 37,  6, [0.4], 3.08194, 1.96583)
 # meshes for sng
 mesh_sng_0004 = Mesh( 42, 6, [0.4], 3.02763, 1.97804)
 mesh_sng_0768 = Mesh(240, 8, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], 3.29981, 2.12429)
+mesh_sng_1584 = Mesh(158, 8, [0.08, 0.16, 0.24, 0.32, 0.40], None, None, 1)
 
 def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
     base_name = '_'.join(['curlcurl', cluster.name, datestamp, f'nodes_{nodes:04}_lvl_{max_level}'])
@@ -132,7 +134,7 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
     prm_file_string += f"""
   spectralRadiusEstIts 60;
 
-  coarseGridRefinements 0;
+  coarseGridRefinements {mesh.coarse_grid_refinements};
 
   toroidalResolution {mesh.toroidal_resolution};
   poloidalResolution {mesh.poloidal_resolution};
@@ -156,6 +158,7 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
         prm_file  = prm_file,
         email     = args.email,
         account   = args.account,
+        partition = "general" if nodes <= 768 else "large"
     )
 
     with open(prm_file, "w") as f:
@@ -203,6 +206,8 @@ elif args.cluster == 'sng':
     # level         0  1  2  3  4  5  6  7
     fmg_v_cycles = [1, 4, 4, 4, 4, 4, 4, 1]
     # small test run
-    create_file(datestamp, args, sng, mesh_sng_0004, 4, 7, fmg_v_cycles)
+    create_file(datestamp, args, sng, mesh_sng_0004,    4, 7, fmg_v_cycles)
     # ~1/8
-    create_file(datestamp, args, sng, mesh_sng_0768, 768, 7, fmg_v_cycles)
+    create_file(datestamp, args, sng, mesh_sng_0768,  768, 7, fmg_v_cycles)
+    # ~1/4
+    create_file(datestamp, args, sng, mesh_sng_1584, 1584, 7, fmg_v_cycles)
