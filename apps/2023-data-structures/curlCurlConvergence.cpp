@@ -250,6 +250,8 @@ void test( const uint_t                        maxLevel,
    {
       tmp2.interpolate( analyticalSol, spectralRadiusEstLevel );
       n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, simData.spectralRadiusEstIts, storage, tmp2, tmp1 );
+      // TODO We must do this, otherwise the convergence breaks down. But why?
+      tmp2.interpolate( 0.0, spectralRadiusEstLevel );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( n1e1Rho );
    }
    n1e1Smoother->setupCoefficients(
