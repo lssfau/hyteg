@@ -16,7 +16,13 @@ Parameters
 
   preSmooth     1;
   postSmooth    1;
-  numVCyclesFMG 4;
+  numVCyclesFMG
+  {
+    0 4;
+    1 4;
+    2 4;
+    3 2;
+  }
 
   n1e1SpectralRadius 3.08346;
   p1SpectralRadius   2.00736;
@@ -31,7 +37,7 @@ Parameters
   }
 
   vtk false;
-  printSetupStorage true;
+  printSetupStorage false;
   printPrimitiveStorage true;
   timingJSON true;
 

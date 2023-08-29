@@ -21,6 +21,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <vector>
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
@@ -71,7 +72,7 @@ struct SimData
             bool                         _createStorageFile,
             std::optional< std::string > _storageFileName,
             SolverType                   _solverType,
-            uint_t                       _numVCyclesFMG,
+            std::vector< uint_t >        _numVCyclesFMG,
             uint_t                       _preSmooth,
             uint_t                       _postSmooth,
             real_t                       _n1e1SpectralRadius,
@@ -113,7 +114,7 @@ struct SimData
    const SolverType solverType = SolverType::VCYCLES;
 
    // v-cycles on each FMG level
-   const uint_t numVCyclesFMG = 2;
+   const std::vector< uint_t > numVCyclesFMG;
 
    const uint_t preSmooth  = 2;
    const uint_t postSmooth = 2;
@@ -595,7 +596,7 @@ int main( int argc, char** argv )
    const std::string solverTypeString      = parameters.getParameter< std::string >( "solverType" );
    const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
    const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
-   const uint_t      numVCyclesFMG         = parameters.getParameter< uint_t >( "numVCyclesFMG" );
+   const BlockHandle numVCyclesFMGBlock    = parameters.getBlock( "numVCyclesFMG" );
    const real_t      n1e1SpectralRadius    = parameters.getParameter< real_t >( "n1e1SpectralRadius", real_t( -1.0 ) );
    const real_t      p1SpectralRadius      = parameters.getParameter< real_t >( "p1SpectralRadius", real_t( -1.0 ) );
    const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
@@ -621,7 +622,8 @@ int main( int argc, char** argv )
       WALBERLA_ABORT( "Invalid domain: " << domainString );
    }
 
-   SolverType solverType;
+   SolverType            solverType;
+   std::vector< uint_t > numVCyclesFMG;
    if ( solverTypeString == "vcycles" )
    {
       solverType = SolverType::VCYCLES;
@@ -629,6 +631,15 @@ int main( int argc, char** argv )
    else if ( solverTypeString == "fmg" )
    {
       solverType = SolverType::FMG;
+
+      for ( const auto& parameter : numVCyclesFMGBlock )
+      {
+         uint_t             nCycles = 0;
+         std::istringstream iss( parameter.second );
+         iss >> nCycles;
+
+         numVCyclesFMG.push_back( nCycles );
+      }
    }
    else
    {
