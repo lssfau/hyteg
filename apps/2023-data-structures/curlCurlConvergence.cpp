@@ -77,6 +77,11 @@ struct SimData
             uint_t                       _postSmooth,
             real_t                       _n1e1SpectralRadius,
             real_t                       _p1SpectralRadius,
+            uint_t                       _spectralRadiusEstIts,
+            real_t                       _n1e1ChebyshevLowerBoundFactor,
+            real_t                       _n1e1ChebyshevUpperBoundFactor,
+            real_t                       _p1ChebyshevLowerBoundFactor,
+            real_t                       _p1ChebyshevUpperBoundFactor,
             uint_t                       _coarseGridRefinements,
             uint_t                       _poloidalResolution,
             uint_t                       _toroidalResolution,
@@ -94,6 +99,11 @@ struct SimData
    , postSmooth( _postSmooth )
    , n1e1SpectralRadius( _n1e1SpectralRadius )
    , p1SpectralRadius( _p1SpectralRadius )
+   , spectralRadiusEstIts( _spectralRadiusEstIts )
+   , n1e1ChebyshevLowerBoundFactor( _n1e1ChebyshevLowerBoundFactor )
+   , n1e1ChebyshevUpperBoundFactor( _n1e1ChebyshevUpperBoundFactor )
+   , p1ChebyshevLowerBoundFactor( _p1ChebyshevLowerBoundFactor )
+   , p1ChebyshevUpperBoundFactor( _p1ChebyshevUpperBoundFactor )
    , coarseGridRefinements( _coarseGridRefinements )
    , poloidalResolution( _poloidalResolution )
    , toroidalResolution( _toroidalResolution )
@@ -121,6 +131,12 @@ struct SimData
 
    const real_t n1e1SpectralRadius;
    const real_t p1SpectralRadius;
+
+   const uint_t spectralRadiusEstIts          = 40;
+   const real_t n1e1ChebyshevLowerBoundFactor = 0.05;
+   const real_t n1e1ChebyshevUpperBoundFactor = 1.05;
+   const real_t p1ChebyshevLowerBoundFactor   = 0.2;
+   const real_t p1ChebyshevUpperBoundFactor   = 1.1;
 
    const uint_t coarseGridRefinements = 0;
 
@@ -166,11 +182,10 @@ void test( const uint_t                        maxLevel,
    using N1E1Smoother = ChebyshevSmoother< N1E1Operator >;
    using P1Smoother   = ChebyshevSmoother< P1LaplaceOperator >;
 
-   const uint_t minLevel                = 0;
-   const uint_t spectralRadiusEstLevel  = std::min( uint_c( 3 ), maxLevel );
-   const int    numSpectralRadiusEstIts = 40;
-   const int    nMaxVCycles             = 200;
-   const real_t residualReduction       = 1.0e-3;
+   const uint_t minLevel               = 0;
+   const uint_t spectralRadiusEstLevel = std::min( uint_c( 3 ), maxLevel );
+   const int    nMaxVCycles            = 200;
+   const real_t residualReduction      = 1.0e-3;
 
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
@@ -224,20 +239,21 @@ void test( const uint_t                        maxLevel,
       };
       p1Rand.interpolate( rand, spectralRadiusEstLevel );
       p1Rho = chebyshev::estimateRadius(
-          *p1LaplaceOperator, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, p1Rand, p1Tmp );
+          *p1LaplaceOperator, spectralRadiusEstLevel, simData.spectralRadiusEstIts, storage, p1Rand, p1Tmp );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( p1Rho );
    }
-   p1Smoother->setupCoefficients( 2, 0.2 * p1Rho, 1.1 * p1Rho );
+   p1Smoother->setupCoefficients( 2, simData.p1ChebyshevLowerBoundFactor * p1Rho, simData.p1ChebyshevUpperBoundFactor * p1Rho );
 
    real_t n1e1Rho      = simData.n1e1SpectralRadius;
    auto   n1e1Smoother = std::make_shared< N1E1Smoother >( tmp2, tmp1 );
    if ( n1e1Rho <= real_t( 0.0 ) )
    {
       tmp2.interpolate( analyticalSol, spectralRadiusEstLevel );
-      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, numSpectralRadiusEstIts, storage, tmp2, tmp1 );
+      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, simData.spectralRadiusEstIts, storage, tmp2, tmp1 );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( n1e1Rho );
    }
-   n1e1Smoother->setupCoefficients( 2, 0.05 * n1e1Rho, 1.05 * n1e1Rho );
+   n1e1Smoother->setupCoefficients(
+       2, simData.n1e1ChebyshevLowerBoundFactor * n1e1Rho, simData.n1e1ChebyshevUpperBoundFactor * n1e1Rho );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
        storage, tmp1, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
@@ -591,22 +607,27 @@ int main( int argc, char** argv )
    const std::string domainString = parameters.getParameter< std::string >( "domain" );
    const uint_t      numProcesses =
        parameters.getParameter< uint_t >( "numProcesses", uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   const bool        createStorageFile     = parameters.getParameter< bool >( "createStorageFile", false );
-   const std::string storageFileNameString = parameters.getParameter< std::string >( "storageFileName", "" );
-   const std::string solverTypeString      = parameters.getParameter< std::string >( "solverType" );
-   const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
-   const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
-   const BlockHandle numVCyclesFMGBlock    = parameters.getBlock( "numVCyclesFMG" );
-   const real_t      n1e1SpectralRadius    = parameters.getParameter< real_t >( "n1e1SpectralRadius", real_t( -1.0 ) );
-   const real_t      p1SpectralRadius      = parameters.getParameter< real_t >( "p1SpectralRadius", real_t( -1.0 ) );
-   const uint_t      coarseGridRefinements = parameters.getParameter< uint_t >( "coarseGridRefinements" );
-   const uint_t      poloidalResolution    = parameters.getParameter< uint_t >( "poloidalResolution" );
-   const uint_t      toroidalResolution    = parameters.getParameter< uint_t >( "toroidalResolution" );
-   const BlockHandle tubeLayerRadiiBlock   = parameters.getBlock( "tubeLayerRadii" );
-   const bool        vtk                   = parameters.getParameter< bool >( "vtk" );
-   const bool        printSetupStorage     = parameters.getParameter< bool >( "printSetupStorage" );
-   const bool        printPrimitiveStorage = parameters.getParameter< bool >( "printPrimitiveStorage" );
-   const bool        timingJSON            = parameters.getParameter< bool >( "timingJSON" );
+   const bool        createStorageFile             = parameters.getParameter< bool >( "createStorageFile", false );
+   const std::string storageFileNameString         = parameters.getParameter< std::string >( "storageFileName", "" );
+   const std::string solverTypeString              = parameters.getParameter< std::string >( "solverType" );
+   const uint_t      preSmooth                     = parameters.getParameter< uint_t >( "preSmooth" );
+   const uint_t      postSmooth                    = parameters.getParameter< uint_t >( "postSmooth" );
+   const BlockHandle numVCyclesFMGBlock            = parameters.getBlock( "numVCyclesFMG" );
+   const real_t      n1e1SpectralRadius            = parameters.getParameter< real_t >( "n1e1SpectralRadius", real_t( -1.0 ) );
+   const real_t      p1SpectralRadius              = parameters.getParameter< real_t >( "p1SpectralRadius", real_t( -1.0 ) );
+   const uint_t      spectralRadiusEstIts          = parameters.getParameter< uint_t >( "spectralRadiusEstIts", 40 );
+   const real_t      n1e1ChebyshevLowerBoundFactor = parameters.getParameter< real_t >( "n1e1ChebyshevLowerBoundFactor", 0.05 );
+   const real_t      n1e1ChebyshevUpperBoundFactor = parameters.getParameter< real_t >( "n1e1ChebyshevUpperBoundFactor", 1.05 );
+   const real_t      p1ChebyshevLowerBoundFactor   = parameters.getParameter< real_t >( "p1ChebyshevLowerBoundFactor", 0.2 );
+   const real_t      p1ChebyshevUpperBoundFactor   = parameters.getParameter< real_t >( "p1ChebyshevUpperBoundFactor", 1.1 );
+   const uint_t      coarseGridRefinements         = parameters.getParameter< uint_t >( "coarseGridRefinements" );
+   const uint_t      poloidalResolution            = parameters.getParameter< uint_t >( "poloidalResolution" );
+   const uint_t      toroidalResolution            = parameters.getParameter< uint_t >( "toroidalResolution" );
+   const BlockHandle tubeLayerRadiiBlock           = parameters.getBlock( "tubeLayerRadii" );
+   const bool        vtk                           = parameters.getParameter< bool >( "vtk" );
+   const bool        printSetupStorage             = parameters.getParameter< bool >( "printSetupStorage" );
+   const bool        printPrimitiveStorage         = parameters.getParameter< bool >( "printPrimitiveStorage" );
+   const bool        timingJSON                    = parameters.getParameter< bool >( "timingJSON" );
 
    std::function< void( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
    if ( domainString == "cube" )
@@ -671,6 +692,11 @@ int main( int argc, char** argv )
                     postSmooth,
                     n1e1SpectralRadius,
                     p1SpectralRadius,
+                    spectralRadiusEstIts,
+                    n1e1ChebyshevLowerBoundFactor,
+                    n1e1ChebyshevUpperBoundFactor,
+                    p1ChebyshevLowerBoundFactor,
+                    p1ChebyshevUpperBoundFactor,
                     coarseGridRefinements,
                     poloidalResolution,
                     toroidalResolution,
