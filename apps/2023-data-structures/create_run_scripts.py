@@ -58,7 +58,7 @@ sng = Cluster("sng", 48, """#!/bin/bash
 module load slurm_setup
 module load gcc petsc/3.17.2-intel21-impi-real
 
-mpiexec -n $SLURM_NTASKS ./curlCurlConvergence {prm_file}
+mpiexec -n $SLURM_NTASKS ./curlCurlConvergence {prm_file} -ksp_monitor
 """)
 
 class Mesh:
@@ -86,6 +86,7 @@ mesh_cm2_0008 = Mesh( 37,  6, [0.4], 3.08194, 1.96583)
 
 # meshes for sng
 mesh_sng_0004 = Mesh( 42, 6, [0.4], 3.02763, 1.97804)
+mesh_sng_0768 = Mesh(240, 8, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], 3.29981, 2.12429)
 
 def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
     base_name = '_'.join(['curlcurl', cluster.name, datestamp, f'nodes_{nodes:04}_lvl_{max_level}'])
@@ -99,7 +100,7 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
 {{
   numProcesses      {nodes * cluster.ppn};
   createStorageFile true;
-  storageFileName   torus.storage;
+  storageFileName   {base_name}.torus.storage;
 
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
   minLevel 0;
@@ -134,7 +135,7 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
   }}
 
   vtk false;
-  printSetupStorage true;
+  printSetupStorage false;
   printPrimitiveStorage true;
   timingJSON true;
 
@@ -194,3 +195,4 @@ elif args.cluster == 'cm2':
 elif args.cluster == 'sng':
     # small test run
     create_file(datestamp, args, sng, mesh_sng_0004, 4, 7, 4)
+    create_file(datestamp, args, sng, mesh_sng_0768, 768, 7, 1)
