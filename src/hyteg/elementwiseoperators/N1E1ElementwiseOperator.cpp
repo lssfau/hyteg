@@ -25,6 +25,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
 #include "hyteg/n1e1functionspace/N1E1MacroCell.hpp"
 
@@ -451,6 +452,10 @@ template void assembleLinearForm( const uint_t                             minLe
                                   const uint_t                             maxLevel,
                                   const forms::n1e1_linear_form_affine_q6& form,
                                   N1E1VectorFunction< real_t >&            f );
+template void assembleLinearForm( const uint_t                               minLevel,
+                                  const uint_t                               maxLevel,
+                                  const forms::n1e1_linear_form_blending_q2& form,
+                                  N1E1VectorFunction< real_t >&              f );
 template void assembleLinearForm( const uint_t                               minLevel,
                                   const uint_t                               maxLevel,
                                   const forms::n1e1_linear_form_blending_q6& form,
