@@ -36,7 +36,7 @@
 #include "hyteg/elementwiseoperators/N1E1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
-#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q2.hpp"
 #include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
@@ -534,7 +534,7 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
       return Point3D{ u0, u1, u2 };
    };
 
-   test< forms::n1e1_linear_form_blending_q6,
+   test< forms::n1e1_linear_form_blending_q2,
          n1e1::N1E1ElementwiseBlendingMassOperatorQ2,
          n1e1::N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2,
          P1ElementwiseBlendingLaplaceOperatorQ2 >( maxLevel, storage, analyticalSol, rhs, simData, writeVTK );
