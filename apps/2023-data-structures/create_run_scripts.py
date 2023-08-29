@@ -1,4 +1,5 @@
 import argparse
+import os.path
 import time
 
 class Cluster:
@@ -94,13 +95,14 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
     prm_file = base_name + ".prm"
     job_file = base_name + ".job"
 
+    num_v_cycles_string = "\n    ".join(f"{i} {n};" for i, n in enumerate(fmg_v_cycles))
     radii_string = "\n    ".join(f"{i} {r};" for i, r in enumerate(mesh.tube_layer_radii))
 
     prm_file_string = f"""Parameters
 {{
   numProcesses      {nodes * cluster.ppn};
   createStorageFile true;
-  storageFileName   {base_name}.torus.storage;
+  storageFileName   {os.path.join(args.workdir, base_name + ".torus.storage")};
 
   // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
   minLevel 0;
@@ -114,7 +116,9 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
 
   preSmooth     {pre_smooth};
   postSmooth    {post_smooth};
-  numVCyclesFMG {fmg_v_cycles};
+  numVCyclesFMG {{
+    {num_v_cycles_string}
+  }}
 """
 
     if mesh.n1e1_spectral_radius:
@@ -126,6 +130,8 @@ def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
 """
 
     prm_file_string += f"""
+  spectralRadiusEstIts 60;
+
   coarseGridRefinements 0;
 
   toroidalResolution {mesh.toroidal_resolution};
@@ -163,6 +169,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--cluster', required=True, choices=['hawk', 'cm2', 'sng'])
 parser.add_argument('--email')
 parser.add_argument('--account')
+parser.add_argument('--workdir')
 args = parser.parse_args()
 
 
@@ -193,6 +200,9 @@ elif args.cluster == 'cm2':
     create_file(datestamp, args, cm2, mesh_cm2_0008, 8, 7, 4)
 
 elif args.cluster == 'sng':
+    # level         0  1  2  3  4  5  6  7
+    fmg_v_cycles = [1, 4, 4, 4, 4, 4, 4, 1]
     # small test run
-    create_file(datestamp, args, sng, mesh_sng_0004, 4, 7, 4)
-    create_file(datestamp, args, sng, mesh_sng_0768, 768, 7, 1)
+    create_file(datestamp, args, sng, mesh_sng_0004, 4, 7, fmg_v_cycles)
+    # ~1/8
+    create_file(datestamp, args, sng, mesh_sng_0768, 768, 7, fmg_v_cycles)
