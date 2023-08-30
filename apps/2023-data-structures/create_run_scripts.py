@@ -88,8 +88,12 @@ mesh_cm2_0008 = Mesh( 37,  6, [0.4], 3.08194, 1.96583)
 
 # meshes for sng
 mesh_sng_0004 = Mesh( 42, 6, [0.4], 3.02763, 1.97804)
+mesh_sng_0012 = Mesh( 40, 6, [0.4], None, None, 1)
 mesh_sng_0768 = Mesh(240, 8, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], 3.29981, 2.12429)
 mesh_sng_1584 = Mesh(158, 8, [0.08, 0.16, 0.24, 0.32, 0.40], None, None, 1)
+mesh_sng_3168 = Mesh(165, 6, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], None, None, 1)
+mesh_sng_8cpp = Mesh(264, 6, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], None, None, 1)
+mesh_sng_full = Mesh(330, 6, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], None, None, 1)
 
 def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
     base_name = '_'.join(['curlcurl', cluster.name, datestamp, f'nodes_{nodes:04}_lvl_{max_level}'])
@@ -205,9 +209,16 @@ elif args.cluster == 'cm2':
 elif args.cluster == 'sng':
     # level         0  1  2  3  4  5  6  7
     fmg_v_cycles = [1, 4, 4, 4, 4, 4, 4, 1]
-    # small test run
+    # small test runs
     create_file(datestamp, args, sng, mesh_sng_0004,    4, 7, fmg_v_cycles)
+    create_file(datestamp, args, sng, mesh_sng_0012,   12, 7, fmg_v_cycles)
     # ~1/8
     create_file(datestamp, args, sng, mesh_sng_0768,  768, 7, fmg_v_cycles)
     # ~1/4
     create_file(datestamp, args, sng, mesh_sng_1584, 1584, 7, fmg_v_cycles)
+    # ~1/2, largest in regular operation
+    create_file(datestamp, args, sng, mesh_sng_3168, 3168, 7, fmg_v_cycles)
+    # full system,  8 cells per process (backup in case something goes wrong)
+    create_file(datestamp, args, sng, mesh_sng_8cpp, 6336, 7, fmg_v_cycles)
+    # full system, 10 cells per process (maximum), 7.442588e+12 DoFs
+    create_file(datestamp, args, sng, mesh_sng_full, 6336, 7, fmg_v_cycles)
