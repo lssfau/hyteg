@@ -96,7 +96,7 @@ mesh_sng_8cpp = Mesh(264, 6, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], N
 mesh_sng_full = Mesh(330, 6, [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40], None, None, 1)
 
 def create_file(datestamp, args, cluster, mesh, nodes, max_level, fmg_v_cycles):
-    base_name = '_'.join(['curlcurl', cluster.name, datestamp, f'nodes_{nodes:04}_lvl_{max_level}'])
+    base_name = '_'.join(['curlcurl', cluster.name, datestamp, f'nodes_{nodes:04}', f'tres_{mesh.toroidal_resolution}', f'_lvl_{max_level}'])
 
     prm_file = base_name + ".prm"
     job_file = base_name + ".job"
