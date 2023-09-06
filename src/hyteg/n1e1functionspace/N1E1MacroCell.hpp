@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2023 Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,17 +19,25 @@
  */
 #pragma once
 
+#include <initializer_list>
 #include <vector>
 
 #include "core/DataTypes.h"
+#include "core/debug/Debug.h"
 
+#include "hyteg/Levelinfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
+#include "hyteg/eigen/EigenWrapper.hpp"
+#include "hyteg/indexing/Common.hpp"
+#include "hyteg/indexing/LocalIDMappings.hpp"
+#include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/primitives/Cell.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
@@ -46,6 +54,8 @@ using walberla::uint_t;
 template < typename ValueType >
 using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
 
+/// Returns the non-unit tangent vector of a micro-edge, where the length of the
+/// vector equals the length of the edge.
 inline Point3D microEdgeDirection( const uint_t& level, const Cell& cell, const edgedof::EdgeDoFOrientation& orientation )
 {
    const real_t  stepFrequency = real_c( 1.0 ) / real_c( levelinfo::num_microedges_per_edge( level ) );
@@ -333,6 +343,140 @@ inline void interpolate( const uint_t&                                          
    {
       cellData[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] = dofScalarXYZ;
    }
+}
+
+/// Transformation from/to the local edge orientations to/from the edge
+/// orientations of the owning primitive.
+///
+/// The returned matrix takes care of handling mismatching edge orientations. It
+/// transforms DoFs from owning primitives into the basis defined by the given
+/// cell, or vice versa. It is always diagonal and all entries have magnitude 1.
+/// For elements inside the macro-cell it is just the identity.
+///
+/// In general FEM spaces, neighboring elements must agree on the orientation
+/// of shared mesh entities. In n1e1, only the orientations of shared edges
+/// are important. They define a local basis for FEM functions. Basis
+/// transformations between these spaces allow us to view DoFs from neighboring
+/// elements in our local orientation.
+/// Recommended reading:
+///   Scroggs et al., "Construction of Arbitrary Order Finite Element Degree-
+///   of-Freedom Maps on Polygonal and Polyhedral Cell Meshes," 2022, doi:
+///   https://doi.org/10.1145/3524456.
+///
+/// Local operations (e.g. matrix-free operator applications) can work
+/// in their local basis while the communication is responsible for the
+/// basis transformations. When assembling operators into matrices, these
+/// transformations must be "baked into" the matrix, since vectors are assembled
+/// locally and our communication routine is not performed during the operator
+/// application.
+inline Eigen::DiagonalMatrix< real_t, 6 >
+    basisTransformation( const uint_t level, const Cell& cell, const Index& microCell, const celldof::CellType cellType )
+{
+   Eigen::DiagonalMatrix< real_t, 6 > transform;
+   transform.setIdentity();
+
+   // Sets of macro primitives owning DoFs shared by the given micro cell.
+   std::set< uint_t > owningEdges; // local indices ∈ {0, …, 5}
+   std::set< uint_t > owningFaces; // local indices ∈ {0, …, 3}
+
+   // An invalid edge id.
+   const Eigen::Index X = 42;
+
+   // The index of the DoF (in the local element matrix/vector) with the same
+   // direction as the macro edge with the given local index (HyTeG ordering).
+   // Note that every element type misses one of the seven edge types (marked
+   // by X).
+   //
+   // Example:
+   //
+   //   3                    3                         .3
+   //   |\`\.                |\`\.                  ,/' |\
+   //   | 5 `\.              | 0 `\.              .1    | 0
+   //   |  \   4             |  \   1          ,/'      3  \
+   //   3  2 _  `\.     -->  3  2 _  `\.      1------2--|--2
+   //   |  /  `-2 `\.        |  /  `-2 `\.      `-5     | /
+   //   | 1      `\_`\       | 4      `\_`\        `\_  |4
+   //   0------0------1      0------5------1          `-0
+   //
+   //   Macro-cell           Micro-cell
+   //   always WHITE UP      e.g. WHITE UP         BLUE UP
+   //   HyTeG edge indices   FEniCS edge indices / DoF indices
+   static const std::map< celldof::CellType, std::array< Eigen::Index, 6 > > dofIdx{
+       { celldof::CellType::WHITE_UP, { 5, 4, 2, 3, 1, 0 } },
+       { celldof::CellType::WHITE_DOWN, { 0, 1, 2, 3, 4, 5 } }, // unused, only for completeness
+       { celldof::CellType::BLUE_UP, { 2, 4, 5, 3, X, 0 } },
+       { celldof::CellType::BLUE_DOWN, { 2, 1, 0, 3, X, 5 } },
+       { celldof::CellType::GREEN_UP, { 0, X, 5, 3, 4, 2 } },
+       { celldof::CellType::GREEN_DOWN, { 5, X, 0, 3, 1, 2 } } };
+
+   // For a given micro cell type and local macro face index, gives the local
+   // macro edge indices (HyTeG ordering) that are contained in this macro face
+   // *and* this micro cell type.
+   static const std::map< celldof::CellType, std::map< uint_t, std::set< uint_t > > > edgesOwnedByFace{
+       { celldof::CellType::WHITE_UP, { { 0, { 0, 1, 2 } }, { 1, { 0, 3, 4 } }, { 2, { 1, 3, 5 } }, { 3, { 2, 4, 5 } } } },
+       { celldof::CellType::WHITE_DOWN, {} }, // unused, only for completeness
+       { celldof::CellType::BLUE_UP, { { 0, { 0, 1, 2 } }, { 1, { 3 } }, { 3, { 5 } } } },
+       { celldof::CellType::BLUE_DOWN, { { 1, { 0 } }, { 2, { 1, 3, 5 } }, { 3, { 2 } } } },
+       { celldof::CellType::GREEN_UP, { { 0, { 2 } }, { 1, { 0, 3, 4 } }, { 2, { 5 } } } },
+       { celldof::CellType::GREEN_DOWN, { { 0, { 0 } }, { 2, { 3 } }, { 3, { 2, 4, 5 } } } } };
+   // https://xkcd.com/297
+
+   switch ( cellType )
+   {
+   case celldof::CellType::WHITE_UP:
+      owningEdges = indexing::isOnCellEdge( microCell, levelinfo::num_microedges_per_edge( level ) );
+      owningFaces = indexing::isOnCellFace( microCell, levelinfo::num_microedges_per_edge( level ) );
+      break;
+   case celldof::CellType::WHITE_DOWN:
+      // All edges are owned by the macro-cell.
+      break;
+   case celldof::CellType::BLUE_UP:
+      owningFaces = indexing::isOnCellFace( microCell + Index{ 1, 0, 0 }, levelinfo::num_microedges_per_edge( level ) );
+      break;
+   case celldof::CellType::BLUE_DOWN:
+      owningFaces = indexing::isOnCellFace( microCell + Index{ 0, 0, 1 }, levelinfo::num_microedges_per_edge( level ) );
+      break;
+   case celldof::CellType::GREEN_UP:
+      owningFaces = indexing::isOnCellFace( microCell, levelinfo::num_microedges_per_edge( level ) );
+      break;
+   case celldof::CellType::GREEN_DOWN:
+      owningFaces = indexing::isOnCellFace( microCell + Index{ 0, 1, 0 }, levelinfo::num_microedges_per_edge( level ) );
+      break;
+   default:
+      WALBERLA_ABORT( "Invalid cell type" );
+   }
+
+   for ( const uint_t localEdgeId : owningEdges )
+   {
+      const uint_t edgeVertex0 = cell.getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeId ).at( 0 );
+      const uint_t edgeVertex1 = cell.getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeId ).at( 1 );
+      const real_t sign        = ( edgeVertex1 < edgeVertex0 ) ? real_c( -1 ) : real_c( 1 );
+      transform.diagonal()( dofIdx.at( cellType )[localEdgeId] ) = sign;
+   }
+
+   for ( const uint_t localFaceId : owningFaces )
+   {
+      const std::map< uint_t, uint_t > faceLocalVertexToCellLocalVertexMap =
+          cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId );
+
+      for ( const auto& [v0, v1] : std::initializer_list< std::pair< uint_t, uint_t > >{ { 0, 1 }, { 0, 2 }, { 1, 2 } } )
+      {
+         const uint_t faceVertex0 = faceLocalVertexToCellLocalVertexMap.at( v0 );
+         const uint_t faceVertex1 = faceLocalVertexToCellLocalVertexMap.at( v1 );
+
+         const real_t       sign   = ( faceVertex1 < faceVertex0 ) ? real_c( -1 ) : real_c( 1 );
+         const uint_t       edgeId = indexing::getCellLocalEdgeIDFromCellLocalVertexIDs( faceVertex0, faceVertex1 );
+         const Eigen::Index dof    = dofIdx.at( cellType )[edgeId];
+
+         if ( owningEdges.count( edgeId ) == 0 && edgesOwnedByFace.at( cellType ).at( localFaceId ).count( edgeId ) > 0 )
+         {
+            WALBERLA_ASSERT_UNEQUAL( dof, X );
+            transform.diagonal()( dof ) = sign;
+         }
+      }
+   }
+
+   return transform;
 }
 
 } // namespace macrocell
