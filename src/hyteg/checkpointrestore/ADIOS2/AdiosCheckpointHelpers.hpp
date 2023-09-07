@@ -437,4 +437,31 @@ void exportVariableForP2TypeFunction( adios2::IO&              io,
    }
 };
 
+template < typename value_t >
+inline std::string valueTypeToString()
+{
+   std::string typeMarker;
+   if constexpr ( std::is_same_v< value_t, double > )
+   {
+      typeMarker = "double";
+   }
+   else if constexpr ( std::is_same_v< value_t, float > )
+   {
+      typeMarker = "float";
+   }
+   else if constexpr ( std::is_same_v< value_t, int32_t > )
+   {
+      typeMarker = "int32_t";
+   }
+   else if constexpr ( std::is_same_v< value_t, int64_t > )
+   {
+      typeMarker = "int64_t";
+   }
+   else
+   {
+      WALBERLA_ABORT( "Achievement unlocked: 'Detector of the Missing Implementation'!" );
+   }
+   return typeMarker;
+}
+
 } // namespace hyteg::adiosCheckpointHelpers

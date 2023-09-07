@@ -40,7 +40,6 @@ class CheckpointExporter
       static_cast< exporter_t* >( this )->registerFunction( function, minLevel, maxLevel );
    }
 
-#ifdef FE_FUNCTION_REGISTRY_HAS_REMOVE
    /// Deregister an FE Function to be no longer included into checkpoints
    ///
    /// By calling this method the passed function object will be excluded from future checkpoints.
@@ -49,7 +48,6 @@ class CheckpointExporter
    {
       static_cast< exporter_t* >( this )->deregisterFunction( function );
    }
-#endif
 
    /// Trigger storing of a single checkpoint
    ///

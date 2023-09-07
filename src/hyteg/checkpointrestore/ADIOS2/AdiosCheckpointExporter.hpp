@@ -207,7 +207,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
 
       // add attributes with meta information on functions in the checkpoint
       io.DefineAttribute< std::string >( "FunctionNames", allFunctionNames_.data(), allFunctionNames_.size() );
-      io.DefineAttribute< std::string >( "FunctionTypes", allFunctionTypes_.data(), allFunctionTypes_.size() );
+      io.DefineAttribute< std::string >( "FunctionKinds", allFunctionKinds_.data(), allFunctionKinds_.size() );
+      io.DefineAttribute< std::string >( "FunctionValueTypes", allFunctionValueTypes_.data(), allFunctionValueTypes_.size() );
       std::vector< uint_t > allMinLevels;
       std::vector< uint_t > allMaxLevels;
       for ( const auto& funcName : allFunctionNames_ )
@@ -226,7 +227,7 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
 
       // clean-up for next checkpoint
       allFunctionNames_.clear();
-      allFunctionTypes_.clear();
+      allFunctionKinds_.clear();
    };
 
  private:
@@ -245,7 +246,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
    /// auxilliary variable to add management information to checkpoint
    ///@{
    std::vector< std::string > allFunctionNames_;
-   std::vector< std::string > allFunctionTypes_;
+   std::vector< std::string > allFunctionKinds_;
+   std::vector< std::string > allFunctionValueTypes_;
    ///@}
 
    template < template < typename > class func_t, typename value_t >
@@ -263,6 +265,11 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
          WALBERLA_LOG_INFO_ON_ROOT( "--> Checkpointing '" << function.getFunctionName() << "'" );
          WALBERLA_ASSERT( functionMinLevel_.at( function.getFunctionName() ) >= 0 );
          WALBERLA_ASSERT( functionMaxLevel_.at( function.getFunctionName() ) >= 0 );
+
+         // add information on function for later attribute generation
+         allFunctionNames_.push_back( function.getFunctionName() );
+         allFunctionKinds_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
+         allFunctionValueTypes_.push_back( adiosCheckpointHelpers::valueTypeToString< value_t >() );
 
          if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                         std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
@@ -284,10 +291,6 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 functionMinLevel_[function.getFunctionName()],
                 functionMaxLevel_[function.getFunctionName()],
                 adiosCheckpointHelpers::exportVariableForP1TypeFunction< func_t, value_t > );
-
-            // add information on function for later attribute generation
-            allFunctionNames_.push_back( function.getFunctionName() );
-            allFunctionTypes_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
          }
 
          else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
@@ -310,10 +313,6 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 functionMinLevel_[function.getFunctionName()],
                 functionMaxLevel_[function.getFunctionName()],
                 adiosCheckpointHelpers::exportVariableForP2TypeFunction< func_t, value_t > );
-
-            // add information on function for later attribute generation
-            allFunctionNames_.push_back( function.getFunctionName() );
-            allFunctionTypes_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
          }
          else
          {
