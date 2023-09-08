@@ -169,6 +169,50 @@ void exportVariableForScalarFunction( adios2::IO&              io,
 }
 
 template < template < typename > class func_t, typename value_t >
+void importVariableForScalarFunction( adios2::IO&              io,
+                                      adios2::Engine&          engine,
+                                      const func_t< value_t >& function,
+                                      const std::string&       varName,
+                                      uint_t                   level,
+                                      const Primitive&         primitive )
+{
+   WALBERLA_ASSERT( function.getDimension() == 1 );
+
+   // check that associated variable exists in checkpoint
+   adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
+   if ( !varDoFData )
+   {
+      WALBERLA_ABORT( "ADIOS2 variable '" << varName << "' does not exist!" );
+   }
+
+   switch ( primitive.getType() )
+   {
+   case Primitive::VERTEX: {
+      const Vertex& vertex = dynamic_cast< const Vertex& >( primitive );
+      engine.Get( varDoFData, vertex.getData( function.getVertexDataID() )->getPointer( level ) );
+      break;
+   }
+   case Primitive::EDGE: {
+      const Edge& edge = dynamic_cast< const Edge& >( primitive );
+      engine.Get( varDoFData, edge.getData( function.getEdgeDataID() )->getPointer( level ) );
+      break;
+   }
+   case Primitive::FACE: {
+      const Face& face = dynamic_cast< const Face& >( primitive );
+      engine.Get( varDoFData, face.getData( function.getFaceDataID() )->getPointer( level ) );
+      break;
+   }
+   case Primitive::CELL: {
+      const Cell& cell = dynamic_cast< const Cell& >( primitive );
+      engine.Get( varDoFData, cell.getData( function.getCellDataID() )->getPointer( level ) );
+      break;
+   }
+   case Primitive::INVALID:
+      WALBERLA_ABORT( "Primitive type is INVALID!" );
+   }
+}
+
+template < template < typename > class func_t, typename value_t >
 void generateVariables( adios2::IO&              io,
                         adios2::Engine&          engine,
                         const func_t< value_t >& function,
@@ -218,7 +262,7 @@ void exportVariables( adios2::IO&              io,
    }
 
    else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
-                  std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+                       std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
    {
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
@@ -234,6 +278,43 @@ void exportVariables( adios2::IO&              io,
    else
    {
       WALBERLA_ABORT( "exportVariables() called with unsupported function type!" );
+   }
+}
+
+template < template < typename > class func_t, typename value_t >
+void importVariables( adios2::IO&              io,
+                      adios2::Engine&          engine,
+                      const func_t< value_t >& function,
+                      uint_t                   level,
+                      const Primitive&         primitive )
+{
+   if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                  std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
+   {
+      for ( uint_t k = 0; k < function.getDimension(); ++k )
+      {
+         std::string varName = generateVariableName( function[k].getFunctionName(), primitive.getID(), level );
+         importVariableForScalarFunction( io, engine, function[k], varName, level, primitive );
+      }
+   }
+
+   else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                       std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+   {
+      for ( uint_t k = 0; k < function.getDimension(); ++k )
+      {
+         std::string varName =
+             generateVariableName( function[k].getVertexDoFFunction().getFunctionName(), primitive.getID(), level );
+         importVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), varName, level, primitive );
+
+         varName = generateVariableName( function[k].getEdgeDoFFunction().getFunctionName(), primitive.getID(), level );
+         importVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), varName, level, primitive );
+      }
+   }
+
+   else
+   {
+      WALBERLA_ABORT( "importVariables() called with unsupported function type!" );
    }
 }
 
