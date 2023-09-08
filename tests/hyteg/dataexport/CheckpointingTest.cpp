@@ -114,6 +114,11 @@ void storeCheckpoint( std::string filePath, std::string fileName )
 
    P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes Function", storage, minLevel, maxLevel );
 
+   for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+   {
+      funcP1Vec.interpolate( { real_c( 1 ), real_c( 2 ), real_c( 3 ) }, lvl );
+   }
+
    AdiosCheckpointExporter checkpointer( "" );
    checkpointer.registerFunction( funcP1, minLevel, maxLevel );
    checkpointer.registerFunction( funcP2, minLevel, maxLevel );

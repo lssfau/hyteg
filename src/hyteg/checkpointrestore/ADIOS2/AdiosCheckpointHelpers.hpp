@@ -84,53 +84,36 @@ void doSomethingForAFunctionOnAllPrimitives( adios2::IO&              io,
 }
 
 template < template < typename > class func_t, typename value_t >
-void generateVariableForP1TypeFunction( adios2::IO&              io,
+void generateVariableForScalarFunction( adios2::IO&              io,
                                         adios2::Engine&          engine,
                                         const func_t< value_t >& function,
                                         uint_t                   level,
                                         const Primitive&         primitive )
 {
    WALBERLA_UNUSED( engine );
-
-   if constexpr ( !std::is_same_v< func_t< value_t >, P1Function< value_t > > &&
-                  !std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
-   {
-      WALBERLA_ABORT( "generateVariableForP1TypeFunction() called with a non P1 kind function!" );
-   }
+   WALBERLA_ASSERT( function.getDimension() == 1 );
 
    std::string varName = generateVariableName( function.getFunctionName(), primitive.getID(), level );
-
-   // We cannot ask a P1VectorFunction for a DataID (needed below), but only its component functions,
-   // so we do a little abstraction here, to minimise code
-   const P1Function< value_t > const* functionPtr = nullptr;
-   if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > )
-   {
-      functionPtr = std::addressof( function );
-   }
-   else
-   {
-      functionPtr = std::addressof( function[0] );
-   }
 
    switch ( primitive.getType() )
    {
    case Primitive::VERTEX: {
-      uint_t size = dynamic_cast< const Vertex& >( primitive ).getData( functionPtr->getVertexDataID() )->getSize( level );
+      uint_t size = dynamic_cast< const Vertex& >( primitive ).getData( function.getVertexDataID() )->getSize( level );
       io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::EDGE: {
-      uint_t size = dynamic_cast< const Edge& >( primitive ).getData( functionPtr->getEdgeDataID() )->getSize( level );
+      uint_t size = dynamic_cast< const Edge& >( primitive ).getData( function.getEdgeDataID() )->getSize( level );
       io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::FACE: {
-      uint_t size = dynamic_cast< const Face& >( primitive ).getData( functionPtr->getFaceDataID() )->getSize( level );
+      uint_t size = dynamic_cast< const Face& >( primitive ).getData( function.getFaceDataID() )->getSize( level );
       io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
    case Primitive::CELL: {
-      uint_t size = dynamic_cast< const Cell& >( primitive ).getData( functionPtr->getCellDataID() )->getSize( level );
+      uint_t size = dynamic_cast< const Cell& >( primitive ).getData( function.getCellDataID() )->getSize( level );
       io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
       break;
    }
@@ -142,300 +125,117 @@ void generateVariableForP1TypeFunction( adios2::IO&              io,
 };
 
 template < template < typename > class func_t, typename value_t >
-void exportVariableForP1TypeFunction( adios2::IO&              io,
+void exportVariableForScalarFunction( adios2::IO&              io,
                                       adios2::Engine&          engine,
                                       const func_t< value_t >& function,
+                                      const std::string&       varName,
                                       uint_t                   level,
                                       const Primitive&         primitive )
 {
-   if constexpr ( !std::is_same_v< func_t< value_t >, P1Function< value_t > > &&
-                  !std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
-   {
-      WALBERLA_ABORT( "exportVariableForP1TypeFunction() called with a non-P1-type function!" );
-   }
+   WALBERLA_ASSERT( function.getDimension() == 1 );
 
    // check that associated variable exists in IO object
-   std::string                 varName    = generateVariableName( function.getFunctionName(), primitive.getID(), level );
    adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
    if ( !varDoFData )
    {
       WALBERLA_ABORT( "ADIOS2 variable '" << varName << "' does not exist!" );
    }
 
-   // For a P1VectorFunction we need to work on its component functions, so we do a little abstraction here,
-   // to minimise coding
-   std::vector< const P1Function< value_t > const* > componentFunction;
-   if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > )
-   {
-      componentFunction.push_back( std::addressof( function ) );
-   }
-   else
-   {
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         componentFunction.push_back( std::addressof( function[k] ) );
-      }
-   }
-
-   // fetch span to copy our data into
-   typename adios2::Variable< value_t >::Span dofData = engine.Put< value_t >( varDoFData );
-
-   switch ( primitive.getType() )
-   {
-   case Primitive::VERTEX: {
-      const Vertex& vertex     = dynamic_cast< const Vertex& >( primitive );
-      uint_t        size       = vertex.getData( componentFunction[0]->getVertexDataID() )->getSize( level );
-      uint_t        currentPos = 0;
-
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         value_t* dataBuffer = vertex.getData( componentFunction[k]->getVertexDataID() )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer, size * sizeof( value_t ) );
-         currentPos += size;
-      }
-      break;
-   }
-   case Primitive::EDGE: {
-      const Edge& edge       = dynamic_cast< const Edge& >( primitive );
-      uint_t      size       = edge.getData( componentFunction[0]->getEdgeDataID() )->getSize( level );
-      uint_t      currentPos = 0;
-
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         value_t* dataBuffer = edge.getData( componentFunction[k]->getEdgeDataID() )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer, size * sizeof( value_t ) );
-         currentPos += size;
-      }
-      break;
-   }
-   case Primitive::FACE: {
-      const Face& face       = dynamic_cast< const Face& >( primitive );
-      uint_t      size       = face.getData( componentFunction[0]->getFaceDataID() )->getSize( level );
-      uint_t      currentPos = 0;
-
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         value_t* dataBuffer = face.getData( componentFunction[k]->getFaceDataID() )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer, size * sizeof( value_t ) );
-         currentPos += size;
-      }
-      break;
-   }
-   case Primitive::CELL: {
-      const Cell& cell       = dynamic_cast< const Cell& >( primitive );
-      uint_t      size       = cell.getData( componentFunction[0]->getCellDataID() )->getSize( level );
-      uint_t      currentPos = 0;
-
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         value_t* dataBuffer = cell.getData( componentFunction[k]->getCellDataID() )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer, size * sizeof( value_t ) );
-         currentPos += size;
-      }
-      break;
-   }
-   case Primitive::INVALID:
-      WALBERLA_ABORT( "Primitive type is INVALID!" );
-   }
-};
-
-template < template < typename > class func_t, typename value_t >
-void generateVariableForP2TypeFunction( adios2::IO&              io,
-                                        adios2::Engine&          engine,
-                                        const func_t< value_t >& function,
-                                        uint_t                   level,
-                                        const Primitive&         primitive )
-{
-   WALBERLA_UNUSED( engine );
-
-   if constexpr ( !std::is_same_v< func_t< value_t >, P2Function< value_t > > &&
-                  !std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
-   {
-      WALBERLA_ABORT( "generateVariableForP2TypeFunction() called with a non-P2-type function!" );
-   }
-
-   std::string varName = generateVariableName( function.getFunctionName(), primitive.getID(), level );
-
-   // We cannot ask a P2VectorFunction for a DataID (needed below), but only its component functions,
-   // so we do a little abstraction here, to minimise code
-   const P2Function< value_t > const* functionPtr = nullptr;
-   if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > )
-   {
-      functionPtr = std::addressof( function );
-   }
-   else
-   {
-      functionPtr = std::addressof( function[0] );
-   }
-
    switch ( primitive.getType() )
    {
    case Primitive::VERTEX: {
       const Vertex& vertex = dynamic_cast< const Vertex& >( primitive );
-      uint_t        size   = vertex.getData( functionPtr->getVertexDoFFunction().getVertexDataID() )->getSize( level );
-      size += vertex.getData( functionPtr->getEdgeDoFFunction().getVertexDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      engine.Put( varDoFData, vertex.getData( function.getVertexDataID() )->getPointer( level ) );
       break;
    }
    case Primitive::EDGE: {
       const Edge& edge = dynamic_cast< const Edge& >( primitive );
-      uint_t      size = edge.getData( functionPtr->getVertexDoFFunction().getEdgeDataID() )->getSize( level );
-      size += edge.getData( functionPtr->getEdgeDoFFunction().getEdgeDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      engine.Put( varDoFData, edge.getData( function.getEdgeDataID() )->getPointer( level ) );
       break;
    }
    case Primitive::FACE: {
       const Face& face = dynamic_cast< const Face& >( primitive );
-      uint_t      size = face.getData( functionPtr->getVertexDoFFunction().getFaceDataID() )->getSize( level );
-      size += face.getData( functionPtr->getEdgeDoFFunction().getFaceDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      engine.Put( varDoFData, face.getData( function.getFaceDataID() )->getPointer( level ) );
       break;
    }
    case Primitive::CELL: {
       const Cell& cell = dynamic_cast< const Cell& >( primitive );
-      uint_t      size = cell.getData( functionPtr->getVertexDoFFunction().getCellDataID() )->getSize( level );
-      size += cell.getData( functionPtr->getEdgeDoFFunction().getCellDataID() )->getSize( level );
-      auto var = io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      engine.Put( varDoFData, cell.getData( function.getCellDataID() )->getPointer( level ) );
       break;
    }
    case Primitive::INVALID:
       WALBERLA_ABORT( "Primitive type is INVALID!" );
    }
-
-   // WALBERLA_LOG_INFO_ON_ROOT( "Defined variable '" << varName << "'" );
-};
+}
 
 template < template < typename > class func_t, typename value_t >
-void exportVariableForP2TypeFunction( adios2::IO&              io,
-                                      adios2::Engine&          engine,
-                                      const func_t< value_t >& function,
-                                      uint_t                   level,
-                                      const Primitive&         primitive )
+void generateVariables( adios2::IO&              io,
+                        adios2::Engine&          engine,
+                        const func_t< value_t >& function,
+                        uint_t                   level,
+                        const Primitive&         primitive )
 {
-   if constexpr ( !std::is_same_v< func_t< value_t >, P2Function< value_t > > &&
-                  !std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+   if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                  std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
    {
-      WALBERLA_ABORT( "exportVariableForP2TypeFunction() called with a non-P2-type function!" );
+      for ( uint_t k = 0; k < function.getDimension(); ++k )
+      {
+         generateVariableForScalarFunction( io, engine, function[k], level, primitive );
+      }
    }
 
-   // check that associated variable exists in IO object
-   std::string                 varName    = generateVariableName( function.getFunctionName(), primitive.getID(), level );
-   adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
-   if ( !varDoFData )
+   else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                       std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
    {
-      WALBERLA_ABORT( "ADIOS2 variable  '" << varName << "' does not exist!" );
+      for ( uint_t k = 0; k < function.getDimension(); ++k )
+      {
+         generateVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), level, primitive );
+         generateVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), level, primitive );
+      }
    }
 
-   // adios2::Dims dims = varDoFData.Count();
-   // for ( uint_t k = 0; k < dims.size(); ++k )
-   // {
-   //    WALBERLA_LOG_INFO_ON_ROOT( "Dims[" << k << "] = " << dims[k] );
-   // }
-
-   // For a P2VectorFunction we need to work on its component functions, so we do a little abstraction here,
-   // to minimise coding
-   std::vector< const P2Function< value_t > const* > componentFunction;
-   if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > )
-   {
-      componentFunction.push_back( std::addressof( function ) );
-   }
    else
    {
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         componentFunction.push_back( std::addressof( function[k] ) );
-      }
+      WALBERLA_ABORT( "generateVariables() called with unsupported function type!" );
    }
+}
 
-   // fetch span to copy our data into
-   typename adios2::Variable< value_t >::Span dofData = engine.Put< value_t >( varDoFData );
-
-   switch ( primitive.getType() )
+template < template < typename > class func_t, typename value_t >
+void exportVariables( adios2::IO&              io,
+                      adios2::Engine&          engine,
+                      const func_t< value_t >& function,
+                      uint_t                   level,
+                      const Primitive&         primitive )
+{
+   if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                  std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
    {
-   case Primitive::VERTEX: {
-      const Vertex& vertex      = dynamic_cast< const Vertex& >( primitive );
-      const auto    VertexDofID = componentFunction[0]->getVertexDoFFunction().getVertexDataID();
-      const auto    EdgeDofID   = componentFunction[0]->getEdgeDoFFunction().getVertexDataID();
-
-      uint_t size1      = vertex.getData( VertexDofID )->getSize( level );
-      uint_t size2      = vertex.getData( EdgeDofID )->getSize( level );
-      uint_t currentPos = 0;
-
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
-         value_t* dataBuffer1 = vertex.getData( VertexDofID )->getPointer( level );
-         value_t* dataBuffer2 = vertex.getData( EdgeDofID )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer1, size1 * sizeof( value_t ) );
-         currentPos += size1;
-         memcpy( &dofData[currentPos], dataBuffer2, size2 * sizeof( value_t ) );
-         currentPos += size2;
+         std::string varName = generateVariableName( function[k].getFunctionName(), primitive.getID(), level );
+         exportVariableForScalarFunction( io, engine, function[k], varName, level, primitive );
       }
-      break;
    }
-   case Primitive::EDGE: {
-      const Edge& edge        = dynamic_cast< const Edge& >( primitive );
-      const auto  VertexDofID = componentFunction[0]->getVertexDoFFunction().getEdgeDataID();
-      const auto  EdgeDofID   = componentFunction[0]->getEdgeDoFFunction().getEdgeDataID();
 
-      uint_t size1      = edge.getData( VertexDofID )->getSize( level );
-      uint_t size2      = edge.getData( EdgeDofID )->getSize( level );
-      uint_t currentPos = 0;
-
+   else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                  std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+   {
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
-         value_t* dataBuffer1 = edge.getData( VertexDofID )->getPointer( level );
-         value_t* dataBuffer2 = edge.getData( EdgeDofID )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer1, size1 * sizeof( value_t ) );
-         currentPos += size1;
-         memcpy( &dofData[currentPos], dataBuffer2, size2 * sizeof( value_t ) );
-         currentPos += size2;
+         std::string varName =
+             generateVariableName( function[k].getVertexDoFFunction().getFunctionName(), primitive.getID(), level );
+         exportVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), varName, level, primitive );
+
+         varName = generateVariableName( function[k].getEdgeDoFFunction().getFunctionName(), primitive.getID(), level );
+         exportVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), varName, level, primitive );
       }
-      break;
    }
-   case Primitive::FACE: {
-      const Face& face        = dynamic_cast< const Face& >( primitive );
-      const auto  VertexDofID = componentFunction[0]->getVertexDoFFunction().getFaceDataID();
-      const auto  EdgeDofID   = componentFunction[0]->getEdgeDoFFunction().getFaceDataID();
 
-      uint_t size1      = face.getData( VertexDofID )->getSize( level );
-      uint_t size2      = face.getData( EdgeDofID )->getSize( level );
-      uint_t currentPos = 0;
-
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         value_t* dataBuffer1 = face.getData( VertexDofID )->getPointer( level );
-         value_t* dataBuffer2 = face.getData( EdgeDofID )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer1, size1 * sizeof( value_t ) );
-         currentPos += size1;
-         memcpy( &dofData[currentPos], dataBuffer2, size2 * sizeof( value_t ) );
-         currentPos += size2;
-      }
-      break;
+   else
+   {
+      WALBERLA_ABORT( "exportVariables() called with unsupported function type!" );
    }
-   case Primitive::CELL: {
-      const Cell& cell        = dynamic_cast< const Cell& >( primitive );
-      const auto  VertexDofID = componentFunction[0]->getVertexDoFFunction().getCellDataID();
-      const auto  EdgeDofID   = componentFunction[0]->getEdgeDoFFunction().getCellDataID();
-
-      uint_t size1      = cell.getData( VertexDofID )->getSize( level );
-      uint_t size2      = cell.getData( EdgeDofID )->getSize( level );
-      uint_t currentPos = 0;
-
-      for ( uint_t k = 0; k < function.getDimension(); ++k )
-      {
-         value_t* dataBuffer1 = cell.getData( VertexDofID )->getPointer( level );
-         value_t* dataBuffer2 = cell.getData( EdgeDofID )->getPointer( level );
-         memcpy( &dofData[currentPos], dataBuffer1, size1 * sizeof( value_t ) );
-         currentPos += size1;
-         memcpy( &dofData[currentPos], dataBuffer2, size2 * sizeof( value_t ) );
-         currentPos += size2;
-      }
-      break;
-   }
-   case Primitive::INVALID:
-      WALBERLA_ABORT( "Primitive type is INVALID!" );
-   }
-};
+}
 
 template < typename value_t >
 inline std::string valueTypeToString()

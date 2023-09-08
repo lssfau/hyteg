@@ -33,7 +33,7 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
-/// Base class for driver classes that store checkpoints
+/// Driver class for storing checkpoints with ADIOS2
 class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
 {
  public:
@@ -272,7 +272,9 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
          allFunctionValueTypes_.push_back( adiosCheckpointHelpers::valueTypeToString< value_t >() );
 
          if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
-                        std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
+                        std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                        std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > ||
+                        std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
          {
             // first define the variable
             adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
@@ -281,7 +283,7 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 function,
                 functionMinLevel_[function.getFunctionName()],
                 functionMaxLevel_[function.getFunctionName()],
-                adiosCheckpointHelpers::generateVariableForP1TypeFunction< func_t, value_t > );
+                adiosCheckpointHelpers::generateVariables< func_t, value_t > );
 
             // now schedule the variable for export
             adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
@@ -290,30 +292,9 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
                 function,
                 functionMinLevel_[function.getFunctionName()],
                 functionMaxLevel_[function.getFunctionName()],
-                adiosCheckpointHelpers::exportVariableForP1TypeFunction< func_t, value_t > );
+                adiosCheckpointHelpers::exportVariables< func_t, value_t > );
          }
 
-         else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
-                             std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
-         {
-            // first define the variable
-            adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                io,
-                engine,
-                function,
-                functionMinLevel_[function.getFunctionName()],
-                functionMaxLevel_[function.getFunctionName()],
-                adiosCheckpointHelpers::generateVariableForP2TypeFunction< func_t, value_t > );
-
-            // now schedule the variable for export
-            adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                io,
-                engine,
-                function,
-                functionMinLevel_[function.getFunctionName()],
-                functionMaxLevel_[function.getFunctionName()],
-                adiosCheckpointHelpers::exportVariableForP2TypeFunction< func_t, value_t > );
-         }
          else
          {
             WALBERLA_ABORT( "Achievement unlocked: 'Detector of the Missing Implementation'!" );
@@ -321,10 +302,10 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       }
    }
 
-   /// Provide information on version of checkpoint (currently 0.1)
+   /// Provide information on version of checkpoint (currently 0.2)
    inline void addVersionInformation( adios2::IO& io )
    {
-      std::vector< std::string > info{ "HyTeG Checkpoint", "0.1" };
+      std::vector< std::string > info{ "HyTeG Checkpoint", "0.2" };
       io.DefineAttribute< std::string >( "CheckpointFormat", info.data(), info.size() );
    }
 };
