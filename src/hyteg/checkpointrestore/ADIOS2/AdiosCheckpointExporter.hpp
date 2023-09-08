@@ -262,7 +262,7 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       // for each FE function call specialised free C++ function
       for ( const auto& function : funcs )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "--> Checkpointing '" << function.getFunctionName() << "'" );
+         // WALBERLA_LOG_INFO_ON_ROOT( "--> Checkpointing '" << function.getFunctionName() << "'" );
          WALBERLA_ASSERT( functionMinLevel_.at( function.getFunctionName() ) >= 0 );
          WALBERLA_ASSERT( functionMaxLevel_.at( function.getFunctionName() ) >= 0 );
 

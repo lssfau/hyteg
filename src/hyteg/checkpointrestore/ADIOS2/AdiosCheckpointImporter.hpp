@@ -98,16 +98,16 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
 
    const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
 
-   void printCheckPointInfo()
+   void printCheckpointInfo()
    {
       WALBERLA_ROOT_SECTION()
       {
          std::stringstream sStream;
 
          adios2::Attribute< std::string > attrFormat = readAttribute< std::string >( "CheckpointFormat" );
-         sStream << "Checkpoint Format = " << attrFormat.Data()[0] << ", version: " << attrFormat.Data()[1] << '\n';
+         sStream << "Checkpoint Format = " << attrFormat.Data()[0] << ", version " << attrFormat.Data()[1] << '\n';
 
-         writeFunctionDetails( sStream, " * " );
+         writeFunctionDetails( sStream, "" );
          WALBERLA_LOG_INFO( "" << sStream.rdbuf() );
       }
    }
