@@ -175,23 +175,23 @@ endif ()
 waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)
 waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.cpp DEPENDS hyteg core)
 
-## dataexport ##
+## dataexport+import ##
 
-waLBerla_compile_test(FILES dataexport/VTKOutputTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES dataexport+import/VTKOutputTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VTKOutputTest)
 
 if (HYTEG_BUILD_WITH_ADIOS2)
-  waLBerla_compile_test(FILES dataexport/BasicADIOSTest.cpp DEPENDS hyteg core)
+  waLBerla_compile_test(FILES dataexport+import/BasicADIOSTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME BasicADIOSTest)
 
-  waLBerla_compile_test(FILES dataexport/AdiosWriterTest.cpp DEPENDS hyteg core)
+  waLBerla_compile_test(FILES dataexport+import/AdiosWriterTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME AdiosWriterTest)
 
-  waLBerla_compile_test(FILES dataexport/CheckpointingTest.cpp DEPENDS hyteg core)
+  waLBerla_compile_test(FILES dataexport+import/CheckpointingTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME CheckpointingTest)
 endif ()
 
-waLBerla_compile_test(FILES dataexport/TableTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES dataexport+import/TableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TableTest)
 set_tests_properties(TableTest PROPERTIES FIXTURES_SETUP TableTest)
 
@@ -201,17 +201,17 @@ else()
     set(TABLE_REFERENCE_FILE "TableTest.dat.ref.sp")
 endif()
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/dataexport/${TABLE_REFERENCE_FILE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/dataexport+import/${TABLE_REFERENCE_FILE}
       ${CMAKE_CURRENT_BINARY_DIR}/${TABLE_REFERENCE_FILE})
 ADD_TEST(TableTestCheckOutput ${CMAKE_COMMAND} -E compare_files TableTest.dat ${TABLE_REFERENCE_FILE})
 set_tests_properties(TableTestCheckOutput PROPERTIES FIXTURES_REQUIRED TableTest)
 
-waLBerla_compile_test(FILES dataexport/KeyValueStoreTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES dataexport+import/KeyValueStoreTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME KeyValueStoreTest)
 set_tests_properties(KeyValueStoreTest PROPERTIES FIXTURES_SETUP KeyValueStoreTest)
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/dataexport/KeyValueStoreTest.tex.ref
+      ${CMAKE_CURRENT_SOURCE_DIR}/dataexport+import/KeyValueStoreTest.tex.ref
       ${CMAKE_CURRENT_BINARY_DIR}/KeyValueStoreTest.tex.ref)
 ADD_TEST(KeyValueStoreTestCheckOutput ${CMAKE_COMMAND} -E compare_files KeyValueStoreTest.tex KeyValueStoreTest.tex.ref)
 set_tests_properties(KeyValueStoreTestCheckOutput PROPERTIES FIXTURES_REQUIRED KeyValueStoreTest)
