@@ -157,7 +157,6 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
          return handleError( funcName, msg, abortOnError );
       }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Going to import '" << funcName << "'" );
       adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
           io_, engine_, function, minLevel, maxLevel, adiosCheckpointHelpers::importVariables< func_t, value_t > );
 
@@ -202,7 +201,6 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
       // at the moment we assume that the file only contains a single checkpoint
       // and do not deal with different steps
       std::string cpFileName = filePath + "/" + fileName;
-      WALBERLA_LOG_INFO_ON_ROOT( "" << cpFileName );
       engine_ = io_.Open( cpFileName, adios2::Mode::ReadRandomAccess );
 
       // obtain FE function meta-info

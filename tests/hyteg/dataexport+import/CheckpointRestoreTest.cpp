@@ -33,18 +33,25 @@
 
 using namespace hyteg;
 
-void exportCheckpoint( const std::string& filePath,
-                       const std::string& fileName,
-                       const std::string& meshFileName,
-                       const uint_t       minLevel,
-                       const uint_t       maxLevel )
+std::shared_ptr< PrimitiveStorage > generateStorage( const std::string& meshFileName )
 {
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   return std::make_shared< PrimitiveStorage >( setupStorage );
+}
 
-   P1Function< real_t > funcP1( "P1_Test_Function", storage, minLevel, maxLevel );
+template < template < typename > class func_t, typename value_t >
+auto exportCheckpoint( const std::string&                         filePath,
+                       const std::string&                         fileName,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       const uint_t                               minLevel,
+                       const uint_t                               maxLevel,
+                       bool                                       verbose = false )
+{
+   std::string funcName = "Test_" + FunctionTrait< func_t< value_t > >::getTypeName();
+
+   func_t< value_t > feFunc( funcName, storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& p ) -> real_t {
       return real_c( -2 ) * p[0] + real_c( 3 ) * p[1];
@@ -52,26 +59,24 @@ void exportCheckpoint( const std::string& filePath,
 
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
-      funcP1.interpolate( expr, lvl );
+      feFunc.interpolate( expr, lvl );
    }
 
    AdiosCheckpointExporter checkpointer( "" );
-   checkpointer.registerFunction( funcP1, minLevel, maxLevel );
-   checkpointer.storeCheckpoint( filePath, fileName, { "MeshFile" }, { meshFileName } );
+   checkpointer.registerFunction( feFunc, minLevel, maxLevel );
+   checkpointer.storeCheckpoint( filePath, fileName );
+
+   return feFunc;
 }
 
-void importCheckpoint( const std::string& filePath,
-                       const std::string& fileName,
-                       const std::string& meshFileName,
-                       const uint_t       minLevel,
-                       const uint_t       maxLevel,
-                       bool               verbose = true )
+template < template < typename > class func_t, typename value_t >
+auto importCheckpoint( const std::string&                         filePath,
+                       const std::string&                         fileName,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       const uint_t                               minLevel,
+                       const uint_t                               maxLevel,
+                       bool                                       verbose = false )
 {
-   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
-   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
    AdiosCheckpointImporter restorer( filePath, fileName, "" );
 
    if ( verbose )
@@ -79,13 +84,96 @@ void importCheckpoint( const std::string& filePath,
       restorer.printCheckpointInfo();
    }
 
-   auto&                funcDescr = restorer.getFunctionDetails();
-   P1Function< real_t > funcP1( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
-   restorer.restoreFunction( funcP1 );
+   auto&             funcDescr = restorer.getFunctionDetails();
+   func_t< value_t > feFunc( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
+   restorer.restoreFunction( feFunc );
 
-   AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
-   adiosWriter.add( funcP1 );
-   adiosWriter.write( maxLevel );
+   return feFunc;
+}
+
+template < template < typename > class func_t, typename value_t >
+value_t computeError( const func_t< value_t >& feFunc, uint_t level )
+{
+   value_t error = static_cast< value_t >( 0 );
+
+   if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
+   {
+      error = feFunc.p().getMaxMagnitude( level, All );
+      for ( uint_t k = 0; k < feFunc.getDimension(); ++k )
+      {
+         error += feFunc.uvw()[k].getMaxMagnitude( level, All );
+      }
+   }
+   else
+   {
+      for ( uint_t k = 0; k < feFunc.getDimension(); ++k )
+      {
+         error += feFunc[k].getMaxMagnitude( level, All );
+      }
+   }
+   return error;
+}
+
+template < template < typename > class func_t, typename value_t >
+void runTestWithIdenticalCommunicator( const std::string& filePath,
+                                       const std::string& fileName,
+                                       const std::string& meshFileName,
+                                       const uint_t       minLevel,
+                                       const uint_t       maxLevel,
+                                       bool               verbose = false )
+{
+   bool exportFuncs = false;
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "==============================================================" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Testing with the following parameters:" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - function of type ... " << FunctionTrait< func_t< value_t > >::getTypeName() );
+      WALBERLA_LOG_INFO_ON_ROOT( " - value type ......... " << adiosCheckpointHelpers::valueTypeToString< value_t >() );
+      WALBERLA_LOG_INFO_ON_ROOT( " - meshfile ........... '" << meshFileName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - filePath ........... '" << filePath << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - fileName ........... '" << fileName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------------------" );
+   }
+
+   auto storage = generateStorage( meshFileName );
+
+   //  Create Checkpoint
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * exporting checkpoint" );
+   }
+   func_t< value_t > funcOriginal = exportCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
+
+   //  Import Checkpoint
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint" );
+   }
+   func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
+
+   func_t< value_t > difference( "Difference", storage, minLevel, maxLevel );
+   for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+   {
+      difference.assign(
+          { static_cast< value_t >( 1 ), static_cast< value_t >( -1 ) }, { funcOriginal, funcRestored }, lvl, All );
+      value_t error = computeError( difference, lvl );
+
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " * checking differences on refinement level " << lvl << " ..." );
+         WALBERLA_CHECK_EQUAL( error, static_cast< value_t >( 0 ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "   ... okay" );
+      }
+      if ( exportFuncs )
+      {
+         AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
+         adiosWriter.add( funcOriginal );
+         adiosWriter.add( funcRestored );
+         adiosWriter.add( difference );
+         adiosWriter.write( lvl );
+      }
+   }
 }
 
 int main( int argc, char* argv[] )
@@ -99,20 +187,24 @@ int main( int argc, char* argv[] )
    // =====================
    //  Set Test Parameters
    // =====================
-   const uint_t minLevel = 2;
+   const uint_t minLevel = 0;
    const uint_t maxLevel = 3;
 
    std::string filePath{ "." };
    std::string fileName{ "CheckpointRestoreTest.bp" };
-   std::string meshFile{ "../../data/meshes/LShape_6el.msh" };
+   // std::string meshFile{ "../../data/meshes/LShape_6el.msh" };
+   std::string meshFile{ "../../data/meshes/3D/cube_6el.msh" };
 
-   // ===================
-   //  Create Checkpoint
-   // ===================
-   exportCheckpoint( filePath, fileName, meshFile, minLevel, maxLevel );
+   // ===========
+   //  Run Tests
+   // ===========
+   runTestWithIdenticalCommunicator< P1Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+   runTestWithIdenticalCommunicator< P1Function, int64_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
-   // ===================
-   //  Import Checkpoint
-   // ===================
-   importCheckpoint( filePath, fileName, meshFile, minLevel, maxLevel );
+   runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+   runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+
+   runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+
+   runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 }
