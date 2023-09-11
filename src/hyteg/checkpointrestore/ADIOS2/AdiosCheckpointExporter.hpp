@@ -155,6 +155,7 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
    {
       std::vector< std::string > userAttributeNames;
       std::vector< std::string > userAttributeValues;
+      storeCheckpoint( filePath, fileName, userAttributeNames, userAttributeValues );
    }
 
    /// Trigger storing of a single checkpoint
