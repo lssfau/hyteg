@@ -121,11 +121,12 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
    template < template < typename > class func_t, typename value_t >
    bool restoreFunction( func_t< value_t >& function, uint_t minLevel, uint_t maxLevel, bool abortOnError = true )
    {
-      // check that function is include in checkpoint and that levels make sense
+      // check that function is included in checkpoint and that levels make sense
       WALBERLA_ASSERT( minLevel <= maxLevel );
       bool              restorePossible = false;
       std::stringstream msg;
       std::string       funcName = function.getFunctionName();
+
       for ( const auto& entry : funcDescr_ )
       {
          if ( entry.name == funcName )

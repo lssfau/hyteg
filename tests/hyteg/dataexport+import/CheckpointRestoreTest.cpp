@@ -31,6 +31,21 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
+// This program tests export and import of FE functions using ADIOS2
+//
+// There are two modes:
+//
+// (1) Just run the executable sequentially or in parallel, in this
+//     case FE functions are created, exported and afterwards read
+//     in again. The original and restored functions are compared
+//     against each other.
+//
+// (2) Run with cli options "CheckpointRestoreTest.prm -Parameters.onlyImport=true"
+//     In this case the program tries to import a function from a previous run of
+//     of type (1). We can do this to see that we are not bound to have the same
+//     number of MPI processes, or primitive distribution for the export and
+//     import phases.
+
 using namespace hyteg;
 
 std::shared_ptr< PrimitiveStorage > generateStorage( const std::string& meshFileName )
@@ -92,7 +107,7 @@ auto importCheckpoint( const std::string&                         filePath,
 }
 
 template < template < typename > class func_t, typename value_t >
-value_t computeError( const func_t< value_t >& feFunc, uint_t level )
+value_t computeCheckValue( const func_t< value_t >& feFunc, uint_t level )
 {
    value_t error = static_cast< value_t >( 0 );
 
@@ -157,7 +172,7 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
    {
       difference.assign(
           { static_cast< value_t >( 1 ), static_cast< value_t >( -1 ) }, { funcOriginal, funcRestored }, lvl, All );
-      value_t error = computeError( difference, lvl );
+      value_t error = computeCheckValue( difference, lvl );
 
       if ( verbose )
       {
@@ -173,6 +188,51 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
          adiosWriter.add( difference );
          adiosWriter.write( lvl );
       }
+   }
+}
+
+template < template < typename > class func_t, typename value_t >
+void runTestWithOtherCommunicator( const std::string& filePath,
+                                   const std::string& fileName,
+                                   const std::string& meshFileName,
+                                   const uint_t       minLevel,
+                                   const uint_t       maxLevel,
+                                   bool               verbose = false )
+{
+   bool exportFuncs = false;
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "==============================================================" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Testing with the following parameters:" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - function of type ... " << FunctionTrait< func_t< value_t > >::getTypeName() );
+      WALBERLA_LOG_INFO_ON_ROOT( " - value type ......... " << adiosCheckpointHelpers::valueTypeToString< value_t >() );
+      WALBERLA_LOG_INFO_ON_ROOT( " - meshfile ........... '" << meshFileName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - filePath ........... '" << filePath << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - fileName ........... '" << fileName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------------------" );
+   }
+
+   auto storage = generateStorage( meshFileName );
+
+   //  Import Checkpoint
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint" );
+   }
+   func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
+
+   for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+   {
+      if ( exportFuncs )
+      {
+         AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
+         adiosWriter.add( funcRestored );
+         adiosWriter.write( lvl );
+      }
+
+      value_t checkValue = computeCheckValue( funcRestored, maxLevel );
+      WALBERLA_CHECK_EQUAL( checkValue, static_cast< value_t >( 3 ) );
    }
 }
 
@@ -195,16 +255,36 @@ int main( int argc, char* argv[] )
    // std::string meshFile{ "../../data/meshes/LShape_6el.msh" };
    std::string meshFile{ "../../data/meshes/3D/cube_6el.msh" };
 
+   walberla::Config::BlockHandle parameters = walberlaEnv.config()->getOneBlock( "Parameters" );
+   bool                          onlyImport = parameters.getParameter< bool >( "onlyImport" );
+
    // ===========
    //  Run Tests
    // ===========
-   runTestWithIdenticalCommunicator< P1Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
-   runTestWithIdenticalCommunicator< P1Function, int64_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+   if ( !onlyImport )
+   {
+      runTestWithIdenticalCommunicator< P1Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P1Function, int64_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
-   runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
-   runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
-   runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      // we are going to reuse this checkpoint in the next part of this pipeline job
+      fileName = "CheckpointRestoreTest+reuse.bp";
+      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
-   runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      // We currently would need to import the two component functions separately; Better than having specialised code here,
+      // alter AdiosCheckpoint[Ex|Im]porter
+      // runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+   }
+
+   // =====================
+   //  Run Other Test Form
+   // =====================
+   else
+   {
+      fileName = "CheckpointRestoreTest+reuse.bp";
+      runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      return EXIT_SUCCESS;
+   }
 }

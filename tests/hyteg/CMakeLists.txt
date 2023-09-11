@@ -190,8 +190,13 @@ if (HYTEG_BUILD_WITH_ADIOS2)
   waLBerla_compile_test(FILES dataexport+import/CheckpointingTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME CheckpointingTest)
 
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+    ${CMAKE_CURRENT_SOURCE_DIR}/dataexport+import/CheckpointRestoreTest.prm
+    ${CMAKE_CURRENT_BINARY_DIR}/CheckpointRestoreTest.prm )
   waLBerla_compile_test(FILES dataexport+import/CheckpointRestoreTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME CheckpointRestoreTest)
+  waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Same-Communicator COMMAND $<TARGET_FILE:CheckpointRestoreTest> PROCESSES 3)
+  waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential)
+  waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Import-Only COMMAND $<TARGET_FILE:CheckpointRestoreTest> -Parameters.onlyImport=true PROCESSES 3)
 endif ()
 
 waLBerla_compile_test(FILES dataexport+import/TableTest.cpp DEPENDS hyteg core)
