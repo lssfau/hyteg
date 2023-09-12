@@ -34,11 +34,20 @@ using walberla::real_t;
 using walberla::uint_t;
 
 /// Driver class for storing checkpoints with ADIOS2
+///
+/// This class allows to write checkpoints of FE-functions to files using functionality offered
+/// by ADIOS2. Output is using the BP format (currently version BP5). The class currently only supports
+/// the following types of functions:
+/// - P1Function and P1VectorFunction
+/// - P2Function and P2VectorFunction
+/// - P2P1TaylorHoodFunction
 class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
 {
  public:
 #ifdef WALBERLA_BUILD_WITH_MPI
 
+   /// \param configFile        name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
+   /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
    AdiosCheckpointExporter( std::string configFile, MPI_Comm comm = walberla::MPIManager::instance()->comm() )
    {
       // setup central ADIOS2 interface object
@@ -54,6 +63,7 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
 
 #else
 
+   /// \param configFile        name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    AdiosCheckpointExporter( std::string configFile )
    {
       // setup central ADIOS2 interface object

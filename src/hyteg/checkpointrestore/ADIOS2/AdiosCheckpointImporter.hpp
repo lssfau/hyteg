@@ -33,6 +33,12 @@ using walberla::real_t;
 using walberla::uint_t;
 
 /// Driver class for importing function data from checkpoints with ADIOS2
+///
+/// This class allows to selectively import FE-functions from checkpoint files written with ADIOS2.
+/// The files should be in BP format (currently version BP5). The class currently only supports
+/// importing the following types of functions:
+/// - P1Function and P1VectorFunction
+/// - P2Function and P2VectorFunction
 class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
 {
  public:
@@ -96,8 +102,17 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
       uint_t      maxLevel;
    };
 
+   /// Obtain a vector of function descriptions
+   ///
+   /// A function description is composed of
+   /// - name of the function
+   /// - string describing its kind, such as e.g. "P2VectorFunction"
+   /// - string describing its data-type (aka value-type), such as e.g. "double"
+   /// - the minimum refinement level for which data are present in the checkpoint
+   /// - the maximum refinement level for which data are present in the checkpoint
    const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
 
+   /// On the root process print information on the checkoint file (format, contents, ...) to standard output
    void printCheckpointInfo()
    {
       WALBERLA_ROOT_SECTION()
@@ -112,12 +127,39 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
       }
    }
 
+   /// Populate an existing FE function with data from the checkpoint
+   ///
+   /// This version of the method will automatically use all data present in the checkpoint,
+   /// i.e. it will take minLevel and maxLevel from the checkpoint file. This requires that
+   /// the function is at least defined for that range of levels. Function data is searched by
+   /// the respective function name.
+   ///
+   /// \param function       FE Function to be written to
+   /// \param abortOnError   if false, the method will not abort on high-level errors (such as
+   ///                       the name of the function cannot be found in the file, or minLevel is
+   ///                       not present); in this case the method return false and not change
+   ///                       the input function; note that low-level errors, will still lead to
+   ///                       an abort
    template < template < typename > class func_t, typename value_t >
    bool restoreFunction( func_t< value_t >& function, bool abortOnError = true )
    {
       return restoreFunction( function, function.getMinLevel(), function.getMaxLevel(), abortOnError );
    }
 
+
+   /// Populate an existing FE function with data from the checkpoint
+   ///
+   /// The method will search the checkpoint for data associated to the given function name
+   /// and populate the function with the found data on all levels in the range [minLevel,maxLevel].
+   ///
+   /// \param function       FE Function to be written to
+   /// \param minLevel       smallest refinement level to work on
+   /// \param maxLevel       largest refinement level to work on
+   /// \param abortOnError   if false, the method will not abort on high-level errors (such as
+   ///                       the name of the function cannot be found in the file, or minLevel is
+   ///                       not present); in this case the method return false and not change
+   ///                       the input function; note that low-level errors, will still lead to
+   ///                       an abort
    template < template < typename > class func_t, typename value_t >
    bool restoreFunction( func_t< value_t >& function, uint_t minLevel, uint_t maxLevel, bool abortOnError = true )
    {
