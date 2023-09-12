@@ -64,6 +64,8 @@ auto exportCheckpoint( const std::string&                         filePath,
                        const uint_t                               maxLevel,
                        bool                                       verbose = false )
 {
+   WALBERLA_UNUSED( verbose );
+
    std::string funcName = "Test_" + FunctionTrait< func_t< value_t > >::getTypeName();
 
    func_t< value_t > feFunc( funcName, storage, minLevel, maxLevel );
@@ -92,6 +94,8 @@ auto importCheckpoint( const std::string&                         filePath,
                        const uint_t                               maxLevel,
                        bool                                       verbose = false )
 {
+   WALBERLA_UNUSED( verbose );
+
    AdiosCheckpointImporter restorer( filePath, fileName, "" );
 
    if ( verbose )
@@ -99,7 +103,9 @@ auto importCheckpoint( const std::string&                         filePath,
       restorer.printCheckpointInfo();
    }
 
-   auto&             funcDescr = restorer.getFunctionDetails();
+   auto& funcDescr = restorer.getFunctionDetails();
+   WALBERLA_CHECK_EQUAL( funcDescr[0].minLevel, minLevel );
+   WALBERLA_CHECK_EQUAL( funcDescr[0].maxLevel, maxLevel );
    func_t< value_t > feFunc( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
    restorer.restoreFunction( feFunc );
 
@@ -177,7 +183,7 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( " * checking differences on refinement level " << lvl << " ..." );
-         WALBERLA_CHECK_EQUAL( error, static_cast< value_t >( 0 ) );
+         WALBERLA_CHECK_LESS_EQUAL( error, static_cast< value_t >( 0 ) );
          WALBERLA_LOG_INFO_ON_ROOT( "   ... okay" );
       }
       if ( exportFuncs )
@@ -232,7 +238,7 @@ void runTestWithOtherCommunicator( const std::string& filePath,
       }
 
       value_t checkValue = computeCheckValue( funcRestored, maxLevel );
-      WALBERLA_CHECK_EQUAL( checkValue, static_cast< value_t >( 3 ) );
+      WALBERLA_CHECK_LESS_EQUAL( std::abs( checkValue - static_cast< value_t >( 3 ) ), static_cast< value_t >( 0 ) );
    }
 }
 
@@ -240,6 +246,10 @@ int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
+   if ( argc > 3 )
+   {
+      WALBERLA_ABORT( "Wrong number of command-line arguments!" );
+   }
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
@@ -255,8 +265,12 @@ int main( int argc, char* argv[] )
    // std::string meshFile{ "../../data/meshes/LShape_6el.msh" };
    std::string meshFile{ "../../data/meshes/3D/cube_6el.msh" };
 
-   walberla::Config::BlockHandle parameters = walberlaEnv.config()->getOneBlock( "Parameters" );
-   bool                          onlyImport = parameters.getParameter< bool >( "onlyImport" );
+   bool onlyImport = false;
+   if ( argc > 1 )
+   {
+      walberla::Config::BlockHandle parameters = walberlaEnv.config()->getOneBlock( "Parameters" );
+      onlyImport                               = parameters.getParameter< bool >( "onlyImport" );
+   }
 
    // ===========
    //  Run Tests

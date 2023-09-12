@@ -56,7 +56,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    [[nodiscard]] BoundaryCondition getBoundaryCondition() const { return u_conforming_->getBoundaryCondition(); }
 
    template < typename SenderType, typename ReceiverType >
-   void communicate( const uint_t& level ) const
+   void communicate( const uint_t& ) const
    {
       WALBERLA_ABORT( "Not implemented." );
    }
@@ -197,6 +197,8 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                                                const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                                const bool&     onRootOnly   = false ) const
    {
+      WALBERLA_UNUSED( communicator );
+      WALBERLA_UNUSED( onRootOnly );
       return u_conforming_->getNumberOfGlobalDoFs( level ) + u_discontinuous_->getNumberOfGlobalDoFs( level );
    }
 
