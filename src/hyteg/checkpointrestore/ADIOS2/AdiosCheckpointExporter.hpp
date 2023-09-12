@@ -69,7 +69,7 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       // setup central ADIOS2 interface object
       if ( configFile.empty() )
       {
-         adios_ = adios2::ADIOS;
+         adios_ = adios2::ADIOS();
       }
       else
       {
