@@ -54,6 +54,10 @@ waLBerla_add_executable(NAME gmg_blending
       FILES gmg_blending.cpp
       DEPENDS hyteg)
 
+waLBerla_add_executable(NAME NonDistributedSetupStorage
+      FILES NonDistributedSetupStorage.cpp
+      DEPENDS hyteg)
+
 if (NOT APPLE)
    # apple clang does not contain expint which is used in this app
    waLBerla_add_executable(NAME adaptiveRefinement

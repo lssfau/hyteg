@@ -72,44 +72,55 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    neighborFaces_[0];
    neighborCells_[0];
 
-   for ( auto it : setupStorage.getVertices() )
-   {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         vertices_[0][it.first] = std::make_shared< Vertex >( *( it.second ) );
-      }
-   }
+   setupStorage.broadcastPrimitives( vertices_[0],
+                                     edges_[0],
+                                     faces_[0],
+                                     cells_[0],
+                                     neighborVertices_[0],
+                                     neighborEdges_[0],
+                                     neighborFaces_[0],
+                                     neighborCells_[0],
+                                     neighborRanks_[0]);
 
-   for ( auto it : setupStorage.getEdges() )
-   {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         edges_[0][it.first] = std::make_shared< Edge >( *( it.second ) );
-      }
-   }
-
-   for ( auto it : setupStorage.getFaces() )
-   {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         faces_[0][it.first] = std::make_shared< Face >( *( it.second ) );
-      }
-   }
-
-   for ( auto it : setupStorage.getCells() )
-   {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         cells_[0][it.first] = std::make_shared< Cell >( *( it.second ) );
-      }
-   }
-
-   // neighbors
-   std::vector< PrimitiveID > vertices{ getVertexIDs() };
-   std::vector< PrimitiveID > edges{ getEdgeIDs() };
-   std::vector< PrimitiveID > faces{ getFaceIDs() };
-   std::vector< PrimitiveID > cells{ getCellIDs() };
-   addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
+//
+//   for ( auto it : setupStorage.getVertices() )
+//   {
+//      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+//      {
+//         vertices_[0][it.first] = std::make_shared< Vertex >( *( it.second ) );
+//      }
+//   }
+//
+//   for ( auto it : setupStorage.getEdges() )
+//   {
+//      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+//      {
+//         edges_[0][it.first] = std::make_shared< Edge >( *( it.second ) );
+//      }
+//   }
+//
+//   for ( auto it : setupStorage.getFaces() )
+//   {
+//      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+//      {
+//         faces_[0][it.first] = std::make_shared< Face >( *( it.second ) );
+//      }
+//   }
+//
+//   for ( auto it : setupStorage.getCells() )
+//   {
+//      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+//      {
+//         cells_[0][it.first] = std::make_shared< Cell >( *( it.second ) );
+//      }
+//   }
+//
+//   // neighbors
+//   std::vector< PrimitiveID > vertices{ getVertexIDs() };
+//   std::vector< PrimitiveID > edges{ getEdgeIDs() };
+//   std::vector< PrimitiveID > faces{ getFaceIDs() };
+//   std::vector< PrimitiveID > cells{ getCellIDs() };
+//   addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
 
    // additionally requested neighbors
    for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
@@ -2353,7 +2364,7 @@ void PrimitiveStorage::checkConsistency()
       for ( const auto& nID : neighborhoodIDs )
       {
          WALBERLA_CHECK( primitiveExistsLocally( nID ) || primitiveExistsInNeighborhood( nID ),
-                         "Neighbor referenced from locally allocated primitive is not allocated in storage." );
+                         "Neighbor referenced from locally allocated primitive is not allocated in storage. ID: " << nID );
       }
    }
 
