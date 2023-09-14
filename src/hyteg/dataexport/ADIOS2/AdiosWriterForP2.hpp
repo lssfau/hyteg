@@ -41,8 +41,8 @@ class AdiosWriterForP2
    /// \param level          fixed refinement level associated with the writer object
    /// \param storage        PrimitiveStorage associated with functions to export
    AdiosWriterForP2( adios2::ADIOS&                             adios,
-                     std::string&                               filePath,
-                     std::string&                               fileBaseName,
+                     const std::string&                         filePath,
+                     const std::string&                         fileBaseName,
                      const std::string&                         engineType,
                      uint_t                                     level,
                      const std::shared_ptr< PrimitiveStorage >& storage );

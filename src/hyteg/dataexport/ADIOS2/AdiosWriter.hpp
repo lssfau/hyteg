@@ -58,8 +58,8 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
+   AdiosWriter( const std::string&                         filePath,
+                const std::string&                         fileBaseName,
                 const std::shared_ptr< PrimitiveStorage >& storage,
                 MPI_Comm                                   comm = walberla::MPIManager::instance()->comm() )
    : AdiosWriter( filePath, fileBaseName, "", storage, comm )
@@ -70,9 +70,9 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
-                std::string                                configFile,
+   AdiosWriter( const std::string&                         filePath,
+                const std::string&                         fileBaseName,
+                const std::string&                         configFile,
                 const std::shared_ptr< PrimitiveStorage >& storage,
                 MPI_Comm                                   comm = walberla::MPIManager::instance()->comm() )
    : storage_( storage )
@@ -95,7 +95,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
-   AdiosWriter( std::string filePath, std::string fileBaseName, const std::shared_ptr< PrimitiveStorage >& storage )
+   AdiosWriter( const std::string& filePath, const std::string& fileBaseName, const std::shared_ptr< PrimitiveStorage >& storage )
    : AdiosWriter( filePath, fileBaseName, "", storage )
    {}
 
@@ -103,9 +103,9 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
-                std::string                                configFile,
+   AdiosWriter( const std::string&                         filePath,
+                const std::string&                         fileBaseName,
+                const std::string&                         configFile,
                 const std::shared_ptr< PrimitiveStorage >& storage )
    : storage_( storage )
    , filePath_( filePath )
