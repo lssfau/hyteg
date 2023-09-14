@@ -150,7 +150,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
          WALBERLA_ABORT( "AdiosWriter only supports P1 and P2 type functions!" );
       }
 
-      if ( p1Writers_.size() > 0 || p2Writers_.size() > 0 )
+      if ( firstWriteDidHappen_ )
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter class does not support adding functions after the first write.\n"
                                        << "--> Ignoring function '" << function.getFunctionName() << "'!" );
@@ -163,11 +163,19 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 
    /// Set parameter specified by string key to value specified by string value
    ///
-   /// Currently not supported for AdiosWriter
+   /// \note For consistency reasons the method will refuse to change parameter values after the first
+   ///       invocation of write() on the AdiosWriter object. In this case it will print a warning and
+   ///       ignore the request.
    void setParameter( const std::string& key, const std::string& value )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() does not perform any action!\n"
-                                    << "--> Ignoring (key,value) = ('" << key << ",'" << value << "')" );
+      if ( firstWriteDidHappen_ )
+      {
+        WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() only works before the first write()!\n"
+                                      << "--> Ignoring (key,value) = ('" << key << "','" << value << "')" );
+      }
+      else {
+        userProvidedParameters_[ key ] = value;
+      }
    }
 
    void write( const uint_t level, const uint_t timestep = 0 );
@@ -250,6 +258,12 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 
    /// basename of output files
    std::string fileBaseName_;
+
+   /// (key,value) pairs for IO parameters provided by user via setParameter() method
+   std::map< std::string, std::string > userProvidedParameters_;
+
+   /// remember if we already had a write() episode
+   bool firstWriteDidHappen_ = false;
 
    /// type of engine to be used for export
    ///

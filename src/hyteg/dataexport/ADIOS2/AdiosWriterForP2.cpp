@@ -55,8 +55,14 @@ AdiosWriterForP2::AdiosWriterForP2( adios2::ADIOS&                             a
    io_.SetEngine( engineType );
 }
 
-void AdiosWriterForP2::write( const FEFunctionRegistry& registry, uint_t timestep )
+void AdiosWriterForP2::write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters )
 {
+   // on first invocation set user define parameter values
+   if ( !firstWriteCompleted_ )
+   {
+      io_.SetParameters( userProvidedParameters );
+   }
+
    // working on faces/cells some processes might not have data to export
    if ( !adiosHelpers::mpiProcessHasMacrosOfHighestDimension( storage_ ) )
    {

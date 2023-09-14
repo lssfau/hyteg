@@ -60,7 +60,7 @@ class AdiosWriterForP2
    ///
    /// \note The caller needs to make sure that the functions have been synced before
    ///       invoking this method!
-   void write( const FEFunctionRegistry& registry, uint_t timestep );
+   void write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters );
 
  private:
    /// Store the mesh on which our functions live in the output file
