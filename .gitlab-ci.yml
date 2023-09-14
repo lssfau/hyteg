@@ -99,6 +99,7 @@ icc_2022_serial:
       WALBERLA_BUILD_WITH_MPI: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+      HYTEG_BUILD_WITH_ADIOS2: "OFF"
       CMAKE_CXX_FLAGS: "-diag-disable=10441"
    only:
       variables:
@@ -111,6 +112,7 @@ icc_2022_mpionly:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022
    variables:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      HYTEG_BUILD_WITH_ADIOS2: "OFF"
       CMAKE_CXX_FLAGS: "-diag-disable=10441"
    only:
       variables:
@@ -126,6 +128,7 @@ icc_2022_mpionly_dbg_petsc-complex_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
+      HYTEG_BUILD_WITH_ADIOS2: "OFF"
       PETSC_DIR: "/opt/view"
       CMAKE_CXX_FLAGS: "-diag-disable=10441"
    tags:
@@ -138,6 +141,7 @@ icc_2022_mpionly_petsc_trilinos:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
+      HYTEG_BUILD_WITH_ADIOS2: "OFF"
       PETSC_DIR: "/opt/view"
       CMAKE_CXX_FLAGS: "-diag-disable=10441"
    tags:
@@ -151,6 +155,7 @@ icc_2022_mpionly_eigen_petsc_trilinos_no_werror:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
       HYTEG_BUILD_WITH_TRILINOS: "ON"
+      HYTEG_BUILD_WITH_ADIOS2: "OFF"
       PETSC_DIR: "/opt/view"
       WARNING_ERROR: "OFF"
       CMAKE_CXX_FLAGS: "-diag-disable=10441"
