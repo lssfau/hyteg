@@ -33,8 +33,8 @@ using walberla::real_t;
 using walberla::uint_t;
 
 AdiosWriterForP2::AdiosWriterForP2( adios2::ADIOS&                             adios,
-                                    std::string&                               filePath,
-                                    std::string&                               fileBaseName,
+                                    const std::string&                         filePath,
+                                    const std::string&                         fileBaseName,
                                     const std::string&                         engineType,
                                     uint_t                                     level,
                                     const std::shared_ptr< PrimitiveStorage >& storage )
