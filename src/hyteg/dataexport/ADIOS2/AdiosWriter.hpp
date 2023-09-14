@@ -50,6 +50,12 @@ class AdiosWriterForP2;
 /// - P2P1TaylorHoodFunction
 ///
 /// which must be using real_t as their value type.
+///
+/// \note For configuring writer behaviour through an XML or YAML configuration file, please
+///       note that we need to create one adios2::IO object for each output level and for
+///       each function family. Their names are given by
+///       - AdiosWriterP1-level<level number>
+///       - AdiosWriterP2-level<level number>
 class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 {
  public:
@@ -160,7 +166,8 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// Currently not supported for AdiosWriter
    void setParameter( const std::string& key, const std::string& value )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() does not perform any action!" );
+      WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() does not perform any action!\n"
+                                    << "--> Ignoring (key,value) = ('" << key << ",'" << value << "')" );
    }
 
    void write( const uint_t level, const uint_t timestep = 0 );

@@ -42,12 +42,14 @@ AdiosWriterForP2::AdiosWriterForP2( adios2::ADIOS&                             a
 , level_( level )
 {
    // create the name of the output file
-   std::stringstream tag;
-   tag << "-P2_level" << level_ << ".bp";
-   fileName_ = filePath + "/" + fileBaseName + tag.str();
+   std::stringstream tag1;
+   tag1 << "-P2_level" << level_ << ".bp";
+   fileName_ = filePath + "/" + fileBaseName + tag1.str();
 
    // create our own writer
-   io_ = adios.DeclareIO( fileName_ );
+   std::stringstream tag2;
+   tag2 << "AdiosWriterP2-level" << level;
+   io_ = adios.DeclareIO( tag2.str() );
 
    // set the type of engine
    io_.SetEngine( engineType );

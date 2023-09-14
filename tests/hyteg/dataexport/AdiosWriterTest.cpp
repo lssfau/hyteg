@@ -93,6 +93,9 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
    P1Function< real_t > foo( "foo", storage, level, level );
    adiosWriter.add( foo );
 
+   // should produce another warning
+   adiosWriter.setParameter( "Profile", "On" );
+
    adiosWriter.write( level, 1 );
 }
 
