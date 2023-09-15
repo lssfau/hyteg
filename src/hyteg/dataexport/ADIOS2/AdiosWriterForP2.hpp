@@ -41,8 +41,8 @@ class AdiosWriterForP2
    /// \param level          fixed refinement level associated with the writer object
    /// \param storage        PrimitiveStorage associated with functions to export
    AdiosWriterForP2( adios2::ADIOS&                             adios,
-                     std::string&                               filePath,
-                     std::string&                               fileBaseName,
+                     const std::string&                         filePath,
+                     const std::string&                         fileBaseName,
                      const std::string&                         engineType,
                      uint_t                                     level,
                      const std::shared_ptr< PrimitiveStorage >& storage );
@@ -60,7 +60,7 @@ class AdiosWriterForP2
    ///
    /// \note The caller needs to make sure that the functions have been synced before
    ///       invoking this method!
-   void write( const FEFunctionRegistry& registry, uint_t timestep );
+   void write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters );
 
  private:
    /// Store the mesh on which our functions live in the output file

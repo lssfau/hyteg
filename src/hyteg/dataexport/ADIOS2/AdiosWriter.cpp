@@ -49,7 +49,7 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
              std::make_unique< AdiosWriterForP1 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
       }
 
-      p1Writers_[level]->write( feFunctionRegistry_, timestep );
+      p1Writers_[level]->write( feFunctionRegistry_, timestep, userProvidedParameters_ );
    }
 
    // -------------------
@@ -65,8 +65,11 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
              std::make_unique< AdiosWriterForP2 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
       }
 
-      p2Writers_[level]->write( feFunctionRegistry_, timestep );
+      p2Writers_[level]->write( feFunctionRegistry_, timestep, userProvidedParameters_ );
    }
+
+   // remember that we had our first write() episode
+   firstWriteDidHappen_ = true;
 }
 
 } // namespace hyteg
