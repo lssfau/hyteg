@@ -123,7 +123,6 @@ class SetupPrimitiveStorage
                bufferSystem.sendBuffer( targetRank ) << primtiveType;
                bufferSystem.sendBuffer( targetRank ) << it.first;
                bufferSystem.sendBuffer( targetRank ) << *( it.second );
-               WALBERLA_LOG_INFO(targetRank << " " << it.first)
                int nbrPrimitiveType = 0;
                for ( const auto& func : { it.second->neighborVertices(),
                                           it.second->neighborEdges(),
@@ -153,7 +152,6 @@ class SetupPrimitiveStorage
                            neighborPrimitive = getCell( neighborPrimitiveID );
                         }
                         WALBERLA_ASSERT_NOT_NULLPTR( neighborPrimitive );
-                        WALBERLA_LOG_INFO("nbr " << targetRank << " " << neighborPrimitiveID)
                         bufferSystem.sendBuffer( targetRank ) << nbrTargetRank;
                         bufferSystem.sendBuffer( targetRank ) << nbrPrimitiveType;
                         bufferSystem.sendBuffer( targetRank ) << neighborPrimitiveID;

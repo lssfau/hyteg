@@ -40,6 +40,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
 {
    WALBERLA_ASSERT_GREATER( numberOfProcesses_, 0, "Number of processes must be positive" );
 
+   WALBERLA_ROOT_SECTION()
+   {
    // since the MeshInfo IDs of the vertices do not necessarily
    // match the primitive IDs of the vertices in the SetupStorage, we need an assignment
    std::map< uint_t, PrimitiveID > meshVertexIDToPrimitiveID;
@@ -472,6 +474,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
    }
 
    loadbalancing::roundRobin( *this );
+}
 }
 
 SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap& vertices,
