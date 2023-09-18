@@ -1,0 +1,11 @@
+namespace walberla {
+namespace unresolved_particles {
+
+/**
+ * \defgroup unresolved_particles_shape Particle shapes of MESA-PD module
+ * \ingroup unresolved_particles
+ * Description of particle shapes available in the MESA-PD module.
+**/
+
+}
+}

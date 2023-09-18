@@ -1,0 +1,11 @@
+namespace walberla {
+namespace unresolved_particles {
+
+/**
+ * \defgroup unresolved_particles_kernel Particle and particle-particle kernels available in the MESA-PD module.
+ * \ingroup unresolved_particles
+ * Description of all kernels available in the MESA-PD module.
+**/
+
+}
+}

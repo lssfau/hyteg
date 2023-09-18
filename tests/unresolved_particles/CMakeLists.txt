@@ -1,0 +1,5 @@
+waLBerla_compile_test(FILES UnresolvedParticlesCouplingTest.cpp DEPENDS core unresolved_particles coupling_hyteg_unresolved_particles )
+waLBerla_execute_test(NAME UnresolvedParticlesCouplingTest)
+
+waLBerla_compile_test(FILES UnresolvedParticlesSimpleTransportTest.cpp DEPENDS core unresolved_particles coupling_hyteg_unresolved_particles )
+waLBerla_execute_test(NAME UnresolvedParticlesSimpleTransportTest)

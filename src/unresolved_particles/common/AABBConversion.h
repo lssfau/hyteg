@@ -1,0 +1,61 @@
+//======================================================================================================================
+//
+//  This file is part of waLBerla. waLBerla is free software: you can
+//  redistribute it and/or modify it under the terms of the GNU General Public
+//  License as published by the Free Software Foundation, either version 3 of
+//  the License, or (at your option) any later version.
+//
+//  waLBerla is distributed in the hope that it will be useful, but WITHOUT
+//  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+//  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+//  for more details.
+//
+//  You should have received a copy of the GNU General Public License along
+//  with waLBerla (see COPYING.txt). If not, see <http://www.gnu.org/licenses/>.
+//
+//! \file
+//! \author Christoph Rettinger <christoph.rettinger@fau.de>
+//
+//======================================================================================================================
+
+#pragma once
+
+#include <core/math/AABB.h>
+#include <unresolved_particles/data/DataTypes.h>
+#include <unresolved_particles/data/Flags.h>
+#include <unresolved_particles/data/IAccessor.h>
+
+#include <limits>
+
+namespace walberla {
+namespace unresolved_particles {
+
+math::AABB getAABBFromInteractionRadius(const Vector3<real_t> & pos, const real_t interactionRadius )
+{
+   WALBERLA_ASSERT_GREATER(interactionRadius, 0_r, "Did you forget to set the interaction radius?");
+   return math::AABB( pos[0]-interactionRadius, pos[1]-interactionRadius, pos[2]-interactionRadius,
+                      pos[0]+interactionRadius, pos[1]+interactionRadius, pos[2]+interactionRadius );
+}
+
+
+// requires: interactionRadius
+// flags: infinite
+template<typename ParticleAccessor_T>
+math::AABB getParticleAABB(const size_t particleIdx, const ParticleAccessor_T& ac)
+{
+   static_assert(std::is_base_of<unresolved_particles::data::IAccessor, ParticleAccessor_T>::value, "Provide a valid accessor as template");
+
+   if( unresolved_particles::data::particle_flags::isSet( ac.getFlags(particleIdx), unresolved_particles::data::particle_flags::INFINITE) )
+   {
+      auto inf = std::numeric_limits<real_t>::infinity();
+      return math::AABB( -inf, -inf, -inf,
+                          inf,  inf,  inf);
+   }
+   else
+   {
+      return getAABBFromInteractionRadius(ac.getPosition(particleIdx), ac.getInteractionRadius(particleIdx));
+   }
+}
+
+} //namespace unresolved_particles
+} //namespace walberla
