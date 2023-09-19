@@ -96,6 +96,12 @@ class SetupPrimitiveStorage
    uint_t getNumberOfEdges() const { return edges_.size(); }
    uint_t getNumberOfFaces() const { return faces_.size(); }
    uint_t getNumberOfCells() const { return cells_.size(); }
+   uint_t getNumberOfGlobalCells() const
+   {
+      uint_t numberOfCells = cells_.size();
+      walberla::mpi::allReduceInplace( numberOfCells, walberla::mpi::SUM );
+      return numberOfCells;
+   }
 
    /// Returns a reference to a map of \ref Vertex instances
    const VertexMap& getVertices() const { return vertices_; }

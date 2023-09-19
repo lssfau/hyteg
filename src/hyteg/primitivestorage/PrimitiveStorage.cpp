@@ -59,7 +59,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( timingTree )
-, hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
+, hasGlobalCells_( setupStorage.getNumberOfGlobalCells() > 0 )
 , additionalHaloDepth_( additionalHaloDepth )
 {
    // We need to construct at least the maps on the coarsest level.
