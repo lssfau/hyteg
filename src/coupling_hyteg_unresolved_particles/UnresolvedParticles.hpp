@@ -116,7 +116,7 @@ class UnresolvedParticles
                  std::string baseFolder      = "vtk",
                  std::string executionFolder = "simulation_step" )
    {
-      particleVtkOutput_ = make_shared< walberla::unresolved_particles::vtk::ParticleVtkOutput >( particleStorage_ );
+      particleVtkOutput_ = std::make_shared< walberla::unresolved_particles::vtk::ParticleVtkOutput >( particleStorage_ );
       particleVtkOutput_->addOutput< walberla::unresolved_particles::data::SelectParticleUid >( "uid" );
       particleVtkOutput_->addOutput< walberla::unresolved_particles::data::SelectParticleLinearVelocity >( "velocity" );
       particleVtkOutput_->addOutput< walberla::unresolved_particles::data::SelectParticleInteractionRadius >( "radius" );
