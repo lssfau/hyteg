@@ -50,6 +50,8 @@ public:
    walberla::unresolved_particles::Vec3 linearVelocity {real_t(0)};
    walberla::unresolved_particles::Rot3 rotation {};
    walberla::unresolved_particles::Vec3 angularVelocity {real_t(0)};
+   std::vector< real_t > customReal {};
+   std::vector< int > customInt {};
    };
 
    inline explicit ParticleUpdateNotification( const data::Particle& particle ) : particle_(particle) {}
@@ -84,6 +86,8 @@ mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, cons
    buf << obj.particle_.getLinearVelocity();
    buf << obj.particle_.getRotation();
    buf << obj.particle_.getAngularVelocity();
+   buf << obj.particle_.getCustomReal();
+   buf << obj.particle_.getCustomInt();
    return buf;
 }
 
@@ -96,6 +100,8 @@ mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, unresolv
    buf >> objparam.linearVelocity;
    buf >> objparam.rotation;
    buf >> objparam.angularVelocity;
+   buf >> objparam.customReal;
+   buf >> objparam.customInt;
    return buf;
 }
 

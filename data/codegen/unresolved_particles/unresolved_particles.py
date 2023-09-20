@@ -34,6 +34,9 @@ if __name__ == '__main__':
     ps.add_include("blockforest/BlockForest.h")
     ps.add_property("currentBlock", "blockforest::BlockID", defValue="", syncMode="NEVER")
 
+    ps.add_property("customReal", "std::vector< real_t >", defValue="", syncMode="ALWAYS")
+    ps.add_property("customInt", "std::vector< int >", defValue="", syncMode="ALWAYS")
+
     # ps.add_include("hyteg/indexing/Common.hpp")
     # ps.add_include("hyteg/PrimitiveID.hpp")
     # ps.add_include("hyteg/edgedofspace/EdgeDoFIndexing.hpp")

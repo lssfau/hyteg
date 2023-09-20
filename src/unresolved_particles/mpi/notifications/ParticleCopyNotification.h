@@ -61,6 +61,8 @@ public:
       walberla::unresolved_particles::Vec3 angularVelocity {real_t(0)};
       walberla::unresolved_particles::Vec3 oldTorque {real_t(0)};
       walberla::unresolved_particles::Mat3 invInertiaBF {real_t(0)};
+      std::vector< real_t > customReal {};
+      std::vector< int > customInt {};
    };
 
    inline explicit ParticleCopyNotification( const data::Particle& particle ) : particle_(particle) {}
@@ -85,6 +87,8 @@ inline data::ParticleStorage::iterator createNewParticle(data::ParticleStorage& 
    pIt->setAngularVelocity(data.angularVelocity);
    pIt->setOldTorque(data.oldTorque);
    pIt->setInvInertiaBF(data.invInertiaBF);
+   pIt->setCustomReal(data.customReal);
+   pIt->setCustomInt(data.customInt);
    return pIt;
 }
 
@@ -124,6 +128,8 @@ mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, cons
    buf << obj.particle_.getAngularVelocity();
    buf << obj.particle_.getOldTorque();
    buf << obj.particle_.getInvInertiaBF();
+   buf << obj.particle_.getCustomReal();
+   buf << obj.particle_.getCustomInt();
    return buf;
 }
 
@@ -144,6 +150,8 @@ mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, unresolv
    buf >> objparam.angularVelocity;
    buf >> objparam.oldTorque;
    buf >> objparam.invInertiaBF;
+   buf >> objparam.customReal;
+   buf >> objparam.customInt;
    return buf;
 }
 

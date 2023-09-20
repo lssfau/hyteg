@@ -117,6 +117,8 @@ void ParseMessage::operator()(int sender,
       pIt->setLinearVelocity(objparam.linearVelocity);
       pIt->setRotation(objparam.rotation);
       pIt->setAngularVelocity(objparam.angularVelocity);
+      pIt->setCustomReal(objparam.customReal);
+      pIt->setCustomInt(objparam.customInt);
 
       domain.correctParticlePosition(pIt->getPositionRef());
 

@@ -57,6 +57,8 @@ public:
       walberla::real_t invMass {real_t(1)};
       walberla::unresolved_particles::Rot3 rotation {};
       walberla::unresolved_particles::Vec3 angularVelocity {real_t(0)};
+      std::vector< real_t > customReal {};
+      std::vector< int > customInt {};
    };
 
    inline explicit ParticleGhostCopyNotification( const data::Particle& particle ) : particle_(particle) {}
@@ -77,6 +79,8 @@ inline data::ParticleStorage::iterator createNewParticle(data::ParticleStorage& 
    pIt->setInvMass(data.invMass);
    pIt->setRotation(data.rotation);
    pIt->setAngularVelocity(data.angularVelocity);
+   pIt->setCustomReal(data.customReal);
+   pIt->setCustomInt(data.customInt);
    return pIt;
 }
 
@@ -112,6 +116,8 @@ mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, cons
    buf << obj.particle_.getInvMass();
    buf << obj.particle_.getRotation();
    buf << obj.particle_.getAngularVelocity();
+   buf << obj.particle_.getCustomReal();
+   buf << obj.particle_.getCustomInt();
    return buf;
 }
 
@@ -128,6 +134,8 @@ mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, unresolv
    buf >> objparam.invMass;
    buf >> objparam.rotation;
    buf >> objparam.angularVelocity;
+   buf >> objparam.customReal;
+   buf >> objparam.customInt;
    return buf;
 }
 

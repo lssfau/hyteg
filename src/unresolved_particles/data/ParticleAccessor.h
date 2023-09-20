@@ -112,6 +112,14 @@ public:
    blockforest::BlockID& getCurrentBlockRef(const size_t p_idx) {return ps_->getCurrentBlockRef(p_idx);}
    void setCurrentBlock(const size_t p_idx, blockforest::BlockID const & v) { ps_->setCurrentBlock(p_idx, v);}
    
+   std::vector< real_t > const & getCustomReal(const size_t p_idx) const {return ps_->getCustomReal(p_idx);}
+   std::vector< real_t >& getCustomRealRef(const size_t p_idx) {return ps_->getCustomRealRef(p_idx);}
+   void setCustomReal(const size_t p_idx, std::vector< real_t > const & v) { ps_->setCustomReal(p_idx, v);}
+   
+   std::vector< int > const & getCustomInt(const size_t p_idx) const {return ps_->getCustomInt(p_idx);}
+   std::vector< int >& getCustomIntRef(const size_t p_idx) {return ps_->getCustomIntRef(p_idx);}
+   void setCustomInt(const size_t p_idx, std::vector< int > const & v) { ps_->setCustomInt(p_idx, v);}
+   
    std::unordered_set<walberla::mpi::MPIRank> const & getNeighborState(const size_t p_idx) const {return ps_->getNeighborState(p_idx);}
    std::unordered_set<walberla::mpi::MPIRank>& getNeighborStateRef(const size_t p_idx) {return ps_->getNeighborStateRef(p_idx);}
    void setNeighborState(const size_t p_idx, std::unordered_set<walberla::mpi::MPIRank> const & v) { ps_->setNeighborState(p_idx, v);}
@@ -225,6 +233,14 @@ public:
    void setCurrentBlock(const size_t /*p_idx*/, blockforest::BlockID const & v) { currentBlock_ = v;}
    blockforest::BlockID& getCurrentBlockRef(const size_t /*p_idx*/) {return currentBlock_;}
    
+   std::vector< real_t > const & getCustomReal(const size_t /*p_idx*/) const {return customReal_;}
+   void setCustomReal(const size_t /*p_idx*/, std::vector< real_t > const & v) { customReal_ = v;}
+   std::vector< real_t >& getCustomRealRef(const size_t /*p_idx*/) {return customReal_;}
+   
+   std::vector< int > const & getCustomInt(const size_t /*p_idx*/) const {return customInt_;}
+   void setCustomInt(const size_t /*p_idx*/, std::vector< int > const & v) { customInt_ = v;}
+   std::vector< int >& getCustomIntRef(const size_t /*p_idx*/) {return customInt_;}
+   
    std::unordered_set<walberla::mpi::MPIRank> const & getNeighborState(const size_t /*p_idx*/) const {return neighborState_;}
    void setNeighborState(const size_t /*p_idx*/, std::unordered_set<walberla::mpi::MPIRank> const & v) { neighborState_ = v;}
    std::unordered_set<walberla::mpi::MPIRank>& getNeighborStateRef(const size_t /*p_idx*/) {return neighborState_;}
@@ -256,6 +272,8 @@ private:
    walberla::unresolved_particles::Vec3 oldTorque_;
    walberla::unresolved_particles::Mat3 invInertiaBF_;
    blockforest::BlockID currentBlock_;
+   std::vector< real_t > customReal_;
+   std::vector< int > customInt_;
    std::unordered_set<walberla::mpi::MPIRank> neighborState_;
 };
 

@@ -87,6 +87,8 @@ public:
       using oldTorque_type = walberla::unresolved_particles::Vec3;
       using invInertiaBF_type = walberla::unresolved_particles::Mat3;
       using currentBlock_type = blockforest::BlockID;
+      using customReal_type = std::vector< real_t >;
+      using customInt_type = std::vector< int >;
       using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
       
@@ -153,6 +155,14 @@ public:
       currentBlock_type const & getCurrentBlock() const {return storage_.getCurrentBlock(i_);}
       currentBlock_type& getCurrentBlockRef() {return storage_.getCurrentBlockRef(i_);}
       void setCurrentBlock(currentBlock_type const & v) { storage_.setCurrentBlock(i_, v);}
+      
+      customReal_type const & getCustomReal() const {return storage_.getCustomReal(i_);}
+      customReal_type& getCustomRealRef() {return storage_.getCustomRealRef(i_);}
+      void setCustomReal(customReal_type const & v) { storage_.setCustomReal(i_, v);}
+      
+      customInt_type const & getCustomInt() const {return storage_.getCustomInt(i_);}
+      customInt_type& getCustomIntRef() {return storage_.getCustomIntRef(i_);}
+      void setCustomInt(customInt_type const & v) { storage_.setCustomInt(i_, v);}
       
       neighborState_type const & getNeighborState() const {return storage_.getNeighborState(i_);}
       neighborState_type& getNeighborStateRef() {return storage_.getNeighborStateRef(i_);}
@@ -234,6 +244,8 @@ public:
    using oldTorque_type = walberla::unresolved_particles::Vec3;
    using invInertiaBF_type = walberla::unresolved_particles::Mat3;
    using currentBlock_type = blockforest::BlockID;
+   using customReal_type = std::vector< real_t >;
+   using customInt_type = std::vector< int >;
    using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
    
@@ -300,6 +312,14 @@ public:
    currentBlock_type const & getCurrentBlock(const size_t idx) const {return currentBlock_[idx];}
    currentBlock_type& getCurrentBlockRef(const size_t idx) {return currentBlock_[idx];}
    void setCurrentBlock(const size_t idx, currentBlock_type const & v) { currentBlock_[idx] = v; }
+   
+   customReal_type const & getCustomReal(const size_t idx) const {return customReal_[idx];}
+   customReal_type& getCustomRealRef(const size_t idx) {return customReal_[idx];}
+   void setCustomReal(const size_t idx, customReal_type const & v) { customReal_[idx] = v; }
+   
+   customInt_type const & getCustomInt(const size_t idx) const {return customInt_[idx];}
+   customInt_type& getCustomIntRef(const size_t idx) {return customInt_[idx];}
+   void setCustomInt(const size_t idx, customInt_type const & v) { customInt_[idx] = v; }
    
    neighborState_type const & getNeighborState(const size_t idx) const {return neighborState_[idx];}
    neighborState_type& getNeighborStateRef(const size_t idx) {return neighborState_[idx];}
@@ -412,6 +432,8 @@ public:
    std::vector<oldTorque_type> oldTorque_ {};
    std::vector<invInertiaBF_type> invInertiaBF_ {};
    std::vector<currentBlock_type> currentBlock_ {};
+   std::vector<customReal_type> customReal_ {};
+   std::vector<customInt_type> customInt_ {};
    std::vector<neighborState_type> neighborState_ {};
    std::unordered_map<uid_type, size_t> uidToIdx_;
    static_assert(std::is_same<uid_type, id_t>::value,
@@ -438,6 +460,8 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(const ParticleSt
    getOldTorqueRef() = rhs.getOldTorque();
    getInvInertiaBFRef() = rhs.getInvInertiaBF();
    getCurrentBlockRef() = rhs.getCurrentBlock();
+   getCustomRealRef() = rhs.getCustomReal();
+   getCustomIntRef() = rhs.getCustomInt();
    getNeighborStateRef() = rhs.getNeighborState();
    return *this;
 }
@@ -461,6 +485,8 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(ParticleStorage:
    getOldTorqueRef() = std::move(rhs.getOldTorqueRef());
    getInvInertiaBFRef() = std::move(rhs.getInvInertiaBFRef());
    getCurrentBlockRef() = std::move(rhs.getCurrentBlockRef());
+   getCustomRealRef() = std::move(rhs.getCustomRealRef());
+   getCustomIntRef() = std::move(rhs.getCustomIntRef());
    getNeighborStateRef() = std::move(rhs.getNeighborStateRef());
    return *this;
 }
@@ -485,6 +511,8 @@ void swap(ParticleStorage::Particle lhs, ParticleStorage::Particle rhs)
    std::swap(lhs.getOldTorqueRef(), rhs.getOldTorqueRef());
    std::swap(lhs.getInvInertiaBFRef(), rhs.getInvInertiaBFRef());
    std::swap(lhs.getCurrentBlockRef(), rhs.getCurrentBlockRef());
+   std::swap(lhs.getCustomRealRef(), rhs.getCustomRealRef());
+   std::swap(lhs.getCustomIntRef(), rhs.getCustomIntRef());
    std::swap(lhs.getNeighborStateRef(), rhs.getNeighborStateRef());
 }
 
@@ -509,6 +537,8 @@ std::ostream& operator<<( std::ostream& os, const ParticleStorage::Particle& p )
          "oldTorque           : " << p.getOldTorque() << "\n" <<
          "invInertiaBF        : " << p.getInvInertiaBF() << "\n" <<
          "currentBlock        : " << p.getCurrentBlock() << "\n" <<
+         "customReal          : " << p.getCustomReal() << "\n" <<
+         "customInt           : " << p.getCustomInt() << "\n" <<
          "neighborState       : " << p.getNeighborState() << "\n" <<
          "================================" << std::endl;
    return os;
@@ -603,6 +633,8 @@ inline ParticleStorage::iterator ParticleStorage::create(const id_t& uid)
    oldTorque_.emplace_back(real_t(0));
    invInertiaBF_.emplace_back(real_t(0));
    currentBlock_.emplace_back();
+   customReal_.emplace_back();
+   customInt_.emplace_back();
    neighborState_.emplace_back();
    uid_.back() = uid;
    uidToIdx_[uid] = uid_.size() - 1;
@@ -652,6 +684,8 @@ inline ParticleStorage::iterator ParticleStorage::erase(iterator& it)
    oldTorque_.pop_back();
    invInertiaBF_.pop_back();
    currentBlock_.pop_back();
+   customReal_.pop_back();
+   customInt_.pop_back();
    neighborState_.pop_back();
    return it;
 }
@@ -688,6 +722,8 @@ inline void ParticleStorage::reserve(const size_t size)
    oldTorque_.reserve(size);
    invInertiaBF_.reserve(size);
    currentBlock_.reserve(size);
+   customReal_.reserve(size);
+   customInt_.reserve(size);
    neighborState_.reserve(size);
 }
 
@@ -709,6 +745,8 @@ inline void ParticleStorage::clear()
    oldTorque_.clear();
    invInertiaBF_.clear();
    currentBlock_.clear();
+   customReal_.clear();
+   customInt_.clear();
    neighborState_.clear();
    uidToIdx_.clear();
 }
@@ -731,6 +769,8 @@ inline size_t ParticleStorage::size() const
    //WALBERLA_ASSERT_EQUAL( uid_.size(), oldTorque.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), invInertiaBF.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), currentBlock.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), customReal.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), customInt.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), neighborState.size() );
    return uid_.size();
 }
@@ -1040,6 +1080,24 @@ public:
    blockforest::BlockID& operator()(data::Particle& p) const {return p.getCurrentBlockRef();}
    blockforest::BlockID& operator()(data::Particle&& p) const {return p.getCurrentBlockRef();}
    blockforest::BlockID const & operator()(const data::Particle& p) const {return p.getCurrentBlock();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleCustomReal
+{
+public:
+   using return_type = std::vector< real_t >;
+   std::vector< real_t >& operator()(data::Particle& p) const {return p.getCustomRealRef();}
+   std::vector< real_t >& operator()(data::Particle&& p) const {return p.getCustomRealRef();}
+   std::vector< real_t > const & operator()(const data::Particle& p) const {return p.getCustomReal();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleCustomInt
+{
+public:
+   using return_type = std::vector< int >;
+   std::vector< int >& operator()(data::Particle& p) const {return p.getCustomIntRef();}
+   std::vector< int >& operator()(data::Particle&& p) const {return p.getCustomIntRef();}
+   std::vector< int > const & operator()(const data::Particle& p) const {return p.getCustomInt();}
 };
 ///Predicate that selects a certain property from a Particle
 class SelectParticleNeighborState
