@@ -39,6 +39,7 @@
 
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 
+#include "coupling_hyteg_unresolved_particles/data/CustomSelectors.hpp"
 #include "coupling_hyteg_unresolved_particles/primitivestorage/PrimitiveStorageUnresolvedParticlesInterface.hpp"
 
 namespace hyteg {
@@ -125,6 +126,42 @@ class UnresolvedParticles
           particleVtkOutput_, identifier, writeInterval, baseFolder, executionFolder, false, true, true, true );
    }
 
+   /// The default particle implementation has properties to carry real scalars.
+   /// Those scalars can of course be added through the VTK output.
+   /// Since it may not be desirable to add all of them to the VTK output by default, this has to be explicitly asked for here.
+   /// Also, at this point the VTK output cannot know how many scalar properties are added to the particles, so we need to do this
+   /// explicitly anyway.
+   ///
+   /// \param name string to be displayed in VTK for this scalar
+   /// \param component component in the custom vector property of the particle
+   void addCustomRealElementToVTK( std::string name, uint_t component )
+   {
+      WALBERLA_CHECK_NOT_NULLPTR( particleVtkOutput_, "Particle VTK output has not been initialized." );
+
+      particleVtkOutput_->addOutput( name,
+                                     std::make_shared< walberla::unresolved_particles::vtk::OutputSelector<
+                                         walberla::unresolved_particles::data::SelectParticleCustomRealElement > >(
+                                         walberla::unresolved_particles::data::SelectParticleCustomRealElement( component ) ) );
+   }
+
+   /// The default particle implementation has properties to carry integer scalars.
+   /// Those scalars can of course be added through the VTK output.
+   /// Since it may not be desirable to add all of them to the VTK output by default, this has to be explicitly asked for here.
+   /// Also, at this point the VTK output cannot know how many scalar properties are added to the particles, so we need to do this
+   /// explicitly anyway.
+   ///
+   /// \param name string to be displayed in VTK for this scalar
+   /// \param component component in the custom vector property of the particle
+   void addCustomIntElementToVTK( std::string name, uint_t component )
+   {
+      WALBERLA_CHECK_NOT_NULLPTR( particleVtkOutput_, "Particle VTK output has not been initialized." );
+
+      particleVtkOutput_->addOutput( name,
+                                     std::make_shared< walberla::unresolved_particles::vtk::OutputSelector<
+                                         walberla::unresolved_particles::data::SelectParticleCustomIntElement > >(
+                                         walberla::unresolved_particles::data::SelectParticleCustomIntElement( component ) ) );
+   }
+
    /// Writes VTK data. The VTK output must be initialized with initVTK() first.
    void writeVTK()
    {
@@ -204,10 +241,22 @@ class UnresolvedParticles
    std::shared_ptr< walberla::vtk::VTKOutput >                               particleVtkWriter_;
 };
 
-void applyForceField( UnresolvedParticles& unresolvedParticles, const P1VectorFunction< real_t >& forceField, uint_t level )
+enum class BackgroundFieldType
+{
+   FORCE,
+   LINEAR_VELOCITY
+};
+
+/// This function applies a field to all particles. The physical property that is applied can be set through a parameter.
+/// Typically, force fields are applied - and this is probably the most physically sound approach.
+/// However, alternatively, the linear velocity of particles can be set directly. This may be relevant for some applications.
+void applyField( UnresolvedParticles&              unresolvedParticles,
+                 const P1VectorFunction< real_t >& field,
+                 uint_t                            level,
+                 BackgroundFieldType               backgroundFieldType )
 {
    unresolvedParticles.sync();
-   hyteg::communication::syncVectorFunctionBetweenPrimitives( forceField, level );
+   hyteg::communication::syncVectorFunctionBetweenPrimitives( field, level );
 
    auto particleStorage = unresolvedParticles.getParticleStorage();
 
@@ -223,28 +272,34 @@ void applyForceField( UnresolvedParticles& unresolvedParticles, const P1VectorFu
       real_t fz = 0;
 
       auto success = true;
-      success &= forceField[0].evaluate( pos, level, fx );
-      success &= forceField[1].evaluate( pos, level, fy );
+      success &= field[0].evaluate( pos, level, fx );
+      success &= field[1].evaluate( pos, level, fy );
       if ( threeD )
       {
-         success &= forceField[2].evaluate( pos, level, fz );
+         success &= field[2].evaluate( pos, level, fz );
       }
 
-      //      WALBERLA_CHECK( success,
-      //                      "Unresolved particles: force could not be evaluated on process "
-      //                          << walberla::mpi::MPIManager::instance()->rank() << " at position " << pos );
+      WALBERLA_CHECK( success,
+                      "Unresolved particles: force could not be evaluated on process "
+                          << walberla::mpi::MPIManager::instance()->rank() << " at position " << pos );
 
       if ( success )
       {
-         p.setForce( Vec3( fx, fy, fz ) );
-      }
-      else
-      {
-         p.setForce( p.getOldForce() );
+         switch ( backgroundFieldType )
+         {
+         case BackgroundFieldType::FORCE:
+            p.setForce( Vec3( fx, fy, fz ) );
+            break;
+         case BackgroundFieldType::LINEAR_VELOCITY:
+            p.setLinearVelocity( Vec3( fx, fy, fz ) );
+            break;
+         }
       }
    }
 }
 
+/// Applies an explicit Euler step as implemented by MESA-PD.
+/// Please refer to the corresponding documentation of the kernel.
 void explicitEulerStep( UnresolvedParticles& unresolvedParticles, real_t dt )
 {
    unresolvedParticles.sync();
