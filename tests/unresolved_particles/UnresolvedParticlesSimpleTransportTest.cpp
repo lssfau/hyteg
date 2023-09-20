@@ -54,7 +54,10 @@ void simpleTransportTest()
        std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
-   writeDomainPartitioningVTK( *storage, "vtk", "domain" );
+   if ( vtk )
+   {
+      writeDomainPartitioningVTK( *storage, "vtk", "domain" );
+   }
 
    hyteg::unresolved_particles::UnresolvedParticles unresolvedParticles( storage );
 
