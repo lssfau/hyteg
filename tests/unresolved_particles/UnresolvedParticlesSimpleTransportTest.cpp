@@ -108,7 +108,8 @@ void simpleTransportTest()
       WALBERLA_LOG_DEVEL_ON_ROOT( "Timestep: " << ts << " particles start: " << particlesStart
                                                << " particles end: " << particlesEnd );
 
-      hyteg::unresolved_particles::applyForceField( unresolvedParticles, forceField, level );
+      hyteg::unresolved_particles::applyField(
+          unresolvedParticles, forceField, level, hyteg::unresolved_particles::BackgroundFieldType::FORCE );
       hyteg::unresolved_particles::explicitEulerStep( unresolvedParticles, dt );
 
       if ( vtk )
