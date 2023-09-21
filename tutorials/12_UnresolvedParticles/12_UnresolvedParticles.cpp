@@ -194,7 +194,9 @@ void UnresolvedSpheres( Parameters parameters )
       }
 
       // We now alter our velocity field. This is just done here to produce some more interesting visuals.
-      vel.assign( { 1 + 0.5 * cos( pi + parameters.velFieldOscillation * simTime ) }, { convcell }, parameters.level );
+      vel.assign( { real_c( 1 ) + real_c( 0.5 ) * std::cos( pi + parameters.velFieldOscillation * simTime ) },
+                  { convcell },
+                  parameters.level );
 
       // Applying the velocity field to the particles.
       hyteg::unresolved_particles::applyField(
