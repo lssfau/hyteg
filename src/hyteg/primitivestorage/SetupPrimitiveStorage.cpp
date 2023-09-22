@@ -31,17 +31,15 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-namespace hyteg {
-
 using walberla::real_c;
+
+namespace hyteg {
 
 SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses )
 : numberOfProcesses_( numberOfProcesses )
 {
    WALBERLA_ASSERT_GREATER( numberOfProcesses_, 0, "Number of processes must be positive" );
 
-   WALBERLA_ROOT_SECTION()
-   {
    // since the MeshInfo IDs of the vertices do not necessarily
    // match the primitive IDs of the vertices in the SetupStorage, we need an assignment
    std::map< uint_t, PrimitiveID > meshVertexIDToPrimitiveID;
@@ -475,6 +473,21 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
 
    loadbalancing::roundRobin( *this );
 }
+
+SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses, bool rootOnly )
+: numberOfProcesses_( numberOfProcesses ), rootOnly_(rootOnly)
+{
+   if ( rootOnly )
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         SetupPrimitiveStorage( meshInfo, numberOfProcesses );
+      }
+   }
+   else
+   {
+      SetupPrimitiveStorage( meshInfo, numberOfProcesses );
+   }
 }
 
 SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap& vertices,

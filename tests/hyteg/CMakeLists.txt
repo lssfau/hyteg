@@ -595,6 +595,11 @@ waLBerla_execute_test(NAME PrimitiveDataTest)
 waLBerla_compile_test(FILES LevelinfoTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME LevelinfoTest)
 
+waLBerla_compile_test(FILES primitives/rootOnlySetupStorageTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME rootOnlySetupStorageTest COMMAND $<TARGET_FILE:rootOnlySetupStorageTest>)
+waLBerla_execute_test(NAME rootOnlySetupStorageTest3 COMMAND $<TARGET_FILE:rootOnlySetupStorageTest> PROCESSES 3)
+waLBerla_execute_test(NAME rootOnlySetupStorageTest8 COMMAND $<TARGET_FILE:rootOnlySetupStorageTest> PROCESSES 8)
+
 waLBerla_compile_test(FILES primitives/PrimitiveStorageTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveStorageTest1 COMMAND $<TARGET_FILE:PrimitiveStorageTest>)
 waLBerla_execute_test(NAME PrimitiveStorageTest3 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 3)

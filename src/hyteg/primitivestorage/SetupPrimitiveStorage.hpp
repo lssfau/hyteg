@@ -50,6 +50,8 @@ class SetupPrimitiveStorage
    typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
+   SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses, bool rootOnly );
+
    SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses );
 
    SetupPrimitiveStorage( const VertexMap& vertices,
@@ -325,6 +327,8 @@ class SetupPrimitiveStorage
    uint_t getNumFacesOnBoundary() const;
    uint_t getNumCellsOnBoundary() const;
 
+   bool rootOnly() const { return rootOnly_; }
+
  private:
    typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;
 
@@ -347,6 +351,8 @@ class SetupPrimitiveStorage
    CellMap   cells_;
 
    std::map< PrimitiveID, uint_t > primitiveIDToTargetRankMap_;
+
+   bool rootOnly_ = false;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const SetupPrimitiveStorage& storage )
