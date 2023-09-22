@@ -51,8 +51,12 @@ int main( int argc, char** argv )
 
    Point3D circleCenter{ { -0.5, 0.5, 0 } };
    real_t  circleRadius = 0.25;
-   Face& face = *setupStorage.getFace( PrimitiveID::create( 14 ) );
-   CircularMap myMap( face, setupStorage, circleCenter, circleRadius );
+   PrimitiveStorage primitiveStorage(setupStorage);
+   CircularMap::setMap(setupStorage, circleCenter, circleRadius);
+   Face& face = *primitiveStorage.getFaces().begin()->second;
+   //Face& face = *setupStorage.getFace( PrimitiveID::create( 14 ) );
+
+   std::shared_ptr<GeometryMap> myMap = face.getGeometryMap();
 
    std::array< Point3D, 3 >coords = face.getCoordinates();
    for( uint_t k = 0; k < 3; k++ ) {
@@ -63,12 +67,12 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with point on edge" );
    Matrix2r jacMat;
    Point3D myVertex1(  0.0, 0.95, 0.0  );
-   myMap.evalDF( myVertex1, jacMat );
+   myMap->evalDF( myVertex1, jacMat );
 
    // fails
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with location of upper vertex" );
    Point3D myVertex2(  0.0, 1.0, 0.0  );
-   myMap.evalDF( myVertex2, jacMat );
+   myMap->evalDF( myVertex2, jacMat );
 
    WALBERLA_LOG_INFO_ON_ROOT( "* Check! No floating point exceptions detected!" );
 

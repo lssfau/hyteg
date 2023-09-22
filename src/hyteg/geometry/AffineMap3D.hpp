@@ -65,6 +65,7 @@ class AffineMap3D : public GeometryMap
       recvBuffer >> vec_[0];
       recvBuffer >> vec_[1];
       recvBuffer >> vec_[2];
+      recvBuffer >> jacDet_;
    }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const final
@@ -111,6 +112,7 @@ class AffineMap3D : public GeometryMap
          }
       }
       sendBuffer << vec_[0] << vec_[1] << vec_[2];
+      sendBuffer << jacDet_;
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage, const Matrix3r& mat, const Point3D& vec )

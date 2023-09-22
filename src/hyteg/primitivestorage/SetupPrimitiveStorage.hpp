@@ -114,7 +114,8 @@ class SetupPrimitiveStorage
                              EdgeMap&                         neighborEdges,
                              FaceMap&                         neighborFaces,
                              CellMap&                         neighborCells,
-                             std::map< PrimitiveID, uint_t >& neighborRanks ) const
+                             std::map< PrimitiveID, uint_t >& neighborRanks,
+                             uint_t                           additionalHaloDepth ) const
    {
       walberla::mpi::BufferSystem bufferSystem( walberla::MPIManager::instance()->comm() );
 
@@ -130,10 +131,41 @@ class SetupPrimitiveStorage
                bufferSystem.sendBuffer( targetRank ) << it.first;
                bufferSystem.sendBuffer( targetRank ) << *( it.second );
                int nbrPrimitiveType = 0;
-               for ( const auto& func : { it.second->neighborVertices(),
-                                          it.second->neighborEdges(),
-                                          it.second->neighborFaces(),
-                                          it.second->neighborCells() } )
+               std::set< PrimitiveID > allNeighborVertices( it.second->neighborVertices().begin(),
+                                                            it.second->neighborVertices().end() );
+               std::set< PrimitiveID > allNeighborEdges( it.second->neighborEdges().begin(), it.second->neighborEdges().end() );
+               std::set< PrimitiveID > allNeighborFaces( it.second->neighborFaces().begin(), it.second->neighborFaces().end() );
+               std::set< PrimitiveID > allNeighborCells( it.second->neighborCells().begin(), it.second->neighborCells().end() );
+
+               for ( int i = 1; i <= additionalHaloDepth; ++i )
+               {
+                  for ( const auto& func : { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
+                  {
+                     for ( const auto& it : func )
+                     {
+                        auto primitive = getPrimitive( it );
+                        {
+                           for ( const auto& nbr : primitive->neighborVertices() )
+                           {
+                              allNeighborVertices.insert( nbr );
+                           }
+                           for ( const auto& nbr : primitive->neighborEdges() )
+                           {
+                              allNeighborEdges.insert( nbr );
+                           }
+                           for ( const auto& nbr : primitive->neighborFaces() )
+                           {
+                              allNeighborFaces.insert( nbr );
+                           }
+                           for ( const auto& nbr : primitive->neighborCells() )
+                           {
+                              allNeighborCells.insert( nbr );
+                           }
+                        }
+                     }
+                  }
+               }
+               for ( const auto& func : { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
                {
                   for ( const auto& neighborPrimitiveID : func )
                   {

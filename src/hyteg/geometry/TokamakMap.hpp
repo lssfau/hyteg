@@ -49,8 +49,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -74,8 +74,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -102,8 +102,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -130,8 +130,8 @@ class TokamakMap : public GeometryMap
                real_t                       delta,
                real_t                       r1,
                real_t                       r2 )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -147,7 +147,30 @@ class TokamakMap : public GeometryMap
       identifyPrism( cell );
    }
 
-   TokamakMap( walberla::mpi::RecvBuffer& recvBuffer ) { WALBERLA_ABORT( "Deserialization not implemented for TokamakMap" ); }
+   TokamakMap( walberla::mpi::RecvBuffer& recvBuffer )
+   {
+      recvBuffer >> toroidalResolution_;
+      recvBuffer >> poloidalResolution_;
+      recvBuffer >> radiusOriginToCenterOfTube_;
+      recvBuffer >> tubeLayerRadii_;
+      recvBuffer >> toroidalStartAngle_;
+      recvBuffer >> poloidalStartAngle_;
+
+      recvBuffer >> toroidalAngleIncrement_;
+      recvBuffer >> poloidalAngleIncrement_;
+
+      recvBuffer >> toroidalPrism_;
+      recvBuffer >> poloidalPrism_;
+
+      recvBuffer >> sliceCenterFront_;
+      recvBuffer >> sliceCenterBack_;
+
+      recvBuffer >> delta_;
+      recvBuffer >> r1_;
+      recvBuffer >> r2_;
+
+      recvBuffer >> tubeLayerRadiiBack_;
+   }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const override final
    {
@@ -282,9 +305,30 @@ class TokamakMap : public GeometryMap
       return DF.determinant();
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const final
    {
-      WALBERLA_ABORT( "Serialization not implemented for TokamakMap" );
+      sendBuffer << Type::TOKAMAK;
+      sendBuffer << toroidalResolution_;
+      sendBuffer << poloidalResolution_;
+      sendBuffer << radiusOriginToCenterOfTube_;
+      sendBuffer << tubeLayerRadii_;
+      sendBuffer << toroidalStartAngle_;
+      sendBuffer << poloidalStartAngle_;
+
+      sendBuffer << toroidalAngleIncrement_;
+      sendBuffer << poloidalAngleIncrement_;
+
+      sendBuffer << toroidalPrism_;
+      sendBuffer << poloidalPrism_;
+
+      sendBuffer << sliceCenterFront_;
+      sendBuffer << sliceCenterBack_;
+
+      sendBuffer << delta_;
+      sendBuffer << r1_;
+      sendBuffer << r2_;
+
+      sendBuffer << tubeLayerRadiiBack_;
    }
 
    /// \brief Applies the tokamak map to the SetupPrimitiveStorage.
@@ -415,8 +459,8 @@ class TokamakMap : public GeometryMap
    {
       tubeLayerRadiiBack_ = tubeLayerRadii_.back();
 
-      toroidalAngleIncrement_ = 2 * pi / real_c( toroidalResolution );
-      poloidalAngleIncrement_ = 2 * pi / real_c( poloidalResolution );
+      toroidalAngleIncrement_ = 2 * pi / real_c( toroidalResolution_ );
+      poloidalAngleIncrement_ = 2 * pi / real_c( poloidalResolution_ );
 
       auto    coords = cell.getCoordinates();
       Point3D centroid( 0, 0, 0 );
@@ -468,8 +512,8 @@ class TokamakMap : public GeometryMap
       poloidalPrism_ = uint_c( ( poloidalAngle ) / poloidalAngleIncrement_ );
    }
 
-   uint_t                toroidalResolution;
-   uint_t                poloidalResolution;
+   uint_t                toroidalResolution_;
+   uint_t                poloidalResolution_;
    real_t                radiusOriginToCenterOfTube_;
    std::vector< real_t > tubeLayerRadii_;
    real_t                toroidalStartAngle_;

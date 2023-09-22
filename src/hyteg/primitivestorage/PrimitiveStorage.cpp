@@ -80,7 +80,8 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
                                      neighborEdges_[0],
                                      neighborFaces_[0],
                                      neighborCells_[0],
-                                     neighborRanks_[0]);
+                                     neighborRanks_[0],
+                                     additionalHaloDepth);
 
 //
 //   for ( auto it : setupStorage.getVertices() )
@@ -125,15 +126,15 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    // additionally requested neighbors
    for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
    {
-      std::vector< PrimitiveID > additionalVertices;
-      getNeighboringVertexIDs( additionalVertices );
-      std::vector< PrimitiveID > additionalEdges;
-      getNeighboringEdgeIDs( additionalEdges );
-      std::vector< PrimitiveID > additionalFaces;
-      getNeighboringFaceIDs( additionalFaces );
-      std::vector< PrimitiveID > additionalCells;
-      getNeighboringCellIDs( additionalCells );
-      addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
+//      std::vector< PrimitiveID > additionalVertices;
+//      getNeighboringVertexIDs( additionalVertices );
+//      std::vector< PrimitiveID > additionalEdges;
+//      getNeighboringEdgeIDs( additionalEdges );
+//      std::vector< PrimitiveID > additionalFaces;
+//      getNeighboringFaceIDs( additionalFaces );
+//      std::vector< PrimitiveID > additionalCells;
+//      getNeighboringCellIDs( additionalCells );
+//      addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
    }
 
    splitCommunicatorByPrimitiveDistribution();

@@ -73,6 +73,16 @@ class CircularMap : public GeometryMap
       invDet_ = real_c( 1.0 ) / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
    }
 
+   static void setMap( SetupPrimitiveStorage& setupStorage, const Point3D& center, real_t radius )
+   {
+      for ( const auto& it : setupStorage.getFaces() )
+      {
+         Face& face = *it.second;
+         setupStorage.setGeometryMap( face.getID(), std::make_shared< CircularMap >(face, setupStorage, center, radius ) );
+      }
+   }
+
+
    CircularMap( walberla::mpi::RecvBuffer& recvBuffer )
    {
       recvBuffer >> x1_;
