@@ -40,7 +40,7 @@ class TokamakMap : public GeometryMap
 {
  public:
    TokamakMap( const Cell&                  cell,
-               const SetupPrimitiveStorage& setupStorage,
+               const SetupPrimitiveStorage&,
                uint_t                       toroidalResolution,
                uint_t                       poloidalResolution,
                real_t                       radiusOriginToCenterOfTube,
