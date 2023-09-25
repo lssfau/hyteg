@@ -201,9 +201,9 @@ class TokamakMap : public GeometryMap
                    sin( -tmp10 + tmp13 + ( ( tmp14 < 0 ) ? ( tmp14 + 6.2831853071795862 ) : ( tmp14 ) ) + 1.5707963267948966 ) /
                    ( tubeLayerRadiiBack_ * sin( tmp13 - 1.5707963267948966 ) );
       auto tmp16 = -r1_ * tmp15 * cos( tmp11 + tmp12 * asin( delta_ ) ) + radiusOriginToCenterOfTube_;
-      xnew[0]    = tmp16 * tmp5;
-      xnew[1]    = tmp16 * tmp7;
-      xnew[2]    = -r2_ * tmp12 * tmp15;
+      xnew[0]    = real_c( tmp16 * tmp5 );
+      xnew[1]    = real_c( tmp16 * tmp7 );
+      xnew[2]    = real_c( -r2_ * tmp12 * tmp15 );
    }
 
    real_t evalDF( const Point3D& xold, Matrix3r& DF ) const final
@@ -294,15 +294,15 @@ class TokamakMap : public GeometryMap
       auto tmp75 = r2_ * tmp30 * tmp59;
       auto tmp76 = tmp57 * tmp74;
       auto tmp77 = tmp49 * tmp74;
-      DF( 0, 0 ) = -tmp32 * tmp35 + tmp33 + tmp53 * tmp62;
-      DF( 0, 1 ) = tmp53 * tmp70 + tmp63;
-      DF( 0, 2 ) = tmp53 * tmp73;
-      DF( 1, 0 ) = tmp51 * tmp62 + tmp63;
-      DF( 1, 1 ) = -tmp32 * tmp65 + tmp33 + tmp51 * tmp70;
-      DF( 1, 2 ) = tmp51 * tmp73;
-      DF( 2, 0 ) = -tmp50 * tmp74 + tmp56 * tmp75 - tmp56 * tmp76;
-      DF( 2, 1 ) = -tmp67 * tmp77 + tmp69 * tmp75 - tmp69 * tmp76;
-      DF( 2, 2 ) = -tmp71 * tmp75 + tmp72 * tmp74 - tmp77 * xold_2;
+      DF( 0, 0 ) = real_c( -tmp32 * tmp35 + tmp33 + tmp53 * tmp62 );
+      DF( 0, 1 ) = real_c( tmp53 * tmp70 + tmp63 );
+      DF( 0, 2 ) = real_c( tmp53 * tmp73 );
+      DF( 1, 0 ) = real_c( tmp51 * tmp62 + tmp63 );
+      DF( 1, 1 ) = real_c( -tmp32 * tmp65 + tmp33 + tmp51 * tmp70 );
+      DF( 1, 2 ) = real_c( tmp51 * tmp73 );
+      DF( 2, 0 ) = real_c( -tmp50 * tmp74 + tmp56 * tmp75 - tmp56 * tmp76 );
+      DF( 2, 1 ) = real_c( -tmp67 * tmp77 + tmp69 * tmp75 - tmp69 * tmp76 );
+      DF( 2, 2 ) = real_c( -tmp71 * tmp75 + tmp72 * tmp74 - tmp77 * xold_2 );
       return DF.determinant();
    }
 
@@ -489,8 +489,8 @@ class TokamakMap : public GeometryMap
          auto toroidalRadiusNew =
              ( std::sin( gamma ) * ( std::sqrt( centroid[0] * centroid[0] + centroid[1] * centroid[1] ) / std::sin( beta ) ) );
 
-         centroid[0] = toroidalRadiusNew * std::cos( toroidalAngle );
-         centroid[1] = toroidalRadiusNew * std::sin( toroidalAngle );
+         centroid[0] = real_c( toroidalRadiusNew * std::cos( toroidalAngle ) );
+         centroid[1] = real_c( toroidalRadiusNew * std::sin( toroidalAngle ) );
          centroid[2] = centroid[2];
       }
 
@@ -499,10 +499,11 @@ class TokamakMap : public GeometryMap
 
       auto    C                     = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle, 0 );
       Point3D centroidTrafoToOrigin = centroid - C;
-      centroidTrafoToOrigin         = Point3D(
-          { std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] - std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1],
-                    std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],
-                    centroidTrafoToOrigin[2] } );
+      centroidTrafoToOrigin         = Point3D( { real_c( std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] -
+                                                 std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1] ),
+                                                 real_c( std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] +
+                                                 std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1] ),
+                                                 centroidTrafoToOrigin[2] } );
 
       auto poloidalAngle = std::atan2( centroidTrafoToOrigin[2], centroidTrafoToOrigin[0] );
       poloidalAngle -= poloidalStartAngle_;
