@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cmath>
+#include <utility>
 
 #include "core/math/Constants.h"
 
@@ -52,7 +53,7 @@ class TokamakMap : public GeometryMap
    : toroidalResolution_( toroidalResolution )
    , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
-   , tubeLayerRadii_( tubeLayerRadii )
+   , tubeLayerRadii_( std::move( tubeLayerRadii ) )
    , toroidalStartAngle_( toroidalStartAngle )
    , poloidalStartAngle_( poloidalStartAngle )
    , delta_( delta )
@@ -77,7 +78,7 @@ class TokamakMap : public GeometryMap
    : toroidalResolution_( toroidalResolution )
    , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
-   , tubeLayerRadii_( tubeLayerRadii )
+   , tubeLayerRadii_( std::move( tubeLayerRadii ) )
    , toroidalStartAngle_( toroidalStartAngle )
    , poloidalStartAngle_( poloidalStartAngle )
    , delta_( delta )
@@ -105,7 +106,7 @@ class TokamakMap : public GeometryMap
    : toroidalResolution_( toroidalResolution )
    , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
-   , tubeLayerRadii_( tubeLayerRadii )
+   , tubeLayerRadii_( std::move( tubeLayerRadii ) )
    , toroidalStartAngle_( toroidalStartAngle )
    , poloidalStartAngle_( poloidalStartAngle )
    , delta_( delta )
@@ -133,7 +134,7 @@ class TokamakMap : public GeometryMap
    : toroidalResolution_( toroidalResolution )
    , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
-   , tubeLayerRadii_( tubeLayerRadii )
+   , tubeLayerRadii_( std::move( tubeLayerRadii ) )
    , toroidalStartAngle_( toroidalStartAngle )
    , poloidalStartAngle_( poloidalStartAngle )
    , delta_( delta )
@@ -172,7 +173,7 @@ class TokamakMap : public GeometryMap
       recvBuffer >> tubeLayerRadiiBack_;
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const override final
+   void evalF( const Point3D& xold, Point3D& xnew ) const final
    {
       // generated with data/codegen/geometry/TokamakMap.py
 
@@ -182,7 +183,7 @@ class TokamakMap : public GeometryMap
       auto tmp0   = pow( pow( xold_0, 2 ) + pow( xold_1, 2 ), -1.0 / 2.0 );
       auto tmp1   = radiusOriginToCenterOfTube_ * tmp0;
       auto tmp2   = 0.5 * toroidalAngleIncrement_;
-      auto tmp3   = sin( tmp2 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
+      auto tmp3 = sin( tmp2 + toroidalAngleIncrement_ * real_c( toroidalPrism_ ) + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
                        1.5707963267948966 ) /
                   sin( tmp2 - 1.5707963267948966 );
       auto tmp4  = -tmp1 * xold_0 - tmp3 * xold_0;
@@ -195,7 +196,7 @@ class TokamakMap : public GeometryMap
       auto tmp11 = poloidalStartAngle_ + tmp10;
       auto tmp12 = sin( tmp11 );
       auto tmp13 = 0.5 * poloidalAngleIncrement_;
-      auto tmp14 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp14 = poloidalAngleIncrement_ * real_c( poloidalPrism_ );
       auto tmp15 = sqrt( pow( tmp4, 2 ) + pow( tmp6, 2 ) + pow( xold_2, 2 ) ) *
                    sin( -tmp10 + tmp13 + ( ( tmp14 < 0 ) ? ( tmp14 + 6.2831853071795862 ) : ( tmp14 ) ) + 1.5707963267948966 ) /
                    ( tubeLayerRadiiBack_ * sin( tmp13 - 1.5707963267948966 ) );
@@ -205,7 +206,7 @@ class TokamakMap : public GeometryMap
       xnew[2]    = -r2_ * tmp12 * tmp15;
    }
 
-   real_t evalDF( const Point3D& xold, Matrix3r& DF ) const override final
+   real_t evalDF( const Point3D& xold, Matrix3r& DF ) const final
    {
       // generated with data/codegen/geometry/TokamakMap.py
 
@@ -220,8 +221,8 @@ class TokamakMap : public GeometryMap
       auto tmp5   = radiusOriginToCenterOfTube_ * tmp3;
       auto tmp6   = 0.5 * toroidalAngleIncrement_;
       auto tmp7   = 1.0 / sin( tmp6 - 1.5707963267948966 );
-      auto tmp8 =
-          tmp6 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) + 1.5707963267948966;
+      auto tmp8 = tmp6 + toroidalAngleIncrement_ * real_c( toroidalPrism_ ) + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
+                  1.5707963267948966;
       auto tmp9  = tmp7 * sin( tmp8 );
       auto tmp10 = -tmp5 * xold_0 - tmp9 * xold_0;
       auto tmp11 = tmp10 * tmp3;
@@ -240,7 +241,7 @@ class TokamakMap : public GeometryMap
       auto tmp24 = 1.0 / tubeLayerRadiiBack_;
       auto tmp25 = 0.5 * poloidalAngleIncrement_;
       auto tmp26 = 1.0 / sin( tmp25 - 1.5707963267948966 );
-      auto tmp27 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp27 = poloidalAngleIncrement_ * real_c( poloidalPrism_ );
       auto tmp28 = -tmp17 + tmp25 + ( ( tmp27 < 0 ) ? ( tmp27 + 6.2831853071795862 ) : ( tmp27 ) ) + 1.5707963267948966;
       auto tmp29 = tmp24 * tmp26 * sin( tmp28 );
       auto tmp30 = tmp23 * tmp29;
@@ -357,14 +358,14 @@ class TokamakMap : public GeometryMap
                        uint_t                 toroidalResolution,
                        uint_t                 poloidalResolution,
                        real_t                 radiusOriginToCenterOfTube,
-                       std::vector< real_t >  tubeLayerRadii,
+                       const std::vector< real_t >& tubeLayerRadii,
                        real_t                 toroidalStartAngle,
                        real_t                 poloidalStartAngle,
                        real_t                 delta,
                        real_t                 r1,
                        real_t                 r2 )
    {
-      for ( auto it : setupStorage.getCells() )
+      for ( const auto& it : setupStorage.getCells() )
       {
          Cell& cell = *it.second;
          setupStorage.setGeometryMap( cell.getID(),
@@ -381,7 +382,7 @@ class TokamakMap : public GeometryMap
                                                                       r2 ) );
       }
 
-      for ( auto it : setupStorage.getFaces() )
+      for ( const auto& it : setupStorage.getFaces() )
       {
          Face& face = *it.second;
          setupStorage.setGeometryMap( face.getID(),
@@ -398,7 +399,7 @@ class TokamakMap : public GeometryMap
                                                                       r2 ) );
       }
 
-      for ( auto it : setupStorage.getEdges() )
+      for ( const auto& it : setupStorage.getEdges() )
       {
          Edge& edge = *it.second;
          setupStorage.setGeometryMap( edge.getID(),
@@ -415,7 +416,7 @@ class TokamakMap : public GeometryMap
                                                                       r2 ) );
       }
 
-      for ( auto it : setupStorage.getVertices() )
+      for ( const auto& it : setupStorage.getVertices() )
       {
          Vertex& vertex = *it.second;
          setupStorage.setGeometryMap( vertex.getID(),
@@ -437,14 +438,14 @@ class TokamakMap : public GeometryMap
    *    methods for 2D (class only provides a pseudo-implementation to satisfy requirements of base class)
    */
    ///@{
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "TokamakMap::evalDF unimplemented for 2D!" );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvx );
@@ -453,7 +454,7 @@ class TokamakMap : public GeometryMap
    ///@}
 
  private:
-   real_t angle( Point3D a, Point3D b ) const { return std::acos( a.dot( b ) / ( a.norm() * b.norm() ) ); }
+   static real_t angle( const Point3D& a, const Point3D& b ) { return std::acos( a.dot( b ) / ( a.norm() * b.norm() ) ); }
 
    void identifyPrism( const Cell& cell )
    {
