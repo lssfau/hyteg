@@ -118,7 +118,7 @@ auto genMap( const std::string& variant )
 
    else if ( variant == "TokamakMap" )
    {
-      const uint_t                toroidalResolution         = 2;
+      const uint_t                toroidalResolution         = 3;
       const uint_t                poloidalResolution         = 2;
       const real_t                radiusOriginToCenterOfTube = real_c( 6.2 );
       const std::vector< real_t > tubeLayerRadii             = { real_c( 1.2 ), real_c( 2.2 ), real_c( 3 ) };
