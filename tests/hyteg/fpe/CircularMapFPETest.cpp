@@ -54,7 +54,6 @@ int main( int argc, char** argv )
    PrimitiveStorage primitiveStorage(setupStorage);
    CircularMap::setMap(setupStorage, circleCenter, circleRadius);
    Face& face = *primitiveStorage.getFaces().begin()->second;
-   //Face& face = *setupStorage.getFace( PrimitiveID::create( 14 ) );
 
    std::shared_ptr<GeometryMap> myMap = face.getGeometryMap();
 

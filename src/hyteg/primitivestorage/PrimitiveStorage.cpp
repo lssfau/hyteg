@@ -130,15 +130,15 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    else
    {
       setupStorage.broadcastPrimitives( vertices_[0],
-                                     edges_[0],
-                                     faces_[0],
-                                     cells_[0],
-                                     neighborVertices_[0],
-                                     neighborEdges_[0],
-                                     neighborFaces_[0],
-                                     neighborCells_[0],
-                                     neighborRanks_[0],
-                                     additionalHaloDepth);
+                                        edges_[0],
+                                        faces_[0],
+                                        cells_[0],
+                                        neighborVertices_[0],
+                                        neighborEdges_[0],
+                                        neighborFaces_[0],
+                                        neighborCells_[0],
+                                        neighborRanks_[0],
+                                        additionalHaloDepth );
    }
    splitCommunicatorByPrimitiveDistribution();
    updateLeafPrimitiveMaps();
