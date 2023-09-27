@@ -542,7 +542,7 @@ void SetupPrimitiveStorage::scatterPrimitives( VertexMap&                       
             std::set< PrimitiveID > allNeighborCells( primitive.second->neighborCells().begin(),
                                                       primitive.second->neighborCells().end() );
 
-            for ( int i = 1; i <= additionalHaloDepth; ++i )
+            for ( uint_t i = 1; i <= additionalHaloDepth; ++i )
             {
                for ( const auto& allNeighborPrimitiveIDs :
                      { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
@@ -627,7 +627,7 @@ void SetupPrimitiveStorage::scatterPrimitives( VertexMap&                       
          it.buffer() >> primitiveType;
          PrimitiveID id;
          it.buffer() >> id;
-         if ( walberla::mpi::MPIManager::instance()->rank() == targetRank )
+         if ( walberla::mpi::MPIManager::instance()->rank() == int_c( targetRank ) )
          {
             if ( primitiveType == 0 )
             {
