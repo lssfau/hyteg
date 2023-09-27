@@ -223,8 +223,8 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::apply( const P1Function< real_t >&
       {
          Face& face = *it.second;
 
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
+         Point3D         v0, v1, v2;
+         indexing::Index nodeIdx;
          indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
@@ -467,11 +467,11 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::toMatrix( const std::shared_ptr< S
       {
          Face& face = *it.second;
 
-         uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t                   inner_rowsize = rowsize;
-         idx_t                    xIdx, yIdx;
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
+         uint_t          rowsize       = levelinfo::num_microvertices_per_edge( level );
+         uint_t          inner_rowsize = rowsize;
+         idx_t           xIdx, yIdx;
+         Point3D         v0, v1, v2;
+         indexing::Index nodeIdx;
          indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
@@ -536,12 +536,12 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::
                                                                      const idx_t* const                          dstVertexIdx,
                                                                      const idx_t* const dstEdgeIdx ) const
 {
-   Matrixr< 6, 3 >          elMat;
-   indexing::Index          nodeIdx;
-   indexing::Index offset;
-   Point3D                  v0, v1, v2;
-   std::array< uint_t, 6 >  dofDataIdx;
-   P1toP2Form               form;
+   Matrixr< 6, 3 >         elMat = Matrixr< 6, 3 >::Zero();
+   indexing::Index         nodeIdx;
+   indexing::Index         offset;
+   Point3D                 v0, v1, v2;
+   std::array< uint_t, 6 > dofDataIdx;
+   P1toP2Form              form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
