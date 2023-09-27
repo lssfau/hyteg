@@ -41,7 +41,7 @@ using walberla::uint_t;
 /// - P1Function and P1VectorFunction
 /// - P2Function and P2VectorFunction
 /// - P2P1TaylorHoodFunction
-class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
+class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExporter >
 {
  public:
 #ifdef WALBERLA_BUILD_WITH_MPI
@@ -98,8 +98,8 @@ class AdiosCheckpointExporter : CheckpointExporter< AdiosCheckpointExporter >
       }
       else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
       {
-         std::string uComponent = function.getFunctionName() + "_uvw";
-         std::string pComponent = function.getFunctionName() + "_p";
+         std::string uComponent = function.uvw().getFunctionName();
+         std::string pComponent = function.p().getFunctionName();
 
          feFunctionRegistry_.add( function.uvw() );
          functionMinLevel_[uComponent] = minLevel;

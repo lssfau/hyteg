@@ -39,7 +39,7 @@ using walberla::uint_t;
 /// importing the following types of functions:
 /// - P1Function and P1VectorFunction
 /// - P2Function and P2VectorFunction
-class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
+class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImporter >
 {
  public:
 #ifdef WALBERLA_BUILD_WITH_MPI
@@ -146,7 +146,6 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
       return restoreFunction( function, function.getMinLevel(), function.getMaxLevel(), abortOnError );
    }
 
-
    /// Populate an existing FE function with data from the checkpoint
    ///
    /// The method will search the checkpoint for data associated to the given function name
@@ -183,7 +182,6 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
                msg << "maxLevel = " << maxLevel << " not present in checkpoint!";
                return handleError( funcName, msg, abortOnError );
             }
-            // std::string vType = adiosCheckpointHelpers::valueTypeToString< typename FunctionTrait< func_t >::ValueType >();
             std::string vType = adiosCheckpointHelpers::valueTypeToString< value_t >();
             if ( vType != entry.valueType )
             {
@@ -203,7 +201,7 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
       adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
           io_, engine_, function, minLevel, maxLevel, adiosCheckpointHelpers::importVariables< func_t, value_t > );
 
-      // might be more efficient to do this only after ALL functions were schedule for restoration!
+      // might be more efficient to do this only after ALL functions were scheduled for restoration!
       engine_.PerformGets();
 
       return true;
@@ -244,7 +242,7 @@ class AdiosCheckpointImporter : CheckpointImporter< AdiosCheckpointImporter >
       // at the moment we assume that the file only contains a single checkpoint
       // and do not deal with different steps
       std::string cpFileName = filePath + "/" + fileName;
-      engine_ = io_.Open( cpFileName, adios2::Mode::ReadRandomAccess );
+      engine_                = io_.Open( cpFileName, adios2::Mode::ReadRandomAccess );
 
       // obtain FE function meta-info
       readFunctionDetailsFromCheckpoint();

@@ -302,3 +302,7 @@ int main( int argc, char* argv[] )
       return EXIT_SUCCESS;
    }
 }
+
+// ensure speficied interfaces exist by making compiler explicitely instantiate the CRTP "base" class
+template class hyteg::CheckpointExporter< hyteg::AdiosCheckpointExporter >;
+template class hyteg::CheckpointImporter< hyteg::AdiosCheckpointImporter >;
