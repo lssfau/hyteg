@@ -39,7 +39,7 @@ void testNonDistributedSetupStorage()
    primitiveStorage.getNeighboringPrimitiveIDs(distributed);
 
    SetupPrimitiveStorage setupStorageRoot( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), true );
-   PrimitiveStorage      primitiveStorageRoot( setupStorage, 1 );
+   PrimitiveStorage      primitiveStorageRoot( setupStorageRoot, 1 );
 
    std::vector<PrimitiveID> rootOnly;
    primitiveStorageRoot.getNeighboringPrimitiveIDs(rootOnly);

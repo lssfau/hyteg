@@ -51,8 +51,8 @@ int main( int argc, char** argv )
 
    Point3D circleCenter{ { -0.5, 0.5, 0 } };
    real_t  circleRadius = 0.25;
-   PrimitiveStorage primitiveStorage(setupStorage);
    CircularMap::setMap(setupStorage, circleCenter, circleRadius);
+   PrimitiveStorage primitiveStorage(setupStorage);
    Face& face = *primitiveStorage.getFaces().begin()->second;
 
    std::shared_ptr<GeometryMap> myMap = face.getGeometryMap();

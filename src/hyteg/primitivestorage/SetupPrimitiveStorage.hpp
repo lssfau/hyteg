@@ -60,6 +60,8 @@ class SetupPrimitiveStorage
                           const CellMap&   cells,
                           const uint_t&    numberOfProcesses );
 
+   void initialize( const MeshInfo& meshInfo );
+
    void toStream( std::ostream& os, bool verbose = false ) const;
 
    uint_t getNumberOfProcesses() const { return numberOfProcesses_; }
@@ -77,16 +79,13 @@ class SetupPrimitiveStorage
    Primitive*       getPrimitive( const PrimitiveID& id );
    const Primitive* getPrimitive( const PrimitiveID& id ) const;
    Vertex*          getVertex( const PrimitiveID& id ) { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
-   const Vertex*    getVertex( const PrimitiveID& id ) const
-   {
-      return vertexExists( id ) ? vertices_.at( id ).get() : nullptr;
-   }
-   Edge*       getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   const Edge* getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   Face*       getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   const Face* getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   Cell*       getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
-   const Cell* getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Vertex*    getVertex( const PrimitiveID& id ) const { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
+   Edge*            getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   const Edge*      getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   Face*            getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   const Face*      getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   Cell*            getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Cell*      getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
 
    void getSetupPrimitives( PrimitiveMap& setupPrimitiveMap ) const;
 
@@ -108,160 +107,16 @@ class SetupPrimitiveStorage
    /// Returns a reference to a map of \ref Vertex instances
    const VertexMap& getVertices() const { return vertices_; }
 
-   void broadcastPrimitives( VertexMap&                       vertices,
-                             EdgeMap&                         edges,
-                             FaceMap&                         faces,
-                             CellMap&                         cells,
-                             VertexMap&                       neighborVertices,
-                             EdgeMap&                         neighborEdges,
-                             FaceMap&                         neighborFaces,
-                             CellMap&                         neighborCells,
-                             std::map< PrimitiveID, uint_t >& neighborRanks,
-                             uint_t                           additionalHaloDepth ) const
-   {
-      walberla::mpi::BufferSystem bufferSystem( walberla::MPIManager::instance()->comm() );
-
-      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-      {
-         auto sendPrimitivesLambda = [&]( auto primitives, int primtiveType ) {
-            for ( const auto& it : primitives )
-            {
-               uint_t targetRank = getTargetRank( it.first );
-
-               bufferSystem.sendBuffer( targetRank ) << targetRank;
-               bufferSystem.sendBuffer( targetRank ) << primtiveType;
-               bufferSystem.sendBuffer( targetRank ) << it.first;
-               bufferSystem.sendBuffer( targetRank ) << *( it.second );
-               int nbrPrimitiveType = 0;
-               std::set< PrimitiveID > allNeighborVertices( it.second->neighborVertices().begin(),
-                                                            it.second->neighborVertices().end() );
-               std::set< PrimitiveID > allNeighborEdges( it.second->neighborEdges().begin(), it.second->neighborEdges().end() );
-               std::set< PrimitiveID > allNeighborFaces( it.second->neighborFaces().begin(), it.second->neighborFaces().end() );
-               std::set< PrimitiveID > allNeighborCells( it.second->neighborCells().begin(), it.second->neighborCells().end() );
-
-               for ( int i = 1; i <= additionalHaloDepth; ++i )
-               {
-                  for ( const auto& func : { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
-                  {
-                     for ( const auto& it : func )
-                     {
-                        auto primitive = getPrimitive( it );
-                        {
-                           for ( const auto& nbr : primitive->neighborVertices() )
-                           {
-                              allNeighborVertices.insert( nbr );
-                           }
-                           for ( const auto& nbr : primitive->neighborEdges() )
-                           {
-                              allNeighborEdges.insert( nbr );
-                           }
-                           for ( const auto& nbr : primitive->neighborFaces() )
-                           {
-                              allNeighborFaces.insert( nbr );
-                           }
-                           for ( const auto& nbr : primitive->neighborCells() )
-                           {
-                              allNeighborCells.insert( nbr );
-                           }
-                        }
-                     }
-                  }
-               }
-               for ( const auto& func : { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
-               {
-                  for ( const auto& neighborPrimitiveID : func )
-                  {
-                     auto nbrTargetRank = getTargetRank( neighborPrimitiveID );
-                     if ( nbrTargetRank != targetRank )
-                     {
-                        const Primitive* neighborPrimitive;
-                        if ( nbrPrimitiveType == 0 )
-                        {
-                           neighborPrimitive = getVertex( neighborPrimitiveID );
-                        }
-                        else if ( nbrPrimitiveType == 1 )
-                        {
-                           neighborPrimitive = getEdge( neighborPrimitiveID );
-                        }
-                        else if ( nbrPrimitiveType == 2 )
-                        {
-                           neighborPrimitive = getFace( neighborPrimitiveID );
-                        }
-                        else if ( nbrPrimitiveType == 3 )
-                        {
-                           neighborPrimitive = getCell( neighborPrimitiveID );
-                        }
-                        WALBERLA_ASSERT_NOT_NULLPTR( neighborPrimitive );
-                        bufferSystem.sendBuffer( targetRank ) << nbrTargetRank;
-                        bufferSystem.sendBuffer( targetRank ) << nbrPrimitiveType;
-                        bufferSystem.sendBuffer( targetRank ) << neighborPrimitiveID;
-                        bufferSystem.sendBuffer( targetRank ) << *neighborPrimitive;
-                     }
-                  }
-                  nbrPrimitiveType++;
-               }
-            }
-         };
-         sendPrimitivesLambda( vertices_, 0 );
-         sendPrimitivesLambda( edges_, 1 );
-         sendPrimitivesLambda( faces_, 2 );
-         sendPrimitivesLambda( cells_, 3 );
-      }
-      bufferSystem.setReceiverInfo( walberla::mpi::BufferSystem::onlyRoot(), true );
-      bufferSystem.sendAll();
-      int primitiveType;
-      uint_t targetRank;
-      for ( auto it = bufferSystem.begin(); it != bufferSystem.end(); ++it )
-      {
-         while ( !it.buffer().isEmpty() )
-         {
-            it.buffer() >> targetRank;
-            it.buffer() >> primitiveType;
-            PrimitiveID id;
-            it.buffer() >> id;
-            if ( walberla::mpi::MPIManager::instance()->rank() == targetRank )
-            {
-               if ( primitiveType == 0 )
-               {
-                  vertices[id] = std::make_shared< Vertex >( it.buffer() );
-               }
-               else if ( primitiveType == 1 )
-               {
-                  edges[id] = std::make_shared< Edge >( it.buffer() );
-               }
-               else if ( primitiveType == 2 )
-               {
-                  faces[id] = std::make_shared< Face >( it.buffer() );
-               }
-               else if ( primitiveType == 3 )
-               {
-                  cells[id] = std::make_shared< Cell >( it.buffer() );
-               }
-            }
-            else
-            {
-               if ( primitiveType == 0 )
-               {
-                  neighborVertices[id] = std::make_shared< Vertex >( it.buffer() );
-               }
-               else if ( primitiveType == 1 )
-               {
-                  neighborEdges[id] = std::make_shared< Edge >( it.buffer() );
-               }
-               else if ( primitiveType == 2 )
-               {
-                  neighborFaces[id] = std::make_shared< Face >( it.buffer() );
-               }
-               else if ( primitiveType == 3 )
-               {
-                  neighborCells[id] = std::make_shared< Cell >( it.buffer() );
-               }
-
-               neighborRanks[id] = targetRank;
-            }
-         }
-      }
-   }
+   void scatterPrimitives( VertexMap&                       vertices,
+                           EdgeMap&                         edges,
+                           FaceMap&                         faces,
+                           CellMap&                         cells,
+                           VertexMap&                       neighborVertices,
+                           EdgeMap&                         neighborEdges,
+                           FaceMap&                         neighborFaces,
+                           CellMap&                         neighborCells,
+                           std::map< PrimitiveID, uint_t >& neighborRanks,
+                           uint_t                           additionalHaloDepth ) const;
 
    /// Returns a reference to a map of \ref Edge instances
    const EdgeMap& getEdges() const { return edges_; }
