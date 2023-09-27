@@ -56,8 +56,9 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    [[nodiscard]] BoundaryCondition getBoundaryCondition() const { return u_conforming_->getBoundaryCondition(); }
 
    template < typename SenderType, typename ReceiverType >
-   void communicate( const uint_t& ) const
+   void communicate( const uint_t& level ) const
    {
+      WALBERLA_UNUSED( level );
       WALBERLA_ABORT( "Not implemented." );
    }
 
@@ -197,9 +198,8 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                                                const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                                const bool&     onRootOnly   = false ) const
    {
-      WALBERLA_UNUSED( communicator );
-      WALBERLA_UNUSED( onRootOnly );
-      return u_conforming_->getNumberOfGlobalDoFs( level ) + u_discontinuous_->getNumberOfGlobalDoFs( level );
+      return u_conforming_->getNumberOfGlobalDoFs( level, communicator, onRootOnly ) +
+             u_discontinuous_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
    /// \brief Returns the max absolute DoF.
@@ -530,7 +530,6 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       value = ValueType( value_conforming + value_discontinuous );
    }
 
-
    void evaluateOnMicroElement( const Point3D&         coordinates,
                                 uint_t                 level,
                                 const PrimitiveID&     cellID,
@@ -554,11 +553,11 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       Eigen::Matrix< real_t, 3, 1 > affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
 
       std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
-      auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType);
+      auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
 
       for ( uint_t i = 0; i < 4; i++ )
       {
-         const auto coord              = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i]);
+         const auto coord              = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
          affineElementVertices[i]( 0 ) = coord[0];
          affineElementVertices[i]( 1 ) = coord[1];
          affineElementVertices[i]( 2 ) = coord[2];
@@ -566,13 +565,13 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
       // trafo from affine to reference space
       Eigen::Matrix< real_t, 3, 3 > A;
-      A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
-      A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
-      A( 2, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
+      A( 0, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
+      A( 1, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
+      A( 2, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
 
-      A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
-      A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
-      A( 2, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
+      A( 0, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
+      A( 1, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
+      A( 2, 1 ) = ( affineElementVertices[2] - affineElementVertices[0] )( 2 );
 
       A( 0, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 0 );
       A( 1, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 1 );
@@ -590,7 +589,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
 
       // evaluate P1 function
       std::array< uint_t, ndofsP1 > vertexDoFIndices;
-      vertexdof::getVertexDoFDataIndicesFromMicroCell(elementIndex, cellType, level, vertexDoFIndices);
+      vertexdof::getVertexDoFDataIndicesFromMicroCell( elementIndex, cellType, level, vertexDoFIndices );
 
       ValueType* p1Data = cell.getData( u_conforming_->component( componentIdx ).getCellDataID() )->getPointer( level );
 
