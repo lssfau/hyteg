@@ -22,6 +22,7 @@
 #include <adios2.h>
 
 #include "core/DataTypes.h"
+#include "core/mpi/MPIManager.h"
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"

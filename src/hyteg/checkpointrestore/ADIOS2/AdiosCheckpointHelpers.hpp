@@ -97,43 +97,43 @@ void generateVariableForScalarFunction( adios2::IO&              io,
    WALBERLA_ASSERT( function.getDimension() == 1 );
 
    std::string varName = generateVariableName( function.getFunctionName(), primitive.getID(), level );
+   uint_t      size    = 0;
 
    switch ( primitive.getType() )
    {
    case Primitive::VERTEX: {
-      uint_t size = dynamic_cast< const Vertex& >( primitive ).getData( function.getVertexDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      size = dynamic_cast< const Vertex& >( primitive ).getData( function.getVertexDataID() )->getSize( level );
       break;
    }
    case Primitive::EDGE: {
-      uint_t size = dynamic_cast< const Edge& >( primitive ).getData( function.getEdgeDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      size = dynamic_cast< const Edge& >( primitive ).getData( function.getEdgeDataID() )->getSize( level );
       break;
    }
    case Primitive::FACE: {
-      uint_t size = dynamic_cast< const Face& >( primitive ).getData( function.getFaceDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      size = dynamic_cast< const Face& >( primitive ).getData( function.getFaceDataID() )->getSize( level );
       break;
    }
    case Primitive::CELL: {
-      uint_t size = dynamic_cast< const Cell& >( primitive ).getData( function.getCellDataID() )->getSize( level );
-      io.DefineVariable< value_t >( varName, {}, {}, { function.getDimension(), size } );
+      size = dynamic_cast< const Cell& >( primitive ).getData( function.getCellDataID() )->getSize( level );
       break;
    }
    case Primitive::INVALID:
       WALBERLA_ABORT( "Primitive type is INVALID!" );
    }
+
+   io.DefineVariable< value_t >( varName, {}, {}, { size } );
 };
 
 template < template < typename > class func_t, typename value_t >
 void exportVariableForScalarFunction( adios2::IO&              io,
                                       adios2::Engine&          engine,
                                       const func_t< value_t >& function,
-                                      const std::string&       varName,
                                       uint_t                   level,
                                       const Primitive&         primitive )
 {
    WALBERLA_ASSERT( function.getDimension() == 1 );
+
+   std::string varName = generateVariableName( function.getFunctionName(), primitive.getID(), level );
 
    // check that associated variable exists in IO object
    adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
@@ -257,8 +257,7 @@ void exportVariables( adios2::IO&              io,
    {
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
-         std::string varName = generateVariableName( function[k].getFunctionName(), primitive.getID(), level );
-         exportVariableForScalarFunction( io, engine, function[k], varName, level, primitive );
+         exportVariableForScalarFunction( io, engine, function[k], level, primitive );
       }
    }
 
@@ -267,12 +266,8 @@ void exportVariables( adios2::IO&              io,
    {
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
-         std::string varName =
-             generateVariableName( function[k].getVertexDoFFunction().getFunctionName(), primitive.getID(), level );
-         exportVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), varName, level, primitive );
-
-         varName = generateVariableName( function[k].getEdgeDoFFunction().getFunctionName(), primitive.getID(), level );
-         exportVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), varName, level, primitive );
+         exportVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), level, primitive );
+         exportVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), level, primitive );
       }
    }
 

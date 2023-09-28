@@ -31,6 +31,8 @@
 
 using namespace hyteg;
 
+#ifdef VISUAL_TAG_INSPECTION
+// output generated tags for visual inspection
 void checkTagGenerationForP2( const P2Function< real_t >& func, uint_t level )
 {
    const auto& storage = func.getStorage();
@@ -93,6 +95,7 @@ void checkTagGenerationForP2( const P2Function< real_t >& func, uint_t level )
       WALBERLA_LOG_INFO( "Data buffer size = " << size );
    }
 }
+#endif
 
 void storeCheckpoint( std::string filePath, std::string fileName )
 {
