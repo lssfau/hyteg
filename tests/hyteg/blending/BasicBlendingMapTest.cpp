@@ -119,7 +119,7 @@ auto genMap( const std::string& variant )
    else if ( variant == "TokamakMap" )
    {
       const uint_t                toroidalResolution         = 3;
-      const uint_t                poloidalResolution         = 2;
+      const uint_t                poloidalResolution         = 3;
       const real_t                radiusOriginToCenterOfTube = real_c( 6.2 );
       const std::vector< real_t > tubeLayerRadii             = { real_c( 1.2 ), real_c( 2.2 ), real_c( 3 ) };
       const real_t                torodialStartAngle         = real_c( 0 );
@@ -194,24 +194,26 @@ int main( int argc, char* argv[] )
       WALBERLA_CHECK_EQUAL( candidate->isAffine(), blendingMapIsAffine( *candidate ) );
 
       // test (de)serialisation
+      walberla::mpi::SendBuffer sendBuffer;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "serializing map" );
+      GeometryMap::serialize( candidate, sendBuffer );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "deserializing map" );
+      walberla::mpi::RecvBuffer      recvBuffer( sendBuffer );
+      std::shared_ptr< GeometryMap > clone = GeometryMap::deserialize( recvBuffer );
+
+      // check that clone has identical type
+      WALBERLA_LOG_INFO_ON_ROOT( "checking type of deserialized map" );
+      const GeometryMap& candidateRef = *candidate;
+      const GeometryMap& cloneRef     = *clone;
+      const GeometryMap& badGuyRef    = *badGuy;
+      WALBERLA_CHECK( typeid( candidateRef ) == typeid( cloneRef ) );
+
+      // avoid problems with false positives
       if ( variant != "TokamakMap" )
       {
-         walberla::mpi::SendBuffer sendBuffer;
-
-         WALBERLA_LOG_INFO_ON_ROOT( "serializing map" );
-         GeometryMap::serialize( candidate, sendBuffer );
-
-         WALBERLA_LOG_INFO_ON_ROOT( "deserializing map" );
-         walberla::mpi::RecvBuffer      recvBuffer( sendBuffer );
-         std::shared_ptr< GeometryMap > clone = GeometryMap::deserialize( recvBuffer );
-
-         // check that clone has identical type
-         WALBERLA_LOG_INFO_ON_ROOT( "checking type of deserialized map" );
-         const GeometryMap& candidateRef = *candidate;
-         const GeometryMap& cloneRef     = *clone;
-         const GeometryMap& badGuyRef    = *badGuy;
-         WALBERLA_CHECK( typeid( candidateRef ) == typeid( cloneRef ) );
-         WALBERLA_CHECK( !( typeid( cloneRef ) == typeid( badGuyRef ) ) ); // avoid problems with false positives
+        WALBERLA_CHECK( !( typeid( cloneRef ) == typeid( badGuyRef ) ) );
       }
 
       WALBERLA_LOG_INFO_ON_ROOT( "" );
