@@ -59,7 +59,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( timingTree )
-, hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
+, hasGlobalCells_( setupStorage.getNumberOfGlobalCells() > 0 )
 , additionalHaloDepth_( additionalHaloDepth )
 {
    // We need to construct at least the maps on the coarsest level.
@@ -72,59 +72,74 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    neighborFaces_[0];
    neighborCells_[0];
 
-   for ( auto it : setupStorage.getVertices() )
+   if ( not setupStorage.rootOnly() )
    {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+      for ( auto it : setupStorage.getVertices() )
       {
-         vertices_[0][it.first] = std::make_shared< Vertex >( *( it.second ) );
+         if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+         {
+            vertices_[0][it.first] = std::make_shared< Vertex >( *( it.second ) );
+         }
+      }
+
+      for ( auto it : setupStorage.getEdges() )
+      {
+         if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+         {
+            edges_[0][it.first] = std::make_shared< Edge >( *( it.second ) );
+         }
+      }
+
+      for ( auto it : setupStorage.getFaces() )
+      {
+         if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+         {
+            faces_[0][it.first] = std::make_shared< Face >( *( it.second ) );
+         }
+      }
+
+      for ( auto it : setupStorage.getCells() )
+      {
+         if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
+         {
+            cells_[0][it.first] = std::make_shared< Cell >( *( it.second ) );
+         }
+      }
+
+      // neighbors
+      std::vector< PrimitiveID > vertices{ getVertexIDs() };
+      std::vector< PrimitiveID > edges{ getEdgeIDs() };
+      std::vector< PrimitiveID > faces{ getFaceIDs() };
+      std::vector< PrimitiveID > cells{ getCellIDs() };
+      addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
+
+      // additionally requested neighbors
+      for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
+      {
+         std::vector< PrimitiveID > additionalVertices;
+         getNeighboringVertexIDs( additionalVertices );
+         std::vector< PrimitiveID > additionalEdges;
+         getNeighboringEdgeIDs( additionalEdges );
+         std::vector< PrimitiveID > additionalFaces;
+         getNeighboringFaceIDs( additionalFaces );
+         std::vector< PrimitiveID > additionalCells;
+         getNeighboringCellIDs( additionalCells );
+         addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
       }
    }
-
-   for ( auto it : setupStorage.getEdges() )
+   else
    {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         edges_[0][it.first] = std::make_shared< Edge >( *( it.second ) );
-      }
+      setupStorage.scatterPrimitives( vertices_[0],
+                                      edges_[0],
+                                      faces_[0],
+                                      cells_[0],
+                                      neighborVertices_[0],
+                                      neighborEdges_[0],
+                                      neighborFaces_[0],
+                                      neighborCells_[0],
+                                      neighborRanks_[0],
+                                      additionalHaloDepth );
    }
-
-   for ( auto it : setupStorage.getFaces() )
-   {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         faces_[0][it.first] = std::make_shared< Face >( *( it.second ) );
-      }
-   }
-
-   for ( auto it : setupStorage.getCells() )
-   {
-      if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
-      {
-         cells_[0][it.first] = std::make_shared< Cell >( *( it.second ) );
-      }
-   }
-
-   // neighbors
-   std::vector< PrimitiveID > vertices{ getVertexIDs() };
-   std::vector< PrimitiveID > edges{ getEdgeIDs() };
-   std::vector< PrimitiveID > faces{ getFaceIDs() };
-   std::vector< PrimitiveID > cells{ getCellIDs() };
-   addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
-
-   // additionally requested neighbors
-   for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
-   {
-      std::vector< PrimitiveID > additionalVertices;
-      getNeighboringVertexIDs( additionalVertices );
-      std::vector< PrimitiveID > additionalEdges;
-      getNeighboringEdgeIDs( additionalEdges );
-      std::vector< PrimitiveID > additionalFaces;
-      getNeighboringFaceIDs( additionalFaces );
-      std::vector< PrimitiveID > additionalCells;
-      getNeighboringCellIDs( additionalCells );
-      addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
-   }
-
    splitCommunicatorByPrimitiveDistribution();
    updateLeafPrimitiveMaps();
 
@@ -2353,7 +2368,7 @@ void PrimitiveStorage::checkConsistency()
       for ( const auto& nID : neighborhoodIDs )
       {
          WALBERLA_CHECK( primitiveExistsLocally( nID ) || primitiveExistsInNeighborhood( nID ),
-                         "Neighbor referenced from locally allocated primitive is not allocated in storage." );
+                         "Neighbor referenced from locally allocated primitive is not allocated in storage. ID: " << nID );
       }
    }
 

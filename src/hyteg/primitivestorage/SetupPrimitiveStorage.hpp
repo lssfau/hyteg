@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "core/debug/Debug.h"
+#include "core/mpi/BufferSystem.h"
 
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -49,6 +50,8 @@ class SetupPrimitiveStorage
    typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
+   SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses, bool rootOnly );
+
    SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses );
 
    SetupPrimitiveStorage( const VertexMap& vertices,
@@ -56,6 +59,8 @@ class SetupPrimitiveStorage
                           const FaceMap&   faces,
                           const CellMap&   cells,
                           const uint_t&    numberOfProcesses );
+
+   void initialize( const MeshInfo& meshInfo );
 
    void toStream( std::ostream& os, bool verbose = false ) const;
 
@@ -74,16 +79,13 @@ class SetupPrimitiveStorage
    Primitive*       getPrimitive( const PrimitiveID& id );
    const Primitive* getPrimitive( const PrimitiveID& id ) const;
    Vertex*          getVertex( const PrimitiveID& id ) { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
-   const Vertex*    getVertex( const PrimitiveID& id ) const
-   {
-      return vertexExists( id ) ? vertices_.at( id ).get() : nullptr;
-   }
-   Edge*       getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   const Edge* getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   Face*       getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   const Face* getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   Cell*       getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
-   const Cell* getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Vertex*    getVertex( const PrimitiveID& id ) const { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
+   Edge*            getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   const Edge*      getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
+   Face*            getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   const Face*      getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
+   Cell*            getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   const Cell*      getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
 
    void getSetupPrimitives( PrimitiveMap& setupPrimitiveMap ) const;
 
@@ -95,9 +97,26 @@ class SetupPrimitiveStorage
    uint_t getNumberOfEdges() const { return edges_.size(); }
    uint_t getNumberOfFaces() const { return faces_.size(); }
    uint_t getNumberOfCells() const { return cells_.size(); }
+   uint_t getNumberOfGlobalCells() const
+   {
+      uint_t numberOfCells = cells_.size();
+      walberla::mpi::allReduceInplace( numberOfCells, walberla::mpi::SUM );
+      return numberOfCells;
+   }
 
    /// Returns a reference to a map of \ref Vertex instances
    const VertexMap& getVertices() const { return vertices_; }
+
+   void scatterPrimitives( VertexMap&                       vertices,
+                           EdgeMap&                         edges,
+                           FaceMap&                         faces,
+                           CellMap&                         cells,
+                           VertexMap&                       neighborVertices,
+                           EdgeMap&                         neighborEdges,
+                           FaceMap&                         neighborFaces,
+                           CellMap&                         neighborCells,
+                           std::map< PrimitiveID, uint_t >& neighborRanks,
+                           uint_t                           additionalHaloDepth ) const;
 
    /// Returns a reference to a map of \ref Edge instances
    const EdgeMap& getEdges() const { return edges_; }
@@ -163,6 +182,8 @@ class SetupPrimitiveStorage
    uint_t getNumFacesOnBoundary() const;
    uint_t getNumCellsOnBoundary() const;
 
+   bool rootOnly() const { return rootOnly_; }
+
  private:
    typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;
 
@@ -185,6 +206,8 @@ class SetupPrimitiveStorage
    CellMap   cells_;
 
    std::map< PrimitiveID, uint_t > primitiveIDToTargetRankMap_;
+
+   bool rootOnly_ = false;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const SetupPrimitiveStorage& storage )

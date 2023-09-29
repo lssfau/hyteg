@@ -25,6 +25,7 @@
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
 #include "ThinShellMap.hpp"
+#include "TokamakMap.hpp"
 
 namespace hyteg {
 
@@ -64,6 +65,8 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< ThinShellMap >( recvBuffer );
    case Type::POLAR_COORDS:
       return std::make_shared< PolarCoordsMap >();
+   case Type::TOKAMAK:
+      return std::make_shared< TokamakMap >( recvBuffer );
    default:
       WALBERLA_ABORT( "Error in deserializing GeometryMap: Unsupported Map Type" )
    }
