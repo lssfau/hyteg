@@ -187,7 +187,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       // create the writer and engine for the export
       std::string cpFileName = filePath + "/" + fileName;
       adios2::IO  io         = adios_.DeclareIO( "AdiosCheckpointExport" );
-      io.SetEngine( "BP5" );
+      io.SetEngine( engineType_ );
       adios2::Engine engine = io.Open( cpFileName, adios2::Mode::Write );
 
       // start the export episode
@@ -245,6 +245,13 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       allFunctionNames_.clear();
       allFunctionKinds_.clear();
    };
+
+   /// type of engine to be used for export
+   ///
+   /// We will use the BP format, but instead of "BP5" use "BP4", because of unclear
+   /// stability issues; see https://github.com/ornladios/ADIOS2/discussions/3822#discussioncomment-7187267
+   /// for details
+   inline static const std::string engineType_{ "BP4" };
 
  private:
    /// object that remembers the functions we should export

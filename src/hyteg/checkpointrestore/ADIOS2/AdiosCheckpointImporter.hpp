@@ -36,8 +36,8 @@ using walberla::uint_t;
 /// Driver class for importing function data from checkpoints with ADIOS2
 ///
 /// This class allows to selectively import FE-functions from checkpoint files written with ADIOS2.
-/// The files should be in BP format (currently version BP5). The class currently only supports
-/// importing the following types of functions:
+/// The files should be in BP format (in the same version as used by AdiosCheckpointExporter).
+/// The class currently only supports importing the following types of functions:
 /// - P1Function and P1VectorFunction
 /// - P2Function and P2VectorFunction
 class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImporter >
@@ -236,7 +236,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    {
       // create the reader for the import
       io_ = adios_.DeclareIO( "AdiosCheckpointImport" );
-      io_.SetEngine( "BP5" );
+      io_.SetEngine( AdiosCheckpointExporter::engineType_ );
 
       // create the engine for the import
       //
