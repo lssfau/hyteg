@@ -43,8 +43,8 @@ class AdiosWriterForP2;
 /// Class to export FEFunction data using the ADIOS2 library
 ///
 /// This class allows to write FEFunction data to the filesystem using the ADIOS2 library.
-/// Output is using the BP format (currently version BP4). The class currently only supports
-/// the following types of functions:
+/// Output is using the BP format (see engineType_ member for version). The class currently
+/// only supports the following types of functions:
 /// - P1Function and P1VectorFunction
 /// - P2Function and P2VectorFunction
 /// - P2P1TaylorHoodFunction
@@ -269,7 +269,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    ///
    /// We will use the BP format, but the most recent "BP5" format is unsupported by ParaView 5.11.1.
    /// Thus, we still use BP4
-   const std::string engineType_{ "BP4" };
+   inline static const std::string engineType_{ "BP4" };
 };
 
 } // namespace hyteg
