@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Nils Kohl.
+ * Copyright (c) 2023 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -33,8 +33,8 @@
  * First we set up a simple cube shaped domain.
  * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp domain
  *
- * Then we defining a velocity field that acts on our particles.
- * It resembles a convection cell on the x-y-plane. We will later scale it depending on the simulated time.
+ * Then we define a velocity field that acts on our particles.
+ * It resembles a convection cell in the x-y-plane. We will later scale it depending on the simulated time.
  * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp velocity
  *
  * We use two fields to optimize the usually slow interpolate function.
@@ -113,8 +113,8 @@ void UnresolvedSpheres( Parameters parameters )
    /// [domain]
 
    /// [velocity]
-   auto fx = [&]( const hyteg::Point3D& x ) { return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] ); };
-   auto fy = [&]( const hyteg::Point3D& x ) { return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] ); };
+   auto fx = []( const hyteg::Point3D& x ) { return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] ); };
+   auto fy = []( const hyteg::Point3D& x ) { return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] ); };
    /// [velocity]
 
    /// [fields]
@@ -135,16 +135,16 @@ void UnresolvedSpheres( Parameters parameters )
    // Let`s randomly initialize particles in a ball at the center of our domain.
    for ( uint_t i = 0; i < parameters.numParticles; i++ )
    {
-      real_t r     = sqrt( walberla::math::realRandom() ) * parameters.initRadius;
+      real_t r     = std::sqrt( walberla::math::realRandom() ) * parameters.initRadius;
       real_t theta = walberla::math::realRandom() * pi;
       real_t phi   = walberla::math::realRandom() * 2 * pi;
 
-      Point3D pos( r * sin( theta ) * cos( phi ) + 0.5, r * sin( theta ) * sin( phi ) + 0.5, r * cos( theta ) + 0.5 );
+      Point3D pos( r * std::sin( theta ) * std::cos( phi ) + 0.5, r * std::sin( theta ) * std::sin( phi ) + 0.5, r * std::cos( theta ) + 0.5 );
 
       // To create a new particle, we only specify the position and use the wrapper for convenience (it handles the parallel
-      // process assignment automatically, and some minor details). This needs to be called on all processes to make sure that
-      // the particle is really created. It does not crash if not called collectively, but only creates the particle if the
-      // passed position is inside the local subdomain.
+      // process assignment automatically, and some further minor details). This needs to be called on all processes to make sure that
+      // the particle is really created. It does not crash if not called collectively, but will only create the particle if the called
+      // on the process whose local subdomain contains the passed position.
       auto particleCreated = unresolvedParticles.createParticle( pos );
 
       // If the current process receives the particle, we can initialize its properties.
@@ -156,7 +156,7 @@ void UnresolvedSpheres( Parameters parameters )
          // particle-particle-interactions are implemented. It can be used for rendering later.
          particle->setInteractionRadius( 0.01 );
 
-         // Since we do not apply forces, but set the particle velocity directly, their mass do not matter here.
+         // Since we do not apply forces, but set the particle velocity directly, their mass does not matter here.
          particle->setInvMass( 1 );
 
          // Custom properties can be added through the MESA-PD engine via code generation.
@@ -188,7 +188,7 @@ void UnresolvedSpheres( Parameters parameters )
    real_t simTime = 0;
    for ( uint_t ts = 0; ts < parameters.timesteps; ts++ )
    {
-      if ( !( ts % 100 ) )
+      if ( ts % 100 == 0 )
       {
          WALBERLA_LOG_DEVEL_ON_ROOT( "Timestep: " << ts );
       }
