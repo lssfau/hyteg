@@ -37,8 +37,10 @@
  * It resembles a convection cell in the x-y-plane. We will later scale it depending on the simulated time.
  * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp velocity
  *
- * We use two fields to optimize the usually slow interpolate function.
- * Since we really only scale the convection cell, this is more efficient.
+ * We use two fields to avoid the usually slow interpolate function. Instead of interpolating the function every time step,
+ * we just store the unscaled function, and scale it via the assign() method. This way, we replace the interpolate() call by an
+ * assign() call which is generally much faster, at the cost of a little bit of memory. It clearly only works here as we simply
+ * scale the convection cell.
  * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp fields
  *
  * Now we allocate our particles. The setup is commented inline below.
