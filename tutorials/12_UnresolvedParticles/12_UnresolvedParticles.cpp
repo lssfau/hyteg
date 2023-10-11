@@ -171,7 +171,7 @@ void UnresolvedSpheres( Parameters parameters )
          // NOTE: If the vector is resized, this should be done for ALL particles. Especially the VTK output might crash
          // otherwise. Since we are creating all particles in this loop, this is not a problem here.
          //
-         // Lets just add an integer to all particles, indicating whether it has been initialized
+         // Let's just add an integer to all particles, indicating whether it has been initialized
          // in the top or bottom half of the cube. This allows us to later see whether the particles are mixed.
          particle->getCustomRealRef().push_back( particle->getPosition()[1] < 0.5 ? -1 : 1 );
       }
