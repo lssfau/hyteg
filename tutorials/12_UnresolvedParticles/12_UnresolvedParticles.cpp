@@ -123,8 +123,7 @@ void UnresolvedSpheres( Parameters parameters )
    P1VectorFunction< real_t > convcell( "convcell", storage, parameters.level, parameters.level );
    P1VectorFunction< real_t > vel( "vel", storage, parameters.level, parameters.level );
 
-   convcell[0].interpolate( fx, parameters.level );
-   convcell[1].interpolate( fy, parameters.level );
+   convcell.interpolate( { fx, fy }, parameters.level );
 
    VTKOutput vtkOutput( "vtk", "fields", storage );
    vtkOutput.add( convcell );
@@ -147,11 +146,15 @@ void UnresolvedSpheres( Parameters parameters )
       // process assignment automatically, and some further minor details). This needs to be called on all processes to make sure that
       // the particle is really created. It does not crash if not called collectively, but will only create the particle if the called
       // on the process whose local subdomain contains the passed position.
+      //
+      // The return value is an instance of std::optional. It is empty if the particle was not created on the _local_ process.
+      // Otherwise, an iterator that points to the created particle can be accessed via std::optional's ::value() method.
       auto particleCreated = unresolvedParticles.createParticle( pos );
 
       // If the current process receives the particle, we can initialize its properties.
       if ( particleCreated )
       {
+         // The particle was created locally. Let's access it via std::optional::value().
          auto particle = particleCreated.value();
 
          // The interaction radius is not physically relevant here, but may become in other applications if

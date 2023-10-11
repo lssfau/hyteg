@@ -75,11 +75,17 @@ class UnresolvedParticles
     * Should be called collectively to ensure that the particle is created (but won't crash otherwise - might just not create
     * the particle).
     *
-    * Generally, the creation and modification of particles can easily be realized through MESA-PD's ParticleStorage class.
-    * An instance is wrapped by this class, and can also be accessed.
+    * This method returns an instance of std::optional. If the particle was _not_ created on this process, the std::optional
+    * instance is empty. If the particle _was_ created, the particle properties can be accessed via the iterator object contained
+    * inside the std::optional instance. This can simply be achieved via calling the ::value() method (see example below).
     *
-    * This really is just a convenience function since the initial position of a particle determines the process rank.
-    * All properties of the particle (apart from the initial position) need to be set manually via the returned iterator.
+    * All properties of the particle (apart from the initial position) need to be set manually via the returned iterator (see
+    * example below).
+    *
+    * The creation and modification of particles can alternatively be realized directly through MESA-PD's ParticleStorage class.
+    * An instance of that is wrapped by this class, and can also be accessed. This really is just a convenience method since the
+    * initial position of a particle determines the process rank, and therefore the parallel particle creation requires some
+    * additional boilerplate code.
     *
     * Example:
     *
