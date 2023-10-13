@@ -85,8 +85,8 @@ static void testP2BasicFunctions()
    z.interpolate( func, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -101,8 +101,8 @@ static void testP2BasicFunctions()
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
    }
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -118,8 +118,8 @@ static void testP2BasicFunctions()
    z.assign( {1.0, -1.0}, {z, z}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -155,8 +155,8 @@ static void testP2BasicFunctions()
    y.add( {4.0, 3.0}, {x, y}, maxLevel, DoFType::All );
    timer["Add"].end();
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -186,9 +186,9 @@ static void testP2BasicFunctions()
    z.interpolate( zeros, maxLevel, DoFType::All );
 
    z.assign( {1.0, -1.0}, {x, y}, maxLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
    x.add( {-1.0}, {y}, maxLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {

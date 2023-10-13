@@ -127,7 +127,7 @@ static void testP2Smooth()
       x->interpolate( ones, level );
       rhs->interpolate( ones, level );
 
-      hyteg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
+      hyteg::communication::syncFunctionBetweenPrimitives( ( *x ), level );
 
       P2::macroface::smoothGaussSeidel( level,
                                         face,
@@ -293,8 +293,8 @@ static void testP2JacobiSmooth()
    tmp->interpolate( ones, level );
    rhs->interpolate( ones, level );
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( ( *tmp ), level );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( ( *rhs ), level );
+   hyteg::communication::syncFunctionBetweenPrimitives( ( *tmp ), level );
+   hyteg::communication::syncFunctionBetweenPrimitives( ( *rhs ), level );
 
    for( auto e : storage->getEdges() )
    {
@@ -308,7 +308,7 @@ static void testP2JacobiSmooth()
       vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction().getVertexDataID(), {}, onesExtended, level );
    }
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
+   hyteg::communication::syncFunctionBetweenPrimitives( ( *x ), level );
 
    for( auto faceIt : storage->getFaces() )
    {

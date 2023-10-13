@@ -196,8 +196,8 @@ void runTest( bool preCompute )
    u_exact.uvw()[1].interpolate( vSolution, maxLevel, All );
    u_exact.p().interpolate( pSolution, maxLevel, All );
 
-   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
-   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[1], maxLevel );
+   communication::syncFunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
+   communication::syncFunctionBetweenPrimitives( u_exact.uvw()[1], maxLevel );
    communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
    auto coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, minLevel, real_c( 1e-08 ), 500 );

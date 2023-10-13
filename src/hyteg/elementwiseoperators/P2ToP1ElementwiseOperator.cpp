@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -120,7 +120,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
    }
    else
    {
-      communication::syncP2FunctionBetweenPrimitives( src, level );
+      communication::syncFunctionBetweenPrimitives( src, level );
    }
 
    if ( updateType == Replace )
