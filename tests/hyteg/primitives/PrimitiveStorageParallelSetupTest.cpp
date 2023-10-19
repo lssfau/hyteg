@@ -47,17 +47,30 @@ static void primitiveStorageParallelSetupWrite( const std::string& meshFile, uin
    }
 }
 
-static void primitiveStorageParallelSetupRead( const std::string& file )
+static void primitiveStorageParallelSetupRead( const std::string& meshFile, uint_t numProcesses, const std::string& file )
 {
-   PrimitiveStorage storage( file );
+   // Build storage as usual.
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+   loadbalancing::roundRobinVolume( setupStorage, numProcesses );
+   PrimitiveStorage storage( setupStorage );
 
-   auto info = storage.getGlobalInfo();
+   // Load storage from file
+   PrimitiveStorage storageRead( file );
 
-   WALBERLA_LOG_DEVEL_ON_ROOT( info );
+   auto info     = storage.getGlobalInfo();
+   auto infoRead = storageRead.getGlobalInfo();
 
-   auto ngf = storage.getNumberOfGlobalFaces();
+   WALBERLA_LOG_INFO_ON_ROOT( "Storage built during run time:" )
+   WALBERLA_LOG_INFO_ON_ROOT( info );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Storage read from file:" )
+   WALBERLA_LOG_INFO_ON_ROOT( infoRead );
+
+   auto ngf = storageRead.getNumberOfGlobalFaces();
    WALBERLA_CHECK_GREATER( ngf, 0 );
+
+   WALBERLA_CHECK_EQUAL( info, infoRead );
 }
 
 } // namespace hyteg
@@ -75,8 +88,8 @@ int main( int argc, char* argv[] )
    hyteg::primitiveStorageParallelSetupWrite( "../../../data/meshes/bfs_126el.msh", numProcesses, "test_00.data" );
    hyteg::primitiveStorageParallelSetupWrite( "../../../data/meshes/3D/cube_24el.msh", numProcesses, "test_01.data" );
 
-   hyteg::primitiveStorageParallelSetupRead( "test_00.data" );
-   hyteg::primitiveStorageParallelSetupRead( "test_01.data" );
+   hyteg::primitiveStorageParallelSetupRead( "../../../data/meshes/bfs_126el.msh", numProcesses, "test_00.data" );
+   hyteg::primitiveStorageParallelSetupRead( "../../../data/meshes/3D/cube_24el.msh", numProcesses, "test_01.data" );
 
    return EXIT_SUCCESS;
 }
