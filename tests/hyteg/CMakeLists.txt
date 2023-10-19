@@ -603,11 +603,13 @@ waLBerla_execute_test(NAME PrimitiveStorageTest8 COMMAND $<TARGET_FILE:Primitive
 waLBerla_compile_test(FILES primitives/PrimitiveRelativeOrderingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveRelativeOrderingTest)
 
-waLBerla_compile_test(FILES primitives/PrimitiveStorageParallelSetupTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest1 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest>)
-waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest2 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 2)
-waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest3 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 3)
-waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest4 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 4)
+if (WALBERLA_BUILD_WITH_MPI)
+    waLBerla_compile_test(FILES primitives/PrimitiveStorageParallelSetupTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest1 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest>)
+    waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest2 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 2)
+    waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest3 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 3)
+    waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest4 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 4)
+endif()
 
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest>)
