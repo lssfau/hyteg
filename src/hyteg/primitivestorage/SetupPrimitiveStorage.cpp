@@ -957,10 +957,8 @@ bool SetupPrimitiveStorage::onBoundary( const PrimitiveID& primitiveID, const bo
    }
 }
 
-void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t numProcesses, uint_t numberOfFiles ) const
+void SetupPrimitiveStorage::writeToFile( const std::string& fileName ) const
 {
-   WALBERLA_CHECK_EQUAL( numberOfFiles, 1, "Currently only supporting writing to a single data file." );
-
    // Just misusing the buffers for convenience. We are not actually sending anything.
    // Serialization to buffers is implemented, and we can write byte streams later :)
    SendBuffer data;
@@ -984,14 +982,14 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
    // number of bytes that are allocated. We interleave this, such that two consecutive entries are the pos and the size in bytes.
    // To update the position, we will have to(?) iterate over that thing. It is not _really_ scalable, but should still be fast
    // for ~1mio processes(?).
-   std::vector< uint64_t > metaVec( 2 * numProcesses, 0 );
+   std::vector< uint64_t > metaVec( 2 * numberOfProcesses_, 0 );
 
    PrimitiveMap primitives;
    getSetupPrimitives( primitives );
 
    // This "cache" is simplifying and slightly optimizing the serialization.
    // We capture all IDs we want to write per process.
-   std::vector< std::set< PrimitiveID > > primitiveIDsToWrite( numProcesses );
+   std::vector< std::set< PrimitiveID > > primitiveIDsToWrite( numberOfProcesses_ );
 
    // Let`s check what amount of memory we need for each process.
    for ( auto [pid, primitive] : primitives )
@@ -1010,7 +1008,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
          auto nrank = getTargetRank( npid );
 
          WALBERLA_CHECK_LESS( nrank,
-                              numProcesses,
+                              numberOfProcesses_,
                               "The SetupPrimitiveStorage has assigned a primitive to a rank that is larger than"
                               "the number of processes that are supposed to deserialize the file." )
 
@@ -1039,7 +1037,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
 
    // Now we accumulate the mem to get the starting pos of each portion in the final buffer.
    uint64_t memCnt = 0;
-   for ( uint_t rank = 0; rank < numProcesses; rank++ )
+   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
    {
       // hasGlobalCells - added later
       metaVec[2 * rank + 1] += sizeof( uint8_t );
@@ -1047,7 +1045,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
       metaVec[2 * rank + 1] += sizeof( uint64_t );
 
       // setting the position - adding an offset that has the size of the metadata portion
-      metaVec[2 * rank] = 2 * numProcesses * sizeof( uint64_t ) + memCnt;
+      metaVec[2 * rank] = 2 * numberOfProcesses_ * sizeof( uint64_t ) + memCnt;
 
       memCnt += metaVec[2 * rank + 1];
    }
@@ -1059,7 +1057,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
    }
 
    // Next we actually write the data to the buffer, for each rank.
-   for ( uint_t rank = 0; rank < numProcesses; rank++ )
+   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
    {
       // We already cached the PrimitiveIDs of Primitives we want to write.
       auto pids = primitiveIDsToWrite[rank];

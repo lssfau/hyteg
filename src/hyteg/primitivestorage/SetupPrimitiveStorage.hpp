@@ -169,14 +169,12 @@ class SetupPrimitiveStorage
    ///
    /// Load balancing should therefore already be performed in the offline stage on a single process.
    ///
-   /// \param fileName name of the file
-   /// \param numProcesses number of processes of the application that later reads this output - this must be exact, however, the
-   ///                     actual primitive distribution is independent of this number (all Primitives may be on root)
-   /// \param numberOfFiles should be 1 or larger - currently only a single output file is supported
+   /// Note that the file _has_ to be read with the same amount of processes that has been passed to the SetupPrimitiveStorage
+   /// during its construction. However, this is independent of the actual distribution of the primitives. So for instance, all
+   /// primitives can still be located on the root process after load balancing. Still, the actual number of processes must match.
    ///
-   void writeToFile( const std::string& fileName,
-                     uint_t             numProcesses,
-                     uint_t             numberOfFiles = 1 ) const;
+   /// \param fileName name of the file
+   void writeToFile( const std::string& fileName ) const;
 
  private:
    typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;

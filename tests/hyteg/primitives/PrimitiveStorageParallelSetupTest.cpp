@@ -43,7 +43,7 @@ static void primitiveStorageParallelSetupWrite( const std::string& meshFile, uin
 
       WALBERLA_LOG_INFO( setupStorage );
 
-      setupStorage.writeToFile( file, numProcesses );
+      setupStorage.writeToFile( file );
    }
 }
 
