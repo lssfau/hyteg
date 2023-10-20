@@ -1,0 +1,11 @@
+namespace walberla {
+namespace unresolved_particles {
+
+/**
+ * \defgroup unresolved_particles_mpi Communication functionality for MESA-PD module.
+ * \ingroup unresolved_particles
+ * Description of all communication functions available in the MESA-PD module.
+**/
+
+}
+}

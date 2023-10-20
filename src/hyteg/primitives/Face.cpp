@@ -177,6 +177,8 @@ void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << coords[2];
   sendBuffer << indirectNeighborFaceIDsOverVertices_;
   sendBuffer << indirectNeighborFaceIDsOverEdges_;
+  sendBuffer << indirectTopLevelNeighborFaceIDsOverEdges_;
+  sendBuffer << indirectTopLevelNeighborFaceIDsOverVertices_;
 }
 
 void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -190,6 +192,8 @@ void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> coords[2];
   recvBuffer >> indirectNeighborFaceIDsOverVertices_;
   recvBuffer >> indirectNeighborFaceIDsOverEdges_;
+  recvBuffer >> indirectTopLevelNeighborFaceIDsOverEdges_;
+  recvBuffer >> indirectTopLevelNeighborFaceIDsOverVertices_;
 }
 
 }

@@ -212,8 +212,8 @@ inline std::array< indexing::Index, 2 > calcNeighboringVertexDoFIndices( const e
    return vertexIndices;
 }
 
-/// \brief Given to local vertex ids on the tetrahedron this function return the orientation of the edge inbetween those vertices
-/// it also works for macro faces since the first face in the tetrahedron is equivalent to the reference face
+/// \brief Given two local vertex ids on the tetrahedron, this function returns the orientation of the edge inbetween those vertices.
+/// It also works for macro faces since the first face in the tetrahedron is equivalent to the reference face.
 inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t& vertexIndex0, const uint_t& vertexIndex1 )
 {
    WALBERLA_ASSERT_UNEQUAL( vertexIndex0, vertexIndex1 );

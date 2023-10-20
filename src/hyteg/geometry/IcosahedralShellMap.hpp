@@ -94,6 +94,8 @@ class IcosahedralShellMap : public GeometryMap
 
       recvBuffer >> radRefVertex_;
       recvBuffer >> radRayVertex_;
+
+      recvBuffer >> prismNormal_;
    }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const override
@@ -231,7 +233,7 @@ class IcosahedralShellMap : public GeometryMap
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ICOSAHEDRAL_SHELL << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_
-                 << radRayVertex_;
+                 << radRayVertex_ << prismNormal_;
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage )

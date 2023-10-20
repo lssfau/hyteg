@@ -1,0 +1,9 @@
+Parameters
+{
+   timesteps    1000;
+   dt           5e-3;
+   level        3;
+   numParticles 1000;
+   initRadius   0.3;
+   velFieldOscillation   30;
+}

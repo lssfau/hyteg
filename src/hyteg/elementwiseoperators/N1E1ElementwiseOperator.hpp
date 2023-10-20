@@ -90,7 +90,6 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                               const uint_t            level,
                               const indexing::Index&  microCell,
                               const celldof::CellType cType,
-                              const real_t* const     edgeDirsData,
                               real_t* const           diagData );
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -99,8 +98,7 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
                                const idx_t* const                          srcEdgeIdx,
-                               const idx_t* const                          dstEdgeIdx,
-                               const real_t* const                         edgeDirsData ) const;
+                               const idx_t* const                          dstEdgeIdx ) const;
 
    /// \brief Returns a reference to the precomputed element matrix of the specified micro cell.
    /// Probably crashes if local element matrices have not been precomputed.
@@ -130,9 +128,6 @@ class N1E1ElementwiseOperator : public Operator< N1E1VectorFunction< real_t >, N
    N1E1FormType form_;
 
    std::shared_ptr< N1E1VectorFunction< real_t > > inverseDiagonalValues_;
-
-   // TODO this is possible without allocating a new function
-   N1E1VectorFunction< real_t > edgeDirs_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat6x6

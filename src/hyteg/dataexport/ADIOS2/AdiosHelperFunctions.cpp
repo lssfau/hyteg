@@ -85,6 +85,6 @@ std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointD
    oStream << myIndent2 << R"(</Piece>)" << '\n' << myIndent1 << R"(</UnstructuredGrid>)" << '\n' << R"(</VTKFile>)";
 
    return oStream.str();
-};
+}
 
 } // namespace hyteg::adiosHelpers

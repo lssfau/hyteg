@@ -326,6 +326,51 @@ class FEFunctionRegistry
    const FunctionMultiStore< n1e1::N1E1VectorFunction >& getN1E1VectorFunctions() const { return n1e1Functions_; }
    const FunctionMultiStore< EGFunction >&               getEGFunctions() const { return p1dgeVecFunctions_; }
 
+   template < template < class > class func_t >
+   const FunctionMultiStore< func_t >& getFunctions()
+   {
+      if constexpr ( std::is_same_v< func_t< real_t >, P1Function< real_t > > )
+      {
+         return p1Functions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, P2Function< real_t > > )
+      {
+         return p2Functions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, P1VectorFunction< real_t > > )
+      {
+         return p1VecFunctions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, P2VectorFunction< real_t > > )
+      {
+         return p2VecFunctions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, EdgeDoFFunction< real_t > > )
+      {
+         return edgeDoFFunctions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, dg::DGFunction< real_t > > )
+      {
+         return dgFunctions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, dg::DGVectorFunction< real_t > > )
+      {
+         return dgVecFunctions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, n1e1::N1E1VectorFunction< real_t > > )
+      {
+         return n1e1Functions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, EGFunction< real_t > > )
+      {
+         return p1dgeVecFunctions_;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Unsupported Function Kind in FEFunctionRegistry::getFunctions()!" );
+      }
+   }
+
    /// Append names of all registered functions of a certain kind to the provided vector.
    void extractFunctionNames( std::vector< std::string >& names, functionTraits::FunctionKind funcKind ) const
    {

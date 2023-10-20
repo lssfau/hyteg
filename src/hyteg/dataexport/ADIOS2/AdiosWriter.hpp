@@ -43,13 +43,19 @@ class AdiosWriterForP2;
 /// Class to export FEFunction data using the ADIOS2 library
 ///
 /// This class allows to write FEFunction data to the filesystem using the ADIOS2 library.
-/// Output is using the BP format (currently version BP4). The class currently only supports
-/// the following types of functions:
+/// Output is using the BP format (see engineType_ member for version). The class currently
+/// only supports the following types of functions:
 /// - P1Function and P1VectorFunction
 /// - P2Function and P2VectorFunction
 /// - P2P1TaylorHoodFunction
 ///
 /// which must be using real_t as their value type.
+///
+/// \note For configuring writer behaviour through an XML or YAML configuration file, please
+///       note that we need to create one adios2::IO object for each output level and for
+///       each function family. Their names are given by
+///       - AdiosWriterP1-level<level number>
+///       - AdiosWriterP2-level<level number>
 class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 {
  public:
@@ -58,8 +64,8 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
+   AdiosWriter( const std::string&                         filePath,
+                const std::string&                         fileBaseName,
                 const std::shared_ptr< PrimitiveStorage >& storage,
                 MPI_Comm                                   comm = walberla::MPIManager::instance()->comm() )
    : AdiosWriter( filePath, fileBaseName, "", storage, comm )
@@ -70,9 +76,9 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
-                std::string                                configFile,
+   AdiosWriter( const std::string&                         filePath,
+                const std::string&                         fileBaseName,
+                const std::string&                         configFile,
                 const std::shared_ptr< PrimitiveStorage >& storage,
                 MPI_Comm                                   comm = walberla::MPIManager::instance()->comm() )
    : storage_( storage )
@@ -95,9 +101,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
-                const std::shared_ptr< PrimitiveStorage >& storage )
+   AdiosWriter( const std::string& filePath, const std::string& fileBaseName, const std::shared_ptr< PrimitiveStorage >& storage )
    : AdiosWriter( filePath, fileBaseName, "", storage )
    {}
 
@@ -105,9 +109,9 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param configFile        Name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param storage           PrimitiveStorage associated with functions to export
-   AdiosWriter( std::string                                filePath,
-                std::string                                fileBaseName,
-                std::string                                configFile,
+   AdiosWriter( const std::string&                         filePath,
+                const std::string&                         fileBaseName,
+                const std::string&                         configFile,
                 const std::shared_ptr< PrimitiveStorage >& storage )
    : storage_( storage )
    , filePath_( filePath )
@@ -146,7 +150,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
          WALBERLA_ABORT( "AdiosWriter only supports P1 and P2 type functions!" );
       }
 
-      if ( p1Writers_.size() > 0 || p2Writers_.size() > 0 )
+      if ( firstWriteDidHappen_ )
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter class does not support adding functions after the first write.\n"
                                        << "--> Ignoring function '" << function.getFunctionName() << "'!" );
@@ -159,10 +163,19 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 
    /// Set parameter specified by string key to value specified by string value
    ///
-   /// Currently not supported for AdiosWriter
+   /// \note For consistency reasons the method will refuse to change parameter values after the first
+   ///       invocation of write() on the AdiosWriter object. In this case it will print a warning and
+   ///       ignore the request.
    void setParameter( const std::string& key, const std::string& value )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() does not perform any action!" );
+      if ( firstWriteDidHappen_ )
+      {
+        WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() only works before the first write()!\n"
+                                      << "--> Ignoring (key,value) = ('" << key << "','" << value << "')" );
+      }
+      else {
+        userProvidedParameters_[ key ] = value;
+      }
    }
 
    void write( const uint_t level, const uint_t timestep = 0 );
@@ -246,11 +259,17 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// basename of output files
    std::string fileBaseName_;
 
+   /// (key,value) pairs for IO parameters provided by user via setParameter() method
+   std::map< std::string, std::string > userProvidedParameters_;
+
+   /// remember if we already had a write() episode
+   bool firstWriteDidHappen_ = false;
+
    /// type of engine to be used for export
    ///
    /// We will use the BP format, but the most recent "BP5" format is unsupported by ParaView 5.11.1.
    /// Thus, we still use BP4
-   const std::string engineType_{ "BP4" };
+   inline static const std::string engineType_{ "BP4" };
 };
 
 } // namespace hyteg

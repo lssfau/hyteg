@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr.
+ * Copyright (c) 2020-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,11 +24,11 @@ namespace hyteg {
 namespace workaround {
 
 template < typename func_T >
-void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&            mat,
-                               const func_T&                                          diagVals,
-                               const typename func_T::template FunctionType< idx_t >& numerator,
-                               uint_t                                                 level,
-                               DoFType                                                flag )
+void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&,
+                               const func_T&,
+                               const typename func_T::template FunctionType< idx_t >&,
+                               uint_t,
+                               DoFType )
 {
    WALBERLA_ABORT( "externalDiagonalAssembly() not implemented for " << typeid( func_T ).name() );
 }

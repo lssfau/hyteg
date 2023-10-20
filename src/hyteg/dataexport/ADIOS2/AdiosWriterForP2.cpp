@@ -33,8 +33,8 @@ using walberla::real_t;
 using walberla::uint_t;
 
 AdiosWriterForP2::AdiosWriterForP2( adios2::ADIOS&                             adios,
-                                    std::string&                               filePath,
-                                    std::string&                               fileBaseName,
+                                    const std::string&                         filePath,
+                                    const std::string&                         fileBaseName,
                                     const std::string&                         engineType,
                                     uint_t                                     level,
                                     const std::shared_ptr< PrimitiveStorage >& storage )
@@ -42,19 +42,27 @@ AdiosWriterForP2::AdiosWriterForP2( adios2::ADIOS&                             a
 , level_( level )
 {
    // create the name of the output file
-   std::stringstream tag;
-   tag << "-P2_level" << level_ << ".bp";
-   fileName_ = filePath + "/" + fileBaseName + tag.str();
+   std::stringstream tag1;
+   tag1 << "-P2_level" << level_ << ".bp";
+   fileName_ = filePath + "/" + fileBaseName + tag1.str();
 
    // create our own writer
-   io_ = adios.DeclareIO( fileName_ );
+   std::stringstream tag2;
+   tag2 << "AdiosWriterP2-level" << level;
+   io_ = adios.DeclareIO( tag2.str() );
 
    // set the type of engine
    io_.SetEngine( engineType );
 }
 
-void AdiosWriterForP2::write( const FEFunctionRegistry& registry, uint_t timestep )
+void AdiosWriterForP2::write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters )
 {
+   // on first invocation set user define parameter values
+   if ( !firstWriteCompleted_ )
+   {
+      io_.SetParameters( userProvidedParameters );
+   }
+
    // working on faces/cells some processes might not have data to export
    if ( !adiosHelpers::mpiProcessHasMacrosOfHighestDimension( storage_ ) )
    {

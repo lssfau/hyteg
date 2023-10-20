@@ -55,6 +55,20 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    virtual uint_t getDimension() const { return 1; }
 
+   P2Function< ValueType >& operator[]( uint_t idx )
+   {
+      WALBERLA_ASSERT( idx == 0 );
+      WALBERLA_UNUSED( idx );
+      return *this;
+   }
+
+   const P2Function< ValueType >& operator[]( uint_t idx ) const
+   {
+      WALBERLA_ASSERT( idx == 0 );
+      WALBERLA_UNUSED( idx );
+      return *this;
+   }
+
    // These functions to me are highly misleading, as the "copy" will address the same data
    // inline vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
    // inline EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }
