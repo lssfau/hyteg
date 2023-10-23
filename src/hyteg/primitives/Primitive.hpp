@@ -107,7 +107,7 @@ class Primitive
    virtual ~Primitive() {}
 
    /// Enumeration to differentiate different kinds of primitives
-   enum PrimitiveTypeEnum
+   enum PrimitiveTypeEnum : uint8_t
    {
       VERTEX,
       EDGE,

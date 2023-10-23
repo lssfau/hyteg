@@ -479,6 +479,134 @@ PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
 #endif
 }
 
+PrimitiveStorage::PrimitiveStorage( const std::string& file )
+: primitiveDataHandlers_( 0 )
+, modificationStamp_( 0 )
+, timingTree_( std::make_shared< walberla::WcTimingTree >() )
+, hasGlobalCells_( false )  // will be updated later in the constructor
+, additionalHaloDepth_( 0 ) // NEEDS TO BE FIXED IN SERIALIZATION IF CHANGED HERE!
+{
+   // We need to construct at least the maps on the coarsest level.
+   vertices_[0];
+   edges_[0];
+   faces_[0];
+   cells_[0];
+   neighborVertices_[0];
+   neighborEdges_[0];
+   neighborFaces_[0];
+   neighborCells_[0];
+
+   auto instance = walberla::mpi::MPIManager::instance();
+
+   // First we need to read the metadata.
+   int uint64Size;
+   MPI_Type_size( walberla::MPITrait< uint64_t >::type(), &uint64Size );
+   uint64_t offsetData[2];
+   MPI_File mpiFile = MPI_FILE_NULL;
+   int      result  = MPI_SUCCESS;
+   result = MPI_File_open( instance->comm(), const_cast< char* >( file.c_str() ), MPI_MODE_RDONLY, MPI_INFO_NULL, &mpiFile );
+
+   if ( result != MPI_SUCCESS )
+      WALBERLA_ABORT( "Error while opening file \"" << file << "\" for reading. MPI Error is \""
+                                                    << instance->getMPIErrorString( result ) << "\"" );
+
+   MPI_Datatype offsettype;
+   MPI_Type_contiguous( 2, walberla::MPITrait< uint64_t >::type(), &offsettype );
+   MPI_Type_commit( &offsettype );
+
+   // read each process' offset and buffer size from file
+   result = MPI_File_set_view( mpiFile,
+                               numeric_cast< MPI_Offset >( instance->rank() * 2 * uint64Size ),
+                               walberla::MPITrait< uint64_t >::type(),
+                               offsettype,
+                               const_cast< char* >( "native" ),
+                               MPI_INFO_NULL );
+
+   if ( result != MPI_SUCCESS )
+      WALBERLA_ABORT( "Internal MPI-IO error! MPI Error is \"" << instance->getMPIErrorString( result ) << "\"" );
+
+   result = MPI_File_read_all(
+       mpiFile, reinterpret_cast< char* >( offsetData ), 2, walberla::MPITrait< uint64_t >::type(), MPI_STATUS_IGNORE );
+
+   if ( result != MPI_SUCCESS )
+      WALBERLA_ABORT( "Error while reading from file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
+                                                         << "\"" );
+
+   // Now the process` portion.
+   RecvBuffer buffer;
+
+   MPI_Datatype arraytype;
+   MPI_Type_contiguous(
+       int_c( offsetData[1] ), walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(), &arraytype );
+   MPI_Type_commit( &arraytype );
+
+   result = MPI_File_set_view( mpiFile,
+                               numeric_cast< MPI_Offset >( offsetData[0] ),
+                               walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(),
+                               arraytype,
+                               const_cast< char* >( "native" ),
+                               MPI_INFO_NULL );
+
+   if ( result != MPI_SUCCESS )
+      WALBERLA_ABORT( "Internal MPI-IO error! MPI Error is \"" << instance->getMPIErrorString( result ) << "\"" );
+
+   buffer.resize( offsetData[1] );
+
+   result = MPI_File_read_all( mpiFile,
+                               reinterpret_cast< char* >( buffer.ptr() ),
+                               int_c( buffer.size() ),
+                               walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(),
+                               MPI_STATUS_IGNORE );
+
+   if ( result != MPI_SUCCESS )
+      WALBERLA_ABORT( "Error while reading from file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
+                                                         << "\"" );
+
+   result = MPI_File_close( &mpiFile );
+
+   if ( result != MPI_SUCCESS )
+      WALBERLA_ABORT( "Error while closing file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
+                                                    << "\"" );
+
+   MPI_Type_free( &arraytype );
+   MPI_Type_free( &offsettype );
+
+   // Now we process the data.
+
+   auto rank = uint_c( instance->rank() );
+
+   uint8_t hgc;
+   buffer >> hgc;
+   hasGlobalCells_ = hgc;
+
+   uint64_t numPrimitives;
+   buffer >> numPrimitives;
+
+   for ( uint_t p = 0; p < numPrimitives; p++ )
+   {
+      uint_t      pRank;
+      PrimitiveID pid;
+
+      buffer >> pRank >> pid;
+
+      auto isNeighbor = pRank != rank;
+
+      deserializeAndAddPrimitive( buffer, isNeighbor );
+
+      if ( isNeighbor )
+      {
+         neighborRanks_[0][pid] = pRank;
+      }
+   }
+
+   splitCommunicatorByPrimitiveDistribution();
+   updateLeafPrimitiveMaps();
+
+#ifndef NDEBUG
+   checkConsistency();
+#endif
+}
+
 uint_t PrimitiveStorage::getCurrentLocalMaxRefinement() const
 {
    // We assume here that all primitive maps have the same refinements (which they should have!).

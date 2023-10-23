@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -181,6 +181,23 @@ class SetupPrimitiveStorage
    uint_t getNumEdgesOnBoundary() const;
    uint_t getNumFacesOnBoundary() const;
    uint_t getNumCellsOnBoundary() const;
+
+
+   /// Writes the SetupPrimitiveStorage to a file that can be used for a fully parallel initialization of the PrimitiveStorage.
+   ///
+   /// Since the SetupStorage is not scalable, large meshes cannot be processed if the memory is limited in a parallel application.
+   /// Instead of creating the PrimitiveStorage directly from the (serial) SetupPrimitiveStorage, a two-step process is initiated
+   /// through this method. It writes the Primitive distribution and all relevant data to a file, that can be loaded via a corresponding
+   /// constructor of the PrimitiveStorage in parallel (using MPIIO).
+   ///
+   /// Load balancing should therefore already be performed in the offline stage on a single process.
+   ///
+   /// Note that the file _has_ to be read with the same amount of processes that has been passed to the SetupPrimitiveStorage
+   /// during its construction. However, this is independent of the actual distribution of the primitives. So for instance, all
+   /// primitives can still be located on the root process after load balancing. Still, the actual number of processes must match.
+   ///
+   /// \param fileName name of the file
+   void writeToFile( const std::string& fileName ) const;
 
    bool rootOnly() const { return rootOnly_; }
 
