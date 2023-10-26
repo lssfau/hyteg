@@ -19,6 +19,10 @@
  */
 #pragma once
 
+#include "hyteg/HytegDefinitions.hpp"
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+
 #include <adios2.h>
 
 #include "hyteg/communication/Syncing.hpp"
@@ -170,11 +174,12 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    {
       if ( firstWriteDidHappen_ )
       {
-        WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() only works before the first write()!\n"
-                                      << "--> Ignoring (key,value) = ('" << key << "','" << value << "')" );
+         WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter::setParameter() only works before the first write()!\n"
+                                       << "--> Ignoring (key,value) = ('" << key << "','" << value << "')" );
       }
-      else {
-        userProvidedParameters_[ key ] = value;
+      else
+      {
+         userProvidedParameters_[key] = value;
       }
    }
 
@@ -237,7 +242,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    FEFunctionRegistry feFunctionRegistry_;
 
    /// exporting data will only work for functions associated with the mesh
-   /// described be this PrimitiveStorage object
+   /// described by this PrimitiveStorage object
    std::shared_ptr< PrimitiveStorage > storage_{ nullptr };
 
    /// main ADIOS2 interface object
@@ -273,3 +278,5 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 };
 
 } // namespace hyteg
+
+#endif
