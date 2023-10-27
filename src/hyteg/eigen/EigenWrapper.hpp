@@ -23,6 +23,7 @@
 
 //#define EIGEN_MATRIX_PLUGIN "hyteg/eigen/EigenMatrixPlugin.hpp"
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
