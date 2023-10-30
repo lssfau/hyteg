@@ -50,9 +50,6 @@ void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& funct
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& function, const uint_t& level );
 
-template < typename ValueType >
-void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level );
-
 /// Sync all functions registered with the passed FEFunctionRegistry object
 ///
 /// \note The function currently only syncs registered functions with the following value types:

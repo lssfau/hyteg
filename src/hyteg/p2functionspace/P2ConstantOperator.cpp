@@ -1225,7 +1225,7 @@ void P2ConstantOperator< P2Form >::smooth_sor( const P2Function< real_t >& dst,
       this->startTiming( "SOR" );
    }
 
-   communication::syncP2FunctionBetweenPrimitives( dst, level );
+   communication::syncFunctionBetweenPrimitives( dst, level );
 
    if ( backwards )
    {
@@ -1289,7 +1289,7 @@ void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
    // src.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
    // src.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
    // src.getEdgeDoFFunction().communicate< Edge, Face >( level );
-   communication::syncP2FunctionBetweenPrimitives( src, level );
+   communication::syncFunctionBetweenPrimitives( src, level );
 
    if ( storage_->hasGlobalCells() )
    {

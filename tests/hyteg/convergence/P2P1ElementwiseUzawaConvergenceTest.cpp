@@ -195,8 +195,6 @@ void runBenchmark( uint_t benchmark )
       u_exact.p().interpolate( exactP, maxLevel, All );
    }
 
-   // communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
-   // communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[1], maxLevel );
    communication::syncVectorFunctionBetweenPrimitives( u_exact.uvw(), maxLevel );
    communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 

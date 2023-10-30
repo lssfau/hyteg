@@ -123,8 +123,8 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
    up_exact.p().interpolate( p_exact, maxLevel, All );
    vertexdof::projectMean( up_exact.p(), maxLevel );
 
-   communication::syncP2FunctionBetweenPrimitives( up_exact.uvw()[0], maxLevel );
-   communication::syncP2FunctionBetweenPrimitives( up_exact.uvw()[1], maxLevel );
+   communication::syncFunctionBetweenPrimitives( up_exact.uvw()[0], maxLevel );
+   communication::syncFunctionBetweenPrimitives( up_exact.uvw()[1], maxLevel );
    communication::syncFunctionBetweenPrimitives( up_exact.p(), maxLevel );
 
    // solver

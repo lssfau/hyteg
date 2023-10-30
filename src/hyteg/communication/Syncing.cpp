@@ -43,13 +43,6 @@ void syncFunctionBetweenPrimitives( const funcType& function, const uint_t& leve
    function.template communicate< Edge, Vertex >( level );
 }
 
-template < typename ValueType >
-void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level )
-{
-   syncFunctionBetweenPrimitives< hyteg::vertexdof::VertexDoFFunction< ValueType > >( function.getVertexDoFFunction(), level );
-   syncFunctionBetweenPrimitives< hyteg::EdgeDoFFunction< ValueType > >( function.getEdgeDoFFunction(), level );
-}
-
 // Version for VectorFunctions
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& vecFunc, const uint_t& level )
@@ -65,16 +58,7 @@ void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& vecFu
 {
    for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
    {
-      syncP2FunctionBetweenPrimitives( vecFunc[idx], level );
-   }
-}
-
-template < typename vType >
-void syncVectorFunctionBetweenPrimitives( const dg::DGVectorFunction< vType >& vecFunc, const uint_t& level )
-{
-   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
-   {
-      syncDGFunctionBetweenPrimitives( vecFunc[idx], level );
+      syncFunctionBetweenPrimitives( vecFunc[idx], level );
    }
 }
 
@@ -85,11 +69,6 @@ void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& p1dgeFunc, 
    for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
       syncFunctionBetweenPrimitives< hyteg::vertexdof::VertexDoFFunction< vType > >( vecFunc[idx], level );
 }
-
-template void syncP2FunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
-template void syncP2FunctionBetweenPrimitives( const P2Function< float >& function, const uint_t& level );
-template void syncP2FunctionBetweenPrimitives( const P2Function< int32_t >& function, const uint_t& level );
-template void syncP2FunctionBetweenPrimitives( const P2Function< int64_t >& function, const uint_t& level );
 
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< double >& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< float >& function, const uint_t& level );
@@ -120,9 +99,8 @@ template void syncVectorFunctionBetweenPrimitives( const EGFunction< double >& f
 template void syncVectorFunctionBetweenPrimitives( const EGFunction< int32_t >& function, const uint_t& level );
 template void syncVectorFunctionBetweenPrimitives( const EGFunction< int64_t >& function, const uint_t& level );
 
-
-void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint_t level ) {
-
+void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint_t level )
+{
    // ----------------------------------------
    //  P1Functions [double, int32_t, int64_t]
    // ----------------------------------------
@@ -160,15 +138,15 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint
    // ----------------------------------------
    for ( const auto& function : feFunctionRegistry.getP2Functions().getFunctions< double >() )
    {
-      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
    for ( const auto& function : feFunctionRegistry.getP2Functions().getFunctions< int32_t >() )
    {
-      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
    for ( const auto& function : feFunctionRegistry.getP2Functions().getFunctions< int64_t >() )
    {
-      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
 
    // ----------------------------------------------

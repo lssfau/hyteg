@@ -109,7 +109,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
    LIKWID_MARKER_START( "sync all" );
    timer.reset();
    for ( uint_t i = 0; i < numIterations; i++ )
-      communication::syncP2FunctionBetweenPrimitives( dst, level );
+      communication::syncFunctionBetweenPrimitives( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "sync all" );
    WALBERLA_LOG_INFO_ON_ROOT( "sync all:                           " << timer.last() );

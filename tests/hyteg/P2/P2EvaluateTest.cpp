@@ -62,7 +62,7 @@ void test2D()
    x.interpolate( testFunc, maxLevel );
 
    // IMPORTANT
-   communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
    Point3D coordinates(  real_c( 0.0 ), real_c( 0.5 ), real_c( 0.0 )  );
    real_t  eval;

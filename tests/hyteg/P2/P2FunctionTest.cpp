@@ -68,7 +68,7 @@ static void testP2Function()
    x.interpolate( expr, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -93,7 +93,7 @@ static void testP2Function()
    y.assign( {3.0}, {x}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -117,7 +117,7 @@ static void testP2Function()
    timer["Add"].start();
    y.add( {{4.0, 3.0}}, {{x, x}}, maxLevel, DoFType::All );
    timer["Add"].end();
-   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {

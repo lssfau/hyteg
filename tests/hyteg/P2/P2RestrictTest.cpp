@@ -52,7 +52,7 @@ static void testP2Restrict() {
 
   x->enumerate( sourceLevel );
   x->add({1.0},{ident},sourceLevel, hyteg::All);
-  hyteg::communication::syncP2FunctionBetweenPrimitives( *x, sourceLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *x, sourceLevel );
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;

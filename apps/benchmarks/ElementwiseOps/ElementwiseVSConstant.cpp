@@ -240,10 +240,10 @@ int main( int argc, char** argv )
    dstConst.interpolate( zeros, benchLevel, hyteg::All );
    dstElem.interpolate( zeros, benchLevel, hyteg::All );
    diff.interpolate( zeros, benchLevel, hyteg::All );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( src, benchLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( dstConst, benchLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( dstElem, benchLevel );
-   hyteg::communication::syncP2FunctionBetweenPrimitives( diff, benchLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( src, benchLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( dstConst, benchLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( dstElem, benchLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( diff, benchLevel );
 
    //each process will get its first tet here
    std::vector< hyteg::PrimitiveID > macroCells = storage->getCellIDs();

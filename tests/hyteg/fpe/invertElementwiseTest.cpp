@@ -70,7 +70,7 @@ int main( int argc, char** argv )
    tFunc2.interpolate( real_c( 0.5 ), level, All );
 
    logSectionHeader( "Testing invertElementwise() after syncing halos:" );
-   communication::syncP2FunctionBetweenPrimitives( tFunc1, level );
+   communication::syncFunctionBetweenPrimitives( tFunc1, level );
    bool workOnHalos = true;
    WALBERLA_LOG_INFO_ON_ROOT( "workOnHalos = " << std::boolalpha << workOnHalos );
    tFunc1.invertElementwise( level, All, workOnHalos );

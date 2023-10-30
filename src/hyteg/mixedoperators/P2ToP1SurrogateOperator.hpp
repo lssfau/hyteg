@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Benjamin Mann.
+ * Copyright (c) 2017-2023 Benjamin Mann, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,10 +20,10 @@
 
 #pragma once
 #include <array>
-#include <hyteg/operators/Operator.hpp>
 #include <hyteg/mixedoperators/polynomial/P2P1MacroFacePolynomial.hpp>
 #include <hyteg/mixedoperators/polynomial/P2P1PolynomialDataHandling.hpp>
 #include <hyteg/mixedoperators/variablestencil/P2P1VariableStencilCommon.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
@@ -152,7 +152,7 @@ class P2ToP1SurrogateOperator : public Operator< P2Function< real_t >, P1Functio
    {
       checkForMissingPolynomial( level );
 
-      communication::syncP2FunctionBetweenPrimitives( src, level );
+      communication::syncFunctionBetweenPrimitives( src, level );
 
       const vertexdof::VertexDoFFunction< real_t >& srcVertexDoF = src.getVertexDoFFunction();
       const EdgeDoFFunction< real_t >&              srcEdgeDoF   = src.getEdgeDoFFunction();

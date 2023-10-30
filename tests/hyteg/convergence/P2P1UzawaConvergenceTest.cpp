@@ -120,7 +120,7 @@ int main( int argc, char* argv[] )
    u_exact.uvw()[0].interpolate( solutionU, maxLevel );
    u_exact.p().interpolate( solutionP, maxLevel );
 
-   hyteg::communication::syncP2FunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p(), maxLevel );
 
    auto gmgSolver = hyteg::solvertemplates::stokesGMGUzawaSolver< hyteg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
