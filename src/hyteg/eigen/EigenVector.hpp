@@ -18,6 +18,8 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/eigen/EigenVectorProxy.hpp"
