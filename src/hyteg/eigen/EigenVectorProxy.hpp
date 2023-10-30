@@ -32,6 +32,9 @@ using walberla::uint_t;
 class EigenConstVectorProxy : public VectorProxy
 {
  public:
+   /// \brief Create a read-only view/proxy onto the passed vector.
+   ///
+   /// The caller must ensure that `vectorRef` outlives `this`.
    EigenConstVectorProxy( const Eigen::VectorX< real_t >& vectorRef )
    : vectorRef_( vectorRef )
    {}
