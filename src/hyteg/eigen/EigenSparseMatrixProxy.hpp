@@ -31,7 +31,9 @@ using walberla::int_c;
 
 /// \brief This class can be used to conveniently create an Eigen sparse matrix object from a HyTeG operator.
 ///
-/// Upon request, the current state of the proxy is converted to a sparse matrix object.
+/// The matrix is internally represented as a triplet of row/col indices and the value.
+/// This allows efficient assembly of the sparse matrix.
+/// Once finished, the current state of the proxy can be converted to an Eigen sparse matrix object.
 class EigenSparseMatrixProxy : public SparseMatrixProxy
 {
  public:
