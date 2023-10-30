@@ -75,8 +75,8 @@ void testMatVec()
 
    Eigen::SparseMatrix< real_t > AEigen = createEigenSparseMatrixFromOperator( op, level, numeratorSrc, numeratorDst );
 
-   Eigen::VectorX< real_t > xEigen = createEigenVectorFromFunction( x, numeratorSrc, level );
-   Eigen::VectorX< real_t > yEigen = AEigen * xEigen;
+   VectorXr xEigen = createEigenVectorFromFunction( x, numeratorSrc, level );
+   VectorXr yEigen = AEigen * xEigen;
 
    assignFunctionFromEigenVector( yEigen, yFromEigen, numeratorDst, level );
 

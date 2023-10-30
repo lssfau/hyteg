@@ -23,23 +23,24 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/eigen/EigenVectorProxy.hpp"
+#include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
-/// \brief Builds and returns an Eigen::VectorX from a HyTeG FE function.
+/// \brief Builds and returns an Eigen VectorX from a HyTeG FE function.
 template < template < class > class FunctionType >
-Eigen::VectorX< real_t > createEigenVectorFromFunction( const FunctionType< real_t >& src,
-                                                        const FunctionType< idx_t >&  numerator,
-                                                        uint_t                        level,
-                                                        DoFType                       flag = All )
+VectorXr createEigenVectorFromFunction( const FunctionType< real_t >& src,
+                                        const FunctionType< idx_t >&  numerator,
+                                        uint_t                        level,
+                                        DoFType                       flag = All )
 {
    WALBERLA_CHECK_EQUAL(
        walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Eigen vectors are not suited for MPI parallel applications." )
 
    const uint_t rows = numberOfLocalDoFs( numerator, level );
 
-   Eigen::VectorX< real_t > x;
+   VectorXr x;
    x.resize( rows );
 
    auto proxy = std::make_shared< EigenVectorProxy >( x );
@@ -48,20 +49,20 @@ Eigen::VectorX< real_t > createEigenVectorFromFunction( const FunctionType< real
    return x;
 }
 
-/// \brief Writes data from an Eigen::VectorX back to the coefficients of a HyTeG FE function.
+/// \brief Writes data from an Eigen VectorX back to the coefficients of a HyTeG FE function.
 template < template < class > class FunctionType >
-void assignFunctionFromEigenVector( const Eigen::VectorX< real_t >& src,
-                                    FunctionType< real_t >&         dst,
-                                    const FunctionType< idx_t >&    numerator,
-                                    uint_t                          level,
-                                    DoFType                         flag = All )
+void assignFunctionFromEigenVector( const VectorXr&              src,
+                                    FunctionType< real_t >&      dst,
+                                    const FunctionType< idx_t >& numerator,
+                                    uint_t                       level,
+                                    DoFType                      flag = All )
 {
    WALBERLA_CHECK_EQUAL(
        walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Eigen vectors are not suited for MPI parallel applications." )
 
    const uint_t rows = numberOfLocalDoFs( numerator, level );
 
-   WALBERLA_CHECK_EQUAL( rows, src.size(), "Source vector (Eigen::VectorX) must be of same size as target FE function." );
+   WALBERLA_CHECK_EQUAL( rows, src.size(), "Source vector (Eigen's VectorX) must be of same size as target FE function." );
 
    auto proxy = std::make_shared< EigenConstVectorProxy >( src );
    dst.fromVector( numerator, proxy, level, flag );

@@ -24,6 +24,7 @@
 
 #include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 
@@ -35,7 +36,7 @@ class EigenConstVectorProxy : public VectorProxy
    /// \brief Create a read-only view/proxy onto the passed vector.
    ///
    /// The caller must ensure that `vectorRef` outlives `this`.
-   EigenConstVectorProxy( const Eigen::VectorX< real_t >& vectorRef )
+   EigenConstVectorProxy( const VectorXr& vectorRef )
    : vectorRef_( vectorRef )
    {}
 
@@ -49,7 +50,7 @@ class EigenConstVectorProxy : public VectorProxy
    virtual real_t getValue( uint_t idx ) const { return vectorRef_( static_cast< Eigen::Index >( idx ) ); }
 
  private:
-   const Eigen::VectorX< real_t >& vectorRef_;
+   const VectorXr& vectorRef_;
 };
 
 class EigenVectorProxy : public VectorProxy
@@ -58,7 +59,7 @@ class EigenVectorProxy : public VectorProxy
    /// \brief Create a mutable view/proxy onto the passed vector.
    ///
    /// The caller must ensure that `vectorRef` outlives `this`.
-   EigenVectorProxy( Eigen::VectorX< real_t >& vectorRef )
+   EigenVectorProxy( VectorXr& vectorRef )
    : vectorRef_( vectorRef )
    {}
 
@@ -69,7 +70,7 @@ class EigenVectorProxy : public VectorProxy
    virtual real_t getValue( uint_t idx ) const { return vectorRef_( static_cast< Eigen::Index >( idx ) ); }
 
  private:
-   Eigen::VectorX< real_t >& vectorRef_;
+   VectorXr& vectorRef_;
 };
 
 } // namespace hyteg
