@@ -55,6 +55,9 @@ class EigenConstVectorProxy : public VectorProxy
 class EigenVectorProxy : public VectorProxy
 {
  public:
+   /// \brief Create a mutable view/proxy onto the passed vector.
+   ///
+   /// The caller must ensure that `vectorRef` outlives `this`.
    EigenVectorProxy( Eigen::VectorX< real_t >& vectorRef )
    : vectorRef_( vectorRef )
    {}
