@@ -982,6 +982,9 @@ waLBerla_execute_test(NAME EigenBasicTestMPI COMMAND $<TARGET_FILE:EigenBasicTes
 waLBerla_compile_test(FILES eigen/EigenAssemblyTest.cpp)
 waLBerla_execute_test(NAME EigenAssemblyTest)
 
+waLBerla_compile_test(FILES eigen/EigenSparseSolverTest.cpp)
+waLBerla_execute_test(NAME EigenSparseSolverTest)
+
 ## N1E1 ##
 # For some reason executing some tests takes forever with clang and gcc in Debug mode.
 set(N1E1_CONDITIONAL_LONGRUN "")
