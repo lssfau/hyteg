@@ -86,7 +86,7 @@ void testMatVec()
 
    WALBERLA_LOG_DEVEL_VAR( errNormInf );
 
-   WALBERLA_CHECK_LESS( errNormInf, 1e-14 );
+   WALBERLA_CHECK_LESS( errNormInf, real_c( 10 ) * std::numeric_limits< real_t >::epsilon() );
 }
 
 int main( int argc, char* argv[] )
