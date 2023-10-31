@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "core/DataTypes.h"
-
 #include <vector>
+
+#include "core/DataTypes.h"
 
 namespace hyteg {
 
@@ -33,28 +33,25 @@ using walberla::uint_t;
 class SparseMatrixProxy
 {
  public:
-
    virtual std::shared_ptr< SparseMatrixProxy > createCopy() const = 0;
 
    /// \brief Adds the passed value on the existing value in the matrix, or sets it to the value if no value exists.
    virtual void addValue( uint_t row, uint_t col, real_t value ) = 0;
 
    /// \brief Adds a "block" of values to the sparse matrix at once.
+   ///
+   /// The values vector is expected to be of size rows.size() * cols.size().
    virtual void
        addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values ) = 0;
 
    /// \brief Stores the product of the passed matrices (as ordered in the vector) in this matrix.
    ///        Can be used to assemble concatenated operators.
-   virtual void
-       createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > > & matrices ) = 0;
+   virtual void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) = 0;
 
-  /// \brief Stores the sum of the passed matrices (as ordered in the vector) in this matrix.
+   /// \brief Stores the sum of the passed matrices (as ordered in the vector) in this matrix.
    ///        Can be used to assemble concatenated operators.
-  virtual void
-        createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )  = 0;
-
+   virtual void createFromMatrixLinComb( const std::vector< real_t >&                               scalars,
+                                         const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) = 0;
 };
-
-
 
 } // namespace hyteg
