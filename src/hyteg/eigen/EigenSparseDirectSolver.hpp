@@ -42,7 +42,7 @@ class EigenSparseDirectSolver : public Solver< OperatorType >
    EigenSparseDirectSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
    : storage_( storage )
    , level_( level )
-   , numerator_( typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
+   , numerator_( typename FunctionType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
    , hasBeenAssembled_( false )
    , reassembleMatrix_( false )
    {
@@ -66,9 +66,21 @@ class EigenSparseDirectSolver : public Solver< OperatorType >
 
       mat_ = createEigenSparseMatrixFromOperator( A, level_, numerator_, numerator_ );
 
+      // After the sparse matrix assembly via the operator-provided methods, it remains to impose the Dirichlet boundary
+      // conditions. The corresponding boundary values are "DoFs" of the solution (FE) function that are never altered by the
+      // solver. To reflect that in the linear system that we are assembling here, the right-hand side entries that correspond
+      // to Dirichlet "DoFs" are set to the corresponding values, and the respective matrix rows are set to 1 on the diagonal
+      // and zero elsewhere - therefore enforcing the boundary conditions algebraically.
+
+      // Note that this process is likely rendering previously symmetric matrices to be not symmetric afterward.
+      // The symmetry could be restored by elimination. However, since this solver is not really supposed to be used for
+      // "production" runs, I have decided to defer the corresponding implementation ;)
+
+      // The helper function below gathers all DoF indices that correspond to Dirichlet boundary values.
       std::vector< idx_t > bcIndices;
       applyDirichletBC( numerator_, bcIndices, level_ );
 
+      // Now we loop through all corresponding rows, set their diagonals to 1, and zero the remaining entries.
       for ( auto row : bcIndices )
       {
          for ( Eigen::SparseMatrix< real_t, Eigen::RowMajor >::InnerIterator it( mat_, static_cast< Eigen::Index >( row ) ); it;
@@ -84,6 +96,8 @@ class EigenSparseDirectSolver : public Solver< OperatorType >
             }
          }
       }
+
+      hasBeenAssembled_ = true;
 
       storage_->getTimingTree()->stop( "Matrix assembly" );
 
@@ -140,9 +154,9 @@ class EigenSparseDirectSolver : public Solver< OperatorType >
 
    Eigen::SparseLU< Eigen::SparseMatrix< real_t > > solver_;
 
-   Eigen::SparseMatrix< real_t, Eigen::RowMajor >                 mat_;
-   VectorXr                                                       rhs_;
-   typename OperatorType::srcType::template FunctionType< idx_t > numerator_;
+   Eigen::SparseMatrix< real_t, Eigen::RowMajor >        mat_;
+   VectorXr                                              rhs_;
+   typename FunctionType::template FunctionType< idx_t > numerator_;
 
    bool hasBeenAssembled_;
    bool reassembleMatrix_;

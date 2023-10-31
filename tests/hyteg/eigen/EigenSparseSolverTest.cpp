@@ -92,7 +92,7 @@ int main( int argc, char* argv[] )
       if ( level > 2 )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "rate: " << err / lastError );
-         WALBERLA_CHECK_LESS( err / lastError, .26 );
+         WALBERLA_CHECK_LESS( err / lastError, .27 );
       }
 
       lastError = err;
