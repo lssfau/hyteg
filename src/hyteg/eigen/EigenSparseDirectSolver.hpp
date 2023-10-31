@@ -37,7 +37,7 @@ template < class OperatorType >
 class EigenSparseDirectSolver : public Solver< OperatorType >
 {
  public:
-   typedef typename OperatorType::srcType FunctionType;
+   using FunctionType = typename OperatorType::srcType;
 
    EigenSparseDirectSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
    : storage_( storage )
