@@ -51,7 +51,7 @@ class EigenSparseDirectSolver : public Solver< OperatorType >
 
    /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
    ///        Default is false.
-   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
+   void setReassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
    /// \brief Assembles and factorizes the sparse matrix if either the matrix has not been assembled previously
    /// or reassembly is forced.
