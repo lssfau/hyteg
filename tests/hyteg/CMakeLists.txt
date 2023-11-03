@@ -589,6 +589,16 @@ endif ()
 waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
+## Communication ##
+waLBerla_compile_test(FILES communication/BufferedCommunicationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest>)
+waLBerla_execute_test(NAME BufferedCommunicationTest3 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 3)
+waLBerla_execute_test(NAME BufferedCommunicationTest8 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 8)
+
+waLBerla_compile_test(FILES communication/SyncingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME SyncingTest1 COMMAND $<TARGET_FILE:SyncingTest>)
+waLBerla_execute_test(NAME SyncingTest3 COMMAND $<TARGET_FILE:SyncingTest> PROCESSES 3)
+
 ## Other ##
 
 
@@ -626,11 +636,6 @@ if (WALBERLA_BUILD_WITH_MPI)
     waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest3 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 3)
     waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest4 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 4)
 endif()
-
-waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest>)
-waLBerla_execute_test(NAME BufferedCommunicationTest3 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 3)
-waLBerla_execute_test(NAME BufferedCommunicationTest8 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 8)
 
 waLBerla_compile_test(FILES adaptivity/PrimitiveMigrationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveMigrationTest1 COMMAND $<TARGET_FILE:PrimitiveMigrationTest>)
