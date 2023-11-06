@@ -52,6 +52,7 @@ variables:
       -DHYTEG_TERRANEO_MODULE=$HYTEG_TERRANEO_MODULE
       -DHYTEG_DOWNLOAD_BOOST=$HYTEG_DOWNLOAD_BOOST
       -DHYTEG_BUILD_WITH_ADIOS2=$HYTEG_BUILD_WITH_ADIOS2
+      -DHYTEG_BUILD_WITH_MPFR=$HYTEG_BUILD_WITH_MPFR
       -DWALBERLA_SANITIZE_ADDRESS=$WALBERLA_SANITIZE_ADDRESS
       -DWALBERLA_SANITIZE_UNDEFINED=$WALBERLA_SANITIZE_UNDEFINED
       -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=$WALBERLA_OPTIMIZE_FOR_LOCALHOST
@@ -77,6 +78,7 @@ variables:
     HYTEG_BUILD_WITH_ADIOS2: "ON"
     HYTEG_BUILD_WITH_PETSC: "OFF"
     HYTEG_BUILD_WITH_TRILINOS: "OFF"
+    HYTEG_BUILD_WITH_MPFR: "ON"
     HYTEG_DOWNLOAD_BOOST: "OFF"
     HYTEG_TERRANEO_MODULE: "OFF"
     WALBERLA_BUFFER_DEBUG: "OFF"
@@ -531,6 +533,219 @@ gcc_12_mpionly_eigen_petsc_trilinos_no_werror:
     WARNING_ERROR: "OFF"
   when: manual
   needs: [ ]
+  tags:
+    - docker
+
+clang_9.0_serial:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  variables:
+    WALBERLA_BUILD_WITH_MPI: "OFF"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_9.0_mpionly:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  variables:
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_9.0_serial_dbg_sp:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  before_script:
+    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
+  variables:
+    WALBERLA_BUILD_WITH_MPI: "OFF"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+    CMAKE_BUILD_TYPE: "DebugOptimized"
+    WALBERLA_DOUBLE_ACCURACY: "OFF"
+    WALBERLA_BUILD_WITH_METIS: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_9.0_mpionly_dbg_petsc-complex_trilinos:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  variables:
+    CMAKE_BUILD_TYPE: "DebugOptimized"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    PETSC_DIR: "/opt/view"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_9.0_mpionly_petsc_trilinos:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+  variables:
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    PETSC_DIR: "/opt/view"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_10.0_serial:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+  variables:
+    WALBERLA_BUILD_WITH_MPI: "OFF"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_10.0_mpionly:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+  variables:
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_10.0_serial_dbg_sp:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+  before_script:
+    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
+  variables:
+    WALBERLA_BUILD_WITH_MPI: "OFF"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+    CMAKE_BUILD_TYPE: "DebugOptimized"
+    WALBERLA_DOUBLE_ACCURACY: "OFF"
+    WALBERLA_BUILD_WITH_METIS: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_10.0_mpionly_dbg_petsc-complex_trilinos:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+  variables:
+    CMAKE_BUILD_TYPE: "DebugOptimized"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    PETSC_DIR: "/opt/view"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_10.0_mpionly_petsc_trilinos:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+  variables:
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    PETSC_DIR: "/opt/view"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_11.0_serial:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+  variables:
+    WALBERLA_BUILD_WITH_MPI: "OFF"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_11.0_mpionly:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+  variables:
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_11.0_serial_dbg_sp:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+  before_script:
+    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
+  variables:
+    WALBERLA_BUILD_WITH_MPI: "OFF"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+    CMAKE_BUILD_TYPE: "DebugOptimized"
+    WALBERLA_DOUBLE_ACCURACY: "OFF"
+    WALBERLA_BUILD_WITH_METIS: "OFF"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_11.0_mpionly_dbg_petsc-complex_trilinos:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+  variables:
+    CMAKE_BUILD_TYPE: "DebugOptimized"
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    PETSC_DIR: "/opt/view"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
+  tags:
+    - docker
+
+clang_11.0_mpionly_petsc_trilinos:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:11.0
+  variables:
+    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    PETSC_DIR: "/opt/view"
+  only:
+    variables:
+      - $ENABLE_NIGHTLY_BUILDS
   tags:
     - docker
 

@@ -4,3 +4,6 @@
 [submodule "eigen"]
 	path = eigen
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "extern/mpfr-wrapper/mpreal"]
+	path = extern/mpfr-wrapper/mpreal
+	url = https://github.com/advanpix/mpreal.git

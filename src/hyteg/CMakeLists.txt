@@ -12,6 +12,10 @@ if ( HYTEG_BUILD_WITH_ADIOS2 )
   endif()
 endif()
 
+if ( HYTEG_BUILD_WITH_MPFR )
+    target_link_libraries(hyteg PUBLIC MPFR::MPFR)
+endif ()
+
 set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF)
 # There seem to be spurious warnings in gcc 12.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366
 # TODO: check if this is still the case for gcc 12.3
