@@ -29,7 +29,7 @@ namespace hyteg {
 
 /// \brief Builds and returns an Eigen::SparseMatrix from a HyTeG operator.
 template < typename OperatorType >
-Eigen::SparseMatrix< real_t >
+Eigen::SparseMatrix< real_t, Eigen::RowMajor >
     createEigenSparseMatrixFromOperator( const OperatorType&                                                   op,
                                          uint_t                                                                level,
                                          const typename OperatorType::srcType::template FunctionType< idx_t >& numeratorSrc,

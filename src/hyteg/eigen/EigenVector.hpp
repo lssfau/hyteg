@@ -49,13 +49,31 @@ VectorXr createEigenVectorFromFunction( const FunctionType< real_t >& src,
    return x;
 }
 
+/// \brief Builds and returns an Eigen VectorX from a HyTeG FE function.
+template < template < class > class FunctionType >
+void assignEigenVectorFromFunction( const FunctionType< real_t >& src,
+                                    VectorXr&                     dst,
+                                    const FunctionType< idx_t >&  numerator,
+                                    uint_t                        level,
+                                    DoFType                       flag = All )
+{
+   WALBERLA_CHECK_EQUAL(
+       walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Eigen vectors are not suited for MPI parallel applications." )
+
+   const uint_t rows = numberOfLocalDoFs( numerator, level );
+   WALBERLA_CHECK_EQUAL( dst.rows(), rows );
+
+   auto proxy = std::make_shared< EigenVectorProxy >( dst );
+   src.toVector( numerator, proxy, level, flag );
+}
+
 /// \brief Writes data from an Eigen VectorX back to the coefficients of a HyTeG FE function.
 template < template < class > class FunctionType >
-void assignFunctionFromEigenVector( const VectorXr&              src,
-                                    FunctionType< real_t >&      dst,
-                                    const FunctionType< idx_t >& numerator,
-                                    uint_t                       level,
-                                    DoFType                      flag = All )
+void assignFunctionFromEigenVector( const VectorXr&               src,
+                                    const FunctionType< real_t >& dst,
+                                    const FunctionType< idx_t >&  numerator,
+                                    uint_t                        level,
+                                    DoFType                       flag = All )
 {
    WALBERLA_CHECK_EQUAL(
        walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Eigen vectors are not suited for MPI parallel applications." )

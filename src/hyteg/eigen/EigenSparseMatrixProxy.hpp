@@ -87,9 +87,10 @@ class EigenSparseMatrixProxy : public SparseMatrixProxy
    }
 
    /// \brief Builds a compressed Eigen::SparseMatrix from the current state of the proxy.
-   Eigen::SparseMatrix< real_t > getSparseMatrix() const
+   Eigen::SparseMatrix< real_t, Eigen::RowMajor > getSparseMatrix() const
    {
-      Eigen::SparseMatrix< real_t > mat( static_cast< Eigen::Index >( rows_ ), static_cast< Eigen::Index >( cols_ ) );
+      Eigen::SparseMatrix< real_t, Eigen::RowMajor > mat( static_cast< Eigen::Index >( rows_ ),
+                                                          static_cast< Eigen::Index >( cols_ ) );
       mat.setFromTriplets( tripletList_.begin(), tripletList_.end() );
       return mat;
    }
