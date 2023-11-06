@@ -8,6 +8,7 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+option ( HYTEG_BUILD_WITH_MPFR        "Build with MPFR"                              OFF)
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
@@ -38,7 +39,21 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 
 find_package(waLBerla)
 
-if (NOT WALBERLA_DOUBLE_ACCURACY)
+if ( HYTEG_BUILD_WITH_MPFR )
+    # Extends cmake module path - so that FindMPFR.cmake in the current directory is found
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EIGEN_DIR}/cmake)
+
+    find_package(MPFR REQUIRED)
+    add_library(MPFR::MPFR INTERFACE IMPORTED)
+    set_target_properties(MPFR::MPFR PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${MPFR_INCLUDES}"
+            INTERFACE_LINK_LIBRARIES "${MPFR_LIBRARIES}"
+    )
+    # add the path of the mpfr-wrapper to the include path
+    include_directories(SYSTEM extern/mpfr-wrapper)
+endif ()
+
+if (NOT WALBERLA_DOUBLE_ACCURACY AND HYTEG_USE_GENERATED_KERNELS)
    set(HYTEG_USE_GENERATED_KERNELS OFF)
    message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF")
 endif ()
