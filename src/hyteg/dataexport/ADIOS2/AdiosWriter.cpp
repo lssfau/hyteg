@@ -31,7 +31,7 @@ using walberla::uint_t;
 
 void AdiosWriter::write( const uint_t level, const uint_t timestep )
 {
-   communication::syncRegisteredFunctions( feFunctionRegistry_, level );
+   communication::syncRegisteredFunctions( feFunctionRegistry_, level, communication::syncDirection_t::LOW2HIGH );
 
    // for each registered function type check whether a writer for the given level
    // already exists
