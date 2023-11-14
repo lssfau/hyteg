@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
    testL2Dot< real_t, 5 >( storage, u, v, 60.0 * pi, 5, eps );
    testL2Dot< Point3D, 5 >( storage, u3, u3, 60.0 * pi, 5, eps );
    testRHS< P1Mass, P1, real_t, 5 >( storage, f, 5, 5e-6, 2e-5 );
-   testRHS< P2Mass, P2, real_t, 7 >( storage, f, 5, 5e-5, 2e-4 );
+   testRHS< P2Mass, P2, real_t, 7 >( storage, f, 5, 5e-9, 2e-8 );
 
    // === test polynomials 3D ===
 
