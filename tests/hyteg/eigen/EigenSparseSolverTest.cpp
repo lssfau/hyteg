@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   real_t lastError;
+   real_t lastError = 0;
 
    for ( uint_t level = 2; level < 6; level++ )
    {
