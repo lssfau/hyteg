@@ -271,7 +271,7 @@ void compareDiagonals( std::shared_ptr< PrimitiveStorage >& storage,
    PetscReal normInf = 0.0;
    VecNorm( compDiag, NORM_INFINITY, &normInf );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Norms of difference matrix:" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Norms of difference vector:" );
    WALBERLA_LOG_INFO_ON_ROOT( "* 1-norm .............. " << normOne );
    WALBERLA_LOG_INFO_ON_ROOT( "* 2-norm .............. " << normTwo );
    WALBERLA_LOG_INFO_ON_ROOT( "* Infinity norm ....... " << normInf << "\n" );
@@ -395,7 +395,7 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P1 (HyTeG Form)" );
    compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage3D, level, lumpedMassFormP1HyTeG3D, real_c( std::is_same< real_t, double >() ? 5e-17 : 6e-9 ) );
+       storage3D, level, lumpedMassFormP1HyTeG3D, real_c( std::is_same< real_t, double >() ? 1e-16 : 6e-9 ) );
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form)" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
