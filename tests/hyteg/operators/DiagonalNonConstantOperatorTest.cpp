@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr.
+ * Copyright (c) 2020-2023 Marcus Mohr, Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,23 +21,20 @@
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 
 #include "core/DataTypes.h"
-#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -88,10 +85,7 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    funcType funcOut2( "output 2", storage, level, level );
    funcType funcErr( "error", storage, level, level );
 
-   walberla::math::seedRandomGenerator( 1234 );
-   auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
-   funcInp.interpolate( rand, level, All );
-   // funcInp.interpolate( 1.9, level, All );
+   funcInp.interpolate( 1.0, level, All );
 
    cOper.apply( funcInp, funcOut1, level, All );
    vOper.apply( funcInp, funcOut2, level, All );
@@ -99,7 +93,6 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    funcErr.assign( { 1.0, -1.0 }, { funcOut1, funcOut2 }, level, All );
    real_t maxErr = funcErr.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal difference = " << maxErr );
-   WALBERLA_CHECK_LESS( maxErr, bound );
 
    if ( outputVTK )
    {
@@ -110,6 +103,8 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
       vtkOutput.add( funcErr );
       vtkOutput.write( level );
    }
+
+   WALBERLA_CHECK_LESS( maxErr, bound );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -220,6 +215,69 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
    WALBERLA_CHECK_LESS_EQUAL( normInf, limits[2] );
 }
 
+template < class cOperType, class vOperType, class FormType, bool isP1 >
+void compareDiagonals( std::shared_ptr< PrimitiveStorage >& storage,
+                       uint_t                               level,
+                       std::shared_ptr< FormType >&         form,
+                       real_t                               bound )
+{
+   PETScManager                   petscManager;
+   PETScSparseMatrix< vOperType > testMat( "diagonal matrix 1" );
+   PETScSparseMatrix< cOperType > compMat( "diagonal matrix 2" );
+
+   typename vOperType::srcType::template FunctionType< idx_t > enumerator( "enumerator", storage, level, level );
+   enumerator.enumerate( level );
+
+   vOperType vOper( storage, level, level, form );
+   testMat.createMatrixFromOperator( vOper, level, enumerator, All );
+
+   cOperType cOper = factory< cOperType, FormType, isP1 >::genOperator( storage, level, *form );
+   compMat.createMatrixFromOperator( cOper, level, enumerator, All );
+
+   PetscInt localSize, globalSize;
+   MatGetSize( testMat.get(), &localSize, &globalSize );
+   MatSetSizes( testMat.get(), localSize, localSize, globalSize, globalSize );
+   MatSetSizes( compMat.get(), localSize, localSize, globalSize, globalSize );
+
+   Vec testDiag;
+   VecCreate( walberla::mpi::MPIManager::instance()->comm(), &testDiag );
+   VecSetType( testDiag, VECMPI );
+   VecSetSizes( testDiag, localSize, globalSize );
+   VecSetUp( testDiag );
+   MatGetDiagonal( testMat.get(), testDiag );
+
+   Vec compDiag;
+   VecCreate( walberla::mpi::MPIManager::instance()->comm(), &compDiag );
+   VecSetType( compDiag, VECMPI );
+   VecSetSizes( compDiag, localSize, globalSize );
+   VecSetUp( compDiag );
+   MatGetDiagonal( compMat.get(), compDiag );
+
+   // determine difference between diagonals and its norms
+   PetscErrorCode ierr;
+   ierr = VecAXPY( compDiag, -1.0, testDiag );
+   if ( ierr != 0 )
+   {
+      WALBERLA_ABORT( "Shit happened in PETSc! Our fault most likely!" );
+   }
+
+   PetscReal normOne = 0.0;
+   VecNorm( compDiag, NORM_1, &normOne );
+
+   PetscReal normTwo = 0.0;
+   VecNorm( compDiag, NORM_2, &normTwo );
+
+   PetscReal normInf = 0.0;
+   VecNorm( compDiag, NORM_INFINITY, &normInf );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Norms of difference matrix:" );
+   WALBERLA_LOG_INFO_ON_ROOT( "* 1-norm .............. " << normOne );
+   WALBERLA_LOG_INFO_ON_ROOT( "* 2-norm .............. " << normTwo );
+   WALBERLA_LOG_INFO_ON_ROOT( "* Infinity norm ....... " << normInf << "\n" );
+
+   WALBERLA_CHECK_LESS_EQUAL( normInf, bound );
+}
+
 #endif
 
 int main( int argc, char* argv[] )
@@ -282,6 +340,25 @@ int main( int argc, char* argv[] )
    compareOperators< P1DiagonalLaplaceOperator, P1BlendingLaplaceDiagonalOperator, P1LaplaceForm_T, true >(
        storage, level, p1LaplaceForm2D, real_c( 5e-15 ) );
 
+   // -------------------------------------
+   //  Perform 2D experiment with blending
+   // -------------------------------------
+   // Regression test for https://i10git.cs.fau.de/hyteg/hyteg/-/merge_requests/665
+
+   WALBERLA_LOG_INFO_ON_ROOT( "======================\n  2D TESTS (blending)\n======================" );
+
+   meshInfo     = MeshInfo::meshAnnulus( 2, 4, MeshInfo::CRISS, 6, 2 );
+   setupStorage = SetupPrimitiveStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   AnnulusMap::setMap( setupStorage );
+   storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   printTestHdr( "Testing Mass Lumping for P2" );
+   std::shared_ptr< forms::p2_mass_blending_q5 > p2MassFormBlending = std::make_shared< forms::p2_mass_blending_q5 >();
+   compareDiagonals< P2ElementwiseOperator< forms::p2_mass_blending_q5 >,
+                     DiagonalNonConstantOperator< P2ElementwiseOperator, forms::p2_mass_blending_q5 >,
+                     forms::p2_mass_blending_q5,
+                     false >( storage, level, p2MassFormBlending, real_c( std::is_same< real_t, double >() ? 8e-18 : 5e-09 ) );
+
    // ----------------------------
    //  Prepare setup for 3D tests
    // ----------------------------
@@ -315,7 +392,7 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form)" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
-       storage, level, lumpedMassFormP2HyTeG, real_c( std::is_same<real_t, double>() ? 1e-16 : 8e-10 ) );
+       storage, level, lumpedMassFormP2HyTeG, real_c( std::is_same< real_t, double >() ? 1e-16 : 8e-10 ) );
 
    // ----------------------
    //  Test Matrix Assembly
