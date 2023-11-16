@@ -345,14 +345,14 @@ int main( int argc, char* argv[] )
    // -------------------------------------
    // Regression test for https://i10git.cs.fau.de/hyteg/hyteg/-/merge_requests/665
 
-   WALBERLA_LOG_INFO_ON_ROOT( "======================\n  2D TESTS (blending)\n======================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "=======================\n  2D TESTS (blending)\n=======================" );
 
    meshInfo     = MeshInfo::meshAnnulus( 2, 4, MeshInfo::CRISS, 6, 2 );
    setupStorage = SetupPrimitiveStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    AnnulusMap::setMap( setupStorage );
    storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   printTestHdr( "Testing Mass Lumping for P2" );
+   printTestHdr( "Testing Mass Diagonal for P2" );
    std::shared_ptr< forms::p2_mass_blending_q5 > p2MassFormBlending = std::make_shared< forms::p2_mass_blending_q5 >();
    compareDiagonals< P2ElementwiseOperator< forms::p2_mass_blending_q5 >,
                      DiagonalNonConstantOperator< P2ElementwiseOperator, forms::p2_mass_blending_q5 >,
