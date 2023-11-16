@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2023 Nils Kohl, Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,6 +19,9 @@
  */
 
 #pragma once
+
+#include "core/debug/CheckFunctions.h"
+#include "core/debug/Debug.h"
 
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
@@ -50,18 +53,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 #ifndef PETSC_USE_COMPLEX
    void addValue( uint_t row, uint_t col, real_t value ) override
    {
-      PetscReal petscVal;
-
-      // check whether we need to convert between PetscReal and real_t
-      if constexpr ( std::is_same< PetscReal, real_t >::value )
-      {
-         petscVal = value;
-      }
-      else
-      {
-         static_cast< PetscReal >( value );
-      }
-
+      PetscReal petscVal = static_cast< PetscReal >( value );
       MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), petscVal, ADD_VALUES );
    }
 
@@ -90,7 +82,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
                        static_cast< PetscInt >( petscCols.size() ),
                        petscCols.data(),
                        // This cast is only here to prevent compiler errors
-                       reinterpret_cast<const PetscReal *>( values.data() ),
+                       reinterpret_cast< const PetscReal* >( values.data() ),
                        ADD_VALUES );
       }
       else
