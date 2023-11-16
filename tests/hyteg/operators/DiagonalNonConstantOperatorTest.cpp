@@ -410,11 +410,11 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P1 (FEniCS Form, 2D)" );
    compareMatrices< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, real_c( 1e-16 ) );
+       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-16 : 2e-08 ) );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form, 2D)" );
    compareMatrices< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, real_c( 1e-11 ) );
+       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-11 : 2e-04 ) );
 
 #endif
 
