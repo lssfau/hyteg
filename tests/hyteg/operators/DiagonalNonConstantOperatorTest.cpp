@@ -346,6 +346,8 @@ int main( int argc, char* argv[] )
    // -------------------------------------
    // Regression test for https://i10git.cs.fau.de/hyteg/hyteg/-/merge_requests/665
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
    WALBERLA_LOG_INFO_ON_ROOT( "=======================\n  2D TESTS (blending)\n=======================" );
 
    meshInfo = MeshInfo::meshAnnulus( 2, 4, MeshInfo::CRISS, 6, 2 );
@@ -361,6 +363,8 @@ int main( int argc, char* argv[] )
                      forms::p2_mass_blending_q5,
                      false >(
        storageBlending, level, p2MassFormBlending, real_c( std::is_same< real_t, double >() ? 8e-18 : 5e-09 ) );
+
+#endif
 
    // ----------------------------
    //  Prepare setup for 3D tests
