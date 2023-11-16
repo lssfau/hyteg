@@ -98,7 +98,7 @@ void assembleVertexToEdgeStencils(
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& macroEdgeStencilID,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face >& macroFaceStencilID,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell >& macroCellStencilID,
-    const VertexDoFToEdgeDoFForm&                                                                form )
+    VertexDoFToEdgeDoFForm&                                                                      form )
 {
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
@@ -114,6 +114,7 @@ void assembleVertexToEdgeStencils(
          for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
          {
             const auto& cell = *( storage->getCell( edge.neighborCells().at( neighborCellID ) ) );
+            form.setGeometryMap( cell.getGeometryMap() );
 
             const uint_t cellLocalEdgeID = cell.getLocalEdgeID( edge.getID() );
             const auto   basisInCell     = algorithms::getMissingIntegersAscending< 2, 4 >(
@@ -149,6 +150,7 @@ void assembleVertexToEdgeStencils(
             for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
             {
                const auto& cell = *( storage->getCell( face.neighborCells().at( neighborCellID ) ) );
+               form.setGeometryMap( cell.getGeometryMap() );
 
                const std::array< edgedof::EdgeDoFOrientation, 3 > faceOrientations = {
                    edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y, edgedof::EdgeDoFOrientation::XY };
@@ -198,6 +200,7 @@ void assembleVertexToEdgeStencils(
          for ( const auto& it : storage->getCells() )
          {
             const auto& cell = *it.second;
+            form.setGeometryMap( cell.getGeometryMap() );
 
             auto& vertexToEdgeStencilMemory = cell.getData( macroCellStencilID )->getData( level );
             for ( const auto& centerOrientation : edgedof::allEdgeDoFOrientations )

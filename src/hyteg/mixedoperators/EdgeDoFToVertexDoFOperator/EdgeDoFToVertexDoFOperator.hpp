@@ -97,7 +97,7 @@ void assembleEdgeToVertexStencils(
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >&     macroEdgeStencilID,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >&     macroFaceStencilID,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell >&     macroCellStencilID,
-    const EdgeDoFToVertexDoFForm&                                                                    form )
+    EdgeDoFToVertexDoFForm&                                                                          form )
 {
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
@@ -113,12 +113,13 @@ void assembleEdgeToVertexStencils(
          for ( uint_t neighborCellID = 0; neighborCellID < vertex.getNumNeighborCells(); neighborCellID++ )
          {
             const auto& cell = *( storage->getCell( vertex.neighborCells().at( neighborCellID ) ) );
+            form.setGeometryMap( cell.getGeometryMap() );
 
             const uint_t cellLocalVertexID = cell.getLocalVertexID( vertex.getID() );
-            const auto   basisInCell       = algorithms::getMissingIntegersAscending< 1, 4 >( {cellLocalVertexID} );
+            const auto   basisInCell       = algorithms::getMissingIntegersAscending< 1, 4 >( { cellLocalVertexID } );
 
             const auto vertexAssemblyIndexInCell = indexing::basisConversion(
-                indexing::Index( 0, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+                indexing::Index( 0, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
             auto& edgeToVertexStencilMemory = vertex.getData( macroVertexStencilID )->getData( level );
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
@@ -145,14 +146,15 @@ void assembleEdgeToVertexStencils(
             for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
             {
                const auto& cell = *( storage->getCell( edge.neighborCells().at( neighborCellID ) ) );
+               form.setGeometryMap( cell.getGeometryMap() );
 
                const uint_t cellLocalEdgeID = cell.getLocalEdgeID( edge.getID() );
                const auto   basisInCell     = algorithms::getMissingIntegersAscending< 2, 4 >(
-                   {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-                    cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+                   { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+                           cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
                const auto vertexAssemblyIndexInCell = indexing::basisConversion(
-                   indexing::Index( 1, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+                   indexing::Index( 1, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
                auto& edgeToVertexStencilMemory = edge.getData( macroEdgeStencilID )->getData( level );
                for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
@@ -180,6 +182,7 @@ void assembleEdgeToVertexStencils(
             for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
             {
                const auto& cell = *( storage->getCell( face.neighborCells().at( neighborCellID ) ) );
+               form.setGeometryMap( cell.getGeometryMap() );
 
                const uint_t                  localFaceID          = cell.getLocalFaceID( face.getID() );
                const std::array< uint_t, 4 > localVertexIDsAtCell = {
@@ -188,10 +191,10 @@ void assembleEdgeToVertexStencils(
                    cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ),
                    6 - cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ) -
                        cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ) -
-                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 )};
+                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) };
                const auto vertexAssemblyIndexInCell = indexing::basisConversion( indexing::Index( 1, 1, 0 ),
                                                                                  localVertexIDsAtCell,
-                                                                                 {0, 1, 2, 3},
+                                                                                 { 0, 1, 2, 3 },
                                                                                  levelinfo::num_microvertices_per_edge( level ) );
 
                auto& edgeToVertexStencilMemory = face.getData( macroFaceStencilID )->getData( level );
@@ -213,6 +216,7 @@ void assembleEdgeToVertexStencils(
          for ( const auto& it : storage->getCells() )
          {
             const auto& cell = *it.second;
+            form.setGeometryMap( cell.getGeometryMap() );
 
             auto& edgeToVertexStencilMemory = cell.getData( macroCellStencilID )->getData( level );
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
