@@ -100,7 +100,7 @@ int main( int argc, char* argv[] )
    //  TESTS
    // -------
 
-   const real_t eps = ( std::is_same_v< real_t, double > ) ? 5e-12 : 5e-5;
+   const real_t eps = real_c( std::is_same_v< real_t, double > ? 5e-12 : 5e-5 );
 
    using P1     = P1Function< real_t >;
    using P2     = P2Function< real_t >;
@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
    testL2Dot< real_t, 5 >( storage, u, v, 60.0 * pi, 5, eps );
    testL2Dot< Point3D, 5 >( storage, u3, u3, 60.0 * pi, 5, eps );
    testRHS< P1Mass, P1, real_t, 5 >( storage, f, 5, 5e-6, 2e-5 );
-   testRHS< P2Mass, P2, real_t, 7 >( storage, f, 5, 5e-9, 2e-8 );
+   testRHS< P2Mass, P2, real_t, 7 >( storage, f, 5, 2e-9, real_c( std::is_same_v< real_t, double > ? 2e-8 : 6e-6 ) );
 
    // === test polynomials 3D ===
 
