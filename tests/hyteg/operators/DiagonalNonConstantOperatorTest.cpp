@@ -33,6 +33,7 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
@@ -347,17 +348,19 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "=======================\n  2D TESTS (blending)\n=======================" );
 
-   meshInfo     = MeshInfo::meshAnnulus( 2, 4, MeshInfo::CRISS, 6, 2 );
-   setupStorage = SetupPrimitiveStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   AnnulusMap::setMap( setupStorage );
-   storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   meshInfo = MeshInfo::meshAnnulus( 2, 4, MeshInfo::CRISS, 6, 2 );
+   SetupPrimitiveStorage setupStorageBlending( meshInfo,
+                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   AnnulusMap::setMap( setupStorageBlending );
+   std::shared_ptr< PrimitiveStorage > storageBlending = std::make_shared< PrimitiveStorage >( setupStorageBlending );
 
    printTestHdr( "Testing Mass Diagonal for P2" );
    std::shared_ptr< forms::p2_mass_blending_q5 > p2MassFormBlending = std::make_shared< forms::p2_mass_blending_q5 >();
    compareDiagonals< P2ElementwiseOperator< forms::p2_mass_blending_q5 >,
                      DiagonalNonConstantOperator< P2ElementwiseOperator, forms::p2_mass_blending_q5 >,
                      forms::p2_mass_blending_q5,
-                     false >( storage, level, p2MassFormBlending, real_c( std::is_same< real_t, double >() ? 8e-18 : 5e-09 ) );
+                     false >(
+       storageBlending, level, p2MassFormBlending, real_c( std::is_same< real_t, double >() ? 8e-18 : 5e-09 ) );
 
    // ----------------------------
    //  Prepare setup for 3D tests
