@@ -19,21 +19,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-// The app "PolarLaplacian" demonstrates solving a Laplace problem
-// with Dirichlet boundary conditions on an annulus.
-//
-// This is accomplished by one of two selectable approaches. In both
-// cases the computational domain used is a rectangle.
-//
-// pimpedForm: in this approach we use a form the represents the
-//             Laplacian in polar coordinates, the computational
-//             domain then corresponds to the physical domain
-//
-// geometryMap: here we use a blending approach, i.e. the computational
-//              domain is conceptually mapped onto the physical domain
-//              by polar coordinates and we use a form representing
-//              the Laplacian in standard cartesian form
+/// \file PolarLaplacian.cpp
+///
+/// The app "PolarLaplacian" demonstrates solving a Laplace problem
+/// with Dirichlet boundary conditions on an annulus.
+///
+/// This is accomplished by one of two selectable approaches. In both
+/// cases the computational domain used is a rectangle.
+///
+///  - **pimpedForm:** in this approach we use a form the represents the
+///             Laplacian in polar coordinates, the computational
+///             domain then corresponds to the physical domain
+///  - **geometryMap:** here we use a blending approach, i.e. the
+///             computational domain is conceptually mapped onto the
+///             physical domain by polar coordinates and we use a form
+///             representing the Laplacian in standard cartesian form
 
 #include <core/Environment.h>
 #include <core/math/Constants.h>
