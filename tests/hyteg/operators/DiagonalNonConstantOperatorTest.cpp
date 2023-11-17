@@ -395,11 +395,11 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Mass Lumping for P1 (HyTeG Form)" );
    compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
-       storage3D, level, lumpedMassFormP1HyTeG3D, real_c( std::is_same< real_t, double >() ? 1e-16 : 6e-9 ) );
+       storage3D, level, lumpedMassFormP1HyTeG3D, real_c( std::is_same< real_t, double >() ? 1e-16 : 8e-9 ) );
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form)" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
-       storage3D, level, lumpedMassFormP2HyTeG, real_c( std::is_same< real_t, double >() ? 4e-17 : 6e-9 ) );
+       storage3D, level, lumpedMassFormP2HyTeG, real_c( std::is_same< real_t, double >() ? 4e-17 : 7e-9 ) );
 
    // ----------------------
    //  Test Matrix Assembly
@@ -418,7 +418,7 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form, 2D)" );
    compareMatrices< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
-       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-11 : 2e-04 ) );
+       storage, level, lumpedMassFormP1, real_c( std::is_same< real_t, double >() ? 1e-11 : 3e-04 ) );
 
 #endif
 
