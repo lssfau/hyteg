@@ -8,11 +8,11 @@ Parameters
   cgTolerance 1e-10;
   outputVTK true;
 
-  % solver GS;
+  // solver GS;
   solver MG;
-  % solver CG;
+  // solver CG;
 
-  % method geometryMap;
-  method pimpedForm;
+  method geometryMap;
+  // method pimpedForm;
 
 }
