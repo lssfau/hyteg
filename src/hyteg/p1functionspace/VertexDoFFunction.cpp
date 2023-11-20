@@ -23,6 +23,7 @@
 #include <utility>
 
 #include "core/OpenMP.h"
+#include "core/math/KahanSummation.h"
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
@@ -987,17 +988,26 @@ void macroFaceAssign( const uint_t&                                             
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "1 RHS function" );
+      }
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function(
           dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "1 RHS function" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "2 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1006,11 +1016,17 @@ void macroFaceAssign( const uint_t&                                             
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
 
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "3 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1021,7 +1037,10 @@ void macroFaceAssign( const uint_t&                                             
       vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
 
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
@@ -1270,17 +1289,26 @@ void macroFaceAdd( const uint_t&                                                
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "1 RHS function" );
+      }
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function(
           dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "1 RHS function" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "1 RHS function" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "2 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1288,11 +1316,17 @@ void macroFaceAdd( const uint_t&                                                
       auto scalar1  = scalars.at( 1 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions(
           dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "2 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "2 RHS functions" );
+      }
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->start( "3 RHS functions" );
+      }
       auto dstData  = face.getData( dstFaceID )->getPointer( level );
       auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -1302,7 +1336,10 @@ void macroFaceAdd( const uint_t&                                                
       auto scalar2  = scalars.at( 2 );
       vertexdof::macroface::generated::add_2D_macroface_vertexdof_3_rhs_functions(
           dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-      WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "3 RHS functions" ); }
+      WALBERLA_NON_OPENMP_SECTION()
+      {
+         storage.getTimingTree()->stop( "3 RHS functions" );
+      }
    }
    else
    {
@@ -1765,7 +1802,7 @@ template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
    this->startTiming( "Sum (local)" );
-   auto sum = ValueType( 0 );
+   walberla::math::KahanAccumulator< ValueType > sum;
 
    for ( const auto& it : this->getStorage()->getVertices() )
    {
@@ -1806,7 +1843,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t& level, const D
       }
    }
    this->stopTiming( "Sum (local)" );
-   return sum;
+   return sum.get();
 }
 
 template < typename ValueType >
