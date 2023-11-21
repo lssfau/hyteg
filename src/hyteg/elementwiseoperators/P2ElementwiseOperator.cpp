@@ -606,9 +606,9 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    dstVertexData[dofDataIdx[1]] += elMat( 1, 1 );
    dstVertexData[dofDataIdx[2]] += elMat( 2, 2 );
 
-   dstEdgeData[dofDataIdx[3]] += elMat( 4, 4 );
-   dstEdgeData[dofDataIdx[4]] += elMat( 5, 5 );
-   dstEdgeData[dofDataIdx[5]] += elMat( 3, 3 );
+   dstEdgeData[dofDataIdx[3]] += elMat( 3, 3 );
+   dstEdgeData[dofDataIdx[4]] += elMat( 4, 4 );
+   dstEdgeData[dofDataIdx[5]] += elMat( 5, 5 );
 }
 
 template < class P2Form >
