@@ -1090,3 +1090,20 @@ benchmark_gcc11:
 benchmark_clang13:
   <<: *benchmark_definition
   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0
+
+###############################################################################
+##                                                                           ##
+##    Nightly branch                                                         ##
+##                                                                           ##
+###############################################################################
+
+update_nightly_branch:
+  stage: test
+  only:
+    - master
+  script:
+    - git fetch origin
+    - git checkout nightly
+    - git rebase origin/master
+    - git push -f https://nightly-branch-update-token:$NIGHLTY_BRANCH_TOKEN@i10git.cs.fau.de/hyteg/hyteg.git nightly
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/spack-20
