@@ -23,14 +23,11 @@
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitives/Face.hpp"
 
 namespace hyteg {
 namespace n1e1 {
-
-template < typename ValueType >
-class N1E1VectorFunction;
-
 namespace macroface {
 
 using walberla::uint_t;

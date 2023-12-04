@@ -35,6 +35,7 @@
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
@@ -42,10 +43,6 @@
 
 namespace hyteg {
 namespace n1e1 {
-
-template < typename ValueType >
-class N1E1VectorFunction;
-
 namespace macrocell {
 
 using indexing::Index;
