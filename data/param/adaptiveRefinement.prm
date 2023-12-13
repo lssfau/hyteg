@@ -11,30 +11,34 @@ Parameters
   // 6: wave shape induced by coefficient
   // 7: jump coefficient
   // 8: jump coefficient regularized
-  modelProblem 4;
+  modelProblem 8;
   // spacial dimension of domain
   dim 2;
 
-  // sigma 1000; // regularization parameter (problem 2/8)
+  sigma 1000; // regularization parameter (problem 2/8)
   n_waves 40; // number of waves (problem 4/6)
   squeeze_waves 1000; // factor to 'squeeze' the waves towards the corners (problem 4/6)
   // k_low 1; // value of coefficient before jump (problem 7)
   // k_high 100;// value of coefficient after jump (problem 7)
 
 
+
+
+
+
   initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
-  lvl_error_indicator 5; // if less than microlevel: use error indicator on that lvl; else: compute error using analytic solution
+  lvl_error_indicator 4; // if less than microlevel: use error indicator on that lvl; else: compute error using analytic solution
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 5; // number of refinement steps
+  n_refinements 12; // number of refinement steps
   percentile 0.1; // minimum proportion of elements to refine in each step [0,1]
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 7;
+  microlevel 5;
   // microlevel_final 8; // use different micro level for final solve step
 
 
