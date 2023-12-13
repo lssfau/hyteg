@@ -200,6 +200,7 @@ template class L2Space< 5, Undefined, Point3D >;
 template class L2Space< 7, Undefined, Point3D >;
 
 // P1
+template class L2Space< 5, P1Function< real_t > >;
 template <>
 void L2Space< 5, P1Function< real_t > >::dot( const std::function< real_t( const Point3D& ) >& f, P1Function< real_t >& b ) const
 {
@@ -207,6 +208,7 @@ void L2Space< 5, P1Function< real_t > >::dot( const std::function< real_t( const
 }
 
 // P2
+template class L2Space< 7, P2Function< real_t > >;
 template <>
 void L2Space< 7, P2Function< real_t > >::dot( const std::function< real_t( const Point3D& ) >& f, P2Function< real_t >& b ) const
 {
