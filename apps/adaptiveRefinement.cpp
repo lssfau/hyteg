@@ -699,11 +699,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
    // multigrid
-   auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on l_max-1 to use as error indicator
+   auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on lvl_ei to use as error indicator
       if ( lvl == lvl_ei )
       {
          real_t my_t0 = walberla::timing::getWcTime();
-         ei.assign( { 1 }, { *u }, lvl_ei );
+         ei.copyFrom(*u, lvl_ei);
          real_t my_t1      = walberla::timing::getWcTime();
          t_error_indicator = my_t1 - my_t0;
       }
@@ -759,23 +759,32 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    if ( lvl_ei < l_max ) // use error indicator
    {
-      real_t err_est = 0.0;
-      // compute error indicator for each macro element
-      err_el.clear();
+      u->copyFrom(ei, lvl_ei);
+
       // ei = (P*u_ell - u_L)
       for ( uint_t lvl = lvl_ei; lvl < l_max; ++lvl )
          P->prolongate( ei, lvl, Inner | NeumannBoundary );
       ei.add( { -1 }, { *u }, l_max, All );
       ei.interpolate( 0, l_max, DirichletBoundary );
+      // A->apply(ei, tmp, l_max, Inner | NeumannBoundary );
+      // R->restrict(tmp, l_max, Inner | NeumannBoundary );
+      // P->prolongate(tmp, l_max-1, Inner | NeumannBoundary );
+      // for (int i = 0; i < 20; ++i)
+      //    gmg->solve(*A, ei, tmp, l_max);
       // compute local dot product ei*M*ei !!! using ELEMENTWISE operator !!!
-      // (after M.apply(), volume-primitives only contains the local result - global result only on interfaces)
+      // (after M.apply(), volume-primitives only contain local part of dot-product. Interface data stored only on interfaces)
+      // M->apply( ei, tmp, l_max-1, Inner | NeumannBoundary, Replace );
       M->apply( ei, tmp, l_max, Inner | NeumannBoundary, Replace );
+      // compute error indicator for each macro element
+      real_t err_est = 0.0;
+      err_el.clear();
       if ( problem.dim == 2 )
       {
          auto& e  = ei.getFaceDataID();
          auto& Me = tmp.getFaceDataID();
          for ( auto& [id, face] : storage->getFaces() )
          {
+            // auto eMe = vertexdof::macroface::dot< real_t >( l_max-1, *face, e, Me, 0 );
             auto eMe = vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 );
             err_est += eMe;
             err_el[id] = std::sqrt( eMe );
@@ -813,13 +822,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    if ( lvl_ei < l_max )
    {
+      ei.copyFrom(*u, lvl_ei);
+      for ( uint_t lvl = lvl_ei; lvl < l_max; ++lvl )
+         P->prolongate( ei, lvl, Inner | NeumannBoundary );
+
       // compute actual L2 error on lvl_ei
       auto err = [&]( const Point3D& x, const PrimitiveID& id ) {
          real_t ux;
-         ei.evaluate( x, lvl_ei, ux, 1e-5, id );
+         ei.evaluate( x, l_max, ux, 1e-5, id );
          return u_anal( x ) - ux;
       };
-      L2.setLvl( lvl_ei );
+      L2.setLvl( l_max );
       eL2 = L2.norm( err );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %22s ||e_%d||_L2 = %1.1e", "for comparison:", lvl_ei, eL2 ) );
    }
