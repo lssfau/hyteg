@@ -86,9 +86,17 @@ def gradient(u):
 def divergence(u):
     return diff(u[0],x) + diff(u[1],y)
 
+
+def testcase():
+    alpha = 2
+    u = cos( pi * x ) * cos( pi * y ) #* cos( pi* z)
+    k = tanh( alpha * ( x - 0.5 ) ) + 2
+    return k,u
+
+
 if __name__ == '__main__':
 
-    k, u = annulus2()
+    k, u = testcase()
     # Right hand side
     f = -divergence(k * gradient(u))
 

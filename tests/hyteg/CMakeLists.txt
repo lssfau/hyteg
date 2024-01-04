@@ -102,6 +102,11 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)
 endif ()
 
+waLBerla_compile_test(FILES convergence/ElementwiseDivKGradNeumannCGConvergenceTest.cpp DEPENDS hyteg core)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    waLBerla_execute_test(NAME ElementwiseDivKGradNeumannCGConvergenceTest)
+endif ()
+
 waLBerla_compile_test(FILES convergence/ElementwiseEpsilonMinResConvergenceTest.cpp DEPENDS hyteg core)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     if (HYTEG_BUILD_WITH_PETSC)
