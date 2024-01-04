@@ -25,9 +25,12 @@
 #include "core/mpi/Environment.h"
 
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/n1e1functionspace/N1E1MacroCell.hpp"
-#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+// clang-format off
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
+// clang-format on
+#include "hyteg/n1e1functionspace/N1E1MacroCell.hpp"
 
 using namespace hyteg;
 
