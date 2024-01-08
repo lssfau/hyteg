@@ -268,7 +268,7 @@ void N1E1ElementwiseOperator< N1E1FormType >::toMatrix( const std::shared_ptr< S
    // WALBERLA_UNUSED( flag );
    if ( flag != All )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in N1E1ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
+      WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in N1E1ElementwiseOperator::toMatrix(); using flag = All" );
    }
 
    // we only perform computations on cell primitives

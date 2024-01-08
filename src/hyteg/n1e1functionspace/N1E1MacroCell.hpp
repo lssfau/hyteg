@@ -43,16 +43,13 @@
 namespace hyteg {
 namespace n1e1 {
 
-template < typename ValueType >
-class N1E1VectorFunction;
-
 namespace macrocell {
 
 using indexing::Index;
 using walberla::int_c;
 using walberla::uint_t;
 template < typename ValueType >
-using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
+using VectorType = Eigen::Matrix< ValueType, 3, 1 >;
 
 /// Returns the non-unit tangent vector of a micro-edge, where the length of the
 /// vector equals the length of the edge.
@@ -226,16 +223,16 @@ inline void add( const uint_t&                                            level,
 }
 
 inline void
-    interpolate( const uint_t&                                                                      level,
-                 Cell&                                                                              cell,
-                 const PrimitiveDataID< FunctionMemory< real_t >, Cell >&                           cellMemoryId,
-                 const std::vector< std::reference_wrapper< const N1E1VectorFunction< real_t > > >& srcFunctions,
+    interpolate( const uint_t&                                                           level,
+                 Cell&                                                                   cell,
+                 const PrimitiveDataID< FunctionMemory< real_t >, Cell >&                cellMemoryId,
+                 const std::vector< PrimitiveDataID< FunctionMemory< real_t >, Cell > >& srcIds,
                  const std::function< VectorType< real_t >( const Point3D&, const std::vector< VectorType< real_t > >& ) >& expr )
 {
    using ValueType = real_t;
 
    auto                                   cellData = cell.getData( cellMemoryId )->getPointer( level );
-   std::vector< VectorType< ValueType > > srcVector( srcFunctions.size() );
+   std::vector< VectorType< ValueType > > srcVector( srcIds.size() );
 
    for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
    {
@@ -256,9 +253,9 @@ inline void
          Point3D                           dofCoords;
          cell.getGeometryMap()->evalF( dofCoordsComp, dofCoords );
 
-         for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+         for ( uint_t k = 0; k < srcIds.size(); ++k )
          {
-            srcFunctions[k].get().evaluate( dofCoords, level, srcVector[k] );
+            srcVector[k] = evaluate( level, cell, dofCoordsComp, srcIds[k] );
          }
 
          Matrix3r DF;
@@ -281,9 +278,9 @@ inline void
       Point3D xyzBlend;
       cell.getGeometryMap()->evalF( xyzMicroEdgePosition, xyzBlend );
 
-      for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+      for ( uint_t k = 0; k < srcIds.size(); ++k )
       {
-         srcFunctions[k].get().evaluate( xyzBlend, level, srcVector[k] );
+         srcVector[k] = evaluate( level, cell, xyzMicroEdgePosition, srcIds[k] );
       }
 
       Matrix3r xyzDF;

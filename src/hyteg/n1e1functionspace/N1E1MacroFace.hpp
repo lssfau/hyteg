@@ -23,19 +23,18 @@
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/n1e1functionspace/N1E1MacroCell.hpp"
+#include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Face.hpp"
 
 namespace hyteg {
 namespace n1e1 {
 
-template < typename ValueType >
-class N1E1VectorFunction;
-
 namespace macroface {
 
 using walberla::uint_t;
 template < typename ValueType >
-using VectorType = typename N1E1VectorFunction< ValueType >::VectorType;
+using VectorType = Eigen::Matrix< ValueType, 3, 1 >;
 
 inline Point3D microEdgeDirection( const uint_t& level, const Face& face, const edgedof::EdgeDoFOrientation& orientation )
 {
@@ -99,16 +98,17 @@ inline void add( const uint_t&                                            level,
 }
 
 inline void
-    interpolate( const uint_t&                                                                      level,
-                 Face&                                                                              face,
-                 const PrimitiveDataID< FunctionMemory< real_t >, Face >&                           faceMemoryId,
-                 const std::vector< std::reference_wrapper< const N1E1VectorFunction< real_t > > >& srcFunctions,
+    interpolate( const uint_t&                                                           level,
+                 Face&                                                                   face,
+                 Cell&                                                                   neighborCell,
+                 const PrimitiveDataID< FunctionMemory< real_t >, Face >&                faceMemoryId,
+                 const std::vector< PrimitiveDataID< FunctionMemory< real_t >, Cell > >& srcIds,
                  const std::function< VectorType< real_t >( const Point3D&, const std::vector< VectorType< real_t > >& ) >& expr )
 {
    using ValueType = real_t;
 
    auto                                   faceData = face.getData( faceMemoryId )->getPointer( level );
-   std::vector< VectorType< ValueType > > srcVector( srcFunctions.size() );
+   std::vector< VectorType< ValueType > > srcVector( srcIds.size() );
 
    const Point3D faceBottomLeftCoords = face.getCoordinates()[0];
 
@@ -137,9 +137,9 @@ inline void
          face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
          face.getGeometryMap()->evalDF( horizontalMicroEdgePosition, DF );
 
-         for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+         for ( uint_t k = 0; k < srcIds.size(); ++k )
          {
-            srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
+            srcVector[k] = macrocell::evaluate( level, neighborCell, horizontalMicroEdgePosition, srcIds[k] );
          }
 
          const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
@@ -154,9 +154,9 @@ inline void
          face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
          face.getGeometryMap()->evalDF( verticalMicroEdgePosition, DF );
 
-         for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+         for ( uint_t k = 0; k < srcIds.size(); ++k )
          {
-            srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
+            srcVector[k] = macrocell::evaluate( level, neighborCell, verticalMicroEdgePosition, srcIds[k] );
          }
 
          const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
@@ -171,9 +171,9 @@ inline void
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
          face.getGeometryMap()->evalDF( diagonalMicroEdgePosition, DF );
 
-         for ( uint_t k = 0; k < srcFunctions.size(); ++k )
+         for ( uint_t k = 0; k < srcIds.size(); ++k )
          {
-            srcFunctions[k].get().evaluate( xBlend, level, srcVector[k] );
+            srcVector[k] = macrocell::evaluate( level, neighborCell, diagonalMicroEdgePosition, srcIds[k] );
          }
 
          const VectorType< ValueType > vector    = DF.transpose() * expr( xBlend, srcVector );
@@ -186,6 +186,7 @@ inline void
 
 inline void interpolate( const uint_t&                                            level,
                          Face&                                                    face,
+                         Cell&                                                    neighborCell,
                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceMemoryId,
                          const VectorType< real_t >&                              constant )
 {
@@ -197,7 +198,9 @@ inline void interpolate( const uint_t&                                          
       // If the blending map is not affine, the vector field is not constant in computational space.
       // In that case, we delegate to the non-constant interpolation routine.
       interpolate(
-          level, face, faceMemoryId, {}, [&]( const Point3D&, const std::vector< VectorType< real_t > >& ) { return constant; } );
+          level, face, neighborCell, faceMemoryId, {}, [&]( const Point3D&, const std::vector< VectorType< real_t > >& ) {
+             return constant;
+          } );
       return;
    }
 
