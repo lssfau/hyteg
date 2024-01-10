@@ -548,7 +548,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     writePartitioning,
                                        bool                                     writeMeshfile,
                                        uint_t                                   refinement_step,
-                                       uint_t                                   lvl_ei,
+                                       bool                                     error_indicator,
+                                       bool                                     global_error_estimate,
                                        bool                                     l2_error_each_iteration = true )
 {
    // timing
@@ -700,10 +701,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 #endif
    // multigrid
    auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on lvl_ei to use as error indicator
-      if ( lvl == lvl_ei )
+      if ( lvl < l_max )
       {
          real_t my_t0 = walberla::timing::getWcTime();
-         ei.copyFrom(*u, lvl_ei);
+         ei.copyFrom( *u, lvl );
          real_t my_t1      = walberla::timing::getWcTime();
          t_error_indicator = my_t1 - my_t0;
       }
@@ -722,7 +723,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
    WALBERLA_LOG_INFO_ON_ROOT( " -> run multigrid solver" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6s |%18s |%7s%d%5s", "iteration", "||r||_L2", "||e_", l_max, "||_L2" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10s |%17s |%6s%d%5s", "iteration", "||r||_L2", "||e_", l_max, "||_L2" ) );
 
    // initial residual
    real_t norm_r = compute_residual();
@@ -734,11 +735,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       if ( l2_error_each_iteration )
       {
          auto eL2 = compute_L2error();
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
       }
       else
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |", iter, norm_r ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |", iter, norm_r ) );
       }
 
       ++iter;
@@ -753,63 +754,101 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    }
 
    auto eL2 = compute_L2error();
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %6d |%18.3e |%13.3e", iter, norm_r, eL2 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
 
    // apply error indicator
+   // global error estimate on levels {L, L-1, L-2, L-3, L-4}
+   std::array< double, 5 > err_est{ 0, 0, 0, 0, 0 };
    t0 = walberla::timing::getWcTime();
-   if ( lvl_ei < l_max ) // use error indicator
+   if ( error_indicator ) // use error indicator
    {
-      u->copyFrom(ei, lvl_ei);
+      // for global error estimate we need L-4, L-3, and L-2
+      // for error indication, we require L-1
+      int max_offset = global_error_estimate ? 4 : 1;
+      for ( int offset = 1; offset <= max_offset; ++offset )
+      {
+         auto lvl = l_max - offset;
+         // store coarse solution
+         u->copyFrom( ei, lvl );
+         // prolongate to finest level
+         for ( uint_t k = lvl; k < l_max; ++k )
+            P->prolongate( ei, k, All );
+         // substract fine grid solution to obtain error estimate for u_lvl
+         ei.add( { -1 }, { *u }, l_max, All );
+         ei.interpolate( 0, l_max, DirichletBoundary );
+         // compute local dot product ei*M*ei !!! using ELEMENTWISE operator !!!
+         // (after M.apply(), volume-primitives only contain local part of dot-product. Interface data stored on interfaces)
+         M->apply( ei, tmp, l_max, Inner | NeumannBoundary, Replace );
 
-      // ei = (P*u_ell - u_L)
-      for ( uint_t lvl = lvl_ei; lvl < l_max; ++lvl )
-         P->prolongate( ei, lvl, Inner | NeumannBoundary );
-      ei.add( { -1 }, { *u }, l_max, All );
-      ei.interpolate( 0, l_max, DirichletBoundary );
-      // A->apply(ei, tmp, l_max, Inner | NeumannBoundary );
-      // R->restrict(tmp, l_max, Inner | NeumannBoundary );
-      // P->prolongate(tmp, l_max-1, Inner | NeumannBoundary );
-      // for (int i = 0; i < 20; ++i)
-      //    gmg->solve(*A, ei, tmp, l_max);
-      // compute local dot product ei*M*ei !!! using ELEMENTWISE operator !!!
-      // (after M.apply(), volume-primitives only contain local part of dot-product. Interface data stored only on interfaces)
-      // M->apply( ei, tmp, l_max-1, Inner | NeumannBoundary, Replace );
-      M->apply( ei, tmp, l_max, Inner | NeumannBoundary, Replace );
-      // compute error indicator for each macro element
-      real_t err_est = 0.0;
-      err_el.clear();
-      if ( problem.dim == 2 )
-      {
-         auto& e  = ei.getFaceDataID();
-         auto& Me = tmp.getFaceDataID();
-         for ( auto& [id, face] : storage->getFaces() )
+         // compute local error indicator
+         if ( offset == 1 )
+            err_el.clear();
+         if ( problem.dim == 2 )
          {
-            // auto eMe = vertexdof::macroface::dot< real_t >( l_max-1, *face, e, Me, 0 );
-            auto eMe = vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 );
-            err_est += eMe;
-            err_el[id] = std::sqrt( eMe );
+            auto& e  = ei.getFaceDataID();
+            auto& Me = tmp.getFaceDataID();
+            for ( auto& [id, face] : storage->getFaces() )
+            {
+               auto eMe = vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 );
+               err_est[offset] += eMe;
+               if ( offset == 1 )
+                  err_el[id] = std::sqrt( eMe );
+            }
          }
-      }
-      else // dim == 3
-      {
-         auto& e  = ei.getCellDataID();
-         auto& Me = tmp.getCellDataID();
-         for ( auto& [id, cell] : storage->getCells() )
+         else // dim == 3
          {
-            auto eMe = vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 );
-            err_est += eMe;
-            err_el[id] = std::sqrt( eMe );
+            auto& e  = ei.getCellDataID();
+            auto& Me = tmp.getCellDataID();
+            for ( auto& [id, cell] : storage->getCells() )
+            {
+               auto eMe = vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 );
+               err_est[offset] += eMe;
+               if ( offset == 1 )
+                  err_el[id] = std::sqrt( eMe );
+            }
          }
       }
 
       // global error estimate
-      walberla::mpi::allReduceInplace( err_est, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-      err_est = std::sqrt( err_est );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  global error estimate: ||e_%d||_L2 ≈ %1.1e", lvl_ei, err_est ) );
-   }
-   else // use the last computation of actual L2 error
-   {
-      t_error_indicator = 0;
+      if ( global_error_estimate )
+      {
+         for ( auto& e : err_est )
+         {
+            walberla::mpi::allReduceInplace( e, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+            e = std::sqrt( e );
+         }
+         // compute estimate on h-convergence h^q
+         auto rho  = err_est[4] / err_est[3];
+         auto rho1 = err_est[3] / err_est[2];
+         auto q    = log( rho ) / log( 2.0 );
+         // check whether convergence is asymptotic
+         if ( abs( rho - rho1 ) / rho < 0.1 && q < 2.1 )
+         {
+            err_est[1] = err_est[2] / rho;
+            err_est[0] = err_est[1] / rho;
+            WALBERLA_LOG_INFO_ON_ROOT(
+                walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ %1.2e", l_max, err_est[0] ) );
+            WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  estimated convergence w.r.t. lvl: h^%1.2f", q ) );
+         }
+         else
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " ->  global error estimate for lvl L failed: Pre asymptotic convergence!" );
+            WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->       (||e_%d||/||e_%d||≈%1.2f, ||e_%d||/||e_%d||≈%1.2f, q≈%1.2f)",
+                                                         l_max - 4,
+                                                         l_max - 3,
+                                                         rho,
+                                                         l_max - 3,
+                                                         l_max - 2,
+                                                         rho1,
+                                                         q ) );
+            WALBERLA_LOG_INFO_ON_ROOT(
+                walberla::format( " ->  global error estimate for lvl L-1: ||e_%d||_L2 ≈ ||e_%d - e_%d||_L2 = %1.2e",
+                                  l_max - 1,
+                                  l_max - 1,
+                                  l_max,
+                                  err_est[1] ) );
+         }
+      }
    }
 
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
@@ -820,21 +859,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t1 = walberla::timing::getWcTime();
    t_error_indicator += t1 - t0;
 
-   if ( lvl_ei < l_max )
+   if ( global_error_estimate && err_est[0] <= 0 )
    {
-      ei.copyFrom(*u, lvl_ei);
-      for ( uint_t lvl = lvl_ei; lvl < l_max; ++lvl )
-         P->prolongate( ei, lvl, Inner | NeumannBoundary );
-
-      // compute actual L2 error on lvl_ei
+      // compute actual L2 error on lvl L-1
       auto err = [&]( const Point3D& x, const PrimitiveID& id ) {
          real_t ux;
-         ei.evaluate( x, l_max, ux, 1e-5, id );
+         u->evaluate( x, l_max - 1, ux, 1e-5, id );
          return u_anal( x ) - ux;
       };
-      L2.setLvl( l_max );
+      L2.setLvl( l_max - 1 );
       eL2 = L2.norm( err );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %22s ||e_%d||_L2 = %1.1e", "for comparison:", lvl_ei, eL2 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %33s ||e_%d||_L2 = %1.1e", "for comparison:", l_max - 1, eL2 ) );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
@@ -919,7 +954,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 std::string                  vtkname,
                                 bool                         writePartitioning,
                                 bool                         writeMeshfile,
-                                uint_t                       error_indicator )
+                                bool                         error_indicator,
+                                bool                         global_error_estimate )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -946,7 +982,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           writePartitioning,
                                           writeMeshfile,
                                           refinement,
-                                          error_indicator );
+                                          error_indicator,
+                                          global_error_estimate );
       else
          local_errors = solve< DivkGrad >( mesh,
                                            problem,
@@ -963,7 +1000,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            writePartitioning,
                                            writeMeshfile,
                                            refinement,
-                                           error_indicator );
+                                           error_indicator,
+                                           global_error_estimate );
 
       if ( refinement >= n_ref )
       {
@@ -1043,7 +1081,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            writePartitioning,
                            writeMeshfile,
                            refinement,
-                           error_indicator );
+                           error_indicator,
+                           global_error_estimate );
       }
       else
       {
@@ -1062,7 +1101,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             writePartitioning,
                             writeMeshfile,
                             refinement,
-                            error_indicator );
+                            error_indicator,
+                            global_error_estimate );
       }
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -1106,12 +1146,12 @@ int main( int argc, char* argv[] )
 
    const uint_t N_default =
        ( ModelProblem::Type( mp ) == ModelProblem::SLIT || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER ) ? 2 : 1;
-   const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", N_default );
-   const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
-   const real_t p_refinement  = parameters.getParameter< real_t >( "percentile" );
-   const uint_t error_indicator =
-       parameters.getParameter< uint_t >( "lvl_error_indicator", std::numeric_limits< uint_t >::max() );
+   const uint_t N                     = parameters.getParameter< uint_t >( "initial_resolution", N_default );
+   const uint_t n_refinements         = parameters.getParameter< uint_t >( "n_refinements" );
+   const uint_t n_el_max              = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
+   const real_t p_refinement          = parameters.getParameter< real_t >( "percentile" );
+   const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
+   const bool   global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
 
    const uint_t l_min   = parameters.getParameter< uint_t >( "cg_level", 0 );
    const uint_t l_max   = parameters.getParameter< uint_t >( "microlevel" );
@@ -1133,6 +1173,15 @@ int main( int argc, char* argv[] )
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
 #endif
+
+   if ( global_error_estimate && l_max - l_min < 4 )
+   {
+      WALBERLA_ABORT( "Global error estimation requires at least 5 multigrid levels, i.e., microlevel - cg_level >= 4" );
+   }
+   if ( global_error_estimate && !error_indicator )
+   {
+      WALBERLA_ABORT( "Global error estimation only available in combination with error indicator!" );
+   }
 
    // setup model problem
    ModelProblem problem( mp, dim );
@@ -1176,13 +1225,13 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion to refine per step", p_refinement ) );
-   if ( error_indicator >= l_max )
+   if ( error_indicator )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u", "refinement criterion", l_max ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "refinement criterion", l_max - 1, l_max ) );
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "refinement criterion", error_indicator, l_max ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u", "refinement criterion", l_max ) );
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "initial guess", ( u0 ) ? "interpolated" : "zero" ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
@@ -1224,7 +1273,8 @@ int main( int argc, char* argv[] )
                               vtkname,
                               writePartitioning,
                               writeMeshfile,
-                              error_indicator );
+                              error_indicator,
+                              global_error_estimate );
 
    return 0;
 }
