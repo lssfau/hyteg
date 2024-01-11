@@ -550,7 +550,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   refinement_step,
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
-                                       bool                                     l2_error_each_iteration = true )
+                                       bool                                     l2_error_each_iteration = false )
 {
    // timing
    real_t t0, t1;
@@ -633,8 +633,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       auto my_t0 = walberla::timing::getWcTime();
       A->apply( *u, tmp, l_max, Inner | NeumannBoundary, Replace );
       r.assign( { 1.0, -1.0 }, { b, tmp }, l_max, Inner | NeumannBoundary );
-      M->apply( r, tmp, l_max, Inner | NeumannBoundary, Replace );
-      auto norm_r = std::sqrt( r.dotGlobal( tmp, l_max, Inner | NeumannBoundary ) );
+      auto norm_r = std::sqrt( r.dotGlobal( r, l_max, Inner | NeumannBoundary ) / real_t( n_dof ) );
       auto my_t1  = walberla::timing::getWcTime();
       t_residual += my_t1 - my_t0;
       return norm_r;
@@ -723,7 +722,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
    WALBERLA_LOG_INFO_ON_ROOT( " -> run multigrid solver" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10s |%17s |%6s%d%5s", "iteration", "||r||_L2", "||e_", l_max, "||_L2" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10s |%17s |%6s%d%5s", "iteration", "||r||/sqrt(N)", "||e_", l_max, "||_L2" ) );
 
    // initial residual
    real_t norm_r = compute_residual();
