@@ -15,7 +15,7 @@ Parameters
   // spacial dimension of domain
   dim 2;
 
-  sigma 100; // regularization parameter (problem 2/8)
+  sigma 80; // regularization parameter (problem 2/8)
   n_waves 8; // number of waves (problem 4/6)
   squeeze_waves 1000; // factor to 'squeeze' the waves towards the corners (problem 4/6)
   k_low 1; // value of coefficient before jump (problem 7)

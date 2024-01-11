@@ -818,11 +818,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             e = std::sqrt( e );
          }
          // compute estimate on h-convergence h^q
-         auto rho  = err_est[4] / err_est[3];
+         auto rho0 = err_est[4] / err_est[3];
          auto rho1 = err_est[3] / err_est[2];
+         auto rho  = std::min( rho0, rho1 );
          auto q    = log( rho ) / log( 2.0 );
          // check whether convergence is asymptotic
-         if ( abs( rho - rho1 ) / rho < 0.1 && q < 2.1 )
+         if ( abs( rho0 - rho1 ) / rho0 < 0.1 && q < 2.1 )
          {
             err_est[1] = err_est[2] / rho;
             err_est[0] = err_est[1] / rho;
