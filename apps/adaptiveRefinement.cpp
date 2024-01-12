@@ -836,7 +836,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->       (||e_%d||/||e_%d||≈%1.2f, ||e_%d||/||e_%d||≈%1.2f, q≈%1.2f)",
                                                          l_max - 4,
                                                          l_max - 3,
-                                                         rho,
+                                                         rho0,
                                                          l_max - 3,
                                                          l_max - 2,
                                                          rho1,
