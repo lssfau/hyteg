@@ -67,8 +67,8 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
 
    Operator laplace( storage, level, level );
 
-   const uint_t localDoFs = hyteg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
-   const uint_t totalDoFs = hyteg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
+   [[maybe_unused]]const uint_t localDoFs = hyteg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
+   [[maybe_unused]]const uint_t totalDoFs = hyteg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
 
    src.interpolate( exact, level, hyteg::Inner );
 

@@ -4,7 +4,6 @@ target_sources( hyteg
     TrilinosDirectSolver.hpp
     Amesos2Wrapper.hpp
     TrilinosVectorProxy.hpp
-    KokkosWrapper.hpp
     TeuchosWrapper.hpp
     TrilinosSparseMatrix.hpp
     TrilinosVector.hpp

@@ -152,7 +152,7 @@ int main( int argc, char* argv[] )
    //  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
    // const uint_t plotModulo = 10;
    const uint_t plotModulo = 1;
-   real_t       time       = 0.0;
+   [[maybe_unused]]real_t       time       = 0.0;
 
    // Interpolate normal components
    n_x->interpolate( expr_n_x, maxLevel );
@@ -233,7 +233,7 @@ int main( int argc, char* argv[] )
             hyteg::vertexdof::projectMean( u->p(), maxLevel );
 
             r->assign( { 1.0, -1.0 }, { *f, *r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-            real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
+            [[maybe_unused]]real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
             WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum )
          }
       }
