@@ -550,8 +550,11 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   refinement_step,
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
-                                       bool                                     l2_error_each_iteration = false )
+                                       uint_t                                   error_freq )
 {
+   if ( error_freq == 0 )
+      error_freq = max_iter;
+
    // timing
    real_t t0, t1;
    real_t t_loadbalancing, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
@@ -718,30 +721,20 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "interpolate u0", t_interpolate ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "load balancing", t_loadbalancing ) );
 
-   // solve
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
    WALBERLA_LOG_INFO_ON_ROOT( " -> run multigrid solver" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10s |%17s |%6s%d%5s", "iteration", "||r||/sqrt(N)", "||e_", l_max, "||_L2" ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( " ->  %10s |%17s |%6s%d%5s", "iteration", "||r||/sqrt(N)", "||e_", l_max, "||_L2" ) );
 
    // initial residual
    real_t norm_r = compute_residual();
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |", 0, norm_r ) );
 
-   t_solve     = 0;
-   uint_t iter = 0;
-   while ( norm_r > tol && iter < max_iter )
+   // solve system
+   t_solve = 0;
+   for ( uint_t iter = 1; norm_r > tol && iter <= max_iter; ++iter )
    {
-      if ( l2_error_each_iteration )
-      {
-         auto eL2 = compute_L2error();
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
-      }
-      else
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |", iter, norm_r ) );
-      }
-
-      ++iter;
       t0 = walberla::timing::getWcTime();
       if ( iter == 1 )
          fmg->solve( *A, *u, b, l_max );
@@ -750,10 +743,16 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       t1 = walberla::timing::getWcTime();
       t_solve += t1 - t0;
       norm_r = compute_residual();
+      if ( iter % error_freq == 0 )
+      {
+         auto eL2 = compute_L2error();
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |", iter, norm_r ) );
+      }
    }
-
-   auto eL2 = compute_L2error();
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
 
    // apply error indicator
    // global error estimate on levels {L, L-1, L-2, L-3, L-4}
@@ -868,7 +867,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          return u_anal( x ) - ux;
       };
       L2.setLvl( l_max - 1 );
-      eL2 = L2.norm( err );
+      auto eL2 = L2.norm( err );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %33s ||e_%d||_L2 = %1.1e", "for comparison:", l_max - 1, eL2 ) );
    }
 
@@ -955,7 +954,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 bool                         writePartitioning,
                                 bool                         writeMeshfile,
                                 bool                         error_indicator,
-                                bool                         global_error_estimate )
+                                bool                         global_error_estimate,
+                                uint_t                       error_freq )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -983,7 +983,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           writeMeshfile,
                                           refinement,
                                           error_indicator,
-                                          global_error_estimate );
+                                          global_error_estimate,
+                                          error_freq );
       else
          local_errors = solve< DivkGrad >( mesh,
                                            problem,
@@ -1001,7 +1002,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            writeMeshfile,
                                            refinement,
                                            error_indicator,
-                                           global_error_estimate );
+                                           global_error_estimate,
+                                           error_freq );
 
       if ( refinement >= n_ref )
       {
@@ -1082,7 +1084,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            writeMeshfile,
                            refinement,
                            error_indicator,
-                           global_error_estimate );
+                           global_error_estimate,
+                           error_freq );
       }
       else
       {
@@ -1102,7 +1105,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             writeMeshfile,
                             refinement,
                             error_indicator,
-                            global_error_estimate );
+                            global_error_estimate,
+                            error_freq );
       }
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -1165,10 +1169,11 @@ int main( int argc, char* argv[] )
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
-   std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
-   std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
-   const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
-   const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
+   const uint_t l2error           = parameters.getParameter< uint_t >( "l2error", 0 );
+   std::string  vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
+   std::string  inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
+   const bool   writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
+   const bool   writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
@@ -1274,7 +1279,8 @@ int main( int argc, char* argv[] )
                               writePartitioning,
                               writeMeshfile,
                               error_indicator,
-                              global_error_estimate );
+                              global_error_estimate,
+                              l2error );
 
    return 0;
 }
