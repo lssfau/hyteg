@@ -29,6 +29,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -43,6 +45,49 @@ using walberla::uint_t;
 using walberla::math::pi;
 
 namespace hyteg {
+
+template < typename Operator >
+Operator operatorFactory( const std::shared_ptr< PrimitiveStorage >&       storage,
+                          size_t                                           level,
+                          std::function< real_t( const hyteg::Point3D& ) > k );
+
+template <>
+P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 > operatorFactory( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                                                         size_t                                           level,
+                                                                         std::function< real_t( const hyteg::Point3D& ) > k )
+{
+   forms::p1_div_k_grad_affine_q3 form( k, k );
+   return P1ElementwiseOperator( storage, level, level, form );
+}
+
+template <>
+P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 > operatorFactory( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                                                         size_t                                           level,
+                                                                         std::function< real_t( const hyteg::Point3D& ) > k )
+{
+   forms::p2_div_k_grad_affine_q4 form( k, k );
+   return P2ElementwiseOperator( storage, level, level, form );
+}
+
+template <>
+operatorgeneration::P1ElementwiseDivKGrad operatorFactory( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                                           size_t                                           level,
+                                                           std::function< real_t( const hyteg::Point3D& ) > k )
+{
+   P1Function< real_t > kFunction( "k", storage, level, level );
+   kFunction.interpolate( k, level );
+   return operatorgeneration::P1ElementwiseDivKGrad( storage, level, level, kFunction );
+}
+
+template <>
+operatorgeneration::P2ElementwiseDivKGrad operatorFactory( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                                           size_t                                           level,
+                                                           std::function< real_t( const hyteg::Point3D& ) > k )
+{
+   P2Function< real_t > kFunction( "k", storage, level, level );
+   kFunction.interpolate( k, level );
+   return operatorgeneration::P2ElementwiseDivKGrad( storage, level, level, kFunction );
+}
 
 template < typename ElementwiseOperator, typename MassOperator, typename FunctionType >
 void ElementwiseDivKGradCGTest( const std::string& meshFile, const uint_t level, const real_t targetError )
@@ -72,10 +117,7 @@ void ElementwiseDivKGradCGTest( const std::string& meshFile, const uint_t level,
       return pi * ( t1 + t2 ) * sinh( pi * x[1] );
    };
 
-   FunctionType kFunction( "k", storage, level, level );
-   kFunction.interpolate( k, level );
-
-   ElementwiseOperator L( storage, level, level, kFunction );
+   ElementwiseOperator L = operatorFactory< ElementwiseOperator >( storage, level, k );
    MassOperator        M( storage, level, level );
 
    FunctionType r( "r", storage, level, level );
@@ -117,36 +159,64 @@ void ElementwiseDivKGradCGTest( const std::string& meshFile, const uint_t level,
 
 void runAllTestsP1()
 {
-   using ElementwiseOperator = operatorgeneration::P1ElementwiseDivKGrad;
-   using MassOperator        = P1ElementwiseMassOperator;
-   using FunctionType        = P1Function< real_t >;
+   using MassOperator = P1ElementwiseMassOperator;
+   using FunctionType = P1Function< real_t >;
 
    WALBERLA_LOG_INFO_ON_ROOT( "P1 tests" )
 
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 3, 4.0e-2 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 4, 1.0e-2 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 5, 2.5e-3 );
+   {
+      using Operator = P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >;
 
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 3, 1.1e-3 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 4, 3.5e-4 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 5, 1.0e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 3, 4.0e-2 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 4, 1.0e-2 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 5, 2.5e-3 );
+
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 3, 1.1e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 4, 3.5e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 5, 1.0e-4 );
+   }
+   {
+      using Operator = operatorgeneration::P1ElementwiseDivKGrad;
+
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 3, 4.0e-2 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 4, 1.0e-2 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 5, 2.5e-3 );
+
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 3, 1.1e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 4, 3.5e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 5, 1.0e-4 );
+   }
 }
 
 void runAllTestsP2()
 {
-   using ElementwiseOperator = operatorgeneration::P2ElementwiseDivKGrad;
-   using MassOperator        = P2ElementwiseMassOperator;
-   using FunctionType        = P2Function< real_t >;
+   using MassOperator = P2ElementwiseMassOperator;
+   using FunctionType = P2Function< real_t >;
 
    WALBERLA_LOG_INFO_ON_ROOT( "P2 tests" )
 
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 2, 2e-2 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 3, 2e-3 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 4, 2e-4 );
+   {
+      using Operator = P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 >;
 
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 2, 3e-3 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 3, 3e-4 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 4, 3e-5 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 2, 2e-2 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 3, 2e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 4, 2e-4 );
+
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 2, 3e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 3, 3e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 4, 3e-5 );
+   }
+   {
+      using Operator = operatorgeneration::P2ElementwiseDivKGrad;
+
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 2, 2e-2 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 3, 2e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/quad_4el.msh", 4, 2e-4 );
+
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 2, 3e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 3, 3e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( "../../data/meshes/3D/tet_1el.msh", 4, 3e-5 );
+   }
 }
 
 } // namespace hyteg
