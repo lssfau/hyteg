@@ -29,13 +29,13 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2MacroEdge.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/primitives/all.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constantStencilOperator/P2MacroEdge.hpp"
 
 namespace hyteg {
 

@@ -18,15 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "hyteg/p2functionspace/P2MacroCell.hpp"
-#include "hyteg/p2functionspace/P2MacroEdge.hpp"
-#include "hyteg/p2functionspace/P2MacroFace.hpp"
 
 namespace hyteg {
 

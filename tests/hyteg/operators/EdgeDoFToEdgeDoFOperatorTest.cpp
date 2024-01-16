@@ -18,17 +18,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
-#include "core/DataTypes.h"
 
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/EdgeDoFOperator.hpp"
 
 using walberla::real_c;
 

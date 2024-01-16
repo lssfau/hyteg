@@ -42,19 +42,19 @@ class EdgeDoFOperator final : public Operator< hyteg::EdgeDoFFunction< real_t >,
                     size_t                                     minLevel,
                     size_t                                     maxLevel,
                     const EdgeDoFForm&                         form );
-   ~EdgeDoFOperator() = default;
+   ~EdgeDoFOperator() override = default;
 
    void apply( const EdgeDoFFunction< real_t >& src,
                const EdgeDoFFunction< real_t >& dst,
                uint_t                           level,
                DoFType                          flag,
-               UpdateType                       updateType ) const;
+               UpdateType                       updateType ) const override;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const EdgeDoFFunction< idx_t >&             src,
                   const EdgeDoFFunction< idx_t >&             dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag ) const override;
 
    const PrimitiveDataID< StencilMemory< real_t >, Edge >&                             getEdgeStencilID() const;
    const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >& getEdgeStencil3DID() const;

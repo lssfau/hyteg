@@ -44,7 +44,7 @@ waLBerla_add_executable( NAME PrimitiveSizes
 
 waLBerla_add_executable( NAME refCellCouplingCount
         FILES refCellCouplingCount.cpp
-        DEPENDS hyteg)
+        DEPENDS hyteg constantStencilOperator)
 
 waLBerla_add_executable(NAME cg_P1_blending
       FILES cg_P1_blending.cpp

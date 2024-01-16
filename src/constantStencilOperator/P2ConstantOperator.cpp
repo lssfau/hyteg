@@ -53,23 +53,24 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
-#include "hyteg/p2functionspace/P2MacroCell.hpp"
-#include "hyteg/p2functionspace/P2MacroEdge.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_2D_macroface_P2_update_edgedofs.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_2D_macroface_P2_update_vertexdofs.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs_backwards.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_backwards.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided_backwards.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_backwards.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided_backwards.hpp"
+#include "hyteg/p2functionspace/P2MacroCell.hpp"
+
+#include "constantStencilOperator/P2MacroEdge.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_2D_macroface_P2_update_edgedofs.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_2D_macroface_P2_update_vertexdofs.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs_backwards.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_edgedofs.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_edgedofs_backwards.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided_backwards.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_vertexdofs.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_vertexdofs_backwards.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided_backwards.hpp"
 
 namespace hyteg {
 
@@ -923,7 +924,10 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
 
             if ( backwards )
             {
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating EdgeDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->start( "Updating EdgeDoFs" );
+               }
 
                // Splitting the SOR into multiple sweeps: one per edge type.
                // This has severe performance advantages.
@@ -1032,9 +1036,15 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                         relax,
                                                                                         v2e_opr_data );
 
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating EdgeDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->stop( "Updating EdgeDoFs" );
+               }
 
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating VertexDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->start( "Updating VertexDoFs" );
+               }
 
                P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs_backwards( &e_dst_data[firstIdx[eo::X]],
                                                                                           &e_dst_data[firstIdx[eo::XY]],
@@ -1050,11 +1060,17 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                           relax,
                                                                                           v2v_opr_data );
 
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating VertexDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->stop( "Updating VertexDoFs" );
+               }
             }
             else
             {
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating VertexDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->start( "Updating VertexDoFs" );
+               }
 
                P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
                                                                                 &e_dst_data[firstIdx[eo::XY]],
@@ -1070,9 +1086,15 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                 relax,
                                                                                 v2v_opr_data );
 
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating VertexDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->stop( "Updating VertexDoFs" );
+               }
 
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating EdgeDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->start( "Updating EdgeDoFs" );
+               }
 
                // Splitting the SOR into multiple sweeps: one per edge type.
                // This has severe performance advantages.
@@ -1181,7 +1203,10 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                           relax,
                                                                                           v2e_opr_data );
 
-               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating EdgeDoFs" ); }
+               WALBERLA_NON_OPENMP_SECTION()
+               {
+                  this->timingTree_->stop( "Updating EdgeDoFs" );
+               }
             }
 #endif
          }

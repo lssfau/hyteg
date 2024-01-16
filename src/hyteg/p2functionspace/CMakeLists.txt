@@ -1,6 +1,5 @@
 target_sources( hyteg
     PRIVATE
-    P2MacroEdge.cpp
     P2MacroVertex.cpp
     P2Elements.hpp
     P2VariableOperator.hpp
@@ -17,12 +16,8 @@ target_sources( hyteg
     P2VectorFunction.hpp
     P2MacroCell.cpp
     P2Multigrid.hpp
-    P2MacroEdge.hpp
     P2MacroVertex.hpp     
     P2FunctionApplyOperator.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( polynomial )
-if (HYTEG_USE_GENERATED_KERNELS)
-   add_subdirectory(generatedKernels)
-endif ()

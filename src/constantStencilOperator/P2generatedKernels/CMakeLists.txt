@@ -1,4 +1,4 @@
-target_sources( hyteg
+target_sources( constantStencilOperator
     PRIVATE
     sor_3D_macroface_P2_update_edgedofs_impl_230_230.cpp
     sor_3D_macroface_P2_update_edgedofs_backwards_impl_201_310.cpp

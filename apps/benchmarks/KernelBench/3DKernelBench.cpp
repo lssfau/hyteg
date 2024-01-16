@@ -25,8 +25,9 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/misc/dummy.hpp"
-#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+
+#include "constantStencilOperator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
 
 int main( int argc, char** argv )
 {

@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
 #include "hyteg/forms/P1WrapperForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
@@ -29,6 +28,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 
+#include "EdgeDoFOperator.hpp"
 #include "constantStencilOperator/P1ConstantOperator.hpp"
 
 namespace hyteg {

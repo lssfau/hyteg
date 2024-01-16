@@ -21,9 +21,9 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroedge_P2_update_vertexdofs.hpp"
+#include "constantStencilOperator/P2generatedKernels/sor_3D_macroedge_P2_update_vertexdofs.hpp"
 
-#include "P2MacroFace.hpp"
+#include "P2MacroEdge.hpp"
 
 #include "core/OpenMP.h"
 

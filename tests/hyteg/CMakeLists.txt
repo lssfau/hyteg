@@ -351,7 +351,7 @@ waLBerla_execute_test(NAME EdgeDoFFunction3DTest)
 waLBerla_compile_test(FILES operators/EdgeDoFToVertexDoFOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFToVertexDoFOperatorTest)
 
-waLBerla_compile_test(FILES operators/EdgeDoFToEdgeDoFOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES operators/EdgeDoFToEdgeDoFOperatorTest.cpp DEPENDS hyteg core constantStencilOperator)
 waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
 
 waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp DEPENDS hyteg core)
