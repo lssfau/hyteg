@@ -8,17 +8,22 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+# Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
+include(DetectPlatformFeatures)
+
 option ( HYTEG_BUILD_WITH_MPFR        "Build with MPFR"                              OFF)
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
+option ( HYTEG_BUILD_WITH_AVX         "Use AVX intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX})
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
 option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for plates"  OFF)
 option ( HYTEG_BUILD_DOC              "Build Documentation"                           ON)
 
-set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
+set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_BUILD_WITH_BOOST       OFF )
@@ -33,9 +38,6 @@ include_directories(SYSTEM ${EIGEN_DIR})
 link_directories(${EIGEN_DIR})
 
 include_directories(src)
-
-# Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 
 find_package(waLBerla)
 

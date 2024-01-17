@@ -97,7 +97,7 @@ waLBerla_compile_test(FILES convergence/P2ElementwiseCGConvergenceTest.cpp DEPEN
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTest)
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P2ElementwiseCGConvergenceTest> PROCESSES 2)
 
-waLBerla_compile_test(FILES convergence/ElementwiseDivKGradCGConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES convergence/ElementwiseDivKGradCGConvergenceTest.cpp DEPENDS hyteg core opgen-div_k_grad)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)
 endif ()
