@@ -27,7 +27,6 @@
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/sparseassembly/DirichletBCs.hpp"
-#include "hyteg/trilinos/KokkosWrapper.hpp"
 #include "hyteg/trilinos/TeuchosWrapper.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
 #include "hyteg/trilinos/TrilinosSparseMatrixProxy.hpp"
