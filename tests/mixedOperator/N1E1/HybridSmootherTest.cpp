@@ -34,7 +34,7 @@
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
-#include "common.hpp"
+#include "../../hyteg/N1E1/common.hpp"
 #include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using namespace hyteg;

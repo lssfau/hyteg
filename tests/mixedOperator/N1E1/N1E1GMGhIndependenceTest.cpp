@@ -35,7 +35,7 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
-#include "common.hpp"
+#include "../../hyteg/N1E1/common.hpp"
 #include "constantStencilOperator/P1ConstantOperator.hpp"
 #include "mixedOperator/HybridSmoother.hpp"
 
