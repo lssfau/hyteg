@@ -92,8 +92,8 @@ std::shared_ptr< PrimitiveStorage > setupSphericalShellStorage( const uint_t nTa
 
    auto surface = []( const Point3D& p ) { return std::abs( p.norm() - outerRadius ) < 1e-10; };
    auto cmb     = []( const Point3D& p ) { return std::abs( p.norm() - innerRadius ) < 1e-10; };
-   setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surface );
-   setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, cmb );
+   setupStorage.setMeshBoundaryFlagsByCentroidLocation( 1, surface, true );
+   setupStorage.setMeshBoundaryFlagsByCentroidLocation( 2, cmb, true );
 
    if ( reportPrimitives )
       WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
@@ -204,16 +204,15 @@ void run3D( const real_t absErrorTolerance )
 
    auto storage = setupSphericalShellStorage( nTan, nRad, true );
 
-   DoFType           FreeslipBoundary;
    BoundaryCondition bcVelocity;
 
    bcVelocity.createDirichletBC( "surface", { 1 } );
    bcVelocity.createFreeslipBC( "CMB", { 2 } );
 
-   StokesFunctionType u_src( "u_src", storage, minLevel, maxLevel, bcVelocity );
-   StokesFunctionType u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel, bcVelocity );
-   StokesFunctionType u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel, bcVelocity );
-   StokesFunctionType diff( "diff", storage, minLevel, maxLevel, bcVelocity );
+   StokesFunctionType                                          u_src( "u_src", storage, minLevel, maxLevel, bcVelocity );
+   StokesFunctionType                                          u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel );
+   StokesFunctionType                                          u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel );
+   StokesFunctionType                                          diff( "diff", storage, minLevel, maxLevel );
    typename StokesFunctionType::template FunctionType< idx_t > numerator( "numerator", storage, minLevel, maxLevel );
 
    numerator.enumerate( maxLevel );
@@ -227,8 +226,7 @@ void run3D( const real_t absErrorTolerance )
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
 
-   auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalFunc );
-
+   auto             projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalFunc );
    StokesOperatorFS L( stokes, projection, FreeslipBoundary );
 
    L.apply( u_src, u_dst_hyteg, maxLevel, All );
@@ -271,12 +269,12 @@ int main( int argc, char* argv[] )
 
    PETScManager manager( &argc, &argv );
 
-   // WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test 2D" );
-   // run2D< P2P1TaylorHoodFunction< real_t >, // function type
-   //        P2P1TaylorHoodStokesOperator,     // operator
-   //        P2ProjectNormalOperator           // projection
-   //        >( 1e-13 );
-   
+   WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test 2D" );
+   run2D< P2P1TaylorHoodFunction< real_t >, // function type
+          P2P1TaylorHoodStokesOperator,     // operator
+          P2ProjectNormalOperator           // projection
+          >( 1e-13 );
+
    WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test 3D" );
    run3D< P2P1TaylorHoodFunction< real_t >, // function type
           P2P1TaylorHoodStokesOperator,     // operator
