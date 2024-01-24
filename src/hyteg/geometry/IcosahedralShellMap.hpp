@@ -262,8 +262,8 @@ class IcosahedralShellMap : public GeometryMap
    const Point3D& thrVertex() const { return thrVertex_; }
    const Point3D& forVertex() const { return forVertex_; }
 
-   const real_t& radRefVertex() const { return radRefVertex_; }
-   const real_t& radRayVertex() const { return radRayVertex_; }
+   real_t radRefVertex() const { return radRefVertex_; }
+   real_t radRayVertex() const { return radRayVertex_; }
 
  private:
    /// \name Classified vertices of macro tetrahedron
