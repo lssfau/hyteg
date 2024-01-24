@@ -151,7 +151,14 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               edgedof::macroedge::saveProjectNormalOperator3D( level,
+                                                                edge,
+                                                                storage_,
+                                                                normal_function_,
+                                                                numU.getEdgeDataID(),
+                                                                numV.getEdgeDataID(),
+                                                                numW.getEdgeDataID(),
+                                                                mat );
             }
             else
             {
@@ -182,7 +189,14 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               edgedof::macroface::saveProjectNormalOperator3D( level,
+                                                                face,
+                                                                storage_,
+                                                                normal_function_,
+                                                                numU.getFaceDataID(),
+                                                                numV.getFaceDataID(),
+                                                                numW.getFaceDataID(),
+                                                                mat );
             }
             else
             {
@@ -198,6 +212,14 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
                saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
             }
          }
+      }
+
+      for ( const auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+         saveCellIdentityOperator( level, cell, numU.getCellDataID(), mat );
+         saveCellIdentityOperator( level, cell, numV.getCellDataID(), mat );
+         saveCellIdentityOperator( level, cell, numW.getCellDataID(), mat );
       }
    }
 }

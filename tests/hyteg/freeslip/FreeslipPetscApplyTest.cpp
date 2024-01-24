@@ -29,6 +29,8 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
@@ -36,6 +38,8 @@
 #include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
@@ -46,11 +50,15 @@ using walberla::real_t;
 using walberla::uint_t;
 using namespace hyteg;
 
+// Domain Parameters Spherical Shell 3D
+const real_t innerRadius = 1.0;
+const real_t outerRadius = 2.0;
+
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const real_t channelLength, const real_t channelHeight, const uint_t ny )
 {
-   Point2D left(  -channelLength / 2, 0  );
-   Point2D right(  channelLength / 2, channelHeight  );
+   Point2D left( -channelLength / 2, 0 );
+   Point2D right( channelLength / 2, channelHeight );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -72,8 +80,33 @@ std::shared_ptr< SetupPrimitiveStorage >
    return setupStorage;
 }
 
+std::shared_ptr< PrimitiveStorage > setupSphericalShellStorage( const uint_t nTan, const uint_t nRad, bool reportPrimitives )
+{
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, innerRadius, outerRadius );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::loadbalancing::roundRobin( setupStorage );
+
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   IcosahedralShellMap::setMap( setupStorage );
+
+   auto surface = []( const Point3D& p ) { return std::abs( p.norm() - outerRadius ) < 1e-10; };
+   auto cmb     = []( const Point3D& p ) { return std::abs( p.norm() - innerRadius ) < 1e-10; };
+   setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surface );
+   setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, cmb );
+
+   if ( reportPrimitives )
+      WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
+
+   std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
+
+   return storage;
+}
+
 template < typename StokesFunctionType, typename StokesOperatorType, typename ProjectNormalOperatorType >
-void run( const real_t absErrorTolerance )
+void run2D( const real_t absErrorTolerance )
+
 {
    // solver parameters
    const uint_t minLevel = 2;
@@ -145,6 +178,92 @@ void run( const real_t absErrorTolerance )
    WALBERLA_CHECK_LESS( norm, absErrorTolerance );
 }
 
+void normalFunc( const Point3D& p, Point3D& n )
+{
+   real_t radius = p.norm();
+   if ( std::abs( radius - outerRadius ) < std::abs( radius - innerRadius ) )
+   {
+      n = Point3D( { p[0] / radius, p[1] / radius, p[2] / radius } );
+   }
+   else
+   {
+      n = Point3D( { -p[0] / radius, -p[1] / radius, -p[2] / radius } );
+   }
+}
+
+template < typename StokesFunctionType, typename StokesOperatorType, typename ProjectNormalOperatorType >
+void run3D( const real_t absErrorTolerance )
+{
+   // Solver parameters
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = 2;
+
+   // Sphere
+   uint_t nTan = 3;
+   uint_t nRad = 2;
+
+   auto storage = setupSphericalShellStorage( nTan, nRad, true );
+
+   DoFType           FreeslipBoundary;
+   BoundaryCondition bcVelocity;
+
+   bcVelocity.createDirichletBC( "surface", { 1 } );
+   bcVelocity.createFreeslipBC( "CMB", { 2 } );
+
+   StokesFunctionType u_src( "u_src", storage, minLevel, maxLevel, bcVelocity );
+   StokesFunctionType u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel, bcVelocity );
+   StokesFunctionType u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel, bcVelocity );
+   StokesFunctionType diff( "diff", storage, minLevel, maxLevel, bcVelocity );
+   typename StokesFunctionType::template FunctionType< idx_t > numerator( "numerator", storage, minLevel, maxLevel );
+
+   numerator.enumerate( maxLevel );
+
+   walberla::math::seedRandomGenerator( 1234 );
+   auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
+
+   u_src.uvw().interpolate( { rand, rand, rand }, maxLevel, All );
+   u_src.p().interpolate( rand, maxLevel, All );
+
+   using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
+   auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
+
+   auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalFunc );
+
+   StokesOperatorFS L( stokes, projection, FreeslipBoundary );
+
+   L.apply( u_src, u_dst_hyteg, maxLevel, All );
+
+   PETScSparseMatrix< StokesOperatorType > petscMatStokes( "stokes_pure" );
+   petscMatStokes.createMatrixFromOperator( *stokes, maxLevel, numerator );
+   // petscMatStokes.print( "/tmp/stokes.m" );
+
+   PETScSparseMatrix< StokesOperatorFS > petscMatFS( "stokes_fs" );
+   petscMatFS.createMatrixFromOperator( L, maxLevel, numerator );
+   // petscMatFS.print( "/tmp/free_slip.m" );
+
+   PETScVector< real_t, StokesFunctionType::template FunctionType > srcVectorPetsc( u_src, numerator, maxLevel );
+   PETScVector< real_t, StokesFunctionType::template FunctionType > dstVectorPetsc( u_dst_petsc, numerator, maxLevel );
+
+   MatMult( petscMatFS.get(), srcVectorPetsc.get(), dstVectorPetsc.get() );
+
+   dstVectorPetsc.createFunctionFromVector( u_dst_petsc, numerator, maxLevel );
+
+   diff.assign( { 1, -1 }, { u_dst_hyteg, u_dst_petsc }, maxLevel, All );
+   auto       norm      = sqrt( diff.dotGlobal( diff, maxLevel, All ) );
+   const bool outputVTK = false;
+
+   if ( outputVTK )
+   {
+      VTKOutput vtk( "../../output", "FreeslipPetscApplyTest3D", storage );
+      vtk.add( u_src );
+      vtk.add( diff );
+      vtk.add( u_dst_hyteg );
+      vtk.add( u_dst_petsc );
+      vtk.write( maxLevel );
+   }
+
+   WALBERLA_CHECK_LESS( norm, absErrorTolerance );
+}
 int main( int argc, char* argv[] )
 {
    walberla::Environment env( argc, argv );
@@ -152,9 +271,15 @@ int main( int argc, char* argv[] )
 
    PETScManager manager( &argc, &argv );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test" );
-   run< P2P1TaylorHoodFunction< real_t >, // function type
-        P2P1TaylorHoodStokesOperator,     // operator
-        P2ProjectNormalOperator           // projection
-        >( 1e-13 );
+   // WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test 2D" );
+   // run2D< P2P1TaylorHoodFunction< real_t >, // function type
+   //        P2P1TaylorHoodStokesOperator,     // operator
+   //        P2ProjectNormalOperator           // projection
+   //        >( 1e-13 );
+   
+   WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test 3D" );
+   run3D< P2P1TaylorHoodFunction< real_t >, // function type
+          P2P1TaylorHoodStokesOperator,     // operator
+          P2ProjectNormalOperator           // projection
+          >( 1e-13 );
 }

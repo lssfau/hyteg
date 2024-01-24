@@ -21,11 +21,11 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/operators/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
