@@ -816,30 +816,25 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             e = std::sqrt( e );
          }
          // compute estimate on h-convergence h^q
-         auto rho0 = err_est[4] / err_est[3];
-         auto rho1 = err_est[3] / err_est[2];
-         auto rho  = std::min( rho0, rho1 );
-         auto q    = log( rho ) / log( 2.0 );
+         auto rho3 = err_est[3] / err_est[4];
+         auto rho2 = err_est[2] / err_est[3];
+         auto rho  = std::max( rho2, rho3 );
+         auto q    = -log( rho ) / log( 2.0 );
          // check whether convergence is asymptotic
-         if ( abs( rho0 - rho1 ) / rho0 < 0.1 && q < 2.1 )
+         if ( abs( rho2 - rho3 ) / rho < 0.1 && q < 2.1 )
          {
-            err_est[1] = err_est[2] / rho;
-            err_est[0] = err_est[1] / rho;
+            err_est[1] = err_est[2] * rho;
+            err_est[0] = err_est[1] * rho;
             WALBERLA_LOG_INFO_ON_ROOT(
-                walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ %1.2e", l_max, err_est[0] ) );
-            WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  estimated convergence w.r.t. lvl: h^%1.2f", q ) );
+                walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ η = %1.2e", l_max, err_est[0] ) );
+            WALBERLA_LOG_INFO_ON_ROOT(
+                walberla::format( " ->  estimated convergence w.r.t. lvl: ϱ ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", 1. / rho, q ) );
          }
          else
          {
             WALBERLA_LOG_INFO_ON_ROOT( " ->  global error estimate for lvl L failed: Pre asymptotic convergence!" );
-            WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->       (||e_%d||/||e_%d||≈%1.2f, ||e_%d||/||e_%d||≈%1.2f, q≈%1.2f)",
-                                                         l_max - 4,
-                                                         l_max - 3,
-                                                         rho0,
-                                                         l_max - 3,
-                                                         l_max - 2,
-                                                         rho1,
-                                                         q ) );
+            WALBERLA_LOG_INFO_ON_ROOT(
+                walberla::format( " ->       (ϱ_%d≈1/%1.2f, ϱ_%d≈1/%1.2f)", l_max - 3, 1. / rho3, l_max - 2, 1. / rho2 ) );
             WALBERLA_LOG_INFO_ON_ROOT(
                 walberla::format( " ->  global error estimate for lvl L-1: ||e_%d||_L2 ≈ ||e_%d - e_%d||_L2 = %1.2e",
                                   l_max - 1,
@@ -1029,15 +1024,17 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
       // refinement strategy
-      const auto p_idx     = std::min( uint_t( std::ceil( real_t( n_el_old ) * p_ref ) ), n_el_old - 1 );
+      const auto sizeR     = uint_t( std::round( double( n_el_old ) * p_ref ) );
       auto       criterion = [&]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
          if ( i == 0 )
          {
             WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i = " << err_global.back().first );
             WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i = " << err_global.front().first );
-            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << 0.9 * err_global[p_idx].first );
+            if (sizeR > 0)
+               WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << err_global[sizeR-1].first );
+            WALBERLA_LOG_INFO_ON_ROOT( " -> " << sizeR << " elements marked for refinement." );
          }
-         return err_global[i].first >= 0.9 * err_global[p_idx].first;
+         return i < sizeR;
       };
 
       // apply refinement
@@ -1163,7 +1160,7 @@ int main( int argc, char* argv[] )
    const uint_t N                     = parameters.getParameter< uint_t >( "initial_resolution", N_default );
    const uint_t n_refinements         = parameters.getParameter< uint_t >( "n_refinements" );
    const uint_t n_el_max              = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
-   const real_t p_refinement          = parameters.getParameter< real_t >( "percentile" );
+   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement" );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    const bool   global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
 
@@ -1239,7 +1236,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion to refine per step", p_refinement ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion of elements marked for refinement", p_refinement ) );
    if ( error_indicator )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "refinement criterion", l_max - 1, l_max ) );
