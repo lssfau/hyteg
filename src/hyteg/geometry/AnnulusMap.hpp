@@ -169,12 +169,12 @@ class AnnulusMap : public GeometryMap
       }
    }
 
-   Point3D rayVertex() const { return rayVertex_; }
-   Point3D refVertex() const { return refVertex_; }
-   Point3D thrVertex() const { return thrVertex_; }
+   const& Point3D rayVertex() const { return rayVertex_; }
+   const& Point3D refVertex() const { return refVertex_; }
+   const& Point3D thrVertex() const { return thrVertex_; }
 
-   real_t radRefVertex() const { return radRefVertex_; }
-   real_t radRayVertex() const { return radRayVertex_; }
+   const& real_t radRefVertex() const { return radRefVertex_; }
+   const& real_t radRayVertex() const { return radRayVertex_; }
 
  private:
    /// \name Classified vertices of macro triangle
