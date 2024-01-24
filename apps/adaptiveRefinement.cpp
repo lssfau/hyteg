@@ -60,7 +60,7 @@ using walberla::uint_t;
 #define R_min 1.0
 #define R_max 2.0
 
-using Mass    = P1ConstantMassOperator;
+using Mass = P1ConstantMassOperator;
 // using Mass    = P1ElementwiseMassOperator;
 using Laplace = P1ConstantLaplaceOperator;
 // using Laplace      = P1ElementwiseLaplaceOperator;
@@ -704,12 +704,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 #endif
    // multigrid
    t_error_indicator = 0.0;
-   auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on lvl_ei to use as error indicator
+   auto copyUtoEi    = [&]( uint_t lvl ) { // copy values from u to ei on lvl_ei to use as error indicator
       if ( lvl < l_max )
       {
          real_t my_t0 = walberla::timing::getWcTime();
          ei.copyFrom( *u, lvl );
-         real_t my_t1      = walberla::timing::getWcTime();
+         real_t my_t1 = walberla::timing::getWcTime();
          t_error_indicator += my_t1 - my_t0;
       }
    };
@@ -759,9 +759,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // apply error indicator
    // global error estimate on levels {L, L-1, L-2, L-3, L-4}
    std::array< double, 5 > err_est{ 0, 0, 0, 0, 0 };
-   t0 = walberla::timing::getWcTime();
    if ( error_indicator ) // use error indicator
    {
+      t0 = walberla::timing::getWcTime();
       // for global error estimate we need L-4, L-3, and L-2
       // for error indication, we require L-1
       int max_offset = global_error_estimate ? 4 : 1;
@@ -809,9 +809,13 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          }
       }
 
+      t1 = walberla::timing::getWcTime();
+      t_error_indicator += t1 - t0;
+
       // global error estimate
       if ( global_error_estimate )
       {
+         t0 = walberla::timing::getWcTime();
          for ( auto& e : err_est )
          {
             walberla::mpi::allReduceInplace( e, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
@@ -822,6 +826,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          auto rho2 = err_est[2] / err_est[3];
          auto rho  = std::max( rho2, rho3 );
          auto q    = -log( rho ) / log( 2.0 );
+
+         t1 = walberla::timing::getWcTime();
+         t_error_indicator += t1 - t0;
+
          // check whether convergence is asymptotic
          if ( abs( rho2 - rho3 ) / rho < 0.1 && q < 2.1 )
          {
@@ -838,15 +846,16 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             WALBERLA_LOG_INFO_ON_ROOT(
                 walberla::format( " ->       (ϱ_%d≈1/%1.2f, ϱ_%d≈1/%1.2f)", l_max - 3, 1. / rho3, l_max - 2, 1. / rho2 ) );
             WALBERLA_LOG_INFO_ON_ROOT(
-                walberla::format( " ->  global error estimate for lvl L-1: ||e_%d||_L2 ≈ ||e_%d - e_%d||_L2 = %1.2e",
-                                  l_max - 1,
-                                  l_max - 1,
+                walberla::format( " ->  global error estimate for lvl L-2: ||e_%d||_L2 ≈ ||e_%d - e_%d||_L2 = %1.2e",
+                                  l_max - 2,
+                                  l_max - 2,
                                   l_max,
-                                  err_est[1] ) );
+                                  err_est[2] ) );
          }
       }
    }
 
+   t0 = walberla::timing::getWcTime();
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
    for ( auto& [id, err] : err_el )
    {
@@ -857,15 +866,15 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    if ( global_error_estimate && err_est[0] <= 0 )
    {
-      // compute actual L2 error on lvl L-1
+      // compute actual L2 error on lvl L-2
       auto err = [&]( const Point3D& x, const PrimitiveID& id ) {
          real_t ux;
-         u->evaluate( x, l_max - 1, ux, 1e-5, id );
+         u->evaluate( x, l_max - 2, ux, 1e-5, id );
          return u_anal( x ) - ux;
       };
-      L2.setLvl( l_max - 1 );
+      L2.setLvl( l_max - 2 );
       auto eL2 = L2.norm( err );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %33s ||e_%d||_L2 = %1.1e", "for comparison:", l_max - 1, eL2 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %33s ||e_%d||_L2 = %1.1e", "for comparison:", l_max - 2, eL2 ) );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
