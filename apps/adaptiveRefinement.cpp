@@ -60,8 +60,8 @@ using walberla::uint_t;
 #define R_min 1.0
 #define R_max 2.0
 
-// using Mass    = P1ConstantMassOperator;
-using Mass    = P1ElementwiseMassOperator;
+using Mass    = P1ConstantMassOperator;
+// using Mass    = P1ElementwiseMassOperator;
 using Laplace = P1ConstantLaplaceOperator;
 // using Laplace      = P1ElementwiseLaplaceOperator;
 using DivkGradForm = forms::p1_div_k_grad_affine_q3;
@@ -550,10 +550,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   refinement_step,
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
-                                       uint_t                                   error_freq )
+                                       int                                      error_freq )
 {
    if ( error_freq == 0 )
-      error_freq = max_iter;
+      error_freq = int( max_iter );
+   if ( error_freq == -1 )
+      error_freq = int( max_iter ) + 1;
 
    // timing
    real_t t0, t1;
@@ -701,13 +703,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
    // multigrid
+   t_error_indicator = 0.0;
    auto copyUtoEi = [&]( uint_t lvl ) { // copy values from u to ei on lvl_ei to use as error indicator
       if ( lvl < l_max )
       {
          real_t my_t0 = walberla::timing::getWcTime();
          ei.copyFrom( *u, lvl );
          real_t my_t1      = walberla::timing::getWcTime();
-         t_error_indicator = my_t1 - my_t0;
+         t_error_indicator += my_t1 - my_t0;
       }
    };
    auto gmg = std::make_shared< GeometricMultigridSolver< A_t > >( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
@@ -961,7 +964,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 bool                         writeMeshfile,
                                 bool                         error_indicator,
                                 bool                         global_error_estimate,
-                                uint_t                       error_freq )
+                                int                          error_freq )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -1031,8 +1034,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
          {
             WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i = " << err_global.back().first );
             WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i = " << err_global.front().first );
-            if (sizeR > 0)
-               WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << err_global[sizeR-1].first );
+            if ( sizeR > 0 )
+               WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i >= " << err_global[sizeR - 1].first );
             WALBERLA_LOG_INFO_ON_ROOT( " -> " << sizeR << " elements marked for refinement." );
          }
          return i < sizeR;
@@ -1177,11 +1180,11 @@ int main( int argc, char* argv[] )
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
-   const uint_t l2error           = parameters.getParameter< uint_t >( "l2error", 0 );
-   std::string  vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
-   std::string  inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
-   const bool   writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
-   const bool   writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
+   const int   l2error           = parameters.getParameter< int >( "l2error", 0 );
+   std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
+   std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
+   const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
+   const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
@@ -1237,7 +1240,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement*100.0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
    if ( error_indicator )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "refinement criterion", l_max - 1, l_max ) );

@@ -50,7 +50,9 @@ Parameters
 
   // // misc
 
-  l2error 1; // compute actual L2 error after every n-th iteration (dafault:0, treatet as n=n_iterations)
+  l2error 1; // compute actual L2 error after every n-th iteration
+              // 0: only after last iteration (default)
+              // -1: never
   // vtkName p_ref_test;
   // vtkName err_ex;
   // writeDomainPartitioning 1;
