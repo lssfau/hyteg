@@ -11,7 +11,7 @@ Parameters
   // 6: wave shape induced by coefficient
   // 7: jump coefficient
   // 8: jump coefficient regularized
-  modelProblem 6;
+  modelProblem 4;
   // spacial dimension of domain
   dim 2;
 
@@ -24,17 +24,17 @@ Parameters
   initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
-  error_indicator 1; // else refine based on actual L2 error (using analytic solution)
-  global_error_estimate 1; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
+  error_indicator 0; // else refine based on actual L2 error (using analytic solution)
+  global_error_estimate 0; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 10; // number of refinement steps
-  percentile 0.1; // minimum proportion of elements to refine in each step [0,1]
+  n_refinements 0; // number of refinement steps
+  percentile 1; // minimum proportion of elements to refine in each step [0,1]
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 6;
+  microlevel 3;
   // microlevel_final 8; // use different micro level for final solve step
 
 
@@ -51,11 +51,11 @@ Parameters
   // // misc
 
   l2error 1; // compute actual L2 error after every n-th iteration (dafault:0, treatet as n=n_iterations)
-  // vtkName auto;
+  vtkName waves_l2_err_lvl3;
   // vtkName err_ex;
-  // writeDomainPartitioning 1;
+  writeDomainPartitioning 1;
   // writeMeshfile 1;
-  // initialMesh output/_mesh_25.msh; // use custom initial mesh e.g. written from previous run
+  initialMesh output/_mesh_6.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/reentrant_corner_2D_mesh_25.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/jump_coeff_2D_mesh_20.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/spike_2D_mesh_20.msh; // use custom initial mesh e.g. written from previous run

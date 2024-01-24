@@ -886,14 +886,17 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
       // error
       P1Function< real_t > err( "err", storage, l_max, l_max );
-      P1Function< real_t > err_2( "err^2", storage, l_max, l_max );
-      auto                 _err = [&]( const Point3D& x ) {
+      P1Function< real_t > err_abs( "err_abs", storage, l_max, l_max );
+
+      auto _err = [&]( const Point3D& x ) {
          real_t ux;
          u->evaluate( x, l_max, ux, 1e-5 );
          return u_anal( x ) - ux;
       };
+      auto _err_abs = [&]( const Point3D& x ) { return std::abs( _err( x ) ); };
+
       err.interpolate( _err, l_max );
-      err_2.multElementwise( { err, err }, l_max, All );
+      err_abs.interpolate( _err_abs, l_max );
 
       // write vtk file
       VTKOutput vtkOutput( "output", vtkname, storage );
@@ -903,24 +906,31 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       vtkOutput.add( *u );
       vtkOutput.add( b );
       vtkOutput.add( err );
-      vtkOutput.add( err_2 );
+      vtkOutput.add( err_abs );
       vtkOutput.write( l_max, refinement_step );
    }
 
    if ( writePartitioning )
    {
       std::map< std::string, std::map< PrimitiveID, real_t > > realData;
+      std::map< std::string, std::map< PrimitiveID, real_t > > errData;
+      errData["estL2error"] = err_el;
 
       writeDomainPartitioningVTK(
           *storage, "output", vtkname + "_partitioning_vertices_ts" + std::to_string( refinement_step ), VTK_VERTEX, realData );
       writeDomainPartitioningVTK(
           *storage, "output", vtkname + "_partitioning_edges_ts" + std::to_string( refinement_step ), VTK_LINE, realData );
-      writeDomainPartitioningVTK(
-          *storage, "output", vtkname + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, realData );
       if ( storage->hasGlobalCells() )
       {
          writeDomainPartitioningVTK(
-             *storage, "output", vtkname + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, realData );
+             *storage, "output", vtkname + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, realData );
+         writeDomainPartitioningVTK(
+             *storage, "output", vtkname + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, errData );
+      }
+      else
+      {
+         writeDomainPartitioningVTK(
+             *storage, "output", vtkname + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, errData );
       }
    }
 
