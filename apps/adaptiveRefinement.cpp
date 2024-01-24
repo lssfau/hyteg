@@ -579,7 +579,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0           = walberla::timing::getWcTime();
    auto storage = mesh.make_storage();
    t1           = walberla::timing::getWcTime();
-   printCurrentMemoryUsage();
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent to create storage: %12.3e", t1 - t0 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
@@ -871,6 +870,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute residual", t_residual ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "compute error", t_error ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "error indicator", t_error_indicator ) );
+
+   printCurrentMemoryUsage();
 
    // export to vtk
    if ( vtkname != "" )
@@ -1236,7 +1237,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "proportion of elements marked for refinement", p_refinement ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement*100.0 ) );
    if ( error_indicator )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "refinement criterion", l_max - 1, l_max ) );
