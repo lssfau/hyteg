@@ -90,11 +90,6 @@ std::shared_ptr< PrimitiveStorage > setupSphericalShellStorage( const uint_t nTa
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    IcosahedralShellMap::setMap( setupStorage );
 
-   auto surface = []( const Point3D& p ) { return std::abs( p.norm() - outerRadius ) < 1e-10; };
-   auto cmb     = []( const Point3D& p ) { return std::abs( p.norm() - innerRadius ) < 1e-10; };
-   setupStorage.setMeshBoundaryFlagsByCentroidLocation( 1, surface, true );
-   setupStorage.setMeshBoundaryFlagsByCentroidLocation( 2, cmb, true );
-
    if ( reportPrimitives )
       WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
 
@@ -132,7 +127,7 @@ void run2D( const real_t absErrorTolerance )
    walberla::math::seedRandomGenerator( 1234 );
    auto rand = []( const Point3D& ) { return real_c( walberla::math::realRandom() ); };
 
-   u_src.uvw().interpolate( { rand, rand, rand }, maxLevel, All );
+   u_src.uvw().interpolate( { rand, rand }, maxLevel, All );
    u_src.p().interpolate( rand, maxLevel, All );
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
@@ -206,8 +201,8 @@ void run3D( const real_t absErrorTolerance )
 
    BoundaryCondition bcVelocity;
 
-   bcVelocity.createDirichletBC( "surface", { 1 } );
-   bcVelocity.createFreeslipBC( "CMB", { 2 } );
+   bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
+   bcVelocity.createFreeslipBC( "CMB", { MeshInfo::hollowFlag::flagInnerBoundary } );
 
    StokesFunctionType                                          u_src( "u_src", storage, minLevel, maxLevel, bcVelocity );
    StokesFunctionType                                          u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel );
