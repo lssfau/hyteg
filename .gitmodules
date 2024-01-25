@@ -9,4 +9,5 @@
 	url = https://github.com/advanpix/mpreal.git
 [submodule "src/hyteg-operators"]
 	path = src/hyteg-operators
-	url = https://i10git.cs.fau.de/hyteg/hyteg-operators
+	url = https://i10git.cs.fau.de/hyteg/hyteg-operators.git
+
