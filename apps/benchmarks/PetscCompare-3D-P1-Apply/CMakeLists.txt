@@ -7,4 +7,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME PetscCompare-3D-P1-Apply
         FILES PetscCompare-3D-P1-Apply.cpp
-        DEPENDS hyteg core constantStencilOperator)
+        DEPENDS hyteg core constant_stencil_operator)

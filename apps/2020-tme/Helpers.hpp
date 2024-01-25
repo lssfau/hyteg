@@ -67,8 +67,8 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 namespace tme_benchmarks {

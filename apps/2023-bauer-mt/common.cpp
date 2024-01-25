@@ -36,8 +36,8 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "mixedOperator/HybridSmoother.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/HybridSmoother.hpp"
 
 Results solve( const Params& params, const bool useGmg )
 {

@@ -34,13 +34,13 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 
 // P1 Operators
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 // P2 Operators
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 // Mixed Operators
-#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator//P2P1TaylorHoodStokesOperator.hpp"
 
 // PETSc interface
 #include "hyteg/petsc/PETScManager.hpp"

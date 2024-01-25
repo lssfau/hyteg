@@ -211,8 +211,8 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
-#include "mixedOperator/VectorMassOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/VectorMassOperator.hpp"
 
 using walberla::real_t;
 

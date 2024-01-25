@@ -22,7 +22,7 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
-#include "mixedOperator/EGConvTestUtils.hpp"
+#include "mixed_operator/EGConvTestUtils.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )

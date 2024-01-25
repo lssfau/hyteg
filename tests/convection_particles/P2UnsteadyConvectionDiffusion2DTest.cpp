@@ -38,7 +38,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;

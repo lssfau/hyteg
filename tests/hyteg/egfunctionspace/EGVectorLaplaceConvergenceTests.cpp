@@ -28,7 +28,7 @@
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator//P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -40,9 +40,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "mixedOperator/EGOperators.hpp"
-#include "constantStencilOperator/P1ConstantOperator.cpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/EGOperators.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.cpp"
 
 using hyteg::MeshInfo;
 using hyteg::Point2D;

@@ -26,7 +26,7 @@
 #include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 
-#include "mixedOperator/EGOperators.hpp"
+#include "mixed_operator/EGOperators.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

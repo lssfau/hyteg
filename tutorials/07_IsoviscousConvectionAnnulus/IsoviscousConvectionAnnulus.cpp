@@ -233,7 +233,7 @@
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 

@@ -22,10 +22,10 @@
 #include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "mixedOperator/ScalarToVectorOperator.hpp"
-#include "mixedOperator/VectorLaplaceOperator.hpp"
-#include "mixedOperator/VectorToScalarOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/ScalarToVectorOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
+#include "mixed_operator/VectorToScalarOperator.hpp"
 
 namespace hyteg {
 

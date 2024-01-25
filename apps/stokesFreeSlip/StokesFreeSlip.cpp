@@ -42,7 +42,7 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
-#include "mixedOperator/P1BlendingStokesOperator.hpp"
+#include "mixed_operator/P1BlendingStokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

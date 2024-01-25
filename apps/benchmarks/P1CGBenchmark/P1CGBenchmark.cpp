@@ -28,8 +28,8 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using walberla::uint_c;
 using walberla::uint_t;

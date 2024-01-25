@@ -14,8 +14,8 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 //#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"

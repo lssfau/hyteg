@@ -28,9 +28,9 @@
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
-#include "mixedOperator/P2P1UzawaDampingFactorEstimationOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P2P1UzawaDampingFactorEstimationOperator.hpp"
 
 namespace hyteg {
 

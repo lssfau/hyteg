@@ -25,7 +25,7 @@
 #include "hyteg/mixedoperators/P2ToP1SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 

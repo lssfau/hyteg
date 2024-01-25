@@ -35,7 +35,7 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
-#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator//P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

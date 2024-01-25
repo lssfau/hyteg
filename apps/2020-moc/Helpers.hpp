@@ -62,9 +62,9 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 namespace moc_benchmarks {

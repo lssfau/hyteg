@@ -37,7 +37,7 @@
 #include "hyteg/primitives/Vertex.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "constantStencilOperator/EdgeDoFOperator.hpp"
+#include "constant_stencil_operator/EdgeDoFOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

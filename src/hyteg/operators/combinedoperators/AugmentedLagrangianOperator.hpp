@@ -26,8 +26,8 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
 namespace hyteg {
 
 using walberla::real_t;

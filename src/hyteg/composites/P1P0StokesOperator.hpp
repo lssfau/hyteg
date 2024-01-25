@@ -30,7 +30,7 @@
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 
-#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
 
 namespace hyteg {
 

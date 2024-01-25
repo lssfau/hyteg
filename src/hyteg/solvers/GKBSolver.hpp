@@ -30,7 +30,7 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

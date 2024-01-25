@@ -26,7 +26,7 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 

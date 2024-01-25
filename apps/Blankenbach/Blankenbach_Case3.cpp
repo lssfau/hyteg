@@ -58,10 +58,10 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "sqlite/SQLite.h"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 

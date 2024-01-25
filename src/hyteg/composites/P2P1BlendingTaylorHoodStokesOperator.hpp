@@ -25,10 +25,10 @@
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "mixedOperator/ScalarToVectorOperator.hpp"
-#include "mixedOperator/VectorLaplaceOperator.hpp"
-#include "mixedOperator/VectorToScalarOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixed_operator/ScalarToVectorOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
+#include "mixed_operator/VectorToScalarOperator.hpp"
 
 namespace hyteg {
 

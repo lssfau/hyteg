@@ -1,6 +1,6 @@
 waLBerla_add_executable( NAME IsoviscousConvectionAnnulus
         FILES IsoviscousConvectionAnnulus.cpp
-        DEPENDS hyteg core sqlite convection_particles mixedOperator)
+        DEPENDS hyteg core sqlite convection_particles mixed_operator)
 
 waLBerla_link_files_to_builddir( *.prm )
 

@@ -48,7 +48,7 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/controlflow/AgglomerationWrapper.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using namespace hyteg;
 using walberla::real_t;

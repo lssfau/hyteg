@@ -35,14 +35,14 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "constantStencilOperator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
-#include "constantStencilOperator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
-#include "constantStencilOperator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
-#include "constantStencilOperator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
-#include "constantStencilOperator/P1generatedKernels/sor_3D_macrocell_P1.hpp"
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
-#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/sor_3D_macrocell_P1.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
+#include "constant_stencil_operator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

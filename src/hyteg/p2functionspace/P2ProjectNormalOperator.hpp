@@ -25,7 +25,7 @@
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 

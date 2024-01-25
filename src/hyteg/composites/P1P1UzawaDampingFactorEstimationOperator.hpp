@@ -21,11 +21,11 @@
 
 #include "hyteg/solvers/Solver.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "mixedOperator/P1ToP2ConstantOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "mixedOperator/P2ToP1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P1ToP2ConstantOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixed_operator/P2ToP1ConstantOperator.hpp"
 
 namespace hyteg {
 

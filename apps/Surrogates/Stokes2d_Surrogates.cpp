@@ -21,25 +21,22 @@
 #define FP_FAST_FMAF
 #define FP_FAST_FMAL
 
-#include <constantStencilOperator/P2ConstantOperator.hpp>
-#include <core/Environment.h>
-#include <core/config/Create.h>
-#include <core/timing/Timer.h>
-#include <hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp>
-#include <hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp>
-#include <hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp>
-#include <hyteg/mesh/MeshInfo.hpp>
-#include <hyteg/p1functionspace/P1VariableOperator.hpp>
-#include <hyteg/p2functionspace/P2VariableOperator.hpp>
-#include <mixedOperator/P2P1TaylorHoodStokesOperator.hpp>
-
+#include "core/Environment.h"
 #include "core/Format.hpp"
+#include "core/config/Create.h"
+#include "core/timing/Timer.h"
 
+#include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -50,6 +47,9 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

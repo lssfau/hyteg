@@ -30,9 +30,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.cpp"
-#include "mixedOperator/EGConvTestUtils.hpp"
-#include "mixedOperator/EGOperators.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.cpp"
+#include "mixed_operator/EGConvTestUtils.hpp"
+#include "mixed_operator/EGOperators.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

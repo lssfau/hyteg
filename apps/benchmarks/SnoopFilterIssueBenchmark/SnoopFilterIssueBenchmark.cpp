@@ -34,9 +34,9 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
-#include "constantStencilOperator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
+#include "constant_stencil_operator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
 #include "sqlite/SQLite.h"
 
 using walberla::real_t;

@@ -201,8 +201,8 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "constantStencilOperator/P1Transport.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "constant_stencil_operator/P1Transport.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

@@ -20,16 +20,16 @@
 
 #pragma once
 
-#include <hyteg/communication/Syncing.hpp>
-#include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
-#include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
-#include <hyteg/operators/Operator.hpp>
-#include <hyteg/p1functionspace/VertexDoFFunction.hpp>
-#include <hyteg/p2functionspace/P2Function.hpp>
-#include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
-#include <hyteg/types/PointND.hpp>
-
+#include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 

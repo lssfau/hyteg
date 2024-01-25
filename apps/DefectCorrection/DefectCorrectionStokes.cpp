@@ -44,10 +44,10 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "mixedOperator/P2P2UnstableStokesOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P2P2UnstableStokesOperator.hpp"
 
 namespace hyteg {
 

@@ -13,7 +13,7 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
-#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
+#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 
 namespace hyteg {
 

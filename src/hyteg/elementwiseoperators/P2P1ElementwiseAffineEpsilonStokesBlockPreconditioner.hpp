@@ -25,8 +25,8 @@
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 

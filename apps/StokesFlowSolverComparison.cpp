@@ -52,9 +52,9 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/types/PointND.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_t;
 

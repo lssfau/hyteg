@@ -51,8 +51,8 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 // #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 

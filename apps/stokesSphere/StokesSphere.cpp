@@ -49,7 +49,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

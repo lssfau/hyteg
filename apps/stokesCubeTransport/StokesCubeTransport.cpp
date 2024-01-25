@@ -49,8 +49,8 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "constantStencilOperator/P1Transport.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "constant_stencil_operator/P1Transport.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

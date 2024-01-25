@@ -24,7 +24,7 @@
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/p0functionspace/P0P0WeightedMassForm.hpp"
 
-#include "mixedOperator/EGOperators.hpp"
+#include "mixed_operator/EGOperators.hpp"
 
 namespace hyteg {
 namespace dg {

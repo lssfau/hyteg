@@ -38,7 +38,7 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

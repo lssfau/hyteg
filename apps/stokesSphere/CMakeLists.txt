@@ -6,4 +6,4 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME StokesSphere
         FILES  StokesSphere.cpp
-        DEPENDS hyteg mixedOperator)
+        DEPENDS hyteg mixed_operator)

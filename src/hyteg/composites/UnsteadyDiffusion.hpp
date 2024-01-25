@@ -46,7 +46,7 @@
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

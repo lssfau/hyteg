@@ -16,4 +16,4 @@ endif ()
 
 waLBerla_add_executable( NAME bmark
   FILES bmark.cpp
-  DEPENDS hyteg terraneo mixedOperator)
+  DEPENDS hyteg terraneo mixed_operator)

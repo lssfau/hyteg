@@ -35,7 +35,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 using terraneo::SphericalHarmonicsTool;

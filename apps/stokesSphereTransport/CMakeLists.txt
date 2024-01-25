@@ -10,6 +10,6 @@ if ( HYTEG_BUILD_WITH_PETSC )
 
     waLBerla_add_executable(NAME StokesSphereTransport
           FILES StokesSphereTransport.cpp
-          DEPENDS hyteg convection_particles mixedOperator)
+          DEPENDS hyteg convection_particles mixed_operator)
 
 endif()

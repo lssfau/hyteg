@@ -7,4 +7,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME Poisson-CC-P2-3D
         FILES Poisson-CC-P2-3D.cpp
-        DEPENDS hyteg core constantStencilOperator)
+        DEPENDS hyteg core constant_stencil_operator)

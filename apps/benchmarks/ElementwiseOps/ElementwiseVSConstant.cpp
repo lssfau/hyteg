@@ -33,9 +33,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/types/PointND.hpp"
 
-#include "constantStencilOperator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
-#include "constantStencilOperator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

@@ -41,8 +41,8 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -235,11 +235,7 @@ int main( int argc, char* argv[] )
             hyteg::vertexdof::projectMean( u->p(), maxLevel );
 
             r->assign( { 1.0, -1.0 }, { *f, *r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-<<<<<<< HEAD
             [[maybe_unused]] real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
-=======
-            [[maybe_unused]] real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
->>>>>>> 90e7e7029 (Move generated applies to new module)
             WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum )
          }
       }

@@ -24,10 +24,10 @@
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "mixedOperator/ScalarToVectorOperator.hpp"
-#include "mixedOperator/VectorLaplaceOperator.hpp"
-#include "mixedOperator/VectorToScalarOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixed_operator/ScalarToVectorOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
+#include "mixed_operator/VectorToScalarOperator.hpp"
 
 namespace hyteg {
 

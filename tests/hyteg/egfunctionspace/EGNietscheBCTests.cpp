@@ -40,8 +40,8 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
-#include "mixedOperator/EGOperators.hpp"
-#include "mixedOperator/EGOperatorsNitscheBC.hpp"
+#include "mixed_operator/EGOperators.hpp"
+#include "mixed_operator/EGOperatorsNitscheBC.hpp"
 
 namespace hyteg {
 using walberla::real_t;

@@ -24,9 +24,9 @@
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
-#include "mixedOperator/ScalarToVectorOperator.hpp"
-#include "mixedOperator/VectorToScalarOperator.hpp"
+#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
+#include "mixed_operator/ScalarToVectorOperator.hpp"
+#include "mixed_operator/VectorToScalarOperator.hpp"
 namespace hyteg {
 
 class P2P1ElementwiseAffineEpsilonStokesOperator

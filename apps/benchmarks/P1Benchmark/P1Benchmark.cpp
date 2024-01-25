@@ -27,8 +27,8 @@
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "constantStencilOperator/P1generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

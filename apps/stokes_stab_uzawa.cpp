@@ -35,7 +35,7 @@
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

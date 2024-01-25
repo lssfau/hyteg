@@ -37,9 +37,9 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include "AbstractApply.hpp"
-#include "constantStencilOperator/EdgeDoFGeneratedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
-#include "constantStencilOperator/P1generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
-#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using namespace hyteg;

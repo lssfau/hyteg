@@ -40,8 +40,8 @@
 #include "hyteg/solvers/SymmetricSORSmoother.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using walberla::real_c;
 using walberla::uint_c;

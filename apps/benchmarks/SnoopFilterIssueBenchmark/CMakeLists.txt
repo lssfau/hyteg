@@ -4,4 +4,4 @@ waLBerla_link_files_to_builddir( *.sh )
 
 waLBerla_add_executable( NAME SnoopFilterIssueBenchmark
         FILES SnoopFilterIssueBenchmark.cpp
-        DEPENDS hyteg core sqlite constantStencilOperator)
+        DEPENDS hyteg core sqlite constant_stencil_operator)

@@ -30,9 +30,9 @@
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
-#include "mixedOperator/P1BlendingStokesOperator.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P1BlendingStokesOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 

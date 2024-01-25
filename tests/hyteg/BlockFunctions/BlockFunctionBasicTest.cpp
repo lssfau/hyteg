@@ -35,7 +35,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 // Perform some basic test to check that BlockFunctions can be instantiated,
 // called, executed and exported

@@ -50,13 +50,13 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.cpp"
-#include "constantStencilOperator/P1ConstantOperator.hpp"
-#include "constantStencilOperator/P2ConstantOperator.hpp"
-#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
-#include "mixedOperator/EGConvTestUtils.hpp"
-#include "mixedOperator/EGOperators.hpp"
-#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.cpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/EGConvTestUtils.hpp"
+#include "mixed_operator/EGOperators.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )

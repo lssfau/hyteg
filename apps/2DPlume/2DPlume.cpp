@@ -35,7 +35,7 @@
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 std::shared_ptr< PrimitiveStorage > createPrimitiveStorage()

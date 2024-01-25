@@ -11,4 +11,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME Blankenbach_Case3
         FILES  Blankenbach_Case3.cpp
-        DEPENDS hyteg convection_particles sqlite mixedOperator)
+        DEPENDS hyteg convection_particles sqlite mixed_operator)

@@ -26,8 +26,8 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#include "mixedOperator/P1EpsilonOperator.hpp"
-#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixed_operator/P1EpsilonOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 

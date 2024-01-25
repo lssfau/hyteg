@@ -30,8 +30,8 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
-#include "mixedOperator/EGConvTestUtils.hpp"
-#include "mixedOperator/EGOperators.hpp"
+#include "mixed_operator/EGConvTestUtils.hpp"
+#include "mixed_operator/EGOperators.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

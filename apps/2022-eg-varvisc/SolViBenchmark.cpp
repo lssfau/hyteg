@@ -15,10 +15,10 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include "constantStencilOperator/P1ConstantOperator.cpp"
-#include "mixedOperator/EGConvTestUtils.hpp"
-#include "mixedOperator/EGOperators.hpp"
-#include "mixedOperator/EGOperatorsNitscheBC.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.cpp"
+#include "mixed_operator/EGConvTestUtils.hpp"
+#include "mixed_operator/EGOperators.hpp"
+#include "mixed_operator/EGOperatorsNitscheBC.hpp"
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif

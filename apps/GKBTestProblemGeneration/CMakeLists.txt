@@ -10,6 +10,6 @@ if ( HYTEG_BUILD_WITH_PETSC )
 
 waLBerla_add_executable( NAME GKBTestProblemGenerator
         FILES  GKBTestProblemGenerator.cpp
-      DEPENDS hyteg mixedOperator)
+      DEPENDS hyteg mixed_operator)
 
 endif()
