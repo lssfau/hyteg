@@ -60,8 +60,8 @@ using walberla::uint_t;
 #define R_min 1.0
 #define R_max 2.0
 
-using Mass = P1ConstantMassOperator;
-// using Mass    = P1ElementwiseMassOperator;
+// using Mass = P1ConstantMassOperator;
+using Mass    = P1ElementwiseMassOperator;
 using Laplace = P1ConstantLaplaceOperator;
 // using Laplace      = P1ElementwiseLaplaceOperator;
 using DivkGradForm = forms::p1_div_k_grad_affine_q3;
@@ -304,6 +304,7 @@ struct ModelProblem
 
       if ( type == WAVES )
       {
+         // v(t) = t * (1 - cos(1/squeeze * (2π * n_waves * squeeze)^t))
          auto v = [=]( const real_t& t ) {
             auto x0 = 1.0 / p_w;
             auto x1 = 2 * n_w * p_w * pi;
