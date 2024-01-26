@@ -762,19 +762,22 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    std::array< double, 5 > err_est{ 0, 0, 0, 0, 0 };
    if ( error_indicator ) // use error indicator
    {
-      t0 = walberla::timing::getWcTime();
       // for global error estimate we need L-4, L-3, and L-2
       // for error indication, we require L-1
       int max_offset = global_error_estimate ? 4 : 1;
+
       for ( int offset = 1; offset <= max_offset; ++offset )
       {
          auto lvl = l_max - offset;
-         // store coarse solution
+         // store coarse solution (for testing purposes)
          u->copyFrom( ei, lvl );
-         // prolongate to finest level
+
+         t0 = walberla::timing::getWcTime();
+
+         // prolongate u_lvl to finest level
          for ( uint_t k = lvl; k < l_max; ++k )
             P->prolongate( ei, k, All );
-         // substract fine grid solution to obtain error estimate for u_lvl
+         // substract fine grid solution to obtain estimate for e_lvl
          ei.add( { -1 }, { *u }, l_max, All );
          ei.interpolate( 0, l_max, DirichletBoundary );
          // compute local dot product ei*M*ei !!! using ELEMENTWISE operator !!!
@@ -808,10 +811,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                   err_el[id] = std::sqrt( eMe );
             }
          }
-      }
 
-      t1 = walberla::timing::getWcTime();
-      t_error_indicator += t1 - t0;
+         t1 = walberla::timing::getWcTime();
+         t_error_indicator += t1 - t0;
+      }
 
       // global error estimate
       if ( global_error_estimate )
