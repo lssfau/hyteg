@@ -24,8 +24,8 @@
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg-operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
-#include "hyteg-operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
+#include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
+#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
