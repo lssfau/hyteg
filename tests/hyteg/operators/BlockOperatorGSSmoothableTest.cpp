@@ -26,9 +26,10 @@
 
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/operators/VectorToVectorOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "mixedOperator/VectorToVectorOperator.hpp"
 
 // Test, that the Gauss-Seidel-Smoother of the block operator, finds in one iteration the correct solution.
 

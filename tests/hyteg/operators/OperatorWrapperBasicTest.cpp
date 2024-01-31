@@ -29,9 +29,10 @@
 #include "hyteg/functions/FunctionWrapper.hpp"
 #include "hyteg/operators/GenericOperator.hpp"
 #include "hyteg/operators/OperatorWrapper.hpp"
-#include "hyteg/operators/VectorMassOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "mixedOperator/VectorMassOperator.hpp"
 
 // Perform some basic construction and apply test for OperatorWrapper class
 

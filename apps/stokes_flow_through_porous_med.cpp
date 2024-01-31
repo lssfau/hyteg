@@ -18,23 +18,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <hyteg/composites/P2P1TaylorHoodFunction.hpp>
-#include <hyteg/composites/P2P1TaylorHoodStokesOperator.hpp>
 #include <hyteg/dataexport/VTKOutput/VTKOutput.hpp>
+#include <mixedOperator/P2P1TaylorHoodStokesOperator.hpp>
+
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
-#include "hyteg/solvers/MinresSolver.hpp"
-
-#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
+
+#include "mixedOperator/P1P1StokesOperator.hpp"
 
 using walberla::real_t;
 using namespace hyteg;

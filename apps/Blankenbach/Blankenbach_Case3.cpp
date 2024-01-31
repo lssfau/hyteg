@@ -38,8 +38,6 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
@@ -60,8 +58,10 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "sqlite/SQLite.h"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 

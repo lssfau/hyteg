@@ -24,13 +24,14 @@
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/composites/P1Transport.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constantStencilOperator/P1Transport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

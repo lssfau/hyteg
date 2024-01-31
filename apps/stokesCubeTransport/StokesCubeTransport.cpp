@@ -26,8 +26,6 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
-#include "hyteg/composites/P1Transport.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -50,6 +48,9 @@
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+
+#include "constantStencilOperator/P1Transport.hpp"
+#include "mixedOperator/P1P1StokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

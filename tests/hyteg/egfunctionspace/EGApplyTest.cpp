@@ -25,19 +25,20 @@
 
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
-#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.cpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.cpp"
+#include "mixedOperator/EGOperators.hpp"
+#include "mixedOperator/EGOperatorsNitscheBC.hpp"
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_t;
 typedef std::function< real_t( const hyteg::PointND< real_t, 3 >& p ) > ScalarLambda;

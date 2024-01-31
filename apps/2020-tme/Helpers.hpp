@@ -45,8 +45,6 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -68,6 +66,9 @@
 #include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 namespace tme_benchmarks {

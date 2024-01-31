@@ -24,7 +24,6 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -32,8 +31,6 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/ExactStencilWeights.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
@@ -51,6 +48,10 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )

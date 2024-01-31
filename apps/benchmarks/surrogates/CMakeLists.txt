@@ -5,5 +5,5 @@ waLBerla_link_files_to_builddir( *.sh )
 
 waLBerla_add_executable( NAME SurrogateBenchmarks
         FILES SurrogateBenchmarks.cpp
-        DEPENDS hyteg core)
+        DEPENDS hyteg core constantStencilOperator)
 

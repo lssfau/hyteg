@@ -26,10 +26,11 @@
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::math::pi;

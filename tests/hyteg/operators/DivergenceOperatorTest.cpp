@@ -24,9 +24,10 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "mixedOperator/VectorToScalarOperator.hpp"
 
 // ----------------------------------------------------------------
 // Testing divergence computation with VectorToScalarOperators

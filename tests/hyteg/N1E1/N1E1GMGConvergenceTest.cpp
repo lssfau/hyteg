@@ -29,8 +29,6 @@
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
-#include "hyteg/n1e1functionspace/HybridSmoother.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -41,6 +39,8 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
 #include "common.hpp"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "mixedOperator/HybridSmoother.hpp"
 
 using namespace hyteg;
 using walberla::real_t;

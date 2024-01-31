@@ -8,11 +8,12 @@
 #include "hyteg/forms/form_hyteg_generated/p2/p2_invk_mass_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_k_mass_affine_q4.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/p2functionspace/P2FunctionApplyOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+
+#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
 
 namespace hyteg {
 

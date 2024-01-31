@@ -23,10 +23,11 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/trilinos/TrilinosSparseMatrix.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

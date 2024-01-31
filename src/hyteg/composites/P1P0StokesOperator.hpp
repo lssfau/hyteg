@@ -28,8 +28,9 @@
 #include "hyteg/mixedoperators/P0ToP1Operator.hpp"
 #include "hyteg/mixedoperators/P1ToP0Operator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
+
+#include "mixedOperator/VectorLaplaceOperator.hpp"
 
 namespace hyteg {
 

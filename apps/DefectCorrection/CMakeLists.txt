@@ -8,9 +8,9 @@ waLBerla_link_files_to_builddir( *.prm )
 if ( HYTEG_BUILD_WITH_PETSC )
     waLBerla_add_executable( NAME DefectCorrection
             FILES DefectCorrection.cpp
-            DEPENDS hyteg core )
+          DEPENDS hyteg core constantStencilOperator)
 
     waLBerla_add_executable( NAME DefectCorrectionStokes
             FILES DefectCorrectionStokes.cpp
-            DEPENDS hyteg core )
+          DEPENDS hyteg core mixedOperator)
 endif()

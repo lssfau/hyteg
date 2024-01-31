@@ -27,9 +27,10 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
-#include "hyteg/operators/VectorMassOperator.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
-#include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
+
+#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
+#include "constantStencilOperator/P2ConstantFullViscousOperator.hpp"
+#include "mixedOperator/VectorMassOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

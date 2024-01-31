@@ -20,16 +20,17 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/timing/all.h"
 #include "core/math/all.h"
+#include "core/timing/all.h"
 
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

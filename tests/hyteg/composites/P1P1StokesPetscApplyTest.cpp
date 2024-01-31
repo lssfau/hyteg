@@ -26,7 +26,6 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -37,6 +36,8 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "mixedOperator/P1P1StokesOperator.hpp"
 
 using walberla::real_t;
 

@@ -7,17 +7,18 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
-#include "hyteg/egfunctionspace/EGConvTestUtils.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
-#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.cpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.cpp"
+#include "mixedOperator/EGConvTestUtils.hpp"
+#include "mixedOperator/EGOperators.hpp"
+#include "mixedOperator/EGOperatorsNitscheBC.hpp"
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif

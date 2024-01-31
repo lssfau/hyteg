@@ -23,12 +23,13 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::uint_c;
 using walberla::uint_t;

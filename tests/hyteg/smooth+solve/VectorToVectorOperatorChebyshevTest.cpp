@@ -30,15 +30,16 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
-#include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
+
+#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
+#include "constantStencilOperator/P2ConstantFullViscousOperator.hpp"
+#include "mixedOperator/P1EpsilonOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

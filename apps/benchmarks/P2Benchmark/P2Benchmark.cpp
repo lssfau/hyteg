@@ -27,18 +27,19 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/misc/dummy.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

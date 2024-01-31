@@ -1,6 +1,6 @@
 waLBerla_add_executable( NAME Plume
         FILES Plume.cpp
-        DEPENDS hyteg core)
+        DEPENDS hyteg core mixedOperator)
 
 waLBerla_link_files_to_builddir( *.prm )
 

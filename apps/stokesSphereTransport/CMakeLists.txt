@@ -8,8 +8,8 @@ waLBerla_link_files_to_builddir( *.sh )
 
 if ( HYTEG_BUILD_WITH_PETSC )
 
-waLBerla_add_executable( NAME StokesSphereTransport
-        FILES  StokesSphereTransport.cpp
-        DEPENDS hyteg convection_particles )
+    waLBerla_add_executable(NAME StokesSphereTransport
+          FILES StokesSphereTransport.cpp
+          DEPENDS hyteg convection_particles mixedOperator)
 
 endif()

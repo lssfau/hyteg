@@ -20,14 +20,15 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
-#include "hyteg/operators/ScalarToVectorOperator.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/operators/VectorToScalarOperator.hpp"
+
+#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixedOperator/ScalarToVectorOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "mixedOperator/VectorToScalarOperator.hpp"
 
 namespace hyteg {
 

@@ -7,7 +7,7 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME MultigridStudies
         FILES MultigridStudies.cpp
-        DEPENDS hyteg core sqlite)
+        DEPENDS hyteg core sqlite mixedOperator)
 
 add_subdirectory(2019_constanta)
 add_subdirectory(2019_tme)

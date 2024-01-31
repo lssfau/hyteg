@@ -21,37 +21,34 @@
 #define FP_FAST_FMAF
 #define FP_FAST_FMAL
 
-#include <core/timing/Timer.h>
 #include <core/Environment.h>
 #include <core/config/Create.h>
+#include <core/timing/Timer.h>
 
+#include "core/Format.hpp"
+
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/CircularMap.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
+#include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator.hpp"
-
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2VariableOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
-
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-#include "hyteg/geometry/CircularMap.hpp"
-#include "hyteg/geometry/AnnulusMap.hpp"
-#include "core/Format.hpp"
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

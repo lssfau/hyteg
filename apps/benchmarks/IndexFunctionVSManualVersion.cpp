@@ -22,11 +22,12 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/indexing/Optimization.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

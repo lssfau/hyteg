@@ -29,13 +29,13 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+#include "mixedOperator/VectorLaplaceOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 using terraneo::SphericalHarmonicsTool;

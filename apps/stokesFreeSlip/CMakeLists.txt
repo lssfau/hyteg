@@ -6,7 +6,7 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME StokesFreeSlip
         FILES StokesFreeSlip.cpp
-        DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)
 
 waLBerla_add_executable( NAME ProjectNormalDemo
         FILES ProjectNormalDemo.cpp

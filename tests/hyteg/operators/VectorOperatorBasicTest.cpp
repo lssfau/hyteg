@@ -26,17 +26,18 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/operators/VectorMassOperator.hpp"
-#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
-#include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
+#include "constantStencilOperator/P2ConstantFullViscousOperator.hpp"
+#include "mixedOperator/P1EpsilonOperator.hpp"
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "mixedOperator/VectorMassOperator.hpp"
 
 // Perform a bacis compile and apply test for some VectorToVectorOperators
 

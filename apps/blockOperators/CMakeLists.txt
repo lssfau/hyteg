@@ -6,4 +6,4 @@ endif()
 
 waLBerla_add_executable( NAME vectorOpDemo
         FILES vectorOpDemo.cpp
-        DEPENDS hyteg)
+        DEPENDS hyteg mixedOperator)

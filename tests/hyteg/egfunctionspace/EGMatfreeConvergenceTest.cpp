@@ -24,14 +24,15 @@
 
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
-#include "hyteg/egfunctionspace/EGConvTestUtils.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.cpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
+
+#include "mixedOperator/EGConvTestUtils.hpp"
+#include "mixedOperator/EGOperators.hpp"
+#include "constantStencilOperator/P1ConstantOperator.cpp"
 
 using walberla::real_t;
 using walberla::uint_t;

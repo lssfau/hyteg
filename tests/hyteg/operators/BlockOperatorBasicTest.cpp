@@ -26,12 +26,13 @@
 
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/operators/ScalarToVectorOperator.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/operators/VectorToScalarOperator.hpp"
-#include "hyteg/operators/VectorToVectorOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "mixedOperator/ScalarToVectorOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "mixedOperator/VectorToScalarOperator.hpp"
+#include "mixedOperator/VectorToVectorOperator.hpp"
 
 // Perform a bacis compile and apply test for BlockOperator class
 

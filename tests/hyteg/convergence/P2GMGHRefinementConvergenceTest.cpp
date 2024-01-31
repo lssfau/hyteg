@@ -18,25 +18,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Environment.h"
+#include "core/Format.hpp"
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "core/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/ExactStencilWeights.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

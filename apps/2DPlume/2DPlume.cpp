@@ -23,7 +23,6 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -36,6 +35,7 @@
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 std::shared_ptr< PrimitiveStorage > createPrimitiveStorage()

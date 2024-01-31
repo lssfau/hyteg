@@ -24,17 +24,18 @@
 #include "core/timing/all.h"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2MacroEdge.hpp"
-#include "hyteg/p2functionspace/P2MacroFace.hpp"
-#include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2MacroEdge.hpp"
+#include "hyteg/p2functionspace/P2MacroFace.hpp"
+#include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/primitives/all.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

@@ -17,23 +17,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <hyteg/solvers/GaussSeidelSmoother.hpp>
+
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
-#include "core/timing/Timer.h"
 #include "core/math/Random.h"
+#include "core/timing/Timer.h"
 
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include <hyteg/solvers/GaussSeidelSmoother.hpp>
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

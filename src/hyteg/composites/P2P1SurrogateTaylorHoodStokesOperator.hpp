@@ -21,10 +21,11 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/mixedoperators/P1ToP2SurrogateOperator.hpp"
 #include "hyteg/mixedoperators/P2ToP1SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
+
+#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 

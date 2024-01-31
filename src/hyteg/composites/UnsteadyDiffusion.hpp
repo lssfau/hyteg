@@ -40,12 +40,13 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

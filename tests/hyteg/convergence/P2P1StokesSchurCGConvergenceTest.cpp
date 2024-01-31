@@ -22,7 +22,6 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
@@ -35,6 +34,8 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/StokesPCGSolverOld.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
+
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

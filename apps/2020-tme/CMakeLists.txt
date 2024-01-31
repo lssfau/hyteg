@@ -13,14 +13,14 @@ waLBerla_link_files_to_builddir( *.sh )
 
 waLBerla_add_executable( NAME SpMVvsGSBenchmark
         FILES SpMVvsGSBenchmark.cpp
-        DEPENDS hyteg sqlite)
+        DEPENDS hyteg sqlite mixedOperator)
 
 if (HYTEG_BUILD_WITH_PETSC)
 waLBerla_add_executable( NAME Benchmark_01_Cube
         FILES Benchmark_01_Cube.cpp Helpers.cpp
-        DEPENDS hyteg sqlite)
+        DEPENDS hyteg sqlite mixedOperator)
 
 waLBerla_add_executable( NAME Benchmark_02_Y-Pipe
         FILES Benchmark_02_Y-Pipe.cpp Helpers.cpp
-        DEPENDS hyteg sqlite)
+        DEPENDS hyteg sqlite mixedOperator)
 endif()

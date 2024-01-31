@@ -22,9 +22,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "hyteg/composites/P1BlendingStokesOperator.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
@@ -32,6 +29,10 @@
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+
+#include "mixedOperator/P1BlendingStokesOperator.hpp"
+#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 

@@ -21,11 +21,12 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+
+#include "mixedOperator/VectorLaplaceOperator.hpp"
 
 using walberla::real_t;
 

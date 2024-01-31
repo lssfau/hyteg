@@ -19,16 +19,17 @@
  */
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
-#include "core/timing/Timer.h"
 #include "core/math/Random.h"
+#include "core/timing/Timer.h"
 
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::real_c;

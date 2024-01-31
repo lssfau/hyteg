@@ -18,20 +18,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <hyteg/primitivestorage/Visualization.hpp>
+
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
-#include "core/DataTypes.h"
+#include "core/mpi/SendBuffer.h"
 
-#include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::uint_t;
 

@@ -4,7 +4,7 @@ endif()
 
 waLBerla_add_executable(NAME smoothingFactor
       FILES smoothingFactor.cpp common.hpp common.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)
 
 waLBerla_add_executable(NAME massForm
       FILES massForm.cpp
@@ -22,20 +22,20 @@ waLBerla_add_executable(NAME projectionQuadrature
 
 waLBerla_add_executable(NAME chebyshevParameters
       FILES chebyshevParameters.cpp common.hpp common.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)
 
 waLBerla_add_executable(NAME hIndependence
       FILES hIndependence.cpp common.hpp common.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)
 
 waLBerla_add_executable(NAME L2Convergence
       FILES L2Convergence.cpp common.hpp common.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)
 
 waLBerla_add_executable(NAME solverConvergence
       FILES solverConvergence.cpp common.hpp common.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)
 
 waLBerla_add_executable(NAME performance
       FILES performance.cpp common.hpp common.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg mixedOperator)

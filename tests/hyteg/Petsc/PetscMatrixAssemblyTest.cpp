@@ -22,18 +22,16 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/composites/P1BlendingStokesOperator.hpp"
-#include "hyteg/composites/P1EpsilonStokesOperator.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
+
+#include "mixedOperator/P1BlendingStokesOperator.hpp"
+#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "constantStencilOperator/P1EpsilonStokesOperator.hpp"
 // #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp" < --see issue 159
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/P2P2StabilizedStokesOperator.hpp"
-#include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
@@ -44,13 +42,9 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/operators/VectorMassOperator.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
@@ -59,6 +53,14 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixedOperator/P2P1UzawaDampingFactorEstimationOperator.hpp"
+#include "mixedOperator/P2P2UnstableStokesOperator.hpp"
+#include "mixedOperator/VectorMassOperator.hpp"
 
 /// This test checks whether we can assemble a sparse matrix
 /// (for/with PETSc) for the given operators. It is mostly a

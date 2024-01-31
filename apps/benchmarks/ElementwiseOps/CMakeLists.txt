@@ -8,9 +8,9 @@ waLBerla_add_executable( NAME PolarLaplacianBenchmark
 
 waLBerla_add_executable( NAME StencilScalingBenchmark
         FILES StencilScalingBenchmark.cpp
-        DEPENDS hyteg core)
+        DEPENDS hyteg core constantStencilOperator)
 endif()
 
 waLBerla_add_executable( NAME ElementwiseVSConstant
       FILES ElementwiseVSConstant.cpp
-      DEPENDS hyteg core)
+      DEPENDS hyteg core constantStencilOperator)

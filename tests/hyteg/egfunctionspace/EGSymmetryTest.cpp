@@ -27,14 +27,15 @@
 #include "hyteg/composites/P1DGEP0StokesOperator.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
-#include "hyteg/egfunctionspace/EGConvTestUtils.hpp"
-#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "mixedOperator/EGConvTestUtils.hpp"
+#include "mixedOperator/EGOperators.hpp"
+#include "mixedOperator/EGOperatorsNitscheBC.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

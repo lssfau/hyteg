@@ -21,17 +21,17 @@
 #define FP_FAST_FMAF
 #define FP_FAST_FMAL
 
+#include <constantStencilOperator/P2ConstantOperator.hpp>
 #include <core/Environment.h>
 #include <core/config/Create.h>
 #include <core/timing/Timer.h>
 #include <hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp>
 #include <hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp>
-#include <hyteg/composites/P2P1TaylorHoodStokesOperator.hpp>
 #include <hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp>
 #include <hyteg/mesh/MeshInfo.hpp>
 #include <hyteg/p1functionspace/P1VariableOperator.hpp>
-#include <hyteg/p2functionspace/P2ConstantOperator.hpp>
 #include <hyteg/p2functionspace/P2VariableOperator.hpp>
+#include <mixedOperator/P2P1TaylorHoodStokesOperator.hpp>
 
 #include "core/Format.hpp"
 

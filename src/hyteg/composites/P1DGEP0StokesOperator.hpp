@@ -22,8 +22,9 @@
 #include <hyteg/p0functionspace/P0P0MassForm.hpp>
 
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/p0functionspace/P0P0WeightedMassForm.hpp"
+
+#include "mixedOperator/EGOperators.hpp"
 
 namespace hyteg {
 namespace dg {

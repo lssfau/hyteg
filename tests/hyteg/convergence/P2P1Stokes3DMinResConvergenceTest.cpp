@@ -23,7 +23,6 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -38,6 +37,8 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+
+#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

@@ -34,12 +34,12 @@
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_2D_macroface_edgedof_to_vertexdof_replace.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_replace.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include "AbstractApply.hpp"
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using namespace hyteg;

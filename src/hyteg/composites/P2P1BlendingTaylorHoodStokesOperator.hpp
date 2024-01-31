@@ -21,13 +21,14 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
-#include "hyteg/operators/ScalarToVectorOperator.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/operators/VectorToScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
+
+#include "mixedOperator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixedOperator/ScalarToVectorOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "mixedOperator/VectorToScalarOperator.hpp"
 
 namespace hyteg {
 

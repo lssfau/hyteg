@@ -22,10 +22,11 @@
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
-#include "hyteg/operators/ScalarToVectorOperator.hpp"
-#include "hyteg/operators/VectorToScalarOperator.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P2ConstantEpsilonOperator.hpp"
+#include "mixedOperator/ScalarToVectorOperator.hpp"
+#include "mixedOperator/VectorToScalarOperator.hpp"
 namespace hyteg {
 
 class P2P1ElementwiseAffineEpsilonStokesOperator

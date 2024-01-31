@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/n1e1functionspace/HybridSmoother.hpp"
+#include "mixedOperator/HybridSmoother.hpp"
 
 #include "core/debug/TestSubsystem.h"
 #include "core/logging/Logging.h"
@@ -29,13 +29,13 @@
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
 #include "common.hpp"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using namespace hyteg;
 

@@ -33,9 +33,10 @@
 #include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 
 // Hunting the NaN
 #include <cfenv>

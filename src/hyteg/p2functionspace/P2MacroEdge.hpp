@@ -23,6 +23,8 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/primitives/Edge.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
+#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
 
 namespace hyteg {
 namespace P2 {

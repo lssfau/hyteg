@@ -24,7 +24,6 @@
 #include "core/logging/Logging.h"
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -32,6 +31,8 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/trilinos/TrilinosVector.hpp"
+
+#include "mixedOperator//P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

@@ -18,24 +18,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core/Format.hpp"
-
 #include "core/Environment.h"
+#include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
-#include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+
+#include "mixedOperator/P1P1StokesOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

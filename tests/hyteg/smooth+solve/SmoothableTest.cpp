@@ -24,12 +24,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1EpsilonOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p2functionspace/P2FullViscousOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -39,6 +35,11 @@
 #include "hyteg/solvers/SymmetricGaussSeidelSmoother.hpp"
 #include "hyteg/solvers/SymmetricSORSmoother.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+
+#include "constantStencilOperator/P2ConstantFullViscousOperator.hpp"
+#include "mixedOperator/P1EpsilonOperator.hpp"
+#include "mixedOperator/VectorLaplaceOperator.hpp"
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::math::pi;

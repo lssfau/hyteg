@@ -20,7 +20,6 @@
 
 #include <core/Environment.h>
 #include <core/math/Constants.h>
-
 #include <utility>
 
 #include "hyteg/MeshQuality.hpp"
@@ -30,7 +29,6 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -40,6 +38,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
+#include "constantStencilOperator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;

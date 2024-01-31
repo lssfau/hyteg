@@ -27,7 +27,6 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -35,6 +34,8 @@
 #include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
 
 // Perform some basic test to check that BlockFunctions can be instantiated,
 // called, executed and exported

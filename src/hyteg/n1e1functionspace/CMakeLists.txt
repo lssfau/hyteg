@@ -1,7 +1,5 @@
 target_sources( hyteg
     PRIVATE
-    HybridSmoother.cpp
-    HybridSmoother.hpp
     N1E1AdditivePackInfo.cpp
     N1E1AdditivePackInfo.hpp
     N1E1Indexing.hpp

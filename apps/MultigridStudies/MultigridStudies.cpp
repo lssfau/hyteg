@@ -30,11 +30,8 @@
 #include "hyteg/Git.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
-#include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
@@ -50,9 +47,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -74,6 +69,11 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
+#include "constantStencilOperator/P1ConstantOperator.hpp"
+#include "constantStencilOperator/P2ConstantOperator.hpp"
+#include "mixedOperator/P1P1StokesOperator.hpp"
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixedOperator/P2P2UnstableStokesOperator.hpp"
 #include "sqlite/SQLite.h"
 
 namespace hyteg {

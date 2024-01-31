@@ -20,11 +20,12 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFProjectNormalOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+
+#include "mixedOperator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 

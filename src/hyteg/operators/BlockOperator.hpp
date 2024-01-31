@@ -21,11 +21,8 @@
 
 #include <type_traits>
 
-#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/operators/OperatorWrapper.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 

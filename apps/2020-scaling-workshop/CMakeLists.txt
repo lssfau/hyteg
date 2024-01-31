@@ -21,11 +21,11 @@ waLBerla_link_files_to_builddir( *.sh )
 if (HYTEG_BUILD_WITH_PETSC)
 waLBerla_add_executable( NAME Scaling_Workshop_01_Cube
         FILES  Scaling_Workshop_01_Cube.cpp Helpers.cpp
-        DEPENDS hyteg sqlite)
+        DEPENDS hyteg sqlite mixedOperator)
 
 waLBerla_add_executable( NAME Scaling_Workshop_02_Spherical_Shell
         FILES  Scaling_Workshop_02_Spherical_Shell.cpp Helpers.cpp
-        DEPENDS hyteg sqlite)
+        DEPENDS hyteg sqlite mixedOperator)
 endif()
 
 add_subdirectory(scriptGeneration)

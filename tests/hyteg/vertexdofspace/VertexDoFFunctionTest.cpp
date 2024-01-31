@@ -23,12 +23,11 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/forms/P1ZeroForm.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
@@ -38,6 +37,8 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 

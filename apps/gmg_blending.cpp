@@ -21,26 +21,28 @@
 #define FP_FAST_FMAF
 #define FP_FAST_FMAL
 
-#include <core/timing/Timer.h>
 #include <core/Environment.h>
 #include <core/config/Create.h>
+#include <core/timing/Timer.h>
 
+#include "core/Format.hpp"
+
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/geometry/CircularMap.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-#include "hyteg/geometry/CircularMap.hpp"
-#include "core/Format.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+
+#include "constantStencilOperator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
