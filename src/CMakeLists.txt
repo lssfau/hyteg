@@ -1,8 +1,10 @@
-add_subdirectory( hyteg )
+add_subdirectory( constant_stencil_operator )
 add_subdirectory( convection_particles )
 add_subdirectory( coupling_hyteg_convection_particles )
 add_subdirectory( coupling_hyteg_unresolved_particles )
-add_subdirectory( hyteg-operators/operators )
+add_subdirectory( hyteg )
+add_subdirectory( hyteg_operators/operators )
+add_subdirectory( mixed_operator )
 add_subdirectory( unresolved_particles )
 
 if( HYTEG_TERRANEO_MODULE )

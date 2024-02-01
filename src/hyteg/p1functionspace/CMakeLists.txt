@@ -11,13 +11,11 @@ target_sources( hyteg
     P1Elements.hpp
     VertexDoFMemory.hpp
     P1HelperFunctions.hpp
-    P1ConstantOperator.hpp
     VertexDoFFunction.hpp
     VertexDoFMacroEdge.hpp
     VertexDoFPackInfo.hpp
     VertexDoFIndexing.cpp
     P1Petsc.hpp
-    P1ConstantOperator.cpp
     P1SurrogateOperator.hpp
     VertexDoFMacroFace.hpp
     P1VectorFunction.hpp

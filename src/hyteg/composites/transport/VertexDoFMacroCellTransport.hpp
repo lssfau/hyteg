@@ -25,6 +25,7 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"

@@ -7,4 +7,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME PetscCompare-2D-P2-Apply
         FILES PetscCompare-2D-P2-Apply.cpp
-        DEPENDS hyteg core)
+        DEPENDS hyteg core constant_stencil_operator)

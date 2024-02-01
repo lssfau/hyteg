@@ -26,6 +26,8 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 
 namespace hyteg {
+/// forward declare Operator that are in another module
+class P2P1TaylorHoodStokesOperator;
 namespace indexing {
 
 /// Return the number of couplings between all DoFs for the given operator

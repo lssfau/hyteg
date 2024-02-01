@@ -24,20 +24,21 @@
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg-operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
-#include "hyteg-operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
+#include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
+#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

@@ -19,12 +19,13 @@
  */
 #pragma once
 
-#include "hyteg/composites/P1P1StokesOperator.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "hyteg/mixedoperators/P1ToP2ConstantOperator.hpp"
-#include "hyteg/mixedoperators/P2ToP1ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/solvers/Solver.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P1ToP2ConstantOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "mixed_operator/P2ToP1ConstantOperator.hpp"
 
 namespace hyteg {
 

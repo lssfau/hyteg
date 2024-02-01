@@ -21,18 +21,10 @@
 
 #include <algorithm>
 
-#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
-#include "hyteg/p2functionspace/P2MacroEdge.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
-#include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/p2functionspace/P2Multigrid.hpp"
 #include "hyteg/p2functionspace/P2TransferOperators.hpp"
 

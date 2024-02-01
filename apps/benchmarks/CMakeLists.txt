@@ -4,7 +4,7 @@ waLBerla_add_executable( NAME CompareInterpolate
 
 waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         FILES IndexFunctionVSManualVersion.cpp
-        DEPENDS hyteg)
+        DEPENDS hyteg constant_stencil_operator)
 
 add_subdirectory(KernelBench)
 if (WALBERLA_DOUBLE_ACCURACY)

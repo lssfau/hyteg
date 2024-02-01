@@ -19,6 +19,12 @@
  */
 #pragma once
 
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/types/Matrix.hpp"
+
+#include "core/DataTypes.h"
+#include "core/Abort.h"
+
 namespace hyteg {
 
 // wrapper to enable combining P1 operators with higher order forms
@@ -38,7 +44,7 @@ class P1WrapperForm : public WrappedForm
    : WrappedForm( wf )
    {}
 
-   void integrateRow( const uint_t& row, const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const
+   void integrateRow( const walberla::uint_t& row, const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const
    {
       switch ( row )
       {
@@ -50,7 +56,7 @@ class P1WrapperForm : public WrappedForm
       }
    }
 
-   void integrateRow( const uint_t& row, const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const
+   void integrateRow( const walberla::uint_t& row, const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const
    {
       switch ( row )
       {

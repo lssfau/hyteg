@@ -23,19 +23,17 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/p1functionspace/P1Elements.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-
-#include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
-#include "hyteg/p1functionspace/P1Elements.hpp"
-
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 
