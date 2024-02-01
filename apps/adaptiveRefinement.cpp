@@ -544,6 +544,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   l_max,
                                        uint_t                                   n_cycles,
                                        uint_t                                   max_iter,
+                                       uint_t                                   n1,
+                                       uint_t                                   n2,
                                        real_t                                   tol,
                                        real_t                                   cg_tol,
                                        std::string                              vtkname,
@@ -701,9 +703,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // solver
    t0 = walberla::timing::getWcTime();
    // smoother
-   uint_t n1       = ( problem.dim == 3 ) ? 3 : 2;
-   uint_t n2       = ( problem.dim == 3 ) ? 3 : 1;
-   auto   smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
+   auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
    // auto   smoother = std::make_shared< WeightedJacobiSmoother< A_t > >( storage, l_min, l_max, 0.66 );
    // coarse grid solver
    auto cgIter = std::max( uint_t( 5 ), n_dof_coarse );
@@ -977,6 +977,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 uint_t                       u0,
                                 uint_t                       n_cycles,
                                 uint_t                       max_iter,
+                                uint_t                       n1,
+                                uint_t                       n2,
                                 real_t                       tol,
                                 uint_t                       max_iter_final,
                                 real_t                       tol_final,
@@ -1007,6 +1009,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           l_max,
                                           n_cycles,
                                           max_iter,
+                                          n1,
+                                          n2,
                                           tol,
                                           cg_tol,
                                           vtkname,
@@ -1026,6 +1030,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            l_max,
                                            n_cycles,
                                            max_iter,
+                                           n1,
+                                           n2,
                                            tol,
                                            cg_tol,
                                            vtkname,
@@ -1143,6 +1149,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            l_final,
                            n_cycles,
                            max_iter_final,
+                           n1,
+                           n2,
                            tol_final,
                            cg_tol,
                            vtkname,
@@ -1164,6 +1172,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             l_final,
                             n_cycles,
                             max_iter_final,
+                            n1,
+                            n2,
                             tol_final,
                             cg_tol,
                             vtkname,
@@ -1231,6 +1241,8 @@ int main( int argc, char* argv[] )
    const uint_t n_cycles       = parameters.getParameter< uint_t >( "n_cycles" );
    const uint_t max_iter       = parameters.getParameter< uint_t >( "n_iterations" );
    const uint_t max_iter_final = parameters.getParameter< uint_t >( "n_iterations_final", max_iter );
+   const uint_t n1             = parameters.getParameter< uint_t >( "presmooth", 2 );
+   const uint_t n2             = parameters.getParameter< uint_t >( "postsmooth", 2 );
    const real_t tol            = parameters.getParameter< real_t >( "tolerance" );
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
@@ -1314,8 +1326,9 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "initial guess", ( u0 ) ? "interpolated" : "zero" ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", n_cycles ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", n_cycles ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d/%d", "number of (gs) smoothing steps", n1, n2) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e / %2.1e", "tolerance (CG/MG)", cg_tol, tol ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
        " %30s: %d", "additional final step", ( l_final > l_max || max_iter_final > max_iter || tol_final < tol ) ) );
@@ -1345,6 +1358,8 @@ int main( int argc, char* argv[] )
                               u0,
                               n_cycles,
                               max_iter,
+                              n1,
+                              n2,
                               tol,
                               max_iter_final,
                               tol_final,

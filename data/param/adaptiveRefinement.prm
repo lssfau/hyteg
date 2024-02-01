@@ -29,7 +29,7 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 5; // number of refinement steps
+  n_refinements 0; // number of refinement steps
   // p_refinement 0.05; // proportion of elements that will be marked for refinement in each step [0,1].
                     // if p_refinement is not set, all elements whith sqared error greater than mean sqared error will be refined.
   // n_el_max 22000; // max number of macro elements
@@ -40,6 +40,8 @@ Parameters
 
 
   // // linear solver (GMG)
+  presmooth 2; // number of gs iterations for smoothing
+  postsmooth 1;
   n_cycles 3; // number of V-cycles on each level in FMG
   n_iterations 1; // first iteration FMG, then V-cycles
   // n_iterations_final 5; // use different number of iterations for final solve step
