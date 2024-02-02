@@ -554,7 +554,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   refinement_step,
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
-                                       int                                      error_freq )
+                                       int                                      error_freq,
+                                       bool                                     loadbalancing )
 {
    if ( error_freq == 0 )
       error_freq = int( max_iter );
@@ -572,7 +573,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       // if u0 is initialized with zero, we apply load balancing before creating the storage.
       // else, we first interpolate u before applying load balancing
       t0 = walberla::timing::getWcTime();
-      mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
+      if ( loadbalancing )
+         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY );
+      else
+         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
       t1              = walberla::timing::getWcTime();
       t_loadbalancing = t1 - t0;
    }
@@ -988,7 +992,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 bool                         writeMeshfile,
                                 bool                         error_indicator,
                                 bool                         global_error_estimate,
-                                int                          error_freq )
+                                int                          error_freq,
+                                bool                         loadbalancing )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -1019,7 +1024,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           refinement,
                                           error_indicator,
                                           global_error_estimate,
-                                          error_freq );
+                                          error_freq,
+                                          loadbalancing );
       else
          local_errors = solve< DivkGrad >( mesh,
                                            problem,
@@ -1040,7 +1046,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            refinement,
                                            error_indicator,
                                            global_error_estimate,
-                                           error_freq );
+                                           error_freq,
+                                           loadbalancing );
 
       if ( refinement >= n_ref )
       {
@@ -1159,7 +1166,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            refinement,
                            error_indicator,
                            global_error_estimate,
-                           error_freq );
+                           error_freq,
+                           loadbalancing );
       }
       else
       {
@@ -1182,7 +1190,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             refinement,
                             error_indicator,
                             global_error_estimate,
-                            error_freq );
+                            error_freq,
+                            loadbalancing );
       }
 
       if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
@@ -1247,6 +1256,7 @@ int main( int argc, char* argv[] )
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
+   const bool  loadbalancing     = parameters.getParameter< bool >( "loadbalancing", false );
    const int   l2error           = parameters.getParameter< int >( "l2error", 0 );
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
@@ -1328,7 +1338,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", n_cycles ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d/%d", "number of (gs) smoothing steps", n1, n2) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d/%d", "number of (gs) smoothing steps", n1, n2 ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e / %2.1e", "tolerance (CG/MG)", cg_tol, tol ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
        " %30s: %d", "additional final step", ( l_final > l_max || max_iter_final > max_iter || tol_final < tol ) ) );
@@ -1369,7 +1379,8 @@ int main( int argc, char* argv[] )
                               writeMeshfile,
                               error_indicator,
                               global_error_estimate,
-                              l2error );
+                              l2error,
+                              loadbalancing );
 
    return 0;
 }
