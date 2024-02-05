@@ -37,6 +37,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
    : mat_( mat )
    {
       MatSetOption( mat_, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE );
+      MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
    }
 
    virtual std::shared_ptr< SparseMatrixProxy > createCopy() const

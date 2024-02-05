@@ -197,7 +197,7 @@ void run3D( const real_t absErrorTolerance )
    uint_t nTan = 3;
    uint_t nRad = 2;
 
-   auto storage = setupSphericalShellStorage( nTan, nRad, true );
+   auto storage = setupSphericalShellStorage( nTan, nRad, false );
 
    BoundaryCondition bcVelocity;
 
