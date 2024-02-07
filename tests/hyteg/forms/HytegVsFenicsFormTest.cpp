@@ -1149,7 +1149,7 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
    // clang 9 seams to produce a problem related to vectorized division
    // https://stackoverflow.com/questions/63125919/how-to-avoid-floating-point-exceptions-in-unused-simd-lanes
-#if ( defined( NDEBUG ) && defined( __clang__ ) ) || ( !defined( NDEBUG ) && defined( __INTEL_LLVM_COMPILER ) )
+#if  defined( __clang__ ) || (!defined( NDEBUG ) && defined( __INTEL_LLVM_COMPILER ))
    // clang 10 has problems with some of the forms in Release mode (see issue #147)
    // intel llvm has problems in debug mode
 #else
