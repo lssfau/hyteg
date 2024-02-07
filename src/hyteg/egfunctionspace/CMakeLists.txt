@@ -3,7 +3,6 @@ target_sources( hyteg
     EGFunction.hpp
     EGFunction.cpp
     EGBasis.hpp
-    EGOperators.hpp
     EGConstEpsilonForm.hpp
     EGEpsilonForm.hpp
     EGVectorLaplaceForm.hpp
@@ -11,7 +10,5 @@ target_sources( hyteg
     EGIIPGVectorLaplaceForm.hpp
     EGDivForm.hpp
     EGDivtForm.hpp
-        EGOperatorsNitscheBC.hpp
     EGVectorLaplaceFormNitscheBC.hpp
-    EGConvTestUtils.hpp
 )

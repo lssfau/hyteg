@@ -4,7 +4,7 @@ PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
 
-if(${CMAKE_VERSION} VERSION_GREATER "3.24.0") 
+if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
@@ -39,6 +39,7 @@ link_directories(${EIGEN_DIR})
 
 include_directories(src)
 
+unset(CMAKE_CXX_FLAGS_DEBUGOPTIMIZED CACHE)
 find_package(waLBerla)
 
 if ( HYTEG_BUILD_WITH_MPFR )
@@ -230,7 +231,7 @@ if (HYTEG_BUILD_DOC)
   #
   # Yepp, this looks akward. If you have any idea on how to solve this in
   # a more elegant fashion, please feel free to change this.
-  if( WALBERLA_BUILD_WITH_MPI ) 
+  if( WALBERLA_BUILD_WITH_MPI )
     set( DOXYGEN_WALBERLA_BUILD_WITH_MPI "WALBERLA_BUILD_WITH_MPI" )
   endif()
 

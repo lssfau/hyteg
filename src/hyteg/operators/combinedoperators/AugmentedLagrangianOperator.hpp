@@ -17,17 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/operators/Operator.hpp"
-#include "hyteg/functions/FunctionTraits.hpp"
+#include <type_traits>
+
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/operators/VectorLaplaceOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 
-
-#include <type_traits>
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "mixed_operator/VectorLaplaceOperator.hpp"
 namespace hyteg {
 
 using walberla::real_t;

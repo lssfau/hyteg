@@ -22,10 +22,11 @@
 #include <hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp>
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2EpsilonOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+
+#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 

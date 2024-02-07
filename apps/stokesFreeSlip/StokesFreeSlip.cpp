@@ -25,7 +25,6 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -42,6 +41,8 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "mixed_operator/P1BlendingStokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

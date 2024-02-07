@@ -27,8 +27,6 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "hyteg/p1functionspace/generatedKernels/communicate_directly_vertexdof_cell_to_face.hpp"
-#include "hyteg/p1functionspace/generatedKernels/communicate_directly_vertexdof_face_to_cell.hpp"
 #include "hyteg/primitives/all.hpp"
 #include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
 

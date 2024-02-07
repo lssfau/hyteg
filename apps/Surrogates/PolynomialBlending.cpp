@@ -37,11 +37,9 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
@@ -52,6 +50,9 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 // #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 

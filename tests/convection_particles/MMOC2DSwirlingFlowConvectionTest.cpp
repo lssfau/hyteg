@@ -24,16 +24,16 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

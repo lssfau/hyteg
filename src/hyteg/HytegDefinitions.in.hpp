@@ -42,3 +42,5 @@ constexpr bool useGeneratedKernels = false;
 // clang-format off
 #define HYTEG_ARCH_ENDIANESS ${CMAKE_CXX_BYTE_ORDER}
 // clang-format on
+
+#define RESTRICT WALBERLA_RESTRICT

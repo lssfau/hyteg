@@ -23,7 +23,6 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
-#include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -37,6 +36,8 @@
 #include "hyteg/primitives/Face.hpp"
 #include "hyteg/primitives/Vertex.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constant_stencil_operator/EdgeDoFOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

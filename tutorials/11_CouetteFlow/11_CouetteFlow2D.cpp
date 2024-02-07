@@ -196,14 +196,12 @@
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
@@ -212,6 +210,9 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/VectorMassOperator.hpp"
 
 using walberla::real_t;
 

@@ -7,4 +7,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME ApplyPerformanceAnalysis-2D-P2
         FILES ApplyPerformanceAnalysis-2D-P2.cpp AbstractApply.cpp
-        DEPENDS hyteg core)
+        DEPENDS hyteg core constant_stencil_operator)

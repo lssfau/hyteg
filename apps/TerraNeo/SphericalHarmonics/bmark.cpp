@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 - 2022 Marcus Mohr
+ * Copyright (c) 2020 - 2023 Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -93,11 +93,6 @@ std::shared_ptr< hyteg::PrimitiveStorage > generateMesh( uint_t nRad, uint_t nTa
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    IcosahedralShellMap::setMap( setupStorage );
 
-   auto surface = []( const Point3D& p ) { return std::abs( p.norm() - outerRadius ) < 1e-10; };
-   auto cmb     = []( const Point3D& p ) { return std::abs( p.norm() - innerRadius ) < 1e-10; };
-   setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surface );
-   setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, cmb );
-
    if ( reportPrimitives )
       WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
 
@@ -131,20 +126,20 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    {
       bmarkBC     = BC_NOSLIP;
       bmarkFsDoFs = None;
-      bcVelocity.createDirichletBC( "all boundaries", {1, 2} );
+      bcVelocity.createDirichletBC( "all boundaries", {MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary} );
    }
    else if ( bc == "mixed" )
    {
       bmarkBC     = BC_MIXED;
       bmarkFsDoFs = FreeslipBoundary;
-      bcVelocity.createDirichletBC( "surface", {1} );
-      bcVelocity.createFreeslipBC( "CMB", {2} );
+      bcVelocity.createDirichletBC( "surface", {MeshInfo::hollowFlag::flagOuterBoundary} );
+      bcVelocity.createFreeslipBC( "CMB", {MeshInfo::hollowFlag::flagInnerBoundary} );
    }
    else if ( bc == "free-slip" )
    {
       bmarkBC     = BC_FREESLIP;
       bmarkFsDoFs = FreeslipBoundary;
-      bcVelocity.createFreeslipBC( "all boundaries", {1, 2} );
+      bcVelocity.createFreeslipBC( "all boundaries", {MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary} );
       WALBERLA_ABORT( "Unsupported bcType = '" << bc << "' detected!" );
    }
    else

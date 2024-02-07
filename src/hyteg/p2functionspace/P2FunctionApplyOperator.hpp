@@ -23,7 +23,6 @@
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
 #include "hyteg/operators/VectorToVectorOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

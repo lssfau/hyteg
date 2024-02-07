@@ -20,20 +20,21 @@
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
+#include "core/Format.hpp"
 #include "core/math/Constants.h"
 
-#include "core/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::math::pi;

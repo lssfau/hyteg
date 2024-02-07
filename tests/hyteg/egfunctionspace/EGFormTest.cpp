@@ -24,8 +24,9 @@
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+
+#include "mixed_operator/EGOperators.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

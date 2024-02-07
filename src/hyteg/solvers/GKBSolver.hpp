@@ -22,14 +22,15 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
-#include "hyteg/operators/combinedoperators/AugmentedLagrangianOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/operators/combinedoperators/AugmentedLagrangianOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 

@@ -7,4 +7,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME ApplyBenchmark
         FILES ApplyBenchmark.cpp
-        DEPENDS hyteg core)
+        DEPENDS hyteg core constant_stencil_operator)

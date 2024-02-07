@@ -29,12 +29,13 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -67,8 +68,8 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
 
    Operator laplace( storage, level, level );
 
-   [[maybe_unused]]const uint_t localDoFs = hyteg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
-   [[maybe_unused]]const uint_t totalDoFs = hyteg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
+   [[maybe_unused]] const uint_t localDoFs = hyteg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
+   [[maybe_unused]] const uint_t totalDoFs = hyteg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
 
    src.interpolate( exact, level, hyteg::Inner );
 

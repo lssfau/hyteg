@@ -27,19 +27,19 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-#include "hyteg/edgedofspace/generatedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/dummy.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_2D_macroface_edgedof_to_vertexdof_replace.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_replace.hpp"
-#include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include "AbstractApply.hpp"
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using namespace hyteg;

@@ -7,12 +7,8 @@ else()
 endif()
 
 try_compile(HYTEG_PLATFORM_SUPPORTS_AVX
-   SOURCE_FROM_CONTENT main.cpp "
-      #include <immintrin.h>
-      int main() {
-         const __m256d result = _mm256_mul_pd(_mm256_set_pd(4.0,5.0,6.0,7.0), _mm256_set_pd(5.0,6.0,7.0,8.0));
-      }
-      "
+   "${CMAKE_CURRENT_BINARY_DIR}"
+   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/TestAvxSupport.cpp"
    COMPILE_DEFINITIONS ${HYTEG_COMPILER_NATIVE_FLAGS}
    OUTPUT_VARIABLE OUT
 )

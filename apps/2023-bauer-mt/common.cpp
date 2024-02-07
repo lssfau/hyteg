@@ -27,8 +27,6 @@
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
-#include "hyteg/n1e1functionspace/HybridSmoother.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -37,6 +35,9 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
+
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/HybridSmoother.hpp"
 
 Results solve( const Params& params, const bool useGmg )
 {

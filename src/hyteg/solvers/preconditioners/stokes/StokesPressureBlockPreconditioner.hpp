@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"

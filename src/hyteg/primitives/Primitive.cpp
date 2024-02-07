@@ -19,6 +19,7 @@
  */
 
 #include <algorithm>
+#include <vector>
 #include <core/mpi/BufferDataTypeExtensions.h>
 #include <hyteg/primitives/Primitive.hpp>
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
@@ -146,10 +147,10 @@ void Primitive::removeChildren( const std::vector< PrimitiveID >& pids )
 {
    for ( const auto& pid : pids )
    {
-      std::remove( childVertices_.begin(), childVertices_.end(), pid );
-      std::remove( childEdges_.begin(), childEdges_.end(), pid );
-      std::remove( childFaces_.begin(), childFaces_.end(), pid );
-      std::remove( childCells_.begin(), childCells_.end(), pid );
+      childVertices_.erase(std::remove( childVertices_.begin(), childVertices_.end(), pid ),childVertices_.end());
+      childVertices_.erase(std::remove( childEdges_.begin(), childEdges_.end(), pid ),childVertices_.end());
+      childVertices_.erase(std::remove( childFaces_.begin(), childFaces_.end(), pid ),childVertices_.end());
+      childVertices_.erase(std::remove( childCells_.begin(), childCells_.end(), pid ),childVertices_.end());
    }
 }
 

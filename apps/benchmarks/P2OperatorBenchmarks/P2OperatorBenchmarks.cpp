@@ -17,9 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_3D_macrocell_edgedof_to_vertexdof_replace.hpp>
-#include <hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp>
-#include <hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp>
 #include <iostream>
 
 #include "core/Environment.h"
@@ -27,21 +24,25 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/edgedofspace/generatedKernels/apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
-#include "hyteg/edgedofspace/generatedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/dummy.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_3D_macrocell_edgedof_to_vertexdof_add.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_3D_macrocell_edgedof_to_vertexdof_replace.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_3D_macrocell_vertexdof_to_edgedof_add.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_3D_macrocell_vertexdof_to_edgedof_replace.hpp"
-#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
-#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
-#include "hyteg/p1functionspace/generatedKernels/sor_3D_macrocell_P1.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
+#include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
+#include "constant_stencil_operator/P1generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
+#include "constant_stencil_operator/P1generatedKernels/sor_3D_macrocell_P1.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
+#include "constant_stencil_operator/P2generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
+#include "constant_stencil_operator/P2generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

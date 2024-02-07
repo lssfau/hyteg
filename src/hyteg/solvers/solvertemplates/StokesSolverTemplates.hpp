@@ -1,8 +1,6 @@
 
 
 #pragma once
-#include "hyteg/composites/P1P1StokesOperator.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
@@ -15,6 +13,9 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+
+#include "mixed_operator/P1P1StokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 //#include "hyteg/operators/combinedoperators/BFBTOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"

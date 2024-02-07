@@ -6,8 +6,8 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME GMRESApp
         FILES GMRESApp.cpp
-        DEPENDS hyteg core )
+      DEPENDS hyteg core constant_stencil_operator)
 
 waLBerla_add_executable( NAME StokesGMRES
         FILES  StokesGMRES.cpp
-        DEPENDS hyteg)
+        DEPENDS hyteg mixed_operator)
