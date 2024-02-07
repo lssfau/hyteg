@@ -87,7 +87,6 @@ std::shared_ptr< PrimitiveStorage > setupSphericalShellStorage( const uint_t nTa
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
 
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    IcosahedralShellMap::setMap( setupStorage );
 
    if ( reportPrimitives )
