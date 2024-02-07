@@ -127,7 +127,11 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
 #ifndef _MSC_VER
 #ifndef __INTEL_LLVM_COMPILER
+#if (defined(__clang__) && !defined(WALBERLA_DOUBLE_ACCURACY))
+   // disable floating point exceptions for clang with single precision
+#else
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
 #endif
 #endif

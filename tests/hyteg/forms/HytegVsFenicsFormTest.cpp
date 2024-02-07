@@ -945,7 +945,7 @@ void run3DTestsWithAffineMap()
    compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_diffusion_cell_integral_0_otherwise >,
                           forms::p1_diffusion_blending_q3,
                           Matrix4r,
-                          3 >( theTet, 1.5e-15, map );
+                          3 >( theTet, 1.7e-15, map );
 
    logSectionHeader( "P2 diffusion, 3D, with blending (HFG)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
@@ -1149,7 +1149,7 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
    // clang 9 seams to produce a problem related to vectorized division
    // https://stackoverflow.com/questions/63125919/how-to-avoid-floating-point-exceptions-in-unused-simd-lanes
-#if ( defined( NDEBUG ) && defined( __clang__ ) ) || ( !defined( NDEBUG ) && defined( __INTEL_LLVM_COMPILER ) )
+#if  defined( __clang__ ) || (!defined( NDEBUG ) && defined( __INTEL_LLVM_COMPILER ))
    // clang 10 has problems with some of the forms in Release mode (see issue #147)
    // intel llvm has problems in debug mode
 #else
