@@ -3,6 +3,7 @@ target_sources(hyteg
     PointND.cpp
     PointND.hpp
     Matrix.hpp
+    Matrix.cpp
     types.hpp
 )
 
