@@ -50,6 +50,24 @@ waLBerla_compile_test(FILES convergence/P1ElementwiseCGConvergenceTest.cpp DEPEN
 waLBerla_execute_test(NAME P1ElementwiseCGConvergenceTest)
 waLBerla_execute_test(NAME P1ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P1ElementwiseCGConvergenceTest> PROCESSES 2)
 
+waLBerla_compile_test(FILES convergence/P2P1FGMRESStokesTest.cpp DEPENDS hyteg core constant_stencil_operator mixed_operator)
+waLBerla_execute_test(NAME P2P1FGMRESStokesTest)
+
+waLBerla_compile_test(FILES convergence/P2P1GMRESStokesTest.cpp DEPENDS hyteg core constant_stencil_operator mixed_operator)
+waLBerla_execute_test(NAME P2P1GMRESStokesTest)
+
+waLBerla_compile_test(FILES convergence/P2GMRESConvergenceTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_execute_test(NAME P2GMRESConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P2FGMRESConvergenceTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_execute_test(NAME P2FGMRESConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P1GMRESConvergenceTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_execute_test(NAME P1GMRESConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P1FGMRESConvergenceTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_execute_test(NAME P1FGMRESConvergenceTest)
+
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS hyteg core constant_stencil_operator)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 
