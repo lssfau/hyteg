@@ -291,7 +291,14 @@ void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
       {
          if ( storage_->hasGlobalCells() )
          {
-            WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+            vertexdof::macrovertex::saveProjectNormalOperator3D( level,
+                                                                 vertex,
+                                                                 storage_,
+                                                                 normal_function_,
+                                                                 numU.getVertexDataID(),
+                                                                 numV.getVertexDataID(),
+                                                                 numW.getVertexDataID(),
+                                                                 mat );
          }
          else
          {
@@ -322,7 +329,14 @@ void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               vertexdof::macroedge::saveProjectNormalOperator3D( level,
+                                                                  edge,
+                                                                  storage_,
+                                                                  normal_function_,
+                                                                  numU.getEdgeDataID(),
+                                                                  numV.getEdgeDataID(),
+                                                                  numW.getEdgeDataID(),
+                                                                  mat );
             }
             else
             {
@@ -354,7 +368,14 @@ void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               vertexdof::macroface::saveProjectNormalOperator3D( level,
+                                                                  face,
+                                                                  storage_,
+                                                                  normal_function_,
+                                                                  numU.getFaceDataID(),
+                                                                  numV.getFaceDataID(),
+                                                                  numW.getFaceDataID(),
+                                                                  mat );
             }
             else
             {
@@ -371,7 +392,14 @@ void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
             }
          }
       }
+
+      for ( const auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+         vertexdof::macrocell::saveIdentityOperator( level, cell, numU.getCellDataID(), mat );
+         vertexdof::macrocell::saveIdentityOperator( level, cell, numV.getCellDataID(), mat );
+         vertexdof::macrocell::saveIdentityOperator( level, cell, numW.getCellDataID(), mat );
+      }
    }
 }
-
 } // namespace hyteg
