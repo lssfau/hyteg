@@ -109,7 +109,7 @@ class LSQPInterpolator
       WALBERLA_ASSERT(offset_ == numInterpolationPoints_, "Not enough interpolation points were added");
       WALBERLA_ASSERT(degree_ == poly.getDegree(), "Polynomial degrees don't match!");
 
-      Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> coeffs;
+      MatrixXr coeffs;
       coeffs = A.colPivHouseholderQr().solve(rhs);
 
       for (uint_t i = 0; i < numCoefficients_; ++i)
@@ -124,8 +124,8 @@ class LSQPInterpolator
    uint_t interpolationLevel_;
    uint_t numInterpolationPoints_;
    uint_t offset_;
-   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> A;
-   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> rhs;
+   MatrixXr A;
+   MatrixXr rhs;
 };
 
 template<typename Basis, LSQPType Type>
@@ -168,7 +168,7 @@ class LSQPInterpolator3D
       WALBERLA_ASSERT(offset_ == numInterpolationPoints_, "Not enough interpolation points were added");
       WALBERLA_ASSERT(degree_ == poly.getDegree(), "Polynomial degrees don't match!");
 
-      Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> coeffs;
+      MatrixXr coeffs;
       coeffs = A.colPivHouseholderQr().solve(rhs);
 
       for (uint_t i = 0; i < numCoefficients_; ++i)
@@ -183,9 +183,9 @@ class LSQPInterpolator3D
    uint_t numCoefficients_;
    uint_t numInterpolationPoints_;
    uint_t offset_;
-   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> A;
+   MatrixXr A;
    //todo factor out QR-decomposition
-   //  Eigen::ColPivHouseholderQR<typename Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic>::PlainObject> QR;
-   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> rhs;
+   //  Eigen::ColPivHouseholderQR<typename MatrixXr::PlainObject> QR;
+   MatrixXr rhs;
 };
 }

@@ -38,12 +38,12 @@ namespace dg {
 class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -160,15 +160,15 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -287,17 +287,17 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -476,15 +476,15 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 )  = a_2_2;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -529,13 +529,13 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -552,12 +552,12 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
 class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -674,15 +674,15 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -801,17 +801,17 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -990,15 +990,15 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 )  = a_2_2;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1043,13 +1043,13 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -1066,12 +1066,12 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
 class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1184,15 +1184,15 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1311,17 +1311,17 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1500,15 +1500,15 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 )  = a_2_2;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1627,13 +1627,13 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -1650,12 +1650,12 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
 class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1768,15 +1768,15 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1895,17 +1895,17 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2084,15 +2084,15 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 )  = a_2_2;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2211,13 +2211,13 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
       elMat( 2, 2 ) = a_2_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -2235,13 +2235,13 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
 class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
 {
 public:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
-   {
+                          MatrixXr&                     elMat ) const override
+  {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -2272,15 +2272,15 @@ public:
       elMat( 0, 2 ) = a_0_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
+  virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                      const std::vector< Point3D >& coordsFacet,
+                                      const Point3D&                oppositeVertex,
+                                      const Point3D&                outwardNormal,
+                                      const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2364,17 +2364,17 @@ public:
       elMat( 0, 2 ) = a_0_2;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2470,15 +2470,15 @@ public:
       elMat( 0, 2 ) = a_0_2;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2511,13 +2511,13 @@ public:
       elMat( 0, 2 ) = a_0_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -2534,12 +2534,12 @@ public:
 class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2571,15 +2571,15 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       elMat( 0, 2 ) = a_0_2;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2663,17 +2663,17 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       elMat( 0, 2 ) = a_0_2;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2769,15 +2769,15 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       elMat( 0, 2 ) = a_0_2;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2810,13 +2810,13 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
       elMat( 0, 2 ) = a_0_2;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -2834,13 +2834,13 @@ class DGDivFormP0P1_1 : public hyteg::dg::DGForm2D
 class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
 {
 public:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
-   {
+                          MatrixXr&                     elMat ) const override
+  {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -2871,15 +2871,15 @@ public:
       elMat( 2, 0 ) = a_2_0;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
+  virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                      const std::vector< Point3D >& coordsFacet,
+                                      const Point3D&                oppositeVertex,
+                                      const Point3D&                outwardNormal,
+                                      const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -2963,17 +2963,17 @@ public:
       elMat( 2, 0 ) = a_2_0;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -3069,15 +3069,15 @@ public:
       elMat( 2, 0 ) = a_2_0;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -3161,13 +3161,13 @@ public:
       elMat( 2, 0 ) = a_2_0;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -3184,12 +3184,12 @@ public:
 class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -3221,15 +3221,15 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       elMat( 2, 0 ) = a_2_0;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -3313,17 +3313,17 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       elMat( 2, 0 ) = a_2_0;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -3419,15 +3419,15 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       elMat( 2, 0 ) = a_2_0;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -3511,13 +3511,13 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
       elMat( 2, 0 ) = a_2_0;
    }
 
-   void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       basis,
                                          int                                                      degree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );

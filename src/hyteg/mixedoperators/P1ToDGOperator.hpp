@@ -58,12 +58,12 @@ class P1ToDG1InterpolationForm
    bool onlyVolumeIntegrals() { return true; }
 
    void integrateVolume( int                                                      dim,
-                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                         const std::vector< Point3D >&      coords,
                          const DGBasisInfo&                                       trialBasis,
                          const DGBasisInfo&                                       testBasis,
                          int                                                      trialDegree,
                          int                                                      testDegree,
-                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                         MatrixXr&                                           elMat ) const
    {
       WALBERLA_UNUSED( coords );
       WALBERLA_UNUSED( trialBasis );
@@ -216,7 +216,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
+               PointXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -224,7 +224,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                // Volume contribution //
                /////////////////////////
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDstDofs, numSrcDofs );
 
                // Little difference here is that the source is now a CG P1 function.
@@ -233,7 +233,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                form_->integrateVolume(
                    dim, neighborInfo.elementVertexCoords(), srcBasis, *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
+               PointXr srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                // Getting the vertex DoF indices for the current micro volume.

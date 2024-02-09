@@ -49,7 +49,7 @@ using indexing::Index;
 using walberla::int_c;
 using walberla::uint_t;
 template < typename ValueType >
-using VectorType = Eigen::Matrix< ValueType, 3, 1 >;
+using VectorType = PointND< ValueType, 3 >;
 
 /// Returns the non-unit tangent vector of a micro-edge, where the length of the
 /// vector equals the length of the edge.

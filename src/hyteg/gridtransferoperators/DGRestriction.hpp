@@ -31,7 +31,7 @@ namespace hyteg {
 class RestrictionForm
 {
  public:
-   using Point = Eigen::Matrix< real_t, 3, 1 >;
+   using Point = Point3D;
 
    virtual ~RestrictionForm() = default;
 
@@ -42,7 +42,7 @@ class RestrictionForm
    /// \param localMat       Coupling between coarse triangle DoF (rows) and fine triangle DoF (cols).
    virtual void integrate2D( const std::vector< Point >&                              coarseTriangle,
                              const std::vector< Point >&                              fineTriangle,
-                             Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+                             MatrixXr&                   localMat ) const
    {
       WALBERLA_UNUSED( coarseTriangle );
       WALBERLA_UNUSED( fineTriangle );
@@ -57,8 +57,8 @@ class RestrictionForm
     /// \param localMat       Coupling between coarse tetrahedron DoF (rows) and fine tetrahedron DoF (cols).
     virtual void integrate3D( const std::vector< Point >&                              coarseTriangle,
                               const std::vector< Point >&                              fineTriangle,
-                              Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
-    {
+                             MatrixXr&                   localMat ) const
+   {
         WALBERLA_UNUSED( coarseTriangle );
         WALBERLA_UNUSED( fineTriangle );
         WALBERLA_UNUSED( localMat );
@@ -71,12 +71,10 @@ class RestrictionFormDG1 : public RestrictionForm
 {
  public:
    void integrate2D( const std::vector< Point >&                              dst,
-                     const std::vector< Point >&                              src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
+                     const std::vector< Point >&                              src, MatrixXr& localMat ) const override;
 
-    void integrate3D( const std::vector< Point >&                              dst,
-                      const std::vector< Point >&                              src,
-                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
+   void integrate3D( const std::vector< Point >&                              dst,
+                      const std::vector< Point >&                              src, MatrixXr& localMat ) const override;
 };
 
 /// \brief Restriction form for piecewise constant DG functions.
@@ -84,8 +82,7 @@ class RestrictionFormDG0 : public RestrictionForm
 {
  public:
    void integrate2D( const std::vector< Point >&                              dst,
-                     const std::vector< Point >&                              src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
+                     const std::vector< Point >&                              src, MatrixXr& localMat ) const override
    {
       WALBERLA_UNUSED( dst );
       WALBERLA_UNUSED( src );
@@ -94,9 +91,8 @@ class RestrictionFormDG0 : public RestrictionForm
    }
 
     void integrate3D( const std::vector< Point >&                              dst,
-                      const std::vector< Point >&                              src,
-                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
-    {
+                      const std::vector< Point >&                              src, MatrixXr& localMat ) const override
+   {
         WALBERLA_UNUSED( dst );
         WALBERLA_UNUSED( src );
         localMat.resize( 1, 1 );

@@ -36,64 +36,63 @@ namespace dg {
 class DGForm2D : public DGForm
 {
  protected:
-   virtual void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                   const DGBasisInfo&,
+   virtual void
+       integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&,
                                    const DGBasisInfo&,
                                    int,
-                                   int,
-                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                   int, MatrixXr& ) const
    {
       WALBERLA_ABORT( "DGForm not implemented in 3D." );
    }
 
-   virtual void integrateFacetInner3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                       const Eigen::Matrix< real_t, 3, 1 >&,
-                                       const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetInner3D( const std::vector< Point3D >&,
+                                       const std::vector< Point3D >&,
+                                       const Point3D&,
+                                       const Point3D&,
                                        const DGBasisInfo&,
                                        const DGBasisInfo&,
                                        int,
                                        int,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                       MatrixXr& ) const
    {
       WALBERLA_ABORT( "DGForm not implemented in 3D." );
    }
 
-   virtual void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetCoupling3D( const std::vector< Point3D >&,
+                                          const std::vector< Point3D >&,
+                                          const std::vector< Point3D >&,
+                                          const Point3D&,
+                                          const Point3D&,
+                                          const Point3D&,
                                           const DGBasisInfo&,
                                           const DGBasisInfo&,
                                           int,
                                           int,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                          MatrixXr& ) const
    {
       WALBERLA_ABORT( "DGForm not implemented in 3D." );
    }
 
-   virtual void integrateFacetDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetDirichletBoundary3D( const std::vector< Point3D >&,
+                                                   const std::vector< Point3D >&,
+                                                   const Point3D&,
+                                                   const Point3D&,
                                                    const DGBasisInfo&,
                                                    const DGBasisInfo&,
                                                    int,
                                                    int,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                   MatrixXr& ) const
    {
       WALBERLA_ABORT( "DGForm not implemented in 3D." );
    }
 
-   virtual void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateRHSDirichletBoundary3D( const std::vector< Point3D >&,
+                                                 const std::vector< Point3D >&,
+                                                 const Point3D&,
+                                                 const Point3D&,
                                                  const DGBasisInfo&,
                                                  int,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                 MatrixXr& ) const
    {
       WALBERLA_ABORT( "DGForm not implemented in 3D." );
    }

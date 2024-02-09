@@ -164,7 +164,7 @@ class P0Function : public Function< P0Function< ValueType > >
                {
                   const std::array< indexing::Index, 4 > vertexIndices =
                       celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
-                  std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+                  std::array< Point3D, 4 > elementVertices;
                   for ( uint_t i = 0; i < 4; i++ )
                   {
                      const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
@@ -173,7 +173,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      elementVertices[i]( 2 )  = elementVertex[2];
                   }
 
-                  const Eigen::Matrix< real_t, 3, 1 > centroid =
+                  const Point3D centroid =
                       ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
 
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), centroid( 2 ) ) );
@@ -203,7 +203,7 @@ class P0Function : public Function< P0Function< ValueType > >
                {
                   const std::array< indexing::Index, 3 > vertexIndices =
                       facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
-                  std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+                  std::array< Point2D, 3 > elementVertices;
                   for ( uint_t i = 0; i < 3; i++ )
                   {
                      const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
@@ -211,7 +211,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      elementVertices[i]( 1 )  = elementVertex[1];
                   }
 
-                  const Eigen::Matrix< real_t, 2, 1 > centroid =
+                  const Point2D centroid =
                       ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / real_c( 3 );
 
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
@@ -275,7 +275,7 @@ class P0Function : public Function< P0Function< ValueType > >
                {
                   const std::array< indexing::Index, 3 > vertexIndices =
                       facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
-                  std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+                  std::array< Point2D, 3 > elementVertices;
                   for ( uint_t i = 0; i < 3; i++ )
                   {
                      const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
@@ -283,7 +283,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      elementVertices[i]( 1 )  = elementVertex[1];
                   }
 
-                  const Eigen::Matrix< real_t, 2, 1 > centroid =
+                  const Point2D centroid =
                       ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
 
                   for ( size_t k = 0; k < srcFunctions.size(); ++k )

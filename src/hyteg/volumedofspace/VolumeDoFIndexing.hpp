@@ -540,7 +540,6 @@ inline void getFineMicroElementsFromCoarseMicroElement( const hyteg::indexing::I
 class ElementNeighborInfo
 {
  public:
-   using Point    = Eigen::Matrix< real_t, 3, 1 >;
    using Index    = hyteg::indexing::Index;
    using FaceType = facedof::FaceType;
    using CellType = celldof::CellType;
@@ -566,7 +565,7 @@ class ElementNeighborInfo
    const FaceType& faceType() const { return faceType_; }
    const CellType& cellType() const { return cellType_; }
 
-   [[nodiscard]] const std::vector< Point >& elementVertexCoords() const { return vertexCoordsVolume_; }
+   [[nodiscard]] const std::vector< Point3D >& elementVertexCoords() const { return vertexCoordsVolume_; }
 
    [[nodiscard]] const std::vector< Index >& elementVertexIndices() const { return vertexIndicesVolume_; }
 
@@ -574,7 +573,7 @@ class ElementNeighborInfo
 
    std::vector<Index> neighborElementVertexIndices( ) const { return neighborElementVertexIndices_; }
 
-   [[nodiscard]] const std::vector< Point >& neighborElementVertexCoords( uint_t neighbor ) const
+   [[nodiscard]] const std::vector< Point3D >& neighborElementVertexCoords( uint_t neighbor ) const
    {
       return neighborElementVertexCoords_[neighbor];
    }
@@ -583,7 +582,7 @@ class ElementNeighborInfo
    ///        micro-element is located on a different (neighboring) macro-volume.
    ElementNeighborInfo updateForMacroBoundary( uint_t neighbor ) const;
 
-   [[nodiscard]] const std::vector< Point >& interfaceVertexCoords( uint_t neighbor ) const
+   [[nodiscard]] const std::vector< Point3D >& interfaceVertexCoords( uint_t neighbor ) const
    {
       return interfaceVertexCoords_[neighbor];
    }
@@ -593,14 +592,14 @@ class ElementNeighborInfo
       return interfaceVertexIndices_[neighbor];
    }
 
-   [[nodiscard]] const Point& oppositeVertexCoords( uint_t neighbor ) const { return oppositeVertexCoords_[neighbor]; }
+   [[nodiscard]] const Point3D& oppositeVertexCoords( uint_t neighbor ) const { return oppositeVertexCoords_[neighbor]; }
 
-   [[nodiscard]] const Point& neighborOppositeVertexCoords( uint_t neighbor ) const
+   [[nodiscard]] const Point3D& neighborOppositeVertexCoords( uint_t neighbor ) const
    {
       return neighborOppositeVertexCoords_[neighbor];
    }
 
-   [[nodiscard]] const Point& outwardNormal( uint_t neighbor ) const { return outwardNormal_[neighbor]; }
+   [[nodiscard]] const Point3D& outwardNormal( uint_t neighbor ) const { return outwardNormal_[neighbor]; }
 
    FaceType neighborFaceType( uint_t neighbor ) const { return neighborFaceElementTypes_[neighbor]; }
 
@@ -636,7 +635,7 @@ class ElementNeighborInfo
    std::vector< Index > vertexIndicesVolume_;
 
    /// Coordinates of the elements' vertices.
-   std::vector< Point > vertexCoordsVolume_;
+   std::vector< Point3D > vertexCoordsVolume_;
 
    /// Logical indices of the neighbor elements.
    std::vector< Index > neighborElementIndices_;
@@ -648,28 +647,28 @@ class ElementNeighborInfo
    std::vector< CellType > neighborCellElementTypes_;
 
    /// Coordinates of the neighboring elements' vertices.
-   std::vector< std::vector< Point > > neighborElementVertexCoords_;
+   std::vector< std::vector< Point3D > > neighborElementVertexCoords_;
 
    /// Logical vertex indices of the interfaces to the neighboring elements.
    std::vector< std::vector< Index > > interfaceVertexIndices_;
 
    /// Coordinates of the vertices at the interfaces to the neighboring elements.
-   std::vector< std::vector< Point > > interfaceVertexCoords_;
+   std::vector< std::vector< Point3D > > interfaceVertexCoords_;
 
-   /// Normal to the interface pointing away from the element.
-   std::vector< Point > outwardNormal_;
+   /// Normal to the interface Point3Ding away from the element.
+   std::vector< Point3D > outwardNormal_;
 
    /// Logical vertex index of the element's vertex that is not on the interface.
    std::vector< Index > oppositeVertexIndex_;
 
    /// Coordinates of the element's vertex that is not on the interface.
-   std::vector< Point > oppositeVertexCoords_;
+   std::vector< Point3D > oppositeVertexCoords_;
 
    /// Logical vertex index of the neighboring element's vertex that is not on the interface.
    std::vector< Index > neighborOppositeVertexIndex_;
 
    /// Coordinates of the neighboring element's vertex that is not on the interface.
-   std::vector< Point > neighborOppositeVertexCoords_;
+   std::vector< Point3D > neighborOppositeVertexCoords_;
 
    const static uint_t NOT_AT_BOUNDARY;
    /// Stores for each micro-element interface which macro-local boundary it touches.

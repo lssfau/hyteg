@@ -78,7 +78,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                 uint_t                                                         dstMicroVolType,
                                 uint_t                                                         level,
                                 std::shared_ptr< SparseMatrixProxy >                           mat,
-                                const Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+                                const MatrixXr&                      localMat ) const
    {
       // Sparse assembly.
       if ( dim == 2 )
@@ -251,7 +251,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
+               PointXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -259,14 +259,14 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                // Volume contribution //
                /////////////////////////
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDstDofs, numSrcDofs );
 
                form_->integrateVolume(
                    dim, neighborInfo.elementVertexCoords(), *src.basis(), *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
 
                // Volume DoFs are source.
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
+               PointXr srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
@@ -443,7 +443,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         }
 
                         // We collect the interface(s) to integrate in this list.
-                        std::vector< std::vector< Eigen::Matrix< real_t, 3, 1 > > > interfaceVertexCoordsList;
+                        std::vector< std::vector< Point3D > > interfaceVertexCoordsList;
 
                         if ( !hasNeighbor || macroLevel == neighborMacroLevel || macroLevel == neighborMacroLevel + 1 )
                         {
@@ -581,14 +581,14 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            // Only for case (c) they are larger (since there are multiple element interface to integrate over).
 
                            // Vertex coords of the neighbor elements.
-                           std::vector< std::vector< Eigen::Matrix< real_t, 3, 1 > > > neighborElementVertexCoordsList;
+                           std::vector< std::vector< Point3D > > neighborElementVertexCoordsList;
 
                            // Interface-opposite vertex of the neighboring element..
-                           std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementOppositeVertexCoordsList;
+                           std::vector< Point3D > neighborElementOppositeVertexCoordsList;
 
                            // We must choose the interface that is "smaller", i.e. the interface of the finer element.
                            // That is the interface we need to integrate over.
-                           std::vector< std::vector< Eigen::Matrix< real_t, 3, 1 > > > interfaceVertexCoordsList;
+                           std::vector< std::vector< Point3D > > interfaceVertexCoordsList;
 
                            // Finally we need the corresponding array indices in the ghost-layer.
                            // To get those, we store the corresponding neighboring inner micro-element indices,
@@ -619,8 +619,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                               glMemory[n] = src.volumeDoFFunction()->glMemory( pid, level, neighborInfo.macroBoundaryID( n ) );
 
-                              std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords;
-                              Eigen::Matrix< real_t, 3, 1 >                neighborElementOppositeVertexCoords;
+                              std::vector< Point3D > neighborElementVertexCoords;
+                              Point3D                neighborElementOppositeVertexCoords;
 
                               neighborInfo = neighborInfo.updateForMacroBoundary( n );
 
@@ -806,8 +806,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
                                        const auto& fineNeighborFace = *storage->getFace( fineNeighborPID );
 
-                                       std::vector< Eigen::Matrix< real_t, 3, 1 > > neighborElementVertexCoords( 3 );
-                                       Eigen::Matrix< real_t, 3, 1 >                neighborElementOppositeVertexCoords;
+                                       std::vector< Point3D > neighborElementVertexCoords( 3 );
+                                       Point3D                neighborElementOppositeVertexCoords;
 
                                        auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace(
                                            fineNeighborElementIdx, fineNeighborFaceType );
@@ -877,7 +877,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                              localMat );
 
                               // Now we need the DoFs from the neighboring element.
-                              Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                              PointXr nSrcDofs;
                               nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
                               std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
 
@@ -976,7 +976,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                           localMat );
 
                            // Now we need the DoFs from the neighboring element.
-                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                           PointXr nSrcDofs;
                            nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )

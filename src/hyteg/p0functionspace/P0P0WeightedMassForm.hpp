@@ -55,12 +55,12 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
 }
 
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -91,15 +91,15 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = a_0_0;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >&      coordsElement,
+                                       const std::vector< Point3D >&      coordsFacet,
+                                       const Point3D&                     oppositeVertex,
+                                       const Point3D&                     outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                                           elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -128,17 +128,17 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = 0;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >&      coordsElementInner,
+                                          const std::vector< Point3D >&      coordsElementOuter,
+                                          const std::vector< Point3D >&      coordsFacet,
+                                          const Point3D&                     oppositeVertexInnerElement,
+                                          const Point3D&                     oppositeVertexOuterElement,
+                                          const Point3D&                     outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                                           elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -179,15 +179,15 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = 0;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >&      coordsElement,
+                                                   const std::vector< Point3D >&      coordsFacet,
+                                                   const Point3D&                     oppositeVertex,
+                                                   const Point3D&                     outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                                           elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -216,13 +216,13 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = 0;
    }
 
-    void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+    void integrateRHSDirichletBoundary2D( const std::vector< Point3D >&      coordsElement,
+                                                 const std::vector< Point3D >&      coordsFacet,
+                                                 const Point3D&                     oppositeVertex,
+                                                 const Point3D&                     outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                                           elMat ) const override
    {
      elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
@@ -246,13 +246,13 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
 
       elMat( 0, 0) = 0;
    }
-   void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateRHSDirichletBoundary3D( const std::vector< Point3D >&      coordsElement,
+                                                 const std::vector< Point3D >&      coordsFacet,
+                                                 const Point3D&                     oppositeVertex,
+                                                 const Point3D&                     outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                                         MatrixXr&                                           elMat ) const override
    {
      elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, walberla::uint_c( degree ) ) ), 1 );
 
@@ -290,13 +290,13 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
 
       elMat( 0, 0) = 0;
    }
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -363,16 +363,16 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
 
 
 
-   void integrateFacetInner3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsElement,
-                                                     const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsFacet,
-                                                     const Eigen::Matrix< real_t, 3, 1 >&,
-                                                     const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
+                                                     const std::vector< Point3D >& coordsFacet,
+                                                     const Point3D&,
+                                                     const Point3D&                     outwardNormal,
                                                      const DGBasisInfo&                                       trialBasis,
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                                                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                               MatrixXr&                            elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -414,18 +414,18 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
 
 
 
-void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsElementInner,
-                                                        const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsElementOuter,
-                                                        const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsFacet,
-                                                        const Eigen::Matrix< real_t, 3, 1 >&,
-                                                        const Eigen::Matrix< real_t, 3, 1 >&,
-                                                        const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
+                                                        const std::vector< Point3D >& coordsElementOuter,
+                                                        const std::vector< Point3D >& coordsFacet,
+                                                        const Point3D&,
+                                                        const Point3D&,
+                                                        const Point3D&                     outwardNormal,
                                                         const DGBasisInfo&                                       trialBasis,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                                  MatrixXr&                            elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -484,15 +484,15 @@ void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > 
 
 
 void integrateFacetDirichletBoundary3D(
-    const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsElement,
-    const std::vector< Eigen::Matrix< real_t, 3, 1 > >& coordsFacet,
-    const Eigen::Matrix< real_t, 3, 1 >&,
-    const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+    const std::vector< Point3D >& coordsElement,
+    const std::vector< Point3D >& coordsFacet,
+    const Point3D&,
+    const Point3D&                     outwardNormal,
     const DGBasisInfo&                                       trialBasis,
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-    Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                        MatrixXr&                            elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );

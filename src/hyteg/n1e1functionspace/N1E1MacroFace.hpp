@@ -34,7 +34,7 @@ namespace macroface {
 
 using walberla::uint_t;
 template < typename ValueType >
-using VectorType = Eigen::Matrix< ValueType, 3, 1 >;
+using VectorType = PointND< ValueType, 3>;
 
 inline Point3D microEdgeDirection( const uint_t& level, const Face& face, const edgedof::EdgeDoFOrientation& orientation )
 {

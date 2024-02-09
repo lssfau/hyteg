@@ -22,7 +22,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/eigen/EigenWrapper.hpp"
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace terraneo {
 
@@ -30,7 +31,7 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-using vec3D = Eigen::Matrix< real_t, 3, 1 >;
-using mat3D = Eigen::Matrix< real_t, 3, 3 >;
+using vec3D = hyteg::Point3D;
+using mat3D = hyteg::Matrix3r;
 
 } // namespace terraneo

@@ -108,10 +108,9 @@ class P1FenicsForm : public P1Form
       }
 
       UFCOperator3D gen;
-      Eigen::Matrix< double,
-                     fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,
-                     fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime,
-                     Eigen::RowMajor >
+      Matrix< double,
+              fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,
+              fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime >
           localStiffnessMatrix;
       gen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 

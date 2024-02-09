@@ -25,12 +25,12 @@ namespace dg {
 
 using walberla::uint_c;
 
-void p1_to_p0_div_0_affine_q0::integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+void p1_to_p0_div_0_affine_q0::integrateVolume2D( const std::vector< Point3D >& coords,
                                                   const DGBasisInfo&                                       trialBasis,
                                                   const DGBasisInfo&                                       testBasis,
                                                   int                                                      trialDegree,
                                                   int                                                      testDegree,
-                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 2 ), uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( uint_c( 2 ), uint_c( trialDegree ) ) ) );
@@ -61,12 +61,12 @@ void p1_to_p0_div_0_affine_q0::integrateVolume2D( const std::vector< Eigen::Matr
    ( elMat( 0, 2 ) ) = a_0_2;
 }
 
-void p1_to_p0_div_0_affine_q0::integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+void p1_to_p0_div_0_affine_q0::integrateVolume3D( const std::vector< Point3D >& coords,
                                                   const DGBasisInfo&                                       trialBasis,
                                                   const DGBasisInfo&                                       testBasis,
                                                   int                                                      trialDegree,
                                                   int                                                      testDegree,
-                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 3 ), uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( uint_c( 3 ), uint_c( trialDegree ) ) ) );
@@ -143,12 +143,12 @@ void p1_to_p0_div_0_affine_q0::integrateVolume3D( const std::vector< Eigen::Matr
    ( elMat( 0, 3 ) ) = a_0_3;
 }
 
-void p1_to_p0_div_1_affine_q0::integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+void p1_to_p0_div_1_affine_q0::integrateVolume2D( const std::vector< Point3D >& coords,
                                                   const DGBasisInfo&                                       trialBasis,
                                                   const DGBasisInfo&                                       testBasis,
                                                   int                                                      trialDegree,
                                                   int                                                      testDegree,
-                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 2 ), uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( uint_c( 2 ), uint_c( trialDegree ) ) ) );
@@ -179,12 +179,12 @@ void p1_to_p0_div_1_affine_q0::integrateVolume2D( const std::vector< Eigen::Matr
    ( elMat( 0, 2 ) ) = a_0_2;
 }
 
-void p1_to_p0_div_1_affine_q0::integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+void p1_to_p0_div_1_affine_q0::integrateVolume3D( const std::vector< Point3D >& coords,
                                                   const DGBasisInfo&                                       trialBasis,
                                                   const DGBasisInfo&                                       testBasis,
                                                   int                                                      trialDegree,
                                                   int                                                      testDegree,
-                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 3 ), uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( uint_c( 3 ), uint_c( trialDegree ) ) ) );
@@ -261,20 +261,20 @@ void p1_to_p0_div_1_affine_q0::integrateVolume3D( const std::vector< Eigen::Matr
    ( elMat( 0, 3 ) ) = a_0_3;
 }
 
-void p1_to_p0_div_2_affine_q0::integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
+void p1_to_p0_div_2_affine_q0::integrateVolume2D( const std::vector< Point3D >&,
                                                   const DGBasisInfo&,
                                                   const DGBasisInfo&,
                                                   int,
                                                   int,
-                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                  MatrixXr& ) const
 {}
 
-void p1_to_p0_div_2_affine_q0::integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+void p1_to_p0_div_2_affine_q0::integrateVolume3D( const std::vector< Point3D >& coords,
                                                   const DGBasisInfo&                                       trialBasis,
                                                   const DGBasisInfo&                                       testBasis,
                                                   int                                                      trialDegree,
                                                   int                                                      testDegree,
-                                                  Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 3 ), uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( uint_c( 3 ), uint_c( trialDegree ) ) ) );

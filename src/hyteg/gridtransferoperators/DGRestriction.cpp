@@ -24,46 +24,45 @@
 
 namespace hyteg {
 
-inline real_t phi0( const Eigen::Matrix< real_t, 2, 1 >& x )
+inline real_t phi0( const Point2D& x )
 {
    return 1 - x( 0 ) - x( 1 );
 }
 
-inline real_t phi1( const Eigen::Matrix< real_t, 2, 1 >& x )
+inline real_t phi1( const Point2D& x )
 {
    return x( 0 );
 }
 
-inline real_t phi2( const Eigen::Matrix< real_t, 2, 1 >& x )
+inline real_t phi2( const Point2D& x )
 {
    return x( 1 );
 }
 
-inline real_t phi0( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi0( const Point3D& x )
 {
    return 1 - x( 0 ) - x( 1 ) - x( 2 );
 }
 
-inline real_t phi1( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi1( const Point3D& x )
 {
    return x( 0 );
 }
 
-inline real_t phi2( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi2( const Point3D& x )
 {
    return x( 1 );
 }
 
-inline real_t phi3( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi3( const Point3D& x )
 {
    return x( 2 );
 }
 
 void RestrictionFormDG1::integrate2D( const std::vector< Point >&                              dst,
-                                      const std::vector< Point >&                              src,
-                                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+                                      const std::vector< Point >&                              src, MatrixXr& localMat ) const
 {
-   using Point2 = Eigen::Matrix< real_t, 2, 1 >;
+   using Point2 = Point2D;
 
    Point2 b;
    b << src[0]( 0 ), src[0]( 1 );
@@ -76,10 +75,10 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
    a1 << s10( 0 ), s10( 1 );
    a2 << s20( 0 ), s20( 1 );
 
-   Eigen::Matrix< real_t, 2, 2 > A( 2, 2 );
+   Matrix2r A( 2, 2 );
    A << a1( 0 ), a2( 0 ), a1( 1 ), a2( 1 );
 
-   Eigen::Matrix< real_t, 2, 2 > Ainv{ A.inverse() };
+   Matrix2r Ainv{ A.inverse() };
 
    Point2 d0;
    Point2 d1;
@@ -109,8 +108,7 @@ void RestrictionFormDG1::integrate2D( const std::vector< Point >&               
 }
 
 void RestrictionFormDG1::integrate3D( const std::vector< Point >&                              dst,
-                                      const std::vector< Point >&                              src,
-                                      Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+                                      const std::vector< Point >&                              src, MatrixXr& localMat ) const
 {
    const Point b{ src[0] };
 
@@ -118,10 +116,10 @@ void RestrictionFormDG1::integrate3D( const std::vector< Point >&               
    const Point s20{ src[2] - src[0] };
    const Point s30{ src[3] - src[0] };
 
-   Eigen::Matrix< real_t, 3, 3 > A( 3, 3 );
+   Matrix3r A( 3, 3 );
    A << s10, s20, s30;
 
-   Eigen::Matrix< real_t, 3, 3 > Ainv{ A.inverse() };
+   Matrix3r Ainv{ A.inverse() };
 
    Point d0 = dst[0];
    Point d1 = dst[1];
@@ -227,7 +225,7 @@ void DGRestriction::restrict( const dg::DGFunction< real_t >& function,
                    coarseElementIdx, coarseCellType, coarseLevel, function.getBoundaryCondition(), pid, storage );
             }
 
-            Eigen::Matrix< real_t, Eigen::Dynamic, 1 > coarseDofs;
+            PointXr coarseDofs;
             coarseDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
             coarseDofs.setZero();
 
@@ -273,7 +271,7 @@ void DGRestriction::restrict( const dg::DGFunction< real_t >& function,
                       fineElementIdx, fineCellType, fineLevel, function.getBoundaryCondition(), pid, storage );
                }
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDofs, numDofs );
 
                // assemble local matrix
@@ -288,7 +286,7 @@ void DGRestriction::restrict( const dg::DGFunction< real_t >& function,
                       fineNeighborInfo.elementVertexCoords(), coarseNeighborInfo.elementVertexCoords(), localMat );
                }
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > fineDofs;
+               PointXr fineDofs;
                fineDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
                for ( int fineDofIdx = 0; fineDofIdx < numDofs; fineDofIdx++ )
                {
