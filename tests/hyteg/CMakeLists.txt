@@ -17,6 +17,11 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)
 endif ()
 
+waLBerla_compile_test(FILES convergence/ElementwiseDivKGradNeumannCGConvergenceTest.cpp DEPENDS hyteg core opgen-div_k_grad)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    waLBerla_execute_test(NAME ElementwiseDivKGradNeumannCGConvergenceTest)
+endif ()
+
 ## convection ##
 
 ## dataexport+import ##
