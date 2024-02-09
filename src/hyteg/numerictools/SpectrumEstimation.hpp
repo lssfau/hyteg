@@ -119,7 +119,7 @@ namespace hyteg {
     // compute spectrum of matrix using Eigen library
     Eigen::Map<Eigen::Matrix<real_t, Eigen::Dynamic, 1>> dVec( mainDiag.data(), numIts );
     Eigen::Map<Eigen::Matrix<real_t, Eigen::Dynamic, 1>> sVec( subDiag.data(), numIts - 1 );
-    Eigen::SelfAdjointEigenSolver<MatrixXr> es;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic>> es;
     es.computeFromTridiagonal( dVec, sVec, Eigen::EigenvaluesOnly );
 
     // Eigen sorts eigenvalues ascendingly, extract smallest and largest one
