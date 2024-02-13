@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "assign_3D_macrocell_vertexdof_2_rhsfunctions.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void assign_3D_macrocell_vertexdof_2_rhs_functions_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1, int level)
+template < typename ValueType >
+static void assign_3D_macrocell_vertexdof_2_rhs_functions_level_any(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc0, ValueType * RESTRICT _data_p1FaceSrc1, ValueType c0, ValueType c1, int level)
 {
    for (int ctr_3 = 1; ctr_3 < (1 << (level)); ctr_3 += 1)
    {
@@ -38,8 +40,8 @@ static void assign_3D_macrocell_vertexdof_2_rhs_functions_level_any(double * RES
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + (1 << (level)); ctr_1 += 1)
          {
-            const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
-            const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
+            const ValueType xi_3 = c0*_data_p1FaceSrc0[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
+            const ValueType xi_4 = c1*_data_p1FaceSrc1[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
             _data_p1FaceDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))] = xi_3 + xi_4;
          }
       }
@@ -47,7 +49,8 @@ static void assign_3D_macrocell_vertexdof_2_rhs_functions_level_any(double * RES
 }
 
 
-void assign_3D_macrocell_vertexdof_2_rhs_functions(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1, int level)
+template < typename ValueType >
+void assign_3D_macrocell_vertexdof_2_rhs_functions(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc0, ValueType * RESTRICT _data_p1FaceSrc1, ValueType c0, ValueType c1, int level)
 {
     switch( level )
     {
@@ -57,7 +60,15 @@ void assign_3D_macrocell_vertexdof_2_rhs_functions(double * RESTRICT _data_p1Fac
         break;
     }
 }
-    
+
+// ========================
+//  explicit instantiation
+// ========================
+template void assign_3D_macrocell_vertexdof_2_rhs_functions<walberla::float64>(walberla::float64 * RESTRICT _data_p1FaceDst, walberla::float64 * RESTRICT _data_p1FaceSrc0, walberla::float64 * RESTRICT _data_p1FaceSrc1, walberla::float64 c0, walberla::float64 c1, int level);
+template void assign_3D_macrocell_vertexdof_2_rhs_functions<walberla::float32>(walberla::float32 * RESTRICT _data_p1FaceDst, walberla::float32 * RESTRICT _data_p1FaceSrc0, walberla::float32 * RESTRICT _data_p1FaceSrc1, walberla::float32 c0, walberla::float32 c1, int level);
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void assign_3D_macrocell_vertexdof_2_rhs_functions<walberla::float16>(walberla::float16 * RESTRICT _data_p1FaceDst, walberla::float16 * RESTRICT _data_p1FaceSrc0, walberla::float16 * RESTRICT _data_p1FaceSrc1, walberla::float16 c0, walberla::float16 c1, int level);
+#endif
 
 } // namespace generated
 } // namespace macrocell

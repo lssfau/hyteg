@@ -599,6 +599,11 @@ waLBerla_execute_test(NAME MatrixConstructFromEigenTest)
 waLBerla_compile_test(FILES mixedPrecision/basicMixedPrecisionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME basicMixedPrecisionTest)
 
+if ( WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT )
+    waLBerla_compile_test(FILES mixedPrecision/float16SupportTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME float16SupportTest)
+endif ()
+
 ## mpfr ##
 if ( HYTEG_BUILD_WITH_MPFR )
     waLBerla_compile_test(FILES mpfr/buildWithMPFRTest.cpp DEPENDS core)

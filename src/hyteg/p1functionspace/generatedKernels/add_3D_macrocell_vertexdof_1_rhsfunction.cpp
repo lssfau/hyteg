@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "add_3D_macrocell_vertexdof_1_rhsfunction.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(ValueType * RESTRICT _data_p1FaceDst, ValueType const * RESTRICT const _data_p1FaceSrc, ValueType c, int level)
 {
    for (int ctr_3 = 1; ctr_3 < (1 << (level)); ctr_3 += 1)
    {
@@ -38,8 +40,8 @@ static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRIC
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + (1 << (level)); ctr_1 += 1)
          {
-            const double xi_3 = c*_data_p1FaceSrc[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
-            const double xi_4 = _data_p1FaceDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
+            const auto xi_3 = c*_data_p1FaceSrc[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
+            const auto xi_4 = _data_p1FaceDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
             _data_p1FaceDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))] = xi_3 + xi_4;
          }
       }
@@ -47,7 +49,8 @@ static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRIC
 }
 
 
-void add_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+void add_3D_macrocell_vertexdof_1_rhs_function(ValueType * RESTRICT _data_p1FaceDst, ValueType const * RESTRICT const _data_p1FaceSrc, ValueType c, int level)
 {
     switch( level )
     {
@@ -57,7 +60,15 @@ void add_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst
         break;
     }
 }
-    
+
+// ========================
+//  explicit instantiation
+// ========================
+template void add_3D_macrocell_vertexdof_1_rhs_function<walberla::float64>(walberla::float64 * RESTRICT _data_p1FaceDst, walberla::float64 const * RESTRICT const _data_p1FaceSrc, walberla::float64 c, int level);
+template void add_3D_macrocell_vertexdof_1_rhs_function<walberla::float32>(walberla::float32 * RESTRICT _data_p1FaceDst, walberla::float32 const * RESTRICT const _data_p1FaceSrc, walberla::float32 c, int level);
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void add_3D_macrocell_vertexdof_1_rhs_function<walberla::float16>(walberla::float16 * RESTRICT _data_p1FaceDst, walberla::float16 const * RESTRICT const _data_p1FaceSrc, walberla::float16 c, int level);
+#endif
 
 } // namespace generated
 } // namespace macrocell

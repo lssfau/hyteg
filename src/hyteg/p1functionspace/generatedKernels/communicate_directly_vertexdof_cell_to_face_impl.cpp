@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "communicate_directly_vertexdof_cell_to_face_impl.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace comm {
 namespace generated {
 
-static void communicate_directly_vertexdof_cell_to_face_impl_012_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_012_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -79,8 +81,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_012_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_012(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_012(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -90,8 +92,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_012(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_013_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_013_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -141,8 +145,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_013_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_013(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_013(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -152,8 +156,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_013(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_021_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_021_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -203,8 +209,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_021_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_021(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_021(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -214,8 +220,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_021(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_023_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_023_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -265,8 +273,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_023_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_023(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_023(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -276,8 +284,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_023(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_031_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_031_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -327,8 +337,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_031_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_031(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_031(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -338,8 +348,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_031(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_032_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_032_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -389,8 +401,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_032_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_032(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_032(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -400,8 +412,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_032(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_102_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_102_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -451,8 +465,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_102_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_102(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_102(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -462,8 +476,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_102(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_103_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_103_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -513,8 +529,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_103_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_103(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_103(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -524,8 +540,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_103(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_120_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_120_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -575,8 +593,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_120_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_120(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_120(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -586,8 +604,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_120(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_123_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_123_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -637,8 +657,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_123_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_123(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_123(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -648,8 +668,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_123(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_130_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_130_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -699,8 +721,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_130_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_130(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_130(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -710,8 +732,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_130(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_132_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_132_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -761,8 +785,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_132_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_132(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_132(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -772,8 +796,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_132(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_201_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_201_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -823,8 +849,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_201_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_201(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_201(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -834,8 +860,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_201(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_203_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_203_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -885,8 +913,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_203_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_203(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_203(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -896,8 +924,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_203(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_210_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_210_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -947,8 +977,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_210_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_210(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_210(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -958,8 +988,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_210(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_213_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_213_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1009,8 +1041,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_213_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_213(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_213(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1020,8 +1052,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_213(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_230_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_230_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1071,8 +1105,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_230_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_230(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_230(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1082,8 +1116,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_230(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_231_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_231_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1133,8 +1169,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_231_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_231(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_231(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1144,8 +1180,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_231(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_301_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_301_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1195,8 +1233,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_301_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_301(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_301(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1206,8 +1244,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_301(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_302_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_302_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1257,8 +1297,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_302_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_302(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_302(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1268,8 +1308,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_302(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_310_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_310_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1319,8 +1361,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_310_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_310(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_310(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1330,8 +1372,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_310(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_312_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_312_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1381,8 +1425,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_312_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_312(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_312(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1392,8 +1436,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_312(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_320_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_320_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1443,8 +1489,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_320_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_320(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_320(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1454,8 +1500,10 @@ void communicate_directly_vertexdof_cell_to_face_impl_320(double const * RESTRIC
         break;
     }
 }
-    
-static void communicate_directly_vertexdof_cell_to_face_impl_321_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+
+
+template < typename ValueType >
+static void communicate_directly_vertexdof_cell_to_face_impl_321_level_any(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -1505,8 +1553,8 @@ static void communicate_directly_vertexdof_cell_to_face_impl_321_level_any(doubl
    }
 }
 
-
-void communicate_directly_vertexdof_cell_to_face_impl_321(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face_impl_321(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level)
 {
     switch( level )
     {
@@ -1516,7 +1564,89 @@ void communicate_directly_vertexdof_cell_to_face_impl_321(double const * RESTRIC
         break;
     }
 }
-    
+
+// ========================
+//  explicit instantiation
+// ========================
+// double
+template void communicate_directly_vertexdof_cell_to_face_impl_012<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_013<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_021<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_023<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_031<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_032<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_102<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_103<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_120<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_123<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_130<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_132<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_201<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_203<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_210<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_213<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_230<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_231<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_301<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_302<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_310<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_312<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_320<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_321<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level);
+
+// single
+template void communicate_directly_vertexdof_cell_to_face_impl_012<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_013<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_021<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_023<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_031<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_032<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_102<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_103<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_120<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_123<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_130<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_132<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_201<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_203<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_210<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_213<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_230<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_231<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_301<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_302<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_310<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_312<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_320<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_321<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level);
+
+// half
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void communicate_directly_vertexdof_cell_to_face_impl_012<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_013<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_021<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_023<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_031<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_032<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_102<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_103<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_120<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_123<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_130<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_132<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_201<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_203<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_210<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_213<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_230<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_231<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_301<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_302<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_310<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_312<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_320<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+template void communicate_directly_vertexdof_cell_to_face_impl_321<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level);
+#endif
 
 } // namespace generated
 } // namespace comm

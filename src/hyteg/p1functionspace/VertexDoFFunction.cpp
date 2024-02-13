@@ -2286,6 +2286,9 @@ void VertexDoFFunction< ValueType >::fromVector( const VertexDoFFunction< idx_t 
 // ========================
 template class VertexDoFFunction< double >;
 template class VertexDoFFunction< float >;
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template class VertexDoFFunction< walberla::float16 >;
+#endif
 template class VertexDoFFunction< int32_t >;
 template class VertexDoFFunction< int64_t >;
 

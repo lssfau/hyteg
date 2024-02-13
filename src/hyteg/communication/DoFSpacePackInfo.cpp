@@ -57,6 +57,9 @@ DoFSpacePackInfo< ValueType >::DoFSpacePackInfo( uint_t                         
 
 template class DoFSpacePackInfo< double >;
 template class DoFSpacePackInfo< float >;
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template class DoFSpacePackInfo< walberla::float16 >;
+#endif
 template class DoFSpacePackInfo< int >;
 template class DoFSpacePackInfo< long >;
 template class DoFSpacePackInfo< long long >;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,28 +23,31 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "add_2D_macroface_vertexdof_1_rhsfunction.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void add_2D_macroface_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+static void add_2D_macroface_vertexdof_1_rhs_function_level_any(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc, ValueType c, int level)
 {
    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
       // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
       {
-         const double xi_3 = c*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_4 = _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const auto xi_3 = c*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const auto xi_4 = _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
          _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
 
 
-void add_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+void add_2D_macroface_vertexdof_1_rhs_function(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc, ValueType c, int level)
 {
     switch( level )
     {
@@ -55,32 +58,14 @@ void add_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst
     }
 }
 
-static void add_2D_macroface_vertexdof_1_rhs_function_level_any(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level)
-{
-    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
-    {
-        // inner triangle
-        for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
-        {
-         const float xi_3 = c*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const float xi_4 = _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
-        }
-    }
-}
-
-
-void add_2D_macroface_vertexdof_1_rhs_function(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level)
-{
-    switch( level )
-    {
-
-    default:
-        add_2D_macroface_vertexdof_1_rhs_function_level_any(_data_p1FaceDst, _data_p1FaceSrc, c, level);
-        break;
-    }
-}
-    
+// ========================
+//  explicit instantiation
+// ========================
+template void add_2D_macroface_vertexdof_1_rhs_function<walberla::float64>(walberla::float64 * RESTRICT _data_p1FaceDst, walberla::float64 * RESTRICT _data_p1FaceSrc, walberla::float64 c, int level);
+template void add_2D_macroface_vertexdof_1_rhs_function<walberla::float32>(walberla::float32 * RESTRICT _data_p1FaceDst, walberla::float32 * RESTRICT _data_p1FaceSrc, walberla::float32 c, int level);
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void add_2D_macroface_vertexdof_1_rhs_function<walberla::float16>(walberla::float16 * RESTRICT _data_p1FaceDst, walberla::float16 * RESTRICT _data_p1FaceSrc, walberla::float16 c, int level);
+#endif
 
 } // namespace generated
 } // namespace macroface

@@ -188,7 +188,8 @@ struct ModelProblem
             _f = [=]( const Point3D& x ) -> real_t {
                return std::exp( -0.5 * x.squaredNorm() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 );
             };
-            _u = [=]( const Point3D& x ) -> real_t {
+
+            _u = [this, sqrt_2pi_pow_3]( const Point3D& x ) -> real_t {
                real_t r = x.norm();
                if ( r <= 0.0 )
                   return 1.0 / ( sqrt_2pi_pow_3 * sigma );
@@ -273,7 +274,7 @@ struct ModelProblem
       e.communicate< Edge, Face >( lvl );
       e.communicate< Face, Cell >( lvl );
 
-      auto filter = [=]( const Point3D& x, const std::vector< real_t >& val ) -> real_t {
+      auto filter = [this]( const Point3D& x, const std::vector< real_t >& val ) -> real_t {
          return ( x.norm() >= offset_err ) ? val[0] : 0.0;
       };
       e_f.interpolate( filter, { e }, lvl );
