@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,8 +31,8 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void add_2D_macroface_vertexdof_3_rhs_functions(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double * RESTRICT _data_p1FaceSrc3, double c0, double c1, double c2, int level);
-void add_2D_macroface_vertexdof_3_rhs_functions(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc0, float * RESTRICT _data_p1FaceSrc1, float * RESTRICT _data_p1FaceSrc3, float c0, float c1, float c2, int level);
+template < typename ValueType >
+void add_2D_macroface_vertexdof_3_rhs_functions(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc0, ValueType * RESTRICT _data_p1FaceSrc1, ValueType * RESTRICT _data_p1FaceSrc3, ValueType c0, ValueType c1, ValueType c2, int level);
 
 } // namespace generated
 } // namespace macroface

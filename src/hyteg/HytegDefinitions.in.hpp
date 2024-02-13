@@ -20,6 +20,7 @@
 #pragma once
 
 #cmakedefine HYTEG_BUILD_WITH_ADIOS2
+#cmakedefine HYTEG_BUILD_WITH_MPFR
 #cmakedefine HYTEG_BUILD_WITH_PETSC
 #cmakedefine HYTEG_BUILD_WITH_TRILINOS
 #cmakedefine HYTEG_USE_GENERATED_KERNELS

@@ -468,6 +468,7 @@ gcc_13_serial:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   only:
     variables:
       - $ENABLE_NIGHTLY_BUILDS
@@ -482,6 +483,7 @@ gcc_13_mpionly:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_TERRANEO_MODULE: "ON"
     HYTEG_DOWNLOAD_BOOST: "ON"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
@@ -497,6 +499,7 @@ gcc_13_serial_dbg_sp:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
@@ -509,6 +512,7 @@ gcc_13_mpionly_dbg_petsc-complex_trilinos:
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
@@ -520,6 +524,7 @@ gcc_13_mpionly_petsc_trilinos:
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
@@ -533,6 +538,7 @@ gcc_13_mpionly_eigen_petsc_trilinos_no_werror:
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
     WARNING_ERROR: "OFF"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   when: manual
   needs: [ ]
   tags:

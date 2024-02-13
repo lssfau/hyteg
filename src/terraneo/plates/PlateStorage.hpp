@@ -141,7 +141,7 @@ class PlateStorage
          {
             // get ID and name
             plates[k].id   = rootNode[idx]["features"][k]["properties"]["PLATEID1"];
-            plates[k].name = rootNode[idx]["features"][k]["properties"]["NAME"];
+            plates[k].name = static_cast<std::string>(rootNode[idx]["features"][k]["properties"]["NAME"]);
 
             // extract coordinates of polygon (order: longitude, latitude)
             const nlohmann::json coordinates = rootNode[idx]["features"][k]["geometry"]["coordinates"][0];

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "assign_2D_macroface_vertexdof_1_rhsfunction.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void assign_2D_macroface_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+static void assign_2D_macroface_vertexdof_1_rhs_function_level_any(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc, ValueType c, int level)
 {
    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
@@ -42,7 +44,8 @@ static void assign_2D_macroface_vertexdof_1_rhs_function_level_any(double * REST
 }
 
 
-void assign_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+void assign_2D_macroface_vertexdof_1_rhs_function(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc, ValueType c, int level)
 {
     switch( level )
     {
@@ -53,29 +56,14 @@ void assign_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1Face
     }
 }
 
-static void assign_2D_macroface_vertexdof_1_rhs_function_level_any(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level)
-{
-    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
-    {
-        // inner triangle
-        for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
-        {
-         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = c*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-        }
-    }
-}
-
-
-void assign_2D_macroface_vertexdof_1_rhs_function(float * RESTRICT _data_p1FaceDst, float * RESTRICT _data_p1FaceSrc, float c, int level)
-{
-    switch( level )
-    {
-
-    default:
-        assign_2D_macroface_vertexdof_1_rhs_function_level_any(_data_p1FaceDst, _data_p1FaceSrc, c, level);
-        break;
-    }
-}
+// ========================
+//  explicit instantiation
+// ========================
+template void assign_2D_macroface_vertexdof_1_rhs_function<walberla::float64>(walberla::float64 * RESTRICT _data_p1FaceDst, walberla::float64 * RESTRICT _data_p1FaceSrc, walberla::float64 c, int level);
+template void assign_2D_macroface_vertexdof_1_rhs_function<walberla::float32>(walberla::float32 * RESTRICT _data_p1FaceDst, walberla::float32 * RESTRICT _data_p1FaceSrc, walberla::float32 c, int level);
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void assign_2D_macroface_vertexdof_1_rhs_function<walberla::float16>(walberla::float16 * RESTRICT _data_p1FaceDst, walberla::float16 * RESTRICT _data_p1FaceSrc, walberla::float16 c, int level);
+#endif
 
 } // namespace generated
 } // namespace macroface

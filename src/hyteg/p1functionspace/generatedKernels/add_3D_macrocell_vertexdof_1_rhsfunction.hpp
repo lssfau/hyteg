@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,7 +31,8 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-void add_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int level);
+template < typename ValueType >
+void add_3D_macrocell_vertexdof_1_rhs_function(ValueType * RESTRICT _data_p1FaceDst, ValueType const * RESTRICT const _data_p1FaceSrc, ValueType c, int level);
 
 } // namespace generated
 } // namespace macrocell
