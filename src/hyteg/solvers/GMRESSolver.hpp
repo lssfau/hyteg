@@ -36,11 +36,20 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
-// Left preconditioned FGMRES implementation following:
-// Saad, Youcef and Schultz, Martin H.
-// "GMRES: A Generalized Minimal Residual Algorithm for Solving Nonsymmetric Linear Systems "
-// SIAM Journal on Scientific and Statistical Computing , Vol. 7, No. 3, p. 856-869, 1986
-// https://doi.org/10.1137/0907058
+/// Left preconditioned FGMRES implementation following:
+/// Saad, Youcef and Schultz, Martin H.
+/// "GMRES: A Generalized Minimal Residual Algorithm for Solving Nonsymmetric Linear Systems "
+/// SIAM Journal on Scientific and Statistical Computing , Vol. 7, No. 3, p. 856-869, 1986
+/// https://doi.org/10.1137/0907058
+///
+/// \param maxKrylowDim Maximum number of iterations, i.e. maximum krylov dimension
+/// \param restartLength Restart the algorithm after restartLength steps. Restarting means, that we discard all data from previous steps (especially the saved functions) and start from the previous approximate solution as an initial guess.
+/// \param arnoldiTOL The loop constructing an orthogonal basis for the preconditioned Krylov space is called "Arnoldi loop" or "Arnoldi process". If the 2-norm of a newly formed basis vector (before normalisation) is smaller than the arnoldi tolerance, the algorithm terminates.
+/// \param approxTOL Termination tolerance for the approximated residual
+/// \param doubleOrthoTOL Due to rounding errors it is sometimes necessary to repeat the orthogonalisation process. If doubleOrthoTOL == 0 or if the 2-Norm of the difference between the orthogonalised and non-orthogonalised vector is greater than doubleOrthoTOL (calculation required) a second orthogonalisation process is triggered. Since the double orthogonalisation step is most of the cheaper than computing the orthogonalisation difference (preconditioner solve required) you should leave this parameter at 0 if you do not have a specific reason to do otherwise.
+/// \param preconditioner A given left preconditioner
+/// \param iterationHook An iteration hook that is called after every iteration. The iteration hook is expected to return true if you want to stop the solver loop. The hook can for example be used to calculate the L2 error after each iteration.
+/// \param generateSolutionForHook Defines wether the iteration hook is provided the current approximate solution calculated from the saved basis functions. Otherwise the x input of the iteration hook should not be used. Calculating the approximate solution from the given basis functions is costly, so only use this if necessary.
 template < class OperatorType >
 class GMRESSolver : public Solver< OperatorType >
 {
