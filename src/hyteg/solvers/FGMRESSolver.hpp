@@ -50,6 +50,7 @@ using walberla::uint_t;
 /// \param preconditioner A given right preconditioner
 /// \param iterationHook An iteration hook that is called after every iteration. The iteration hook is expected to return true if you want to stop the solver loop. The hook can for example be used to calculate the L2 error after each iteration.
 /// \param generateSolutionForHook Defines wether the iteration hook is provided the current approximate solution calculated from the saved basis functions. Otherwise the x input of the iteration hook should not be used. Calculating the approximate solution from the given basis functions is costly, so only use this if necessary.
+template < class OperatorType >
 class FGMRESSolver : public Solver< OperatorType >
 {
  public:
