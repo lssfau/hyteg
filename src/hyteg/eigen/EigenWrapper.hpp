@@ -23,6 +23,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
+#include <Eigen/SparseCore>
 
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
