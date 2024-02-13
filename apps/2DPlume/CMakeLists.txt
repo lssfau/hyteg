@@ -6,4 +6,4 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME 2DPlume
       FILES 2DPlume.cpp
-      DEPENDS hyteg core convection_particles)
+      DEPENDS hyteg core mixed_operator convection_particles)

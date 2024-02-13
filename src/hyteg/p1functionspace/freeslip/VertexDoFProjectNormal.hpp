@@ -96,6 +96,49 @@ inline void projectNormal3D( uint_t                                             
    }
 }
 
+inline void saveProjectNormalOperator3D( uint_t                                                   level,
+                                         const Face&                                              face,
+                                         const std::shared_ptr< PrimitiveStorage >&               storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdV,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdW,
+                                         const std::shared_ptr< SparseMatrixProxy >&              mat )
+{
+   if ( face.getNumNeighborCells() == 2 )
+   {
+      WALBERLA_ABORT( "Cannot project normals if not a boundary face" );
+   }
+
+   auto dstU = face.getData( dstIdU )->getPointer( level );
+   auto dstV = face.getData( dstIdV )->getPointer( level );
+   auto dstW = face.getData( dstIdW )->getPointer( level );
+
+   Point3D  normal;
+   Matrix3r projection;
+
+   Point3D x;
+   Point3D xPhy;
+   for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      x = coordinateFromIndex( level, face, it );
+      face.getGeometryMap()->evalF( x, xPhy );
+
+      normal_function( xPhy, normal );
+
+      const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
+
+      mat->addValue( uint_c( dstU[idx] ), uint_c( dstU[idx] ), 1.0 - normal[0] * normal[0] );
+      mat->addValue( uint_c( dstU[idx] ), uint_c( dstV[idx] ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( dstU[idx] ), uint_c( dstW[idx] ), -normal[0] * normal[2] );
+      mat->addValue( uint_c( dstV[idx] ), uint_c( dstU[idx] ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( dstV[idx] ), uint_c( dstV[idx] ), 1.0 - normal[1] * normal[1] );
+      mat->addValue( uint_c( dstV[idx] ), uint_c( dstW[idx] ), -normal[1] * normal[2] );
+      mat->addValue( uint_c( dstW[idx] ), uint_c( dstU[idx] ), -normal[0] * normal[2] );
+      mat->addValue( uint_c( dstW[idx] ), uint_c( dstV[idx] ), -normal[1] * normal[2] );
+      mat->addValue( uint_c( dstW[idx] ), uint_c( dstW[idx] ), 1.0 - normal[2] * normal[2] );
+   }
+}
 } // namespace macroface
 
 namespace macroedge {
@@ -220,9 +263,9 @@ inline void saveProjectNormalOperator2D( uint_t                                 
 
    Face* faceS = storage->getFace( edge.neighborFaces()[0] );
 
-   Point3D                 normal;
-   std::vector< idx_t >    in( 2 );
-   std::vector< idx_t >    out( 2 );
+   Point3D              normal;
+   std::vector< idx_t > in( 2 );
+   std::vector< idx_t > out( 2 );
 
    Point3D x  = edge.getCoordinates()[0];
    real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
@@ -247,6 +290,55 @@ inline void saveProjectNormalOperator2D( uint_t                                 
    }
 }
 
+inline void saveProjectNormalOperator3D( uint_t                                                   level,
+                                         const Edge&                                              edge,
+                                         const std::shared_ptr< PrimitiveStorage >&               storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdW,
+                                         const std::shared_ptr< SparseMatrixProxy >&              mat )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   auto dstU = edge.getData( dstIdU )->getPointer( level );
+   auto dstV = edge.getData( dstIdV )->getPointer( level );
+   auto dstW = edge.getData( dstIdW )->getPointer( level );
+
+   Face* faceS = storage->getFace( edge.neighborFaces()[0] );
+
+   Point3D              normal;
+   std::vector< idx_t > in( 2 );
+   std::vector< idx_t > out( 2 );
+
+   Point3D x  = edge.getCoordinates()[0];
+   real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+   Point3D dx = h * edge.getDirection();
+   x += dx;
+   Point3D xPhy;
+
+   for ( size_t i = 1; i < rowsize - 1; ++i )
+   {
+      faceS->getGeometryMap()->evalF( x, xPhy );
+      normal_function( xPhy, normal );
+
+      const auto idxU = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      const auto idxV = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      const auto idxW = dstW[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+
+      mat->addValue( uint_c( idxU ), uint_c( idxU ), 1.0 - normal[0] * normal[0] );
+      mat->addValue( uint_c( idxU ), uint_c( idxV ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( idxU ), uint_c( idxW ), -normal[0] * normal[2] );
+      mat->addValue( uint_c( idxV ), uint_c( idxU ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
+      mat->addValue( uint_c( idxV ), uint_c( idxW ), -normal[1] * normal[2] );
+      mat->addValue( uint_c( idxW ), uint_c( idxU ), -normal[0] * normal[2] );
+      mat->addValue( uint_c( idxW ), uint_c( idxV ), -normal[1] * normal[2] );
+      mat->addValue( uint_c( idxW ), uint_c( idxW ), 1.0 - normal[2] * normal[2] );
+
+      x += dx;
+   }
+}
 } // namespace macroedge
 
 namespace macrovertex {
@@ -362,6 +454,43 @@ inline void saveProjectNormalOperator2D( uint_t                                 
    mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
 }
 
+inline void saveProjectNormalOperator3D( uint_t                                                    level,
+                                         const Vertex&                                             vertex,
+                                         const std::shared_ptr< PrimitiveStorage >&                storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >&  normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdV,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdW,
+                                         const std::shared_ptr< SparseMatrixProxy >&               mat )
+{
+   WALBERLA_CHECK( storage->onBoundary( vertex.getID() ) );
+
+   auto dstU = vertex.getData( dstIdU )->getPointer( level );
+   auto dstV = vertex.getData( dstIdV )->getPointer( level );
+   auto dstW = vertex.getData( dstIdW )->getPointer( level );
+
+   Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
+
+   Point3D xPhy;
+   faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
+
+   Point3D normal;
+   normal_function( xPhy, normal );
+
+   const auto idxU = *dstU;
+   const auto idxV = *dstV;
+   const auto idxW = *dstW;
+
+   mat->addValue( uint_c( idxU ), uint_c( idxU ), 1.0 - normal[0] * normal[0] );
+   mat->addValue( uint_c( idxU ), uint_c( idxV ), -normal[0] * normal[1] );
+   mat->addValue( uint_c( idxU ), uint_c( idxW ), -normal[0] * normal[2] );
+   mat->addValue( uint_c( idxV ), uint_c( idxU ), -normal[0] * normal[1] );
+   mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
+   mat->addValue( uint_c( idxV ), uint_c( idxW ), -normal[1] * normal[2] );
+   mat->addValue( uint_c( idxW ), uint_c( idxU ), -normal[0] * normal[2] );
+   mat->addValue( uint_c( idxW ), uint_c( idxV ), -normal[1] * normal[2] );
+   mat->addValue( uint_c( idxW ), uint_c( idxW ), 1.0 - normal[2] * normal[2] );
+}
 } // namespace macrovertex
 
 } // namespace vertexdof

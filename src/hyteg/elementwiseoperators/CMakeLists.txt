@@ -9,7 +9,6 @@ target_sources( hyteg
     P2ToP1ElementwiseOperator.hpp
     P2P1ElementwiseBlendingStokesOperator.hpp
     P2ToP1ElementwiseOperator.cpp
-    P1P1ElementwiseAffineEpsilonStokesOperator.hpp
     P2P1ElementwiseConstantCoefficientStokesOperator.hpp
     P2P1ElementwiseAffineEpsilonStokesOperator.hpp
     P2ElementwiseOperator.cpp

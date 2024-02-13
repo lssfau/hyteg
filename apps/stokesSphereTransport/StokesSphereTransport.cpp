@@ -29,7 +29,6 @@
 #include "hyteg/Git.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -52,6 +51,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+#include "mixed_operator//P2P1TaylorHoodStokesOperator.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

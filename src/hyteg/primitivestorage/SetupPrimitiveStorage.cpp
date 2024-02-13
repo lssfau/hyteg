@@ -31,12 +31,46 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-namespace hyteg {
-
 using walberla::real_c;
 
+namespace hyteg {
+
 SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses )
+: SetupPrimitiveStorage( meshInfo, numberOfProcesses, false )
+{}
+
+SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses, bool rootOnly )
 : numberOfProcesses_( numberOfProcesses )
+, rootOnly_( rootOnly )
+{
+   if ( rootOnly )
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         initialize( meshInfo );
+      }
+   }
+   else
+   {
+      initialize( meshInfo );
+   }
+}
+
+SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap& vertices,
+                                              const EdgeMap&   edges,
+                                              const FaceMap&   faces,
+                                              const CellMap&   cells,
+                                              const uint_t&    numberOfProcesses )
+: numberOfProcesses_( numberOfProcesses )
+, vertices_( vertices )
+, edges_( edges )
+, faces_( faces )
+, cells_( cells )
+{
+   loadbalancing::roundRobin( *this );
+}
+
+void SetupPrimitiveStorage::initialize( const MeshInfo& meshInfo )
 {
    WALBERLA_ASSERT_GREATER( numberOfProcesses_, 0, "Number of processes must be positive" );
 
@@ -474,18 +508,167 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
    loadbalancing::roundRobin( *this );
 }
 
-SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap& vertices,
-                                              const EdgeMap&   edges,
-                                              const FaceMap&   faces,
-                                              const CellMap&   cells,
-                                              const uint_t&    numberOfProcesses )
-: numberOfProcesses_( numberOfProcesses )
-, vertices_( vertices )
-, edges_( edges )
-, faces_( faces )
-, cells_( cells )
+void SetupPrimitiveStorage::scatterPrimitives( VertexMap&                       vertices,
+                                               EdgeMap&                         edges,
+                                               FaceMap&                         faces,
+                                               CellMap&                         cells,
+                                               VertexMap&                       neighborVertices,
+                                               EdgeMap&                         neighborEdges,
+                                               FaceMap&                         neighborFaces,
+                                               CellMap&                         neighborCells,
+                                               std::map< PrimitiveID, uint_t >& neighborRanks,
+                                               uint_t                           additionalHaloDepth ) const
 {
-   loadbalancing::roundRobin( *this );
+   walberla::mpi::BufferSystem bufferSystem( walberla::MPIManager::instance()->comm() );
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      auto sendPrimitivesLambda = [&]( auto primitives, int primtiveType ) {
+         for ( const auto& primitive : primitives )
+         {
+            uint_t targetRank = getTargetRank( primitive.first );
+
+            bufferSystem.sendBuffer( targetRank ) << targetRank;
+            bufferSystem.sendBuffer( targetRank ) << primtiveType;
+            bufferSystem.sendBuffer( targetRank ) << primitive.first;
+            bufferSystem.sendBuffer( targetRank ) << *( primitive.second );
+            int                     nbrPrimitiveType = 0;
+            std::set< PrimitiveID > allNeighborVertices( primitive.second->neighborVertices().begin(),
+                                                         primitive.second->neighborVertices().end() );
+            std::set< PrimitiveID > allNeighborEdges( primitive.second->neighborEdges().begin(),
+                                                      primitive.second->neighborEdges().end() );
+            std::set< PrimitiveID > allNeighborFaces( primitive.second->neighborFaces().begin(),
+                                                      primitive.second->neighborFaces().end() );
+            std::set< PrimitiveID > allNeighborCells( primitive.second->neighborCells().begin(),
+                                                      primitive.second->neighborCells().end() );
+
+            for ( uint_t i = 1; i <= additionalHaloDepth; ++i )
+            {
+               for ( const auto& allNeighborPrimitiveIDs :
+                     { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
+               {
+                  for ( const auto& neighborPrimitiveID : allNeighborPrimitiveIDs )
+                  {
+                     auto neighborPrimitive = getPrimitive( neighborPrimitiveID );
+                     {
+                        for ( const auto& nbr : neighborPrimitive->neighborVertices() )
+                        {
+                           allNeighborVertices.insert( nbr );
+                        }
+                        for ( const auto& nbr : neighborPrimitive->neighborEdges() )
+                        {
+                           allNeighborEdges.insert( nbr );
+                        }
+                        for ( const auto& nbr : neighborPrimitive->neighborFaces() )
+                        {
+                           allNeighborFaces.insert( nbr );
+                        }
+                        for ( const auto& nbr : neighborPrimitive->neighborCells() )
+                        {
+                           allNeighborCells.insert( nbr );
+                        }
+                     }
+                  }
+               }
+            }
+            for ( const auto& func : { allNeighborVertices, allNeighborEdges, allNeighborFaces, allNeighborCells } )
+            {
+               for ( const auto& neighborPrimitiveID : func )
+               {
+                  auto nbrTargetRank = getTargetRank( neighborPrimitiveID );
+                  if ( nbrTargetRank != targetRank )
+                  {
+                     const Primitive* neighborPrimitive;
+                     if ( nbrPrimitiveType == 0 )
+                     {
+                        neighborPrimitive = getVertex( neighborPrimitiveID );
+                     }
+                     else if ( nbrPrimitiveType == 1 )
+                     {
+                        neighborPrimitive = getEdge( neighborPrimitiveID );
+                     }
+                     else if ( nbrPrimitiveType == 2 )
+                     {
+                        neighborPrimitive = getFace( neighborPrimitiveID );
+                     }
+                     else if ( nbrPrimitiveType == 3 )
+                     {
+                        neighborPrimitive = getCell( neighborPrimitiveID );
+                     }
+                     else
+                     {
+                        WALBERLA_ABORT( "nbrPrimitiveType is invalid: " << nbrPrimitiveType )
+                     }
+                     WALBERLA_ASSERT_NOT_NULLPTR( neighborPrimitive );
+                     bufferSystem.sendBuffer( targetRank ) << nbrTargetRank;
+                     bufferSystem.sendBuffer( targetRank ) << nbrPrimitiveType;
+                     bufferSystem.sendBuffer( targetRank ) << neighborPrimitiveID;
+                     bufferSystem.sendBuffer( targetRank ) << *neighborPrimitive;
+                  }
+               }
+               nbrPrimitiveType++;
+            }
+         }
+      };
+      sendPrimitivesLambda( vertices_, 0 );
+      sendPrimitivesLambda( edges_, 1 );
+      sendPrimitivesLambda( faces_, 2 );
+      sendPrimitivesLambda( cells_, 3 );
+   }
+   bufferSystem.setReceiverInfo( walberla::mpi::BufferSystem::onlyRoot(), true );
+   bufferSystem.sendAll();
+   int    primitiveType;
+   uint_t targetRank;
+   for ( auto it = bufferSystem.begin(); it != bufferSystem.end(); ++it )
+   {
+      while ( !it.buffer().isEmpty() )
+      {
+         it.buffer() >> targetRank;
+         it.buffer() >> primitiveType;
+         PrimitiveID id;
+         it.buffer() >> id;
+         if ( walberla::mpi::MPIManager::instance()->rank() == int_c( targetRank ) )
+         {
+            if ( primitiveType == 0 )
+            {
+               vertices[id] = std::make_shared< Vertex >( it.buffer() );
+            }
+            else if ( primitiveType == 1 )
+            {
+               edges[id] = std::make_shared< Edge >( it.buffer() );
+            }
+            else if ( primitiveType == 2 )
+            {
+               faces[id] = std::make_shared< Face >( it.buffer() );
+            }
+            else if ( primitiveType == 3 )
+            {
+               cells[id] = std::make_shared< Cell >( it.buffer() );
+            }
+         }
+         else
+         {
+            if ( primitiveType == 0 )
+            {
+               neighborVertices[id] = std::make_shared< Vertex >( it.buffer() );
+            }
+            else if ( primitiveType == 1 )
+            {
+               neighborEdges[id] = std::make_shared< Edge >( it.buffer() );
+            }
+            else if ( primitiveType == 2 )
+            {
+               neighborFaces[id] = std::make_shared< Face >( it.buffer() );
+            }
+            else if ( primitiveType == 3 )
+            {
+               neighborCells[id] = std::make_shared< Cell >( it.buffer() );
+            }
+
+            neighborRanks[id] = targetRank;
+         }
+      }
+   }
 }
 
 Primitive* SetupPrimitiveStorage::getPrimitive( const PrimitiveID& id )
@@ -957,10 +1140,8 @@ bool SetupPrimitiveStorage::onBoundary( const PrimitiveID& primitiveID, const bo
    }
 }
 
-void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t numProcesses, uint_t numberOfFiles ) const
+void SetupPrimitiveStorage::writeToFile( const std::string& fileName ) const
 {
-   WALBERLA_CHECK_EQUAL( numberOfFiles, 1, "Currently only supporting writing to a single data file." );
-
    // Just misusing the buffers for convenience. We are not actually sending anything.
    // Serialization to buffers is implemented, and we can write byte streams later :)
    SendBuffer data;
@@ -984,14 +1165,14 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
    // number of bytes that are allocated. We interleave this, such that two consecutive entries are the pos and the size in bytes.
    // To update the position, we will have to(?) iterate over that thing. It is not _really_ scalable, but should still be fast
    // for ~1mio processes(?).
-   std::vector< uint64_t > metaVec( 2 * numProcesses, 0 );
+   std::vector< uint64_t > metaVec( 2 * numberOfProcesses_, 0 );
 
    PrimitiveMap primitives;
    getSetupPrimitives( primitives );
 
    // This "cache" is simplifying and slightly optimizing the serialization.
    // We capture all IDs we want to write per process.
-   std::vector< std::set< PrimitiveID > > primitiveIDsToWrite( numProcesses );
+   std::vector< std::set< PrimitiveID > > primitiveIDsToWrite( numberOfProcesses_ );
 
    // Let`s check what amount of memory we need for each process.
    for ( auto [pid, primitive] : primitives )
@@ -1010,7 +1191,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
          auto nrank = getTargetRank( npid );
 
          WALBERLA_CHECK_LESS( nrank,
-                              numProcesses,
+                              numberOfProcesses_,
                               "The SetupPrimitiveStorage has assigned a primitive to a rank that is larger than"
                               "the number of processes that are supposed to deserialize the file." )
 
@@ -1039,7 +1220,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
 
    // Now we accumulate the mem to get the starting pos of each portion in the final buffer.
    uint64_t memCnt = 0;
-   for ( uint_t rank = 0; rank < numProcesses; rank++ )
+   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
    {
       // hasGlobalCells - added later
       metaVec[2 * rank + 1] += sizeof( uint8_t );
@@ -1047,7 +1228,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
       metaVec[2 * rank + 1] += sizeof( uint64_t );
 
       // setting the position - adding an offset that has the size of the metadata portion
-      metaVec[2 * rank] = 2 * numProcesses * sizeof( uint64_t ) + memCnt;
+      metaVec[2 * rank] = 2 * numberOfProcesses_ * sizeof( uint64_t ) + memCnt;
 
       memCnt += metaVec[2 * rank + 1];
    }
@@ -1059,7 +1240,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t num
    }
 
    // Next we actually write the data to the buffer, for each rank.
-   for ( uint_t rank = 0; rank < numProcesses; rank++ )
+   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
    {
       // We already cached the PrimitiveIDs of Primitives we want to write.
       auto pids = primitiveIDsToWrite[rank];

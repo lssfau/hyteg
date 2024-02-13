@@ -94,6 +94,8 @@ class IcosahedralShellMap : public GeometryMap
 
       recvBuffer >> radRefVertex_;
       recvBuffer >> radRayVertex_;
+
+      recvBuffer >> prismNormal_;
    }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const override
@@ -231,7 +233,7 @@ class IcosahedralShellMap : public GeometryMap
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ICOSAHEDRAL_SHELL << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_
-                 << radRayVertex_;
+                 << radRayVertex_ << prismNormal_;
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage )
@@ -254,6 +256,14 @@ class IcosahedralShellMap : public GeometryMap
          setupStorage.setGeometryMap( edge.getID(), std::make_shared< IcosahedralShellMap >( edge, setupStorage ) );
       }
    }
+
+   const Point3D& rayVertex() const { return rayVertex_; }
+   const Point3D& refVertex() const { return refVertex_; }
+   const Point3D& thrVertex() const { return thrVertex_; }
+   const Point3D& forVertex() const { return forVertex_; }
+
+   real_t radRefVertex() const { return radRefVertex_; }
+   real_t radRayVertex() const { return radRayVertex_; }
 
  private:
    /// \name Classified vertices of macro tetrahedron

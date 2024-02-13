@@ -1,0 +1,19 @@
+target_sources( constant_stencil_operator
+      PRIVATE
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_replace.hpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl.hpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_add.hpp
+      apply_2D_macroface_edgedof_to_edgedof_add.hpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_add_impl.hpp
+      apply_3D_macrocell_edgedof_to_edgedof_add.cpp
+      apply_2D_macroface_edgedof_to_edgedof_replace.cpp
+      apply_3D_macrocell_edgedof_to_edgedof_replace.hpp
+      apply_2D_macroface_edgedof_to_edgedof_add.cpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_add_impl.cpp
+      apply_3D_macrocell_edgedof_to_edgedof_add.hpp
+      apply_2D_macroface_edgedof_to_edgedof_replace.hpp
+      apply_3D_macrocell_edgedof_to_edgedof_replace.cpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_replace.cpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl.cpp
+      apply_3D_macroface_one_sided_edgedof_to_edgedof_add.cpp
+)

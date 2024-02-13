@@ -29,12 +29,13 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 
@@ -82,7 +83,7 @@ void P2Level0InterpolateTest()
    auto someFunction = []( const Point3D& x ) -> real_t { return real_c( 42.0 + x[0] * 2367. + x[1] * 37. + x[2] * 999. ); };
    f_interpolation.interpolate( someFunction, level, All );
 
-   communication::syncP2FunctionBetweenPrimitives( f_interpolation, level );
+   communication::syncFunctionBetweenPrimitives( f_interpolation, level );
 
    for ( const auto& itVertex : storage->getVertices() )
    {
@@ -219,7 +220,7 @@ void P2Level0EnumerateTet1elTest()
   P2Function< int > f_interpolation( "f_interpolation", storage, level, level );
   f_interpolation.enumerate( level );
 
-  communication::syncP2FunctionBetweenPrimitives( f_interpolation, level );
+  communication::syncFunctionBetweenPrimitives( f_interpolation, level );
 
   std::map< PrimitiveID, int > realDataLocal;
   std::map< PrimitiveID, int > realDataGlobal;

@@ -274,9 +274,12 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( edge.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( edge.neighborCells()[0] );
+
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
-            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), constant );
+            n1e1::macroedge::interpolate( level, edge, neighborCell, dofs_->getEdgeDataID(), constant );
          }
       }
 
@@ -288,9 +291,12 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       {
          Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( face.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( face.neighborCells()[0] );
+
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
-            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), constant );
+            n1e1::macroface::interpolate( level, face, neighborCell, dofs_->getFaceDataID(), constant );
          }
       }
 
@@ -335,9 +341,12 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( edge.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( edge.neighborCells()[0] );
+
          if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
          {
-            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), constant );
+            n1e1::macroedge::interpolate( level, edge, neighborCell, dofs_->getEdgeDataID(), constant );
          }
       }
 
@@ -349,9 +358,12 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       {
          Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( face.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( face.neighborCells()[0] );
+
          if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
          {
-            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), constant );
+            n1e1::macroface::interpolate( level, face, neighborCell, dofs_->getFaceDataID(), constant );
          }
       }
 
@@ -413,6 +425,13 @@ void N1E1VectorFunction< ValueType >::interpolate(
    {
       this->startTiming( "Interpolate" );
 
+      // Collect all source IDs in a vector
+      std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
+      for ( const N1E1VectorFunction& function : srcFunctions )
+      {
+         srcCellIDs.push_back( function.dofs_->getCellDataID() );
+      }
+
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
@@ -421,9 +440,12 @@ void N1E1VectorFunction< ValueType >::interpolate(
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( edge.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( edge.neighborCells()[0] );
+
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
-            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), srcFunctions, expr );
+            n1e1::macroedge::interpolate( level, edge, neighborCell, dofs_->getEdgeDataID(), srcCellIDs, expr );
          }
       }
 
@@ -435,9 +457,12 @@ void N1E1VectorFunction< ValueType >::interpolate(
       {
          Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( face.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( face.neighborCells()[0] );
+
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
-            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), srcFunctions, expr );
+            n1e1::macroface::interpolate( level, face, neighborCell, dofs_->getFaceDataID(), srcCellIDs, expr );
          }
       }
 
@@ -453,7 +478,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
 
             if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
             {
-               n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcFunctions, expr );
+               n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcCellIDs, expr );
             }
          }
       }
@@ -481,6 +506,13 @@ void N1E1VectorFunction< ValueType >::interpolate(
    {
       this->startTiming( "Interpolate" );
 
+      // Collect all source IDs in a vector
+      std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
+      for ( const N1E1VectorFunction& function : srcFunctions )
+      {
+         srcCellIDs.push_back( function.dofs_->getCellDataID() );
+      }
+
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
 #ifdef WALBERLA_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
@@ -489,9 +521,12 @@ void N1E1VectorFunction< ValueType >::interpolate(
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( edge.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( edge.neighborCells()[0] );
+
          if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
          {
-            n1e1::macroedge::interpolate( level, edge, dofs_->getEdgeDataID(), srcFunctions, expr );
+            n1e1::macroedge::interpolate( level, edge, neighborCell, dofs_->getEdgeDataID(), srcCellIDs, expr );
          }
       }
 
@@ -503,9 +538,12 @@ void N1E1VectorFunction< ValueType >::interpolate(
       {
          Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
+         WALBERLA_ASSERT( face.neighborCells().size() > 0 )
+         Cell& neighborCell = *storage_->getCell( face.neighborCells()[0] );
+
          if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
          {
-            n1e1::macroface::interpolate( level, face, dofs_->getFaceDataID(), srcFunctions, expr );
+            n1e1::macroface::interpolate( level, face, neighborCell, dofs_->getFaceDataID(), srcCellIDs, expr );
          }
       }
 
@@ -521,7 +559,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
 
             if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
             {
-               n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcFunctions, expr );
+               n1e1::macrocell::interpolate( level, cell, dofs_->getCellDataID(), srcCellIDs, expr );
             }
          }
       }

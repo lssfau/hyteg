@@ -58,6 +58,30 @@ void projectionMatrix3D( const Point3D& normal, Matrix3r& projection )
    projection( 2, 2 ) = 1.0 - normal[2] * normal[2];
 }
 
+void addMatrix3D( const uint_t                                            idx,
+                  uint_t                                                  level,
+                  const std::shared_ptr< SparseMatrixProxy >&             mat,
+                  const Face&                                             face,
+                  const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstIdU,
+                  const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstIdV,
+                  const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstIdW,
+                  Point3D                                                 normal )
+{
+   auto dstU = face.getData( dstIdU )->getPointer( level );
+   auto dstV = face.getData( dstIdV )->getPointer( level );
+   auto dstW = face.getData( dstIdW )->getPointer( level );
+
+   mat->addValue( uint_c( dstU[idx] ), uint_c( dstU[idx] ), 1.0 - normal[0] * normal[0] );
+   mat->addValue( uint_c( dstU[idx] ), uint_c( dstV[idx] ), -normal[0] * normal[1] );
+   mat->addValue( uint_c( dstU[idx] ), uint_c( dstW[idx] ), -normal[0] * normal[2] );
+   mat->addValue( uint_c( dstV[idx] ), uint_c( dstU[idx] ), -normal[0] * normal[1] );
+   mat->addValue( uint_c( dstV[idx] ), uint_c( dstV[idx] ), 1.0 - normal[1] * normal[1] );
+   mat->addValue( uint_c( dstV[idx] ), uint_c( dstW[idx] ), -normal[1] * normal[2] );
+   mat->addValue( uint_c( dstW[idx] ), uint_c( dstU[idx] ), -normal[0] * normal[2] );
+   mat->addValue( uint_c( dstW[idx] ), uint_c( dstV[idx] ), -normal[1] * normal[2] );
+   mat->addValue( uint_c( dstW[idx] ), uint_c( dstW[idx] ), 1.0 - normal[2] * normal[2] );
+}
+
 namespace macroface {
 
 template < typename ValueType >
@@ -95,9 +119,8 @@ inline void projectNormal3D( uint_t                                             
       const Point3D horizontalMicroEdgePosition =
           faceBottomLeftCoords +
           ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
-      const Point3D verticalMicroEdgePosition =
-          faceBottomLeftCoords +
-          ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+      const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset +
+                                                                         ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
       const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
       // Do not update horizontal DoFs at bottom
@@ -158,6 +181,74 @@ inline void projectNormal3D( uint_t                                             
          dstU[idx] = out[0];
          dstV[idx] = out[1];
          dstW[idx] = out[2];
+      }
+   }
+}
+
+inline void saveProjectNormalOperator3D( uint_t                                                   level,
+                                         const Face&                                              face,
+                                         const std::shared_ptr< PrimitiveStorage >&               storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdV,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdW,
+                                         const std::shared_ptr< SparseMatrixProxy >&              mat )
+{
+   if ( face.getNumNeighborCells() == 2 )
+   {
+      WALBERLA_ABORT( "Cannot project normals if not a boundary face" );
+   }
+
+   Point3D normal;
+   Point3D x;
+   Point3D xBlend;
+
+   const Point3D faceBottomLeftCoords  = face.getCoordinates()[0];
+   const Point3D faceBottomRightCoords = face.getCoordinates()[1];
+   const Point3D faceTopLeftCoords     = face.getCoordinates()[2];
+
+   const Point3D horizontalMicroEdgeOffset =
+       ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
+   const Point3D verticalMicroEdgeOffset =
+       ( ( faceTopLeftCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
+
+   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+   {
+      const Point3D horizontalMicroEdgePosition =
+          faceBottomLeftCoords +
+          ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
+      const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset +
+                                                                         ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+      const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
+
+      // Do not update horizontal DoFs at bottom
+      if ( it.y() != 0 )
+      {
+         face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
+         normal_function( xBlend, normal );
+
+         const uint_t idx = edgedof::macroface::horizontalIndex( level, it.x(), it.y() );
+         addMatrix3D( idx, level, mat, face, dstIdU, dstIdV, dstIdW, normal );
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.x() != 0 )
+      {
+         face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
+         normal_function( xBlend, normal );
+
+         const uint_t idx = edgedof::macroface::verticalIndex( level, it.x(), it.y() );
+         addMatrix3D( idx, level, mat, face, dstIdU, dstIdV, dstIdW, normal );
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      {
+         face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
+         normal_function( xBlend, normal );
+
+         const uint_t idx = edgedof::macroface::diagonalIndex( level, it.x(), it.y() );
+         addMatrix3D( idx, level, mat, face, dstIdU, dstIdV, dstIdW, normal );
       }
    }
 }
@@ -292,10 +383,60 @@ inline void saveProjectNormalOperator2D( uint_t                                 
       const auto idxU = dstU[idx];
       const auto idxV = dstV[idx];
 
-      mat->addValue( uint_c( idxU ), uint_c( idxU ), projection(0, 0) );
+      mat->addValue( uint_c( idxU ), uint_c( idxU ), projection( 0, 0 ) );
       mat->addValue( uint_c( idxU ), uint_c( idxV ), projection( 0, 1 ) );
       mat->addValue( uint_c( idxV ), uint_c( idxU ), projection( 1, 0 ) );
       mat->addValue( uint_c( idxV ), uint_c( idxV ), projection( 1, 1 ) );
+   }
+}
+
+inline void saveProjectNormalOperator3D( uint_t                                                   level,
+                                         const Edge&                                              edge,
+                                         const std::shared_ptr< PrimitiveStorage >&               storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdW,
+                                         const std::shared_ptr< SparseMatrixProxy >&              mat )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   auto dstU = edge.getData( dstIdU )->getPointer( level );
+   auto dstV = edge.getData( dstIdV )->getPointer( level );
+   auto dstW = edge.getData( dstIdW )->getPointer( level );
+
+   Face* faceS = storage->getFace( edge.neighborFaces()[0] );
+
+   Point3D              normal;
+   std::vector< idx_t > in( 2 );
+   std::vector< idx_t > out( 2 );
+
+   Point3D x  = edge.getCoordinates()[0];
+   real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+   Point3D dx = h * edge.getDirection();
+   x += dx;
+   Point3D xPhy;
+
+   for ( size_t i = 1; i < rowsize - 1; ++i )
+   {
+      faceS->getGeometryMap()->evalF( x, xPhy );
+      normal_function( xPhy, normal );
+
+      const auto idxU = dstU[edgedof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      const auto idxV = dstV[edgedof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      const auto idxW = dstW[edgedof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+
+      mat->addValue( uint_c( idxU ), uint_c( idxU ), 1.0 - normal[0] * normal[0] );
+      mat->addValue( uint_c( idxU ), uint_c( idxV ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( idxU ), uint_c( idxW ), -normal[0] * normal[2] );
+      mat->addValue( uint_c( idxV ), uint_c( idxU ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
+      mat->addValue( uint_c( idxV ), uint_c( idxW ), -normal[1] * normal[2] );
+      mat->addValue( uint_c( idxW ), uint_c( idxU ), -normal[0] * normal[2] );
+      mat->addValue( uint_c( idxW ), uint_c( idxV ), -normal[1] * normal[2] );
+      mat->addValue( uint_c( idxW ), uint_c( idxW ), 1.0 - normal[2] * normal[2] );
+
+      x += dx;
    }
 }
 

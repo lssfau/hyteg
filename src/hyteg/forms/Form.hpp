@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/geometry/GeometryMap.hpp"
+#include "hyteg/geometry/IdentityMap.hpp"
 
 namespace hyteg {
 
@@ -27,6 +28,10 @@ namespace hyteg {
 class Form
 {
  public:
+   Form()
+   : geometryMap_( std::make_shared< IdentityMap >() )
+   {}
+
    virtual ~Form() {}
 
    /// Set the geometry/blending map for the form
@@ -34,17 +39,17 @@ class Form
    /// \note
    /// - This method is used e.g. by the ElementwiseOperators.
    /// - In the case of the FEniCS forms the map is ignored.
-   void setGeometryMap( const std::shared_ptr< GeometryMap > & geometryMap ) {
-     // Check would make sense. However, there are some corner cases, where
-     // in 3D nobody calls setGeometryMap on the P2RowSumForm, in which case
-     // that will pass a nullptr on to an underlying FenicsForm. Which is
-     // sort of okay as the latter will ignore the map anyway :(
-     // WALBERLA_ASSERT_NOT_NULLPTR( geometryMap );
-     geometryMap_ = geometryMap;
+   void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
+   {
+      // Check would make sense. However, there are some corner cases, where
+      // in 3D nobody calls setGeometryMap on the P2RowSumForm, in which case
+      // that will pass a nullptr on to an underlying FenicsForm. Which is
+      // sort of okay as the latter will ignore the map anyway :(
+      // WALBERLA_ASSERT_NOT_NULLPTR( geometryMap );
+      geometryMap_ = geometryMap;
    }
 
  protected:
-
    std::shared_ptr< GeometryMap > geometryMap_;
 };
 

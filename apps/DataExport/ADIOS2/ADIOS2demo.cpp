@@ -17,6 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+// This demo app allows exporting a 2D base mesh in ADIOS2 BP4 format.
+//
+// It works sequentially, but also in parallel. Via an XML file we can
+// dynamically set e.g. the number of aggregators.
+//
+// NOTE: This demo was used as part of the development of HyTeG's
+//       AdiosWriter. It is _not_ a tutorial. If you want to export
+//       FE functions for visualisation, please use the AdiosWriter
+//       class.
+
 #include <adios2.h>
 #include <sstream>
 

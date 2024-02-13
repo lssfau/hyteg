@@ -29,11 +29,9 @@
 #include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
 #include "hyteg/egfunctionspace/EGDivFormNew.hpp"
-#include "hyteg/egfunctionspace/EGOperators.hpp"
-#include "hyteg/egfunctionspace/EGOperatorsNitscheBC.hpp"
-#include "hyteg/egfunctionspace/EGVectorLaplaceFormNitscheBC.hpp"
-#include "hyteg/egfunctionspace/EGDivtFormNitscheBC.hpp"
 #include "hyteg/egfunctionspace/EGDivFormNitscheBC.hpp"
+#include "hyteg/egfunctionspace/EGDivtFormNitscheBC.hpp"
+#include "hyteg/egfunctionspace/EGVectorLaplaceFormNitscheBC.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
@@ -41,6 +39,9 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
+
+#include "mixed_operator/EGOperators.hpp"
+#include "mixed_operator/EGOperatorsNitscheBC.hpp"
 
 namespace hyteg {
 using walberla::real_t;

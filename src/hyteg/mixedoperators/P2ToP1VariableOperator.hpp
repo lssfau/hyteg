@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Benjamin Mann.
+ * Copyright (c) 2017-2023 Benjamin Mann, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,9 +21,9 @@
 #pragma once
 
 #include <array>
-#include <hyteg/operators/Operator.hpp>
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/mixedoperators/variablestencil/P2P1VariableStencilCommon.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
 
@@ -48,7 +48,7 @@ class P2ToP1VariableOperator : public Operator< P2Function< real_t >, P1Function
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const
    {
-      communication::syncP2FunctionBetweenPrimitives( src, level );
+      communication::syncFunctionBetweenPrimitives( src, level );
 
       const vertexdof::VertexDoFFunction< real_t >& srcVertexDoF = src.getVertexDoFFunction();
       const EdgeDoFFunction< real_t >&              srcEdgeDoF   = src.getEdgeDoFFunction();

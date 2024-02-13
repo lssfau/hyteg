@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "core/debug/Debug.h"
+#include "core/mpi/BufferSystem.h"
 
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -49,6 +50,8 @@ class SetupPrimitiveStorage
    typedef std::map< PrimitiveID, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID, std::shared_ptr< Cell > >      CellMap;
 
+   SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses, bool rootOnly );
+
    SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses );
 
    SetupPrimitiveStorage( const VertexMap& vertices,
@@ -56,6 +59,8 @@ class SetupPrimitiveStorage
                           const FaceMap&   faces,
                           const CellMap&   cells,
                           const uint_t&    numberOfProcesses );
+
+   void initialize( const MeshInfo& meshInfo );
 
    void toStream( std::ostream& os, bool verbose = false ) const;
 
@@ -92,9 +97,26 @@ class SetupPrimitiveStorage
    uint_t getNumberOfEdges() const { return edges_.size(); }
    uint_t getNumberOfFaces() const { return faces_.size(); }
    uint_t getNumberOfCells() const { return cells_.size(); }
+   uint_t getNumberOfGlobalCells() const
+   {
+      uint_t numberOfCells = cells_.size();
+      walberla::mpi::allReduceInplace( numberOfCells, walberla::mpi::SUM );
+      return numberOfCells;
+   }
 
    /// Returns a reference to a map of \ref Vertex instances
    const VertexMap& getVertices() const { return vertices_; }
+
+   void scatterPrimitives( VertexMap&                       vertices,
+                           EdgeMap&                         edges,
+                           FaceMap&                         faces,
+                           CellMap&                         cells,
+                           VertexMap&                       neighborVertices,
+                           EdgeMap&                         neighborEdges,
+                           FaceMap&                         neighborFaces,
+                           CellMap&                         neighborCells,
+                           std::map< PrimitiveID, uint_t >& neighborRanks,
+                           uint_t                           additionalHaloDepth ) const;
 
    /// Returns a reference to a map of \ref Edge instances
    const EdgeMap& getEdges() const { return edges_; }
@@ -160,6 +182,7 @@ class SetupPrimitiveStorage
    uint_t getNumFacesOnBoundary() const;
    uint_t getNumCellsOnBoundary() const;
 
+
    /// Writes the SetupPrimitiveStorage to a file that can be used for a fully parallel initialization of the PrimitiveStorage.
    ///
    /// Since the SetupStorage is not scalable, large meshes cannot be processed if the memory is limited in a parallel application.
@@ -169,14 +192,14 @@ class SetupPrimitiveStorage
    ///
    /// Load balancing should therefore already be performed in the offline stage on a single process.
    ///
-   /// \param fileName name of the file
-   /// \param numProcesses number of processes of the application that later reads this output - this must be exact, however, the
-   ///                     actual primitive distribution is independent of this number (all Primitives may be on root)
-   /// \param numberOfFiles should be 1 or larger - currently only a single output file is supported
+   /// Note that the file _has_ to be read with the same amount of processes that has been passed to the SetupPrimitiveStorage
+   /// during its construction. However, this is independent of the actual distribution of the primitives. So for instance, all
+   /// primitives can still be located on the root process after load balancing. Still, the actual number of processes must match.
    ///
-   void writeToFile( const std::string& fileName,
-                     uint_t             numProcesses,
-                     uint_t             numberOfFiles = 1 ) const;
+   /// \param fileName name of the file
+   void writeToFile( const std::string& fileName ) const;
+
+   bool rootOnly() const { return rootOnly_; }
 
  private:
    typedef std::map< uint_t, std::vector< PrimitiveID > > RankToSetupPrimitivesMap;
@@ -200,6 +223,8 @@ class SetupPrimitiveStorage
    CellMap   cells_;
 
    std::map< PrimitiveID, uint_t > primitiveIDToTargetRankMap_;
+
+   bool rootOnly_ = false;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const SetupPrimitiveStorage& storage )

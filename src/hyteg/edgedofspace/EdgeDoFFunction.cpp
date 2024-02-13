@@ -20,6 +20,7 @@
 #include "EdgeDoFFunction.hpp"
 
 #include "core/OpenMP.h"
+#include "core/math/KahanSummation.h"
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
@@ -1293,7 +1294,7 @@ template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
    this->startTiming( "Sum (local)" );
-   auto sum = ValueType( 0 );
+   walberla::math::KahanAccumulator< ValueType > sum;
 
    for ( const auto& it : this->getStorage()->getEdges() )
    {
@@ -1324,7 +1325,7 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoF
       }
    }
    this->stopTiming( "Sum (local)" );
-   return sum;
+   return sum.get();
 }
 
 template < typename ValueType >

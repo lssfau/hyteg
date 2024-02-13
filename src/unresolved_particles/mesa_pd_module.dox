@@ -1,0 +1,10 @@
+namespace walberla {
+namespace unresolved_particles {
+
+/**
+ * \defgroup unresolved_particles MESA-PD - Modular and Extensible Software Architecture for Particle Dynamics
+ * The particle dynamics module of the waLBerla multi-physics framework.
+**/
+
+}
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Marcus Mohr.
+ * Copyright (c) 2017-2023 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -120,7 +120,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
    }
    else
    {
-      communication::syncP2FunctionBetweenPrimitives( src, level );
+      communication::syncFunctionBetweenPrimitives( src, level );
    }
    this->storage_->getTimingTree()->stop( "sync source communication" );
 
@@ -394,7 +394,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
       // Make sure that halos are up-to-date (can we improve communication here?)
-      communication::syncP2FunctionBetweenPrimitives( *targetFunction, level );
+      communication::syncFunctionBetweenPrimitives( *targetFunction, level );
 
       // Zero destination before performing additive computation
       targetFunction->setToZero( level );
@@ -606,9 +606,9 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    dstVertexData[dofDataIdx[1]] += elMat( 1, 1 );
    dstVertexData[dofDataIdx[2]] += elMat( 2, 2 );
 
-   dstEdgeData[dofDataIdx[3]] += elMat( 4, 4 );
-   dstEdgeData[dofDataIdx[4]] += elMat( 5, 5 );
-   dstEdgeData[dofDataIdx[5]] += elMat( 3, 3 );
+   dstEdgeData[dofDataIdx[3]] += elMat( 3, 3 );
+   dstEdgeData[dofDataIdx[4]] += elMat( 4, 4 );
+   dstEdgeData[dofDataIdx[5]] += elMat( 5, 5 );
 }
 
 template < class P2Form >

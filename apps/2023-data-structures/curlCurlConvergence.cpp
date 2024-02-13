@@ -41,8 +41,6 @@
 #include "hyteg/gridtransferoperators/N1E1toN1E1Prolongation.hpp"
 #include "hyteg/gridtransferoperators/N1E1toN1E1Restriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/n1e1functionspace/HybridSmoother.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -53,6 +51,9 @@
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/HybridSmoother.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -503,7 +504,7 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
 
       if ( simData.createStorageFile )
       {
-         setupStorage.writeToFile( simData.storageFileName.value(), setupStorage.getNumberOfProcesses() );
+         setupStorage.writeToFile( simData.storageFileName.value() );
          return;
       }
 

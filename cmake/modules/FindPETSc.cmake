@@ -289,6 +289,7 @@ int main(int argc,char *argv[]) {
   mark_as_advanced (PETSC_INCLUDE_DIR PETSC_INCLUDE_CONF)
   find_package( MPI )
   set (petsc_includes_minimal ${PETSC_INCLUDE_CONF} ${PETSC_INCLUDE_DIR} ${MPI_CXX_INCLUDE_PATH})
+  set (petsc_includes_all ${petsc_includes_all} ${MPI_CXX_INCLUDE_PATH})
 
   petsc_test_runs ("${petsc_includes_minimal}" "${PETSC_LIBRARIES_TS}" petsc_works_minimal)
   if (petsc_works_minimal)

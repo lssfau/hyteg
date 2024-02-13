@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -120,7 +120,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
    }
    else
    {
-      communication::syncP2FunctionBetweenPrimitives( src, level );
+      communication::syncFunctionBetweenPrimitives( src, level );
    }
 
    if ( updateType == Replace )
@@ -204,8 +204,8 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
       {
          Face& face = *it.second;
 
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
+         Point3D         v0, v1, v2;
+         indexing::Index nodeIdx;
          indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
@@ -338,7 +338,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply3D( const
    // redistribute result from "local" to "global vector"
    for ( int k = 0; k < 4; ++k )
    {
-      dstVertexData[vertexDoFIndices[uint_c(k)]] += elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
 }
 
@@ -432,11 +432,11 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::toMatrix( const std::shared_ptr< S
       {
          Face& face = *it.second;
 
-         uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t                   inner_rowsize = rowsize;
-         idx_t                    xIdx, yIdx;
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
+         uint_t          rowsize       = levelinfo::num_microvertices_per_edge( level );
+         uint_t          inner_rowsize = rowsize;
+         idx_t           xIdx, yIdx;
+         Point3D         v0, v1, v2;
+         indexing::Index nodeIdx;
          indexing::Index offset;
 
          // get hold of the actual numerical data in the two functions
@@ -501,12 +501,12 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
                                                                      const idx_t* const                          srcEdgeIdx,
                                                                      const idx_t* const dstVertexIdx ) const
 {
-   Matrixr< 3, 6 >          elMat;
-   indexing::Index          nodeIdx;
-   indexing::Index offset;
-   Point3D                  v0, v1, v2;
-   std::array< uint_t, 6 >  dofDataIdx;
-   P2toP1Form               form;
+   Matrixr< 3, 6 >         elMat = Matrixr< 3, 6 >::Zero();
+   indexing::Index         nodeIdx;
+   indexing::Index         offset;
+   Point3D                 v0, v1, v2;
+   std::array< uint_t, 6 > dofDataIdx;
+   P2toP1Form              form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -573,7 +573,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly3D( const std::
    }
 
    // assemble local element matrix
-   Matrixr< 4, 10 > elMat;
+   Matrixr< 4, 10 > elMat = Matrixr< 4, 10 >::Zero();
    P2toP1Form       form;
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );

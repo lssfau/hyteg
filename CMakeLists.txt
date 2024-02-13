@@ -4,20 +4,26 @@ PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
 
-if(${CMAKE_VERSION} VERSION_GREATER "3.24.0") 
+if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+# Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
+include(DetectPlatformFeatures)
+
+option ( HYTEG_BUILD_WITH_MPFR        "Build with MPFR"                              OFF)
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
+option ( HYTEG_BUILD_WITH_AVX         "Use AVX intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX})
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
 option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for plates"  OFF)
 option ( HYTEG_BUILD_DOC              "Build Documentation"                           ON)
 
-set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
+set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_BUILD_WITH_BOOST       OFF )
@@ -33,12 +39,24 @@ link_directories(${EIGEN_DIR})
 
 include_directories(src)
 
-# Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
-
+unset(CMAKE_CXX_FLAGS_DEBUGOPTIMIZED CACHE)
 find_package(waLBerla)
 
-if (NOT WALBERLA_DOUBLE_ACCURACY)
+if ( HYTEG_BUILD_WITH_MPFR )
+    # Extends cmake module path - so that FindMPFR.cmake in the current directory is found
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EIGEN_DIR}/cmake)
+
+    find_package(MPFR REQUIRED)
+    add_library(MPFR::MPFR INTERFACE IMPORTED)
+    set_target_properties(MPFR::MPFR PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${MPFR_INCLUDES}"
+            INTERFACE_LINK_LIBRARIES "${MPFR_LIBRARIES}"
+    )
+    # add the path of the mpfr-wrapper to the include path
+    include_directories(SYSTEM extern/mpfr-wrapper)
+endif ()
+
+if (NOT WALBERLA_DOUBLE_ACCURACY AND HYTEG_USE_GENERATED_KERNELS)
    set(HYTEG_USE_GENERATED_KERNELS OFF)
    message(WARNING "The generated constant stencil kernels are disabled when using WALBERLA_DOUBLE_ACCURACY=OFF")
 endif ()
@@ -213,7 +231,7 @@ if (HYTEG_BUILD_DOC)
   #
   # Yepp, this looks akward. If you have any idea on how to solve this in
   # a more elegant fashion, please feel free to change this.
-  if( WALBERLA_BUILD_WITH_MPI ) 
+  if( WALBERLA_BUILD_WITH_MPI )
     set( DOXYGEN_WALBERLA_BUILD_WITH_MPI "WALBERLA_BUILD_WITH_MPI" )
   endif()
 

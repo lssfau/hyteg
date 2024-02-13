@@ -4,3 +4,10 @@
 [submodule "eigen"]
 	path = eigen
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "extern/mpfr-wrapper/mpreal"]
+	path = extern/mpfr-wrapper/mpreal
+	url = https://github.com/advanpix/mpreal.git
+[submodule "src/hyteg_operators"]
+	path = src/hyteg_operators
+	url = https://i10git.cs.fau.de/hyteg/hyteg-operators.git
+

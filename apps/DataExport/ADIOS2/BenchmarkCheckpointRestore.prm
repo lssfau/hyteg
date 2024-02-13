@@ -1,0 +1,22 @@
+Parameters
+{
+ // Value of meshType must be either "SphericalShell" for inline generation
+ // or "fromFile", in which case parameter meshFileName must be provided
+ meshType SphericalShell;
+
+ meshFileName none;
+
+ nTan 3;
+ nRad 2;
+
+ minLevel 3;
+ maxLevel 3;
+
+ // Name and Path to the checkpoint file (export and import)
+ filePath output;
+ fileName checkpoint;
+
+ // number of test executions
+ numTests 3;
+
+}

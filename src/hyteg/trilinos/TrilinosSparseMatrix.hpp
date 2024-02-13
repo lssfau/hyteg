@@ -27,7 +27,6 @@
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/sparseassembly/DirichletBCs.hpp"
-#include "hyteg/trilinos/KokkosWrapper.hpp"
 #include "hyteg/trilinos/TeuchosWrapper.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
 #include "hyteg/trilinos/TrilinosSparseMatrixProxy.hpp"
@@ -66,8 +65,7 @@ class TrilinosSparseMatrix
       const size_t maxEntriesPerRow = 100; // only a hint, not restriction
 
       rowMap_    = rcp( new MapType( Tpetra::global_size_t( numGlobalUnknowns_ ), 0, trilinosCommunicator_ ) );
-      crsMatrix_ = rcp(
-          new MatrixType( rowMap_, maxEntriesPerRow ) );
+      crsMatrix_ = rcp( new MatrixType( rowMap_, maxEntriesPerRow ) );
    }
 
    /// \brief Assembles the sparse matrix from the passed operator.
@@ -134,11 +132,11 @@ class TrilinosSparseMatrix
          if ( !rowMap->isNodeGlobalElement( row ) )
             continue;
 
-         auto                                         localRow = rowMap->getLocalElement( GO( row ) );
-         Teuchos::ArrayView< const LO >               columnIndicesView;
-         Teuchos::ArrayView< const MatrixScalarType > columnValuesView;
+         auto                                           localRow = rowMap->getLocalElement( GO( row ) );
+         typename MatrixType::local_inds_host_view_type columnIndicesView;
+         typename MatrixType::values_host_view_type     columnValuesView;
          crsMatrix_->getLocalRowView( localRow, columnIndicesView, columnValuesView );
-         for ( const auto& localCol : columnIndicesView )
+         for ( int localCol = 0; localCol < columnIndicesView.extent( 0 ); ++localCol )
          {
             auto col = columnMap->getGlobalElement( localCol );
             if ( row != col )
@@ -179,14 +177,14 @@ class TrilinosSparseMatrix
       out << matlabVariableName << " = zeros(" << crsMatrix_->getGlobalNumEntries() << ",3);" << std::endl;
       out << matlabVariableName << " = [" << std::endl;
 
-      for ( size_t r = 0; r < crsMatrix_->getNodeNumRows(); ++r )
+      for ( size_t r = 0; r < crsMatrix_->getLocalNumRows(); ++r )
       {
          const size_t nE  = crsMatrix_->getNumEntriesInLocalRow( r );
          GO           gid = crsMatrix_->getRowMap()->getGlobalElement( r );
          if ( crsMatrix_->isGloballyIndexed() )
          {
-            Teuchos::ArrayView< const GO >               rowinds;
-            Teuchos::ArrayView< const MatrixScalarType > rowvals;
+            typename MatrixType::global_inds_host_view_type rowinds;
+            typename MatrixType::values_host_view_type     rowvals;
             crsMatrix_->getGlobalRowView( gid, rowinds, rowvals );
             for ( size_t j = 0; j < nE; ++j )
             {
@@ -195,8 +193,8 @@ class TrilinosSparseMatrix
          }
          else if ( crsMatrix_->isLocallyIndexed() )
          {
-            Teuchos::ArrayView< const LO >               rowinds;
-            Teuchos::ArrayView< const MatrixScalarType > rowvals;
+            typename MatrixType::local_inds_host_view_type rowinds;
+            typename MatrixType::values_host_view_type     rowvals;
             crsMatrix_->getLocalRowView( r, rowinds, rowvals );
             for ( size_t j = 0; j < nE; ++j )
             {

@@ -154,7 +154,7 @@ def tokamak_solution(foo):
 def generic_solution(foo):
     # exact solution and diffusion coefficient
     u,k = foo()
-
+    print(gradient(u))
     # Right hand side
     f = -divergence(k * gradient(u))
 
@@ -184,7 +184,14 @@ def generic_solution(foo):
     to_cpp_function('rhs', f)
 
 
+def testcase():
+    alpha = 2
+    u = cos( pi * x ) * cos( pi * y ) * cos( pi* z)
+    k = tanh( alpha * ( x - 0.5 ) ) + 2
+    return u,k
+
+
 if __name__ == '__main__':
     # tokamak_solution(tokamak_jump)
-    generic_solution(spherical_shell_example2)
+    generic_solution(testcase)
     # generic_solution(example)

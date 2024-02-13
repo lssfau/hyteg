@@ -76,14 +76,12 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
-
-
-    VertexDoFFunction( const std::string&                         name,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       uint_t                                     minLevel,
-                       uint_t                                     maxLevel,
-                       BoundaryCondition                          boundaryCondition,
-                       bool                                       addVolumeGhostLayer );
+   VertexDoFFunction( const std::string&                         name,
+                      const std::shared_ptr< PrimitiveStorage >& storage,
+                      uint_t                                     minLevel,
+                      uint_t                                     maxLevel,
+                      BoundaryCondition                          boundaryCondition,
+                      bool                                       addVolumeGhostLayer );
 
    ~VertexDoFFunction();
 
@@ -95,11 +93,24 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
 
    virtual uint_t getDimension() const { return 1; }
 
+   VertexDoFFunction< ValueType >& operator[]( uint_t idx )
+   {
+      WALBERLA_ASSERT( idx == 0 );
+      WALBERLA_UNUSED( idx );
+      return *this;
+   }
+
+   const VertexDoFFunction< ValueType >& operator[]( uint_t idx ) const
+   {
+      WALBERLA_ASSERT( idx == 0 );
+      WALBERLA_UNUSED( idx );
+      return *this;
+   }
+
    bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
    bool hasMemoryAllocated( const uint_t& level, const Face& face ) const;
    bool hasMemoryAllocated( const uint_t& level, const Cell& cell ) const;
-
 
    void allocateMemory( const uint_t& level, const Vertex& vertex );
    void allocateMemory( const uint_t& level, const Edge& edge );
@@ -136,7 +147,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
    /// Both storages must have identical distribution.
    ///
-   template< typename otherValueType >
+   template < typename otherValueType >
    void copyFrom( const VertexDoFFunction< otherValueType >& other, const uint_t& level ) const;
 
    /// \brief Copies all values function data from other to this.
@@ -193,7 +204,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    bool evaluate( const Point3D& physicalCoords,
                   uint_t         level,
                   ValueType&     value,
-                  real_t         searchToleranceRadius = real_c(1e-05),
+                  real_t         searchToleranceRadius = real_c( 1e-05 ),
                   PrimitiveID    id                    = PrimitiveID() ) const;
 
    void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
@@ -459,7 +470,6 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
          return !faceGhostLayerDataIDs_.empty();
       }
    }
-
 
  private:
    template < typename PrimitiveType >

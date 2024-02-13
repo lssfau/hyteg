@@ -7,7 +7,7 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable(NAME curlCurlConvergence
       FILES curlCurlConvergence.cpp
-      DEPENDS hyteg)
+      DEPENDS hyteg constant_stencil_operator mixed_operator)
 
 waLBerla_add_executable(NAME torusVisualization
       FILES torusVisualization.cpp

@@ -19,9 +19,6 @@
  */
 #include "hyteg/geometry/GeometryMap.hpp"
 
-#include "hyteg/geometry/TokamakMap.hpp"
-#include "hyteg/geometry/TorusMap.hpp"
-
 #include "AffineMap2D.hpp"
 #include "AffineMap3D.hpp"
 #include "AnnulusMap.hpp"
@@ -30,6 +27,8 @@
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
 #include "ThinShellMap.hpp"
+#include "TokamakMap.hpp"
+#include "TorusMap.hpp"
 
 namespace hyteg {
 

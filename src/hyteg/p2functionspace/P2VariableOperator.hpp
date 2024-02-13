@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,17 +20,16 @@
 
 #pragma once
 
-#include <hyteg/communication/Syncing.hpp>
-#include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
-#include <hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp>
-
-#include <hyteg/operators/Operator.hpp>
-#include <hyteg/p1functionspace/VertexDoFFunction.hpp>
-#include <hyteg/p2functionspace/P2Function.hpp>
-#include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
-#include <hyteg/types/PointND.hpp>
-
+#include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -54,7 +53,7 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
-      communication::syncP2FunctionBetweenPrimitives( src, level );
+      communication::syncFunctionBetweenPrimitives( src, level );
 
       const vertexdof::VertexDoFFunction< real_t >& srcVertexDoF = src.getVertexDoFFunction();
       const EdgeDoFFunction< real_t >&              srcEdgeDoF   = src.getEdgeDoFFunction();
@@ -119,7 +118,7 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
 
    void smooth_gs( const P2Function< real_t >& dst, const P2Function< real_t >& rhs, size_t level, DoFType flag ) const override
    {
-      communication::syncP2FunctionBetweenPrimitives( dst, level );
+      communication::syncFunctionBetweenPrimitives( dst, level );
 
       const vertexdof::VertexDoFFunction< real_t >& dstVertexDoF = dst.getVertexDoFFunction();
       const EdgeDoFFunction< real_t >&              dstEdgeDoF   = dst.getEdgeDoFFunction();
@@ -143,7 +142,7 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
          }
       }
 
-      communication::syncP2FunctionBetweenPrimitives( dst, level );
+      communication::syncFunctionBetweenPrimitives( dst, level );
 
       for ( auto& it : storage_->getEdges() )
       {
@@ -163,7 +162,7 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
          }
       }
 
-      communication::syncP2FunctionBetweenPrimitives( dst, level );
+      communication::syncFunctionBetweenPrimitives( dst, level );
 
       for ( auto& it : storage_->getFaces() )
       {
@@ -197,8 +196,8 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
       WALBERLA_ABORT( "To be implemented" );
    }
 };
-typedef P2VariableOperator< P2Form_laplace >  P2BlendingLaplaceOperator;
-typedef P2VariableOperator< P2Form_divKgrad > P2divKgradOperator;
-typedef P2VariableOperator< forms::p2_mass_blending_q4 >     P2BlendingMassOperator;
+typedef P2VariableOperator< P2Form_laplace >             P2BlendingLaplaceOperator;
+typedef P2VariableOperator< P2Form_divKgrad >            P2divKgradOperator;
+typedef P2VariableOperator< forms::p2_mass_blending_q4 > P2BlendingMassOperator;
 
 } // namespace hyteg

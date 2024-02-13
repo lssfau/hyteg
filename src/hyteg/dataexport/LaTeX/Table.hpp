@@ -71,6 +71,7 @@ class Table
 {
  private:
    std::vector< std::array< std::string, N > > rows_;
+   walberla::uint_t                            currentRow_;
    std::stringstream                           stringStream_;
 
    /// Auxilliary method for use by pushRow()
@@ -85,10 +86,32 @@ class Table
       }
    }
 
+   /// Auxilliary method for printing a specific rows without increasing the current row counter
+   void printSpecificRow( std::ostream& os, const std::array<std::basic_string<char>, N> row ) const
+   {
+      for ( auto it = row.begin(); it != row.end(); ++it )
+      {
+         if ( it != row.begin() )
+         {
+            os << " ";
+         }
+         os << *it;
+      }
+      os << "\n";
+   }
+
+   /// Auxilliary method for printing the next row that has not been printed with this function yet
+   void printNextRow( std::ostream& os )
+   {
+      WALBERLA_ASSERT_LESS( currentRow_, rows_.size() );
+      const auto& row = rows_[currentRow_++];
+      printSpecificRow( os, row );
+   }
+
  public:
    /// \brief Create a new `Table` with the given column `headers`.
    Table( std::array< std::string, N >&& headers )
-   : rows_{ headers }
+   : rows_{ headers }, currentRow_{ 0 }
    {}
 
    /// \brief Inserts an element into this table.
@@ -109,7 +132,7 @@ class Table
    }
 
    /// \brief Write this table in whitespace separated format to `dir/filename.dat`.
-   void write( const std::string& dir, const std::string& filename )
+   void write( const std::string& dir, const std::string& filename ) const
    {
       WALBERLA_ROOT_SECTION()
       {
@@ -117,6 +140,22 @@ class Table
          std::ofstream file( datFilename );
 
          file << *this;
+      }
+   }
+
+   /// \brief Write this table in whitespace separated format to `dir/filename.dat`.
+   void writeUpdate( const std::string& dir, const std::string& filename )
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         std::string   datFilename( walberla::format( "%s/%s.dat", dir.c_str(), filename.c_str() ) );
+         auto streamMode = ( currentRow_ == 0 ) ? std::ios_base::trunc : std::ios_base::app;
+         std::ofstream file( datFilename, streamMode );
+
+         while ( currentRow_ < rows_.size() )
+         {
+            printNextRow( file );
+         }
       }
    }
 
@@ -143,15 +182,7 @@ std::ostream& operator<<( std::ostream& os, const Table< N >& table )
 {
    for ( const auto& row : table.rows_ )
    {
-      for ( auto it = row.begin(); it != row.end(); ++it )
-      {
-         if ( it != row.begin() )
-         {
-            os << " ";
-         }
-         os << *it;
-      }
-      os << "\n";
+      table.printSpecificRow( os, row );
    }
 
    return os;
