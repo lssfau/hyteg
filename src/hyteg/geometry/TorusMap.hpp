@@ -39,16 +39,16 @@ namespace hyteg {
 class TorusMap : public GeometryMap
 {
  public:
-   TorusMap( const Cell&                  cell,
-             const SetupPrimitiveStorage& setupStorage,
-             uint_t                       toroidalResolution,
-             uint_t                       poloidalResolution,
-             real_t                       radiusOriginToCenterOfTube,
-             std::vector< real_t >        tubeLayerRadii,
-             real_t                       toroidalStartAngle,
-             real_t                       poloidalStartAngle )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   TorusMap( const Cell& cell,
+             const SetupPrimitiveStorage&,
+             uint_t                toroidalResolution,
+             uint_t                poloidalResolution,
+             real_t                radiusOriginToCenterOfTube,
+             std::vector< real_t > tubeLayerRadii,
+             real_t                toroidalStartAngle,
+             real_t                poloidalStartAngle )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -66,8 +66,8 @@ class TorusMap : public GeometryMap
              std::vector< real_t >        tubeLayerRadii,
              real_t                       toroidalStartAngle,
              real_t                       poloidalStartAngle )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -89,8 +89,8 @@ class TorusMap : public GeometryMap
              std::vector< real_t >        tubeLayerRadii,
              real_t                       toroidalStartAngle,
              real_t                       poloidalStartAngle )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -112,8 +112,8 @@ class TorusMap : public GeometryMap
              std::vector< real_t >        tubeLayerRadii,
              real_t                       toroidalStartAngle,
              real_t                       poloidalStartAngle )
-   : toroidalResolution( toroidalResolution )
-   , poloidalResolution( poloidalResolution )
+   : toroidalResolution_( toroidalResolution )
+   , poloidalResolution_( poloidalResolution )
    , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
    , tubeLayerRadii_( tubeLayerRadii )
    , toroidalStartAngle_( toroidalStartAngle )
@@ -129,8 +129,8 @@ class TorusMap : public GeometryMap
 
    TorusMap( walberla::mpi::RecvBuffer& recvBuffer )
    {
-      recvBuffer >> toroidalResolution;
-      recvBuffer >> poloidalResolution;
+      recvBuffer >> toroidalResolution_;
+      recvBuffer >> poloidalResolution_;
       recvBuffer >> radiusOriginToCenterOfTube_;
 
       size_t n;
@@ -165,7 +165,7 @@ class TorusMap : public GeometryMap
       auto xold_1 = xold[1];
       auto xold_2 = xold[2];
       auto tmp0   = 0.5 * toroidalAngleIncrement_;
-      auto tmp1   = sin( tmp0 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
+      auto tmp1 = sin( tmp0 + toroidalAngleIncrement_ * real_c( toroidalPrism_ ) + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
                        1.5707963267948966 ) /
                   sin( tmp0 - 1.5707963267948966 );
       auto tmp2  = -tmp1 * xold_0;
@@ -183,7 +183,7 @@ class TorusMap : public GeometryMap
       auto tmp14 = ( ( poloidalStartAngle_ - tmp12 > 0 ) ? ( tmp13 + 6.2831853071795862 ) : ( tmp13 ) );
       auto tmp15 = poloidalStartAngle_ + tmp14;
       auto tmp16 = 0.5 * poloidalAngleIncrement_;
-      auto tmp17 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp17 = poloidalAngleIncrement_ * real_c( poloidalPrism_ );
       auto tmp18 = sqrt( tmp3 + pow( tmp6, 2 ) + pow( tmp9, 2 ) ) *
                    sin( -tmp14 + tmp16 + ( ( tmp17 < 0 ) ? ( tmp17 + 6.2831853071795862 ) : ( tmp17 ) ) + 1.5707963267948966 ) /
                    sin( tmp16 - 1.5707963267948966 );
@@ -203,8 +203,8 @@ class TorusMap : public GeometryMap
       auto xold_2 = xold[2];
       auto tmp0   = 0.5 * toroidalAngleIncrement_;
       auto tmp1   = 1.0 / sin( tmp0 - 1.5707963267948966 );
-      auto tmp2 =
-          tmp0 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) + 1.5707963267948966;
+      auto tmp2   = tmp0 + toroidalAngleIncrement_ * real_c( toroidalPrism_ ) + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
+                  1.5707963267948966;
       auto tmp3  = tmp1 * sin( tmp2 );
       auto tmp4  = -tmp3;
       auto tmp5  = xold_0 * xold_1;
@@ -232,7 +232,7 @@ class TorusMap : public GeometryMap
       auto tmp27 = cos( tmp26 );
       auto tmp28 = 0.5 * poloidalAngleIncrement_;
       auto tmp29 = 1.0 / sin( tmp28 - 1.5707963267948966 );
-      auto tmp30 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp30 = poloidalAngleIncrement_ * real_c( poloidalPrism_ );
       auto tmp31 = -tmp25 + tmp28 + ( ( tmp30 < 0 ) ? ( tmp30 + 6.2831853071795862 ) : ( tmp30 ) ) + 1.5707963267948966;
       auto tmp32 = tmp29 * sin( tmp31 );
       auto tmp33 = tmp27 * tmp32;
@@ -309,8 +309,8 @@ class TorusMap : public GeometryMap
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       sendBuffer << Type::TORUS;
-      sendBuffer << toroidalResolution;
-      sendBuffer << poloidalResolution;
+      sendBuffer << toroidalResolution_;
+      sendBuffer << poloidalResolution_;
       sendBuffer << radiusOriginToCenterOfTube_;
 
       sendBuffer << tubeLayerRadii_.size();
@@ -437,8 +437,8 @@ class TorusMap : public GeometryMap
    {
       tubeLayerRadiiBack_ = tubeLayerRadii_.back();
 
-      toroidalAngleIncrement_ = 2 * pi / real_c( toroidalResolution );
-      poloidalAngleIncrement_ = 2 * pi / real_c( poloidalResolution );
+      toroidalAngleIncrement_ = 2 * pi / real_c( toroidalResolution_ );
+      poloidalAngleIncrement_ = 2 * pi / real_c( poloidalResolution_ );
 
       auto    coords = cell.getCoordinates();
       Point3D centroid( 0, 0, 0 );
@@ -490,8 +490,8 @@ class TorusMap : public GeometryMap
       poloidalPrism_ = uint_c( ( poloidalAngle ) / poloidalAngleIncrement_ );
    }
 
-   uint_t                toroidalResolution;
-   uint_t                poloidalResolution;
+   uint_t                toroidalResolution_;
+   uint_t                poloidalResolution_;
    real_t                radiusOriginToCenterOfTube_;
    std::vector< real_t > tubeLayerRadii_;
    real_t                toroidalStartAngle_;
