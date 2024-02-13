@@ -461,7 +461,7 @@ class MeshInfo
    /// \param nrad      number of radial layers
    /// \param rmin      radius of innermost shell (core-mantle-boundary)
    /// \param rmax      radius of outermost shell
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do) 
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do)
    static MeshInfo meshSphericalShell( uint_t        ntan,
                                        uint_t        nrad,
                                        real_t        rmin,
@@ -473,7 +473,7 @@ class MeshInfo
    /// \param ntan      number of nodes along spherical diamond edge
    /// \param layers    vector that gives the radii of all layers, sorted from the
    ///                  CMB outwards
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do) 
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do)
    static MeshInfo meshSphericalShell( uint_t                       ntan,
                                        const std::vector< real_t >& layers,
                                        shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
@@ -576,6 +576,8 @@ class MeshInfo
    /// \param oldMesh Original MeshIfno
    /// \param refinementSteps number of refinements
    static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
+
+   static MeshInfo refinedCoarseMesh2D( const MeshInfo& oldMesh, uint_t refinementSteps );
 
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };
