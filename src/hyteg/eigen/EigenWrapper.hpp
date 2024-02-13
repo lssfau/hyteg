@@ -21,9 +21,8 @@
 
 #include "core/DataTypes.h"
 
-//#define EIGEN_MATRIX_PLUGIN "hyteg/eigen/EigenMatrixPlugin.hpp"
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
