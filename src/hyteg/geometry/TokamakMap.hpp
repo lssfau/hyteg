@@ -22,6 +22,7 @@
 #include <cmath>
 #include <utility>
 
+#include "core/DataTypes.h"
 #include "core/math/Constants.h"
 
 #include "hyteg/geometry/GeometryMap.hpp"
@@ -494,7 +495,7 @@ class TokamakMap : public GeometryMap
       }
       centroid *= 0.25;
 
-      auto toroidalAngle = atan2( centroid[1], centroid[0] );
+      real_t toroidalAngle = real_c( atan2( centroid[1], centroid[0] ) );
       toroidalAngle -= toroidalStartAngle_;
       if ( toroidalAngle < 0 )
       {
@@ -506,14 +507,14 @@ class TokamakMap : public GeometryMap
 
       // first project the centroid to the torus (toroidal)
       {
-         auto alpha = toroidalAngle - toroidalStartAngle_ - real_c( toroidalPrism_ ) * toroidalAngleIncrement_;
-         auto beta  = 0.5 * ( pi - toroidalAngleIncrement_ );
-         auto gamma = pi - alpha - beta;
-         auto toroidalRadiusNew =
-             ( std::sin( gamma ) * ( std::sqrt( centroid[0] * centroid[0] + centroid[1] * centroid[1] ) / std::sin( beta ) ) );
+         real_t alpha             = toroidalAngle - toroidalStartAngle_ - real_c( toroidalPrism_ ) * toroidalAngleIncrement_;
+         real_t beta              = real_c( 0.5 ) * ( pi - toroidalAngleIncrement_ );
+         real_t gamma             = pi - alpha - beta;
+         real_t toroidalRadiusNew = real_c(
+             std::sin( gamma ) * ( std::sqrt( centroid[0] * centroid[0] + centroid[1] * centroid[1] ) / std::sin( beta ) ) );
 
-         centroid[0] = real_c( toroidalRadiusNew * std::cos( toroidalAngle ) );
-         centroid[1] = real_c( toroidalRadiusNew * std::sin( toroidalAngle ) );
+         centroid[0] = toroidalRadiusNew * real_c( std::cos( toroidalAngle ) );
+         centroid[1] = toroidalRadiusNew * real_c( std::sin( toroidalAngle ) );
          centroid[2] = centroid[2];
       }
 

@@ -78,14 +78,14 @@ int main( int argc, char** argv )
       const uint_t                        level   = 5;
 
       const real_t R = 2;
-      const real_t r = 0.4;
+      const real_t r = real_c( 0.4 );
 
       const auto analyticalSol = [R, r]( const Point3D& xVec ) {
          const real_t x    = xVec[0];
          const real_t y    = xVec[1];
          const real_t z    = xVec[2];
-         const real_t tmp0 = std::sqrt( std::pow( x, 2 ) + std::pow( y, 2 ) );
-         const real_t tmp1 = ( -std::pow( r, 2 ) + std::pow( z, 2 ) + std::pow( -R + tmp0, 2 ) ) / tmp0;
+         const real_t tmp0 = real_c( std::sqrt( std::pow( x, 2 ) + std::pow( y, 2 ) ) );
+         const real_t tmp1 = real_c( -std::pow( r, 2 ) + std::pow( z, 2 ) + std::pow( -R + tmp0, 2 ) ) / tmp0;
          const real_t u0   = tmp1 * y;
          const real_t u1   = -tmp1 * x;
          const real_t u2   = 0;

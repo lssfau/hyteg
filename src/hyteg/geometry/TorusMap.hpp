@@ -188,9 +188,9 @@ class TorusMap : public GeometryMap
                    sin( -tmp14 + tmp16 + ( ( tmp17 < 0 ) ? ( tmp17 + 6.2831853071795862 ) : ( tmp17 ) ) + 1.5707963267948966 ) /
                    sin( tmp16 - 1.5707963267948966 );
       auto tmp19 = radiusOriginToCenterOfTube_ - tmp18 * cos( tmp15 );
-      xnew[0]    = ( ( tmp11 ) ? ( tmp2 ) : ( tmp19 * tmp5 ) );
-      xnew[1]    = ( ( tmp11 ) ? ( tmp8 ) : ( tmp19 * tmp7 ) );
-      xnew[2]    = ( ( tmp11 ) ? ( xold_2 ) : ( -tmp18 * sin( tmp15 ) ) );
+      xnew[0]    = real_c( ( tmp11 ) ? ( tmp2 ) : ( tmp19 * tmp5 ) );
+      xnew[1]    = real_c( ( tmp11 ) ? ( tmp8 ) : ( tmp19 * tmp7 ) );
+      xnew[2]    = real_c( ( tmp11 ) ? ( xold_2 ) : ( -tmp18 * sin( tmp15 ) ) );
    }
 
    real_t evalDF( const Point3D& xold, Matrix3r& DF ) const override final
@@ -283,15 +283,15 @@ class TorusMap : public GeometryMap
       auto tmp78 = tmp49 * tmp52;
       auto tmp79 = tmp34 * tmp59;
       auto tmp80 = tmp51 * tmp62;
-      DF( 0, 0 ) = ( ( tmp21 ) ? ( tmp11 ) : ( -tmp35 * tmp38 + tmp36 + tmp56 * tmp64 ) );
-      DF( 0, 1 ) = ( ( tmp21 ) ? ( tmp65 ) : ( tmp56 * tmp73 + tmp66 ) );
-      DF( 0, 2 ) = ( ( tmp21 ) ? ( 0 ) : ( tmp56 * tmp77 ) );
-      DF( 1, 0 ) = ( ( tmp21 ) ? ( tmp53 ) : ( tmp54 * tmp64 + tmp66 ) );
-      DF( 1, 1 ) = ( ( tmp21 ) ? ( tmp70 ) : ( -tmp35 * tmp67 + tmp36 + tmp54 * tmp73 ) );
-      DF( 1, 2 ) = ( ( tmp21 ) ? ( 0 ) : ( tmp54 * tmp77 ) );
-      DF( 2, 0 ) = ( ( tmp21 ) ? ( 0 ) : ( -tmp48 * tmp78 + tmp57 * tmp79 - tmp61 * tmp80 ) );
-      DF( 2, 1 ) = ( ( tmp21 ) ? ( 0 ) : ( -tmp69 * tmp78 + tmp71 * tmp79 - tmp72 * tmp80 ) );
-      DF( 2, 2 ) = ( ( tmp21 ) ? ( 1 ) : ( -tmp34 * tmp74 + tmp51 * tmp76 - tmp78 * xold_2 ) );
+      DF( 0, 0 ) = real_c( ( tmp21 ) ? ( tmp11 ) : ( -tmp35 * tmp38 + tmp36 + tmp56 * tmp64 ) );
+      DF( 0, 1 ) = real_c( ( tmp21 ) ? ( tmp65 ) : ( tmp56 * tmp73 + tmp66 ) );
+      DF( 0, 2 ) = real_c( ( tmp21 ) ? ( 0 ) : ( tmp56 * tmp77 ) );
+      DF( 1, 0 ) = real_c( ( tmp21 ) ? ( tmp53 ) : ( tmp54 * tmp64 + tmp66 ) );
+      DF( 1, 1 ) = real_c( ( tmp21 ) ? ( tmp70 ) : ( -tmp35 * tmp67 + tmp36 + tmp54 * tmp73 ) );
+      DF( 1, 2 ) = real_c( ( tmp21 ) ? ( 0 ) : ( tmp54 * tmp77 ) );
+      DF( 2, 0 ) = real_c( ( tmp21 ) ? ( 0 ) : ( -tmp48 * tmp78 + tmp57 * tmp79 - tmp61 * tmp80 ) );
+      DF( 2, 1 ) = real_c( ( tmp21 ) ? ( 0 ) : ( -tmp69 * tmp78 + tmp71 * tmp79 - tmp72 * tmp80 ) );
+      DF( 2, 2 ) = real_c( ( tmp21 ) ? ( 1 ) : ( -tmp34 * tmp74 + tmp51 * tmp76 - tmp78 * xold_2 ) );
 
       WALBERLA_ASSERT( !std::isnan( DF( 0, 0 ) ), "The torus map produces NaNs :( again." )
       WALBERLA_ASSERT( !std::isnan( DF( 0, 1 ) ), "The torus map produces NaNs :( again." )
@@ -448,7 +448,7 @@ class TorusMap : public GeometryMap
       }
       centroid *= 0.25;
 
-      auto toroidalAngle = atan2( centroid[1], centroid[0] );
+      real_t toroidalAngle = real_c( atan2( centroid[1], centroid[0] ) );
       toroidalAngle -= toroidalStartAngle_;
       if ( toroidalAngle < 0 )
       {
@@ -460,14 +460,14 @@ class TorusMap : public GeometryMap
 
       // first project the centroid to the torus (toroidal)
       {
-         auto alpha = toroidalAngle - toroidalStartAngle_ - real_c( toroidalPrism_ ) * toroidalAngleIncrement_;
-         auto beta  = 0.5 * ( pi - toroidalAngleIncrement_ );
-         auto gamma = pi - alpha - beta;
-         auto toroidalRadiusNew =
-             ( std::sin( gamma ) * ( std::sqrt( centroid[0] * centroid[0] + centroid[1] * centroid[1] ) / std::sin( beta ) ) );
+         real_t alpha             = toroidalAngle - toroidalStartAngle_ - real_c( toroidalPrism_ ) * toroidalAngleIncrement_;
+         real_t beta              = real_c( 0.5 ) * ( pi - toroidalAngleIncrement_ );
+         real_t gamma             = pi - alpha - beta;
+         real_t toroidalRadiusNew = real_c(
+             std::sin( gamma ) * ( std::sqrt( centroid[0] * centroid[0] + centroid[1] * centroid[1] ) / std::sin( beta ) ) );
 
-         centroid[0] = toroidalRadiusNew * std::cos( toroidalAngle );
-         centroid[1] = toroidalRadiusNew * std::sin( toroidalAngle );
+         centroid[0] = toroidalRadiusNew * real_c( std::cos( toroidalAngle ) );
+         centroid[1] = toroidalRadiusNew * real_c( std::sin( toroidalAngle ) );
          centroid[2] = centroid[2];
       }
 
@@ -476,10 +476,11 @@ class TorusMap : public GeometryMap
 
       auto    C                     = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle, 0 );
       Point3D centroidTrafoToOrigin = centroid - C;
-      centroidTrafoToOrigin         = Point3D(
-          { std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] - std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1],
-                    std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],
-                    centroidTrafoToOrigin[2] } );
+      centroidTrafoToOrigin         = Point3D( { real_c( std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] -
+                                                 std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1] ),
+                                                 real_c( std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] +
+                                                 std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1] ),
+                                                 centroidTrafoToOrigin[2] } );
 
       auto poloidalAngle = std::atan2( centroidTrafoToOrigin[2], centroidTrafoToOrigin[0] );
       poloidalAngle -= poloidalStartAngle_;

@@ -134,10 +134,10 @@ struct SimData
    const real_t p1SpectralRadius;
 
    const uint_t spectralRadiusEstIts          = 40;
-   const real_t n1e1ChebyshevLowerBoundFactor = 0.05;
-   const real_t n1e1ChebyshevUpperBoundFactor = 1.05;
-   const real_t p1ChebyshevLowerBoundFactor   = 0.2;
-   const real_t p1ChebyshevUpperBoundFactor   = 1.1;
+   const real_t n1e1ChebyshevLowerBoundFactor = real_c( 0.05 );
+   const real_t n1e1ChebyshevUpperBoundFactor = real_c( 1.05 );
+   const real_t p1ChebyshevLowerBoundFactor   = real_c( 0.2 );
+   const real_t p1ChebyshevUpperBoundFactor   = real_c( 1.1 );
 
    const uint_t coarseGridRefinements = 0;
 
@@ -186,7 +186,7 @@ void test( const uint_t                        maxLevel,
    const uint_t minLevel               = 0;
    const uint_t spectralRadiusEstLevel = std::min( uint_c( 3 ), maxLevel );
    const int    nMaxVCycles            = 200;
-   const real_t residualReduction      = 1.0e-3;
+   const real_t residualReduction      = real_c( 1.0e-3 );
 
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
@@ -515,8 +515,8 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
       const real_t x    = xVec[0];
       const real_t y    = xVec[1];
       const real_t z    = xVec[2];
-      const real_t tmp0 = std::sqrt( std::pow( x, 2 ) + std::pow( y, 2 ) );
-      const real_t tmp1 = ( -std::pow( r, 2 ) + std::pow( z, 2 ) + std::pow( -R + tmp0, 2 ) ) / tmp0;
+      const real_t tmp0 = real_c( std::sqrt( std::pow( x, 2 ) + std::pow( y, 2 ) ) );
+      const real_t tmp1 = real_c( ( -std::pow( r, 2 ) + std::pow( z, 2 ) + std::pow( -R + tmp0, 2 ) ) / tmp0 );
       const real_t u0   = tmp1 * y;
       const real_t u1   = -tmp1 * x;
       const real_t u2   = 0;
@@ -527,22 +527,22 @@ void testTorus( const uint_t maxLevel, SimData& simData, const bool writeVTK = f
       const real_t x     = xVec[0];
       const real_t y     = xVec[1];
       const real_t z     = xVec[2];
-      const real_t tmp0  = std::pow( x, 2 );
-      const real_t tmp1  = std::pow( y, 2 );
+      const real_t tmp0  = real_c( std::pow( x, 2 ) );
+      const real_t tmp1  = real_c( std::pow( y, 2 ) );
       const real_t tmp2  = tmp0 + tmp1;
-      const real_t tmp3  = std::sqrt( tmp2 );
-      const real_t tmp4  = 1.0 / tmp3;
-      const real_t tmp5  = std::pow( y, 3 );
-      const real_t tmp6  = std::pow( tmp2, -3.0 / 2.0 );
+      const real_t tmp3  = real_c( std::sqrt( tmp2 ) );
+      const real_t tmp4  = real_c( 1.0 ) / tmp3;
+      const real_t tmp5  = real_c( std::pow( y, 3 ) );
+      const real_t tmp6  = real_c( std::pow( tmp2, -3.0 / 2.0 ) );
       const real_t tmp7  = 2 * tmp6;
       const real_t tmp8  = tmp0 * y;
       const real_t tmp9  = -R + tmp3;
       const real_t tmp10 = 8 / tmp2;
-      const real_t tmp11 = std::pow( tmp2, -2 );
-      const real_t tmp12 = -std::pow( r, 2 ) + std::pow( tmp9, 2 ) + std::pow( z, 2 );
-      const real_t tmp13 = 3 * tmp12 / std::pow( tmp2, 5.0 / 2.0 );
+      const real_t tmp11 = real_c( std::pow( tmp2, -2 ) );
+      const real_t tmp12 = real_c( -std::pow( r, 2 ) + std::pow( tmp9, 2 ) + std::pow( z, 2 ) );
+      const real_t tmp13 = 3 * tmp12 / real_c( std::pow( tmp2, 5.0 / 2.0 ) );
       const real_t tmp14 = tmp4 * x;
-      const real_t tmp15 = std::pow( x, 3 );
+      const real_t tmp15 = real_c( std::pow( x, 3 ) );
       const real_t tmp16 = tmp1 * x;
       const real_t tmp17 = 6 * tmp11 * tmp9;
       const real_t u0    = 6 * tmp0 * tmp11 * tmp9 * y - tmp10 * tmp9 * y + 6 * tmp11 * tmp5 * tmp9 + tmp12 * tmp4 * y +
@@ -610,27 +610,29 @@ int main( int argc, char** argv )
    const std::string domainString = parameters.getParameter< std::string >( "domain" );
    const uint_t      numProcesses =
        parameters.getParameter< uint_t >( "numProcesses", uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   const bool        createStorageFile             = parameters.getParameter< bool >( "createStorageFile", false );
-   const std::string storageFileNameString         = parameters.getParameter< std::string >( "storageFileName", "" );
-   const std::string solverTypeString              = parameters.getParameter< std::string >( "solverType" );
-   const uint_t      preSmooth                     = parameters.getParameter< uint_t >( "preSmooth" );
-   const uint_t      postSmooth                    = parameters.getParameter< uint_t >( "postSmooth" );
-   const BlockHandle numVCyclesFMGBlock            = parameters.getBlock( "numVCyclesFMG" );
-   const real_t      n1e1SpectralRadius            = parameters.getParameter< real_t >( "n1e1SpectralRadius", real_t( -1.0 ) );
-   const real_t      p1SpectralRadius              = parameters.getParameter< real_t >( "p1SpectralRadius", real_t( -1.0 ) );
-   const uint_t      spectralRadiusEstIts          = parameters.getParameter< uint_t >( "spectralRadiusEstIts", 40 );
-   const real_t      n1e1ChebyshevLowerBoundFactor = parameters.getParameter< real_t >( "n1e1ChebyshevLowerBoundFactor", 0.05 );
-   const real_t      n1e1ChebyshevUpperBoundFactor = parameters.getParameter< real_t >( "n1e1ChebyshevUpperBoundFactor", 1.05 );
-   const real_t      p1ChebyshevLowerBoundFactor   = parameters.getParameter< real_t >( "p1ChebyshevLowerBoundFactor", 0.2 );
-   const real_t      p1ChebyshevUpperBoundFactor   = parameters.getParameter< real_t >( "p1ChebyshevUpperBoundFactor", 1.1 );
-   const uint_t      coarseGridRefinements         = parameters.getParameter< uint_t >( "coarseGridRefinements" );
-   const uint_t      poloidalResolution            = parameters.getParameter< uint_t >( "poloidalResolution" );
-   const uint_t      toroidalResolution            = parameters.getParameter< uint_t >( "toroidalResolution" );
-   const BlockHandle tubeLayerRadiiBlock           = parameters.getBlock( "tubeLayerRadii" );
-   const bool        vtk                           = parameters.getParameter< bool >( "vtk" );
-   const bool        printSetupStorage             = parameters.getParameter< bool >( "printSetupStorage" );
-   const bool        printPrimitiveStorage         = parameters.getParameter< bool >( "printPrimitiveStorage" );
-   const bool        timingJSON                    = parameters.getParameter< bool >( "timingJSON" );
+   const bool        createStorageFile     = parameters.getParameter< bool >( "createStorageFile", false );
+   const std::string storageFileNameString = parameters.getParameter< std::string >( "storageFileName", "" );
+   const std::string solverTypeString      = parameters.getParameter< std::string >( "solverType" );
+   const uint_t      preSmooth             = parameters.getParameter< uint_t >( "preSmooth" );
+   const uint_t      postSmooth            = parameters.getParameter< uint_t >( "postSmooth" );
+   const BlockHandle numVCyclesFMGBlock    = parameters.getBlock( "numVCyclesFMG" );
+   const real_t      n1e1SpectralRadius    = parameters.getParameter< real_t >( "n1e1SpectralRadius", real_t( -1.0 ) );
+   const real_t      p1SpectralRadius      = parameters.getParameter< real_t >( "p1SpectralRadius", real_t( -1.0 ) );
+   const uint_t      spectralRadiusEstIts  = parameters.getParameter< uint_t >( "spectralRadiusEstIts", 40 );
+   const real_t      n1e1ChebyshevLowerBoundFactor =
+       parameters.getParameter< real_t >( "n1e1ChebyshevLowerBoundFactor", real_c( 0.05 ) );
+   const real_t n1e1ChebyshevUpperBoundFactor =
+       parameters.getParameter< real_t >( "n1e1ChebyshevUpperBoundFactor", real_c( 1.05 ) );
+   const real_t p1ChebyshevLowerBoundFactor = parameters.getParameter< real_t >( "p1ChebyshevLowerBoundFactor", real_c( 0.2 ) );
+   const real_t p1ChebyshevUpperBoundFactor = parameters.getParameter< real_t >( "p1ChebyshevUpperBoundFactor", real_c( 1.1 ) );
+   const uint_t coarseGridRefinements       = parameters.getParameter< uint_t >( "coarseGridRefinements" );
+   const uint_t poloidalResolution          = parameters.getParameter< uint_t >( "poloidalResolution" );
+   const uint_t toroidalResolution          = parameters.getParameter< uint_t >( "toroidalResolution" );
+   const BlockHandle tubeLayerRadiiBlock    = parameters.getBlock( "tubeLayerRadii" );
+   const bool        vtk                    = parameters.getParameter< bool >( "vtk" );
+   const bool        printSetupStorage      = parameters.getParameter< bool >( "printSetupStorage" );
+   const bool        printPrimitiveStorage  = parameters.getParameter< bool >( "printPrimitiveStorage" );
+   const bool        timingJSON             = parameters.getParameter< bool >( "timingJSON" );
 
    std::function< void( const uint_t level, SimData& simData, const bool writeVtk ) > testCase;
    if ( domainString == "cube" )
