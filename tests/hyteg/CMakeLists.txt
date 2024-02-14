@@ -461,6 +461,9 @@ waLBerla_execute_test(NAME BlockFunctionBasicTest)
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Petsc/PetscCreateFromLinCombTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
+
+    waLBerla_compile_test(FILES Petsc/PETScHDF5SaveLoadTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME PETScHDF5SaveLoadTest COMMAND $<TARGET_FILE:PETScHDF5SaveLoadTest>)
 endif ()
 
 waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)

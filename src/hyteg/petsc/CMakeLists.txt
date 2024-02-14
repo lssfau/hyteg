@@ -16,5 +16,6 @@ target_sources( hyteg
     PETScSparseMatrixInfo.hpp
     PETScVectorProxy.hpp
     PETScPreconditioner.hpp     
+    PETScHDF5FunctionSave.hpp     
 )
 
