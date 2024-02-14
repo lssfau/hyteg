@@ -141,7 +141,7 @@ void Polynomial3DEvaluator::setZ( real_t z )
    int idx_ijk = 0;
 
    // p(x,y,z) = sum_{ |i+j+k| = 0,...,degree_ } c_ijk * x^i*y^j*z^k
-   for ( int ijk = 0; ijk <= degree_; ++ijk )
+   for ( int ijk = 0; ijk <= static_cast< int >( degree_ ); ++ijk )
    {
       for ( int i = ijk; i >= 0; --i )
       {

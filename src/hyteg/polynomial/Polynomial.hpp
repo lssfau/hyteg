@@ -23,6 +23,7 @@
 #include "MonomialBasis2D.hpp"
 #include "MonomialBasis3D.hpp"
 
+#include "core/mpi/BufferDataTypeExtensions.h"
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
