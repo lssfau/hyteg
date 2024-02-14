@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,10 +23,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
-#include "hyteg/indexing/Common.hpp"
 #include <map>
 #include "core/Macros.h"
+#include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
+#include "hyteg/indexing/Common.hpp"
 #define RESTRICT WALBERLA_RESTRICT
 
 namespace hyteg {
@@ -34,7 +34,8 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-void apply_3D_macrocell_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int level, std::map< hyteg::indexing::Index, double > p1CellStencil);
+template < typename ValueType >
+void apply_3D_macrocell_vertexdof_to_vertexdof_add(ValueType * RESTRICT _data_p1CellDstAdd, ValueType const * RESTRICT const _data_p1CellSrcAdd, int level, std::map< hyteg::indexing::Index, ValueType >& p1CellStencil);
 
 } // namespace generated
 } // namespace macrocell

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "communicate_directly_vertexdof_cell_to_face.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_vertexdof_cell_to_face(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level, int neighbor_cell_local_vertex_id_0, int neighbor_cell_local_vertex_id_1, int neighbor_cell_local_vertex_id_2)
+template < typename ValueType >
+void communicate_directly_vertexdof_cell_to_face(ValueType const * RESTRICT const _data_p1_cell_src, ValueType * RESTRICT _data_p1_face_dst_gl0, int level, int neighbor_cell_local_vertex_id_0, int neighbor_cell_local_vertex_id_1, int neighbor_cell_local_vertex_id_2)
 {
    if (((0) == (neighbor_cell_local_vertex_id_0)) && ((1) == (neighbor_cell_local_vertex_id_1)) && ((2) == (neighbor_cell_local_vertex_id_2)))
    {
@@ -201,6 +203,14 @@ void communicate_directly_vertexdof_cell_to_face(double const * RESTRICT const _
    } 
 }
 
+// ========================
+//  explicit instantiation
+// ========================
+template void communicate_directly_vertexdof_cell_to_face<walberla::float64>(walberla::float64 const * RESTRICT const _data_p1_cell_src, walberla::float64 * RESTRICT _data_p1_face_dst_gl0, int level, int neighbor_cell_local_vertex_id_0, int neighbor_cell_local_vertex_id_1, int neighbor_cell_local_vertex_id_2);
+template void communicate_directly_vertexdof_cell_to_face<walberla::float32>(walberla::float32 const * RESTRICT const _data_p1_cell_src, walberla::float32 * RESTRICT _data_p1_face_dst_gl0, int level, int neighbor_cell_local_vertex_id_0, int neighbor_cell_local_vertex_id_1, int neighbor_cell_local_vertex_id_2);
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void communicate_directly_vertexdof_cell_to_face<walberla::float16>(walberla::float16 const * RESTRICT const _data_p1_cell_src, walberla::float16 * RESTRICT _data_p1_face_dst_gl0, int level, int neighbor_cell_local_vertex_id_0, int neighbor_cell_local_vertex_id_1, int neighbor_cell_local_vertex_id_2);
+#endif
 
 } // namespace generated
 } // namespace comm

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2019-2023 Nils Kohl, Dominik Thoennes, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "assign_3D_macrocell_vertexdof_1_rhsfunction.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void assign_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+static void assign_3D_macrocell_vertexdof_1_rhs_function_level_any(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc, ValueType c, int level)
 {
    for (int ctr_3 = 1; ctr_3 < (1 << (level)); ctr_3 += 1)
    {
@@ -45,7 +47,8 @@ static void assign_3D_macrocell_vertexdof_1_rhs_function_level_any(double * REST
 }
 
 
-void assign_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
+template < typename ValueType >
+void assign_3D_macrocell_vertexdof_1_rhs_function(ValueType * RESTRICT _data_p1FaceDst, ValueType * RESTRICT _data_p1FaceSrc, ValueType c, int level)
 {
     switch( level )
     {
@@ -55,7 +58,15 @@ void assign_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1Face
         break;
     }
 }
-    
+
+// ========================
+//  explicit instantiation
+// ========================
+template void assign_3D_macrocell_vertexdof_1_rhs_function<walberla::float64>(walberla::float64 * RESTRICT _data_p1FaceDst, walberla::float64 * RESTRICT _data_p1FaceSrc, walberla::float64 c, int level);
+template void assign_3D_macrocell_vertexdof_1_rhs_function<walberla::float32>(walberla::float32 * RESTRICT _data_p1FaceDst, walberla::float32 * RESTRICT _data_p1FaceSrc, walberla::float32 c, int level);
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void assign_3D_macrocell_vertexdof_1_rhs_function<walberla::float16>(walberla::float16 * RESTRICT _data_p1FaceDst, walberla::float16 * RESTRICT _data_p1FaceSrc, walberla::float16 c, int level);
+#endif
 
 } // namespace generated
 } // namespace macrocell

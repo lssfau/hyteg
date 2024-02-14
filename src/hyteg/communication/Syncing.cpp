@@ -90,6 +90,11 @@ template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< float >& function,
                                              const uint_t&                                level,
                                              syncDirection_t                              direction );
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< walberla::float16 >& function,
+                                             const uint_t&                                level,
+                                             syncDirection_t                              direction );
+#endif
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< int32_t >& function,
                                              const uint_t&                                  level,
                                              syncDirection_t                                direction );
@@ -101,6 +106,10 @@ template void
     syncFunctionBetweenPrimitives( const EdgeDoFFunction< double >& function, const uint_t& level, syncDirection_t direction );
 template void
     syncFunctionBetweenPrimitives( const EdgeDoFFunction< float >& function, const uint_t& level, syncDirection_t direction );
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template void
+   syncFunctionBetweenPrimitives( const EdgeDoFFunction< walberla::float16 >& function, const uint_t& level, syncDirection_t direction );
+#endif
 template void
     syncFunctionBetweenPrimitives( const EdgeDoFFunction< int32_t >& function, const uint_t& level, syncDirection_t direction );
 template void

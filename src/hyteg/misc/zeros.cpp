@@ -47,6 +47,14 @@ float generateZero< float >()
    return 0.0f;
 }
 
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template <>
+walberla::float16 generateZero< walberla::float16 >()
+{
+   return static_cast<walberla::float16>(0.0);
+}
+#endif
+
 template <>
 uint_t generateZero< uint_t >()
 {
