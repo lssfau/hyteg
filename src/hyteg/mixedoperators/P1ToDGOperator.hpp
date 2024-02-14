@@ -216,7 +216,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               PointXr dstDofs;
+               VectorXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -233,7 +233,7 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
                form_->integrateVolume(
                    dim, neighborInfo.elementVertexCoords(), srcBasis, *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
 
-               PointXr srcDofs;
+               VectorXr srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                // Getting the vertex DoF indices for the current micro volume.

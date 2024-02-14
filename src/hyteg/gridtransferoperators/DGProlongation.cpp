@@ -224,7 +224,7 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
                    coarseElementIdx, coarseCellType, coarseLevel, function.getBoundaryCondition(), pid, storage );
             }
 
-            PointXr coarseDofs;
+            VectorXr coarseDofs;
             coarseDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
 
             for ( int coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
@@ -309,7 +309,7 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
                       fineNeighborInfo.elementVertexCoords(), coarseNeighborInfo.elementVertexCoords(), localMat );
                }
 
-               PointXr fineDofs;
+               VectorXr fineDofs;
                fineDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
 
                fineDofs = localMat * coarseDofs;

@@ -270,7 +270,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               PointXr dstDofs;
+               VectorXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 

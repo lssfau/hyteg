@@ -655,7 +655,7 @@ class ElementNeighborInfo
    /// Coordinates of the vertices at the interfaces to the neighboring elements.
    std::vector< std::vector< Point3D > > interfaceVertexCoords_;
 
-   /// Normal to the interface Point3Ding away from the element.
+   /// Normal to the interface pointing away from the element.
    std::vector< Point3D > outwardNormal_;
 
    /// Logical vertex index of the element's vertex that is not on the interface.

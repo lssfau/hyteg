@@ -61,11 +61,6 @@ using Point4D  = PointND< walberla::real_t, 4 >;
 using Point6D  = PointND< walberla::real_t, 6 >;
 using Point10D = PointND< walberla::real_t, 10 >;
 
-class PointXr : public Eigen::Matrix< real_t, Eigen::Dynamic, 1 >
-{
-   using Eigen::Matrix< real_t, Eigen::Dynamic, 1 >::Matrix;
-};
-
 extern template class PointND< walberla::real_t, 2 >;
 extern template class PointND< walberla::real_t, 3 >;
 extern template class PointND< walberla::real_t, 4 >;

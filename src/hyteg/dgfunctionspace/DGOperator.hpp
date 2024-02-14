@@ -251,7 +251,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               PointXr dstDofs;
+               VectorXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -266,7 +266,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                    dim, neighborInfo.elementVertexCoords(), *src.basis(), *dst.basis(), srcPolyDegree, dstPolyDegree, localMat );
 
                // Volume DoFs are source.
-               PointXr srcDofs;
+               VectorXr srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
@@ -877,7 +877,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                              localMat );
 
                               // Now we need the DoFs from the neighboring element.
-                              PointXr nSrcDofs;
+                              VectorXr nSrcDofs;
                               nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
                               std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
 
@@ -976,7 +976,7 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                           localMat );
 
                            // Now we need the DoFs from the neighboring element.
-                           PointXr nSrcDofs;
+                           VectorXr nSrcDofs;
                            nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                            for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )

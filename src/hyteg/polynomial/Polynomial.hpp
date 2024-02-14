@@ -23,8 +23,10 @@
 #include "MonomialBasis2D.hpp"
 #include "MonomialBasis3D.hpp"
 
-#include <core/mpi/RecvBuffer.h>
-#include <core/mpi/SendBuffer.h>
+#include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
+#include "hyteg/Math.hpp"
 
 namespace hyteg {
 
