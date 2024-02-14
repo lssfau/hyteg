@@ -22,12 +22,12 @@
 
 namespace hyteg {
 
-//template class Matrix< real_t, 2, 2 >;
-//template class Matrix< real_t, 3, 3 >;
-//template class Matrix< real_t, 4, 4 >;
-//template class Matrix< real_t, 6, 6 >;
-//template class Matrix< real_t, 10, 10 >;
-//template class Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >;
-//template class Matrix< real_t, Eigen::Dynamic, 1 >;
+template class Matrix< real_t, 2, 2 >;
+template class Matrix< real_t, 3, 3 >;
+template class Matrix< real_t, 4, 4 >;
+template class Matrix< real_t, 6, 6 >;
+template class Matrix< real_t, 10, 10 >;
+template class Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >;
+template class Matrix< real_t, Eigen::Dynamic, 1 >;
 
 } // namespace hyteg
