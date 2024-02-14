@@ -577,8 +577,6 @@ class MeshInfo
    /// \param refinementSteps number of refinements
    static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
 
-   static MeshInfo refinedCoarseMesh2D( const MeshInfo& oldMesh, uint_t refinementSteps );
-
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };
 

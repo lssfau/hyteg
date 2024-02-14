@@ -50,8 +50,8 @@ int main( int argc, char** argv )
 
    for ( uint_t i = 0; i < 3; i++ )
    {
-      // create the spherical shell mesh
-      MeshInfo meshInfo = MeshInfo::refinedCoarseMesh2D(
+      // create mesh
+      MeshInfo meshInfo = MeshInfo::refinedCoarseMesh(
           MeshInfo::meshAnnulus( real_c( 1.0 ), real_c( 2.0 ), MeshInfo::meshFlavour::CRISS, 5, 3 ), i );
 
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -65,8 +65,15 @@ int main( int argc, char** argv )
       uint_t nMacroElementsPrevious = nMacroElements;
       real_t hMaxPrevious           = hMax;
 
-      nMacroElements = storage_->getNumberOfGlobalFaces();
-      hMax           = MeshQuality::getMaximalEdgeLength( storage_, 0 );
+      if ( storage_->hasGlobalCells() )
+      {
+         nMacroElements = storage_->getNumberOfGlobalCells();
+      }
+      else
+      {
+         nMacroElements = storage_->getNumberOfGlobalFaces();
+      }
+      hMax = MeshQuality::getMaximalEdgeLength( storage_, 0 );
 
       WALBERLA_LOG_INFO_ON_ROOT( "---------------------" << i << "---------------------" );
       WALBERLA_LOG_INFO_ON_ROOT( "Macro Elements: " << nMacroElements );
