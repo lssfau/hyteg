@@ -28,16 +28,29 @@ using walberla::int_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-template < uint_t M, uint_t N >
-using Matrixr = Eigen::Matrix< real_t, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
-template < typename T, uint_t M, uint_t N >
-using Matrix    = Eigen::Matrix< T, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
-using Matrix2r  = Eigen::Matrix< real_t, 2, 2, Eigen::RowMajor >;
-using Matrix3r  = Eigen::Matrix< real_t, 3, 3, Eigen::RowMajor >;
-using Matrix4r  = Eigen::Matrix< real_t, 4, 4, Eigen::RowMajor >;
-using Matrix6r  = Eigen::Matrix< real_t, 6, 6, Eigen::RowMajor >;
-using Matrix10r = Eigen::Matrix< real_t, 10, 10, Eigen::RowMajor >;
-using MatrixXr  = Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor >;
-using VectorXr  = Eigen::Matrix< real_t, Eigen::Dynamic, 1 >;
+template < typename ValueType, int M, int N >
+class Matrix : public Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >
+{
+   using Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >::Matrix;
+};
+
+template < int M, int N >
+using Matrixr = Matrix< real_t, M, N >;
+
+using Matrix2r  = Matrixr< 2, 2 >;
+using Matrix3r  = Matrixr< 3, 3 >;
+using Matrix4r  = Matrixr< 4, 4 >;
+using Matrix6r  = Matrixr< 6, 6 >;
+using Matrix10r = Matrixr< 10, 10 >;
+using MatrixXr  = Matrixr< Eigen::Dynamic, Eigen::Dynamic >;
+using VectorXr  = Matrixr< Eigen::Dynamic, 1 >;
+
+extern template class Matrix< real_t, 2, 2 >;
+extern template class Matrix< real_t, 3, 3 >;
+extern template class Matrix< real_t, 4, 4 >;
+extern template class Matrix< real_t, 6, 6 >;
+extern template class Matrix< real_t, 10, 10 >;
+extern template class Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >;
+extern template class Matrix< real_t, Eigen::Dynamic, 1 >;
 
 } // namespace hyteg

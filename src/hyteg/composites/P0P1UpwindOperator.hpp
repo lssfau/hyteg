@@ -31,7 +31,7 @@ namespace hyteg {
 
 using volumedofspace::indexing::ElementNeighborInfo;
 using walberla::real_c;
-using Point = Eigen::Matrix< real_t, 3, 1 >;
+using Point = Point3D;
 
 // \note: The P0P1UpwindOperator cannot handle boundary conditions, yet, and only works for 2D
 class P0P1UpwindOperator : public Operator< P0Function< real_t >, P0Function< real_t > >

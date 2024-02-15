@@ -36,12 +36,12 @@ namespace dg {
 class DGMassForm_Example : public DGFormVolume
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume2D( const std::vector< Point3D >& coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -81,12 +81,12 @@ class DGMassForm_Example : public DGFormVolume
       elMat( 2, 2 ) = a_2_2;
    }
 
-   virtual void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   virtual void integrateVolume3D( const std::vector< Point3D >& coords,
                                    const DGBasisInfo&                                       trialBasis,
                                    const DGBasisInfo&                                       testBasis,
                                    int                                                      trialDegree,
                                    int                                                      testDegree,
-                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                   MatrixXr&                     elMat ) const
    {
       elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
 

@@ -34,7 +34,7 @@ namespace macroedge {
 
 using walberla::uint_t;
 template < typename ValueType >
-using VectorType = Eigen::Matrix< ValueType, 3, 1 >;
+using VectorType = PointND< ValueType, 3>;
 
 inline void add( const uint_t&                                            level,
                  Edge&                                                    edge,

@@ -49,12 +49,12 @@ class DGForm
    /// \param testDegree  polynomial degree of the test function on this element
    /// \param elMat       computed local element matrix
    void integrateVolume( int                                                      dim,
-                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+                         const std::vector< Point3D >& coords,
                          const DGBasisInfo&                                       trialBasis,
                          const DGBasisInfo&                                       testBasis,
                          int                                                      trialDegree,
                          int                                                      testDegree,
-                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                         MatrixXr&                     elMat ) const
    {
       if ( dim == 2 )
       {
@@ -83,15 +83,15 @@ class DGForm
    /// \param testDegree         polynomial degree of the test function on this element
    /// \param elMat              computed local element matrix
    void integrateFacetInner( int                                                      dim,
-                             const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                             const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                             const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                             const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                             const std::vector< Point3D >& coordsElement,
+                             const std::vector< Point3D >& coordsFacet,
+                             const Point3D&                oppositeVertex,
+                             const Point3D&                outwardNormal,
                              const DGBasisInfo&                                       trialBasis,
                              const DGBasisInfo&                                       testBasis,
                              int                                                      trialDegree,
                              int                                                      testDegree,
-                             Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                             MatrixXr&                     elMat ) const
    {
       if ( dim == 2 )
       {
@@ -124,17 +124,17 @@ class DGForm
    /// \param testDegree                 polynomial degree of the test function on this element
    /// \param elMat                      computed local element matrix
    void integrateFacetCoupling( int                                                      dim,
-                                const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                const std::vector< Point3D >& coordsElementInner,
+                                const std::vector< Point3D >& coordsElementOuter,
+                                const std::vector< Point3D >& coordsFacet,
+                                const Point3D&                oppositeVertexInnerElement,
+                                const Point3D&                oppositeVertexOuterElement,
+                                const Point3D&                outwardNormal,
                                 const DGBasisInfo&                                       trialBasis,
                                 const DGBasisInfo&                                       testBasis,
                                 int                                                      trialDegree,
                                 int                                                      testDegree,
-                                Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                MatrixXr&                     elMat ) const
    {
       if ( dim == 2 )
       {
@@ -183,15 +183,15 @@ class DGForm
    /// \param testDegree              polynomial degree of the test function on this element
    /// \param elMat                   computed local element matrix
    void integrateFacetDirichletBoundary( int                                                      dim,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                         const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                         const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                         const std::vector< Point3D >& coordsElement,
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
                                          const DGBasisInfo&                                       trialBasis,
                                          const DGBasisInfo&                                       testBasis,
                                          int                                                      trialDegree,
                                          int                                                      testDegree,
-                                         Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                         MatrixXr&                     elMat ) const
    {
       if ( dim == 2 )
       {
@@ -220,13 +220,13 @@ class DGForm
    /// \param degree                  polynomial degree of the function on this element
    /// \param elMat                   computed local element matrix - returned as a column vector
    void integrateRHSDirichletBoundary( int                                                      dim,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+                                       const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       basis,
                                        int                                                      degree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       if ( dim == 2 )
       {
@@ -243,99 +243,99 @@ class DGForm
    }
 
  protected:
-   virtual void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   virtual void integrateVolume2D( const std::vector< Point3D >& coords,
                                    const DGBasisInfo&                                       trialBasis,
                                    const DGBasisInfo&                                       testBasis,
                                    int                                                      trialDegree,
                                    int                                                      testDegree,
-                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                   MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   virtual void integrateVolume3D( const std::vector< Point3D >& coords,
                                    const DGBasisInfo&                                       trialBasis,
                                    const DGBasisInfo&                                       testBasis,
                                    int                                                      trialDegree,
                                    int                                                      testDegree,
-                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                   MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                       MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateFacetInner3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                       MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                          MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                          MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                                   MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateFacetDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                                   MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                 const std::vector< Point3D >& coordsFacet,
+                                                 const Point3D&                oppositeVertex,
+                                                 const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                                 MatrixXr&                     elMat ) const = 0;
 
-   virtual void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateRHSDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+                                                 const std::vector< Point3D >& coordsFacet,
+                                                 const Point3D&                oppositeVertex,
+                                                 const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const = 0;
+                                                 MatrixXr&                     elMat ) const = 0;
 };
 
 } // namespace dg

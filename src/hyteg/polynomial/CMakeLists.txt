@@ -3,6 +3,7 @@ target_sources( hyteg
     MonomialBasis1D.hpp
     Polynomial.hpp
     PolynomialEvaluator.hpp
+    PolynomialEvaluator.cpp
     LSQPInterpolator.hpp
     MonomialBasis2D.hpp
     MonomialBasis3D.hpp     

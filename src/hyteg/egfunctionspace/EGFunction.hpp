@@ -248,7 +248,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                      std::array< indexing::Index, 3 > vertexIndicesArray =
                          facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
 
-                     std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+                     std::array< Point2D, 3 > elementVertices;
                      for ( uint_t i = 0; i < 3; i++ )
                      {
                         const auto elementVertex =
@@ -291,7 +291,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                {
                   const std::array< indexing::Index, 3 > vertexIndices =
                       facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
-                  std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > elementVertices;
+                  std::array< Point2D, 3 > elementVertices;
                   for ( uint_t i = 0; i < 3; i++ )
                   {
                      const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
@@ -356,7 +356,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                      std::array< indexing::Index, 4 > vertexIndicesArray =
                          celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
 
-                     std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+                     std::array< Point3D, 4 > elementVertices;
                      for ( uint_t i = 0; i < 4; i++ )
                      {
                         const auto elementVertex =
@@ -401,7 +401,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                   std::array< indexing::Index, 4 > vertexIndicesArray =
                       celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
 
-                  std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > elementVertices;
+                  std::array< Point3D, 4 > elementVertices;
                   for ( uint_t i = 0; i < 4; i++ )
                   {
                      const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndicesArray[i] );
@@ -479,9 +479,9 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       const uint_t polyDegree = 1;
       const uint_t ndofsP1    = 3;
 
-      Eigen::Matrix< real_t, 2, 1 > affineCoordinates( coordinates[0], coordinates[1] );
+      Point2D affineCoordinates( coordinates[0], coordinates[1] );
 
-      std::array< Eigen::Matrix< real_t, 2, 1 >, 3 > affineElementVertices;
+      std::array< Point2D, 3 > affineElementVertices;
       auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
       for ( uint_t i = 0; i < 3; i++ )
       {
@@ -491,16 +491,16 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       }
 
       // trafo from affine to reference space
-      Eigen::Matrix< real_t, 2, 2 > A;
+      Matrix2r A;
       A( 0, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
       A( 0, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 0 );
       A( 1, 0 )       = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
       A( 1, 1 )       = ( affineElementVertices[2] - affineElementVertices[0] )( 1 );
       const auto Ainv = A.inverse();
 
-      const Eigen::Matrix< real_t, 2, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+      const Point2D affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
 
-      const Eigen::Matrix< real_t, 2, 1 > refPos = Ainv * affineCoordsTranslated;
+      const Point2D refPos = Ainv * affineCoordsTranslated;
 
       Point2D midpoint( 0., 0. );
       for ( uint_t i = 0; i < 3; i++ )
@@ -550,9 +550,9 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       const uint_t polyDegree = 1;
       const uint_t ndofsP1    = 4;
 
-      Eigen::Matrix< real_t, 3, 1 > affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
+      Point3D affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
 
-      std::array< Eigen::Matrix< real_t, 3, 1 >, 4 > affineElementVertices;
+      std::array< Point3D, 4 > affineElementVertices;
       auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
 
       for ( uint_t i = 0; i < 4; i++ )
@@ -564,7 +564,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       }
 
       // trafo from affine to reference space
-      Eigen::Matrix< real_t, 3, 3 > A;
+      Matrix3r A;
       A( 0, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 0 );
       A( 1, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 1 );
       A( 2, 0 ) = ( affineElementVertices[1] - affineElementVertices[0] )( 2 );
@@ -578,9 +578,9 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       A( 2, 2 )       = ( affineElementVertices[3] - affineElementVertices[0] )( 2 );
       const auto Ainv = A.inverse();
 
-      const Eigen::Matrix< real_t, 3, 1 > affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+      const Point3D affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
 
-      const Eigen::Matrix< real_t, 3, 1 > refPos = Ainv * affineCoordsTranslated;
+      const Point3D refPos = Ainv * affineCoordsTranslated;
 
       Point3D midpoint( 0., 0., 0. );
       for ( uint_t i = 0; i < 4; i++ )
@@ -692,7 +692,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                   {
                      if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                      {
-                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+                        MatrixXr localMat;
                         localMat.resize( Eigen::Index( numDofs ), 1 );
                         localMat.setZero();
                         form->integrateRHSDirichletBoundary( dim,
@@ -772,7 +772,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
                   {
                      if ( neighborInfo.atMacroBoundary( n ) && neighborInfo.neighborBoundaryType( n ) == DirichletBoundary )
                      {
-                        Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+                        MatrixXr localMat;
                         localMat.resize( Eigen::Index( numDofs ), 1 );
                         localMat.setZero();
                         form->integrateRHSDirichletBoundary( dim,
