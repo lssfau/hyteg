@@ -97,7 +97,6 @@ int main( int argc, char* argv[] )
    // save functions
    saveMultipleFunctionsPETSc( maxLevel_, "HDF5SaveTest.dat", f_, f2_ );
    // save parameters
-
    std::vector< PetscScalar > parameters_save = { p1, p2 };
    saveParametersPETSc( parameters_save, "HDF5SaveTest.dat", FILE_MODE_APPEND );
 
