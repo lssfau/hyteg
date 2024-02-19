@@ -1,0 +1,28 @@
+Parameters
+{
+  sphNTan 5;
+  sphNRad 3;
+
+  // domain
+  level 3;
+
+  tol 1e-6;
+  minresIter 20000;
+
+  // Type of forcing
+  // If true, uses delta forcing, else smooth forcing
+  delta false;
+
+  // Type of boundary condition
+  // ONLY ONE CAN BE SET TRUE
+  // Both inner and outer boundary -- freeslip
+  freeslip false;
+  // Inner freeslip, Outer no-slip
+  mixed true;
+
+  calcAndWriteError true;
+
+  outputPath ./output/;
+
+  writeVTK false;
+}
