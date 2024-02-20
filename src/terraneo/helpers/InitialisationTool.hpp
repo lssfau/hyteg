@@ -21,12 +21,17 @@
 #pragma once
 
 #include <cmath>
-#include <vector>
 #include <core/math/Constants.h>
 #include <core/math/Random.h>
+#include <vector>
 
-using namespace hyteg;
-using walberla::math::pi;
+#include "core/DataTypes.h"
+#include "core/Environment.h"
+
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/types/types.hpp"
+
+#include "typeAliases.hpp"
 
 namespace terraneo {
 template < typename FunctionType >
@@ -53,7 +58,7 @@ class TemperaturefieldConv
    , lMin_( lMin )
    {}
 
-   real_t referenceTemperatureFct( const Point3D& x )
+   real_t referenceTemperatureFct( const hyteg::Point3D& x )
    {
       auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
       real_t temp   = TsurfaceAdb_ * std::exp( ( dissipatioNumber_ * ( rMax_ - radius ) ) );
@@ -65,7 +70,7 @@ class TemperaturefieldConv
 
    void initialiseTemperatureWhiteNoise( real_t noiseFactor )
    {
-      std::function< real_t( const Point3D& ) > temperatureInit = [&]( const Point3D& x ) {
+      std::function< real_t( const hyteg::Point3D& ) > temperatureInit = [&]( const hyteg::Point3D& x ) {
          auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
          real_t retVal;
 
@@ -82,7 +87,7 @@ class TemperaturefieldConv
          {
             retVal = referenceTemperatureFct( x );
 
-            // Random generator for Temperature initialisation ( Gaussian White Noise (GWN)) 
+            // Random generator for Temperature initialisation ( Gaussian White Noise (GWN))
             retVal += noiseFactor * retVal * walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
          }
          return retVal;
@@ -90,7 +95,7 @@ class TemperaturefieldConv
 
       for ( uint_t l = lMin_; l <= lMax_; l++ )
       {
-         T_->interpolate( temperatureInit, l, All );
+         T_->interpolate( temperatureInit, l, hyteg::All );
       }
    }
 

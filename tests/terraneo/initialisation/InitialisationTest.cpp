@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core/DataTypes.h"
-#include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
 #include "core/mpi/MPIManager.h"
@@ -37,6 +35,8 @@
 
 #include "terraneo/helpers/InitialisationTool.hpp"
 #include "terraneo/helpers/RadialProfileTool.hpp"
+
+using namespace hyteg;
 
 // Setup storage for a spherical shell
 
