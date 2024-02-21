@@ -228,7 +228,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
+               VectorXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -236,7 +236,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                // Volume contribution //
                /////////////////////////
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDstDofs, numSrcDofs );
 
                // Little difference here is that the source is now a CG P1 function.
@@ -245,7 +245,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                form_->integrateVolume(
                    dim, neighborInfo.elementVertexCoords(), *src.basis(), dstBasis, srcPolyDegree, dstPolyDegree, localMat );
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
+               VectorXr srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                // Getting the vertex DoF indices for the current micro volume.

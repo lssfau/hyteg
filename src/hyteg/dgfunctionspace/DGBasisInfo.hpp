@@ -54,10 +54,7 @@ class DGBasisInfo
    /// \param pos    where to evaluate on the micro-element (in reference space)
    /// \param dofs   DoFs that correspond to the basis functions
    /// \param value  value of the polynomial
-   virtual void evaluate( uint_t                               degree,
-                          const Eigen::Matrix< real_t, 2, 1 >& pos,
-                          const std::vector< real_t >&         dofs,
-                          real_t&                              value ) const = 0;
+   virtual void evaluate( uint_t degree, const Point2D& pos, const std::vector< real_t >& dofs, real_t& value ) const = 0;
 
    /// \brief Evaluates the polynomial on the reference tetrahedron.
    ///
@@ -65,10 +62,7 @@ class DGBasisInfo
    /// \param pos    where to evaluate on the micro-element (in reference space)
    /// \param dofs   DoFs that correspond to the basis functions
    /// \param value  value of the polynomial
-   virtual void evaluate( uint_t                               degree,
-                          const Eigen::Matrix< real_t, 3, 1 >& pos,
-                          const std::vector< real_t >&         dofs,
-                          real_t&                              value ) const = 0;
+   virtual void evaluate( uint_t degree, const Point3D& pos, const std::vector< real_t >& dofs, real_t& value ) const = 0;
 
    /// \brief Evaluates the linear functional
    ///
@@ -86,10 +80,10 @@ class DGBasisInfo
    /// \param coords           coordinates of the affine element (computational space)
    /// \param f                function to multiply with the basis functions
    /// \param value            result of the integration (all DoFs)
-   virtual void integrateBasisFunction( uint_t                                                degree,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >& coords,
-                                        const std::function< real_t( const Point3D& ) >&      f,
-                                        std::vector< real_t >&                                values ) = 0;
+   virtual void integrateBasisFunction( uint_t                                           degree,
+                                        const std::array< Point2D, 3 >&                  coords,
+                                        const std::function< real_t( const Point3D& ) >& f,
+                                        std::vector< real_t >&                           values ) = 0;
 
    /// \brief Evaluates the linear functional
    ///
@@ -107,10 +101,10 @@ class DGBasisInfo
    /// \param coords           coordinates of the affine element (computational space)
    /// \param f                function to multiply with the basis functions
    /// \param value            result of the integration (all DoFs)
-   virtual void integrateBasisFunction( uint_t                                                degree,
-                                        const std::array< Eigen::Matrix< real_t, 3, 1 >, 4 >& coords,
-                                        const std::function< real_t( const Point3D& ) >&      f,
-                                        std::vector< real_t >&                                values ) = 0;
+   virtual void integrateBasisFunction( uint_t                                           degree,
+                                        const std::array< Point3D, 4 >&                  coords,
+                                        const std::function< real_t( const Point3D& ) >& f,
+                                        std::vector< real_t >&                           values ) = 0;
 };
 
 } // namespace dg

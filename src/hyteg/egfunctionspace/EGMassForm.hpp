@@ -41,12 +41,12 @@ class EGVectorMassFormP1E_0 : public hyteg::dg::DGFormVolume
 {
  protected:
 
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -85,13 +85,13 @@ class EGVectorMassFormP1E_0 : public hyteg::dg::DGFormVolume
    }
 
  
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -195,12 +195,12 @@ class EGVectorMassFormP1E_0 : public hyteg::dg::DGFormVolume
 class EGVectorMassFormP1E_1 : public hyteg::dg::DGFormVolume
 {
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -240,13 +240,13 @@ class EGVectorMassFormP1E_1 : public hyteg::dg::DGFormVolume
 
    
 
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -351,12 +351,12 @@ class EGVectorMassFormP1E_1 : public hyteg::dg::DGFormVolume
 class EGVectorMassFormP1E_2 : public hyteg::dg::DGFormVolume
 {
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -379,13 +379,13 @@ class EGVectorMassFormP1E_2 : public hyteg::dg::DGFormVolume
    }
 
 
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -489,12 +489,12 @@ class EGVectorMassFormP1E_2 : public hyteg::dg::DGFormVolume
 class EGVectorMassFormEP1_0 : public hyteg::dg::DGFormVolume
 {
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -532,13 +532,13 @@ class EGVectorMassFormEP1_0 : public hyteg::dg::DGFormVolume
       elMat( 0, 2) = a_0_2;
    }
 
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -642,12 +642,12 @@ class EGVectorMassFormEP1_0 : public hyteg::dg::DGFormVolume
 class EGVectorMassFormEP1_1 : public hyteg::dg::DGFormVolume
 {
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -685,13 +685,13 @@ class EGVectorMassFormEP1_1 : public hyteg::dg::DGFormVolume
       elMat( 0, 2) = a_0_2;
    }
 
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -794,12 +794,12 @@ class EGVectorMassFormEP1_1 : public hyteg::dg::DGFormVolume
 class EGVectorMassFormEP1_2 : public hyteg::dg::DGFormVolume
 {
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -821,13 +821,13 @@ class EGVectorMassFormEP1_2 : public hyteg::dg::DGFormVolume
       elMat( 0, 2) = a_0_2;
    }
 
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
@@ -930,12 +930,12 @@ class EGVectorMassFormEP1_2 : public hyteg::dg::DGFormVolume
 class EGVectorMassFormEE : public hyteg::dg::DGFormVolume
 {
  protected:
-  void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+  void integrateVolume2D( const std::vector< Point3D >&      coords,
                            const DGBasisInfo&                                       trialBasis,
                            const DGBasisInfo&                                       testBasis,
                            int                                                      trialDegree,
                            int                                                      testDegree,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const override
+                           MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -985,13 +985,13 @@ class EGVectorMassFormEE : public hyteg::dg::DGFormVolume
    }
 
 
-   void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coords,
+   void integrateVolume3D( const std::vector< Point3D >&      coords,
                                                  const DGBasisInfo&                                       trialBasis,
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
-{
+                           MatrixXr&                                           elMat ) const
+   {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 

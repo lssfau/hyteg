@@ -63,8 +63,7 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
 
    virtual uint_t quadratureDegreeForLinearFunctional() const { return 4; }
 
-   virtual void
-       evaluate( uint_t degree, const Eigen::Matrix< real_t, 2, 1 >& pos, const std::vector< real_t >& dofs, real_t& value ) const
+   virtual void evaluate( uint_t degree, const Point2D& pos, const std::vector< real_t >& dofs, real_t& value ) const
    {
       WALBERLA_CHECK_EQUAL( dofs.size(), numDoFsPerElement( 2, degree ), "Number of DoFs does not match degree." );
 
@@ -119,8 +118,7 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
       }
    };
 
-   virtual void
-       evaluate( uint_t degree, const Eigen::Matrix< real_t, 3, 1 >& pos, const std::vector< real_t >& dofs, real_t& value ) const
+   virtual void evaluate( uint_t degree, const Point3D& pos, const std::vector< real_t >& dofs, real_t& value ) const
    {
       WALBERLA_CHECK_EQUAL( dofs.size(), numDoFsPerElement( 3, degree ), "Number of DoFs does not match degree." );
 
@@ -151,7 +149,7 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
    };
 
    virtual void integrateBasisFunction( uint_t                                                degree,
-                                        const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >& coords,
+                                        const std::array< Point2D, 3 >&                  coords,
                                         const std::function< real_t( const Point3D& ) >&      f,
                                         std::vector< real_t >&                                values )
    {
@@ -235,7 +233,7 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
    }
 
    virtual void integrateBasisFunction( uint_t                                                degree,
-                                        const std::array< Eigen::Matrix< real_t, 3, 1 >, 4 >& coords,
+                                        const std::array< Point3D, 4 >&                  coords,
                                         const std::function< real_t( const Point3D& ) >&      f,
                                         std::vector< real_t >&                                values )
    {

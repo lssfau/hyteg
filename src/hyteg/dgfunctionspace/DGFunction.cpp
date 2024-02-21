@@ -92,7 +92,7 @@ namespace hyteg {
                     volumedofspace::getLocalElementFromCoordinates<ValueType>(
                             level, face, coordinates2D, elementIndex, faceType, localCoordinates);
 
-                    Eigen::Matrix<real_t, 2, 1> refPos(localCoordinates[0], localCoordinates[1]);
+                    Point2D refPos(localCoordinates[0], localCoordinates[1]);
 
                     std::vector<real_t> dofs(ndofs);
                     for (uint_t i = 0; i < ndofs; i++) {
@@ -125,7 +125,7 @@ namespace hyteg {
                     volumedofspace::getLocalElementFromCoordinates<ValueType>(
                             level, cell, computationalCoords, elementIndex, cellType, localCoordinates);
 
-                    Eigen::Matrix<real_t, 3, 1> refPos(localCoordinates[0], localCoordinates[1], localCoordinates[2]);
+                    Point3D refPos(localCoordinates[0], localCoordinates[1], localCoordinates[2]);
 
                     std::vector<real_t> dofs(ndofs);
                     for (uint_t i = 0; i < ndofs; i++) {
@@ -159,9 +159,9 @@ namespace hyteg {
             const auto polyDegree = polyDegreesPerPrimitive_.at(faceID);
             const auto ndofs = uint_c(basis_->numDoFsPerElement(2, polyDegree));
 
-            Eigen::Matrix<real_t, 2, 1> affineCoordinates(coordinates[0], coordinates[1]);
+            Point2D affineCoordinates(coordinates[0], coordinates[1]);
 
-            std::array<Eigen::Matrix<real_t, 2, 1>, 3> affineElementVertices;
+            std::array<Point2D, 3> affineElementVertices;
             auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace(elementIndex, faceType);
             for (uint_t i = 0; i < 3; i++) {
                 const auto coord = vertexdof::macroface::coordinateFromIndex(level, face, vertexIndices[i]);
@@ -170,16 +170,16 @@ namespace hyteg {
             }
 
             // trafo from affine to reference space
-            Eigen::Matrix<real_t, 2, 2> A;
+            Matrix2r A;
             A(0, 0) = (affineElementVertices[1] - affineElementVertices[0])(0);
             A(0, 1) = (affineElementVertices[2] - affineElementVertices[0])(0);
             A(1, 0) = (affineElementVertices[1] - affineElementVertices[0])(1);
             A(1, 1) = (affineElementVertices[2] - affineElementVertices[0])(1);
             const auto Ainv = A.inverse();
 
-            const Eigen::Matrix<real_t, 2, 1> affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+            const Point2D affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
 
-            const Eigen::Matrix<real_t, 2, 1> refPos = Ainv * affineCoordsTranslated;
+            const Point2D refPos = Ainv * affineCoordsTranslated;
 
             std::vector<real_t> dofs(ndofs);
             for (uint_t i = 0; i < ndofs; i++) {
@@ -209,9 +209,9 @@ namespace hyteg {
             const auto polyDegree = polyDegreesPerPrimitive_.at(cellID);
             const auto ndofs = uint_c(basis_->numDoFsPerElement(3, polyDegree));
 
-            Eigen::Matrix<real_t, 3, 1> affineCoordinates(coordinates[0], coordinates[1], coordinates[2]);
+            Point3D affineCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
-            std::array<Eigen::Matrix<real_t, 3, 1>, 4> affineElementVertices;
+            std::array<Point3D, 4> affineElementVertices;
             auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell(elementIndex, cellType);
             for (uint_t i = 0; i < 4; i++) {
                 const auto coord = vertexdof::macrocell::coordinateFromIndex(level, cell, vertexIndices[i]);
@@ -221,7 +221,7 @@ namespace hyteg {
             }
 
             // trafo from affine to reference space
-            Eigen::Matrix<real_t, 3, 3> A;
+            Matrix3r A;
 
             A(0, 0) = (affineElementVertices[1] - affineElementVertices[0])(0);
             A(0, 1) = (affineElementVertices[2] - affineElementVertices[0])(0);
@@ -237,9 +237,9 @@ namespace hyteg {
 
             const auto Ainv = A.inverse();
 
-            const Eigen::Matrix<real_t, 3, 1> affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
+            const Point3D affineCoordsTranslated = affineCoordinates - affineElementVertices[0];
 
-            const Eigen::Matrix<real_t, 3, 1> refPos = Ainv * affineCoordsTranslated;
+            const Point3D refPos = Ainv * affineCoordsTranslated;
 
             std::vector<real_t> dofs(ndofs);
             for (uint_t i = 0; i < ndofs; i++) {
@@ -270,7 +270,7 @@ namespace hyteg {
                         for (const auto &idxIt: celldof::macrocell::Iterator(level, cellType)) {
                             const std::array<indexing::Index, 4> vertexIndices =
                                     celldof::macrocell::getMicroVerticesFromMicroCell(idxIt, cellType);
-                            std::array<Eigen::Matrix<real_t, 3, 1>, 4> elementVertices;
+                            std::array<Point3D, 4> elementVertices;
                             for (uint_t i = 0; i < 4; i++) {
                                 const auto elementVertex = vertexdof::macrocell::coordinateFromIndex(level, cell,
                                                                                                      vertexIndices[i]);
@@ -305,7 +305,7 @@ namespace hyteg {
                         for (const auto &idxIt: facedof::macroface::Iterator(level, faceType)) {
                             const std::array<indexing::Index, 3> vertexIndices =
                                     facedof::macroface::getMicroVerticesFromMicroFace(idxIt, faceType);
-                            std::array<Eigen::Matrix<real_t, 2, 1>, 3> elementVertices;
+                            std::array<Point2D, 3> elementVertices;
                             for (uint_t i = 0; i < 3; i++) {
                                 const auto elementVertex = vertexdof::macroface::coordinateFromIndex(level, face,
                                                                                                      vertexIndices[i]);
@@ -461,7 +461,7 @@ namespace hyteg {
                             for (uint_t n = 0; n < 4; n++) {
                                 if (neighborInfo.atMacroBoundary(n) &&
                                     neighborInfo.neighborBoundaryType(n) == DirichletBoundary) {
-                                    Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> localMat;
+                                    MatrixXr localMat;
                                     localMat.resize(Eigen::Index(numDofs), 1);
                                     localMat.setZero();
                                     form->integrateRHSDirichletBoundary(dim,
@@ -504,7 +504,7 @@ namespace hyteg {
                             for (uint_t n = 0; n < 3; n++) {
                                 if (neighborInfo.atMacroBoundary(n) &&
                                     neighborInfo.neighborBoundaryType(n) == DirichletBoundary) {
-                                    Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> localMat;
+                                    MatrixXr localMat;
                                     localMat.resize(Eigen::Index(numDofs), 1);
                                     localMat.setZero();
                                     form->integrateRHSDirichletBoundary(dim,

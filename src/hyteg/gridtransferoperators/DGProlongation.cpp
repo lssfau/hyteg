@@ -24,65 +24,63 @@
 
 namespace hyteg {
 
-inline real_t phi0( const Eigen::Matrix< real_t, 2, 1 >& x )
+inline real_t phi0( const Point2D& x )
 {
    return 1 - x( 0 ) - x( 1 );
 }
 
-inline real_t phi1( const Eigen::Matrix< real_t, 2, 1 >& x )
+inline real_t phi1( const Point2D& x )
 {
    return x( 0 );
 }
 
-inline real_t phi2( const Eigen::Matrix< real_t, 2, 1 >& x )
+inline real_t phi2( const Point2D& x )
 {
    return x( 1 );
 }
 
-inline real_t phi0( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi0( const Point3D& x )
 {
    return 1 - x( 0 ) - x( 1 ) - x( 2 );
 }
 
-inline real_t phi1( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi1( const Point3D& x )
 {
    return x( 0 );
 }
 
-inline real_t phi2( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi2( const Point3D& x )
 {
    return x( 1 );
 }
 
-inline real_t phi3( const Eigen::Matrix< real_t, 3, 1 >& x )
+inline real_t phi3( const Point3D& x )
 {
    return x( 2 );
 }
 
-void ProlongationFormDG1::integrate2D( const std::vector< Point >&                              dst,
-                                       const std::vector< Point >&                              src,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+void ProlongationFormDG1::integrate2D( const std::vector< Point3D >& dst,
+                                       const std::vector< Point3D >& src,
+                                       MatrixXr&                     localMat ) const
 {
-   using Point2 = Eigen::Matrix< real_t, 2, 1 >;
-
-   Point2 b;
+   Point2D b;
    b << src[0]( 0 ), src[0]( 1 );
-   const Point s10 = src[1] - src[0];
-   const Point s20 = src[2] - src[0];
+   const Point3D s10 = src[1] - src[0];
+   const Point3D s20 = src[2] - src[0];
 
-   Point2 a1;
-   Point2 a2;
+   Point2D a1;
+   Point2D a2;
    a1 << s10( 0 ), s10( 1 );
    a2 << s20( 0 ), s20( 1 );
 
-   Eigen::Matrix< real_t, 2, 2 > A( 2, 2 );
+   Matrix2r A( 2, 2 );
    A << a1( 0 ), a2( 0 ), a1( 1 ), a2( 1 );
 
-   Eigen::Matrix< real_t, 2, 2 > Ainv{ A.inverse() };
+   Matrix2r Ainv{ A.inverse() };
 
-   Point2 d0;
-   Point2 d1;
-   Point2 d2;
+   Point2D d0;
+   Point2D d1;
+   Point2D d2;
    d0 << dst[0]( 0 ), dst[0]( 1 );
    d1 << dst[1]( 0 ), dst[1]( 1 );
    d2 << dst[2]( 0 ), dst[2]( 1 );
@@ -91,9 +89,9 @@ void ProlongationFormDG1::integrate2D( const std::vector< Point >&              
    d1 -= b;
    d2 -= b;
 
-   const Point2 p0{ Ainv * d0 };
-   const Point2 p1{ Ainv * d1 };
-   const Point2 p2{ Ainv * d2 };
+   const Point2D p0{ Ainv * d0 };
+   const Point2D p1{ Ainv * d1 };
+   const Point2D p2{ Ainv * d2 };
 
    localMat.resize( 3, 3 );
    localMat( 0, 0 ) = phi0( p0 );
@@ -107,35 +105,35 @@ void ProlongationFormDG1::integrate2D( const std::vector< Point >&              
    localMat( 2, 2 ) = phi2( p2 );
 }
 
-void ProlongationFormDG1::integrate3D( const std::vector< Point >&                              dst,
-                                       const std::vector< Point >&                              src,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+void ProlongationFormDG1::integrate3D( const std::vector< Point3D >& dst,
+                                       const std::vector< Point3D >& src,
+                                       MatrixXr&                     localMat ) const
 {
-   const Point b{ src[0] };
+   const Point3D b{ src[0] };
 
-   const Point s10{ src[1] - src[0] };
-   const Point s20{ src[2] - src[0] };
-   const Point s30{ src[3] - src[0] };
+   const Point3D s10{ src[1] - src[0] };
+   const Point3D s20{ src[2] - src[0] };
+   const Point3D s30{ src[3] - src[0] };
 
-   Eigen::Matrix< real_t, 3, 3 > A( 3, 3 );
+   Matrix3r A( 3, 3 );
    A << s10, s20, s30;
 
-   Eigen::Matrix< real_t, 3, 3 > Ainv{ A.inverse() };
+   Matrix3r Ainv{ A.inverse() };
 
-   Point d0 = dst[0];
-   Point d1 = dst[1];
-   Point d2 = dst[2];
-   Point d3 = dst[3];
+   Point3D d0 = dst[0];
+   Point3D d1 = dst[1];
+   Point3D d2 = dst[2];
+   Point3D d3 = dst[3];
 
    d0 -= b;
    d1 -= b;
    d2 -= b;
    d3 -= b;
 
-   const Point p0{ Ainv * d0 };
-   const Point p1{ Ainv * d1 };
-   const Point p2{ Ainv * d2 };
-   const Point p3{ Ainv * d3 };
+   const Point3D p0{ Ainv * d0 };
+   const Point3D p1{ Ainv * d1 };
+   const Point3D p2{ Ainv * d2 };
+   const Point3D p3{ Ainv * d3 };
 
    localMat.resize( 4, 4 );
    localMat( 0, 0 ) = phi0( p0 );
@@ -226,7 +224,7 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
                    coarseElementIdx, coarseCellType, coarseLevel, function.getBoundaryCondition(), pid, storage );
             }
 
-            Eigen::Matrix< real_t, Eigen::Dynamic, 1 > coarseDofs;
+            VectorXr coarseDofs;
             coarseDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
 
             for ( int coarseDofIdx = 0; coarseDofIdx < numDofs; coarseDofIdx++ )
@@ -296,7 +294,7 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
                       fineElementIdx, fineCellType, fineLevel, function.getBoundaryCondition(), pid, storage );
                }
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDofs, numDofs );
 
                // assemble local matrix
@@ -311,7 +309,7 @@ void DGProlongation::prolongate( const dg::DGFunction< real_t >& function,
                       fineNeighborInfo.elementVertexCoords(), coarseNeighborInfo.elementVertexCoords(), localMat );
                }
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > fineDofs;
+               VectorXr fineDofs;
                fineDofs.resize( numDofs, Eigen::NoChange_t::NoChange );
 
                fineDofs = localMat * coarseDofs;

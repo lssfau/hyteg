@@ -32,7 +32,7 @@ class EGBasis
 {
  public:
    void integrateBasisFunction( uint_t                                                degree,
-                                const std::array< Eigen::Matrix< real_t, 2, 1 >, 3 >& coords,
+                                const std::array< Point2D, 3 >& coords,
                                 const std::function< real_t( const Point3D& ) >&      f0,
                                 const std::function< real_t( const Point3D& ) >&      f1,
                                 std::vector< real_t >&                                values )
@@ -139,7 +139,7 @@ class EGBasis
    }
 
    void integrateBasisFunction( uint_t                                                degree,
-                                const std::array< Eigen::Matrix< real_t, 3, 1 >, 4 >& coords,
+                                const std::array< Point3D, 4 >& coords,
                                 const std::function< real_t( const Point3D& ) >&      f0,
                                 const std::function< real_t( const Point3D& ) >&      f1,
                                 const std::function< real_t( const Point3D& ) >&      f2,

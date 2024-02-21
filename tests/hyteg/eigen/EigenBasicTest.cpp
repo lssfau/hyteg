@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
    // using mat3D = Eigen::Matrix3d;
 
    vec3D vec1;
-   vec3D vec2{real_c( 1 ), real_c( 1 ), real_c( -1 )};
+   vec3D vec2{ real_c( 1 ), real_c( 1 ), real_c( -1 ) };
 
    for ( uint_t i = 0; i < 3; ++i )
    {
@@ -110,10 +110,10 @@ int main( int argc, char* argv[] )
    walberla::mpi::SendBuffer sBuf;
    sBuf << sendVec1 << sendVec2 << real_c( 42 );
 
-   std::vector< vec3D > recvVec1;
-   std::vector< vec3D > recvVec2;
+   std::vector< vec3D >      recvVec1;
+   std::vector< vec3D >      recvVec2;
    walberla::mpi::RecvBuffer rBuf( sBuf );
-   real_t recvVal;
+   real_t                    recvVal;
    rBuf >> recvVec1 >> recvVec2 >> recvVal;
 
    WALBERLA_CHECK_FLOAT_EQUAL( recvVal, real_c( 42 ) );

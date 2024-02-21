@@ -242,7 +242,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
+               VectorXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -250,7 +250,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                // Volume contribution //
                /////////////////////////
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDstDofs, numSrcDofs );
 
                // Little difference here is that the source is now a CG P1 function.
@@ -264,7 +264,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                        dstPolyDegree,
                                        localMat );
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > srcDofs;
+               VectorXr srcDofs;
                srcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                // Getting the vertex DoF indices for the current micro volume.
@@ -498,7 +498,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                            // local to the dst macro. One of those is _not_ located on the macro-macro-boundary. This is the
                            // micro-vertex that must be taken from the ghost-layer.
 
-                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                           VectorXr nSrcDofs;
                            nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
                            std::vector< uint_t > nSrcDoFArrIndices( numSrcDofs );
                            std::vector< bool >   onGhostLayer( numSrcDofs );
@@ -760,7 +760,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                                           localMat );
 
                            // Now we need the DoFs from the neighboring element.
-                           Eigen::Matrix< real_t, Eigen::Dynamic, 1 > nSrcDofs;
+                           VectorXr nSrcDofs;
                            nSrcDofs.resize( numSrcDofs, Eigen::NoChange_t::NoChange );
 
                            std::vector< Index > nVertexDoFIndices;

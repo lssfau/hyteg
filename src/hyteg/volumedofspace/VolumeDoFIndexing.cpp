@@ -202,12 +202,12 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       oppositeVertexCoords_[n]( 2 ) = 0;
 
       // TODO: improve normal computation!
-      Point      innerPoint = ( 1 / 3. ) * ( elementVertexCoords()[0] + elementVertexCoords()[1] + elementVertexCoords()[2] );
+      Point3D      innerPoint = ( 1 / 3. ) * ( elementVertexCoords()[0] + elementVertexCoords()[1] + elementVertexCoords()[2] );
       const auto s =
           ( innerPoint - interfaceVertexCoords_[n][0] ).dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] ) /
           ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] )
               .dot( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
-      const Point proj  = interfaceVertexCoords_[n][0] + s * ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
+      const Point3D proj  = interfaceVertexCoords_[n][0] + s * ( interfaceVertexCoords_[n][1] - interfaceVertexCoords_[n][0] );
       outwardNormal_[n] = ( innerPoint - proj );
       outwardNormal_[n].normalize();
       outwardNormal_[n] = -outwardNormal_[n];
@@ -584,7 +584,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
       oppositeVertexCoords_[n]( 2 ) = oppCoord[2];
 
       // TODO: improve normal computation!
-      Point innerPoint = ( 1 / 4. ) * ( elementVertexCoords()[0] + elementVertexCoords()[1] + elementVertexCoords()[2] +
+      Point3D innerPoint = ( 1 / 4. ) * ( elementVertexCoords()[0] + elementVertexCoords()[1] + elementVertexCoords()[2] +
                                         elementVertexCoords()[3] );
 
       auto x = innerPoint( 0 );

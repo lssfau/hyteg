@@ -39,7 +39,7 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
 {
  public:
    using valueType  = ValueType;
-   using VectorType = Eigen::Matrix< ValueType, 3, 1 >;
+   using VectorType = PointND< ValueType, 3>;
 
    template < typename VType >
    using FunctionType = N1E1VectorFunction< VType >;

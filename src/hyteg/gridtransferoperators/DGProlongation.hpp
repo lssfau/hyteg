@@ -31,7 +31,6 @@ namespace hyteg {
 class ProlongationForm
 {
  public:
-   using Point = Eigen::Matrix< real_t, 3, 1 >;
 
    virtual ~ProlongationForm() = default;
 
@@ -40,9 +39,9 @@ class ProlongationForm
    /// \param fineTriangle   Vertices of the fine triangle, ordered w.r.t. the DoF.
    /// \param coarseTriangle Vertices of the coarse triangle, ordered w.r.t. the DoF.
    /// \param localMat       Coupling between fine triangle DoF (rows) and coarse triangle DoF (cols).
-   virtual void integrate2D( const std::vector< Point >&                              fineTriangle,
-                             const std::vector< Point >&                              coarseTriangle,
-                             Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+   virtual void integrate2D( const std::vector< Point3D >& fineTriangle,
+                             const std::vector< Point3D >& coarseTriangle,
+                             MatrixXr&                     localMat ) const
    {
       WALBERLA_UNUSED( fineTriangle );
       WALBERLA_UNUSED( coarseTriangle );
@@ -55,9 +54,9 @@ class ProlongationForm
    /// \param fineTriangle   Vertices of the fine tetrahedron, ordered w.r.t. the DoF.
    /// \param coarseTriangle Vertices of the coarse tetrahedron, ordered w.r.t. the DoF.
    /// \param localMat       Coupling between fine triangle DoF (rows) and coarse triangle DoF (cols).
-   virtual void integrate3D( const std::vector< Point >&                              fineTriangle,
-                             const std::vector< Point >&                              coarseTriangle,
-                             Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const
+   virtual void integrate3D( const std::vector< Point3D >& fineTriangle,
+                             const std::vector< Point3D >& coarseTriangle,
+                             MatrixXr&                     localMat ) const
    {
       WALBERLA_UNUSED( fineTriangle );
       WALBERLA_UNUSED( coarseTriangle );
@@ -70,24 +69,16 @@ class ProlongationForm
 class ProlongationFormDG1 : public ProlongationForm
 {
  public:
-   void integrate2D( const std::vector< Point >&                              dst,
-                     const std::vector< Point >&                              src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
+   void integrate2D( const std::vector< Point3D >& dst, const std::vector< Point3D >& src, MatrixXr& localMat ) const override;
 
-   void integrate3D( const std::vector< Point >&                              dst,
-                     const std::vector< Point >&                              src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override;
+   void integrate3D( const std::vector< Point3D >& dst, const std::vector< Point3D >& src, MatrixXr& localMat ) const override;
 };
 
 /// \brief Prolongation form for piecewise constant DG functions.
 class ProlongationFormDG0 : public ProlongationForm
 {
  public:
-   using Point3 = Eigen::Matrix< real_t, 3, 1 >;
-
-   void integrate2D( const std::vector< Point3 >&                             dst,
-                     const std::vector< Point3 >&                             src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
+   void integrate2D( const std::vector< Point3D >& dst, const std::vector< Point3D >& src, MatrixXr& localMat ) const override
    {
       WALBERLA_UNUSED( dst );
       WALBERLA_UNUSED( src );
@@ -95,9 +86,7 @@ class ProlongationFormDG0 : public ProlongationForm
       localMat( 0, 0 ) = 1;
    }
 
-   void integrate3D( const std::vector< Point3 >&                             dst,
-                     const std::vector< Point3 >&                             src,
-                     Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& localMat ) const override
+   void integrate3D( const std::vector< Point3D >& dst, const std::vector< Point3D >& src, MatrixXr& localMat ) const override
    {
       WALBERLA_UNUSED( dst );
       WALBERLA_UNUSED( src );

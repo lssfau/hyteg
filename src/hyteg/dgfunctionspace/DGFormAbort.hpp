@@ -40,124 +40,122 @@ using walberla::real_c;
 class DGFormAbort : public DGForm
 {
  protected:
-   void integrateVolume2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                           const DGBasisInfo&,
+   void integrateVolume2D( const std::vector< Point3D >&, const DGBasisInfo&,
                            const DGBasisInfo&,
                            int,
-                           int,
-                           Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const override
+                           int, MatrixXr& )
+       const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateVolume3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                   const DGBasisInfo&,
+   virtual void integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&,
                                    const DGBasisInfo&,
                                    int,
-                                   int,
-                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const override
+                                   int, MatrixXr& )
+       const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                       const Eigen::Matrix< real_t, 3, 1 >&,
-                                       const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >&,
+                                       const std::vector< Point3D >&,
+                                       const Point3D&,
+                                       const Point3D&,
                                        const DGBasisInfo&,
                                        const DGBasisInfo&,
                                        int,
                                        int,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                       MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateFacetInner3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                       const Eigen::Matrix< real_t, 3, 1 >&,
-                                       const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetInner3D( const std::vector< Point3D >&,
+                                       const std::vector< Point3D >&,
+                                       const Point3D&,
+                                       const Point3D&,
                                        const DGBasisInfo&,
                                        const DGBasisInfo&,
                                        int,
                                        int,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                       MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >&,
+                                          const std::vector< Point3D >&,
+                                          const std::vector< Point3D >&,
+                                          const Point3D&,
+                                          const Point3D&,
+                                          const Point3D&,
                                           const DGBasisInfo&,
                                           const DGBasisInfo&,
                                           int,
                                           int,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                          MatrixXr& ) const
    {}
 
-   virtual void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
-                                          const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetCoupling3D( const std::vector< Point3D >&,
+                                          const std::vector< Point3D >&,
+                                          const std::vector< Point3D >&,
+                                          const Point3D&,
+                                          const Point3D&,
+                                          const Point3D&,
                                           const DGBasisInfo&,
                                           const DGBasisInfo&,
                                           int,
                                           int,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                          MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >&,
+                                                   const std::vector< Point3D >&,
+                                                   const Point3D&,
+                                                   const Point3D&,
                                                    const DGBasisInfo&,
                                                    const DGBasisInfo&,
                                                    int,
                                                    int,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                   MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateFacetDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateFacetDirichletBoundary3D( const std::vector< Point3D >&,
+                                                   const std::vector< Point3D >&,
+                                                   const Point3D&,
+                                                   const Point3D&,
                                                    const DGBasisInfo&,
                                                    const DGBasisInfo&,
                                                    int,
                                                    int,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                   MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateRHSDirichletBoundary2D( const std::vector< Point3D >&,
+                                                 const std::vector< Point3D >&,
+                                                 const Point3D&,
+                                                 const Point3D&,
                                                  const DGBasisInfo&,
                                                  int,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                 MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&,
+   virtual void integrateRHSDirichletBoundary3D( const std::vector< Point3D >&,
+                                                 const std::vector< Point3D >&,
+                                                 const Point3D&,
+                                                 const Point3D&,
                                                  const DGBasisInfo&,
                                                  int,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& ) const
+                                                 MatrixXr& ) const
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }

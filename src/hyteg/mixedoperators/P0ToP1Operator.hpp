@@ -270,7 +270,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                }
 
                // We only write to the DoFs in the current volume, let's prepare a temporary vector for that.
-               Eigen::Matrix< real_t, Eigen::Dynamic, 1 > dstDofs;
+               VectorXr dstDofs;
                dstDofs.resize( numDstDofs, Eigen::NoChange_t::NoChange );
                dstDofs.setZero();
 
@@ -278,7 +278,7 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                // Volume contribution //
                /////////////////////////
 
-               Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic > localMat;
+               MatrixXr localMat;
                localMat.resize( numDstDofs, numSrcDofs );
 
                // Little difference here is that the dst is now a CG P1 function.

@@ -39,15 +39,15 @@ class DGFormVolume : public DGForm
    virtual bool onlyVolumeIntegrals() const { return true; }
 
  protected:
-   virtual void integrateFacetInner2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -62,15 +62,15 @@ class DGFormVolume : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateFacetInner3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                       const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                       const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
                                        const DGBasisInfo&                                       trialBasis,
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                       MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -85,17 +85,17 @@ class DGFormVolume : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElementInner );
       WALBERLA_UNUSED( coordsElementOuter );
@@ -112,17 +112,17 @@ class DGFormVolume : public DGForm
       // Does nothing.
    };
 
-   virtual void integrateFacetCoupling3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementInner,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElementOuter,
-                                          const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexInnerElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertexOuterElement,
-                                          const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
                                           const DGBasisInfo&                                       trialBasis,
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                          MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElementInner );
       WALBERLA_UNUSED( coordsElementOuter );
@@ -139,15 +139,15 @@ class DGFormVolume : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -162,15 +162,15 @@ class DGFormVolume : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateFacetDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                   const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                   const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
                                                    const DGBasisInfo&                                       trialBasis,
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                   MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -185,13 +185,13 @@ class DGFormVolume : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateRHSDirichletBoundary2D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                 const std::vector< Point3D >& coordsFacet,
+                                                 const Point3D&                oppositeVertex,
+                                                 const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                 MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
@@ -204,13 +204,13 @@ class DGFormVolume : public DGForm
       // Does nothing.
    }
 
-   virtual void integrateRHSDirichletBoundary3D( const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsElement,
-                                                 const std::vector< Eigen::Matrix< real_t, 3, 1 > >&      coordsFacet,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     oppositeVertex,
-                                                 const Eigen::Matrix< real_t, 3, 1 >&                     outwardNormal,
+   virtual void integrateRHSDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+                                                 const std::vector< Point3D >& coordsFacet,
+                                                 const Point3D&                oppositeVertex,
+                                                 const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 Eigen::Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >& elMat ) const
+                                                 MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
       WALBERLA_UNUSED( coordsFacet );
