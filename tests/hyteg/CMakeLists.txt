@@ -466,6 +466,11 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
 endif ()
 
+if (HYTEG_BUILD_WITH_PETSC AND HYTEG_PETSC_BUILT_WITH_HDF5)
+    waLBerla_compile_test(FILES Petsc/PetscHDF5SaveLoadTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME PetscHDF5SaveLoadTest COMMAND $<TARGET_FILE:PetscHDF5SaveLoadTest>)
+endif ()
+
 waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SphereToolsTest1 COMMAND $<TARGET_FILE:SphereToolsTest>)
 waLBerla_execute_test(NAME SphereToolsTest2 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 2)
