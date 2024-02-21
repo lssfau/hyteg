@@ -17,4 +17,5 @@ target_sources( hyteg
     GeometryHelpers.cpp
     Polygons.hpp
     ThinShellMap.hpp
+    SphericalCoordsMap.hpp
 )

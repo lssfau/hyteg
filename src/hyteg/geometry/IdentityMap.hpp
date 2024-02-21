@@ -67,6 +67,49 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 1 ) = real_c( 1.0 );
    }
 
+   void evalDFinvDF( const Point3D& x, Matrixr<2,4>& DFinvDFx ) const override final
+   {
+      DFinvDFx(0,0) = 0;
+      DFinvDFx(0,1) = 0;
+      DFinvDFx(1,0) = 0;
+      DFinvDFx(1,1) = 0;
+      DFinvDFx(0,2) = 0;
+      DFinvDFx(0,3) = 0;
+      DFinvDFx(1,2) = 0;
+      DFinvDFx(1,3) = 0;
+   }; 
+
+   void evalDFinvDF( const Point3D& x, Matrixr<3,9>& DFinvDFx ) const override final
+   {
+      DFinvDFx(0,0) = 0;
+      DFinvDFx(0,1) = 0;
+      DFinvDFx(0,2) = 0;
+      DFinvDFx(1,0) = 0;
+      DFinvDFx(1,1) = 0;
+      DFinvDFx(1,2) = 0;
+      DFinvDFx(2,0) = 0;
+      DFinvDFx(2,1) = 0;
+      DFinvDFx(2,2) = 0;
+      DFinvDFx(0,3) = 0;
+      DFinvDFx(0,4) = 0;
+      DFinvDFx(0,5) = 0;
+      DFinvDFx(1,3) = 0;
+      DFinvDFx(1,4) = 0;
+      DFinvDFx(1,5) = 0;
+      DFinvDFx(2,3) = 0;
+      DFinvDFx(2,4) = 0;
+      DFinvDFx(2,5) = 0;
+      DFinvDFx(0,6) = 0;
+      DFinvDFx(0,7) = 0;
+      DFinvDFx(0,8) = 0;
+      DFinvDFx(1,6) = 0;
+      DFinvDFx(1,7) = 0;
+      DFinvDFx(1,8) = 0;
+      DFinvDFx(2,6) = 0;
+      DFinvDFx(2,7) = 0;
+      DFinvDFx(2,8) = 0;
+   }; 
+
    bool isIdentity() const final { return true; }
    bool isAffine() const final { return true; }
 
