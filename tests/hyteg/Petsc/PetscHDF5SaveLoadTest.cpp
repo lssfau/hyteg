@@ -17,12 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifdef HYTEG_BUILD_WITH_PETSC
-#ifdef PETSC_HAVE_HDF5
-#define HYTEG_BUILD_WITH_PETSC_AND_HDF5
-#endif
-#endif
-
 #include <core/timing/Timer.h>
 
 #include "core/Environment.h"
@@ -31,10 +25,8 @@
 
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-// clang-format off
-#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScHDF5FunctionSave.hpp"
-// clang-format on
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -47,8 +39,6 @@ using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
-   #ifdef HYTEG_BUILD_WITH_PETSC_AND_HDF5
-
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
@@ -125,8 +115,6 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_FLOAT_EQUAL( f2_sum, real_c( 0.0 ) );
    WALBERLA_CHECK_FLOAT_EQUAL( p1_comp, real_c( 0.0 ) );
    WALBERLA_CHECK_FLOAT_EQUAL( p2_comp, real_c( 0.0 ) );
-
-   #endif
 
    return EXIT_SUCCESS;
 }

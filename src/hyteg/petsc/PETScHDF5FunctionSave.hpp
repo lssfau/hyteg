@@ -20,13 +20,8 @@
 
 #pragma once
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-#ifdef PETSC_HAVE_HDF5
-#define HYTEG_BUILD_WITH_PETSC_AND_HDF5
-#endif
-#endif
-
-#ifdef HYTEG_BUILD_WITH_PETSC_AND_HDF5
+#include "hyteg/HytegDefinitions.hpp"
+#ifdef HYTEG_PETSC_BUILT_WITH_HDF5
 
 #include <cmath>
 #include <petscviewerhdf5.h>
