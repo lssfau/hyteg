@@ -46,7 +46,8 @@ class GeometryMap
       AFFINE_2D         = 6,
       AFFINE_3D         = 7,
       THIN_SHELL        = 8,
-      TOKAMAK           = 9
+      TOKAMAK           = 9,
+      SPHERICAL_COORDS  = 10
    };
 
    virtual ~GeometryMap(){};
@@ -81,6 +82,27 @@ class GeometryMap
       WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D in child class!" );
    };
+
+   /// Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
+   /// \param x Reference input coordinates
+   /// \param DFinvDFx Result matrix dim x dim*dim
+   virtual void evalDFinvDF( const Point3D& x, Matrixr<2,4>& DFinvDFx ) const
+   {
+      WALBERLA_UNUSED( x );
+      WALBERLA_UNUSED( DFinvDFx );
+      WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 2D in child class!" );
+   }; 
+
+   /// Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
+   /// \param x Reference input coordinates
+   /// \param DFinvDFx Result matrix dim x dim*dim
+   virtual void evalDFinvDF( const Point3D& x, Matrixr<3,9>& DFinvDFx ) const
+   {
+      WALBERLA_UNUSED( x );
+      WALBERLA_UNUSED( DFinvDFx );
+      WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 3D in child class!" );
+   }; 
+
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
