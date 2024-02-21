@@ -32,13 +32,12 @@ namespace hyteg {
 class GeometryMap
 {
  public:
-
    /// These enum values are use in the serialisation of blending maps to mark
    /// the type of map contained in the stream to allow correct deserialisation
    enum class Type : uint_t
    {
       IDENTITY          = 0,
-      AFFINE            = 1,  // [keep for backward compatibility or remove?]
+      AFFINE            = 1, // [keep for backward compatibility or remove?]
       CIRCULAR          = 2,
       POLAR_COORDS      = 3,
       ANNULUS           = 4,
@@ -46,7 +45,8 @@ class GeometryMap
       AFFINE_2D         = 6,
       AFFINE_3D         = 7,
       THIN_SHELL        = 8,
-      TOKAMAK           = 9
+      TOKAMAK           = 9,
+      TORUS             = 10,
    };
 
    virtual ~GeometryMap(){};

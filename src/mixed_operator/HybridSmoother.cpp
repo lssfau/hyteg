@@ -33,6 +33,7 @@ namespace n1e1 {
 template < class N1E1OperatorType, class P1LaplaceOperatorType >
 HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::HybridSmoother(
     const std::shared_ptr< PrimitiveStorage >&         storage,
+    const n1e1::N1E1VectorFunction< real_t >&          tmpFunction,
     std::shared_ptr< P1LaplaceOperatorType >           p1LaplaceOperator,
     std::shared_ptr< Solver< N1E1OperatorType > >      n1e1Smoother,
     std::shared_ptr< Solver< P1LaplaceOperatorType > > p1Smoother,
@@ -46,10 +47,31 @@ HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::HybridSmoother(
 , p1LaplaceOperator_( p1LaplaceOperator )
 , n1e1Smoother_( n1e1Smoother )
 , p1Smoother_( p1Smoother )
-, vectorResidual_( "hybridSmootherVectorResidual", storage, minLevel, maxLevel )
+, vectorResidual_( tmpFunction )
 , scalarResidual_( "hybridSmootherScalarResidual", storage, minLevel, maxLevel )
 , scalarPotential_( "hybridSmootherScalarPotential", storage, minLevel, maxLevel )
 , timingTree_( storage->getTimingTree() )
+{}
+
+template < class N1E1OperatorType, class P1LaplaceOperatorType >
+HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::HybridSmoother(
+    const std::shared_ptr< PrimitiveStorage >&         storage,
+    std::shared_ptr< P1LaplaceOperatorType >           p1LaplaceOperator,
+    std::shared_ptr< Solver< N1E1OperatorType > >      n1e1Smoother,
+    std::shared_ptr< Solver< P1LaplaceOperatorType > > p1Smoother,
+    const uint_t                                       minLevel,
+    const uint_t                                       maxLevel,
+    const uint_t                                       n1e1SmoothSteps,
+    const uint_t                                       p1SmoothSteps )
+: HybridSmoother( storage,
+                  N1E1VectorFunction< real_t >( "hybridSmootherVectorResidual", storage, minLevel, maxLevel ),
+                  p1LaplaceOperator,
+                  n1e1Smoother,
+                  p1Smoother,
+                  minLevel,
+                  maxLevel,
+                  n1e1SmoothSteps,
+                  p1SmoothSteps )
 {}
 
 template < class N1E1OperatorType, class P1LaplaceOperatorType >
@@ -102,6 +124,9 @@ void HybridSmoother< N1E1OperatorType, P1LaplaceOperatorType >::solve( const N1E
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLaplaceOperator >;
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ConstantLinearCombinationOperator >;
 template class HybridSmoother< N1E1ElementwiseLinearCombinationOperator, P1ElementwiseBlendingLaplaceOperator >;
+template class HybridSmoother< N1E1ElementwiseCurlCurlPlusMassOperatorQ2, P1ConstantLaplaceOperator >;
+template class HybridSmoother< N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2, P1ElementwiseBlendingLaplaceOperatorQ2 >;
+template class HybridSmoother< N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2, P1ElementwiseBlendingLaplaceOperator >;
 
 } // namespace n1e1
 } // namespace hyteg
