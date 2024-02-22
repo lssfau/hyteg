@@ -471,8 +471,8 @@ waLBerla_execute_test(NAME SphereToolsTest1 COMMAND $<TARGET_FILE:SphereToolsTes
 waLBerla_execute_test(NAME SphereToolsTest2 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 2)
 waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 4)
 
-waLBerla_compile_test(FILES geometry/geometryMapEvalDFinvDFTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME geometryMapEvalDFinvDFTest)
+waLBerla_compile_test(FILES blending/EvalDFinvDFTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME EvalDFinvDFTest)
 
 ## DG ##
 if (HYTEG_BUILD_WITH_PETSC)
