@@ -57,9 +57,11 @@ std::shared_ptr< PrimitiveStorage >
    return storage;
 }
 
-// Test function to evaluate temperature initialisation using white noise (Gaussian White Noise (GWN))
-// superimposed on the background temperature. The noise factor will define how much temprature deviation [%]
-// will be added as noise to the refernce temperature.
+// Test function to evaluate temperature initialisation using white noise (Gaussian White Noise (GWN)) or spherical
+// harmonics superimposed on the background temperature.
+// The noise factor will define how much temprature deviation [%] will be added as noise to the refernce temperature.
+// For the spherical harmonics temperature intialisation a distinct degree and order of the spherical harmonics functions
+// can be defined.
 
 template < typename FunctionType >
 void runTest( const uint_t& nTan,
@@ -85,9 +87,26 @@ void runTest( const uint_t& nTan,
        std::make_shared< terraneo::TemperaturefieldConv< FunctionType > >(
            temperature, Tcmb, Tsurface, Tadb, 0.68, rMax, rMin, maxLevel, minLevel );
 
-   real_t noiseFactor = 0.05;
+   real_t noiseFactor                 = 0.05;
+   uint_t tempInit                    = 10;
+   uint_t deg                         = 4;
+   int    ord                         = 2;
+   uint_t lmax                        = 25;
+   uint_t lmin                        = 10;
+   bool   superposition               = true;
+   real_t buoyancyFactor              = 0.01;
+   real_t initialTemperatureSteepness = 10;
+   bool   noiseInit                   = true;
 
-   Temperaturefield->initialiseTemperatureWhiteNoise( noiseFactor );
+   if ( noiseInit )
+   {
+      Temperaturefield->initialiseTemperatureWhiteNoise( noiseFactor );
+   }
+   else
+   {
+      Temperaturefield->initialiseTemperatureSPH(
+          tempInit, deg, ord, lmax, lmin, superposition, buoyancyFactor, initialTemperatureSteepness );
+   }
 
    std::string outputDirectory = "./output";
    std::string baseName        = "Test_T_field_Init";
@@ -123,7 +142,7 @@ void runTest( const uint_t& nTan,
        std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperatureDev, *tmpDev, rMin, rMax, nRad, maxLevel );
    std::vector< real_t > TemperatureDevProfile = TemperatureDevProfileTool->getMeanProfile();
 
-   // Evaluate that the mean of GWN is zero.
+   // Evaluate that the mean of temperature deviation is zero.
 
    bool isZero = std::all_of( TemperatureDevProfile.begin(), TemperatureDevProfile.end(), []( uint_t i ) { return i == 0; } );
    WALBERLA_CHECK( isZero == true );
