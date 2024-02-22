@@ -16,6 +16,7 @@ option ( HYTEG_BUILD_WITH_MPFR        "Build with MPFR"                         
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
+option ( HYTEG_BUILD_WITH_PYTHON3     "Build with PYTHON3"                           OFF)
 option ( HYTEG_BUILD_WITH_AVX         "Use AVX intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX})
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
@@ -85,6 +86,10 @@ FetchContent_Declare(
 if( HYTEG_DOWNLOAD_BOOST )
    FetchContent_Populate( boost )
    set(BOOST_ROOT ${hyteg_BINARY_DIR}/_deps/boost-src/ CACHE PATH "Path to boost root")
+endif()
+
+if(HYTEG_BUILD_WITH_PYTHON3)
+   find_package (Python3 COMPONENTS Development)
 endif()
 
 # Add flags and libraries required to build terraneo submodule

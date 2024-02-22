@@ -26,6 +26,7 @@
 #cmakedefine HYTEG_BUILD_WITH_TRILINOS
 #cmakedefine HYTEG_USE_GENERATED_KERNELS
 #cmakedefine HYTEG_TERRANEO_MODULE
+#cmakedefine HYTEG_BUILD_WITH_PYTHON3
 
 #ifdef HYTEG_USE_GENERATED_KERNELS
 namespace hyteg {
