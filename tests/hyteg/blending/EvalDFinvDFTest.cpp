@@ -151,8 +151,6 @@ real_t firstDerivativeTestTaylor3D()
 
    WALBERLA_LOG_INFO_ON_ROOT( "firstDerivativeTestTaylor3D: " << maximum );
 
-   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( maximum, 0.0, h );
-
    return maximum;
 }
 

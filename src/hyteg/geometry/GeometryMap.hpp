@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -32,13 +32,12 @@ namespace hyteg {
 class GeometryMap
 {
  public:
-
    /// These enum values are use in the serialisation of blending maps to mark
    /// the type of map contained in the stream to allow correct deserialisation
    enum class Type : uint_t
    {
       IDENTITY          = 0,
-      AFFINE            = 1,  // [keep for backward compatibility or remove?]
+      AFFINE            = 1, // [keep for backward compatibility or remove?]
       CIRCULAR          = 2,
       POLAR_COORDS      = 3,
       ANNULUS           = 4,
@@ -86,28 +85,37 @@ class GeometryMap
    /// Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    /// \param DFinvDFx Result matrix dim x dim*dim
-   virtual void evalDFinvDF( const Point3D& x, Matrixr<2,4>& DFinvDFx ) const
+   virtual void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvDFx );
       WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 2D in child class!" );
-   }; 
+   };
 
    /// Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    /// \param DFinvDFx Result matrix dim x dim*dim
-   virtual void evalDFinvDF( const Point3D& x, Matrixr<3,9>& DFinvDFx ) const
+   virtual void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvDFx );
       WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 3D in child class!" );
-   }; 
-
+   };
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    /// \param DFinvx Inverse of the Jacobian matrix
    virtual void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const = 0;
+
+   /// Evaluation of the Jacobian matrix at reference position \p x
+   /// \param x Reference input coordinates
+   /// \param DFinvx Inverse of the Jacobian matrix
+   virtual void evalDFinv( const Point3D& x, Matrix3r& DFinvx ) const
+   {
+      WALBERLA_UNUSED( x );
+      WALBERLA_UNUSED( DFinvx );
+      WALBERLA_ABORT( "GeometryMap::evalDFinv() not implemented for 3D in child class!" );
+   };
 
    /// Evaluation of the determinant of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates

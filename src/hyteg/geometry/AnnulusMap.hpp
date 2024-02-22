@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -205,14 +205,14 @@ class AnnulusMap : public GeometryMap
       const real_t tmp46 = -tmp41;
       const real_t tmp47 = tmp36 * ( -tmp24 * tmp26 - tmp28 * tmp45 - tmp31 * tmp44 - tmp33 * tmp46 );
 
-      DFinvDFx( 0, 0 )   = tmp24 * tmp35 + tmp33 * tmp43;
-      DFinvDFx( 0, 1 )   = tmp26 * tmp43 + tmp35 * tmp41;
-      DFinvDFx( 1, 0 )   = tmp27 * tmp43 + tmp35 * tmp40;
-      DFinvDFx( 1, 1 )   = tmp31 * tmp43 + tmp35 * tmp42;
-      DFinvDFx( 0, 2 )   = tmp33 * tmp47 + tmp35 * tmp44;
-      DFinvDFx( 0, 3 )   = tmp26 * tmp47 + tmp35 * tmp45;
-      DFinvDFx( 1, 2 )   = tmp23 * tmp35 + tmp27 * tmp47;
-      DFinvDFx( 1, 3 )   = tmp31 * tmp47 + tmp35 * tmp46;
+      DFinvDFx( 0, 0 ) = tmp24 * tmp35 + tmp33 * tmp43;
+      DFinvDFx( 0, 1 ) = tmp26 * tmp43 + tmp35 * tmp41;
+      DFinvDFx( 1, 0 ) = tmp27 * tmp43 + tmp35 * tmp40;
+      DFinvDFx( 1, 1 ) = tmp31 * tmp43 + tmp35 * tmp42;
+      DFinvDFx( 0, 2 ) = tmp33 * tmp47 + tmp35 * tmp44;
+      DFinvDFx( 0, 3 ) = tmp26 * tmp47 + tmp35 * tmp45;
+      DFinvDFx( 1, 2 ) = tmp23 * tmp35 + tmp27 * tmp47;
+      DFinvDFx( 1, 3 ) = tmp31 * tmp47 + tmp35 * tmp46;
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
@@ -234,13 +234,6 @@ class AnnulusMap : public GeometryMap
          setupStorage.setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, setupStorage ) );
       }
    }
-
-   const Point3D& rayVertex() const { return rayVertex_; }
-   const Point3D& refVertex() const { return refVertex_; }
-   const Point3D& thrVertex() const { return thrVertex_; }
-
-   real_t radRefVertex() const { return radRefVertex_; }
-   real_t radRayVertex() const { return radRayVertex_; }
 
  private:
    /// \name Classified vertices of macro triangle

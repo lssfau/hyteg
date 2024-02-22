@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes.
+ * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -67,48 +67,48 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 1 ) = real_c( 1.0 );
    }
 
-   void evalDFinvDF( const Point3D& x, Matrixr<2,4>& DFinvDFx ) const override final
+   void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
    {
-      DFinvDFx(0,0) = 0;
-      DFinvDFx(0,1) = 0;
-      DFinvDFx(1,0) = 0;
-      DFinvDFx(1,1) = 0;
-      DFinvDFx(0,2) = 0;
-      DFinvDFx(0,3) = 0;
-      DFinvDFx(1,2) = 0;
-      DFinvDFx(1,3) = 0;
-   }; 
+      DFinvDFx( 0, 0 ) = real_c( 0 );
+      DFinvDFx( 0, 1 ) = real_c( 0 );
+      DFinvDFx( 1, 0 ) = real_c( 0 );
+      DFinvDFx( 1, 1 ) = real_c( 0 );
+      DFinvDFx( 0, 2 ) = real_c( 0 );
+      DFinvDFx( 0, 3 ) = real_c( 0 );
+      DFinvDFx( 1, 2 ) = real_c( 0 );
+      DFinvDFx( 1, 3 ) = real_c( 0 );
+   };
 
-   void evalDFinvDF( const Point3D& x, Matrixr<3,9>& DFinvDFx ) const override final
+   void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const override final
    {
-      DFinvDFx(0,0) = 0;
-      DFinvDFx(0,1) = 0;
-      DFinvDFx(0,2) = 0;
-      DFinvDFx(1,0) = 0;
-      DFinvDFx(1,1) = 0;
-      DFinvDFx(1,2) = 0;
-      DFinvDFx(2,0) = 0;
-      DFinvDFx(2,1) = 0;
-      DFinvDFx(2,2) = 0;
-      DFinvDFx(0,3) = 0;
-      DFinvDFx(0,4) = 0;
-      DFinvDFx(0,5) = 0;
-      DFinvDFx(1,3) = 0;
-      DFinvDFx(1,4) = 0;
-      DFinvDFx(1,5) = 0;
-      DFinvDFx(2,3) = 0;
-      DFinvDFx(2,4) = 0;
-      DFinvDFx(2,5) = 0;
-      DFinvDFx(0,6) = 0;
-      DFinvDFx(0,7) = 0;
-      DFinvDFx(0,8) = 0;
-      DFinvDFx(1,6) = 0;
-      DFinvDFx(1,7) = 0;
-      DFinvDFx(1,8) = 0;
-      DFinvDFx(2,6) = 0;
-      DFinvDFx(2,7) = 0;
-      DFinvDFx(2,8) = 0;
-   }; 
+      DFinvDFx( 0, 0 ) = real_c( 0 );
+      DFinvDFx( 0, 1 ) = real_c( 0 );
+      DFinvDFx( 0, 2 ) = real_c( 0 );
+      DFinvDFx( 1, 0 ) = real_c( 0 );
+      DFinvDFx( 1, 1 ) = real_c( 0 );
+      DFinvDFx( 1, 2 ) = real_c( 0 );
+      DFinvDFx( 2, 0 ) = real_c( 0 );
+      DFinvDFx( 2, 1 ) = real_c( 0 );
+      DFinvDFx( 2, 2 ) = real_c( 0 );
+      DFinvDFx( 0, 3 ) = real_c( 0 );
+      DFinvDFx( 0, 4 ) = real_c( 0 );
+      DFinvDFx( 0, 5 ) = real_c( 0 );
+      DFinvDFx( 1, 3 ) = real_c( 0 );
+      DFinvDFx( 1, 4 ) = real_c( 0 );
+      DFinvDFx( 1, 5 ) = real_c( 0 );
+      DFinvDFx( 2, 3 ) = real_c( 0 );
+      DFinvDFx( 2, 4 ) = real_c( 0 );
+      DFinvDFx( 2, 5 ) = real_c( 0 );
+      DFinvDFx( 0, 6 ) = real_c( 0 );
+      DFinvDFx( 0, 7 ) = real_c( 0 );
+      DFinvDFx( 0, 8 ) = real_c( 0 );
+      DFinvDFx( 1, 6 ) = real_c( 0 );
+      DFinvDFx( 1, 7 ) = real_c( 0 );
+      DFinvDFx( 1, 8 ) = real_c( 0 );
+      DFinvDFx( 2, 6 ) = real_c( 0 );
+      DFinvDFx( 2, 7 ) = real_c( 0 );
+      DFinvDFx( 2, 8 ) = real_c( 0 );
+   };
 
    bool isIdentity() const final { return true; }
    bool isAffine() const final { return true; }
