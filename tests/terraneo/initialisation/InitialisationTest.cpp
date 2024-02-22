@@ -66,15 +66,16 @@ void runTest( const uint_t& nTan,
               const uint_t& nRad,
               const real_t& rMax,
               const real_t& rMin,
-              const uint_t& lMax,
-              const uint_t& lMin )
+              const uint_t& maxLevel,
+              const uint_t& minLevel )
 {
    auto storage = setupSphericalShellStorage( nTan, nRad, rMax, rMin );
 
-   std::shared_ptr< FunctionType > temperature    = std::make_shared< FunctionType >( "temperature", storage, lMin, lMax );
-   std::shared_ptr< FunctionType > temperatureDev = std::make_shared< FunctionType >( "temperatureDev", storage, lMin, lMax );
-   std::shared_ptr< FunctionType > tmp            = std::make_shared< FunctionType >( "tmp", storage, lMin, lMax );
-   std::shared_ptr< FunctionType > tmpDev         = std::make_shared< FunctionType >( "tmpDev", storage, lMin, lMax );
+   std::shared_ptr< FunctionType > temperature = std::make_shared< FunctionType >( "temperature", storage, minLevel, maxLevel );
+   std::shared_ptr< FunctionType > temperatureDev =
+       std::make_shared< FunctionType >( "temperatureDev", storage, minLevel, maxLevel );
+   std::shared_ptr< FunctionType > tmp    = std::make_shared< FunctionType >( "tmp", storage, minLevel, maxLevel );
+   std::shared_ptr< FunctionType > tmpDev = std::make_shared< FunctionType >( "tmpDev", storage, minLevel, maxLevel );
 
    real_t Tsurface = 300;
    real_t Tcmb     = 4200;
@@ -82,7 +83,7 @@ void runTest( const uint_t& nTan,
 
    std::shared_ptr< terraneo::TemperaturefieldConv< FunctionType > > Temperaturefield =
        std::make_shared< terraneo::TemperaturefieldConv< FunctionType > >(
-           temperature, Tcmb, Tsurface, Tadb, 0.68, rMax, rMin, lMax, lMin );
+           temperature, Tcmb, Tsurface, Tadb, 0.68, rMax, rMin, maxLevel, minLevel );
 
    real_t noiseFactor = 0.05;
 
@@ -97,9 +98,9 @@ void runTest( const uint_t& nTan,
    }
 
    std::shared_ptr< terraneo::RadialProfileTool< FunctionType > > TemperatureProfileTool =
-       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperature, *tmp, rMax, rMin, nRad, lMax );
+       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperature, *tmp, rMax, rMin, nRad, maxLevel );
    std::vector< real_t > TemperatureProfile = TemperatureProfileTool->getMeanProfile();
-   auto                  numLayers          = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( lMax ) - 1 );
+   auto                  numLayers          = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( maxLevel ) - 1 );
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFct =
        [&]( const Point3D& x, const std::vector< real_t >& T ) {
@@ -113,13 +114,13 @@ void runTest( const uint_t& nTan,
           return retVal;
        };
 
-   for ( uint_t l = lMin; l <= lMax; ++l )
+   for ( uint_t l = minLevel; l <= maxLevel; ++l )
    {
       temperatureDev->interpolate( temperatureDevFct, { *temperature }, l, All );
    }
 
    std::shared_ptr< terraneo::RadialProfileTool< FunctionType > > TemperatureDevProfileTool =
-       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperatureDev, *tmpDev, rMin, rMax, nRad, lMax );
+       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperatureDev, *tmpDev, rMin, rMax, nRad, maxLevel );
    std::vector< real_t > TemperatureDevProfile = TemperatureDevProfileTool->getMeanProfile();
 
    // Evaluate that the mean of GWN is zero.
@@ -127,7 +128,7 @@ void runTest( const uint_t& nTan,
    bool isZero = std::all_of( TemperatureDevProfile.begin(), TemperatureDevProfile.end(), []( uint_t i ) { return i == 0; } );
    WALBERLA_CHECK( isZero == true );
 
-   bool output = false;
+   bool output = true;
 
    if ( output )
    {
@@ -135,7 +136,7 @@ void runTest( const uint_t& nTan,
       vtkOutput.setVTKDataFormat( hyteg::vtk::DataFormat::BINARY );
       vtkOutput.add( *temperature );
       vtkOutput.add( *temperatureDev );
-      vtkOutput.write( lMax );
+      vtkOutput.write( maxLevel );
    }
 }
 
@@ -144,13 +145,13 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   real_t rMax = 2.12;
-   real_t rMin = 1.12;
-   uint_t lMin = 0;
-   uint_t lMax = 4;
-   uint_t nTan = 3;
-   uint_t nRad = 2;
+   real_t rMax     = 2.12;
+   real_t rMin     = 1.12;
+   uint_t minLevel = 0;
+   uint_t maxLevel = 4;
+   uint_t nTan     = 3;
+   uint_t nRad     = 2;
 
-   runTest< P2Function< real_t > >( nTan, nRad, rMax, rMin, lMax, lMin );
+   runTest< P2Function< real_t > >( nTan, nRad, rMax, rMin, maxLevel, minLevel );
    return 0;
 }

@@ -34,6 +34,11 @@
 #include "typeAliases.hpp"
 
 namespace terraneo {
+
+using walberla::real_c;
+using walberla::real_t;
+using walberla::uint_t;
+
 template < typename FunctionType >
 class TemperaturefieldConv
 {
@@ -45,8 +50,8 @@ class TemperaturefieldConv
                          real_t                           dissipationNumber,
                          real_t                           rMax,
                          real_t                           rMin,
-                         uint_t                           lMax,
-                         uint_t                           lMin )
+                         uint_t                           maxLevel,
+                         uint_t                           minLevel )
    : T_( T )
    , Tcmb_( Tcmb )
    , Tsurface_( Tsurface )
@@ -54,8 +59,8 @@ class TemperaturefieldConv
    , dissipatioNumber_( dissipationNumber )
    , rMax_( rMax )
    , rMin_( rMin )
-   , lMax_( lMax )
-   , lMin_( lMin )
+   , maxLevel_( maxLevel )
+   , minLevel_( minLevel )
    {}
 
    real_t referenceTemperatureFct( const hyteg::Point3D& x )
@@ -93,7 +98,7 @@ class TemperaturefieldConv
          return retVal;
       };
 
-      for ( uint_t l = lMin_; l <= lMax_; l++ )
+      for ( uint_t l = minLevel_; l <= maxLevel_; l++ )
       {
          T_->interpolate( temperatureInit, l, hyteg::All );
       }
@@ -107,8 +112,8 @@ class TemperaturefieldConv
    real_t rMax_;
    real_t rMin_;
    real_t noiseFactor_;
-   uint_t lMax_;
-   uint_t lMin_;
+   uint_t maxLevel_;
+   uint_t minLevel_;
 
    std::shared_ptr< FunctionType >& T_;
 };
