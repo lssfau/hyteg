@@ -116,6 +116,21 @@ The rules can be automatically applied by using:
 
     clang-format -i $FileName
 
+### Merge requests
+
+A merge request (MR) can be in three different states:
+
+1. Draft: Work in progress, not ready for review or merging.
+   When opening a new MR, mark it as draft (by prefixing the title with "Draft: " or using the UI) unless it is already ready for review.
+2. Ready for review: Finished from the author's point of view.
+   Remove the "Draft" flag to mark the MR as ready and ask a maintainer for review.
+   *Every MR must have at least one approving review before it can be merged.*
+3. Ready for merging: All work on this MR is done, it has been approved, all discussions are resolved and the CI passed.
+   Thanks for your contribution to HyTeG!
+   Before merging please make sure that your branch is up-to-date with the current master because the CI checks the HEAD of your branch, not the result of the merge.
+   Also make sure that "Delete source branch" is checked.
+   You may now press that Merge button.
+
 ### CCache
 
 Due to the large amount of generated files it is advisable to activate ccache.
