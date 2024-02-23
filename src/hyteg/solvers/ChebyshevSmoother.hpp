@@ -44,6 +44,13 @@ class ChebyshevSmoother : public Solver< OperatorType >
    , flag_( Inner | NeumannBoundary )
    {}
 
+   ChebyshevSmoother( const FunctionType& tmp1, const FunctionType& tmp2 )
+   : coefficients{}
+   , tmp1_( tmp1 )
+   , tmp2_( tmp2 )
+   , flag_( Inner | NeumannBoundary )
+   {}
+
    /// Executes an iteration step of the smoother.
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {

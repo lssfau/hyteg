@@ -22,6 +22,8 @@
 #include "hyteg/forms/N1E1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_affine_q0.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_plus_mass_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_curl_curl_plus_mass_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_mass_blending_q2.hpp"
 #include "hyteg/n1e1functionspace/N1E1Indexing.hpp"
@@ -200,7 +202,9 @@ using N1E1ElementwiseBlendingCurlCurlOperatorQ2 = N1E1ElementwiseOperator< forms
 using N1E1ElementwiseMassOperator           = N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
 using N1E1ElementwiseBlendingMassOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
 // linear combination
-using N1E1ElementwiseLinearCombinationOperator = N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
+using N1E1ElementwiseLinearCombinationOperator          = N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
+using N1E1ElementwiseCurlCurlPlusMassOperatorQ2         = N1E1ElementwiseOperator< forms::n1e1_curl_curl_plus_mass_affine_q2 >;
+using N1E1ElementwiseBlendingCurlCurlPlusMassOperatorQ2 = N1E1ElementwiseOperator< forms::n1e1_curl_curl_plus_mass_blending_q2 >;
 
 } // namespace n1e1
 } // namespace hyteg

@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "hyteg/geometry/GeometryMap.hpp"
+
 #include "AffineMap2D.hpp"
 #include "AffineMap3D.hpp"
 #include "AnnulusMap.hpp"
@@ -27,6 +29,7 @@
 #include "SphericalCoordsMap.hpp"
 #include "ThinShellMap.hpp"
 #include "TokamakMap.hpp"
+#include "TorusMap.hpp"
 
 namespace hyteg {
 
@@ -70,6 +73,8 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< SphericalCoordsMap >();
    case Type::TOKAMAK:
       return std::make_shared< TokamakMap >( recvBuffer );
+   case Type::TORUS:
+      return std::make_shared< TorusMap >( recvBuffer );
    default:
       WALBERLA_ABORT( "Error in deserializing GeometryMap: Unsupported Map Type" )
    }

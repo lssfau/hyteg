@@ -25,6 +25,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/eigen/EigenWrapper.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_affine_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/n1e1/n1e1_linear_form_blending_q6.hpp"
 #include "hyteg/n1e1functionspace/N1E1MacroCell.hpp"
 
@@ -443,12 +444,18 @@ template class N1E1ElementwiseOperator< forms::n1e1_mass_affine_qe >;
 template class N1E1ElementwiseOperator< forms::n1e1_mass_blending_q2 >;
 // linear combination
 template class N1E1ElementwiseOperator< N1E1LinearCombinationForm >;
+template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_plus_mass_affine_q2 >;
+template class N1E1ElementwiseOperator< forms::n1e1_curl_curl_plus_mass_blending_q2 >;
 
 // linear forms
 template void assembleLinearForm( const uint_t                             minLevel,
                                   const uint_t                             maxLevel,
                                   const forms::n1e1_linear_form_affine_q6& form,
                                   N1E1VectorFunction< real_t >&            f );
+template void assembleLinearForm( const uint_t                               minLevel,
+                                  const uint_t                               maxLevel,
+                                  const forms::n1e1_linear_form_blending_q2& form,
+                                  N1E1VectorFunction< real_t >&              f );
 template void assembleLinearForm( const uint_t                               minLevel,
                                   const uint_t                               maxLevel,
                                   const forms::n1e1_linear_form_blending_q6& form,

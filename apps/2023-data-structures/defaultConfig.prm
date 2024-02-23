@@ -1,0 +1,45 @@
+Parameters
+{
+  // numProcesses      4;
+  // createStorageFile true;
+  // storageFileName   torus.storage;
+
+  // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
+  minLevel 0;
+  maxLevel 3;
+
+  // "cube" or "torus"
+  domain torus;
+
+  // "vcycles" or "fmg"
+  solverType fmg;
+
+  preSmooth     1;
+  postSmooth    1;
+  numVCyclesFMG
+  {
+    0 4;
+    1 4;
+    2 4;
+    3 2;
+  }
+
+  n1e1SpectralRadius 3.08346;
+  p1SpectralRadius   2.00736;
+
+  coarseGridRefinements 0;
+
+  toroidalResolution 34;
+  poloidalResolution 6;
+  tubeLayerRadii
+  {
+    0 0.4;
+  }
+
+  vtk false;
+  printSetupStorage false;
+  printPrimitiveStorage true;
+  timingJSON true;
+
+  baseName curlcurl;
+}

@@ -46,7 +46,8 @@ class GeometryMap
       AFFINE_3D         = 7,
       THIN_SHELL        = 8,
       TOKAMAK           = 9,
-      SPHERICAL_COORDS  = 10
+      SPHERICAL_COORDS  = 10,
+      TORUS             = 11,
    };
 
    virtual ~GeometryMap(){};

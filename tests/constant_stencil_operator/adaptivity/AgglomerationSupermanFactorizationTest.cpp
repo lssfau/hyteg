@@ -141,7 +141,7 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
       coarseGridSolverInner =
           std::make_shared< PETScLUSolver< P2ConstantLaplaceOperator > >( agglomerationStorage, minLevel );
       coarseGridSolverInner->setManualAssemblyAndFactorization( true );
-      coarseGridSolverInner->reassembleMatrix( true );
+      coarseGridSolverInner->setReassembleMatrix( true );
 
       // now wrap the solver
       agglomerationWrapper->setSolver( coarseGridSolverInner );
@@ -151,7 +151,7 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
    else
    {
       coarseGridSolverInner = std::make_shared< PETScLUSolver< P2ConstantLaplaceOperator > >( storage, minLevel );
-      coarseGridSolverInner->reassembleMatrix( true );
+      coarseGridSolverInner->setReassembleMatrix( true );
       coarseGridSolver = coarseGridSolverInner;
    }
 
