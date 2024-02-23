@@ -122,6 +122,7 @@ A merge request (MR) can be in three different states:
 
 1. Draft: Work in progress, not ready for review or merging.
    When opening a new MR, mark it as draft (by prefixing the title with "Draft: " or using the UI) unless it is already ready for review.
+   Please formulate a descriptive title and provide a summary of your changes in the description.
 2. Ready for review: Finished from the author's point of view.
    Remove the "Draft" flag to mark the MR as ready and ask a maintainer for review.
    *Every MR must have at least one approving review before it can be merged.*
