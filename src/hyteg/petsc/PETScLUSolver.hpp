@@ -106,7 +106,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
    /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
    ///        Default is false.
-   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
+   void setReassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
    void setMUMPSIcntrl( uint_t key, int value ) { mumpsIcntrl_[key] = value; }
 

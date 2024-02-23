@@ -1253,7 +1253,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
       {
          petscSolverInternalTmp->setManualAssemblyAndFactorization( true );
-         petscSolverInternalTmp->reassembleMatrix( false );
+         petscSolverInternalTmp->setReassembleMatrix( false );
          dedicatedAgglomerationFactorization = [agglomerationWrapper, petscSolverInternalTmp] {
             petscSolverInternalTmp->assembleAndFactorize( *agglomerationWrapper->getAgglomerationOperator() );
          };
