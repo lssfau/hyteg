@@ -587,7 +587,7 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
          max_load = std::max( load, max_load );
          min_load = std::min( load, min_load );
       }
-      WALBERLA_LOG_INFO_ON_ROOT( "min/max/mean load (number of vol. elements): " << min_load << " / " << max_load << " / " );
+      WALBERLA_LOG_INFO_ON_ROOT( "min/max/mean load (number of vol. elements): " << min_load << " / " << max_load << " / " << double(_n_elements)/double(_n_processes));
    }
 }
 
