@@ -56,6 +56,8 @@ class Function
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
    {
+      WALBERLA_CHECK_NOT_NULLPTR( storage_, "PrimitiveStorage pointer passed to Function is nullptr." );
+
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          communicators_[level]         = std::make_shared< communication::BufferedCommunicator >( storage );
