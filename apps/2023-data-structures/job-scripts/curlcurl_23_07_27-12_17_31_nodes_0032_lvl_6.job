@@ -1,0 +1,12 @@
+
+#!/bin/bash
+
+#PBS -N curlcurl_23_07_27-12_17_31_nodes_0032_lvl_6
+#PBS -l select=32:node_type=rome:mpiprocs=128
+#PBS -l walltime=00:24:00
+
+module load petsc
+
+cd $PBS_O_WORKDIR
+mpirun -n 4096 ./curlCurlConvergence curlcurl_23_07_27-12_17_31_nodes_0032_lvl_6.prm > curlcurl_23_07_27-12_17_31_nodes_0032_lvl_6.out 2>&1
+

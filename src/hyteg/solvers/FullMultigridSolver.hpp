@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Daniel Bauer.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,11 @@
 
 #pragma once
 
+#include <vector>
+
+#include "core/Abort.h"
+#include "core/DataTypes.h"
+
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
@@ -31,13 +36,31 @@ class FullMultigridSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   FullMultigridSolver( const std::shared_ptr< PrimitiveStorage >&                         storage,
-                        const std::shared_ptr< GeometricMultigridSolver< OperatorType > >& gmgSolver,
-                        const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
-                        const uint_t&                                                      minLevel,
-                        const uint_t&                                                      maxLevel,
-                        const uint_t&                                                      cyclesPerLevel = 1,
-                        const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ){} )
+   FullMultigridSolver(
+       const std::shared_ptr< PrimitiveStorage >&                         storage,
+       const std::shared_ptr< GeometricMultigridSolver< OperatorType > >& gmgSolver,
+       const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
+       const uint_t&                                                      minLevel,
+       const uint_t&                                                      maxLevel,
+       const uint_t&                                                      cyclesPerLevel    = 1,
+       const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ) {} )
+   : FullMultigridSolver< OperatorType >( storage,
+                                          gmgSolver,
+                                          fmgProlongation,
+                                          minLevel,
+                                          maxLevel,
+                                          std::vector< uint_t >( maxLevel + 1, cyclesPerLevel ),
+                                          postCycleCallback )
+   {}
+
+   FullMultigridSolver(
+       const std::shared_ptr< PrimitiveStorage >&                         storage,
+       const std::shared_ptr< GeometricMultigridSolver< OperatorType > >& gmgSolver,
+       const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
+       const uint_t&                                                      minLevel,
+       const uint_t&                                                      maxLevel,
+       const std::vector< uint_t >&                                       cyclesPerLevel,
+       const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ) {} )
    : gmgSolver_( gmgSolver )
    , fmgProlongation_( fmgProlongation )
    , minLevel_( minLevel )
@@ -46,7 +69,13 @@ class FullMultigridSolver : public Solver< OperatorType >
    , flag_( Inner | NeumannBoundary )
    , postCycleCallback_( postCycleCallback )
    , timingTree_( storage->getTimingTree() )
-   {}
+   {
+      if ( cyclesPerLevel.size() != maxLevel + 1 )
+      {
+         WALBERLA_ABORT(
+             "Specify the number of V-Cycles for every level in {0, ..., maxLevel}. Values below minLevel must be given but are ignored." )
+      }
+   }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
@@ -54,7 +83,7 @@ class FullMultigridSolver : public Solver< OperatorType >
       for ( uint_t currentLevel = minLevel_; currentLevel <= level; currentLevel++ )
       {
          timingTree_->start( "GMG Solver" );
-         for ( uint_t cycle = 0; cycle < cyclesPerLevel_; cycle++ )
+         for ( uint_t cycle = 0; cycle < cyclesPerLevel_[currentLevel]; cycle++ )
          {
             gmgSolver_->solve( A, x, b, currentLevel );
          }
@@ -81,9 +110,9 @@ class FullMultigridSolver : public Solver< OperatorType >
    uint_t minLevel_;
    uint_t maxLevel_;
 
-   uint_t cyclesPerLevel_;
+   std::vector< uint_t > cyclesPerLevel_;
 
-   DoFType      flag_;
+   DoFType flag_;
 
    std::function< void( uint_t currentLevel ) > postCycleCallback_;
 

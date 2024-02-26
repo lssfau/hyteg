@@ -16,6 +16,7 @@ option ( HYTEG_BUILD_WITH_MPFR        "Build with MPFR"                         
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
+option ( HYTEG_BUILD_WITH_PYTHON3     "Build with PYTHON3"                           OFF)
 option ( HYTEG_BUILD_WITH_AVX         "Use AVX intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX})
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
@@ -87,6 +88,10 @@ if( HYTEG_DOWNLOAD_BOOST )
    set(BOOST_ROOT ${hyteg_BINARY_DIR}/_deps/boost-src/ CACHE PATH "Path to boost root")
 endif()
 
+if(HYTEG_BUILD_WITH_PYTHON3)
+   find_package (Python3 COMPONENTS Development)
+endif()
+
 # Add flags and libraries required to build terraneo submodule
 if( HYTEG_TERRANEO_MODULE )
 
@@ -135,6 +140,10 @@ if ( HYTEG_BUILD_WITH_PETSC )
           )
     set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
     message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
+    set(CMAKE_REQUIRED_INCLUDES ${PETSC_INCLUDES})
+    include(CheckSymbolExists)
+    unset(HYTEG_PETSC_BUILT_WITH_HDF5 CACHE)
+    check_symbol_exists(PETSC_HAVE_HDF5 petscconf.h  HYTEG_PETSC_BUILT_WITH_HDF5)
 endif()
 
 if ( HYTEG_BUILD_WITH_TRILINOS )

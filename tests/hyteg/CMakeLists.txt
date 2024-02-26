@@ -344,6 +344,9 @@ waLBerla_compile_test(FILES meshes/MeshGenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshGenTest>)
 waLBerla_execute_test(NAME MeshInfoTest4 COMMAND $<TARGET_FILE:MeshGenTest> PROCESSES 2)
 
+waLBerla_compile_test(FILES meshes/2DCoarseMeshRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME 2DCoarseMeshRefinementTest)
+
 waLBerla_compile_test(FILES functions/FunctionMemoryAllocationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest1 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest>)
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest2 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 2)
@@ -461,6 +464,11 @@ waLBerla_execute_test(NAME BlockFunctionBasicTest)
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES Petsc/PetscCreateFromLinCombTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
+endif ()
+
+if (HYTEG_BUILD_WITH_PETSC AND HYTEG_PETSC_BUILT_WITH_HDF5)
+    waLBerla_compile_test(FILES Petsc/PetscHDF5SaveLoadTest.cpp DEPENDS hyteg core)
+    waLBerla_execute_test(NAME PetscHDF5SaveLoadTest COMMAND $<TARGET_FILE:PetscHDF5SaveLoadTest>)
 endif ()
 
 waLBerla_compile_test(FILES geometry/SphereToolsTest.cpp DEPENDS hyteg core)

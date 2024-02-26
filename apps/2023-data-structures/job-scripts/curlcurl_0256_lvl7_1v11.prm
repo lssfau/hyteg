@@ -1,0 +1,37 @@
+Parameters
+{
+  // those are the fine grid levels for the convergence tests, not the v-cycle hierarchy levels
+  minLevel 0;
+  maxLevel 7;
+
+  // "cube" or "torus"
+  domain torus;
+
+  // "vcycles" or "fmg"
+  solverType fmg;
+
+  preSmooth     1;
+  postSmooth    1;
+  numVCyclesFMG 1;
+
+  n1e1SpectralRadius 3.2032;
+  p1SpectralRadius   2.01869;
+
+  coarseGridRefinements 0;
+
+  toroidalResolution 136;
+  poloidalResolution 10;
+  tubeLayerRadii {
+    0 0.1;
+    1 0.2;
+    2 0.3;
+    3 0.4;
+  }
+
+  vtk false;
+  printSetupStorage false;
+  printPrimitiveStorage false;
+  timingJSON true;
+
+  baseName curlcurl_0256_lvl7_1v11;
+}

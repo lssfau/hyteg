@@ -24,6 +24,7 @@
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseBlendingFullViscousOperator.hpp"
 
 #include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "mixed_operator/ScalarToVectorOperator.hpp"
@@ -118,6 +119,98 @@ class P2P1ElementwiseBlendingStokesOperator
 
     BlockPreconditioner_T blockPrec;
    bool hasGlobalCells_;
+};
+
+class P2P1ElementwiseBlendingFullViscousStokesOperator
+: public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   typedef P2ElementwiseBlendingFullViscousOperator VelocityOperator_T;
+
+   // This typedef could be a temporary solution to allow for using
+   // the PETScBlockPreconditionedStokesSolver and for compiling
+   // the StrongFreeSlipWrapper for the P2P1ElementwiseBlendingStokesOperator
+   // typedef P2P1TaylorHoodStokesBlockPreconditioner BlockPreconditioner_T;
+
+   typedef P2P1ElementwiseBlendingStokesBlockPreconditioner BlockPreconditioner_T;
+
+   P2P1ElementwiseBlendingFullViscousStokesOperator(
+       const std::shared_ptr< PrimitiveStorage >& storage,
+       size_t                                     minLevel,
+       size_t                                     maxLevel,
+       std::function< real_t( const Point3D& ) >  viscosity = []( const Point3D& ) { return 1.0; } )
+   : Operator( storage, minLevel, maxLevel )
+   , lapl( storage, minLevel, maxLevel, viscosity )
+   , div( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , blockPrec( storage, minLevel, maxLevel )
+   , hasGlobalCells_( storage->hasGlobalCells() )
+   {}
+
+   void computeAndStoreLocalElementMatrices()
+   {
+      auto scalarA = dynamic_cast< P2ElementwiseBlendingLaplaceOperator& >( *lapl.getSubOperator( 0, 0 ) );
+      scalarA.computeAndStoreLocalElementMatrices();
+
+      div.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+
+      divT.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+
+      div.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      div.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+
+      divT.getSubOperator< 0 >().computeAndStoreLocalElementMatrices();
+      divT.getSubOperator< 1 >().computeAndStoreLocalElementMatrices();
+
+      if ( hasGlobalCells_ )
+      {
+         div.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
+         divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
+
+         div.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
+         divT.getSubOperator< 2 >().computeAndStoreLocalElementMatrices();
+      }
+   }
+
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               const uint_t                            level,
+               const DoFType                           flag ) const
+   {
+      lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
+   }
+
+   const VelocityOperator_T::visc_0_0& getA() const
+   {
+      auto ptr = lapl.getSubOperator( 0, 0 );
+      return dynamic_cast< const VelocityOperator_T::visc_0_0& >( *ptr );
+   }
+
+   VelocityOperator_T                    lapl;
+   P2ToP1ElementwiseBlendingDivOperator  div;
+   P1ToP2ElementwiseBlendingDivTOperator divT;
+
+   /// this operator is need in the uzawa smoother
+   P1PSPGInvDiagOperator pspg_inv_diag_;
+
+   BlockPreconditioner_T blockPrec;
+   bool                  hasGlobalCells_;
 };
 
 } // namespace hyteg
