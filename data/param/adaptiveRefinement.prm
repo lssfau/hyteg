@@ -21,7 +21,7 @@ Parameters
   k_low 1; // value of coefficient before jump (problem 7)
   k_high 100;// value of coefficient after jump (problem 7)
 
-  initial_resolution 4; // initial number of elements in each direction
+  initial_resolution 1; // initial number of elements in each direction
 
   // adaptive refinement:
   error_indicator 1; // else refine based on actual L2 error (using analytic solution)
@@ -29,13 +29,13 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 0; // number of refinement steps
+  n_refinements 20; // number of refinement steps
   // p_refinement 0.05; // proportion of elements that will be marked for refinement in each step [0,1].
                     // if p_refinement is not set, all elements whith sqared error greater than mean sqared error will be refined.
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 5;
+  microlevel 4;
   // microlevel_final 8; // use different micro level for final solve step
 
 
@@ -43,7 +43,7 @@ Parameters
   presmooth 2; // number of gs iterations for smoothing
   postsmooth 1;
   n_cycles 3; // number of V-cycles on each level in FMG
-  n_iterations 1; // first iteration FMG, then V-cycles
+  n_iterations 3; // first iteration FMG, then V-cycles
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
@@ -58,7 +58,7 @@ Parameters
               // -1: never
   // vtkName p_ref_test;
   // vtkName err_ex;
-  // writeDomainPartitioning 1;
+  writeDomainPartitioning 1;
   // writeMeshfile 1;
   // initialMesh output/_mesh_6.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/reentrant_corner_2D_mesh_25.msh; // use custom initial mesh e.g. written from previous run

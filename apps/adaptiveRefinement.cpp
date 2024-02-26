@@ -564,12 +564,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // timing
    real_t t0, t1;
-   real_t t_loadbalancing, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
+   real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
 
    // load balancing
    if ( u0 == 0 || u_old == nullptr )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing" );
+      WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing ..." );
       // if u0 is initialized with zero, we apply load balancing before creating the storage.
       // else, we first interpolate u before applying load balancing
       t0 = walberla::timing::getWcTime();
@@ -584,12 +584,13 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    {
       t_loadbalancing = 0;
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    WALBERLA_LOG_INFO_ON_ROOT( "* create PrimitiveStorage ..." );
-   t0           = walberla::timing::getWcTime();
-   auto storage = mesh.make_storage();
-   t1           = walberla::timing::getWcTime();
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent to create storage: %12.3e", t1 - t0 ) );
+   t0                 = walberla::timing::getWcTime();
+   auto storage       = mesh.make_storage();
+   t1                 = walberla::timing::getWcTime();
+   t_primitivestorage = t1 - t0;
+   WALBERLA_LOG_INFO_ON_ROOT( " -> number of macro elements: " << mesh.n_elements() );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "* setup system ..." );
@@ -733,9 +734,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t_init += t1 - t0;
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "load balancing", t_loadbalancing ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "create primitives", t_primitivestorage ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "initialize problem", t_init ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "interpolate u0", t_interpolate ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "load balancing", t_loadbalancing ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "* solve system ..." );
