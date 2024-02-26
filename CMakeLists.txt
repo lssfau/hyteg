@@ -22,7 +22,6 @@ option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if avail
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
 option ( HYTEG_DOWNLOAD_BOOST         "Download boost library; required for plates"  OFF)
-option ( HYTEG_BUILD_DOC              "Build Documentation"                           ON)
 
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
@@ -219,9 +218,7 @@ add_subdirectory( tutorials )
 #
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
-if (HYTEG_BUILD_DOC)
-
-  find_package ( Doxygen REQUIRED )
+  find_package ( Doxygen )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
@@ -230,6 +227,7 @@ if (HYTEG_BUILD_DOC)
     set ( HTML_HELP_FOUND "YES" )
   endif ( )
 
+if ( DOXYGEN_FOUND )
   set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
   set ( DOXYGEN_HTML_OUTPUT "html" )
@@ -248,8 +246,20 @@ if (HYTEG_BUILD_DOC)
     set( DOXYGEN_HYTEG_BUILD_WITH_ADIOS2 "HYTEG_BUILD_WITH_ADIOS2" )
   endif()
 
+  if ( HYTEG_BUILD_WITH_AVX )
+    set( DOXYGEN_HYTEG_BUILD_WITH_AVX "HYTEG_BUILD_WITH_AVX" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_MPFR )
+    set( DOXYGEN_HYTEG_BUILD_WITH_MPFR "HYTEG_BUILD_WITH_MPFR" )
+  endif()
+
   if ( HYTEG_BUILD_WITH_PETSC )
     set( DOXYGEN_HYTEG_BUILD_WITH_PETSC "HYTEG_BUILD_WITH_PETSC" )
+  endif()
+
+  if ( HYTEG_BUILD_WITH_PYTHON3 )
+    set( DOXYGEN_HYTEG_BUILD_WITH_PYTHON3 "HYTEG_BUILD_WITH_PYTHON3" )
   endif()
 
   if ( HYTEG_BUILD_WITH_TRILINOS )
@@ -268,6 +278,10 @@ if (HYTEG_BUILD_DOC)
 
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
     COMMENT "Generating API documentation with Doxygen" VERBATIM )
+
+else ()
+
+  message( WARNING "Doxygen not found. You will not be able to build documentation." )
 
 endif ( )
 
