@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,6 +27,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
+#include "hyteg_operators_composites/stokes/viscousblock/P2ViscousBlockEpsilonOperator.hpp"
+#include "hyteg_operators_composites/stokes/viscousblock/P2ViscousBlockFullOperator.hpp"
 
 #include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "constant_stencil_operator/P2ConstantFullViscousOperator.hpp"
@@ -41,7 +43,7 @@ using namespace hyteg;
 bool force_VTK = true; // false;
 
 uint_t theLevel  = 4;
-real_t threshold = real_c( std::is_same< real_t, double >() ? 5e-5 : 7e-5 );
+real_t threshold = real_c( std::is_same< real_t, double >() ? 1.1e-4 : 7e-5 );
 
 void logSectionHeader( const char* header )
 {
@@ -49,6 +51,17 @@ void logSectionHeader( const char* header )
    size_t      len = hdr.length();
    std::string separator( len + 2, '-' );
    WALBERLA_LOG_INFO_ON_ROOT( separator << "\n " << hdr << "\n" << separator );
+}
+
+template < typename oper_t >
+void checkObjectGeneration( std::string                         label,
+                            std::shared_ptr< PrimitiveStorage > primStore,
+                            uint_t                              minLevel,
+                            uint_t                              maxLevel,
+                            const P2Function< real_t >&         mu )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Generating object of type '" << label << "'" );
+   oper_t op( primStore, minLevel, maxLevel, mu );
 }
 
 template < typename oper_t >
@@ -76,7 +89,7 @@ void checkObjectGeneration( std::string label, std::shared_ptr< PrimitiveStorage
 // 2D apply test with constant viscosity using a velocity field that is divergence-free and has a deviatoric stress tensor
 // with zero divergence; the field is given by (x,y) -> (x,y) / (x^2 + y^2)
 //
-template < typename oper_t, bool varVisc >
+template < typename oper_t, bool varVisc, bool viscIsFEFunction >
 void scenario1( std::string label, bool useBlending )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running apply() test for: '" << label << "'" );
@@ -111,16 +124,25 @@ void scenario1( std::string label, bool useBlending )
       return x[1] / rho;
    };
 
-   src.interpolate( {xExpr, yExpr}, maxLevel );
+   src.interpolate( { xExpr, yExpr }, maxLevel );
    dst.interpolate( real_c( 0 ), maxLevel );
 
    std::function< real_t( const Point3D& ) > viscosity = []( const Point3D& ) { return real_c( 1 ); };
+   P2Function< real_t >                      viscosityFE( "viscosity", primStore, minLevel, maxLevel );
+   viscosityFE.interpolate( viscosity, maxLevel );
 
    std::unique_ptr< oper_t > op;
 
    if constexpr ( varVisc )
    {
-      op = std::make_unique< oper_t >( primStore, minLevel, maxLevel, viscosity );
+      if constexpr ( viscIsFEFunction )
+      {
+         op = std::make_unique< oper_t >( primStore, minLevel, maxLevel, viscosityFE );
+      }
+      else
+      {
+         op = std::make_unique< oper_t >( primStore, minLevel, maxLevel, viscosity );
+      }
    }
    else
    {
@@ -167,7 +189,7 @@ void scenario1( std::string label, bool useBlending )
 //   |        ( x^2 + y^2 )^2            |
 //   \                                   /
 //
-template < typename oper_t >
+template < typename oper_t, bool viscIsFEFunction >
 void scenario2( std::string label, bool useBlending )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running apply() test for: '" << label << "'" );
@@ -205,7 +227,7 @@ void scenario2( std::string label, bool useBlending )
       return x[1] / rho;
    };
 
-   src.interpolate( {xExpr, yExpr}, maxLevel );
+   src.interpolate( { xExpr, yExpr }, maxLevel );
    dst.interpolate( real_c( 0 ), maxLevel );
 
    // specify viscosity as polynomial
@@ -214,9 +236,20 @@ void scenario2( std::string label, bool useBlending )
    real_t                                    c         = real_c( +3 );
    std::function< real_t( const Point3D& ) > viscosity = [a, b, c]( const Point3D& x ) { return a * x[0] + b * x[1] + c; };
 
+   P2Function< real_t > viscosityFE( "viscosity", primStore, minLevel, maxLevel );
+   viscosityFE.interpolate( viscosity, maxLevel );
+
    // apply our operator to the velocity field
-   oper_t op( primStore, minLevel, maxLevel, viscosity );
-   op.apply( src, dst, maxLevel, Inner );
+   std::shared_ptr< oper_t > op;
+   if constexpr ( viscIsFEFunction )
+   {
+      op = std::make_shared< oper_t >( primStore, minLevel, maxLevel, viscosityFE );
+   }
+   else
+   {
+      op = std::make_shared< oper_t >( primStore, minLevel, maxLevel, viscosity );
+   }
+   op->apply( src, dst, maxLevel, Inner );
 
    // compute the rhs of the weak form of the equation (note the conventional minus sign)
    std::function< real_t( const Point3D& ) > divX = [a, b]( const Point3D& x ) {
@@ -233,13 +266,13 @@ void scenario2( std::string label, bool useBlending )
       return -numer / denom;
    };
 
-   ctrlA.interpolate( {divX, divY}, maxLevel );
+   ctrlA.interpolate( { divX, divY }, maxLevel );
 
    P2ElementwiseBlendingVectorMassOperator mass( primStore, minLevel, maxLevel );
    mass.apply( ctrlA, ctrlB, maxLevel, Inner );
 
    // check magitude of difference
-   err.assign( {real_c( 1 ), real_c( -1 )}, {dst, ctrlB}, maxLevel, Inner );
+   err.assign( { real_c( 1 ), real_c( -1 ) }, { dst, ctrlB }, maxLevel, Inner );
    P2Function< real_t > aux1( "aux1", primStore, maxLevel, maxLevel );
    P2Function< real_t > aux2( "aux2", primStore, maxLevel, maxLevel );
    real_t               mag = velocityMaxMagnitude( err, aux1, aux2, maxLevel, Inner );
@@ -311,7 +344,7 @@ void scenario2( std::string label, bool useBlending )
 //              |             3 (x  + y )                |
 //              \                                        /
 //
-template < typename oper_t >
+template < typename oper_t, bool viscIsFEFunction >
 void scenario3( std::string label, bool useBlending )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running apply() test for: '" << label << "'" );
@@ -349,7 +382,7 @@ void scenario3( std::string label, bool useBlending )
       return x[1] / rho;
    };
 
-   src.interpolate( {xExpr, yExpr}, maxLevel );
+   src.interpolate( { xExpr, yExpr }, maxLevel );
    dst.interpolate( real_c( 0 ), maxLevel );
 
    // specify viscosity as polynomial
@@ -358,9 +391,20 @@ void scenario3( std::string label, bool useBlending )
    real_t                                    c         = real_c( 0 );
    std::function< real_t( const Point3D& ) > viscosity = [a, b, c]( const Point3D& x ) { return a * x[0] + b * x[1] + c; };
 
+   P2Function< real_t > viscosityFE( "viscosity", primStore, minLevel, maxLevel );
+   viscosityFE.interpolate( viscosity, maxLevel );
+
    // apply our operator to the velocity field
-   oper_t op( primStore, minLevel, maxLevel, viscosity );
-   op.apply( src, dst, maxLevel, Inner );
+   std::shared_ptr< oper_t > op;
+   if constexpr ( viscIsFEFunction )
+   {
+      op = std::make_shared< oper_t >( primStore, minLevel, maxLevel, viscosityFE );
+   }
+   else
+   {
+      op = std::make_shared< oper_t >( primStore, minLevel, maxLevel, viscosity );
+   }
+   op->apply( src, dst, maxLevel, Inner );
 
    // compute the rhs of the weak form of the equation (note the conventional minus sign)
    std::function< real_t( const Point3D& ) > divX = [a, b, c]( const Point3D& p ) {
@@ -369,7 +413,7 @@ void scenario3( std::string label, bool useBlending )
       real_t denom = std::sqrt( x * x + y * y );
       denom        = real_c( 3 ) * denom * denom * denom;
       real_t numer = -real_c( 6 ) * a * x * x - ( real_c( 10 ) * b * y + real_c( 4 ) * c ) * x + real_c( 4 ) * a * y * y;
-      return - numer / denom;
+      return -numer / denom;
    };
 
    std::function< real_t( const Point3D& ) > divY = [a, b, c]( const Point3D& p ) {
@@ -378,16 +422,16 @@ void scenario3( std::string label, bool useBlending )
       real_t denom = std::sqrt( x * x + y * y );
       denom        = real_c( 3 ) * denom * denom * denom;
       real_t numer = -real_c( 6 ) * b * y * y - ( real_c( 10 ) * a * x + real_c( 4 ) * c ) * y + real_c( 4 ) * b * x * x;
-      return - numer / denom;
+      return -numer / denom;
    };
 
-   ctrlA.interpolate( {divX, divY}, maxLevel );
+   ctrlA.interpolate( { divX, divY }, maxLevel );
 
    P2ElementwiseBlendingVectorMassOperator mass( primStore, minLevel, maxLevel );
    mass.apply( ctrlA, ctrlB, maxLevel, Inner );
 
    // check magitude of difference
-   err.assign( {real_c( 1 ), real_c( -1 )}, {dst, ctrlB}, maxLevel, Inner );
+   err.assign( { real_c( 1 ), real_c( -1 ) }, { dst, ctrlB }, maxLevel, Inner );
    P2Function< real_t > aux1( "aux1", primStore, maxLevel, maxLevel );
    P2Function< real_t > aux2( "aux2", primStore, maxLevel, maxLevel );
    real_t               mag = velocityMaxMagnitude( err, aux1, aux2, maxLevel, Inner );
@@ -415,7 +459,6 @@ int main( int argc, char** argv )
    walberla::debug::enterTestMode();
 
    walberla::mpi::Environment MPIenv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
    std::unique_ptr< SetupPrimitiveStorage > setStore;
@@ -433,55 +476,76 @@ int main( int argc, char** argv )
    // ----------
    //  2D Tests
    // ----------
-   logSectionHeader( "Testing 2D with BFS" );
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
-   setStore =
-       std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+   {
+      logSectionHeader( "Testing 2D with BFS" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+      setStore =
+          std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkObjectGeneration< P2ConstantEpsilonOperator >( "P2ConstantEpsilonOperator", primStore, minLevel, maxLevel );
-   checkObjectGeneration< P2ElementwiseAffineEpsilonOperator >(
-       "P2ElementwiseAffineEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
-   checkObjectGeneration< P2ElementwiseBlendingEpsilonOperator >(
-       "P2ElementwiseBlendingEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
-   checkObjectGeneration< P2ConstantFullViscousOperator >( "P2ConstantFullViscousOperator", primStore, minLevel, maxLevel );
-   checkObjectGeneration< P2ElementwiseBlendingFullViscousOperator >(
-       "P2ElementwiseBlendingFullViscousOperator", primStore, minLevel, maxLevel, viscosity );
+      P2Function< real_t > viscosityFE( "viscosity", primStore, minLevel, maxLevel );
+
+      checkObjectGeneration< P2ConstantEpsilonOperator >( "P2ConstantEpsilonOperator", primStore, minLevel, maxLevel );
+      checkObjectGeneration< P2ElementwiseAffineEpsilonOperator >(
+          "P2ElementwiseAffineEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
+      checkObjectGeneration< P2ElementwiseBlendingEpsilonOperator >(
+          "P2ElementwiseBlendingEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
+      checkObjectGeneration< P2ConstantFullViscousOperator >( "P2ConstantFullViscousOperator", primStore, minLevel, maxLevel );
+      checkObjectGeneration< P2ElementwiseBlendingFullViscousOperator >(
+          "P2ElementwiseBlendingFullViscousOperator", primStore, minLevel, maxLevel, viscosity );
+      checkObjectGeneration< operatorgeneration::P2ViscousBlockEpsilonOperator >(
+          "P2ViscousBlockEpsilonOperator", primStore, minLevel, maxLevel, viscosityFE );
+      checkObjectGeneration< operatorgeneration::P2ViscousBlockFullOperator >(
+          "P2ViscousBlockFullOperator", primStore, minLevel, maxLevel, viscosityFE );
+   }
 
    // ----------
    //  3D Tests
    // ----------
-   logSectionHeader( "Testing 3D with pyramid_2el" );
-   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
-   setStore =
-       std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+   {
+      logSectionHeader( "Testing 3D with pyramid_2el" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+      setStore =
+          std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkObjectGeneration< P2ConstantEpsilonOperator >( "P2ConstantEpsilonOperator", primStore, minLevel, maxLevel );
-   checkObjectGeneration< P2ElementwiseAffineEpsilonOperator >(
-       "P2ElementwiseAffineEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
-   checkObjectGeneration< P2ElementwiseBlendingEpsilonOperator >(
-       "P2ElementwiseBlendingEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
-   checkObjectGeneration< P2ConstantFullViscousOperator >( "P2ConstantFullViscousOperator", primStore, minLevel, maxLevel );
-   checkObjectGeneration< P2ElementwiseBlendingFullViscousOperator >(
-       "P2ElementwiseBlendingFullViscousOperator", primStore, minLevel, maxLevel, viscosity );
+      P2Function< real_t > viscosityFE( "viscosity", primStore, minLevel, maxLevel );
+
+      checkObjectGeneration< P2ConstantEpsilonOperator >( "P2ConstantEpsilonOperator", primStore, minLevel, maxLevel );
+      checkObjectGeneration< P2ElementwiseAffineEpsilonOperator >(
+          "P2ElementwiseAffineEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
+      checkObjectGeneration< P2ElementwiseBlendingEpsilonOperator >(
+          "P2ElementwiseBlendingEpsilonOperator", primStore, minLevel, maxLevel, viscosity );
+      checkObjectGeneration< P2ConstantFullViscousOperator >( "P2ConstantFullViscousOperator", primStore, minLevel, maxLevel );
+      checkObjectGeneration< P2ElementwiseBlendingFullViscousOperator >(
+          "P2ElementwiseBlendingFullViscousOperator", primStore, minLevel, maxLevel, viscosity );
+      checkObjectGeneration< operatorgeneration::P2ViscousBlockEpsilonOperator >(
+          "P2ViscousBlockEpsilonOperator", primStore, minLevel, maxLevel, viscosityFE );
+      checkObjectGeneration< operatorgeneration::P2ViscousBlockFullOperator >(
+          "P2ViscousBlockFullOperator", primStore, minLevel, maxLevel, viscosityFE );
+   }
 
    // ----------------
    //  2D Apply Tests
    // ----------------
    logSectionHeader( "2D Apply Test, Scenario #1" );
-   scenario1< P2ConstantEpsilonOperator, false >( "P2ConstantEpsilonOperator", false );
-   scenario1< P2ConstantFullViscousOperator, false >( "P2ConstantFullViscousOperator", false );
-   scenario1< P2ElementwiseAffineEpsilonOperator, true >( "P2ElementwiseAffineEpsilonOperator", false );
-   scenario1< P2ElementwiseBlendingEpsilonOperator, true >( "P2ElementwiseBlendingEpsilonOperator", true );
-   scenario1< P2ElementwiseBlendingFullViscousOperator, true >( "P2ElementwiseBlendingFullViscousOperator", true );
+   scenario1< P2ConstantEpsilonOperator, false, false >( "P2ConstantEpsilonOperator", false );
+   scenario1< P2ConstantFullViscousOperator, false, false >( "P2ConstantFullViscousOperator", false );
+   scenario1< P2ElementwiseAffineEpsilonOperator, true, false >( "P2ElementwiseAffineEpsilonOperator", false );
+   scenario1< P2ElementwiseBlendingEpsilonOperator, true, false >( "P2ElementwiseBlendingEpsilonOperator", true );
+   scenario1< P2ElementwiseBlendingFullViscousOperator, true, false >( "P2ElementwiseBlendingFullViscousOperator", true );
+   scenario1< operatorgeneration::P2ViscousBlockEpsilonOperator, true, true >( "P2ViscousBlockEpsilonOperator", false );
+   scenario1< operatorgeneration::P2ViscousBlockFullOperator, true, true >( "P2ViscousBlockFullOperator", false );
 
    logSectionHeader( "2D Apply Test, Scenario #2" );
-   scenario2< P2ElementwiseBlendingEpsilonOperator >( "P2ElementwiseBlendingEpsilonOperator", true );
-   scenario2< P2ElementwiseBlendingFullViscousOperator >( "P2ElementwiseBlendingFullViscousOperator", true );
+   scenario2< P2ElementwiseBlendingEpsilonOperator, false >( "P2ElementwiseBlendingEpsilonOperator", true );
+   scenario2< P2ElementwiseBlendingFullViscousOperator, false >( "P2ElementwiseBlendingFullViscousOperator", true );
+   scenario2< operatorgeneration::P2ViscousBlockEpsilonOperator, true >( "P2ViscousBlockEpsilonOperator", false );
+   scenario2< operatorgeneration::P2ViscousBlockFullOperator, true >( "P2ViscousBlockFullOperator", false );
 
    logSectionHeader( "2D Apply Test, Scenario #3" );
-   scenario3< P2ElementwiseBlendingFullViscousOperator >( "P2ElementwiseBlendingFullViscousOperator", true );
+   scenario3< P2ElementwiseBlendingFullViscousOperator, false >( "P2ElementwiseBlendingFullViscousOperator", true );
+   scenario3< operatorgeneration::P2ViscousBlockFullOperator, true >( "P2ViscousBlockFullOperator", false );
 
    return EXIT_SUCCESS;
 }

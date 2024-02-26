@@ -31,7 +31,7 @@ waLBerla_compile_test(FILES convergence/P2ElementwiseCGConvergenceTest.cpp DEPEN
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTest)
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P2ElementwiseCGConvergenceTest> PROCESSES 2)
 
-waLBerla_compile_test(FILES convergence/ElementwiseEpsilonMinResConvergenceTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_compile_test(FILES convergence/ElementwiseEpsilonMinResConvergenceTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-stokes)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     if (HYTEG_BUILD_WITH_PETSC)
         waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTest)
@@ -67,13 +67,13 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME ParallelCouplingCountTest3 COMMAND $<TARGET_FILE:CouplingCountTest> PROCESSES 3)
 endif ()
 
-waLBerla_compile_test(FILES operators/DivergenceOperatorTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_compile_test(FILES operators/DivergenceOperatorTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-stokes-divergence)
 waLBerla_execute_test(NAME DivergenceOperatorTest)
 
 waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core mixed_operator)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 
-waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-stokes-viscousblock)
 waLBerla_execute_test(NAME ViscousOperatorsTest)
 
 if (HYTEG_BUILD_WITH_PETSC)
@@ -137,7 +137,7 @@ if( HYTEG_BUILD_WITH_PETSC )
     waLBerla_execute_test(NAME P2P1ChannelGKBConvergenceTest)
 endif()
 
-waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-stokes)
 waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 
 waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core mixed_operator)

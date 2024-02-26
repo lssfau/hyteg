@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Nils Kohl.
+ * Copyright (c) 2017-2024 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,27 +30,18 @@
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
-#include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 
 #include "constant_stencil_operator/P1EpsilonStokesOperator.hpp"
 #include "mixed_operator/P1P1ElementwiseAffineEpsilonStokesOperator.hpp"
-#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
 namespace hyteg {
 
@@ -125,7 +116,7 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
    if ( ThreeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
 
       exactU = shellExactU;
       exactV = shellExactV;
@@ -138,7 +129,7 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    }
    else
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D(  0, 0  ), Point2D(  1, 1  ), MeshInfo::CRISS, 1, 1 );
+      meshInfo = MeshInfo::meshRectangle( Point2D( 0, 0 ), Point2D( 1, 1 ), MeshInfo::CRISS, 1, 1 );
 
       exactU = plumeExactU;
       exactV = plumeExactV;
@@ -162,7 +153,20 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    FunctionType err( "err", storage, minLevel, maxLevel );
    FunctionType tmp( "tmp", storage, minLevel, maxLevel );
 
-   StokesOperator       A( storage, minLevel, maxLevel );
+   P2Function< real_t > mu( "mu", storage, minLevel, maxLevel );
+   mu.interpolate( 1.0, maxLevel );
+
+   std::shared_ptr< StokesOperator > A;
+
+   if constexpr ( std::is_same_v< StokesOperator, operatorgeneration::P2P1StokesEpsilonOperator > )
+   {
+      A = std::make_shared< StokesOperator >( storage, minLevel, maxLevel, mu );
+   }
+   else
+   {
+      A = std::make_shared< StokesOperator >( storage, minLevel, maxLevel );
+   }
+
    VelocityMassOperator M( storage, minLevel, maxLevel );
 
    VTKOutput vtk( "../../output", "ElementwiseEpsilonMinResConvergenceTest", storage );
@@ -173,14 +177,15 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
    if ( ThreeDim )
    {
-     u.uvw().interpolate( { exactU, exactV, exactW }, maxLevel, hyteg::DirichletBoundary );
-     uExact.uvw().interpolate( { exactU, exactV, exactW }, maxLevel );
-     tmp.uvw().interpolate( { rhsU, rhsV, rhsW }, maxLevel );
+      u.uvw().interpolate( { exactU, exactV, exactW }, maxLevel, hyteg::DirichletBoundary );
+      uExact.uvw().interpolate( { exactU, exactV, exactW }, maxLevel );
+      tmp.uvw().interpolate( { rhsU, rhsV, rhsW }, maxLevel );
    }
-   else {
-     u.uvw().interpolate( { exactU, exactV }, maxLevel, hyteg::DirichletBoundary );
-     uExact.uvw().interpolate( { exactU, exactV }, maxLevel );
-     tmp.uvw().interpolate( { rhsU, rhsV }, maxLevel );
+   else
+   {
+      u.uvw().interpolate( { exactU, exactV }, maxLevel, hyteg::DirichletBoundary );
+      uExact.uvw().interpolate( { exactU, exactV }, maxLevel );
+      tmp.uvw().interpolate( { rhsU, rhsV }, maxLevel );
    }
 
    uExact.p().interpolate( exactP, maxLevel );
@@ -206,12 +211,12 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
 #endif
 
-   solver->solve( A, u, f, maxLevel );
+   solver->solve( *A, u, f, maxLevel );
 
    hyteg::vertexdof::projectMean( u.p(), maxLevel );
    hyteg::vertexdof::projectMean( uExact.p(), maxLevel );
 
-   A.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+   A->apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
    err.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel );
 
@@ -223,24 +228,23 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    uint_t velocityCompDoFs = numberOfGlobalDoFs< typename FunctionType::VelocityFunction_T::Tag >( *storage, maxLevel ) / 3;
    uint_t pressureCompDoFs = numberOfGlobalDoFs< typename FunctionType::PressureFunction_T::Tag >( *storage, maxLevel );
 
-   real_t discr_l2_err_u = real_c(0);
-   real_t discr_l2_err_v = real_c(0);
-   real_t discr_l2_err_w = real_c(0);
-   for( uint_t k = 0; k < err.uvw().getDimension(); k++ ) {
-     discr_l2_err_u = std::sqrt( err.uvw()[k].dotGlobal( err.uvw()[k], maxLevel ) / real_c( velocityCompDoFs ) );
+   std::vector< real_t > discr_l2_err( 3 );
+   for ( uint_t k = 0; k < err.uvw().getDimension(); k++ )
+   {
+      discr_l2_err[k] = std::sqrt( err.uvw()[k].dotGlobal( err.uvw()[k], maxLevel ) / real_c( velocityCompDoFs ) );
    }
    real_t discr_l2_err_p = std::sqrt( err.p().dotGlobal( err.p(), maxLevel ) / real_c( pressureCompDoFs ) );
    real_t residuum_l2    = std::sqrt( r.dotGlobal( r, maxLevel ) / real_c( 3 * velocityCompDoFs + pressureCompDoFs ) );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_v );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error w = " << discr_l2_err_w );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err[0] << ", tolerance: " << toleranceVelocityComponents );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err[1] << ", tolerance: " << toleranceVelocityComponents );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error w = " << discr_l2_err[2] << ", tolerance: " << toleranceVelocityComponents );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p << ", tolerance: " << tolerancePressure );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
 
-   WALBERLA_CHECK_LESS( discr_l2_err_u, toleranceVelocityComponents, "x component of velocity error is too large" )
-   WALBERLA_CHECK_LESS( discr_l2_err_v, toleranceVelocityComponents, "y component of velocity error is too large" )
-   WALBERLA_CHECK_LESS( discr_l2_err_w, toleranceVelocityComponents, "z component of velocity error is too large" )
+   WALBERLA_CHECK_LESS( discr_l2_err[0], toleranceVelocityComponents, "x component of velocity error is too large" )
+   WALBERLA_CHECK_LESS( discr_l2_err[1], toleranceVelocityComponents, "y component of velocity error is too large" )
+   WALBERLA_CHECK_LESS( discr_l2_err[2], toleranceVelocityComponents, "z component of velocity error is too large" )
    WALBERLA_CHECK_LESS( discr_l2_err_p, tolerancePressure, "pressure error is too large" )
 }
 
@@ -285,11 +289,11 @@ int main( int argc, char* argv[] )
    hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
                            hyteg::P1StokesFunction< walberla::real_t >,
                            hyteg::P1ElementwiseMassOperator,
-                           false >( 4, 2.7e-2, 1.7 );
+                           false >( 4, 2.0e-2, 5.2e-1 );
    hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
                            hyteg::P1StokesFunction< walberla::real_t >,
                            hyteg::P1ElementwiseMassOperator,
-                           false >( 5, 2.7e-2, 1.7 );
+                           false >( 5, 5.3e-3, 1.5e-1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
    WALBERLA_LOG_INFO_ON_ROOT( "### P1, 3D ###" )
@@ -315,6 +319,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "### P2, 2D ###" )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
+   WALBERLA_LOG_INFO_ON_ROOT( "## 'old' elementwise ops ##" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
    hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
                            hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
                            hyteg::P2ElementwiseMassOperator,
@@ -330,24 +337,79 @@ int main( int argc, char* argv[] )
                            hyteg::P2ElementwiseMassOperator,
                            false >( 4, 1.2e-4, 7.8e-2 );
 
+#ifndef HYTEG_BUILD_WITH_PETSC
+
+   // The new operators do not carry any preconditioner aliases.
+   // Thus the PETScBlockPrecStokesSolver does not work.
+
+   WALBERLA_LOG_INFO_ON_ROOT( "## 'new' generated elementwise ops ##" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   hyteg::convergenceTest< hyteg::operatorgeneration::P2P1StokesEpsilonOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           false >( 2, 2.7e-2, 2.2 );
+
+   hyteg::convergenceTest< hyteg::operatorgeneration::P2P1StokesEpsilonOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           false >( 3, 1.8e-3, 3.8e-1 );
+
+   hyteg::convergenceTest< hyteg::operatorgeneration::P2P1StokesEpsilonOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           false >( 4, 1.2e-4, 7.8e-2 );
+
+#endif
+
    WALBERLA_LOG_INFO_ON_ROOT( "" )
    WALBERLA_LOG_INFO_ON_ROOT( "### P2, 3D ###" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   WALBERLA_LOG_INFO_ON_ROOT( "## 'old' elementwise ops ##" )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
                            hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
                            hyteg::P2ElementwiseMassOperator,
-                           true >( 2, 5.9e-1, 2.4e+1 );
+                           true >( 2, 2.2e-1, 1.8e+1 );
    hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
                            hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
                            hyteg::P2ElementwiseMassOperator,
-                           true >( 3, 2.2e-1, 8.7e+0 );
+                           true >( 3, 3.0e-2, 1.9e+0 );
 
    if ( longrun )
    {
       hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
                               hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
                               hyteg::P2ElementwiseMassOperator,
-                              true >( 4, 6.8e-2, 2.4e+0 );
+                              true >( 4, 2.9e-3, 2.0e-1 );
    }
+
+#ifndef HYTEG_BUILD_WITH_PETSC
+
+   // The new operators do not carry any preconditioner aliases.
+   // Thus the PETScBlockPrecStokesSolver does not work.
+
+   WALBERLA_LOG_INFO_ON_ROOT( "## 'new' generated elementwise ops ##" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   hyteg::convergenceTest< hyteg::operatorgeneration::P2P1StokesEpsilonOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           true >( 2, 2.2e-1, 1.8e+1 );
+   hyteg::convergenceTest< hyteg::operatorgeneration::P2P1StokesEpsilonOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           true >( 3, 3.0e-2, 1.9e+0 );
+
+   if ( longrun )
+   {
+      hyteg::convergenceTest< hyteg::operatorgeneration::P2P1StokesEpsilonOperator,
+                              hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                              hyteg::P2ElementwiseMassOperator,
+                              true >( 4, 2.9e-3, 2.0e-1 );
+   }
+
+#endif
 }
