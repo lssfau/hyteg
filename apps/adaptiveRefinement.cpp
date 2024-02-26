@@ -1079,8 +1079,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
             auto e2i = err_global[i].first;
             if ( i == 0 )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i = " << err_global.back().first );
-               WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i = " << err_global.front().first );
+               WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i^2 = " << err_global.back().first );
+               WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i^2 = " << err_global.front().first );
                WALBERLA_LOG_INFO_ON_ROOT( " -> mean squared error = " << e2m );
                WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i^2 >= " << e2m );
             }

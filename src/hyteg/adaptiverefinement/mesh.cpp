@@ -194,7 +194,7 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
          while ( !R_prt.empty() || vtxs_added )
          {
             refined.merge( refine_red( R_prt, U ) );
-            R_prt = find_elements_for_red_refinement( U, vtxs_added);
+            R_prt = find_elements_for_red_refinement( U, vtxs_added );
          }
 
          // predict number of elements after required green step
@@ -580,10 +580,14 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
 
    WALBERLA_DEBUG_SECTION()
    {
-      for ( uint_t i = 0; i < n_vol_on_rnk.size(); ++i )
+      uint_t max_load = 0;
+      uint_t min_load = _n_elements;
+      for ( auto& load : n_vol_on_rnk )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "elements on rank " << i << ": " << n_vol_on_rnk[i] );
+         max_load = max( load, max_load );
+         min_load = min( load, min_load );
       }
+      WALBERLA_LOG_INFO_ON_ROOT( "min/max/mean load (number of vol. elements): " << min_load << " / " << max_load << " / " );
    }
 }
 
