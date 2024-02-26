@@ -4,6 +4,6 @@ target_sources( hyteg
     typeAliases.hpp
     RadialProfileTool.hpp
     InitialisationTool.hpp
-    DataIO.hpp
+    ParameterTool.hpp
     TerraNeoDataStructures.hpp
 )

@@ -7,6 +7,6 @@ waLBerla_execute_test(NAME PlateVelocityComputationTest)
 waLBerla_compile_test(FILES initialisation/InitialisationTest.cpp DEPENDS terraneo hyteg core )
 waLBerla_execute_test(NAME InitialisationTest)
 
-waLBerla_compile_test(FILES DataIO/TerraNeoDataIOTest.cpp DEPENDS terraneo hyteg core )
-waLBerla_execute_test(NAME TerraNeoDataIOTest)
+waLBerla_compile_test(FILES parameter/TerraNeoParameterTest.cpp DEPENDS terraneo hyteg core )
+waLBerla_execute_test(NAME TerraNeoParameterTest)
 waLBerla_link_files_to_builddir(*.prm)
