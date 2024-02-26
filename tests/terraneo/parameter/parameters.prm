@@ -72,8 +72,8 @@ Parameters
 
    // Input viscosity profile
 
-   //viscosityProfile Test_JSON.json;
-   
+   viscosityProfile ../../../data/terraneo/ViscosityProfileTest_JSON.json;
+
    characteristicVelocity 1e-7;
 
    // Input temperature

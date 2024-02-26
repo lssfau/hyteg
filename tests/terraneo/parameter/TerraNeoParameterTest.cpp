@@ -21,10 +21,10 @@
 #include "terraneo/helpers/ParameterTool.hpp"
 
 /**
- * @file TerraNeoDataIOTest.cpp
+ * @file TerraNeoParameterTest.cpp
  * @brief Test program for data input/output modularization.
  *
- * The TerraNeoDataIOTest program is used to test the functionality of the TerraNeo data input/output module.
+ * The TerraNeoParameterTest program is used to test the functionality of the TerraNeo data input/output module.
  * It reads a parameter file, parses the configuration, and prints the configuration settings.
  *
  * @param argc The number of command-line arguments.
