@@ -54,7 +54,7 @@ int main( int argc, char** argv )
    // will store the viscosity in the corresponding data structure
    terraneo::parseConfig( mainConf );
 
-   bool loggingToFile = false;
+   bool loggingToFile = true;
 
    if ( loggingToFile )
    {

@@ -72,7 +72,7 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile ../../../data/terraneo/ViscosityProfileTest_JSON.json;
+   viscosityProfile ../../data/terraneo/ViscosityProfileTest_JSON.json;
 
    characteristicVelocity 1e-7;
 
