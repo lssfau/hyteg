@@ -281,7 +281,7 @@ if ( DOXYGEN_FOUND )
 
 else ()
 
-  message( WARNING "Doxygen not found. You will not be able to build documentation." )
+  message( STATUS "Doxygen not found. You will not be able to build documentation." )
 
 endif ( )
 
