@@ -1098,7 +1098,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       {
          // refine the (n_el * p) elements where the local error is largest
          const auto sizeR = uint_t( std::round( double( n_el_old ) * p_ref ) );
-         criterion        = [&]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
+         criterion        = [p_ref, sizeR, n_el_old]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
             if ( i == 0 )
             {
                WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i^2 = " << err_global.back().first );
