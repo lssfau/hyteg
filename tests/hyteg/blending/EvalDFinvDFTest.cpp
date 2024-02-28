@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Andreas Burkhart, Ponsuganth Ilangovan P.
+ * Copyright (c) 2024 Andreas Burkhart, Marcus Mohr, Ponsuganth Ilangovan P.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,27 +27,85 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/geometry/AffineMap2D.hpp"
+#include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/IdentityMap.hpp"
+#include "hyteg/geometry/PolarCoordsMap.hpp"
+#include "hyteg/geometry/SphericalCoordsMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
 using walberla::real_t;
+using walberla::math::pi;
 
 using namespace hyteg;
 
-real_t firstDerivativeTestTaylor2D()
+auto createAnnulusStorage( uint_t nTan, uint_t nRad )
 {
-   const uint_t nTan = 12U, nRad = 4U;
+   const real_t rMin = real_c( 0.5 );
+   const real_t rMax = real_c( 1.5 );
 
-   const real_t rMin = real_c( 0.5 ), rMax = real_c( 1.5 );
-   MeshInfo     meshInfo = MeshInfo::meshAnnulus( rMin, rMax, MeshInfo::CRISS, nTan, nRad );
+   MeshInfo meshInfo = MeshInfo::meshAnnulus( rMin, rMax, MeshInfo::CRISS, nTan, nRad );
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    AnnulusMap::setMap( *setupStorage );
+
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
+   return storage;
+}
+
+auto createPolarCoordsStorage( uint_t nSubCells )
+{
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( real_c( 0.5 ), real_c( 0 ) ),
+                                                Point2D( real_c( 1 ), real_c( 7.0 / 4.0 * pi ) ),
+                                                MeshInfo::CRISS,
+                                                nSubCells,
+                                                nSubCells );
+
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
+       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   PolarCoordsMap::setMap( *setupStorage );
+
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+
+   return storage;
+}
+
+auto createThickSphericalShellStorage( uint_t nTan, uint_t nRad )
+{
+   const real_t rMin = real_c( 0.5 ), rMax = real_c( 1.5 );
+   MeshInfo     meshInfo = MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax );
+
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
+       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   IcosahedralShellMap::setMap( *setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+
+   return storage;
+}
+
+auto createSphericalCoordsStorage( uint_t nSubCells )
+{
+   MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( real_c( 1 ), real_c( 0 ), real_c( 0 ) ),
+                                                      Point3D( real_c( 2 ), real_c( pi ), real_c( 2 * pi ) ),
+                                                      nSubCells,
+                                                      nSubCells,
+                                                      nSubCells );
+
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
+       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SphericalCoordsMap::setMap( *setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+
+   return storage;
+}
+
+real_t firstDerivativeTestTaylor2D( const std::shared_ptr< PrimitiveStorage >& storage )
+{
    std::shared_ptr< Face > face;
    real_t                  maximum = std::numeric_limits< real_t >::min();
    real_t                  h       = real_c( 1e-2 );
@@ -94,19 +152,8 @@ real_t firstDerivativeTestTaylor2D()
    return maximum;
 }
 
-real_t firstDerivativeTestTaylor3D()
+real_t firstDerivativeTestTaylor3D( const std::shared_ptr< PrimitiveStorage >& storage )
 {
-   const uint_t nTan = 3U, nRad = 2U;
-
-   const real_t rMin = real_c( 0.5 ), rMax = real_c( 1.5 );
-   MeshInfo     meshInfo = MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax );
-
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   IcosahedralShellMap::setMap( *setupStorage );
-
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
-
    std::shared_ptr< Cell > cell;
    real_t                  maximum = std::numeric_limits< real_t >::min();
    real_t                  h       = real_c( 1e-2 );
@@ -154,20 +201,11 @@ real_t firstDerivativeTestTaylor3D()
    return maximum;
 }
 
-real_t secondDerivativesFiniteDifferenceTest2D()
+real_t secondDerivativesFiniteDifferenceTest2D( const std::shared_ptr< PrimitiveStorage >& storage )
 {
-   const uint_t nTan = 12U, nRad = 4U;
-
-   const real_t rMin = real_c( 0.5 ), rMax = real_c( 1.5 );
-   MeshInfo     meshInfo = MeshInfo::meshAnnulus( rMin, rMax, MeshInfo::CRISS, nTan, nRad );
-
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   AnnulusMap::setMap( *setupStorage );
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
-
    std::shared_ptr< Face > face;
    real_t                  maximum = std::numeric_limits< real_t >::min();
+
    for ( auto& it : storage->getFaces() )
    {
       face = it.second;
@@ -179,8 +217,7 @@ real_t secondDerivativesFiniteDifferenceTest2D()
 
       Matrix2r DF, DFinv;
 
-      std::shared_ptr< GeometryMap > mapPtr      = face->getGeometryMap();
-      AnnulusMap*                    geometryMap = dynamic_cast< AnnulusMap* >( mapPtr.get() );
+      std::shared_ptr< GeometryMap > geometryMap = face->getGeometryMap();
 
       Matrixr< 2, 4 > DFInvDFxNumerical, DFInvDFx;
 
@@ -227,18 +264,8 @@ real_t secondDerivativesFiniteDifferenceTest2D()
    return maximum;
 }
 
-real_t secondDerivativesFiniteDifferenceTest3D()
+real_t secondDerivativesFiniteDifferenceTest3D( const std::shared_ptr< PrimitiveStorage >& storage )
 {
-   const uint_t nTan = 3U, nRad = 2U;
-
-   const real_t rMin = real_c( 0.5 ), rMax = real_c( 1.5 );
-   MeshInfo     meshInfo = MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax );
-
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   IcosahedralShellMap::setMap( *setupStorage );
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
-
    std::shared_ptr< Cell > cell;
    real_t                  maximum = std::numeric_limits< real_t >::min();
    for ( auto& it : storage->getCells() )
@@ -253,8 +280,7 @@ real_t secondDerivativesFiniteDifferenceTest3D()
 
       Matrix3r DF, DFinv;
 
-      std::shared_ptr< GeometryMap > mapPtr      = cell->getGeometryMap();
-      IcosahedralShellMap*           geometryMap = dynamic_cast< IcosahedralShellMap* >( mapPtr.get() );
+      std::shared_ptr< GeometryMap > geometryMap = cell->getGeometryMap();
 
       Matrixr< 3, 9 > DFInvDFxNumerical, DFInvDFx;
       Matrix3r        DInvFx_plus_dx, DInvFx_minus_dx;
@@ -344,17 +370,109 @@ int main( int argc, char* argv[] )
 
    real_t maximum;
 
-   maximum = firstDerivativeTestTaylor2D();
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running tests for AnnulusMap" );
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   auto annulusStorage = createAnnulusStorage( 12u, 4u );
+
+   maximum = firstDerivativeTestTaylor2D( annulusStorage );
    WALBERLA_CHECK_LESS( maximum, real_c( 1e-2 ) );
 
-   maximum = firstDerivativeTestTaylor3D();
+   maximum = secondDerivativesFiniteDifferenceTest2D( annulusStorage );
+   WALBERLA_CHECK_LESS( maximum, real_c( 1e-3 ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running tests for IcosahedralShellMap" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
+   auto thickShellStorage = createThickSphericalShellStorage( 3u, 2u );
+
+   maximum = firstDerivativeTestTaylor3D( thickShellStorage );
    WALBERLA_CHECK_LESS( maximum, real_c( 1e-2 ) );
 
-   maximum = secondDerivativesFiniteDifferenceTest2D();
+   maximum = secondDerivativesFiniteDifferenceTest3D( thickShellStorage );
    WALBERLA_CHECK_LESS( maximum, real_c( 1e-3 ) );
 
-   maximum = secondDerivativesFiniteDifferenceTest3D();
-   WALBERLA_CHECK_LESS( maximum, real_c( 1e-3 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running tests for PolarCoordsMap" );
+   WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------" );
+   auto polarCoordsStorage = createPolarCoordsStorage( 3u );
 
+   maximum = firstDerivativeTestTaylor2D( polarCoordsStorage );
+   WALBERLA_CHECK_LESS( maximum, real_c( 2e-2 ) );
+
+   maximum = secondDerivativesFiniteDifferenceTest2D( polarCoordsStorage );
+   WALBERLA_CHECK_LESS( maximum, real_c( 1.2e-3 ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "------------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running tests for SphericalCoordsMap" );
+   WALBERLA_LOG_INFO_ON_ROOT( "------------------------------------" );
+   auto sphericalCoordsStorage = createSphericalCoordsStorage( 2u );
+
+   maximum = firstDerivativeTestTaylor3D( sphericalCoordsStorage );
+   WALBERLA_CHECK_LESS( maximum, real_c( 5e-2 ) );
+
+   maximum = secondDerivativesFiniteDifferenceTest3D( sphericalCoordsStorage );
+   WALBERLA_CHECK_LESS( maximum, real_c( 7e-2 ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running test for AffineMap2D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   {
+      Matrix2r mat;
+      real_t   phi = 2.0 / 9.0 * pi;
+      mat( 0, 0 )  = +std::cos( phi );
+      mat( 0, 1 )  = -std::sin( phi );
+      mat( 1, 0 )  = +std::sin( phi ) * 2.25;
+      mat( 1, 1 )  = +std::cos( phi ) * 2.25;
+      Point2D         vec( -7.0, 3.0 );
+      AffineMap2D     map( mat, vec );
+      Point3D         point( { real_c( 0 ), real_c( 0 ), real_c( 0 ) } );
+      Matrixr< 2, 4 > DFinvDFx = Matrixr< 2, 4 >::Random();
+      ;
+      map.evalDFinvDF( point, DFinvDFx );
+      WALBERLA_CHECK_FLOAT_EQUAL( DFinvDFx.norm(), real_c( 0 ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "passed" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running test for AffineMap3D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   {
+      Matrix3r mat;
+      mat( 0, 0 ) = +8.660254037844387e-01;
+      mat( 0, 1 ) = -1.545084971874737e-01;
+      mat( 0, 2 ) = -9.510565162951534e-01;
+      mat( 1, 0 ) = +0.000000000000000e+00;
+      mat( 1, 1 ) = +9.510565162951535e-01;
+      mat( 1, 2 ) = -6.180339887498948e-01;
+      mat( 2, 0 ) = +4.999999999999999e-01;
+      mat( 2, 1 ) = +2.676165673298174e-01;
+      mat( 2, 2 ) = +1.647278207092664e+00;
+      Point3D         vec( -7.0, 3.0, 2.0 );
+      AffineMap3D     map( mat, vec );
+      Point3D         point( { real_c( 0 ), real_c( 0 ), real_c( 0 ) } );
+      Matrixr< 3, 9 > DFinvDFx = Matrixr< 3, 9 >::Random();
+      map.evalDFinvDF( point, DFinvDFx );
+      WALBERLA_CHECK_FLOAT_EQUAL( DFinvDFx.norm(), real_c( 0 ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "passed" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running test for IdentityMap" );
+   WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
+   {
+      IdentityMap     map;
+      Point3D         point( { real_c( 0 ), real_c( 0 ), real_c( 0 ) } );
+      Matrixr< 2, 4 > derivs2D = Matrixr< 2, 4 >::Random();
+      Matrixr< 3, 9 > derivs3D = Matrixr< 3, 9 >::Random();
+
+      map.evalDFinvDF( point, derivs2D );
+      WALBERLA_CHECK_FLOAT_EQUAL( derivs2D.norm(), real_c( 0 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "2D passed" );
+
+      map.evalDFinvDF( point, derivs3D );
+      WALBERLA_CHECK_FLOAT_EQUAL( derivs3D.norm(), real_c( 0 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "3D passed" );
+   }
    return 0;
 }

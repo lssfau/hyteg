@@ -79,9 +79,9 @@ class PolarCoordsMap : public GeometryMap
 
    void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
    {
-      const real_t tmp0 = sin( x[1] );
+      const real_t tmp0 = std::sin( x[1] );
       const real_t tmp1 = ( tmp0 * tmp0 );
-      const real_t tmp2 = cos( x[1] );
+      const real_t tmp2 = std::cos( x[1] );
       const real_t tmp3 = ( tmp2 * tmp2 );
       const real_t tmp4 = tmp1 * x[0] + tmp3 * x[0];
       const real_t tmp5 = tmp1 + tmp3;
