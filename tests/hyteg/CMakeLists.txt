@@ -276,8 +276,8 @@ waLBerla_execute_test(NAME SyncingTest3 COMMAND $<TARGET_FILE:SyncingTest> PROCE
 
 ## Other ##
 
-
-
+waLBerla_compile_test(FILES primitives/Face+CellGeometryTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME Face+CellGeometryTest)
 
 waLBerla_compile_test(FILES primitives/PrimitiveID+TypeTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveID+TypeTest)
