@@ -127,13 +127,18 @@ struct SimulationParameters
    uint_t unknownsStokes      = 0;
    real_t hMin                = real_c( 0 );
    real_t hMax                = real_c( 0 );
+   uint_t numLayers           = 0;
 
    //Parameters given via config file
    bool        fixedTimestep              = false;
+   uint_t      timeStep                   = 0;
+   real_t      modelTime                  = real_c( 0 );
+   real_t      dtPrev                     = real_c( 0 );
+   real_t      dt                         = real_c( 0 );
    real_t      dtConstant                 = real_c( 0 );
    real_t      cflMax                     = real_c( 1 );
    uint_t      timestep                   = 0;
-   std::string simulationType             = "ConvectionModel";
+   std::string simulationType             = std::string( "ConvectionModel" );
    uint_t      maxNumTimesteps            = 100;
    bool        resetSolver                = false;
    uint_t      resetSolverFrequency       = 100;
@@ -156,6 +161,9 @@ struct SimulationParameters
    bool        shearHeating           = true; //default: include shear heating
    uint_t      boundaryCond           = 1;    // default: No-Slip/No-Slip
    bool        boundaryCondFreeSlip   = false;
+   bool        verbose                = false;
+   bool        haveViscosityProfile   = false;
+   std::string fileViscosityProfile   = std::string( "ViscosityProfile.txt" );
 
    //needed for conversions in the simulation
    const real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
@@ -230,21 +238,5 @@ struct PhysicalParameters
    real_t hNumber =
        ( internalHeatingRate * mantleThickness ) / ( specificHeatCapacity * characteristicVelocity * ( cmbTemp - surfaceTemp ) );
 };
-
-DomainParameters         domainParam;
-SolverParameters         solverParam;
-OutputParameters         outputParam;
-SimulationParameters     simulationParam;
-PhysicalParameters       physicalParam;
-InitialisationParameters initialisationParam;
-
-bool        verbose;
-uint_t      numLayers;
-uint_t      timeStep  = 0;
-real_t      modelTime = real_c( 0 );
-real_t      dtPrev;
-real_t      dt;
-bool        haveViscosityProfile = false;
-std::string fileViscosityProfile;
 
 } // namespace terraneo

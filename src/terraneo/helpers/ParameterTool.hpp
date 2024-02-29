@@ -162,6 +162,37 @@ inline bool readDataFile( const std::string& filename, std::vector< std::vector<
 }
 
 /**
+ * @brief Performs linear interpolation between data points in a 2D vector.
+ *
+ * This function takes a 2D vector of real_t values and performs linear interpolation to estimate the value at a given independent variable.
+ * The independent variable is compared with the values in the first column of the data_vector to determine the appropriate data points for interpolation.
+ * Linear interpolation is then performed between these data points to estimate the value at the given independent variable.
+ *
+ * @param data_vector The 2D vector containing the data points.
+ * @param independent_var The independent variable for which the value is to be estimated.
+ * @return The estimated value at the given independent variable.
+ */
+
+real_t linearInterpolateBetween( std::vector< std::vector< real_t > >& data_vector, const real_t& independent_var )
+{
+   if ( independent_var <= data_vector[0][0] )
+      return data_vector[0][1];
+
+   if ( independent_var > data_vector[data_vector.size() - 1][0] )
+      return data_vector[data_vector.size() - 1][1];
+
+   uint_t cur_row = 0;
+   while ( independent_var > data_vector[cur_row][0] )
+      ++cur_row;
+
+   real_t normalized_factor =
+       ( independent_var - data_vector[cur_row - 1][0] ) / ( data_vector[cur_row][0] - data_vector[cur_row - 1][0] );
+   real_t retVal =
+       ( normalized_factor * ( data_vector[cur_row][1] - data_vector[cur_row - 1][1] ) ) + data_vector[cur_row - 1][1];
+   return retVal;
+}
+
+/**
  * @brief Parses the configuration parameters from the main configuration block.
  *
  * This function reads and extracts various domain, model, simulation, and initialization parameters from the main configuration block.
@@ -169,6 +200,13 @@ inline bool readDataFile( const std::string& filename, std::vector< std::vector<
  *
  * @param mainConf The main configuration block containing the parameters.
  */
+
+DomainParameters         domainParam;
+SolverParameters         solverParam;
+OutputParameters         outputParam;
+SimulationParameters     simulationParam;
+PhysicalParameters       physicalParam;
+InitialisationParameters initialisationParam;
 
 inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
@@ -189,10 +227,10 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
 
    if ( mainConf.isDefined( "viscosityProfile" ) )
    {
-      fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
-      if ( readDataFile( fileViscosityProfile, physicalParam.viscosityProfile, 2 ) )
+      simulationParam.fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
+      if ( readDataFile( simulationParam.fileViscosityProfile, physicalParam.viscosityProfile, 2 ) )
       {
-         haveViscosityProfile = true;
+         simulationParam.haveViscosityProfile = true;
 
          for ( uint_t i = 0; i < physicalParam.viscosityProfile.size(); i++ )
          {
@@ -357,9 +395,10 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
       outputParam.OutputInterval    = 1;
    }
 
-   verbose = mainConf.getParameter< bool >( "verbose" );
+   simulationParam.verbose = mainConf.getParameter< bool >( "verbose" );
    //number of radial layers at max level (x2 for P2 elements)
-   numLayers = 2 * ( domainParam.nRad - 1 ) * ( hyteg::levelinfo::num_microvertices_per_edge( domainParam.maxLevel ) - 1 );
+   simulationParam.numLayers =
+       2 * ( domainParam.nRad - 1 ) * ( hyteg::levelinfo::num_microvertices_per_edge( domainParam.maxLevel ) - 1 );
 }
 
 /**
@@ -406,9 +445,9 @@ inline void printConfig()
 
    WALBERLA_LOG_INFO_ON_ROOT( "Reference density            : " << physicalParam.referenceDensity );
 
-   if ( haveViscosityProfile )
+   if ( simulationParam.haveViscosityProfile )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity profile name       : " << fileViscosityProfile );
+      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity profile name       : " << simulationParam.fileViscosityProfile );
    }
    else
    {

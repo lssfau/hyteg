@@ -61,7 +61,7 @@ int main( int argc, char** argv )
       terraneo::printConfig();
    }
 
-   if ( terraneo::haveViscosityProfile )
+   if ( terraneo::simulationParam.haveViscosityProfile )
    {
       WALBERLA_CHECK( terraneo::physicalParam.viscosityProfile.empty() == false, "Viscosity profile is empty!" );
    }
