@@ -114,9 +114,10 @@ class GeometryMap
       WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D in child class!" );
    };
 
-   /// Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
+   ///@{
+   /// \brief Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
    ///
-   /// Denote by 
+   /// Denote by
    /// \f[
    /// J_{\Psi} =  \left(\begin{array}{ccc}
    /// \displaystyle\frac{\partial x_0}{\partial \xi_0} & \cdots &
@@ -145,17 +146,13 @@ class GeometryMap
       WALBERLA_UNUSED( DFinvDFx );
       WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 2D in child class!" );
    };
-
-   /// Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
-   /// \param x Reference input coordinates
-   /// \param DFinvDFx Result matrix dim x dim*dim
-
    virtual void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvDFx );
       WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 3D in child class!" );
    };
+   ///@}
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
