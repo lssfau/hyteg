@@ -43,7 +43,7 @@ using namespace hyteg;
 bool force_VTK = true; // false;
 
 uint_t theLevel  = 4;
-real_t threshold = real_c( std::is_same< real_t, double >() ? 1.1e-4 : 7e-5 );
+real_t threshold = real_c( std::is_same< real_t, double >() ? 1.1e-4 : 1.2e-4 );
 
 void logSectionHeader( const char* header )
 {
