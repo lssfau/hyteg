@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -121,6 +121,36 @@ void Cell::deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer )
    recvBuffer >> faceInwardNormals_;
    recvBuffer >> indirectNeighborCellIDsOverVertices_;
    recvBuffer >> indirectNeighborCellIDsOverFaces_;
+}
+
+real_t Cell::getVolume() const
+{
+   Matrix4r mat;
+   for ( int rowIdx = 0; rowIdx < 4; ++rowIdx )
+   {
+      for ( int colIdx = 0; colIdx < 3; ++colIdx )
+      {
+         mat( rowIdx, colIdx ) = coordinates_[static_cast< uint_t >( rowIdx )][colIdx];
+      }
+      mat( rowIdx, 3 ) = real_c( 1 );
+   }
+
+   return std::abs( mat.determinant() ) / real_c( 6 );
+}
+
+real_t Cell::getInsphereRadius() const
+{
+   Point3D a = coordinates_[0];
+   Point3D b = coordinates_[1];
+   Point3D c = coordinates_[2];
+   Point3D d = coordinates_[3];
+
+   real_t lengthNormalABC = ( b - a ).cross( c - a ).norm();
+   real_t lengthNormalABD = ( b - a ).cross( d - a ).norm();
+   real_t lengthNormalACD = ( c - a ).cross( d - a ).norm();
+   real_t lengthNormalBCD = ( c - b ).cross( d - b ).norm();
+
+   return real_c( 6 ) * getVolume() / ( lengthNormalABC + lengthNormalABD + lengthNormalACD + lengthNormalBCD );
 }
 
 } // namespace hyteg

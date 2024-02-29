@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -145,6 +145,12 @@ class Cell : public Primitive
    {
       return neighborEdges().at( indexing::getCellLocalOppositeEdgeID( getLocalEdgeID( edgeID ) ) );
    }
+
+   /// Returns the volume of the cell in the computational domain, i.e. no blending is applied
+   real_t getVolume() const;
+
+   /// Returns the insphere radius of the cell in the computational domain, i.e. no blending is applied
+   real_t getInsphereRadius() const;
 
  protected:
    /// Not public in order to guarantee that data is only added through the governing structure.

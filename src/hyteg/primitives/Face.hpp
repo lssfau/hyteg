@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -60,7 +60,7 @@ class Face : public Primitive
       neighborEdges_.push_back( edgeIDs[1] );
       neighborEdges_.push_back( edgeIDs[2] );
       std::array< Point3D, 2 > B( { { coords[1] - coords[0], coords[2] - coords[0] } } );
-      area = std::abs( 0.5 * math::det2( B ) );
+      area_ = std::abs( 0.5 * math::det2( B ) );
    }
 
    Face( walberla::mpi::RecvBuffer& recvBuffer )
@@ -83,9 +83,16 @@ class Face : public Primitive
 
    friend std::ostream& operator<<( std::ostream& os, const Face& face );
 
-   const std::array< int, 3 >&     getEdgeOrientation() const { return edge_orientation; }
+   const std::array< int, 3 >& getEdgeOrientation() const { return edge_orientation; }
+
+   /// Returns an array with the macro-vertices of the face w.r.t. the computational domain, i.e. no blending is applied
    const std::array< Point3D, 3 >& getCoordinates() const { return coords; }
-   real_t                          getArea() const { return area; }
+
+   /// Returns the area of the face in the computational domain, i.e. no blending is applied
+   real_t getArea() const { return area_; }
+
+   /// Returns the incircle radius of the face in the computational domain, i.e. no blending is applied
+   real_t getIncircleRadius() const;
 
    const PrimitiveID& getVertexID0() const
    {
@@ -225,7 +232,7 @@ class Face : public Primitive
    virtual void deserializeSubclass( walberla::mpi::RecvBuffer& recvBuffer );
 
  private:
-   real_t               area;
+   real_t               area_;
    std::array< int, 3 > edge_orientation;
 
    std::array< Point3D, 3 > coords;
