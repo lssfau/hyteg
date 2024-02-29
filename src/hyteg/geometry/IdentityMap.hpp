@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes.
+ * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Andreas Burkhart, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -66,6 +66,18 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 0 ) = real_c( 0.0 );
       DFinvx( 1, 1 ) = real_c( 1.0 );
    }
+
+   void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
+   {
+      WALBERLA_UNUSED( x );
+      DFinvDFx.setZero();
+   };
+
+   void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const override final
+   {
+      WALBERLA_UNUSED( x );
+      DFinvDFx.setZero();
+   };
 
    bool isIdentity() const final { return true; }
    bool isAffine() const final { return true; }

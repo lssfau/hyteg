@@ -26,6 +26,7 @@
 #include "IcosahedralShellMap.hpp"
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
+#include "SphericalCoordsMap.hpp"
 #include "ThinShellMap.hpp"
 #include "TokamakMap.hpp"
 #include "TorusMap.hpp"
@@ -68,6 +69,8 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< ThinShellMap >( recvBuffer );
    case Type::POLAR_COORDS:
       return std::make_shared< PolarCoordsMap >();
+   case Type::SPHERICAL_COORDS:
+      return std::make_shared< SphericalCoordsMap >();
    case Type::TOKAMAK:
       return std::make_shared< TokamakMap >( recvBuffer );
    case Type::TORUS:

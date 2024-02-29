@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -63,14 +63,14 @@ class AffineMap2D : public GeometryMap
       recvBuffer >> jacDet_;
    }
 
-   void evalF( const Point3D& xold, Point3D& xnew ) const final
+   void evalF( const Point3D& xold, Point3D& xnew ) const override final
    {
       xnew[0] = mat_( 0, 0 ) * xold[0] + mat_( 0, 1 ) * xold[1] + vec_[0];
       xnew[1] = mat_( 1, 0 ) * xold[0] + mat_( 1, 1 ) * xold[1] + vec_[1];
       xnew[2] = real_c( 0 );
    }
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const final
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final
    {
       real_t tmp0 = real_c( 1 ) / jacDet_;
       real_t tmp1 = tmp0 * ( -vec_[0] + xPhys[0] );
@@ -80,7 +80,7 @@ class AffineMap2D : public GeometryMap
       xComp[1] = mat_( 0, 0 ) * tmp2 - mat_( 1, 0 ) * tmp1;
    }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const final
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final
    {
       sendBuffer << Type::AFFINE_2D;
       for ( int i = 0; i < 2; i++ )
@@ -121,7 +121,7 @@ class AffineMap2D : public GeometryMap
       }
    }
 
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const final
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const override final
    {
       WALBERLA_UNUSED( x );
       DFx( 0, 0 ) = mat_( 0, 0 );
@@ -130,7 +130,7 @@ class AffineMap2D : public GeometryMap
       DFx( 1, 1 ) = mat_( 1, 1 );
    }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const override final
    {
       WALBERLA_UNUSED( x );
       DFinvx( 0, 0 ) = +mat_( 1, 1 );
@@ -140,7 +140,13 @@ class AffineMap2D : public GeometryMap
       DFinvx *= real_c( 1 ) / jacDet_;
    }
 
-   bool isAffine() const final { return true; }
+   void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
+   {
+      WALBERLA_UNUSED( x );
+      DFinvDFx.setZero();
+   }
+
+   bool isAffine() const override final { return true; }
 
  private:
    /// matrix using in affine mapping

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -149,6 +149,72 @@ class AnnulusMap : public GeometryMap
       DFinvx = tmp.inverse();
    }
 
+   void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
+   {
+      const real_t tmp0  = rayVertex_[1] - thrVertex_[1];
+      const real_t tmp1  = ( x[0] * x[0] );
+      const real_t tmp2  = ( x[1] * x[1] );
+      const real_t tmp3  = tmp1 + tmp2;
+      const real_t tmp4  = std::pow( tmp3, -1.0 / 2.0 );
+      const real_t tmp5  = std::pow( ( rayVertex_[0] * rayVertex_[0] ) + ( rayVertex_[1] * rayVertex_[1] ), 1.0 / 2.0 );
+      const real_t tmp6  = -tmp5 + std::pow( ( refVertex_[0] * refVertex_[0] ) + ( refVertex_[1] * refVertex_[1] ), 1.0 / 2.0 );
+      const real_t tmp7  = rayVertex_[1] * thrVertex_[0];
+      const real_t tmp8  = 1.0 / ( -tmp7 - rayVertex_[0] * refVertex_[1] + rayVertex_[0] * thrVertex_[1] +
+                                  rayVertex_[1] * refVertex_[0] - refVertex_[0] * thrVertex_[1] + refVertex_[1] * thrVertex_[0] );
+      const real_t tmp9  = std::pow( tmp3, -3.0 / 2.0 );
+      const real_t tmp10 = tmp6 * tmp8;
+      const real_t tmp11 = tmp10 * tmp9;
+      const real_t tmp12 = tmp0 * tmp11;
+      const real_t tmp13 = -rayVertex_[0] + thrVertex_[0];
+      const real_t tmp14 = tmp11 * tmp13;
+      const real_t tmp15 = x[0] * x[1];
+      const real_t tmp16 = tmp14 * tmp15;
+      const real_t tmp17 = tmp10 * ( -tmp7 + rayVertex_[0] * thrVertex_[1] - rayVertex_[0] * x[1] + rayVertex_[1] * x[0] +
+                                     thrVertex_[0] * x[1] - thrVertex_[1] * x[0] ) +
+                           tmp5;
+      const real_t tmp18 = tmp17 * tmp9;
+      const real_t tmp19 = tmp18 * x[0];
+      const real_t tmp20 = std::pow( tmp3, -5.0 / 2.0 );
+      const real_t tmp21 = 3 * tmp17 * tmp20;
+      const real_t tmp22 = tmp19 - tmp2 * tmp21 * x[0];
+      const real_t tmp23 = -tmp0 * tmp4 * tmp6 * tmp8 + tmp12 * tmp2 + tmp16 + tmp22;
+      const real_t tmp24 = -tmp23;
+      const real_t tmp25 = tmp19 * x[1];
+      const real_t tmp26 = -tmp13 * tmp4 * tmp6 * tmp8 * x[0] + tmp25;
+      const real_t tmp27 = -tmp0 * tmp4 * tmp6 * tmp8 * x[1] + tmp25;
+      const real_t tmp28 = -tmp27;
+      const real_t tmp29 = tmp10 * tmp4;
+      const real_t tmp30 = tmp17 * tmp4;
+      const real_t tmp31 = tmp0 * tmp29 * x[0] - tmp1 * tmp18 + tmp30;
+      const real_t tmp32 = tmp13 * tmp29;
+      const real_t tmp33 = -tmp18 * tmp2 + tmp30 + tmp32 * x[1];
+      const real_t tmp34 = tmp26 * tmp28 + tmp31 * tmp33;
+      const real_t tmp35 = 1.0 / ( tmp34 );
+      const real_t tmp36 = 1.0 / ( tmp34 * tmp34 );
+      const real_t tmp37 = tmp12 * tmp15;
+      const real_t tmp38 = tmp18 * x[1];
+      const real_t tmp39 = -tmp1 * tmp21 * x[1] + tmp38;
+      const real_t tmp40 = 2 * tmp37 + tmp39;
+      const real_t tmp41 = tmp1 * tmp14 - tmp32 + tmp37 + tmp39;
+      const real_t tmp42 =
+          2 * tmp0 * tmp4 * tmp6 * tmp8 - 2 * tmp1 * tmp12 + 3 * tmp17 * tmp20 * ( x[0] * x[0] * x[0] ) - 3 * tmp19;
+      const real_t tmp43 = tmp36 * ( -tmp24 * tmp31 + tmp26 * tmp40 - tmp28 * tmp41 - tmp33 * tmp42 );
+      const real_t tmp44 =
+          2 * tmp13 * tmp4 * tmp6 * tmp8 - 2 * tmp14 * tmp2 + 3 * tmp17 * tmp20 * ( x[1] * x[1] * x[1] ) - 3 * tmp38;
+      const real_t tmp45 = 2 * tmp16 + tmp22;
+      const real_t tmp46 = -tmp41;
+      const real_t tmp47 = tmp36 * ( -tmp24 * tmp26 - tmp28 * tmp45 - tmp31 * tmp44 - tmp33 * tmp46 );
+
+      DFinvDFx( 0, 0 ) = tmp24 * tmp35 + tmp33 * tmp43;
+      DFinvDFx( 0, 1 ) = tmp26 * tmp43 + tmp35 * tmp41;
+      DFinvDFx( 1, 0 ) = tmp27 * tmp43 + tmp35 * tmp40;
+      DFinvDFx( 1, 1 ) = tmp31 * tmp43 + tmp35 * tmp42;
+      DFinvDFx( 0, 2 ) = tmp33 * tmp47 + tmp35 * tmp44;
+      DFinvDFx( 0, 3 ) = tmp26 * tmp47 + tmp35 * tmp45;
+      DFinvDFx( 1, 2 ) = tmp23 * tmp35 + tmp27 * tmp47;
+      DFinvDFx( 1, 3 ) = tmp31 * tmp47 + tmp35 * tmp46;
+   }
+
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
       sendBuffer << Type::ANNULUS << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
@@ -168,13 +234,6 @@ class AnnulusMap : public GeometryMap
          setupStorage.setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, setupStorage ) );
       }
    }
-
-   const Point3D& rayVertex() const { return rayVertex_; }
-   const Point3D& refVertex() const { return refVertex_; }
-   const Point3D& thrVertex() const { return thrVertex_; }
-
-   real_t radRefVertex() const { return radRefVertex_; }
-   real_t radRayVertex() const { return radRayVertex_; }
 
  private:
    /// \name Classified vertices of macro triangle

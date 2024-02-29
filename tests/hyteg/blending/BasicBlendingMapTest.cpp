@@ -31,6 +31,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
+#include "hyteg/geometry/SphericalCoordsMap.hpp"
 #include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/geometry/TokamakMap.hpp"
 
@@ -152,6 +153,11 @@ auto genMap( const std::string& variant )
                                             r2 );
    }
 
+   else if ( variant == "SphericalCoordsMap" )
+   {
+      map = std::make_shared< SphericalCoordsMap >();
+   }
+
    else
    {
       WALBERLA_ABORT( "Map variant '" << variant << "' not supported!" );
@@ -176,7 +182,8 @@ int main( int argc, char* argv[] )
                                            "CircularMap",
                                            "IcosahedralShellMap",
                                            "ThinShellMap",
-                                           "TokamakMap" };
+                                           "TokamakMap",
+                                           "SphericalCoordsMap" };
 
    // run tests
    const auto badGuy = genMap( "TokamakMap" );
