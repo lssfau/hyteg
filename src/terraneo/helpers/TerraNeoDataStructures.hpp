@@ -58,8 +58,8 @@ struct DomainParameters
 
    real_t domainVolume() const
    {
-      return ( real_c( 4 / 3 ) ) * walberla::math::pi * rMax * rMax * rMax -
-             ( real_c( 4 / 3 ) ) * walberla::math::pi * rMin * rMin * rMin;
+      return ( real_c( 4.0 ) / real_c( 3.0 ) ) * walberla::math::pi * rMax * rMax * rMax -
+             ( real_c( 4.0 ) / real_c( 3.0 ) ) * walberla::math::pi * rMin * rMin * rMin;
    }
 };
 
