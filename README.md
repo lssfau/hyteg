@@ -128,9 +128,9 @@ A merge request (MR) can be in three different states:
    *Every MR must have at least one approving review before it can be merged.*
 3. Ready for merging: All work on this MR is done, it has been approved, all discussions are resolved and the CI passed.
    Thanks for your contribution to HyTeG!
-   Before merging please make sure that your branch is up-to-date with the current master because the CI checks the HEAD of your branch, not the result of the merge.
-   Also make sure that "Delete source branch" is checked.
-   You may now press that Merge button.
+   After making sure that "Delete source branch" is checked, you may press that Merge button.
+   Please be aware that the CI checks the HEAD of your branch, not the result of the merge.
+   In case the master and your branch diverged, it might be a good idea to rebase on the current master or merge the master into your branch so that the CI can check the combination of both changes.
 
 ### CCache
 
