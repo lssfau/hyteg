@@ -154,7 +154,7 @@ inline bool readDataFile( const std::string& filename, std::vector< std::vector<
    }
    else
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "Unable to open file " << filename );
+      WALBERLA_LOG_WARNING_ON_ROOT( "Unable to open file '" << filename << "'" );
       return false;
    }
 
