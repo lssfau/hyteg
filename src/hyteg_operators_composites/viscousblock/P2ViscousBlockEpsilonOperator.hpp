@@ -113,5 +113,62 @@ class P2ViscousBlockEpsilonOperator : public VectorToVectorOperator< real_t, P2V
    }
 };
 
+/// P2ViscousBlockEpsilonOperator with IcosahedralShellMap blending. See documentation of P2ViscousBlockEpsilonOperator.
+class P2ViscousBlockEpsilonIcosahedralShellMapOperator
+: public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+{
+ public:
+   P2ViscousBlockEpsilonIcosahedralShellMapOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                     uint_t                                     minLevel,
+                                                     uint_t                                     maxLevel,
+                                                     const P2Function< real_t >&                mu )
+   : VectorToVectorOperator< real_t, hyteg::P2VectorFunction, hyteg::P2VectorFunction >( storage, minLevel, maxLevel )
+   {
+      this->setSubOperator( 0,
+                            0,
+                            std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_0_0 >(
+                                storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator( 0,
+                            1,
+                            std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_0_1 >(
+                                storage, minLevel, maxLevel, mu ) );
+
+      this->setSubOperator( 1,
+                            0,
+                            std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_1_0 >(
+                                storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator( 1,
+                            1,
+                            std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_1_1 >(
+                                storage, minLevel, maxLevel, mu ) );
+
+      if ( storage->hasGlobalCells() )
+      {
+         this->setSubOperator( 0,
+                               2,
+                               std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_0_2 >(
+                                   storage, minLevel, maxLevel, mu ) );
+
+         this->setSubOperator( 1,
+                               2,
+                               std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_1_2 >(
+                                   storage, minLevel, maxLevel, mu ) );
+
+         this->setSubOperator( 2,
+                               0,
+                               std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_2_0 >(
+                                   storage, minLevel, maxLevel, mu ) );
+         this->setSubOperator( 2,
+                               1,
+                               std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_2_1 >(
+                                   storage, minLevel, maxLevel, mu ) );
+         this->setSubOperator( 2,
+                               2,
+                               std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_2_2 >(
+                                   storage, minLevel, maxLevel, mu ) );
+      }
+   }
+};
+
 } // namespace operatorgeneration
 } // namespace hyteg

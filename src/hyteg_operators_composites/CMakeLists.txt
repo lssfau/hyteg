@@ -4,5 +4,8 @@
 #                                                                                                #
 ##################################################################################################
 
+add_subdirectory( divergence )
+add_subdirectory( gradient )
 add_subdirectory( stokes )
+add_subdirectory( viscousblock )
 

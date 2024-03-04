@@ -21,12 +21,15 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesConstantOperator.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
 #include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
@@ -97,6 +100,61 @@ void compareApplyCC( const MeshInfo& meshInfo, const uint_t level, bool precompu
    WALBERLA_CHECK_LESS( errorMaxMagnitudeP, epsilon );
 }
 
+void compareApplyFullViscousStokesIcosahedralShellMap( const uint_t level )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Test compare apply on IcosahedralShellMap -- level " << level )
+
+   SetupPrimitiveStorage setupStorage( MeshInfo::meshSphericalShell( 3, 2, 0.5, 1.0 ),
+                                       walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   IcosahedralShellMap::setMap( setupStorage );
+   loadbalancing::roundRobin( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-13 : 3e-6 );
+
+   // functions
+   P2P1TaylorHoodFunction< real_t > src( "src", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > dstRefOp( "dstRefOp", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > dstNewOp( "dstNewOp", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > error( "error", storage, level, level );
+
+   P2Function< real_t > mu( "mu", storage, level, level );
+   mu.interpolate( 1.0, level );
+
+   // setup operators
+   P2P1ElementwiseBlendingFullViscousStokesOperator              refOp( storage, level, level );
+   operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator newOp( storage, level, level, mu );
+
+   // interpolate something on src function
+   auto vel_x    = []( const Point3D& p ) { return std::sin( p[0] ) + std::sin( 1.3 * p[1] ) + std::sin( 1.7 * p[2] ); };
+   auto vel_y    = []( const Point3D& p ) { return std::sin( p[0] ) + std::sin( 2.3 * p[1] ) + std::sin( 2.7 * p[2] ); };
+   auto vel_z    = []( const Point3D& p ) { return std::sin( p[0] ) + std::sin( 3.3 * p[1] ) + std::sin( 3.7 * p[2] ); };
+   auto pressure = []( const Point3D& p ) { return p[0] * p[0] * p[0] + std::cos( p[1] * p[2] ); };
+
+   src.uvw().interpolate( { vel_x, vel_y, vel_z }, level, All );
+   src.p().interpolate( pressure, level, All );
+
+   refOp.apply( src, dstRefOp, level, Inner | NeumannBoundary );
+   newOp.apply( src, dstNewOp, level, Inner | NeumannBoundary );
+
+   error.assign( { 1.0, -1.0 }, { dstRefOp, dstNewOp }, level, All );
+
+   auto errorMaxMagnitudeU = error.uvw()[0].getMaxMagnitude( level );
+   auto errorMaxMagnitudeV = error.uvw()[1].getMaxMagnitude( level );
+   auto errorMaxMagnitudeW = error.uvw()[2].getMaxMagnitude( level );
+   auto errorMaxMagnitudeP = error.p().getMaxMagnitude( level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude u: " << errorMaxMagnitudeU );
+   WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude v: " << errorMaxMagnitudeV );
+   WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude w: " << errorMaxMagnitudeW );
+   WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude p: " << errorMaxMagnitudeP );
+
+   WALBERLA_CHECK_LESS( errorMaxMagnitudeU, epsilon );
+   WALBERLA_CHECK_LESS( errorMaxMagnitudeV, epsilon );
+   WALBERLA_CHECK_LESS( errorMaxMagnitudeW, epsilon );
+   WALBERLA_CHECK_LESS( errorMaxMagnitudeP, epsilon );
+}
+
 int main( int argc, char* argv[] )
 {
    // General setup stuff
@@ -136,6 +194,13 @@ int main( int argc, char* argv[] )
        MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 3, false );
    compareApplyCC< operatorgeneration::P2P1StokesConstantOperator >(
        MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 4, false );
+
+   // -- blending tests
+
+   compareApplyFullViscousStokesIcosahedralShellMap( 0 );
+   compareApplyFullViscousStokesIcosahedralShellMap( 1 );
+   compareApplyFullViscousStokesIcosahedralShellMap( 2 );
+   compareApplyFullViscousStokesIcosahedralShellMap( 3 );
 
    return 0;
 }

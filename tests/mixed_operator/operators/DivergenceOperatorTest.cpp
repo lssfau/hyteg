@@ -24,7 +24,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg_operators_composites/stokes/divergence/P2ToP1DivergenceOperator.hpp"
+#include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 
 #include "mixed_operator/VectorToScalarOperator.hpp"
 

@@ -27,6 +27,7 @@
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusion.hpp"
+#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
 
 #include "mixed_operator/VectorToVectorOperator.hpp"
 
@@ -66,6 +67,34 @@ class P2ViscousBlockLaplaceOperator : public VectorToVectorOperator< real_t, P2V
       {
          this->setSubOperator(
              2, 2, std::make_shared< operatorgeneration::P2ElementwiseDiffusion >( storage, minLevel, maxLevel ) );
+      }
+   }
+};
+
+/// P2ViscousBlockLaplaceOperator with IcosahedralShellMap blending. See documentation of P2ViscousBlockLaplaceOperator.
+class P2ViscousBlockLaplaceIcosahedralShellMapOperator
+: public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+{
+ public:
+   P2ViscousBlockLaplaceIcosahedralShellMapOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                     uint_t                                     minLevel,
+                                                     uint_t                                     maxLevel )
+   : VectorToVectorOperator< real_t, hyteg::P2VectorFunction, hyteg::P2VectorFunction >( storage, minLevel, maxLevel )
+   {
+      this->setSubOperator(
+          0,
+          0,
+          std::make_shared< operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap >( storage, minLevel, maxLevel ) );
+      this->setSubOperator(
+          1,
+          1,
+          std::make_shared< operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap >( storage, minLevel, maxLevel ) );
+      if ( storage->hasGlobalCells() )
+      {
+         this->setSubOperator(
+             2,
+             2,
+             std::make_shared< operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap >( storage, minLevel, maxLevel ) );
       }
    }
 };

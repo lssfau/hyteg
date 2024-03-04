@@ -67,13 +67,13 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME ParallelCouplingCountTest3 COMMAND $<TARGET_FILE:CouplingCountTest> PROCESSES 3)
 endif ()
 
-waLBerla_compile_test(FILES operators/DivergenceOperatorTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-stokes-divergence)
+waLBerla_compile_test(FILES operators/DivergenceOperatorTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-divergence)
 waLBerla_execute_test(NAME DivergenceOperatorTest)
 
 waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core mixed_operator)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 
-waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-stokes-viscousblock)
+waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-viscousblock)
 waLBerla_execute_test(NAME ViscousOperatorsTest)
 
 if (HYTEG_BUILD_WITH_PETSC)

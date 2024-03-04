@@ -27,8 +27,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
-#include "hyteg_operators_composites/stokes/viscousblock/P2ViscousBlockEpsilonOperator.hpp"
-#include "hyteg_operators_composites/stokes/viscousblock/P2ViscousBlockFullOperator.hpp"
+#include "hyteg_operators_composites/viscousblock/P2ViscousBlockEpsilonOperator.hpp"
+#include "hyteg_operators_composites/viscousblock/P2ViscousBlockFullOperator.hpp"
 
 #include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "constant_stencil_operator/P2ConstantFullViscousOperator.hpp"
