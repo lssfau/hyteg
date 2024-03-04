@@ -36,6 +36,7 @@ namespace terraneo {
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
+using json = nlohmann::json;
 
 /**
  * @brief Reads data from a file and populates a 2D vector with the values.
@@ -49,7 +50,6 @@ using walberla::uint_t;
  * @param num_columns The number of columns expected in each row.
  * @return True if the data was successfully read and populated in the data_vector, false otherwise.
  */
-using json = nlohmann::json;
 
 inline bool readDataFile( const std::string& filename, std::vector< std::vector< real_t > >& data_vector, uint_t num_columns )
 {
