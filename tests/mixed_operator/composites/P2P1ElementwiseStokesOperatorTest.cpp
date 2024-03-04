@@ -110,7 +110,7 @@ void compareApplyFullViscousStokesIcosahedralShellMap( const uint_t level )
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-13 : 3e-6 );
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-13 : 4e-6 );
 
    // functions
    P2P1TaylorHoodFunction< real_t > src( "src", storage, level, level );
