@@ -65,8 +65,8 @@ int main( int argc, char** argv )
    {
       // Check entries in radius column of profile file (non-dimensional values)
 
-      if ( terraneo::physicalParam.viscosityProfile[0][0] <= 2.1969 &&
-           terraneo::physicalParam.viscosityProfile.back()[0] <= 1.1969 )
+      if ( terraneo::physicalParam.viscosityProfile[0][0] - terraneo::domainParam.rMax == terraneo::real_c( 0 ) &&
+           terraneo::physicalParam.viscosityProfile.back()[0] - terraneo::domainParam.rMin == terraneo::real_c( 0 ) )
       {
          WALBERLA_CHECK( true, "First and last entry in the first column are correct!" );
       }
