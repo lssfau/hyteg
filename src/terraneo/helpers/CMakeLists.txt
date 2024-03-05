@@ -5,5 +5,5 @@ target_sources( hyteg
     RadialProfileTool.hpp
     InitialisationTool.hpp
     ParameterTool.hpp
-    TerraNeoDataStructures.hpp
+    TerraNeoParameters.hpp
 )

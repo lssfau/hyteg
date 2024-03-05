@@ -1,0 +1,260 @@
+Parameters
+{
+   //////////////////////////
+   //  Domain parameters   //
+   //////////////////////////
+
+   // Spherical shell radii
+
+   rCMB 3471000;
+   rSurface 6371000;
+
+   // Coarse grid
+
+   nTan 3;
+   nRad 2;
+   threeDim true;
+   
+   // Refinement level
+   
+   maxLevel 5;
+   minLevel 0;
+    
+   //////////////////////////////////
+   //  Initialisation parameters   //
+   //////////////////////////////////
+
+   // Temperature Initialisation 
+
+   // tempInit: determine a filter for the initial sperical harmonics (default: no filtering)
+   // tempInit = 0: keep anomalies near CMB
+   // tempInit = 1: keep anomalies near the surface
+   // tempInit = 2: keep anomalies near both boundaries 
+
+   tempInit 1;
+
+   // Steepness of temperature filtering
+
+   initialTemperatureSteepness 4;
+
+   /************************************************************/
+   // Temperature noise 
+   // generate random Gaussian noise to replce spherical harmonics 
+   // false: generate spherical harmonics 
+
+   temperatureNoise true;
+   temperatureSphericalHarmonic false;
+
+   // the default value of noiseFactor is set to 0.05
+   noiseFactor 0.05; 
+   /************************************************************/
+
+   // Spherical Harmonics parameters
+
+   degree 25;
+   order 25;
+   lmin 10;
+   lmax 25;
+   
+   // Spherical Harmonics superposition
+   // generate random superposition of spherical harmonics (lmin -> lmax)
+   // false: generate a single spherical harmonic (degree and order defined above)
+
+   superposition true;
+
+   // scaling temperature anomalies in the initial state
+
+   buoyancyFactor 0.01;
+
+   /////////////////////////
+   //  Model parameters   //
+   /////////////////////////
+
+   // Input viscosity profile
+
+   viscosityProfile ../../data/terraneo/ViscosityProfileTest_JSON.json;
+
+   characteristicVelocity 1e-7;
+
+   // Input temperature
+
+   surfacetemp 300.0;
+   cmbtemp 4200.0;
+   
+   ////////////////////////////
+   //  Material parameters   //
+   ////////////////////////////
+
+   thermalExpansivity 2.238e-5;
+   thermalConductivity 3.0;
+   specificHeatCapacity 1260;
+   internalHeatingRate 6e-12;
+   referenceDensity 4448;
+   viscosity       5e22;
+
+   // Adiabatic reference state parameters
+
+   // adiabatic reference state parameters
+   
+   adiabatSurfaceTemp 1600;
+   surfaceDensity 3.3745581070e03;
+   
+   // Derive density profile using Gruneisen parameter
+
+   grueneisenParameter 1.1;
+   
+   ///////////////////////////////////////////
+   //  Temp-Dependent Viscosity parameters  //
+   ///////////////////////////////////////////
+
+   // Temperature dependent or independent viscosity
+
+   tempDependentViscosity false;
+
+   // Temperature-dependent viscosity law
+   // 0 =  Frank–Kamenetskii type 1: goes as e^(-Activation * T)
+   // 1 =  Frank–Kamenetskii type 2: goes as e^( Activation * ( 0.5 - T ) ) 
+   // 2 =  Scale with deviation from mean: goes as e^(-Activation * dT )
+   // 3 =  Arrhenius type: goes as e^( Activation / T )
+   // default: 0
+   //Note that the same values of activationEnergy aren't necessarily relevant for all cases
+
+   tempDependentViscosityType 3; 
+
+   activationEnergy 5;
+   depthViscosityFactor 2.5;
+   viscosityLowerBound 2e19;
+   viscosityUpperBound 1e24;
+
+   //setup solvers again due to changing spectral bounds of stokes operator
+   
+   resetSolver true;
+   resetSolverFrequency 100; 
+
+   //////////////////////////////
+   //  Simulation parameters   //
+   //////////////////////////////
+
+   // Boundary Condition (Surface / CMB)
+   // 1 = No-Slip / No-Slip
+   // 2 = Free-Slip / Free-Slip
+   // 3 = No-Slip / Free-Slip 
+   // default: 1
+
+   boundaryCond 1;
+   
+   // Model simulation type: ConvectionModel / CirculationModel
+   
+   simulationType ConvectionModel;
+
+   // Solver type
+   // 0: MINRES + pressure prec. (HyTeG)
+   // 1: MINRES + no prec. (PETSc)
+   
+   solverType 0;
+
+   compressible true;
+   shearHeating true;
+
+   // Time steps 
+
+   maxNumTimeSteps 200;
+   fixedTimeStep false;
+   cflMax 1;
+   dtConstant 1e-4;
+
+   // Adaptive reference Temperature 
+   // true: update to radial mean Temperature
+
+   adaptiveRefTemp false;
+  
+   // Input files for circulation model
+
+   fnameTopologies       ../../../data/terraneo/plates/topologies0-100Ma.geojson;
+   fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
+   initialAge 100;
+   finalAge 1;
+   plateVelocityScaling 4;
+   //distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)
+   plateSmoothingDistance 110;
+  
+   //////////////////////////
+   //  Solver parameters  //
+   //////////////////////////
+
+   // Stokes solver abort criteria
+
+   stokesMaxNumIterations 10;
+
+   // Residual tolerances for repeated V cycles 
+
+   stokesAbsoluteResidualUTolerance 1e-6;
+   stokesRelativeResidualUTolerance 1e-6;
+
+   // Residual tolerances for FMG and repeated V cycles
+
+   coarseGridAbsoluteResidualTolerance 1e-12;
+   coarseGridRelativeResidualTolerance 1e-12;
+
+   // Stokes solver parameters
+
+   uzawaPreSmooth 3;
+   uzawaPostSmooth 3;
+   uzawaInnerIterations 3;
+   uzawaOmega 0.1;
+   numVCyclesPerLevel 1;
+   estimateUzawaOmega false;
+
+   //max number of iterations used for spectral radius estimation for preconditioning of chebyshev smoother
+   chebyshevIterations 50;
+
+   //if stokes resduals diverge beyond this value, kill simulation
+   stokesKillTolerance 1;
+
+   //if true, use FMG, if false, use repeated V cycles 
+   fullMultigrid false;
+
+   //if true, precompute and store stokes local element matrices. If false, compute on-the-fly
+
+   preComputeStokesElementMatrices true;
+
+   // Diffusion equation aborting criteria
+
+   diffusionMaxNumIterations 1000;
+   diffusionAbsoluteResidualUTolerance 1e-12;
+   gmresApproximationToleranceTransport 1e-12;
+
+   //////////////////////////
+   //  Output parameters   //
+   //////////////////////////
+   
+   dataOutput true;
+   vtk false;
+   OutputVelocity true;
+   OutputTemperature true;
+   OutputInterval 1;
+   OutputVertexDoFs false;
+
+   //If desired: output per Myr:
+
+   outputMyr false;
+   outputIntervalMyr 1;
+
+   outputProfiles true;
+   outputConfig ADIOS2config.xml;
+   
+   // ADIOS2 parameter keys and values for data output
+
+   ADIOS2ParamKey AggregatorRatio;
+   ADIOS2Value 4;
+
+   outputDirectory ../../output;
+   outputBaseName 3d_convection;
+
+   verbose true;
+   
+   // Output of json file containing timing results of default Timing Tree results
+   // default: false
+
+   timingAnalysis false;
+}
