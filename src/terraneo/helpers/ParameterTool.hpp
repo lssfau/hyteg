@@ -24,11 +24,10 @@
 #include <core/logging/Logging.h>
 #include <core/mpi/MPIManager.h>
 
-#include "core/extern/json.hpp"
-
 #include "hyteg/Levelinfo.hpp"
 
-#include "terraneo/helpers/TerraNeoDataStructures.hpp"
+#include "terraneo/dataimport/io.hpp"
+#include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/plates/PlateVelocityProvider.hpp"
 
 namespace terraneo {
@@ -36,141 +35,15 @@ namespace terraneo {
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
-using json = nlohmann::json;
 
 /**
- * @brief Reads data from a file and populates a 2D vector with the values.
+ * @brief Performs linear interpolation between given data points of a 2D array.
  *
- * This function reads data from a file (JSON or txt/csv) specified by the filename parameter (i.e. a radial viscosity or temperature profile). 
- * The function reads the data and populates the data_vector parameter, which is a 2D vector of real_t values. 
- * The num_columns parameter specifies the number of columns expected in each row.
- *
- * @param filename The name of the file to read the data from.
- * @param data_vector The 2D vector to populate with the data.
- * @param num_columns The number of columns expected in each row.
- * @return True if the data was successfully read and populated in the data_vector, false otherwise.
- */
-
-inline bool readDataFile( const std::string& filename, std::vector< std::vector< real_t > >& data_vector, uint_t num_columns )
-{
-   std::string           line;
-   std::ifstream         myfile( filename );
-   uint_t                counter = 0;
-   real_t                tmp_var;
-   std::vector< real_t > tmp_vec;
-   tmp_vec.reserve( num_columns );
-
-   if ( myfile.is_open() )
-   {
-      bool gotData = false;
-
-      while ( getline( myfile, line ) )
-      {
-         tmp_vec.clear();
-         std::stringstream sstream( line );
-
-         // Check if the file is in JSON format
-         if ( filename.substr( filename.find_last_of( "." ) + 1 ) == "json" )
-         {
-            json j;
-            try
-            {
-               j = json::parse( line );
-            } catch ( const std::exception& e )
-            {
-               WALBERLA_LOG_WARNING_ON_ROOT( "Failed to parse JSON in file " << filename << ": " << e.what() );
-               return gotData;
-            }
-            // Check if the number of arrays in the JSON file is 2
-            if ( j.size() != 2 && j.size() == num_columns )
-            {
-               WALBERLA_LOG_WARNING_ON_ROOT( "Invalid number of arrays in JSON file " << filename
-                                                                                      << ": Expected: " << num_columns );
-               WALBERLA_LOG_WARNING_ON_ROOT( "Number of arrays found: " << j.size() );
-               return gotData;
-            }
-            // Read values from JSON array
-            for ( const auto& item : j.items() )
-            {
-               const std::string& key   = item.key();
-               const json&        value = item.value();
-
-               // Check if the key exists in the JSON object
-               if ( !value.is_array() )
-               {
-                  WALBERLA_LOG_WARNING_ON_ROOT( "Invalid JSON format in file " << filename << ": Expected an array for key "
-                                                                               << key );
-                  return gotData;
-               }
-               for ( const auto& val : value )
-               {
-                  if ( !val.is_number() )
-                  {
-                     WALBERLA_LOG_WARNING_ON_ROOT( "Invalid value type for key " << key << " in JSON file " << filename
-                                                                                 << ": Expected a number" );
-                     return gotData;
-                  }
-                  tmp_vec.push_back( val.get< real_t >() );
-               }
-            }
-
-            // Add the temporary vector to the data vector
-            data_vector.push_back( tmp_vec );
-            // Increment the counter
-            counter++;
-            gotData = true;
-         }
-         else
-         {
-            // File is in .txt format
-            // Cycle through columns and read values into tmp_var
-            for ( uint_t i = 0; i < num_columns; ++i )
-            {
-               if ( sstream.eof() )
-               {
-                  if ( i < num_columns - 1 )
-                  {
-                     WALBERLA_LOG_WARNING_ON_ROOT( "Not enough elements in row " << counter << " of file " << filename );
-                     return gotData;
-                  }
-                  else
-                  {
-                     break; // Skip the warning if it's the last column in the row
-                  }
-               }
-
-               sstream >> tmp_var;
-               tmp_vec.push_back( tmp_var );
-            }
-         }
-
-         // Append row to vector
-         data_vector.push_back( tmp_vec );
-         gotData = true;
-         // Move to next row
-         counter++;
-      }
-      myfile.close();
-   }
-   else
-   {
-      WALBERLA_LOG_WARNING_ON_ROOT( "Unable to open file '" << filename << "'" );
-      return false;
-   }
-
-   return true;
-}
-
-/**
- * @brief Performs linear interpolation between data points in a 2D vector.
- *
- * This function takes a 2D vector of real_t values and performs linear interpolation to estimate the value at a given independent variable.
- * The independent variable is compared with the values in the first column of the data_vector to determine the appropriate data points for interpolation.
- * Linear interpolation is then performed between these data points to estimate the value at the given independent variable.
+ * A linear interpolation is performed between the data points of the 2D array to estimate the value of the variable.
  *
  * @param data_vector The 2D vector containing the data points.
- * @param independent_var The independent variable for which the value is to be estimated.
- * @return The estimated value at the given independent variable.
+ * @param independent_var The independent variable to be estimated.
+ * @return The estimated value.
  */
 
 real_t linearInterpolateBetween( std::vector< std::vector< real_t > >& data_vector, const real_t& independent_var )
@@ -228,17 +101,16 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
    if ( mainConf.isDefined( "viscosityProfile" ) )
    {
       simulationParam.fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
-      if ( readDataFile( simulationParam.fileViscosityProfile, physicalParam.viscosityProfile, 2 ) )
+      if ( io::readProfileData( simulationParam.fileViscosityProfile, physicalParam.viscosityProfile ) )
       {
          simulationParam.haveViscosityProfile = true;
-
+         
          for ( uint_t i = 0; i < physicalParam.viscosityProfile.size(); i++ )
          {
             //non-dimensionalise radius
             physicalParam.viscosityProfile[i][0] /= physicalParam.mantleThickness;
          }
-
-         std::reverse( physicalParam.viscosityProfile.begin(), physicalParam.viscosityProfile.end() );
+         //std::reverse( physicalParam.viscosityProfile.begin(), physicalParam.viscosityProfile.end() );
       }
    }
 

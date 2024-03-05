@@ -63,7 +63,28 @@ int main( int argc, char** argv )
 
    if ( terraneo::simulationParam.haveViscosityProfile )
    {
-      WALBERLA_CHECK( terraneo::physicalParam.viscosityProfile.empty() == false, "Viscosity profile is empty!" );
+      // Check entries in radius column of profile file (non-dimensional values)
+
+      if ( terraneo::physicalParam.viscosityProfile[0][0] <= 2.1969 &&
+           terraneo::physicalParam.viscosityProfile.back()[0] <= 1.1969 )
+      {
+         WALBERLA_CHECK( true, "First and last entry in the first column are correct!" );
+      }
+      else
+      {
+         WALBERLA_CHECK( false, "First and last entry in the first column are incorrect!" );
+      }
+
+      // check if second data column is non-zero
+
+      for ( const auto& entry : terraneo::physicalParam.viscosityProfile )
+      {
+         if ( entry[1] == 0 )
+         {
+            WALBERLA_CHECK( false, "Second column contains a zero value!" );
+            break;
+         }
+      }
+      return 0;
    }
-   return 0;
 }
