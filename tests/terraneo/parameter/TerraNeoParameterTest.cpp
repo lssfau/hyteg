@@ -65,26 +65,14 @@ int main( int argc, char** argv )
    {
       // Check entries in radius column of profile file (non-dimensional values)
 
-      if ( terraneo::physicalParam.viscosityProfile[0][0] - terraneo::domainParam.rMax == terraneo::real_c( 0 ) &&
-           terraneo::physicalParam.viscosityProfile.back()[0] - terraneo::domainParam.rMin == terraneo::real_c( 0 ) )
-      {
-         WALBERLA_CHECK( true, "First and last entry in the first column are correct!" );
-      }
-      else
-      {
-         WALBERLA_CHECK( false, "First and last entry in the first column are incorrect!" );
-      }
+      WALBERLA_CHECK_EQUAL( terraneo::physicalParam.viscosityProfile[0][0], terraneo::domainParam.rMax );
+      WALBERLA_CHECK_EQUAL( terraneo::physicalParam.viscosityProfile.back()[0], terraneo::domainParam.rMin );
 
       // check if second data column is non-zero
-
-      for ( const auto& entry : terraneo::physicalParam.viscosityProfile )
+      for ( size_t i = 0; i < terraneo::physicalParam.viscosityProfile.size(); i++ )
       {
-         if ( entry[1] == 0 )
-         {
-            WALBERLA_CHECK( false, "Second column contains a zero value!" );
-            break;
-         }
+         WALBERLA_CHECK_GREATER( terraneo::physicalParam.viscosityProfile[i][1], 0.0 );
       }
-      return 0;
    }
+   return 0;
 }
