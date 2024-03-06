@@ -65,8 +65,8 @@ int main( int argc, char** argv )
    {
       // Check entries in radius column of profile file (non-dimensional values)
 
-      WALBERLA_CHECK_EQUAL( terraneo::physicalParam.viscosityProfile[0][0], terraneo::domainParam.rMax );
-      WALBERLA_CHECK_EQUAL( terraneo::physicalParam.viscosityProfile.back()[0], terraneo::domainParam.rMin );
+      WALBERLA_CHECK_FLOAT_EQUAL( terraneo::physicalParam.viscosityProfile[0][0], terraneo::domainParam.rMax );
+      WALBERLA_CHECK_FLOAT_EQUAL( terraneo::physicalParam.viscosityProfile.back()[0], terraneo::domainParam.rMin );
 
       // check if second data column is non-zero
       for ( size_t i = 0; i < terraneo::physicalParam.viscosityProfile.size(); i++ )
