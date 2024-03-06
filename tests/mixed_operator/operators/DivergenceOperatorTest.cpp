@@ -19,13 +19,12 @@
  */
 
 #include "core/DataTypes.h"
-#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 
 #include "mixed_operator/VectorToScalarOperator.hpp"
 
@@ -75,7 +74,7 @@ void run_P2_P1_Test_in_3D()
    Expression xComp = [a]( const hyteg::Point3D& xx ) { return a * xx[0] * xx[0]; };
    Expression yComp = [b]( const hyteg::Point3D& xx ) { return b * xx[1] * xx[2]; };
    Expression zComp = [c]( const hyteg::Point3D& xx ) { return c * xx[1] * xx[2]; };
-   vf.interpolate( {xComp, yComp, zComp}, maxLevel );
+   vf.interpolate( { xComp, yComp, zComp }, maxLevel );
 
    // compute weak divergence
    divOp_t              divOp( storage, minLevel, maxLevel );
@@ -131,7 +130,7 @@ void run_P2_P1_Test_in_2D()
 
    Expression xComp = [a]( const hyteg::Point3D& xx ) { return a * xx[0] * xx[0]; };
    Expression yComp = [b]( const hyteg::Point3D& xx ) { return b * xx[1] * xx[2]; };
-   vf.interpolate( {xComp, yComp}, maxLevel );
+   vf.interpolate( { xComp, yComp }, maxLevel );
 
    // compute weak divergence
    divOp_t              divOp( storage, minLevel, maxLevel );
@@ -177,7 +176,7 @@ void run_P1_P1_Test_in_3D()
    Expression xComp = [a]( const hyteg::Point3D& xx ) { return a * xx[0]; };
    Expression yComp = [b]( const hyteg::Point3D& xx ) { return b * xx[1]; };
    Expression zComp = [c]( const hyteg::Point3D& xx ) { return c * xx[2]; };
-   vf.interpolate( {xComp, yComp, zComp}, maxLevel );
+   vf.interpolate( { xComp, yComp, zComp }, maxLevel );
 
    // compute weak divergence
    divOp_t              divOp( storage, minLevel, maxLevel );
@@ -221,7 +220,9 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "P2ToP1ConstantDivOperator" );
    run_P2_P1_Test_in_2D< P2ToP1ConstantDivOperator >();
+   run_P2_P1_Test_in_2D< hyteg::operatorgeneration::P2ToP1DivergenceOperator >();
    run_P2_P1_Test_in_3D< P2ToP1ConstantDivOperator >();
+   run_P2_P1_Test_in_3D< hyteg::operatorgeneration::P2ToP1DivergenceOperator >();
 
    printTestHdr( "P2ToP1ElementwiseBlendingDivOperator" );
    run_P2_P1_Test_in_2D< P2ToP1ElementwiseBlendingDivOperator >();
