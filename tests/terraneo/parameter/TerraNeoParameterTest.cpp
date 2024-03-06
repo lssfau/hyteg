@@ -71,7 +71,7 @@ int main( int argc, char** argv )
       // check if second data column is non-zero
       for ( size_t i = 0; i < terraneo::physicalParam.viscosityProfile.size(); i++ )
       {
-         WALBERLA_CHECK_GREATER( terraneo::physicalParam.viscosityProfile[i][1], 0.0 );
+         WALBERLA_CHECK_GREATER( terraneo::physicalParam.viscosityProfile[i][1], terraneo::real_c( 0 ) );
       }
    }
    return 0;
