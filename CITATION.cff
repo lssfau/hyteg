@@ -1,0 +1,19 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Hybrid Tetrahedral Grids (HyTeG)
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Dominik
+    family-names: Thönnes
+    email: dominik.thoennes@fau.de
+    affiliation: >-
+      Friedrich-Alexander-Universität Erlangen-Nürnberg
+      (FAU)
+    orcid: 'https://orcid.org/0000-0002-8340-4849'
+repository-code: 'https://i10git.cs.fau.de/hyteg/hyteg'
+license: GPL-3.0-or-later
