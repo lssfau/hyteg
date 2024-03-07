@@ -4,8 +4,8 @@
 cff-version: 1.2.0
 title: Hybrid Tetrahedral Grids (HyTeG)
 message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+  If you use this software, please cite both the article 
+  from preferred-citation and the software itself.
 type: software
 authors:
   - given-names: Dominik
@@ -17,3 +17,26 @@ authors:
     orcid: 'https://orcid.org/0000-0002-8340-4849'
 repository-code: 'https://i10git.cs.fau.de/hyteg/hyteg'
 license: GPL-3.0-or-later
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Kohl"
+    given-names: "Nils"
+  - family-names: "Thönnes"
+    given-names: "Dominik"
+  - family-names: "Drzisga"
+    given-names: "Daniel"
+  - family-names: "Bartuschat"
+    given-names: "Dominik"
+  - family-names: "Rüde"
+    given-names: "Ulrich"
+  doi: "10.1080/17445760.2018.1506453"
+  journal: "International Journal of Parallel, Emergent and Distributed Systems"
+  title: "The HyTeG finite-element software framework for scalable multigrid solvers"
+  publisher: 
+    name: "Taylor & Francis"
+  volume: 34
+  number: 5
+  start: 477
+  end: 496 
+  year: 2019
