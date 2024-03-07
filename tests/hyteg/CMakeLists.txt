@@ -172,6 +172,9 @@ waLBerla_execute_test(NAME EdgeDoFFunction3DTest)
 waLBerla_compile_test(FILES operators/EdgeDoFToVertexDoFOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFToVertexDoFOperatorTest)
 
+waLBerla_compile_test(FILES operators/GEMVSmokeTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME GEMVSmokeTest)
+
 waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 
