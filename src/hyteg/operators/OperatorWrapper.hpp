@@ -74,6 +74,21 @@ class OperatorWrapper final
                            updateType );
    };
 
+   virtual void gemv( const value_t&                    alpha,
+                      const GenericFunction< value_t >& src,
+                      const value_t&                    beta,
+                      const GenericFunction< value_t >& dst,
+                      size_t                            level,
+                      DoFType                           flag ) const
+   {
+      wrappedOper_->gemv( alpha,
+                          src.template unwrap< typename oper_t::srcType >(),
+                          beta,
+                          dst.template unwrap< typename oper_t::dstType >(),
+                          level,
+                          flag );
+   }
+
    void smooth_gs( const GenericFunction< value_t >& dst,
                    const GenericFunction< value_t >& rhs,
                    size_t                            level,
