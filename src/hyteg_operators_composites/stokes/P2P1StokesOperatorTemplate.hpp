@@ -42,11 +42,11 @@ namespace detail {
 ///
 /// where the operators A, Bᵀ, and B are template parameters, and A does not depend on a scalar viscosity function.
 ///
-/// \tparam ViscousOperator_T    A
-/// \tparam GradientOperator_T   Bᵀ
-/// \tparam DivergenceOperator_T B
+/// \tparam ViscousOperator    A
+/// \tparam GradientOperator   Bᵀ
+/// \tparam DivergenceOperator B
 ///
-template < typename ViscousOperator_T, typename GradientOperator_T, typename DivergenceOperator_T >
+template < typename ViscousOperator, typename GradientOperator, typename DivergenceOperator >
 class P2P1StokesConstViscOperatorTemplate : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
@@ -55,7 +55,13 @@ class P2P1StokesConstViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
    , A( storage, minLevel, maxLevel )
    , BT( storage, minLevel, maxLevel )
    , B( storage, minLevel, maxLevel )
+   , C( storage, minLevel, maxLevel )
    {}
+
+   using ViscousOperator_T       = ViscousOperator;
+   using GradientOperator_T      = GradientOperator;
+   using DivergenceOperator_T    = DivergenceOperator;
+   using StabilizationOperator_T = ZeroOperator< P1Function< real_t >, P1Function< real_t > >;
 
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
@@ -79,9 +85,21 @@ class P2P1StokesConstViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
       B.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   ViscousOperator_T    A;
-   GradientOperator_T   BT;
-   DivergenceOperator_T B;
+   const ViscousOperator&         getA() const { return A; }
+   const GradientOperator&        getBT() const { return BT; }
+   const DivergenceOperator&      getB() const { return B; }
+   const StabilizationOperator_T& getStab() const { return C; }
+
+   ViscousOperator&         getA() { return A; }
+   GradientOperator&        getBT() { return BT; }
+   DivergenceOperator&      getB() { return B; }
+   StabilizationOperator_T& getStab() { return C; }
+
+ private:
+   ViscousOperator         A;
+   GradientOperator        BT;
+   DivergenceOperator      B;
+   StabilizationOperator_T C;
 };
 
 /// PLEASE DO NOT USE THIS TEMPLATE DIRECTLY. Internals are subject to change.
@@ -97,11 +115,11 @@ class P2P1StokesConstViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
 ///
 /// where the operators A, Bᵀ, and B are template parameters, and A depends on a scalar viscosity function.
 ///
-/// \tparam ViscousOperator_T    A
-/// \tparam GradientOperator_T   Bᵀ
-/// \tparam DivergenceOperator_T B
+/// \tparam ViscousOperator    A
+/// \tparam GradientOperator   Bᵀ
+/// \tparam DivergenceOperator B
 ///
-template < typename ViscousOperator_T, typename GradientOperator_T, typename DivergenceOperator_T >
+template < typename ViscousOperator, typename GradientOperator, typename DivergenceOperator >
 class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
@@ -113,7 +131,13 @@ class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunctio
    , A( storage, minLevel, maxLevel, mu )
    , BT( storage, minLevel, maxLevel )
    , B( storage, minLevel, maxLevel )
+   , C( storage, minLevel, maxLevel )
    {}
+
+   using ViscousOperator_T       = ViscousOperator;
+   using GradientOperator_T      = GradientOperator;
+   using DivergenceOperator_T    = DivergenceOperator;
+   using StabilizationOperator_T = ZeroOperator< P1Function< real_t >, P1Function< real_t > >;
 
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
@@ -137,9 +161,21 @@ class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunctio
       B.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   ViscousOperator_T    A;
-   GradientOperator_T   BT;
-   DivergenceOperator_T B;
+   const ViscousOperator&         getA() const { return A; }
+   const GradientOperator&        getBT() const { return BT; }
+   const DivergenceOperator&      getB() const { return B; }
+   const StabilizationOperator_T& getStab() const { return C; }
+
+   ViscousOperator&         getA() { return A; }
+   GradientOperator&        getBT() { return BT; }
+   DivergenceOperator&      getB() { return B; }
+   StabilizationOperator_T& getStab() { return C; }
+
+ private:
+   ViscousOperator         A;
+   GradientOperator        BT;
+   DivergenceOperator      B;
+   StabilizationOperator_T C;
 };
 
 } // namespace detail
