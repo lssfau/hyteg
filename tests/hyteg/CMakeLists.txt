@@ -22,6 +22,12 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME ElementwiseDivKGradNeumannCGConvergenceTest)
 endif ()
 
+waLBerla_compile_test(FILES convergence/P2P1StokesPreconditionersConvergenceTest.cpp DEPENDS hyteg core opgen-k_mass opgen-composites-stokes constant_stencil_operator)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    waLBerla_execute_test(NAME P2P1StokesPreconditionersConvergenceTest)
+    waLBerla_execute_test(NAME P2P1StokesPreconditionersConvergenceTestLongrun COMMAND $<TARGET_FILE:P2P1StokesPreconditionersConvergenceTest> --longrun LABELS longrun)
+endif ()
+
 ## convection ##
 
 ## dataexport+import ##
