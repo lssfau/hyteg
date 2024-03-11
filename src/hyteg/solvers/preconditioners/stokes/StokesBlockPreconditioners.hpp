@@ -22,6 +22,7 @@
 #include "core/math/Random.h"
 
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/operators/ZeroOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/SubstitutePreconditioner.hpp"
@@ -86,27 +87,31 @@ namespace hyteg {
 // ---------------------- Preconditioners ----------------------
 // -------------------------------------------------------------
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class InexactUzawaPreconditioner : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   InexactUzawaPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >&                                   storage,
-       const uint_t                                                                 minLevel,
-       const uint_t                                                                 maxLevel,
-       const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockApproximationSolver,
-       const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurComplementApproximationSolver,
-       real_t                                                                       relaxParamA,
-       real_t                                                                       relaxParamSchur,
-       uint_t                                                                       VelocityIterations = 1,
-       std::shared_ptr< VelocityProjectionOperatorType >                            projection         = nullptr,
-       hyteg::DoFType flag            = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
-       bool           projectPressure = true )
+   InexactUzawaPreconditioner( const std::shared_ptr< PrimitiveStorage >&            storage,
+                               const uint_t                                          minLevel,
+                               const uint_t                                          maxLevel,
+                               const SchurOperatorType&                              schurOp,
+                               const std::shared_ptr< Solver< AOperatorType > >&     ABlockApproximationSolver,
+                               const std::shared_ptr< Solver< SchurOperatorType > >& SchurComplementApproximationSolver,
+                               real_t                                                relaxParamA,
+                               real_t                                                relaxParamSchur,
+                               uint_t                                                VelocityIterations = 1,
+                               std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr,
+                               hyteg::DoFType flag            = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                               bool           projectPressure = true )
    : storage_( storage )
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
+   , schurOp_( schurOp )
    , ABlockApproximationSolver_( ABlockApproximationSolver )
    , SchurComplementApproximationSolver_( SchurComplementApproximationSolver )
    , flag_( flag )
@@ -179,7 +184,7 @@ class InexactUzawaPreconditioner : public Solver< OperatorType >
 
       // apply S_hat
       tmp_.p().interpolate( real_c( 0.0 ), level, flag_ );
-      SchurComplementApproximationSolver_->solve( A.getSchur(), tmp_.p(), residual_.p(), level );
+      SchurComplementApproximationSolver_->solve( schurOp_, tmp_.p(), residual_.p(), level );
 
       // update x with the scaled result
       x.p().assign( { real_c( 1.0 ), -relaxParamSchur_ }, { x.p(), tmp_.p() }, level, flag_ );
@@ -195,8 +200,10 @@ class InexactUzawaPreconditioner : public Solver< OperatorType >
    uint_t                              minLevel_;
    uint_t                              maxLevel_;
 
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > >     ABlockApproximationSolver_;
-   std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > > SchurComplementApproximationSolver_;
+   SchurOperatorType schurOp_;
+
+   std::shared_ptr< Solver< AOperatorType > >     ABlockApproximationSolver_;
+   std::shared_ptr< Solver< SchurOperatorType > > SchurComplementApproximationSolver_;
 
    DoFType flag_;
    bool    hasGlobalCells_;
@@ -211,24 +218,26 @@ class InexactUzawaPreconditioner : public Solver< OperatorType >
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   AdjointInexactUzawaPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >&                                   storage,
-       const uint_t                                                                 minLevel,
-       const uint_t                                                                 maxLevel,
-       const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockApproximationSolver,
-       const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurComplementApproximationSolver,
-       real_t                                                                       relaxParamA,
-       real_t                                                                       relaxParamSchur,
-       uint_t                                                                       VelocityIterations = 1,
-       std::shared_ptr< VelocityProjectionOperatorType >                            projection         = nullptr,
-       hyteg::DoFType flag            = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
-       bool           projectPressure = true )
+   AdjointInexactUzawaPreconditioner( const std::shared_ptr< PrimitiveStorage >&            storage,
+                                      const uint_t                                          minLevel,
+                                      const uint_t                                          maxLevel,
+                                      const std::shared_ptr< Solver< AOperatorType > >&     ABlockApproximationSolver,
+                                      const std::shared_ptr< Solver< SchurOperatorType > >& SchurComplementApproximationSolver,
+                                      real_t                                                relaxParamA,
+                                      real_t                                                relaxParamSchur,
+                                      uint_t                                                VelocityIterations = 1,
+                                      std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr,
+                                      hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                      bool           projectPressure = true )
    : storage_( storage )
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
@@ -325,8 +334,8 @@ class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
    uint_t                              minLevel_;
    uint_t                              maxLevel_;
 
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > >     ABlockApproximationSolver_;
-   std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > > SchurComplementApproximationSolver_;
+   std::shared_ptr< Solver< AOperatorType > >     ABlockApproximationSolver_;
+   std::shared_ptr< Solver< SchurOperatorType > > SchurComplementApproximationSolver_;
 
    DoFType flag_;
    bool    hasGlobalCells_;
@@ -341,22 +350,25 @@ class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class BlockApproximateFactorisationPreconditioner : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
    BlockApproximateFactorisationPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >&                                   storage,
-       const uint_t                                                                 minLevel,
-       const uint_t                                                                 maxLevel,
-       const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockApproximationSolver,
-       const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurComplementApproximationSolver,
-       real_t                                                                       relaxParamA,
-       real_t                                                                       relaxParamSchur,
-       uint_t                                                                       VelocityIterations = 1,
-       std::shared_ptr< VelocityProjectionOperatorType >                            projection         = nullptr,
+       const std::shared_ptr< PrimitiveStorage >&            storage,
+       const uint_t                                          minLevel,
+       const uint_t                                          maxLevel,
+       const std::shared_ptr< Solver< AOperatorType > >&     ABlockApproximationSolver,
+       const std::shared_ptr< Solver< SchurOperatorType > >& SchurComplementApproximationSolver,
+       real_t                                                relaxParamA,
+       real_t                                                relaxParamSchur,
+       uint_t                                                VelocityIterations = 1,
+       std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr,
        hyteg::DoFType flag            = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
        bool           projectPressure = true )
    : storage_( storage )
@@ -504,8 +516,8 @@ class BlockApproximateFactorisationPreconditioner : public Solver< OperatorType 
    uint_t                              minLevel_;
    uint_t                              maxLevel_;
 
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > >     ABlockApproximationSolver_;
-   std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > > SchurComplementApproximationSolver_;
+   std::shared_ptr< Solver< AOperatorType > >     ABlockApproximationSolver_;
+   std::shared_ptr< Solver< SchurOperatorType > > SchurComplementApproximationSolver_;
 
    DoFType flag_;
    bool    hasGlobalCells_;
@@ -520,24 +532,26 @@ class BlockApproximateFactorisationPreconditioner : public Solver< OperatorType 
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class SymmetricUzawaPreconditioner : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   SymmetricUzawaPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >&                                   storage,
-       const uint_t                                                                 minLevel,
-       const uint_t                                                                 maxLevel,
-       const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockApproximationSolver,
-       const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurComplementApproximationSolver,
-       real_t                                                                       relaxParamA,
-       real_t                                                                       relaxParamSchur,
-       uint_t                                                                       VelocityIterations = 1,
-       std::shared_ptr< VelocityProjectionOperatorType >                            projection         = nullptr,
-       hyteg::DoFType flag            = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
-       bool           projectPressure = true )
+   SymmetricUzawaPreconditioner( const std::shared_ptr< PrimitiveStorage >&            storage,
+                                 const uint_t                                          minLevel,
+                                 const uint_t                                          maxLevel,
+                                 const std::shared_ptr< Solver< AOperatorType > >&     ABlockApproximationSolver,
+                                 const std::shared_ptr< Solver< SchurOperatorType > >& SchurComplementApproximationSolver,
+                                 real_t                                                relaxParamA,
+                                 real_t                                                relaxParamSchur,
+                                 uint_t                                                VelocityIterations = 1,
+                                 std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr,
+                                 hyteg::DoFType flag            = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                 bool           projectPressure = true )
    : storage_( storage )
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
@@ -656,8 +670,8 @@ class SymmetricUzawaPreconditioner : public Solver< OperatorType >
    uint_t                              minLevel_;
    uint_t                              maxLevel_;
 
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > >     ABlockApproximationSolver_;
-   std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > > SchurComplementApproximationSolver_;
+   std::shared_ptr< Solver< AOperatorType > >     ABlockApproximationSolver_;
+   std::shared_ptr< Solver< SchurOperatorType > > SchurComplementApproximationSolver_;
 
    DoFType flag_;
    bool    hasGlobalCells_;
@@ -676,20 +690,23 @@ class SymmetricUzawaPreconditioner : public Solver< OperatorType >
 // -------------------------- Utility --------------------------
 // -------------------------------------------------------------
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class UzawaOmegaEstimationOperator
 : public Operator< typename OperatorType::srcType::PressureFunction_T, typename OperatorType::dstType::PressureFunction_T >
 {
  public:
-   UzawaOmegaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&                                   storage,
-                                 uint_t                                                                       minLevel,
-                                 uint_t                                                                       maxLevel,
-                                 const std::shared_ptr< OperatorType >&                                       StokesOp,
-                                 const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockSolver,
-                                 const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurSolver,
-                                 const uint_t                                      VelocityIterations = 1,
-                                 BoundaryCondition                                 bc                 = BoundaryCondition(),
-                                 std::shared_ptr< VelocityProjectionOperatorType > projection         = nullptr )
+   UzawaOmegaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&            storage,
+                                 uint_t                                                minLevel,
+                                 uint_t                                                maxLevel,
+                                 const std::shared_ptr< OperatorType >&                StokesOp,
+                                 const std::shared_ptr< Solver< AOperatorType > >&     ABlockSolver,
+                                 const std::shared_ptr< Solver< SchurOperatorType > >& SchurSolver,
+                                 const uint_t                                          VelocityIterations = 1,
+                                 BoundaryCondition                                     bc                 = BoundaryCondition(),
+                                 std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr )
    : UzawaOmegaEstimationOperator( storage,
                                    minLevel,
                                    maxLevel,
@@ -703,17 +720,17 @@ class UzawaOmegaEstimationOperator
                                    projection )
    {}
 
-   UzawaOmegaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&                                   storage,
-                                 uint_t                                                                       minLevel,
-                                 uint_t                                                                       maxLevel,
-                                 const std::shared_ptr< OperatorType >&                                       StokesOp,
-                                 const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockSolver,
-                                 const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurSolver,
-                                 const uint_t                                      VelocityIterations = 1,
-                                 BoundaryCondition                                 bcX                = BoundaryCondition(),
-                                 BoundaryCondition                                 bcY                = BoundaryCondition(),
-                                 BoundaryCondition                                 bcZ                = BoundaryCondition(),
-                                 std::shared_ptr< VelocityProjectionOperatorType > projection         = nullptr )
+   UzawaOmegaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&            storage,
+                                 uint_t                                                minLevel,
+                                 uint_t                                                maxLevel,
+                                 const std::shared_ptr< OperatorType >&                StokesOp,
+                                 const std::shared_ptr< Solver< AOperatorType > >&     ABlockSolver,
+                                 const std::shared_ptr< Solver< SchurOperatorType > >& SchurSolver,
+                                 const uint_t                                          VelocityIterations = 1,
+                                 BoundaryCondition                                     bcX                = BoundaryCondition(),
+                                 BoundaryCondition                                     bcY                = BoundaryCondition(),
+                                 BoundaryCondition                                     bcZ                = BoundaryCondition(),
+                                 std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr )
    : Operator< typename OperatorType::srcType::PressureFunction_T, typename OperatorType::dstType::PressureFunction_T >(
          storage,
          minLevel,
@@ -785,9 +802,9 @@ class UzawaOmegaEstimationOperator
 
    std::shared_ptr< OperatorType > StokesOp_;
 
-   bool                                                                  hasGlobalCells_;
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > >     ABlockSolver_;
-   std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > > SchurSolver_;
+   bool                                           hasGlobalCells_;
+   std::shared_ptr< Solver< AOperatorType > >     ABlockSolver_;
+   std::shared_ptr< Solver< SchurOperatorType > > SchurSolver_;
 
    uint_t VelocityIterations_;
 
@@ -799,22 +816,25 @@ class UzawaOmegaEstimationOperator
 };
 
 // This function tries to calculate a scaling for the Schur complement approximation S_hat, s.t. S_hat >= S is fulfilled
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
-real_t estimateUzawaOmega( const std::shared_ptr< PrimitiveStorage >&                                   storage,
-                           const uint_t&                                                                minLevel,
-                           const uint_t&                                                                maxLevel,
-                           const std::shared_ptr< OperatorType >&                                       StokesOp,
-                           const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >&     ABlockSolver,
-                           const std::shared_ptr< Solver< typename OperatorType::SchurOperatorType > >& SchurSolver,
-                           const uint_t&                                                                numPowerIterations,
-                           const uint_t                                                                 VelocityIterations = 1,
-                           BoundaryCondition                                                            bcX = BoundaryCondition(),
-                           BoundaryCondition                                                            bcY = BoundaryCondition(),
-                           BoundaryCondition                                                            bcZ = BoundaryCondition(),
-                           uint_fast32_t                                                                randomSeed = 42,
-                           std::shared_ptr< VelocityProjectionOperatorType >                            projection = nullptr )
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+real_t estimateUzawaOmega( const std::shared_ptr< PrimitiveStorage >&            storage,
+                           const uint_t&                                         minLevel,
+                           const uint_t&                                         maxLevel,
+                           const std::shared_ptr< OperatorType >&                StokesOp,
+                           const std::shared_ptr< Solver< AOperatorType > >&     ABlockSolver,
+                           const std::shared_ptr< Solver< SchurOperatorType > >& SchurSolver,
+                           const uint_t&                                         numPowerIterations,
+                           const uint_t                                          VelocityIterations = 1,
+                           BoundaryCondition                                     bcX                = BoundaryCondition(),
+                           BoundaryCondition                                     bcY                = BoundaryCondition(),
+                           BoundaryCondition                                     bcZ                = BoundaryCondition(),
+                           uint_fast32_t                                         randomSeed         = 42,
+                           std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr )
 {
-   UzawaOmegaEstimationOperator< OperatorType > estimator(
+   UzawaOmegaEstimationOperator< OperatorType, AOperatorType, SchurOperatorType > estimator(
        storage, minLevel, maxLevel, StokesOp, ABlockSolver, SchurSolver, VelocityIterations, bcX, bcY, bcZ, projection );
    typename OperatorType::srcType::PressureFunction_T iterationVector( "iterationVector", storage, minLevel, maxLevel );
    typename OperatorType::srcType::PressureFunction_T auxVector( "auxVector", storage, minLevel, maxLevel );
@@ -826,19 +846,19 @@ real_t estimateUzawaOmega( const std::shared_ptr< PrimitiveStorage >&           
    return real_c( 1.0 ) / estimatedRelaxationParameter;
 }
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType, typename AOperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class UzawaSigmaEstimationOperator
 : public Operator< typename OperatorType::srcType::VelocityFunction_T, typename OperatorType::dstType::VelocityFunction_T >
 {
  public:
-   UzawaSigmaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&                               storage,
-                                 uint_t                                                                   minLevel,
-                                 uint_t                                                                   maxLevel,
-                                 const std::shared_ptr< OperatorType >&                                   StokesOp,
-                                 const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >& ABlockSolver,
-                                 const uint_t                                                             VelocityIterations = 1,
-                                 BoundaryCondition                                 bc         = BoundaryCondition(),
-                                 std::shared_ptr< VelocityProjectionOperatorType > projection = nullptr )
+   UzawaSigmaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&        storage,
+                                 uint_t                                            minLevel,
+                                 uint_t                                            maxLevel,
+                                 const std::shared_ptr< OperatorType >&            StokesOp,
+                                 const std::shared_ptr< Solver< AOperatorType > >& ABlockSolver,
+                                 const uint_t                                      VelocityIterations = 1,
+                                 BoundaryCondition                                 bc                 = BoundaryCondition(),
+                                 std::shared_ptr< VelocityProjectionOperatorType > projection         = nullptr )
    : UzawaSigmaEstimationOperator( storage,
                                    minLevel,
                                    maxLevel,
@@ -851,16 +871,16 @@ class UzawaSigmaEstimationOperator
                                    projection )
    {}
 
-   UzawaSigmaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&                               storage,
-                                 uint_t                                                                   minLevel,
-                                 uint_t                                                                   maxLevel,
-                                 const std::shared_ptr< OperatorType >&                                   StokesOp,
-                                 const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >& ABlockSolver,
-                                 const uint_t                                                             VelocityIterations = 1,
-                                 BoundaryCondition                                 bcX        = BoundaryCondition(),
-                                 BoundaryCondition                                 bcY        = BoundaryCondition(),
-                                 BoundaryCondition                                 bcZ        = BoundaryCondition(),
-                                 std::shared_ptr< VelocityProjectionOperatorType > projection = nullptr )
+   UzawaSigmaEstimationOperator( const std::shared_ptr< PrimitiveStorage >&        storage,
+                                 uint_t                                            minLevel,
+                                 uint_t                                            maxLevel,
+                                 const std::shared_ptr< OperatorType >&            StokesOp,
+                                 const std::shared_ptr< Solver< AOperatorType > >& ABlockSolver,
+                                 const uint_t                                      VelocityIterations = 1,
+                                 BoundaryCondition                                 bcX                = BoundaryCondition(),
+                                 BoundaryCondition                                 bcY                = BoundaryCondition(),
+                                 BoundaryCondition                                 bcZ                = BoundaryCondition(),
+                                 std::shared_ptr< VelocityProjectionOperatorType > projection         = nullptr )
    : Operator< typename OperatorType::srcType::VelocityFunction_T, typename OperatorType::dstType::VelocityFunction_T >(
          storage,
          minLevel,
@@ -914,8 +934,8 @@ class UzawaSigmaEstimationOperator
 
    std::shared_ptr< OperatorType > StokesOp_;
 
-   bool                                                              hasGlobalCells_;
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > > ABlockSolver_;
+   bool                                       hasGlobalCells_;
+   std::shared_ptr< Solver< AOperatorType > > ABlockSolver_;
 
    uint_t VelocityIterations_;
 
@@ -925,21 +945,21 @@ class UzawaSigmaEstimationOperator
 };
 
 // This function tries to calculate a scaling for the A Block approximation A_hat, s.t. A_hat >= A is fulfilled
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
-real_t estimateUzawaSigma( const std::shared_ptr< PrimitiveStorage >&                               storage,
-                           const uint_t&                                                            minLevel,
-                           const uint_t&                                                            maxLevel,
-                           const std::shared_ptr< OperatorType >&                                   StokesOp,
-                           const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >& ABlockSolver,
-                           const uint_t&                                                            numPowerIterations,
-                           const uint_t                                                             VelocityIterations = 1,
-                           BoundaryCondition                                                        bcX = BoundaryCondition(),
-                           BoundaryCondition                                                        bcY = BoundaryCondition(),
-                           BoundaryCondition                                                        bcZ = BoundaryCondition(),
-                           uint_fast32_t                                                            randomSeed = 42,
-                           std::shared_ptr< VelocityProjectionOperatorType >                        projection = nullptr )
+template < typename OperatorType, typename AOperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+real_t estimateUzawaSigma( const std::shared_ptr< PrimitiveStorage >&        storage,
+                           const uint_t&                                     minLevel,
+                           const uint_t&                                     maxLevel,
+                           const std::shared_ptr< OperatorType >&            StokesOp,
+                           const std::shared_ptr< Solver< AOperatorType > >& ABlockSolver,
+                           const uint_t&                                     numPowerIterations,
+                           const uint_t                                      VelocityIterations = 1,
+                           BoundaryCondition                                 bcX                = BoundaryCondition(),
+                           BoundaryCondition                                 bcY                = BoundaryCondition(),
+                           BoundaryCondition                                 bcZ                = BoundaryCondition(),
+                           uint_fast32_t                                     randomSeed         = 42,
+                           std::shared_ptr< VelocityProjectionOperatorType > projection         = nullptr )
 {
-   UzawaSigmaEstimationOperator< OperatorType > estimator(
+   UzawaSigmaEstimationOperator< OperatorType, AOperatorType > estimator(
        storage, minLevel, maxLevel, StokesOp, ABlockSolver, VelocityIterations, bcX, bcY, bcZ, projection );
    typename OperatorType::srcType::VelocityFunction_T iterationVector( "iterationVector", storage, minLevel, maxLevel );
    typename OperatorType::srcType::VelocityFunction_T auxVector( "auxVector", storage, minLevel, maxLevel );
@@ -977,19 +997,19 @@ class VelocityBlockWrapper : public Solver< OperatorType >
    std::shared_ptr< VelocityOperatorType >           velocityOperator_;
 };
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType, typename AOperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class SchurComplementOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   SchurComplementOperator( const std::shared_ptr< PrimitiveStorage >&                               storage,
-                            size_t                                                                   minLevel,
-                            size_t                                                                   maxLevel,
-                            const std::shared_ptr< OperatorType >&                                   StokesOp,
-                            const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >& ABlockSolver,
-                            BoundaryCondition                                                        VelocityBC,
-                            std::shared_ptr< VelocityProjectionOperatorType >                        projection = nullptr )
+   SchurComplementOperator( const std::shared_ptr< PrimitiveStorage >&        storage,
+                            size_t                                            minLevel,
+                            size_t                                            maxLevel,
+                            const std::shared_ptr< OperatorType >&            StokesOp,
+                            const std::shared_ptr< Solver< AOperatorType > >& ABlockSolver,
+                            BoundaryCondition                                 VelocityBC,
+                            std::shared_ptr< VelocityProjectionOperatorType > projection = nullptr )
    : SchurComplementOperator( storage,
                               minLevel,
                               maxLevel,
@@ -1001,15 +1021,15 @@ class SchurComplementOperator : public Operator< P1Function< real_t >, P1Functio
                               projection )
    {}
 
-   SchurComplementOperator( const std::shared_ptr< PrimitiveStorage >&                               storage,
-                            size_t                                                                   minLevel,
-                            size_t                                                                   maxLevel,
-                            const std::shared_ptr< OperatorType >&                                   StokesOp,
-                            const std::shared_ptr< Solver< typename OperatorType::AOperatorType > >& ABlockSolver,
-                            BoundaryCondition                                                        VelocityBCx,
-                            BoundaryCondition                                                        VelocityBCy,
-                            BoundaryCondition                                                        VelocityBCz,
-                            std::shared_ptr< VelocityProjectionOperatorType >                        projection = nullptr )
+   SchurComplementOperator( const std::shared_ptr< PrimitiveStorage >&        storage,
+                            size_t                                            minLevel,
+                            size_t                                            maxLevel,
+                            const std::shared_ptr< OperatorType >&            StokesOp,
+                            const std::shared_ptr< Solver< AOperatorType > >& ABlockSolver,
+                            BoundaryCondition                                 VelocityBCx,
+                            BoundaryCondition                                 VelocityBCy,
+                            BoundaryCondition                                 VelocityBCz,
+                            std::shared_ptr< VelocityProjectionOperatorType > projection = nullptr )
    : Operator( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , temporary_( "schur temporary", storage, minLevel, maxLevel )
@@ -1071,21 +1091,20 @@ class SchurComplementOperator : public Operator< P1Function< real_t >, P1Functio
    }
 
  private:
-   bool                                                              hasGlobalCells_;
-   mutable typename OperatorType::srcType::VelocityFunction_T        temporary_;
-   mutable typename OperatorType::srcType::VelocityFunction_T        temporarySolution_;
-   std::shared_ptr< OperatorType >                                   StokesOp_;
-   std::shared_ptr< Solver< typename OperatorType::AOperatorType > > ABlockSolver_;
+   bool                                                       hasGlobalCells_;
+   mutable typename OperatorType::srcType::VelocityFunction_T temporary_;
+   mutable typename OperatorType::srcType::VelocityFunction_T temporarySolution_;
+   std::shared_ptr< OperatorType >                            StokesOp_;
+   std::shared_ptr< Solver< AOperatorType > >                 ABlockSolver_;
 
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
-template < typename OperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
+template < typename OperatorType, typename SchurOperatorType, class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class InverseSchurComplementPreconditioner : public Solver< typename OperatorType::SchurOperatorType >
 {
  public:
-   typedef typename OperatorType::SchurOperatorType::srcType FunctionType;
-   typedef typename OperatorType::SchurOperatorType          OpType;
+   typedef typename SchurOperatorType::srcType FunctionType;
 
    InverseSchurComplementPreconditioner(
        const std::shared_ptr< PrimitiveStorage >&                                                                  storage,
@@ -1097,7 +1116,7 @@ class InverseSchurComplementPreconditioner : public Solver< typename OperatorTyp
    , SchurSolver_( SchurSolver )
    {}
 
-   void solve( const OpType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
+   void solve( const SchurOperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       WALBERLA_UNUSED( A );
 
@@ -1108,27 +1127,6 @@ class InverseSchurComplementPreconditioner : public Solver< typename OperatorTyp
  private:
    std::shared_ptr< SchurComplementOperator< OperatorType, VelocityProjectionOperatorType > >           SchurOperator_;
    std::shared_ptr< Solver< SchurComplementOperator< OperatorType, VelocityProjectionOperatorType > > > SchurSolver_;
-};
-
-template < class SrcType, class DstType >
-class ZeroOperator : public Operator< SrcType, DstType >
-{
- public:
-   ZeroOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : Operator< SrcType, DstType >( storage, minLevel, maxLevel )
-   {}
-
-   void apply( const SrcType& src,
-               const DstType& dst,
-               const uint_t   level,
-               const DoFType  flag,
-               UpdateType     updateType = Replace ) const
-   {
-      if ( updateType == Replace )
-      {
-         dst.interpolate( real_c( 0.0 ), level, flag );
-      }
-   }
 };
 
 } // namespace hyteg
