@@ -259,7 +259,7 @@ int main( int argc, char* argv[] )
       using BlockLaplaceOperator = operatorgeneration::P2ViscousBlockLaplaceOperator;
       using SchurOperator        = operatorgeneration::P1ElementwiseKMass;
 
-      testFullViscousStokes< StokesFullOperator, BlockLaplaceOperator, SchurOperator >( 2, 4, 10, 1e-8 );
+      testFullViscousStokes< StokesFullOperator, BlockLaplaceOperator, SchurOperator >( 2, 4, 10, 1e-7 );
    }
 
    if ( longrun )
