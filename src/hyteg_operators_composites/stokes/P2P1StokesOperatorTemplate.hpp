@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/operators/ZeroOperator.hpp"
 #include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 #include "hyteg_operators_composites/gradient/P1ToP2GradientOperator.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockFullOperator.hpp"
