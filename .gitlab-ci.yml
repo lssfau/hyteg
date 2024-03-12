@@ -101,7 +101,7 @@ variables:
 
 icc_2022_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -116,7 +116,7 @@ icc_2022_serial:
 
 icc_2022_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     CMAKE_CXX_FLAGS: "-diag-disable=10441"
@@ -129,7 +129,7 @@ icc_2022_mpionly:
 
 icc_2022_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -143,7 +143,7 @@ icc_2022_mpionly_dbg_petsc-complex_trilinos:
 
 icc_2022_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -156,7 +156,7 @@ icc_2022_mpionly_petsc_trilinos:
 
 icc_2022_mpionly_eigen_petsc_trilinos_no_werror:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icc-2022:9
   stage: no_werror
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -173,7 +173,7 @@ icc_2022_mpionly_eigen_petsc_trilinos_no_werror:
 
 icx_2022_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -186,7 +186,7 @@ icx_2022_serial:
 
 icx_2022_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -197,7 +197,7 @@ icx_2022_mpionly:
 
 icx_2022_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -212,7 +212,7 @@ icx_2022_serial_dbg_sp:
 
 icx_2022_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -224,7 +224,7 @@ icx_2022_mpionly_dbg_petsc-complex_trilinos:
 
 icx_2022_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -235,7 +235,7 @@ icx_2022_mpionly_petsc_trilinos:
 
 icx_2022_mpionly_eigen_petsc_trilinos_no_werror:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:9
   stage: no_werror
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -250,7 +250,7 @@ icx_2022_mpionly_eigen_petsc_trilinos_no_werror:
 
 gcc_10_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -263,7 +263,7 @@ gcc_10_serial:
 
 gcc_10_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -274,7 +274,7 @@ gcc_10_mpionly:
 
 gcc_10_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -292,7 +292,7 @@ gcc_10_serial_dbg_sp:
 
 gcc_10_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -307,7 +307,7 @@ gcc_10_mpionly_dbg_petsc-complex_trilinos:
 
 gcc_10_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -321,7 +321,7 @@ gcc_10_mpionly_petsc_trilinos:
 
 gcc_11_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -334,7 +334,7 @@ gcc_11_serial:
 
 gcc_11_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -345,7 +345,7 @@ gcc_11_mpionly:
 
 gcc_11_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -363,7 +363,7 @@ gcc_11_serial_dbg_sp:
 
 gcc_11_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -378,7 +378,7 @@ gcc_11_mpionly_dbg_petsc-complex_trilinos:
 
 gcc_11_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -392,7 +392,7 @@ gcc_11_mpionly_petsc_trilinos:
 
 gcc_12_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -405,7 +405,7 @@ gcc_12_serial:
 
 gcc_12_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -416,7 +416,7 @@ gcc_12_mpionly:
 
 gcc_12_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -434,7 +434,7 @@ gcc_12_serial_dbg_sp:
 
 gcc_12_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -449,7 +449,7 @@ gcc_12_mpionly_dbg_petsc-complex_trilinos:
 
 gcc_12_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -463,12 +463,11 @@ gcc_12_mpionly_petsc_trilinos:
 
 gcc_13_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   only:
     variables:
       - $ENABLE_NIGHTLY_BUILDS
@@ -477,19 +476,18 @@ gcc_13_serial:
 
 gcc_13_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:9
   stage: pretest
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_TERRANEO_MODULE: "ON"
     HYTEG_DOWNLOAD_BOOST: "ON"
-    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
 gcc_13_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -499,38 +497,35 @@ gcc_13_serial_dbg_sp:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
-    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
 gcc_13_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
-    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
 gcc_13_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
-    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
 gcc_13_mpionly_eigen_petsc_trilinos_no_werror:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:9
   stage: no_werror
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -538,7 +533,6 @@ gcc_13_mpionly_eigen_petsc_trilinos_no_werror:
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
     WARNING_ERROR: "OFF"
-    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   when: manual
   needs: [ ]
   tags:
@@ -546,7 +540,7 @@ gcc_13_mpionly_eigen_petsc_trilinos_no_werror:
 
 clang_13_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -559,7 +553,7 @@ clang_13_serial:
 
 clang_13_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -570,7 +564,7 @@ clang_13_mpionly:
 
 clang_13_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -588,7 +582,7 @@ clang_13_serial_dbg_sp:
 
 clang_13_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -603,7 +597,7 @@ clang_13_mpionly_dbg_petsc-complex_trilinos:
 
 clang_13_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -617,7 +611,7 @@ clang_13_mpionly_petsc_trilinos:
 
 clang_14_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -630,7 +624,7 @@ clang_14_serial:
 
 clang_14_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -641,7 +635,7 @@ clang_14_mpionly:
 
 clang_14_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -659,7 +653,7 @@ clang_14_serial_dbg_sp:
 
 clang_14_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -674,7 +668,7 @@ clang_14_mpionly_dbg_petsc-complex_trilinos:
 
 clang_14_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -688,7 +682,7 @@ clang_14_mpionly_petsc_trilinos:
 
 clang_15_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -701,7 +695,7 @@ clang_15_serial:
 
 clang_15_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -712,7 +706,7 @@ clang_15_mpionly:
 
 clang_15_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -730,7 +724,7 @@ clang_15_serial_dbg_sp:
 
 clang_15_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -745,7 +739,7 @@ clang_15_mpionly_dbg_petsc-complex_trilinos:
 
 clang_15_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -759,7 +753,7 @@ clang_15_mpionly_petsc_trilinos:
 
 clang_16_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:9
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -772,7 +766,7 @@ clang_16_serial:
 
 clang_16_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:9
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -783,7 +777,7 @@ clang_16_mpionly:
 
 clang_16_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:9
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -798,7 +792,7 @@ clang_16_serial_dbg_sp:
 
 clang_16_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:9
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -810,7 +804,7 @@ clang_16_mpionly_dbg_petsc-complex_trilinos:
 
 clang_16_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:9
   stage: pretest
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -824,7 +818,7 @@ clang_16_mpionly_petsc_trilinos:
 
 clang_16_mpionly_eigen_petsc_trilinos_no_werror:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:9
   stage: no_werror
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
