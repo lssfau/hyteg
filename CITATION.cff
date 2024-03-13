@@ -15,6 +15,12 @@ authors:
       Friedrich-Alexander-Universität Erlangen-Nürnberg
       (FAU)
     orcid: 'https://orcid.org/0000-0002-8340-4849'
+  - given-names: Daniel
+    family-names: Bauer
+    affiliation: >-
+      Friedrich-Alexander-Universität Erlangen-Nürnberg
+      (FAU)
+    orcid: 'https://orcid.org/0009-0008-9397-2883'
 repository-code: 'https://i10git.cs.fau.de/hyteg/hyteg'
 license: GPL-3.0-or-later
 preferred-citation:
