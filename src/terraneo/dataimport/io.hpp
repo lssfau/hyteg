@@ -139,11 +139,10 @@ inline std::vector< terraneo::plates::RotationInfo > readRotationsFile( std::str
  * and the second column representing the physical data.
  *
  * @param filename The name of the file to read the profile data from.
- * @param data_vector A 2D array where the radius and profile data will be stored.
- * @param num_columns The expected number of columns in the data. This is used to check if the columns have the same size.
+ * @param dataVector A 2D array where the radius and profile data will be stored.
  * @return True if the profile data was successfully read from the file, false otherwise.
  */
-inline bool readProfileData( const std::string& filename, std::vector< std::vector< real_t > >& data_vector )
+inline bool readProfileData( const std::string& filename, std::vector< std::vector< real_t > >& dataVector )
 {
    std::ifstream file( filename );
 
@@ -203,13 +202,13 @@ inline bool readProfileData( const std::string& filename, std::vector< std::vect
             return false;
          }
 
-         // Iterate over the elements in the arrays and store them in the data_vector
+         // Iterate over the elements in the arrays and store them in the dataVector
          for ( std::size_t i = 0; i < radiusArray.size(); ++i )
          {
             real_t radius = radiusArray[i].get< real_t >();
             real_t data   = dataArray[i].get< real_t >();
 
-            data_vector.push_back( { radius, data } );
+            dataVector.push_back( { radius, data } );
          }
          return true;
       }
@@ -227,13 +226,13 @@ inline bool readProfileData( const std::string& filename, std::vector< std::vect
             {
                row.push_back( radius );
                row.push_back( data );
-               data_vector.push_back( row );
+               dataVector.push_back( row );
                numColumns = row.size();
             }
          }
 
          // Check if the two data columns have the same size
-         for ( const auto& row : data_vector )
+         for ( const auto& row : dataVector )
          {
             if ( row.size() != numColumns )
             {

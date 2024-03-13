@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "terraneo/helpers/ParameterTool.hpp"
+#include "terraneo/dataimport/ParameterIO.hpp"
 
 /**
  * @file TerraNeoParameterTest.cpp

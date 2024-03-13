@@ -39,29 +39,28 @@ using walberla::uint_t;
 /**
  * @brief Performs linear interpolation between given data points of a 2D array.
  *
- * A linear interpolation is performed between the data points of the 2D array to estimate the value of the variable.
+ * A linear interpolation is performed between the data points of the 2D array and the value of the variable.
  *
- * @param data_vector The 2D vector containing the data points.
- * @param independent_var The independent variable to be estimated.
+ * @param dataVector The 2D vector containing the data points.
+ * @param independentVar The independent variable to be estimated.
  * @return The estimated value.
  */
 
-real_t linearInterpolateBetween( std::vector< std::vector< real_t > >& data_vector, const real_t& independent_var )
+real_t linearInterpolateBetween( std::vector< std::vector< real_t > >& dataVector, const real_t& independentVar )
 {
-   if ( independent_var <= data_vector[0][0] )
-      return data_vector[0][1];
+   if ( independentVar <= dataVector[0][0] )
+      return dataVector[0][1];
 
-   if ( independent_var > data_vector[data_vector.size() - 1][0] )
-      return data_vector[data_vector.size() - 1][1];
+   if ( independentVar > dataVector[dataVector.size() - 1][0] )
+      return dataVector[dataVector.size() - 1][1];
 
-   uint_t cur_row = 0;
-   while ( independent_var > data_vector[cur_row][0] )
-      ++cur_row;
+   uint_t curRow = 0;
+   while ( independentVar > dataVector[curRow][0] )
+      ++curRow;
 
-   real_t normalized_factor =
-       ( independent_var - data_vector[cur_row - 1][0] ) / ( data_vector[cur_row][0] - data_vector[cur_row - 1][0] );
-   real_t retVal =
-       ( normalized_factor * ( data_vector[cur_row][1] - data_vector[cur_row - 1][1] ) ) + data_vector[cur_row - 1][1];
+   real_t normalizedFactor =
+       ( independentVar - dataVector[curRow - 1][0] ) / ( dataVector[curRow][0] - dataVector[curRow - 1][0] );
+   real_t retVal = ( independentVar * ( dataVector[curRow][1] - dataVector[curRow - 1][1] ) ) + dataVector[curRow - 1][1];
    return retVal;
 }
 
@@ -70,8 +69,6 @@ real_t linearInterpolateBetween( std::vector< std::vector< real_t > >& data_vect
  *
  * This function reads and extracts various domain, model, simulation, and initialization parameters from the main configuration block.
  * It populates the corresponding variables and performs necessary calculations for non-dimensional numbers.
- *
- * @param mainConf The main configuration block containing the parameters.
  */
 
 DomainParameters         domainParam;
@@ -104,7 +101,7 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
       if ( io::readProfileData( simulationParam.fileViscosityProfile, physicalParam.viscosityProfile ) )
       {
          simulationParam.haveViscosityProfile = true;
-         
+
          for ( uint_t i = 0; i < physicalParam.viscosityProfile.size(); i++ )
          {
             //non-dimensionalise radius
