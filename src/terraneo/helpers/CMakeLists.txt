@@ -3,7 +3,5 @@ target_sources( hyteg
     conversions.hpp
     typeAliases.hpp
     RadialProfileTool.hpp
-    InitialisationTool.hpp
-    ParameterTool.hpp
     TerraNeoParameters.hpp
 )

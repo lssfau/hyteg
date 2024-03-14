@@ -33,7 +33,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-#include "terraneo/helpers/InitialisationTool.hpp"
+#include "terraneo/initialisation/temperatureInitialisation.hpp"
 #include "terraneo/helpers/RadialProfileTool.hpp"
 
 using namespace hyteg;

@@ -206,6 +206,10 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/testing)
    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/testing")
 endif()
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/templates)
+   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/templates")
+endif()
+
 waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)

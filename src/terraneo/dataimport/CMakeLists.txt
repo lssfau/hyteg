@@ -1,5 +1,6 @@
 target_sources( hyteg
     PRIVATE
-    io.hpp     
+    io.hpp
+    ParameterIO.hpp     
 )
 
