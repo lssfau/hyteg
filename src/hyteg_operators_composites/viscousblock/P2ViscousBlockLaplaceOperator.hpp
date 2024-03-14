@@ -27,6 +27,7 @@
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusion.hpp"
+#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionAnnulusMap.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
 
 #include "mixed_operator/VectorToVectorOperator.hpp"
@@ -71,6 +72,23 @@ class P2ViscousBlockLaplaceOperator : public VectorToVectorOperator< real_t, P2V
    }
 };
 
+/// P2ViscousBlockLaplaceOperator with AnnulusMap blending. See documentation of P2ViscousBlockLaplaceOperator.
+class P2ViscousBlockLaplaceAnnulusMapOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+{
+ public:
+   P2ViscousBlockLaplaceAnnulusMapOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : VectorToVectorOperator< real_t, hyteg::P2VectorFunction, hyteg::P2VectorFunction >( storage, minLevel, maxLevel )
+   {
+      WALBERLA_CHECK( !storage->hasGlobalCells(), "AnnulusMap operator in 3D?!" )
+
+      for ( uint_t i = 0; i < 2; i++ )
+      {
+         this->setSubOperator(
+             i, i, std::make_shared< operatorgeneration::P2ElementwiseDiffusionAnnulusMap >( storage, minLevel, maxLevel ) );
+      }
+   }
+};
+
 /// P2ViscousBlockLaplaceOperator with IcosahedralShellMap blending. See documentation of P2ViscousBlockLaplaceOperator.
 class P2ViscousBlockLaplaceIcosahedralShellMapOperator
 : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
@@ -81,19 +99,13 @@ class P2ViscousBlockLaplaceIcosahedralShellMapOperator
                                                      uint_t                                     maxLevel )
    : VectorToVectorOperator< real_t, hyteg::P2VectorFunction, hyteg::P2VectorFunction >( storage, minLevel, maxLevel )
    {
-      this->setSubOperator(
-          0,
-          0,
-          std::make_shared< operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap >( storage, minLevel, maxLevel ) );
-      this->setSubOperator(
-          1,
-          1,
-          std::make_shared< operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap >( storage, minLevel, maxLevel ) );
-      if ( storage->hasGlobalCells() )
+      WALBERLA_CHECK( storage->hasGlobalCells(), "IcosahedralShellMap operator in 2D?!" )
+
+      for ( uint_t i = 0; i < 3; i++ )
       {
          this->setSubOperator(
-             2,
-             2,
+             i,
+             i,
              std::make_shared< operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap >( storage, minLevel, maxLevel ) );
       }
    }

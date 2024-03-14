@@ -22,8 +22,11 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/mixedoperators/MixedDummyOperators.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg_operators/operators/divergence/P2ToP1ElementwiseDivergenceAnnulusMap_0_0.hpp"
+#include "hyteg_operators/operators/divergence/P2ToP1ElementwiseDivergenceAnnulusMap_0_1.hpp"
 #include "hyteg_operators/operators/divergence/P2ToP1ElementwiseDivergenceIcosahedralShellMap_0_0.hpp"
 #include "hyteg_operators/operators/divergence/P2ToP1ElementwiseDivergenceIcosahedralShellMap_0_1.hpp"
 #include "hyteg_operators/operators/divergence/P2ToP1ElementwiseDivergenceIcosahedralShellMap_0_2.hpp"
@@ -59,6 +62,13 @@ using P2ToP1DivergenceOperator = VectorToScalarOperator< P2VectorFunction,
                                                          operatorgeneration::P2ToP1ElementwiseDivergence_0_0,
                                                          operatorgeneration::P2ToP1ElementwiseDivergence_0_1,
                                                          operatorgeneration::P2ToP1ElementwiseDivergence_0_2 >;
+
+/// P2ToP1DivergenceOperator with AnnulusMap blending. See documentation of P2ToP1DivergenceOperator.
+using P2ToP1DivergenceAnnulusMapOperator = VectorToScalarOperator< P2VectorFunction,
+                                                                   P1Function,
+                                                                   operatorgeneration::P2ToP1ElementwiseDivergenceAnnulusMap_0_0,
+                                                                   operatorgeneration::P2ToP1ElementwiseDivergenceAnnulusMap_0_1,
+                                                                   P2ToP1DummyOperator >;
 
 /// P2ToP1DivergenceOperator with IcosahedralShellMap blending. See documentation of P2ToP1DivergenceOperator.
 using P2ToP1DivergenceIcosahedralShellMapOperator =
