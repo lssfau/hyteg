@@ -69,7 +69,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , setFromOptions_( false )
    , disableApplicationBC_( false )
    {
-       num.enumerate(level);
+      num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
@@ -99,7 +99,6 @@ class PETScMinResSolver : public Solver< OperatorType >
 
    void setFromOptions( bool doIt ) { setFromOptions_ = doIt; }
 
-
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
       WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );
@@ -107,7 +106,6 @@ class PETScMinResSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "PETSc MinRes Solver" );
 
       num.copyBoundaryConditionFromFunction( x );
-      num.enumerate( level );
 
       xVec.createVectorFromFunction( x, num, level );
       bVec.createVectorFromFunction( b, num, level, All );

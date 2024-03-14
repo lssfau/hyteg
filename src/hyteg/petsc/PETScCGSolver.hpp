@@ -69,9 +69,11 @@ class PETScCGSolver : public Solver< OperatorType >
    , reassembleMatrix_( false )
    , disableApplicationBC_( false )
    {
+      num.enumerate( allocatedLevel_ );
+
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPCG );
-      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance,  PETSC_DEFAULT, maxIterations );
+      KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
    }
@@ -101,7 +103,6 @@ class PETScCGSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "PETSc CG Solver" );
 
       num.copyBoundaryConditionFromFunction( x );
-      num.enumerate( level );
 
       xVec.createVectorFromFunction( x, num, level );
       bVec.createVectorFromFunction( b, num, level, All );
@@ -159,4 +160,3 @@ class PETScCGSolver : public Solver< OperatorType >
 } // namespace hyteg
 
 #endif
-
