@@ -17,7 +17,7 @@ option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                        
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_BUILD_WITH_ADIOS2      "Build with ADIOS2"                            OFF)
 option ( HYTEG_BUILD_WITH_PYTHON3     "Build with PYTHON3"                           OFF)
-option ( HYTEG_BUILD_WITH_AVX         "Use AVX intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX})
+option ( HYTEG_BUILD_WITH_AVX         "Use AVX/AVX2 intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX})
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 option ( HYTEG_TERRANEO_MODULE        "Build TerraNeo module"                        OFF)
