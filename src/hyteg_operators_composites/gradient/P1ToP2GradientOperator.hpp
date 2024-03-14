@@ -26,7 +26,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientAnnulusMap_0_0.hpp"
-#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientAnnulusMap_0_1.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientAnnulusMap_1_0.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientIcosahedralShellMap_0_0.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientIcosahedralShellMap_1_0.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientIcosahedralShellMap_2_0.hpp"
