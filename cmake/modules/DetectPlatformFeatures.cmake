@@ -1,4 +1,4 @@
-message(VERBOSE "Detecting AVX support...")
+message(VERBOSE "Detecting AVX2 support...")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
   set(HYTEG_COMPILER_NATIVE_FLAGS "-xhost")
@@ -16,7 +16,7 @@ try_compile(HYTEG_PLATFORM_SUPPORTS_AVX
 message(DEBUG ${OUT})
 
 if(${HYTEG_PLATFORM_SUPPORTS_AVX})
-  message(STATUS "Platform supports AVX.")
+  message(STATUS "Platform supports AVX2.")
 else()
-  message(STATUS "Platform does NOT support AVX.")
+  message(STATUS "Platform does NOT support AVX2.")
 endif()
