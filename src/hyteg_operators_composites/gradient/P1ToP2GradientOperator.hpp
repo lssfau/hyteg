@@ -69,7 +69,7 @@ using P1ToP2GradientOperator = ScalarToVectorOperator< P1Function,
 using P1ToP2GradientAnnulusMapOperator = ScalarToVectorOperator< P1Function,
                                                                  P2VectorFunction,
                                                                  operatorgeneration::P1ToP2ElementwiseGradientAnnulusMap_0_0,
-                                                                 operatorgeneration::P1ToP2ElementwiseGradientAnnulusMap_0_0,
+                                                                 operatorgeneration::P1ToP2ElementwiseGradientAnnulusMap_1_0,
                                                                  P1ToP2DummyOperator >;
 
 /// P1ToP2GradientOperator with IcosahedralShellMap blending. See documentation of P1ToP2GradientOperator.
