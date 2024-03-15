@@ -52,6 +52,12 @@ using P2P1StokesEpsilonOperator = detail::P2P1StokesVarViscOperatorTemplate< ope
                                                                              operatorgeneration::P1ToP2GradientOperator,
                                                                              operatorgeneration::P2ToP1DivergenceOperator >;
 
+/// P2P1StokesEpsilonOperator with AnnulusMap blending. See documentation of P2P1StokesEpsilonOperator.
+using P2P1StokesEpsilonAnnulusMapOperator =
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockEpsilonAnnulusMapOperator,
+                                               operatorgeneration::P1ToP2GradientAnnulusMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
+
 /// P2P1StokesEpsilonOperator with IcosahedralShellMap blending. See documentation of P2P1StokesEpsilonOperator.
 using P2P1StokesEpsilonIcosahedralShellMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockEpsilonIcosahedralShellMapOperator,

@@ -45,6 +45,12 @@ using P2P1StokesConstantOperator = detail::P2P1StokesConstViscOperatorTemplate< 
                                                                                 operatorgeneration::P1ToP2GradientOperator,
                                                                                 operatorgeneration::P2ToP1DivergenceOperator >;
 
+/// P2P1StokesConstantOperator with AnnulusMap blending. See documentation of P2P1StokesConstantOperator.
+using P2P1StokesConstantAnnulusMapOperator =
+    detail::P2P1StokesConstViscOperatorTemplate< operatorgeneration::P2ViscousBlockLaplaceAnnulusMapOperator,
+                                                 operatorgeneration::P1ToP2GradientAnnulusMapOperator,
+                                                 operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
+
 /// P2P1StokesConstantOperator with IcosahedralShellMap blending. See documentation of P2P1StokesConstantOperator.
 using P2P1StokesConstantIcosahedralShellMapOperator =
     detail::P2P1StokesConstViscOperatorTemplate< operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator,

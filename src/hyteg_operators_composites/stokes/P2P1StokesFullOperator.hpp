@@ -52,6 +52,12 @@ using P2P1StokesFullOperator = detail::P2P1StokesVarViscOperatorTemplate< operat
                                                                           operatorgeneration::P1ToP2GradientOperator,
                                                                           operatorgeneration::P2ToP1DivergenceOperator >;
 
+/// P2P1StokesFullOperator with AnnulusMap blending. See documentation of P2P1StokesFullOperator.
+using P2P1StokesFullAnnulusMapOperator =
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullAnnulusMapOperator,
+                                               operatorgeneration::P1ToP2GradientAnnulusMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
+
 /// P2P1StokesFullOperator with IcosahedralShellMap blending. See documentation of P2P1StokesFullOperator.
 using P2P1StokesFullIcosahedralShellMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullIcosahedralShellMapOperator,

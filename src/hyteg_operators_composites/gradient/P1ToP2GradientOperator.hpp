@@ -22,14 +22,17 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/mixedoperators/MixedDummyOperators.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
-#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradient_0_0.hpp"
-#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradient_1_0.hpp"
-#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradient_2_0.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientAnnulusMap_0_0.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientAnnulusMap_1_0.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientIcosahedralShellMap_0_0.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientIcosahedralShellMap_1_0.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradientIcosahedralShellMap_2_0.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradient_0_0.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradient_1_0.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2ElementwiseGradient_2_0.hpp"
 
 #include "mixed_operator/ScalarToVectorOperator.hpp"
 
@@ -62,12 +65,20 @@ using P1ToP2GradientOperator = ScalarToVectorOperator< P1Function,
                                                        operatorgeneration::P1ToP2ElementwiseGradient_1_0,
                                                        operatorgeneration::P1ToP2ElementwiseGradient_2_0 >;
 
+/// P1ToP2GradientOperator with AnnulusMap blending. See documentation of P1ToP2GradientOperator.
+using P1ToP2GradientAnnulusMapOperator = ScalarToVectorOperator< P1Function,
+                                                                 P2VectorFunction,
+                                                                 operatorgeneration::P1ToP2ElementwiseGradientAnnulusMap_0_0,
+                                                                 operatorgeneration::P1ToP2ElementwiseGradientAnnulusMap_1_0,
+                                                                 P1ToP2DummyOperator >;
+
 /// P1ToP2GradientOperator with IcosahedralShellMap blending. See documentation of P1ToP2GradientOperator.
-using P1ToP2GradientIcosahedralShellMapOperator = ScalarToVectorOperator< P1Function,
-                                                                          P2VectorFunction,
-                                                                          operatorgeneration::P1ToP2ElementwiseGradientIcosahedralShellMap_0_0,
-                                                                          operatorgeneration::P1ToP2ElementwiseGradientIcosahedralShellMap_1_0,
-                                                                          operatorgeneration::P1ToP2ElementwiseGradientIcosahedralShellMap_2_0 >;
+using P1ToP2GradientIcosahedralShellMapOperator =
+    ScalarToVectorOperator< P1Function,
+                            P2VectorFunction,
+                            operatorgeneration::P1ToP2ElementwiseGradientIcosahedralShellMap_0_0,
+                            operatorgeneration::P1ToP2ElementwiseGradientIcosahedralShellMap_1_0,
+                            operatorgeneration::P1ToP2ElementwiseGradientIcosahedralShellMap_2_0 >;
 
 } // namespace operatorgeneration
 } // namespace hyteg

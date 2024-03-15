@@ -26,6 +26,10 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesAnnulusMap_0_0.hpp"
+#include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesAnnulusMap_0_1.hpp"
+#include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesAnnulusMap_1_0.hpp"
+#include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesAnnulusMap_1_1.hpp"
 #include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesIcosahedralShellMap_0_0.hpp"
 #include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesIcosahedralShellMap_0_1.hpp"
 #include "hyteg_operators/operators/full_stokes/P2ElementwiseFullStokesIcosahedralShellMap_0_2.hpp"
@@ -113,6 +117,38 @@ class P2ViscousBlockFullOperator : public VectorToVectorOperator< real_t, P2Vect
    }
 };
 
+/// P2ViscousBlockFullOperator with AnnulusMap blending. See documentation of P2ViscousBlockFullOperator.
+class P2ViscousBlockFullAnnulusMapOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+{
+ public:
+   P2ViscousBlockFullAnnulusMapOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                         uint_t                                     minLevel,
+                                         uint_t                                     maxLevel,
+                                         const P2Function< real_t >&                mu )
+   : VectorToVectorOperator< real_t, hyteg::P2VectorFunction, hyteg::P2VectorFunction >( storage, minLevel, maxLevel )
+   {
+      WALBERLA_CHECK( !storage->hasGlobalCells(), "AnnulusMap operator in 3D?!" )
+
+      this->setSubOperator(
+          0,
+          0,
+          std::make_shared< operatorgeneration::P2ElementwiseFullStokesAnnulusMap_0_0 >( storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator(
+          0,
+          1,
+          std::make_shared< operatorgeneration::P2ElementwiseFullStokesAnnulusMap_0_1 >( storage, minLevel, maxLevel, mu ) );
+
+      this->setSubOperator(
+          1,
+          0,
+          std::make_shared< operatorgeneration::P2ElementwiseFullStokesAnnulusMap_1_0 >( storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator(
+          1,
+          1,
+          std::make_shared< operatorgeneration::P2ElementwiseFullStokesAnnulusMap_1_1 >( storage, minLevel, maxLevel, mu ) );
+   }
+};
+
 /// P2ViscousBlockFullOperator with IcosahedralShellMap blending. See documentation of P2ViscousBlockFullOperator.
 class P2ViscousBlockFullIcosahedralShellMapOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
 {
@@ -123,6 +159,8 @@ class P2ViscousBlockFullIcosahedralShellMapOperator : public VectorToVectorOpera
                                                   const P2Function< real_t >&                mu )
    : VectorToVectorOperator< real_t, hyteg::P2VectorFunction, hyteg::P2VectorFunction >( storage, minLevel, maxLevel )
    {
+      WALBERLA_CHECK( storage->hasGlobalCells(), "IcosahedralShellMap operator in 2D?!" )
+
       this->setSubOperator( 0,
                             0,
                             std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_0_0 >(
@@ -141,31 +179,28 @@ class P2ViscousBlockFullIcosahedralShellMapOperator : public VectorToVectorOpera
                             std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_1_1 >(
                                 storage, minLevel, maxLevel, mu ) );
 
-      if ( storage->hasGlobalCells() )
-      {
-         this->setSubOperator( 0,
-                               2,
-                               std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_0_2 >(
-                                   storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator( 0,
+                            2,
+                            std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_0_2 >(
+                                storage, minLevel, maxLevel, mu ) );
 
-         this->setSubOperator( 1,
-                               2,
-                               std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_1_2 >(
-                                   storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator( 1,
+                            2,
+                            std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_1_2 >(
+                                storage, minLevel, maxLevel, mu ) );
 
-         this->setSubOperator( 2,
-                               0,
-                               std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_2_0 >(
-                                   storage, minLevel, maxLevel, mu ) );
-         this->setSubOperator( 2,
-                               1,
-                               std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_2_1 >(
-                                   storage, minLevel, maxLevel, mu ) );
-         this->setSubOperator( 2,
-                               2,
-                               std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_2_2 >(
-                                   storage, minLevel, maxLevel, mu ) );
-      }
+      this->setSubOperator( 2,
+                            0,
+                            std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_2_0 >(
+                                storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator( 2,
+                            1,
+                            std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_2_1 >(
+                                storage, minLevel, maxLevel, mu ) );
+      this->setSubOperator( 2,
+                            2,
+                            std::make_shared< operatorgeneration::P2ElementwiseFullStokesIcosahedralShellMap_2_2 >(
+                                storage, minLevel, maxLevel, mu ) );
    }
 };
 
