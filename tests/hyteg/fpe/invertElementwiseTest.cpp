@@ -44,10 +44,14 @@ void logSectionHeader( const char* header )
 int main( int argc, char** argv )
 {
 #ifndef __APPLE__
-   #ifndef _MSC_VER
+#ifndef _MSC_VER
    // should work with Intel and GCC compiler / not with windows
-      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-   #endif
+#if ( defined( __clang__ ) && !defined( WALBERLA_DOUBLE_ACCURACY ) )
+   // disable floating point exceptions for clang with single precision
+#else
+   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
+#endif
 #endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );

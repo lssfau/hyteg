@@ -272,12 +272,15 @@ void testInverseMapping()
 
 int main( int argc, char* argv[] )
 {
-
 #ifndef __APPLE__
-   // should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
-   #ifndef _MSC_VER
-      feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-   #endif
+// should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
+#ifndef _MSC_VER
+#if ( defined( __clang__ ) && !defined( WALBERLA_DOUBLE_ACCURACY ) )
+   // disable floating point exceptions for clang with single precision
+#else
+   feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
+#endif
 #endif
 
    // basic setup
