@@ -171,9 +171,9 @@ icc_2022_mpionly_eigen_petsc_trilinos_no_werror:
   tags:
     - docker
 
-icx_2022_serial:
+icx_2023_serial:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2023:14
   variables:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -184,9 +184,9 @@ icx_2022_serial:
   tags:
     - docker
 
-icx_2022_mpionly:
+icx_2023_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2023:14
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
   only:
@@ -195,9 +195,9 @@ icx_2022_mpionly:
   tags:
     - docker
 
-icx_2022_serial_dbg_sp:
+icx_2023_serial_dbg_sp:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2023:14
   before_script:
     - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
   variables:
@@ -210,9 +210,9 @@ icx_2022_serial_dbg_sp:
   tags:
     - docker
 
-icx_2022_mpionly_dbg_petsc-complex_trilinos:
+icx_2023_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2023:14
   variables:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -222,9 +222,9 @@ icx_2022_mpionly_dbg_petsc-complex_trilinos:
   tags:
     - docker
 
-icx_2022_mpionly_petsc_trilinos:
+icx_2023_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2023:14
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
@@ -233,9 +233,9 @@ icx_2022_mpionly_petsc_trilinos:
   tags:
     - docker
 
-icx_2022_mpionly_eigen_petsc_trilinos_no_werror:
+icx_2023_mpionly_eigen_petsc_trilinos_no_werror:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2022:14
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2023:14
   stage: no_werror
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
