@@ -11,3 +11,6 @@
 	path = src/hyteg_operators
 	url = https://i10git.cs.fau.de/hyteg/hyteg-operators.git
 
+[submodule "doc/doxygen-awesome-css"]
+	path = doc/doxygen-awesome-css
+	url = https://github.com/jothepro/doxygen-awesome-css.git
