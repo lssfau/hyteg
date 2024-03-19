@@ -1,38 +1,78 @@
-# ![HyTeG](doc/logos/HYTEG_large.png)
+# Overview
 
-HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for large scale high performance finite element simulations based on
-(but not limited to) geometric multigrid.
+![](doc/logos/HYTEG_large.png)
 
+![CI master](https://i10git.cs.fau.de/hyteg/hyteg/badges/master/pipeline.svg?&key_text=master&key_width=60)
+![CI nightly](https://i10git.cs.fau.de/hyteg/hyteg/badges/nightly/pipeline.svg?&key_text=nightly&key_width=60)
 
-## Build instructions
+## About HyTeG {#about-hyteg}
 
-To build HyTeG, clone via:
+HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for extreme-scale matrix-free finite element simulations strong focus on geometric multigrid.
+
+For detailed information and references [have a look at the documentation](#documentation).
+
+[TOC]
+
+## Getting started {#getting-started}
+
+### Quickstart
+
+To build HyTeG, clone the [GitLab repository](https://i10git.cs.fau.de/hyteg/hyteg) via:
 
     $ git clone --recurse-submodules https://i10git.cs.fau.de/hyteg/hyteg.git
 
 The option `--recurse-submodules` is **required** and will automatically initialize and clone 
-[waLBerla](http://walberla.net "waLBerla homepage") as a submodule.
+[waLBerla](http://walberla.net "waLBerla homepage") and [Eigen](http://eigen.tuxfamily.org) as git submodules.
 
-Create a build directory and invoke cmake:
+Create a build directory and invoke `cmake`:
 
     $ mkdir hyteg-build 
     $ cd hyteg-build
     $ cmake ../hyteg
 
-CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a 
-multigrid benchmark setting) invoke:
+CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a tutorial on isoviscous convection) invoke:
 
-    hyteg-build $ cd apps/MultigridStudies
-    hyteg-build/apps/MultigridStudies $ make
-    hyteg-build/apps/MultigridStudies $ ./MultigridStudies
+    hyteg-build $ cd tutorials/07_IsoviscousConvectionAnnulus
+    hyteg-build/tutorials/07_IsoviscousConvectionAnnulus $ make
+    hyteg-build/tutorials/07_IsoviscousConvectionAnnulus $ ./IsoviscousConvectionAnnulus
 
 ... or for a parallel run:
 
-    hyteg-build/apps/MultigridStudies $ mpirun -np 4 ./MultigridStudies
+    hyteg-build/tutorials/07_IsoviscousConvectionAnnulus $ mpirun -np 4 ./IsoviscousConvectionAnnulus
 
-## Modules
+### Prerequisites
 
-### TerraNeo
+Required:
+
+* a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
+* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.20 )
+
+Automatically cloned via git submodules (NO need to install/download/clone these):
+
+* [waLBerla](http://walberla.net "waLBerla homepage") for core functionalities (MPI communication, IO, logging, etc.)
+* [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
+* 🚧 ***ToDo***: generated kernels
+
+Optional:
+
+* MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
+* [ADIOS2](https://csmd.ornl.gov/software/adios2 "ADIOS2 homepage")  for efficient parallel I/O (CMake option `-DHYTEG_BUILD_WITH_ADIOS2=yes`)
+* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage")  for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_PETSC=yes`)
+* [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_TRILINOS=yes`)
+* [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
+* [MPFR](https://www.mpfr.org/ "MPFR homepage") for emulated floating point datatypes (CMake option `-DHYTEG_BUILD_WITH_MPFR=yes`)
+
+### Configuration options
+
+🚧 ***ToDo***
+
+### Structure and modules
+
+🚧 ***ToDo***: short overview of directory structure
+
+#### TerraNeo
+
+🚧 ***ToDo***: move to structure and modules
 
 TerraNeo is a module of HyTeG that is providing functionality for running mantle convection models from Geodynamics. As this is a specialised application, the module is not build by default. In order to compile the corresponding sources, tests and apps (re)run CMake with the following option
 
@@ -44,7 +84,9 @@ CMake will search for installed Boost libraries. Should these not be found, you 
 
     -DHYTEG_DOWNLOAD_BOOST=yes
 
-## Documentation
+## Documentation {#documentation}
+
+🚧 ***ToDo***: review / edit
 
 The [Doxygen documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Doxygen") provides some basic 
 tutorials for example applications.
@@ -75,38 +117,13 @@ a look at
 * our article [TerraNeo—Mantle Convection Beyond a Trillion Degrees of Freedom](https://doi.org/10.1007/978-3-030-47956-5_19)
   summarizing recent achievements during the TerraNeo project
 
+## Contributing
 
-## Dependencies
+🚧 ***ToDo***
 
-The framework is built on top of the core of the [waLBerla framework](http://walberla.net "waLBerla homepage").
-Its repository is included via git submodule. So just clone with 
+### Account
 
-    $ git clone --recurse-submodules https://i10git.cs.fau.de/hyteg/hyteg.git
-
-as written above, to set up waLBerla automatically.
-
-Required:
-
-* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.20 )
-* a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
-* [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
-  
-  Eigen (like waLBerla) is automatically cloned as a git submodule.
-  
-  CMake will automatically find the Eigen submodule, there is no need to specify a path
-  or to download Eigen at all.
-
-Optional:
-
-* MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
-* [ADIOS2](https://csmd.ornl.gov/software/adios2 "ADIOS2 homepage")  for efficient parallel I/O (CMake option `-DHYTEG_BUILD_WITH_ADIOS2=yes`)
-* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage")  for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_PETSC=yes`)
-* [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_TRILINOS=yes`)
-* [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
-* [MPFR](https://www.mpfr.org/ "MPFR homepage") for emulated floating point datatypes (CMake option `-DHYTEG_BUILD_WITH_MPFR=yes`)
-
-
-## Notes
+🚧 ***ToDo***
 
 ### Code Style
 
@@ -134,12 +151,22 @@ A merge request (MR) can be in three different states:
 
 ### CCache
 
+🚧 ***ToDo***: is that still true?
+
 Due to the large amount of generated files it is advisable to activate ccache.
 To do so use the CMake setting
     
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 See also [this StackOverflow answer](https://stackoverflow.com/a/37828605).
+
+## Contact
+
+Nils Kohl `nils.kohl@lmu.de` or see here for a full list of core contributors 🚧 ***ToDo***
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 or later. See 🚧 ***ToDo*** license file link
 
 ## Acknowledgements
 
