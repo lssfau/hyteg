@@ -36,6 +36,7 @@ set(WALBERLA_BUILD_TESTS            OFF )
 set(WALBERLA_BUILD_BENCHMARKS       OFF )
 set(WALBERLA_BUILD_TUTORIALS        OFF )
 set(WALBERLA_BUILD_SHOWCASES        OFF )
+set(WALBERLA_DEPS_ERROR             ON  )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
