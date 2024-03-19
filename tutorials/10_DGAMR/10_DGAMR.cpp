@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 10_DGAMR Tutorial solving the Poisson equation with a singularity using a DG discretization and adaptive mesh refinement.
+ * \page 10_DGAMR Tutorial 10 - DG and AMR
  *
  * \dontinclude tutorials/10_DGAMR/10_DGAMR.cpp
  *

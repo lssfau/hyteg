@@ -39,7 +39,7 @@ using walberla::uint_c;
 using walberla::uint_t;
 
 /**
- * \page 05_FullAppP1GMG Creating a full app using P1 elements
+ * \page 05_FullAppP1GMG Tutorial 05 - Geometric multigrid
  *
  * \dontinclude tutorials/05_FullAppP1GMG/P1GMG.cpp
  *

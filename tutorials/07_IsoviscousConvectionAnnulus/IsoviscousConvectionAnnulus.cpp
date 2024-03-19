@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 07_IsoviscousConvectionAnnulus A full app simulating isoviscous convection on an annulus.
+ * \page 07_IsoviscousConvectionAnnulus Tutorial 07 - Convection on an annulus
  *
  * \dontinclude tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
  *

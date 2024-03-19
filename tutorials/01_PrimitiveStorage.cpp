@@ -27,7 +27,7 @@
 namespace hyteg {
 
 /**
- * \page 01_PrimitiveStorage Setting up a PrimitiveStorage
+ * \page 01_PrimitiveStorage Tutorial 01 - Setting up a PrimitiveStorage
  *
  * \dontinclude tutorials/01_PrimitiveStorage.cpp
  *

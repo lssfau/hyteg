@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 09_BoundaryConditions Tutorial describing use of multiple boundary conditions.
+ * \page 09_BoundaryConditions Tutorial 09 - Multiple boundary conditions
  *
  * \dontinclude tutorials/09_BoundaryConditions/09_BoundaryConditions.cpp
  *

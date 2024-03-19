@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 12_UnresolvedParticles Tutorial for simple unresolved particulate flow.
+ * \page 12_UnresolvedParticles Tutorial 12 - Unresolved particulate flow
  *
  * \dontinclude tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp
  *
