@@ -239,6 +239,75 @@ void testFullViscousStokes( uint_t dim, uint_t maxLevel, uint_t fgmresIterations
    }
 }
 
+/// Just a small test instantiting preconditioners that are not really used/tested as of now to ensure flawless compilation.
+template < typename StokesFullOperator, typename BlockLaplaceOperator, typename SchurOperator >
+void testPreconditionerInitialization()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Preconditioners initialization test ..." )
+
+   MeshInfo              meshInfo = MeshInfo::meshUnitSquare( 0 );
+   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   uint_t minLevel = 2;
+   uint_t maxLevel = 3;
+
+   P2Function< real_t > mu( "mu", storage, minLevel, maxLevel );
+   P1Function< real_t > muInv( "muInv", storage, minLevel, maxLevel );
+
+   // Some coefficient and its inverse.
+   auto visc    = [&]( const Point3D& x ) { return 2 + std::sin( x[0] ) * std::cos( x[1] ); };
+   auto viscInv = [&]( const Point3D& x ) { return 1.0 / visc( x ); };
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      mu.interpolate( visc, level, All );
+      muInv.interpolate( viscInv, level, All );
+   }
+
+   // Operators
+   StokesFullOperator L( storage, minLevel, maxLevel, mu );
+   SchurOperator      S( storage, minLevel, maxLevel, muInv );
+
+   // AdjointInexactUzawaPreconditioner
+   auto solverA     = std::make_shared< EmptySolver< typename StokesFullOperator::ViscousOperator_T > >();
+   auto solverSchur = std::make_shared< EmptySolver< SchurOperator > >();
+
+   AdjointInexactUzawaPreconditioner< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T, SchurOperator > prec0(
+       storage, minLevel, maxLevel, S, solverA, solverSchur, real_c( 1.0 ), real_c( 1.0 ) );
+
+   BlockApproximateFactorisationPreconditioner< StokesFullOperator,
+                                                typename StokesFullOperator::ViscousOperator_T,
+                                                SchurOperator >
+       prec1( storage, minLevel, maxLevel, S, solverA, solverSchur, real_c( 1.0 ), real_c( 1.0 ) );
+
+   SymmetricUzawaPreconditioner< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T, SchurOperator > prec2(
+       storage, minLevel, maxLevel, S, solverA, solverSchur, real_c( 1.0 ), real_c( 1.0 ) );
+
+   UzawaOmegaEstimationOperator< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T, SchurOperator > op1(
+       storage, minLevel, maxLevel, L, S, solverA, solverSchur, 1, BoundaryCondition(), nullptr );
+
+   estimateUzawaOmega< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T, SchurOperator >(
+       storage, minLevel, maxLevel, L, S, solverA, solverSchur, 1 );
+
+   UzawaSigmaEstimationOperator< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T > op2(
+       storage, minLevel, maxLevel, L, solverA, 1, BoundaryCondition(), nullptr );
+
+   estimateUzawaSigma< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T >(
+       storage, minLevel, maxLevel, L, solverA, 1 );
+
+   SchurComplementOperator< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T > op3(
+       storage, minLevel, maxLevel, L, solverA, BoundaryCondition(), nullptr );
+
+   auto solverSchurCompWrapper = std::make_shared<
+       EmptySolver< SchurComplementOperator< StokesFullOperator, typename StokesFullOperator::ViscousOperator_T > > >();
+
+   // Not so sure about the InverseSchurComplementPreconditioner
+   // Wanted to list that here, but I fail to make it work.
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Preconditioners initialization test ... done." )
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -252,6 +321,14 @@ int main( int argc, char* argv[] )
       {
          longrun = true;
       }
+   }
+
+   {
+      using StokesFullOperator   = operatorgeneration::P2P1StokesFullOperator;
+      using BlockLaplaceOperator = operatorgeneration::P2ViscousBlockLaplaceOperator;
+      using SchurOperator        = operatorgeneration::P1ElementwiseKMass;
+
+      testPreconditionerInitialization< StokesFullOperator, BlockLaplaceOperator, SchurOperator >();
    }
 
    {

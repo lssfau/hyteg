@@ -45,7 +45,7 @@ class SubstitutePreconditioner : public Solver< OperatorType >
    SubstitutePreconditioner( std::shared_ptr< Solver< SubstituteOperatorType > > substituteSolver,
                              SubstituteOperatorType&                             substituteOperator )
    : holdsReference_( true )
-   , substituteSolver_( substituteOperator )
+   , substituteSolver_( substituteSolver )
    , substituteOperatorRef_( substituteOperator )
    {}
 
