@@ -80,7 +80,8 @@ namespace operatorgeneration {
 ///         | A_31 A_32 A_33 |
 ///         \                /
 ///
-class P2ViscousBlockEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+class P2ViscousBlockEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >,
+                                      public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
 {
  public:
    P2ViscousBlockEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -115,6 +116,23 @@ class P2ViscousBlockEpsilonOperator : public VectorToVectorOperator< real_t, P2V
              2, 2, std::make_shared< operatorgeneration::P2ElementwiseEpsilon_2_2 >( storage, minLevel, maxLevel, mu ) );
       }
    }
+
+   virtual std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          inverseDiagonalValues_,
+          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return inverseDiagonalValues_;
+   }
+
+   void computeInverseDiagonalOperatorValues()
+   {
+      this->VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >::computeInverseDiagonalOperatorValues();
+      inverseDiagonalValues_ = extractInverseDiagonal();
+   }
+
+ private:
+   std::shared_ptr< P2VectorFunction< real_t > > inverseDiagonalValues_;
 };
 
 /// P2ViscousBlockEpsilonOperator with AnnulusMap blending. See documentation of P2ViscousBlockEpsilonOperator.
@@ -143,7 +161,7 @@ class P2ViscousBlockEpsilonAnnulusMapOperator : public VectorToVectorOperator< r
 
 /// P2ViscousBlockEpsilonOperator with IcosahedralShellMap blending. See documentation of P2ViscousBlockEpsilonOperator.
 class P2ViscousBlockEpsilonIcosahedralShellMapOperator
-: public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
+: public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >, public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
 {
  public:
    P2ViscousBlockEpsilonIcosahedralShellMapOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -195,6 +213,23 @@ class P2ViscousBlockEpsilonIcosahedralShellMapOperator
                             std::make_shared< operatorgeneration::P2ElementwiseEpsilonIcosahedralShellMap_2_2 >(
                                 storage, minLevel, maxLevel, mu ) );
    }
+
+   virtual std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          inverseDiagonalValues_,
+          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return inverseDiagonalValues_;
+   }
+
+   void computeInverseDiagonalOperatorValues()
+   {
+      this->VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >::computeInverseDiagonalOperatorValues();
+      inverseDiagonalValues_ = extractInverseDiagonal();
+   }
+
+ private:
+   std::shared_ptr< P2VectorFunction< real_t > > inverseDiagonalValues_;
 };
 
 } // namespace operatorgeneration
