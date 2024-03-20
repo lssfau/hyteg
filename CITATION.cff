@@ -21,12 +21,37 @@ authors:
       Friedrich-Alexander-Universität Erlangen-Nürnberg
       (FAU)
     orcid: 'https://orcid.org/0009-0008-9397-2883'
+  - given-names: Fabian
+    family-names: Böhm
+    affiliation: >-
+      Friedrich-Alexander-Universität Erlangen-Nürnberg
+      (FAU)
+  - given-names: Benjamin
+    family-names: Mann
+    affiliation: >-
+      Friedrich-Alexander-Universität Erlangen-Nürnberg
+      (FAU)
   - given-names: Marcus
     family-names: Mohr
     affiliation: >-
       Ludwig-Maximilians-Universität München
       (LMU)
     orcid: 'https://orcid.org/0000-0003-2942-8484'
+  - given-names: Nils
+    family-names: Kohl
+    affiliation: >-
+      Ludwig-Maximilians-Universität München
+      (LMU)
+  - given-names: Andreas
+    family-names: Wagner
+    affiliation: >-
+      Technische Universität München
+      (TUM)
+  - given-names: Daniel
+    family-names: Drzisga
+    affiliation: >-
+      Technische Universität München
+      (TUM)
 repository-code: 'https://i10git.cs.fau.de/hyteg/hyteg'
 license: GPL-3.0-or-later
 preferred-citation:
