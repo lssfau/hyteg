@@ -79,6 +79,27 @@ class Operator
       WALBERLA_ABORT( "Problem with inheritance, this function should have been overridden in the derived class!" );
    };
 
+   /// Implements the BLAS level 2 routine gemv:
+   ///
+   ///   y ← ɑAx + βy
+   ///
+   /// where ɑ, β are scalars, A is this operator, x is the "src" function, and y is the "dst" function.
+   ///
+   /// Note that the apply() method implements
+   ///
+   ///   y ← Ax + ɣy
+   ///
+   /// where ɣ ∈ { 0, 1 } for UpdateType Replace and Add respectively. This is just a gemv with ɑ = 1 and β = ɣ.
+   virtual void gemv( const typename SourceFunction::valueType&      alpha,
+                      const SourceFunction&                          src,
+                      const typename DestinationFunction::valueType& beta,
+                      const DestinationFunction&                     dst,
+                      size_t                                         level,
+                      DoFType                                        flag ) const
+   {
+      WALBERLA_ABORT( "gemv() not implemented in derived class!" );
+   };
+
    virtual void toMatrix( const std::shared_ptr< SparseMatrixProxy >&             mat,
                           const typename srcType::template FunctionType< idx_t >& src,
                           const typename dstType::template FunctionType< idx_t >& dst,

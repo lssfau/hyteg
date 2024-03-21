@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Marcus Mohr.
+ * Copyright (c) 2017-2024 Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -66,6 +66,13 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const override final;
 
+   void gemv( const real_t&               alpha,
+              const P1Function< real_t >& src,
+              const real_t&               beta,
+              const P1Function< real_t >& dst,
+              size_t                      level,
+              DoFType                     flag ) const override final;
+
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& src,
@@ -127,6 +134,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param elMat          the 3x3 element matrix to be multiplied
+   /// \param alpha          scaling factor that is applied to the local result vector
    ///
    /// \note The src and dst data arrays must not be identical.
    void localMatrixVectorMultiply2D( const uint_t           level,
@@ -134,7 +142,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                      facedof::FaceType      fType,
                                      const real_t* const    srcVertexData,
                                      real_t* const          dstVertexData,
-                                     const Matrix3r&        elMat ) const;
+                                     const Matrix3r&        elMat,
+                                     const real_t&          alpha ) const;
 
    /// compute product of element local vector with element matrix
    ///
@@ -144,6 +153,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param elMat          the 4x4 element matrix to be multiplied
+   /// \param alpha          scaling factor that is applied to the local result vector
    ///
    /// \note The src and dst data arrays must not be identical.
    void localMatrixVectorMultiply3D( const uint_t            level,
@@ -151,7 +161,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                      const celldof::CellType cType,
                                      const real_t* const     srcVertexData,
                                      real_t* const           dstVertexData,
-                                     const Matrix4r&         elMat ) const;
+                                     const Matrix4r&         elMat,
+                                     const real_t&           alpha ) const;
 
    /// Compute contributions to operator diagonal for given micro-face
    ///

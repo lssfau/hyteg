@@ -61,6 +61,16 @@ class GenericOperator
                        DoFType                           flag,
                        UpdateType                        updateType = Replace ) const = 0;
 
+   virtual void gemv( const value_t&                    alpha,
+                      const GenericFunction< value_t >& src,
+                      const value_t&                    beta,
+                      const GenericFunction< value_t >& dst,
+                      size_t                            level,
+                      DoFType                           flag ) const
+   {
+      WALBERLA_ABORT( "gemv() not implemented in derived class!" );
+   }
+
    virtual void smooth_gs( const GenericFunction< value_t >& src,
                            const GenericFunction< value_t >& dst,
                            size_t                            level,

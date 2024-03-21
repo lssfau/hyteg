@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "core/debug/CheckFunctions.h"
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/eigen/EigenSparseMatrixProxy.hpp"
@@ -38,7 +39,7 @@ Eigen::SparseMatrix< real_t, Eigen::RowMajor >
 {
    WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(),
                          1,
-                         "Eigen sparse matrices are not suited for MPI parallel applications." )
+                         "Eigen sparse matrices are not suited for MPI parallel applications." );
 
    const uint_t rows = numberOfLocalDoFs( numeratorDst, level );
    const uint_t cols = numberOfLocalDoFs( numeratorSrc, level );
