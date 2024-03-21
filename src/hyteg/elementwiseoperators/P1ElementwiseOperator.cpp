@@ -100,7 +100,7 @@ void P1ElementwiseOperator< P1Form >::gemv( const real_t&               alpha,
    // Formerly updateType == Replace
    const bool betaIsZero = std::fpclassify( beta ) == FP_ZERO;
    // Formerly updateType == Add
-   const bool betaIsOne = beta == real_c( 1.0 );
+   const bool betaIsOne = std::fpclassify( beta - real_c( 1.0 ) ) == FP_ZERO;
 
    if ( betaIsZero )
    {
