@@ -166,36 +166,36 @@ configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
 include_directories( ${hyteg_BINARY_DIR}/src )
 
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/meshes")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes/3D)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes/3D")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes/3D)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/meshes/3D")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/param)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/param")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/param)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/param")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/output)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/output")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/output)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/doc/images)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/doc/images")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/doc/images)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/images")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/kerncraftMachineFiles)
-   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/kerncraftMachineFiles")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/kerncraftMachineFiles)
+   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/kerncraftMachineFiles")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo)
-   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/terraneo)
+   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/terraneo")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/plates)
-   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/plates")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/terraneo/plates)
+   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/terraneo/plates")
 endif()
 
 waLBerla_link_files_to_builddir(data/meshes/*.msh)
@@ -308,7 +308,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
    # Get the current working branch
    execute_process(
          COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
          OUTPUT_VARIABLE GIT_BRANCH
          OUTPUT_STRIP_TRAILING_WHITESPACE
    )
@@ -316,7 +316,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
    # Get the latest abbreviated commit hash of the working branch
    execute_process(
          COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
          OUTPUT_VARIABLE GIT_COMMIT_HASH
          OUTPUT_STRIP_TRAILING_WHITESPACE
    )
@@ -325,8 +325,8 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
    add_definitions("-DGIT_BRANCH=${GIT_BRANCH}")
 
    configure_file(
-         ${CMAKE_SOURCE_DIR}/src/hyteg/Git.in.hpp
-         ${CMAKE_BINARY_DIR}/src/hyteg/Git.hpp
+         ${CMAKE_CURRENT_SOURCE_DIR}/src/hyteg/Git.in.hpp
+         ${CMAKE_CURRENT_BINARY_DIR}/src/hyteg/Git.hpp
    )
 else()
    message(FATAL_ERROR "git executalbe could not be found")
@@ -349,8 +349,8 @@ set(HYTEG_MPI_VERSION ${HYTEG_MPI_VERSION})
 string(REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS})
 
 configure_file(
-        ${CMAKE_SOURCE_DIR}/src/hyteg/BuildInfo.in.hpp
-        ${CMAKE_BINARY_DIR}/src/hyteg/BuildInfo.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/hyteg/BuildInfo.in.hpp
+        ${CMAKE_CURRENT_BINARY_DIR}/src/hyteg/BuildInfo.hpp
 )
 
 
