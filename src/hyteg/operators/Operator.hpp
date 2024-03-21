@@ -90,12 +90,12 @@ class Operator
    ///   y ← Ax + ɣy
    ///
    /// where ɣ ∈ { 0, 1 } for UpdateType Replace and Add respectively. This is just a gemv with ɑ = 1 and β = ɣ.
-   virtual void gemv( const SourceFunction::valueType&      alpha,
-                      const SourceFunction&                 src,
-                      const DestinationFunction::valueType& beta,
-                      const DestinationFunction&            dst,
-                      size_t                                level,
-                      DoFType                               flag ) const
+   virtual void gemv( const typename SourceFunction::valueType&      alpha,
+                      const SourceFunction&                          src,
+                      const typename DestinationFunction::valueType& beta,
+                      const DestinationFunction&                     dst,
+                      size_t                                         level,
+                      DoFType                                        flag ) const
    {
       WALBERLA_ABORT( "gemv() not implemented in derived class!" );
    };
