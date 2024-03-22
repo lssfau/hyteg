@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 08_CahnHilliard A full app for the Cahn-Hilliard equation.
+ * \page 08_CahnHilliard Tutorial 08 - Cahn-Hilliard equation
  *
  * \dontinclude tutorials/08_CahnHilliard/CahnHilliard.cpp
  *

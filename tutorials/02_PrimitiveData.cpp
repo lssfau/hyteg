@@ -27,7 +27,7 @@
 namespace hyteg {
 
 /**
- * \page 02_PrimitiveData Adding data to primitives
+ * \page 02_PrimitiveData Tutorial 02 - Adding data to primitives
  *
  * \dontinclude tutorials/02_PrimitiveData.cpp
  *

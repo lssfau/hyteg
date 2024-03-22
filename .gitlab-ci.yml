@@ -839,8 +839,8 @@ clang_17_mpionly_eigen_petsc_trilinos_no_werror:
 ##                                                                           ##
 ###############################################################################
 
-pages:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-9
+.docu_template:
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:14
   script:
     - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - cd $CI_PROJECT_DIR/doc
@@ -854,33 +854,21 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - master
+  needs: [ ]
   tags:
     - docker
 
-# second job that builds the documentation on other branches than the master
+pages:
+  extends: .docu_template
+  only:
+    - master
 
+# second job that builds the documentation on other branches than the master
 docu_build:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-9
-  script:
-    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
-    - cd $CI_PROJECT_DIR/doc
-    - python3 checkImages.py
-    - mkdir $CI_PROJECT_DIR/build
-    - cd $CI_PROJECT_DIR/build
-    - cmake ..
-    - make doc_hyteg
-    - mkdir $CI_PROJECT_DIR/public
-    - mv doc/html/* $CI_PROJECT_DIR/public/
-  artifacts:
-    paths:
-      - public
+  extends: .docu_template
   except:
     - master
   when: manual
-  tags:
-    - docker
 
 
 ###############################################################################

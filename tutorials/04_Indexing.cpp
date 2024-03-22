@@ -27,7 +27,7 @@
 namespace hyteg {
 
 /**
- * \page 04_Indexing Indexing functions and iterating over the domain
+ * \page 04_Indexing Tutorial 04 - Indexing and iterating
  *
  * \dontinclude tutorials/04_Indexing.cpp
  *

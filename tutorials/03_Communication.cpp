@@ -33,7 +33,7 @@ using walberla::uint_t;
 namespace hyteg {
 
 /**
- * \page 03_Communication Communicating data between primitives
+ * \page 03_Communication Tutorial 03 - Communicating data between primitives
  *
  * \dontinclude tutorials/03_Communication.cpp
  *

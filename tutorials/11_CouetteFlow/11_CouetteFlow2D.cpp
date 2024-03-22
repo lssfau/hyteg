@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 11_CouetteFlow Tutorial to implement simple Couette flow
+ * \page 11_CouetteFlow Tutorial 11 - Couette flow
  * 
  * \dontinclude tutorials/11_CouetteFlow/11_CouetteFlow2D.cpp
  * 

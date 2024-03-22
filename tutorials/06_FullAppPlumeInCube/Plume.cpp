@@ -19,7 +19,7 @@
  */
 
 /**
- * \page 06_FullAppPlumeInCube A full app creating a plume in a cube
+ * \page 06_FullAppPlumeInCube Tutorial 06 - Convection in a cube
  *
  * \dontinclude tutorials/06_FullAppPlumeInCube/Plume.cpp
  *
