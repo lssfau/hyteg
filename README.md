@@ -55,6 +55,7 @@ Automatically cloned via git submodules (**NO need to install/download/clone the
 * [Eigen](http://eigen.tuxfamily.org "Eigen homepage") for some linear algebra operations
 * [HyTeG Operators](https://i10git.cs.fau.de/hyteg/hyteg-operators "hyteg-operators GitLab") for fast generated compute kernels
 * [doxygen-awesome-css](https://jothepro.github.io/doxygen-awesome-css "doxygen-awesome-css") for awesome documentation visuals
+* [mpreal](https://github.com/advanpix/mpreal "mpreal") as a wrapper for [MPFR](https://www.mpfr.org/ "MPFR homepage")
 
 Optional:
 
