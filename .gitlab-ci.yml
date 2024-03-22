@@ -840,7 +840,7 @@ clang_17_mpionly_eigen_petsc_trilinos_no_werror:
 ###############################################################################
 
 .docu_template:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:14
   script:
     - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - cd $CI_PROJECT_DIR/doc
@@ -854,6 +854,7 @@ clang_17_mpionly_eigen_petsc_trilinos_no_werror:
   artifacts:
     paths:
       - public
+  stage: benchmark
   tags:
     - docker
 
