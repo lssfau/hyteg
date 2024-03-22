@@ -854,7 +854,7 @@ clang_17_mpionly_eigen_petsc_trilinos_no_werror:
   artifacts:
     paths:
       - public
-  stage: benchmark
+  needs: [ ]
   tags:
     - docker
 
