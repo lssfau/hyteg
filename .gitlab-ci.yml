@@ -860,8 +860,8 @@ clang_17_mpionly_eigen_petsc_trilinos_no_werror:
 
 pages:
   extends: .docu_template
-#   only:
-#     - master
+  only:
+    - master
 
 # second job that builds the documentation on other branches than the master
 docu_build:
