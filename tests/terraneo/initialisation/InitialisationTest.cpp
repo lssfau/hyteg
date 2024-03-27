@@ -33,8 +33,8 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-#include "terraneo/initialisation/temperatureInitialisation.hpp"
 #include "terraneo/helpers/RadialProfileTool.hpp"
+#include "terraneo/initialisation/TemperatureInitialisation.hpp"
 
 using namespace hyteg;
 
@@ -59,8 +59,8 @@ std::shared_ptr< PrimitiveStorage >
 
 // Test function to evaluate temperature initialisation using white noise (Gaussian White Noise (GWN)) or spherical
 // harmonics superimposed on the background temperature.
-// The noise factor will define how much temprature deviation [%] will be added as noise to the refernce temperature.
-// For the spherical harmonics temperature intialisation a distinct degree and order of the spherical harmonics functions
+// The noise factor will define how much temperature deviation [%] will be added as noise to the reference temperature.
+// For the spherical harmonics temperature initialisation a distinct degree and order of the spherical harmonics functions
 // can be defined.
 
 template < typename FunctionType >
@@ -71,21 +71,22 @@ void runTest( const uint_t& nTan,
               const uint_t& maxLevel,
               const uint_t& minLevel )
 {
+   walberla::math::seedRandomGenerator( 42 );
+
    auto storage = setupSphericalShellStorage( nTan, nRad, rMax, rMin );
 
-   std::shared_ptr< FunctionType > temperature = std::make_shared< FunctionType >( "temperature", storage, minLevel, maxLevel );
-   std::shared_ptr< FunctionType > temperatureDev =
-       std::make_shared< FunctionType >( "temperatureDev", storage, minLevel, maxLevel );
-   std::shared_ptr< FunctionType > tmp    = std::make_shared< FunctionType >( "tmp", storage, minLevel, maxLevel );
-   std::shared_ptr< FunctionType > tmpDev = std::make_shared< FunctionType >( "tmpDev", storage, minLevel, maxLevel );
+   FunctionType temperature( "temperature", storage, minLevel, maxLevel );
+   FunctionType temperatureSPH( "temperatureSPH", storage, minLevel, maxLevel );
+   FunctionType temperatureDev( "temperatureDev", storage, minLevel, maxLevel );
+
+   FunctionType tmp( "tmp", storage, minLevel, maxLevel );
+   FunctionType tmpDev( "tmpDev", storage, minLevel, maxLevel );
 
    real_t Tsurface = 300;
    real_t Tcmb     = 4200;
    real_t Tadb     = 1600;
 
-   std::shared_ptr< terraneo::TemperaturefieldConv< FunctionType > > Temperaturefield =
-       std::make_shared< terraneo::TemperaturefieldConv< FunctionType > >(
-           temperature, Tcmb, Tsurface, Tadb, 0.68, rMax, rMin, maxLevel, minLevel );
+   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, 0.68, rMin, rMax );
 
    real_t noiseFactor                 = 0.05;
    uint_t tempInit                    = 10;
@@ -96,17 +97,23 @@ void runTest( const uint_t& nTan,
    bool   superposition               = true;
    real_t buoyancyFactor              = 0.01;
    real_t initialTemperatureSteepness = 10;
-   bool   noiseInit                   = true;
 
-   if ( noiseInit )
-   {
-      Temperaturefield->initialiseTemperatureWhiteNoise( noiseFactor );
-   }
-   else
-   {
-      Temperaturefield->initialiseTemperatureSPH(
-          tempInit, deg, ord, lmax, lmin, superposition, buoyancyFactor, initialTemperatureSteepness );
-   }
+   auto temperatureReference = terraneo::temperatureReferenceExponential( tempInitParams );
+
+   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference, noiseFactor );
+   temperature.interpolate( initTemperatureWhiteNoise, maxLevel );
+
+   auto initTemperatureSPH = terraneo::temperatureSPH( tempInitParams,
+                                                       temperatureReference,
+                                                       tempInit,
+                                                       deg,
+                                                       ord,
+                                                       lmax,
+                                                       lmin,
+                                                       superposition,
+                                                       buoyancyFactor,
+                                                       initialTemperatureSteepness );
+   temperatureSPH.interpolate( initTemperatureSPH, maxLevel );
 
    std::string outputDirectory = "./output";
    std::string baseName        = "Test_T_field_Init";
@@ -117,7 +124,7 @@ void runTest( const uint_t& nTan,
    }
 
    std::shared_ptr< terraneo::RadialProfileTool< FunctionType > > TemperatureProfileTool =
-       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperature, *tmp, rMax, rMin, nRad, maxLevel );
+       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( temperature, tmp, rMax, rMin, nRad, maxLevel );
    std::vector< real_t > TemperatureProfile = TemperatureProfileTool->getMeanProfile();
    auto                  numLayers          = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( maxLevel ) - 1 );
 
@@ -135,11 +142,11 @@ void runTest( const uint_t& nTan,
 
    for ( uint_t l = minLevel; l <= maxLevel; ++l )
    {
-      temperatureDev->interpolate( temperatureDevFct, { *temperature }, l, All );
+      temperatureDev.interpolate( temperatureDevFct, { temperature }, l, All );
    }
 
    std::shared_ptr< terraneo::RadialProfileTool< FunctionType > > TemperatureDevProfileTool =
-       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( *temperatureDev, *tmpDev, rMin, rMax, nRad, maxLevel );
+       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( temperatureDev, tmpDev, rMin, rMax, nRad, maxLevel );
    std::vector< real_t > TemperatureDevProfile = TemperatureDevProfileTool->getMeanProfile();
 
    // Evaluate that the mean of temperature deviation is zero.
@@ -153,8 +160,8 @@ void runTest( const uint_t& nTan,
    {
       auto vtkOutput = hyteg::VTKOutput( outputDirectory, baseName, storage );
       vtkOutput.setVTKDataFormat( hyteg::vtk::DataFormat::BINARY );
-      vtkOutput.add( *temperature );
-      vtkOutput.add( *temperatureDev );
+      vtkOutput.add( temperature );
+      vtkOutput.add( temperatureDev );
       vtkOutput.write( maxLevel );
    }
 }

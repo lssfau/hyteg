@@ -1,4 +1,4 @@
 target_sources( hyteg
     PRIVATE
-    temperatureInitialisation.hpp    
+        TemperatureInitialisation.hpp
 )
