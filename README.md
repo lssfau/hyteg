@@ -65,6 +65,7 @@ Optional:
 * [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_TRILINOS=yes`)
 * [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
 * [MPFR](https://www.mpfr.org/ "MPFR homepage") for emulated floating point datatypes (CMake option `-DHYTEG_BUILD_WITH_MPFR=yes`)
+* [Doxygen](https://www.doxygen.nl/ "Doxygen homepage") for building the documentation locally (version >= 1.10.0)
 
 ### Configuration options
 
