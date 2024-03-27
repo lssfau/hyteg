@@ -33,13 +33,12 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-#include "terraneo/helpers/RadialProfileTool.hpp"
+#include "terraneo/helpers/RadialProfiles.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 
 using namespace hyteg;
 
-// Setup storage for a spherical shell
-
+/// Setup storage for a spherical shell
 std::shared_ptr< PrimitiveStorage >
     setupSphericalShellStorage( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const real_t& rMin )
 {
@@ -57,30 +56,19 @@ std::shared_ptr< PrimitiveStorage >
    return storage;
 }
 
-// Test function to evaluate temperature initialisation using white noise (Gaussian White Noise (GWN)) or spherical
-// harmonics superimposed on the background temperature.
-// The noise factor will define how much temperature deviation [%] will be added as noise to the reference temperature.
-// For the spherical harmonics temperature initialisation a distinct degree and order of the spherical harmonics functions
-// can be defined.
-
+/// Tests multiple pieces of code from the terraneo module:
+/// - Uses some of the temperature initialization functions.
+/// - Computes radial profiles.
+/// - Checks whether the radial profiles give reasonable numbers.
 template < typename FunctionType >
-void runTest( const uint_t& nTan,
-              const uint_t& nRad,
-              const real_t& rMax,
-              const real_t& rMin,
-              const uint_t& maxLevel,
-              const uint_t& minLevel )
+void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const real_t& rMin, const uint_t& level )
 {
    walberla::math::seedRandomGenerator( 42 );
 
    auto storage = setupSphericalShellStorage( nTan, nRad, rMax, rMin );
 
-   FunctionType temperature( "temperature", storage, minLevel, maxLevel );
-   FunctionType temperatureSPH( "temperatureSPH", storage, minLevel, maxLevel );
-   FunctionType temperatureDev( "temperatureDev", storage, minLevel, maxLevel );
-
-   FunctionType tmp( "tmp", storage, minLevel, maxLevel );
-   FunctionType tmpDev( "tmpDev", storage, minLevel, maxLevel );
+   FunctionType temperature( "temperature", storage, level, level );
+   FunctionType temperatureDev( "temperatureDev", storage, level, level );
 
    real_t Tsurface = 300;
    real_t Tcmb     = 4200;
@@ -101,19 +89,27 @@ void runTest( const uint_t& nTan,
    auto temperatureReference = terraneo::temperatureReferenceExponential( tempInitParams );
 
    auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference, noiseFactor );
-   temperature.interpolate( initTemperatureWhiteNoise, maxLevel );
 
-   auto initTemperatureSPH = terraneo::temperatureSPH( tempInitParams,
-                                                       temperatureReference,
-                                                       tempInit,
-                                                       deg,
-                                                       ord,
-                                                       lmax,
-                                                       lmin,
-                                                       superposition,
-                                                       buoyancyFactor,
-                                                       initialTemperatureSteepness );
-   temperatureSPH.interpolate( initTemperatureSPH, maxLevel );
+   WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + white noise" )
+   temperature.interpolate( initTemperatureWhiteNoise, level );
+
+   // This is pretty slow. Just here to be noticed by the compiler.
+   if ( false )
+   {
+      auto initTemperatureSPH = terraneo::temperatureSPH( tempInitParams,
+                                                          temperatureReference,
+                                                          tempInit,
+                                                          deg,
+                                                          ord,
+                                                          lmax,
+                                                          lmin,
+                                                          superposition,
+                                                          buoyancyFactor,
+                                                          initialTemperatureSteepness );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + SPH" )
+      temperature.interpolate( initTemperatureSPH, level );
+   }
 
    std::string outputDirectory = "./output";
    std::string baseName        = "Test_T_field_Init";
@@ -123,36 +119,54 @@ void runTest( const uint_t& nTan,
       std::filesystem::create_directories( outputDirectory );
    }
 
-   std::shared_ptr< terraneo::RadialProfileTool< FunctionType > > TemperatureProfileTool =
-       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( temperature, tmp, rMax, rMin, nRad, maxLevel );
-   std::vector< real_t > TemperatureProfile = TemperatureProfileTool->getMeanProfile();
-   auto                  numLayers          = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( maxLevel ) - 1 );
+   WALBERLA_LOG_INFO_ON_ROOT( "Computing profiles" )
+   auto profile = terraneo::computeScalarRadialProfile( temperature, rMin, rMax, nRad, level );
+
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.min.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.max.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.mean.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.count.size() )
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %8s | %8s | %8s | %8s ", "radius", "min", "mean", "max", "count" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " ---------+----------+----------+----------+---------- " );
+   for ( uint_t i = 0; i < profile.shellRadii.size(); i++ )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8f | %8f | %8f | %8f | %8u ",
+                                                   profile.shellRadii[i],
+                                                   profile.min[i],
+                                                   profile.mean[i],
+                                                   profile.max[i],
+                                                   profile.count[i] ) )
+
+      const auto eps = std::abs( profile.mean[i] ) * 1e-8;
+      WALBERLA_CHECK_LESS_EQUAL( profile.min[i], profile.mean[i] + eps );
+      WALBERLA_CHECK_LESS_EQUAL( profile.mean[i], profile.max[i] + eps );
+   }
+
+   profile.logToFile( outputDirectory + "/" + baseName + ".txt", "temperature" );
+
+   // The following code subtracts the mean from every shell.
+   // This way we can test if the mean after that is zero on every shell.
+
+   auto numLayers = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( level ) - 1 );
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFct =
        [&]( const Point3D& x, const std::vector< real_t >& T ) {
-          auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-          real_t retVal;
-
-          uint_t shell = static_cast< uint_t >( std::round( real_c( numLayers ) * ( ( radius - rMin ) / ( rMax - rMin ) ) ) );
-          WALBERLA_ASSERT( shell < T.size() );
-
-          retVal = ( T[0] - TemperatureProfile.at( shell ) );
-          return retVal;
+          auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+          auto shell  = uint_c( std::round( real_c( numLayers ) * ( ( radius - rMin ) / ( rMax - rMin ) ) ) );
+          return T[0] - profile.mean[shell];
        };
 
-   for ( uint_t l = minLevel; l <= maxLevel; ++l )
+   temperatureDev.interpolate( temperatureDevFct, { temperature }, level, All );
+
+   auto profileTest = terraneo::computeScalarRadialProfile( temperatureDev, rMin, rMax, nRad, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Test mean after subtraction" )
+   for ( auto p : profileTest.mean )
    {
-      temperatureDev.interpolate( temperatureDevFct, { temperature }, l, All );
+      WALBERLA_LOG_INFO_ON_ROOT( p )
+      WALBERLA_CHECK_FLOAT_EQUAL( p, real_c( 0 ) );
    }
-
-   std::shared_ptr< terraneo::RadialProfileTool< FunctionType > > TemperatureDevProfileTool =
-       std::make_shared< terraneo::RadialProfileTool< FunctionType > >( temperatureDev, tmpDev, rMin, rMax, nRad, maxLevel );
-   std::vector< real_t > TemperatureDevProfile = TemperatureDevProfileTool->getMeanProfile();
-
-   // Evaluate that the mean of temperature deviation is zero.
-
-   bool isZero = std::all_of( TemperatureDevProfile.begin(), TemperatureDevProfile.end(), []( uint_t i ) { return i == 0; } );
-   WALBERLA_CHECK( isZero == true );
 
    bool output = true;
 
@@ -162,7 +176,7 @@ void runTest( const uint_t& nTan,
       vtkOutput.setVTKDataFormat( hyteg::vtk::DataFormat::BINARY );
       vtkOutput.add( temperature );
       vtkOutput.add( temperatureDev );
-      vtkOutput.write( maxLevel );
+      vtkOutput.write( level );
    }
 }
 
@@ -171,13 +185,12 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   real_t rMax     = 2.12;
-   real_t rMin     = 1.12;
-   uint_t minLevel = 0;
-   uint_t maxLevel = 4;
-   uint_t nTan     = 3;
-   uint_t nRad     = 2;
+   real_t rMax  = 2.12;
+   real_t rMin  = 1.12;
+   uint_t level = 3;
+   uint_t nTan  = 3;
+   uint_t nRad  = 2;
 
-   runTest< P2Function< real_t > >( nTan, nRad, rMax, rMin, maxLevel, minLevel );
+   runTest< P2Function< real_t > >( nTan, nRad, rMax, rMin, level );
    return 0;
 }
