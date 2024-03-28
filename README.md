@@ -60,11 +60,12 @@ Automatically cloned via git submodules (**NO need to install/download/clone the
 Optional:
 
 * MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
-* [ADIOS2](https://csmd.ornl.gov/software/adios2 "ADIOS2 homepage")  for efficient parallel I/O (CMake option `-DHYTEG_BUILD_WITH_ADIOS2=yes`)
+* [ADIOS2](https://csmd.ornl.gov/software/adios2 "ADIOS2 homepage")  for efficient parallel I/O (CMake option `-DHYTEG_BUILD_WITH_ADIOS2=yes`, version >= 2.9.2)
 * [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage")  for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_PETSC=yes`)
 * [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers (CMake option `-DHYTEG_BUILD_WITH_TRILINOS=yes`)
 * [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
 * [MPFR](https://www.mpfr.org/ "MPFR homepage") for emulated floating point datatypes (CMake option `-DHYTEG_BUILD_WITH_MPFR=yes`)
+* [Doxygen](https://www.doxygen.nl/ "Doxygen homepage") for building the documentation locally (version >= 1.10.0)
 
 ### Configuration options
 
