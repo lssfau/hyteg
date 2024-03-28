@@ -26,7 +26,7 @@
 
 #include "hyteg/Levelinfo.hpp"
 
-#include "terraneo/dataimport/io.hpp"
+#include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/plates/PlateVelocityProvider.hpp"
 
@@ -37,49 +37,21 @@ using walberla::real_t;
 using walberla::uint_t;
 
 /**
- * @brief Performs linear interpolation between given data points of a 2D array.
- *
- * A linear interpolation is performed between the data points of the 2D array and the value of the variable.
- *
- * @param dataVector The 2D vector containing the data points.
- * @param independentVar The independent variable to be estimated.
- * @return The estimated value.
- */
-
-real_t linearInterpolateBetween( std::vector< std::vector< real_t > >& dataVector, const real_t& independentVar )
-{
-   if ( independentVar <= dataVector[0][0] )
-      return dataVector[0][1];
-
-   if ( independentVar > dataVector[dataVector.size() - 1][0] )
-      return dataVector[dataVector.size() - 1][1];
-
-   uint_t curRow = 0;
-   while ( independentVar > dataVector[curRow][0] )
-      ++curRow;
-
-   real_t normalizedFactor =
-       ( independentVar - dataVector[curRow - 1][0] ) / ( dataVector[curRow][0] - dataVector[curRow - 1][0] );
-   real_t retVal = ( independentVar * ( dataVector[curRow][1] - dataVector[curRow - 1][1] ) ) + dataVector[curRow - 1][1];
-   return retVal;
-}
-
-/**
  * @brief Parses the configuration parameters from the main configuration block.
  *
  * This function reads and extracts various domain, model, simulation, and initialization parameters from the main configuration block.
  * It populates the corresponding variables and performs necessary calculations for non-dimensional numbers.
  */
 
-DomainParameters         domainParam;
-SolverParameters         solverParam;
-OutputParameters         outputParam;
-SimulationParameters     simulationParam;
-PhysicalParameters       physicalParam;
-InitialisationParameters initialisationParam;
-
-inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
+inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
+   DomainParameters         domainParam;
+   SolverParameters         solverParam;
+   OutputParameters         outputParam;
+   SimulationParameters     simulationParam;
+   PhysicalParameters       physicalParam;
+   InitialisationParameters initialisationParam;
+
    /*############ DOMAIN PARAMETERS ############*/
 
    domainParam.rCMB     = mainConf.getParameter< real_t >( "rCMB" );
@@ -98,17 +70,30 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
    if ( mainConf.isDefined( "viscosityProfile" ) )
    {
       simulationParam.fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
-      if ( io::readProfileData( simulationParam.fileViscosityProfile, physicalParam.viscosityProfile ) )
-      {
-         simulationParam.haveViscosityProfile = true;
+      auto viscosityJson                   = io::readJsonFile( simulationParam.fileViscosityProfile );
 
-         for ( uint_t i = 0; i < physicalParam.viscosityProfile.size(); i++ )
-         {
-            //non-dimensionalise radius
-            physicalParam.viscosityProfile[i][0] /= physicalParam.mantleThickness;
-         }
-         //std::reverse( physicalParam.viscosityProfile.begin(), physicalParam.viscosityProfile.end() );
+      const auto radiusKey    = "Radius (m)";
+      const auto viscosityKey = "Viscosity (Pa s)";
+
+      WALBERLA_CHECK_GREATER( viscosityJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
+      WALBERLA_CHECK_GREATER(
+          viscosityJson.count( viscosityKey ), 0, "No key '" << viscosityKey << "' in viscosity profile file." )
+
+      physicalParam.radius           = viscosityJson[radiusKey].get< std::vector< real_t > >();
+      physicalParam.viscosityProfile = viscosityJson[viscosityKey].get< std::vector< real_t > >();
+
+      WALBERLA_CHECK_EQUAL( physicalParam.radius.size(), physicalParam.viscosityProfile.size() )
+
+      simulationParam.haveViscosityProfile = true;
+
+      for ( uint_t i = 0; i < physicalParam.radius.size(); i++ )
+      {
+         // non-dimensionalise radius
+         physicalParam.radius[i] /= physicalParam.mantleThickness;
       }
+
+      // ¿Why is there a commented std::reverse?
+      // std::reverse( physicalParam.viscosityProfile.begin(), physicalParam.viscosityProfile.end() );
    }
 
    else
@@ -268,6 +253,16 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
    //number of radial layers at max level (x2 for P2 elements)
    simulationParam.numLayers =
        2 * ( domainParam.nRad - 1 ) * ( hyteg::levelinfo::num_microvertices_per_edge( domainParam.maxLevel ) - 1 );
+
+   TerraNeoParameters terraNeoParameters;
+   terraNeoParameters.domainParameters         = domainParam;
+   terraNeoParameters.solverParameters         = solverParam;
+   terraNeoParameters.outputParameters         = outputParam;
+   terraNeoParameters.simulationParameters     = simulationParam;
+   terraNeoParameters.physicalParameters       = physicalParam;
+   terraNeoParameters.initialisationParameters = initialisationParam;
+
+   return terraNeoParameters;
 }
 
 /**
@@ -277,8 +272,15 @@ inline void parseConfig( const walberla::Config::BlockHandle& mainConf )
  * to the root process and to the log file.
  */
 
-inline void printConfig()
+inline void printConfig( const TerraNeoParameters& terraNeoParameters )
 {
+   const auto outputParam         = terraNeoParameters.outputParameters;
+   const auto domainParam         = terraNeoParameters.domainParameters;
+   const auto physicalParam       = terraNeoParameters.physicalParameters;
+   const auto simulationParam     = terraNeoParameters.simulationParameters;
+   const auto initialisationParam = terraNeoParameters.initialisationParameters;
+   const auto solverParam         = terraNeoParameters.solverParameters;
+
    //logging for model info
    WALBERLA_ROOT_SECTION()
    {

@@ -50,28 +50,27 @@ int main( int argc, char** argv )
    }
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-   // If a viscosity file is given, parse config will implicitly call readDataFile and
-   // will store the viscosity in the corresponding data structure
-   terraneo::parseConfig( mainConf );
+   // If a viscosity file is given, parse config will implicitly read that and store the viscosity in the corresponding data
+   // structure.
+   auto terraNeoParameters = terraneo::parseConfig( mainConf );
 
    bool loggingToFile = true;
 
    if ( loggingToFile )
    {
-      terraneo::printConfig();
+      terraneo::printConfig( terraNeoParameters );
    }
 
-   if ( terraneo::simulationParam.haveViscosityProfile )
+   if ( terraNeoParameters.simulationParameters.haveViscosityProfile )
    {
       // Check entries in radius column of profile file (non-dimensional values)
+      WALBERLA_CHECK_FLOAT_EQUAL( terraNeoParameters.physicalParameters.radius[0], terraNeoParameters.domainParameters.rMax );
+      WALBERLA_CHECK_FLOAT_EQUAL( terraNeoParameters.physicalParameters.radius.back(), terraNeoParameters.domainParameters.rMin );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( terraneo::physicalParam.viscosityProfile[0][0], terraneo::domainParam.rMax );
-      WALBERLA_CHECK_FLOAT_EQUAL( terraneo::physicalParam.viscosityProfile.back()[0], terraneo::domainParam.rMin );
-
-      // check if second data column is non-zero
-      for ( size_t i = 0; i < terraneo::physicalParam.viscosityProfile.size(); i++ )
+      // Check if viscosity is non-zero
+      for ( auto v : terraNeoParameters.physicalParameters.viscosityProfile )
       {
-         WALBERLA_CHECK_GREATER( terraneo::physicalParam.viscosityProfile[i][1], terraneo::real_c( 0 ) );
+         WALBERLA_CHECK_GREATER( v, terraneo::real_c( 0 ) );
       }
    }
    return 0;

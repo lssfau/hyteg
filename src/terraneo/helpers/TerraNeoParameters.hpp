@@ -166,7 +166,7 @@ struct SimulationParameters
    std::string fileViscosityProfile   = std::string( "ViscosityProfile.txt" );
 
    //needed for conversions in the simulation
-   const real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
+   real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
@@ -191,9 +191,10 @@ struct PhysicalParameters
 {
    // Either use profiles or constant values (decision for each individually, e.g. temp profile + constant density + viscosity profile is possible)
    // profiles
-   std::vector< real_t >                temperatureProfile;
-   std::vector< std::vector< real_t > > viscosityProfile;
-   real_t                               initialTemperatureSteepness = real_c( 10 );
+   std::vector< real_t > radius;
+   std::vector< real_t > temperatureProfile;
+   std::vector< real_t > viscosityProfile;
+   real_t                initialTemperatureSteepness = real_c( 10 );
 
    //temperature
    //physical versions used to calculate non-D numbers, others used in simulation
@@ -237,6 +238,16 @@ struct PhysicalParameters
    real_t dissipationNumber = ( thermalExpansivity * gravity * mantleThickness ) / specificHeatCapacity;
    real_t hNumber =
        ( internalHeatingRate * mantleThickness ) / ( specificHeatCapacity * characteristicVelocity * ( cmbTemp - surfaceTemp ) );
+};
+
+struct TerraNeoParameters
+{
+   DomainParameters         domainParameters;
+   SolverParameters         solverParameters;
+   OutputParameters         outputParameters;
+   SimulationParameters     simulationParameters;
+   InitialisationParameters initialisationParameters;
+   PhysicalParameters       physicalParameters;
 };
 
 } // namespace terraneo

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "terraneo/dataimport/io.hpp"
+#include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/conversions.hpp"
 #include "terraneo/plates/PlateNotFoundHandlers.hpp"
 #include "terraneo/plates/PlateRotationProvider.hpp"
