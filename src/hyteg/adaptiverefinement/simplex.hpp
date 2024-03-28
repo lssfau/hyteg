@@ -27,7 +27,7 @@
 #include <map>
 #include <vector>
 
-#include "hyteg/PrimitiveID.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
@@ -199,9 +199,9 @@ class Simplex1 : public Simplex< EDGE, Simplex1 >
    // @return global id of the vertex on the edge midpoint or -1 if edge hasn't been refined
    uint_t get_midpoint_idx() const
    {
-      WALBERLA_CHECK_GREATER(_midpoint, -1);
-      return uint_t(_midpoint);
-      }
+      WALBERLA_CHECK_GREATER( _midpoint, -1 );
+      return uint_t( _midpoint );
+   }
 
    /* count number of vertices in the interior of this edge
       @return number of vertices on the interior of *this

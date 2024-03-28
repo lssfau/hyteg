@@ -26,12 +26,12 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/primitives/all.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -88,15 +88,13 @@ static void testP2BasicFunctions()
    hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
 
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
    }
@@ -104,7 +102,7 @@ static void testP2BasicFunctions()
    hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataX[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 2 ) );
 
@@ -114,37 +112,33 @@ static void testP2BasicFunctions()
    // Assign
 
    timer["Assign"].start();
-   y.assign( {3.0, 2.0}, {x, y}, maxLevel, DoFType::All );
-   z.assign( {1.0, -1.0}, {z, z}, maxLevel, DoFType::All );
+   y.assign( { 3.0, 2.0 }, { x, y }, maxLevel, DoFType::All );
+   z.assign( { 1.0, -1.0 }, { z, z }, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 10 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 10 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 10 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 10 ) );
    }
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 10 ) );
    }
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 0 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 0 ) );
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 0 ) );
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 0 ) );
    }
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataZ[vertexdof::macroface::index( maxLevel, it.x(), it.y() )], real_c( 0 ) );
    }
@@ -152,20 +146,17 @@ static void testP2BasicFunctions()
    // Add
 
    timer["Add"].start();
-   y.add( {4.0, 3.0}, {x, y}, maxLevel, DoFType::All );
+   y.add( { 4.0, 3.0 }, { x, y }, maxLevel, DoFType::All );
    timer["Add"].end();
 
    hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 48 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 48 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )], real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 48 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 48 ) );
    }
 
    // Dot
@@ -185,12 +176,12 @@ static void testP2BasicFunctions()
    y.interpolate( func2, maxLevel, DoFType::All );
    z.interpolate( zeros, maxLevel, DoFType::All );
 
-   z.assign( {1.0, -1.0}, {x, y}, maxLevel );
+   z.assign( { 1.0, -1.0 }, { x, y }, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
-   x.add( {-1.0}, {y}, maxLevel );
+   x.add( { -1.0 }, { y }, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   faceEdgeDataX[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )] );
@@ -200,7 +191,7 @@ static void testP2BasicFunctions()
                                   faceEdgeDataX[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )] );
    }
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataZ[vertexdof::macroface::index( maxLevel, it.x(), it.y() )],
                                   faceVertexDataX[vertexdof::macroface::index( maxLevel, it.x(), it.y() )] );

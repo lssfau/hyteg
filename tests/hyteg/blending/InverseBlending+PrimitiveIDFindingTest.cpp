@@ -28,7 +28,6 @@
 #include <core/math/Constants.h>
 #include <core/math/Random.h>
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
@@ -37,6 +36,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 // #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -103,7 +103,7 @@ std::vector< Point3D > genSamplePointsForFace( const Face& face, uint_t numSampl
    mat( 0, 1 ) = face.getCoordinates()[2][0] - face.getCoordinates()[0][0];
    mat( 1, 0 ) = face.getCoordinates()[1][1] - face.getCoordinates()[0][1];
    mat( 1, 1 ) = face.getCoordinates()[2][1] - face.getCoordinates()[0][1];
-   Point2D     shift(  face.getCoordinates()[0][0], face.getCoordinates()[0][1]  );
+   Point2D     shift( face.getCoordinates()[0][0], face.getCoordinates()[0][1] );
    AffineMap2D affineMap( mat, shift );
 
    for ( auto& sample : samples )

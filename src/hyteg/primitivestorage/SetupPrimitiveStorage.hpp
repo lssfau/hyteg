@@ -28,12 +28,12 @@
 #include "core/debug/Debug.h"
 #include "core/mpi/BufferSystem.h"
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Edge.hpp"
 #include "hyteg/primitives/Face.hpp"
 #include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/primitives/Vertex.hpp"
 
 namespace hyteg {
@@ -181,7 +181,6 @@ class SetupPrimitiveStorage
    uint_t getNumEdgesOnBoundary() const;
    uint_t getNumFacesOnBoundary() const;
    uint_t getNumCellsOnBoundary() const;
-
 
    /// Writes the SetupPrimitiveStorage to a file that can be used for a fully parallel initialization of the PrimitiveStorage.
    ///

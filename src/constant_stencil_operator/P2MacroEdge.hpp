@@ -19,12 +19,12 @@
  */
 #pragma once
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
-#include "hyteg/primitives/Edge.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
+#include "hyteg/primitives/Edge.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 
 namespace hyteg {
 namespace P2 {
@@ -53,17 +53,17 @@ inline void smoothGaussSeidel( const uint_t&                                    
                                const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsVertexDoFID,
                                const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsEdgeDoFID )
 {
-     smoothSOR( level,
-                edge,
-                1.0,
-                vertexToVertexStencilID,
-                edgeToVertexStencilID,
-                dstVertexDoFID,
-                vertexToEdgeStencilID,
-                edgeToEdgeStencilID,
-                dstEdgeDoFID,
-                rhsVertexDoFID,
-                rhsEdgeDoFID );
+   smoothSOR( level,
+              edge,
+              1.0,
+              vertexToVertexStencilID,
+              edgeToVertexStencilID,
+              dstVertexDoFID,
+              vertexToEdgeStencilID,
+              edgeToEdgeStencilID,
+              dstEdgeDoFID,
+              rhsVertexDoFID,
+              rhsEdgeDoFID );
 }
 
 void smoothSOR3D(
@@ -85,12 +85,12 @@ void smoothSOR3D(
 void smoothJacobi( const uint_t&                                            level,
                    const Edge&                                              edge,
                    const real_t&                                            relax,
-                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& vertexToVertexStencilID,
-                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& edgeToVertexStencilID,
+                   const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToVertexStencilID,
+                   const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToVertexStencilID,
                    const PrimitiveDataID< FunctionMemory< real_t >, Edge >& srcVertexDoFID,
                    const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstVertexDoFID,
-                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& vertexToEdgeStencilID,
-                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& edgeToEdgeStencilID,
+                   const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToEdgeStencilID,
+                   const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToEdgeStencilID,
                    const PrimitiveDataID< FunctionMemory< real_t >, Edge >& srcEdgeDoFID,
                    const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstEdgeDoFID,
                    const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsVertexDoFID,

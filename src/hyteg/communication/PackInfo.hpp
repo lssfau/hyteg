@@ -21,7 +21,7 @@
 
 #include "core/Abort.h"
 
-#include "hyteg/PrimitiveID.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
@@ -30,7 +30,7 @@ namespace communication {
 
 enum class PackType
 {
-   PACK = 0,
+   PACK   = 0,
    UNPACK = 1,
    DIRECT = 2
 };

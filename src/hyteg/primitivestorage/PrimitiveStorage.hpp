@@ -28,9 +28,9 @@
 #include "core/mpi/MPIWrapper.h"
 #include "core/timing/TimingTree.h"
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
 #include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 
 namespace hyteg {
 
@@ -915,10 +915,7 @@ void PrimitiveStorage::addCellData( PrimitiveDataID< DataType, Cell >&         d
 template < typename DataType, typename PrimitiveType >
 PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 {
-   WALBERLA_DEBUG_SECTION()
-   {
-      checkConsistency();
-   }
+   WALBERLA_DEBUG_SECTION() { checkConsistency(); }
 
    return PrimitiveDataID< DataType, PrimitiveType >( primitiveDataHandlers_++ );
 }

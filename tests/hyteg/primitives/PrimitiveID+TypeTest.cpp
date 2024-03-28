@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/PrimitiveID.hpp"
-
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
@@ -27,6 +25,7 @@
 #include "core/mpi/SendBuffer.h"
 
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"

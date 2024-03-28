@@ -17,20 +17,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <cfenv>
-
 #include "hyteg/geometry/AffineMap3D.hpp"
 
+#include <cfenv>
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 #include <core/timing/Timer.h>
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -67,9 +66,9 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
 {
    // identity matrix
    Matrix3r identity = Matrix3r::Zero();
-   identity( 0, 0 ) = real_c( 1.0 );
-   identity( 1, 1 ) = real_c( 1.0 );
-   identity( 2, 2 ) = real_c( 1.0 );
+   identity( 0, 0 )  = real_c( 1.0 );
+   identity( 1, 1 )  = real_c( 1.0 );
+   identity( 2, 2 )  = real_c( 1.0 );
 
    // rotation matrices
    real_t alphaX = pi / 180.0 * 25.0;
@@ -106,13 +105,13 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
    {
    case 1:
       mat             = identity;
-      vec             = Point3D(  2.0, 0.0, 0.0  );
+      vec             = Point3D( 2.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
    case 2:
       mat             = shearX;
-      vec             = Point3D(  0.0, 0.0, 0.0  );
+      vec             = Point3D( 0.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
@@ -120,44 +119,44 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
       mat             = identity;
       mat( 0, 1 )     = real_c( 1.0 );
       mat( 1, 2 )     = real_c( 1.0 );
-      vec             = Point3D(  0.0, 0.0, 0.0  );
+      vec             = Point3D( 0.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
    case 4:
       mat             = 0.5 * identity;
       mat( 0, 2 )     = real_c( 1.0 );
-      vec             = Point3D(  0.0, 0.0, 0.0  );
+      vec             = Point3D( 0.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 / 8.0 );
       break;
 
    case 5:
       mat             = rotX;
-      vec             = Point3D(  0.0, 0.0, 0.0  );
+      vec             = Point3D( 0.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
    case 6:
       mat             = rotY;
-      vec             = Point3D(  0.0, 0.0, 0.0  );
+      vec             = Point3D( 0.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
    case 7:
       mat             = rotZ;
-      vec             = Point3D(  0.0, 0.0, 0.0  );
+      vec             = Point3D( 0.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
    case 8:
       mat             = gemm( gemm( rotX, rotY ), rotZ );
-      vec             = Point3D(  2.0, 0.0, 0.0  );
+      vec             = Point3D( 2.0, 0.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
    case 9:
       mat             = gemm( shearX, rotY );
-      vec             = Point3D(  1.0, 1.0, 0.0  );
+      vec             = Point3D( 1.0, 1.0, 0.0 );
       volume[caseIdx] = real_c( 1.0 );
       break;
 
@@ -166,7 +165,7 @@ void generateAffineMapping( Matrix3r& mat, Point3D& vec, uint_t caseIdx )
       mat( 0, 0 )     = 2.00;
       mat( 1, 1 )     = 0.50;
       mat( 2, 2 )     = 0.75;
-      vec             = Point3D(  1.0, 1.0, 0.0  );
+      vec             = Point3D( 1.0, 1.0, 0.0 );
       volume[caseIdx] = real_c( 0.75 );
       break;
 
@@ -231,28 +230,27 @@ void exportMesh( SetupPrimitiveStorage& setupStorage, uint_t caseIdx, uint_t lev
 // all land on a single fixed originalPoint
 void testInverseMapping()
 {
-   Point3D originalPoint(  real_c( 0.5 ), real_c( 1.0 / 3.0 ), real_c( -0.2 )  );
+   Point3D originalPoint( real_c( 0.5 ), real_c( 1.0 / 3.0 ), real_c( -0.2 ) );
 
    // setup testing points
    std::vector< Point3D > mappedPoints;
-   mappedPoints.push_back( Point3D(  real_c( 2.5 ), real_c( 0.3333333333333333 ), real_c( -0.2 )  ) );
-   mappedPoints.push_back( Point3D(  real_c( 0.3 ), real_c( 0.3333333333333333 ), real_c( -0.2 )  ) );
-   mappedPoints.push_back( Point3D(  real_c( 0.8333333333333333 ), real_c( 0.1333333333333333 ), real_c( -0.2 )  ) );
-   mappedPoints.push_back( Point3D(  real_c( 0.04999999999999999 ), real_c( 0.16666666666666666 ), real_c( -0.1 )  ) );
-   mappedPoints.push_back( Point3D(  real_c( 0.5 ), real_c( 0.3866262480270232 ), real_c( -0.04038880349376353 )  ) );
+   mappedPoints.push_back( Point3D( real_c( 2.5 ), real_c( 0.3333333333333333 ), real_c( -0.2 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 0.3 ), real_c( 0.3333333333333333 ), real_c( -0.2 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 0.8333333333333333 ), real_c( 0.1333333333333333 ), real_c( -0.2 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 0.04999999999999999 ), real_c( 0.16666666666666666 ), real_c( -0.1 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 0.5 ), real_c( 0.3866262480270232 ), real_c( -0.04038880349376353 ) ) );
    mappedPoints.push_back(
-       Point3D(  real_c( 0.5376775458664649 ), real_c( 0.3333333333333333 ), real_c( 0.030047573463019728 )  ) );
-   mappedPoints.push_back( Point3D(  real_c( 0.21838387669414722 ), real_c( 0.559838899605187 ), real_c( -0.2 )  ) );
+       Point3D( real_c( 0.5376775458664649 ), real_c( 0.3333333333333333 ), real_c( 0.030047573463019728 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 0.21838387669414722 ), real_c( 0.559838899605187 ), real_c( -0.2 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 2.282446660359297 ), real_c( 0.5449860852101899 ), real_c( 0.15596525924148189 ) ) );
    mappedPoints.push_back(
-       Point3D(  real_c( 2.282446660359297 ), real_c( 0.5449860852101899 ), real_c( 0.15596525924148189 )  ) );
-   mappedPoints.push_back(
-       Point3D(  real_c( 1.5677251193294846 ), real_c( 1.3333333333333333 ), real_c( 0.030047573463019728 )  ) );
-   mappedPoints.push_back( Point3D(  real_c( 2.0 ), real_c( 1.1666666666666667 ), real_c( -0.15000000000000002 )  ) );
+       Point3D( real_c( 1.5677251193294846 ), real_c( 1.3333333333333333 ), real_c( 0.030047573463019728 ) ) );
+   mappedPoints.push_back( Point3D( real_c( 2.0 ), real_c( 1.1666666666666667 ), real_c( -0.15000000000000002 ) ) );
 
    // perform testing
    Matrix3r rotationMatrix;
-   Point3D shiftVector;
-   Point3D mappedBack;
+   Point3D  shiftVector;
+   Point3D  mappedBack;
    for ( uint_t idx = 0; idx < 10; ++idx )
    {
       // generate blending objects
@@ -289,8 +287,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    // generate a mesh for the unit cube
-   Point3D               lowerLeftFront(  0.0, 0.0, 0.0  );
-   Point3D               upperRightBack(  1.0, 1.0, 1.0  );
+   Point3D               lowerLeftFront( 0.0, 0.0, 0.0 );
+   Point3D               upperRightBack( 1.0, 1.0, 1.0 );
    MeshInfo              meshInfo = MeshInfo::meshCuboid( lowerLeftFront, upperRightBack, 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

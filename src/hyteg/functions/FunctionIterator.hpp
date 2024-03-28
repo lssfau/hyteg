@@ -22,7 +22,6 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
@@ -35,6 +34,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 
 namespace hyteg {
 
@@ -242,8 +242,6 @@ inline std::string FunctionIteratorDoF< FunctionType >::toString() const
 
    return os.str();
 }
-
-
 
 template < typename FunctionType >
 inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )

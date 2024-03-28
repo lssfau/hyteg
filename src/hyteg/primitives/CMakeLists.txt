@@ -1,15 +1,16 @@
 target_sources( hyteg
     PRIVATE
-    Primitive.hpp
-    Vertex.hpp
-    Edge.hpp
     Cell.cpp
-    all.hpp
-    Face.hpp
     Cell.hpp
-    Face.cpp
-    Primitive.cpp
-    Vertex.cpp
     Edge.cpp     
+    Edge.hpp
+    Face.cpp
+    Face.hpp
+    Primitive.cpp
+    Primitive.hpp
+    PrimitiveID.hpp
+    Vertex.cpp
+    Vertex.hpp
+    all.hpp
 )
 

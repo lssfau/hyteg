@@ -40,7 +40,7 @@
 #include <convection_particles/data/Flags.h>
 #include <blockforest/BlockForest.h>
 #include <hyteg/indexing/Common.hpp>
-#include <hyteg/PrimitiveID.hpp>
+#include <hyteg/primitives/PrimitiveID.hpp>
 #include <hyteg/edgedofspace/EdgeDoFIndexing.hpp>
 #include <convection_particles/data/STLOverloads.h>
 
