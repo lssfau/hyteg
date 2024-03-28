@@ -29,7 +29,7 @@ namespace hyteg {
 /**
  * \page 01_PrimitiveStorage Tutorial 01 - Setting up a PrimitiveStorage
  *
- * \dontinclude tutorials/01_PrimitiveStorage.cpp
+ * \dontinclude tutorials/basics/01_PrimitiveStorage.cpp
  *
  * \brief In this tutorial we will set up a distributed simulation domain using the PrimitiveStorage class.
  *
@@ -55,13 +55,13 @@ namespace hyteg {
  *
  * To parse a mesh file simple use the respective static method of the class. To parse a
  * file in the GMSH format, run:
- * \snippet tutorials/01_PrimitiveStorage.cpp MeshInfo
+ * \snippet tutorials/basics/01_PrimitiveStorage.cpp MeshInfo
  *
  * Alternatively you can use one of the inline mesh generators available in HyTeG. The
  * code below e.g. will generate a regular criss-cross mesh composed of (3 x 2) sub-cells
  * (each split into four triangles) on the 2D rectangle [-2,1] x [0,3]:
  *
- * \snippet tutorials/99_extraExamples.cpp MeshRectangle
+ * \snippet tutorials/basics/99_extraExamples.cpp MeshRectangle
  *
  * Inline generators are provided for a selection of standard geometries such as e.g.
  * rectangle, annulus, thick spherical shell. See the MeshInfo class documentation for
@@ -76,7 +76,7 @@ namespace hyteg {
  * from the MeshInfo. The resulting storage object is not distributed. However, in this phase the
  * primitives only carry metadata and no actual simulation data is allocated on them.
  *
- * \snippet tutorials/01_PrimitiveStorage.cpp SetupPrimitiveStorage
+ * \snippet tutorials/basics/01_PrimitiveStorage.cpp SetupPrimitiveStorage
  *
  * The main purpose of the SetupPrimitiveStorage is to assign the primitives to the processes.
  * We achieve this by calling a load balancing function on it. There are some simple load balancers
@@ -84,22 +84,22 @@ namespace hyteg {
  * the user does not have to call it in the application. Anyway, here is an example of how to use
  * them in practice:
  *
- * \snippet tutorials/01_PrimitiveStorage.cpp Loadbalancing
+ * \snippet tutorials/basics/01_PrimitiveStorage.cpp Loadbalancing
  *
  * \section T01-storage Creating a distributed PrimitiveStorage
  *
  * Finally we are able to create the distributed PrimitiveStorage instance. It requires us to specify
 {Paraview/link_002_tomo_SEMUCB_T_angle_}{0}{35}}; * the rank it is located on.
  *
- * \snippet tutorials/01_PrimitiveStorage.cpp PrimitiveStorage
+ * \snippet tutorials/basics/01_PrimitiveStorage.cpp PrimitiveStorage
  *
  * You can see that the data structure is now distributed since different ranks carry different primitives.
  * Querying the number of primitives should therefore (in general) result in different numbers on different processes:
  *
- * \snippet tutorials/01_PrimitiveStorage.cpp PrimitiveStorageNumberOfVertices
+ * \snippet tutorials/basics/01_PrimitiveStorage.cpp PrimitiveStorageNumberOfVertices
  *
  * \section code Complete Program
- * \include tutorials/01_PrimitiveStorage.cpp
+ * \include tutorials/basics/01_PrimitiveStorage.cpp
  *
  *
  *

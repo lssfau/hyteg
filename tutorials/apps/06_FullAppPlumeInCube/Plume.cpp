@@ -21,7 +21,7 @@
 /**
  * \page 06_FullAppPlumeInCube Tutorial 06 - Convection in a cube
  *
- * \dontinclude tutorials/06_FullAppPlumeInCube/Plume.cpp
+ * \dontinclude tutorials/apps/06_FullAppPlumeInCube/Plume.cpp
  *
  * \brief In this tutorial we will set up a complete app that will solve a coupled system
  * of the Stokes equations and the convection-diffusion equation.
@@ -31,7 +31,7 @@
  * As in all applications, we first setup the MPI environment.
  * We also load a parameter file to change parameters without having to rebuild the application.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Setup environment
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Setup environment
  *
  * \section T06-FullAppPlumeInCube-domain Domain
  *
@@ -43,7 +43,7 @@
  * to set all flags of all primitives on the boundary to 1 and all others to 0.
  * Later, this helps us to define boundary conditions.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Domain
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Domain
  *
  * \note
  * Each individual function variable may treat the boundary flags at the primitives differently.
@@ -70,7 +70,7 @@
  * steps using a monolithic multigrid method with inexact-Uzawa type relaxation. All quantities are discretized
  * with linear finite elements. Therefore we employ a PSPG stabilization for the pressure.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Discretization
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Discretization
  *
  * \section T06-FullAppPlumeInCube-bc Initial and boundary conditions
  *
@@ -81,13 +81,13 @@
  * It constantly (== Dirichlet) heats up the bottom of the domain and cools down towards the top. Also initializes
  * points that do not lie on the boundary.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp BC
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp BC
  *
  * \section T06-FullAppPlumeInCube-info Simulation info
  *
  * We add some code to print information of our setup like the number of DoFs and the coarse grid structure.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Info
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Info
  *
  * \section T06-FullAppPlumeInCube-VTK VTK
  *
@@ -97,7 +97,7 @@
  * is simply called in each time step and decides internally if output is written or not.
  * We also plot the initial conditions (time step == 0) and the coarse grid domain.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp VTK
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp VTK
  *
  * \section T06-FullAppPlumeInCube-solvers Solvers
  *
@@ -124,14 +124,14 @@
  *
  * The rest are standard multigrid components.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Solvers
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Solvers
  *
  * \section T06-FullAppPlumeInCube-simulation Simulation loop
  *
  * Now we start the actual simulation. We define a short lambda to calculate the current residual
  * in the L2 norm.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Residual
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Residual
  *
  * Then we start the main time stepping loop.
  *
@@ -139,12 +139,12 @@
  * field. Then we perform a few V-cycles to approximately solve the equation and calculate the average residual
  * reduction and some other infos.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Simulation Stokes
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Simulation Stokes
  *
  * With the result we advance the temperature transport by several time steps using the algebraic upwind operator.
  * We also write the VTK output.
  *
- * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Simulation Advection
+ * \snippet tutorials/apps/06_FullAppPlumeInCube/Plume.cpp Simulation Advection
  *
  * This process is repeated until the simulation ends.
  *
@@ -174,7 +174,7 @@
  *
  *
  * \section T06-FullAppPlumeInCube-fullApp Full Application
- * \include tutorials/06_FullAppPlumeInCube/Plume.cpp
+ * \include tutorials/apps/06_FullAppPlumeInCube/Plume.cpp
  *
  */
 

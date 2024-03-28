@@ -29,7 +29,7 @@ namespace hyteg {
 /**
  * \page 04_Indexing Tutorial 04 - Indexing and iterating
  *
- * \dontinclude tutorials/04_Indexing.cpp
+ * \dontinclude tutorials/basics/04_Indexing.cpp
  *
  * \brief In this tutorial we will iterate over simulation data
  *
@@ -48,7 +48,7 @@ namespace hyteg {
  *
  * First we need to specify the refinement level, which defines the number of DoFs in the macro primitive.
  *
- * \snippet tutorials/04_Indexing.cpp Level
+ * \snippet tutorials/basics/04_Indexing.cpp Level
  *
  * The logical layouts of the DoFs for the different primitive types are defined in the documentation.
  * For vertex DoFs on a macro face with refinement level 3, the DoFs are numbered as follows:
@@ -71,16 +71,16 @@ namespace hyteg {
  * Therefore, to build a loop over the triangle structure, we need to calculate the number of DoFs
  * in the bottom row i.e. the width (and height) of the structure:
  *
- * \snippet tutorials/04_Indexing.cpp LevelInfo
+ * \snippet tutorials/basics/04_Indexing.cpp LevelInfo
  *
  * The loop over the logical indices could be implemented as follows:
  *
- * \snippet tutorials/04_Indexing.cpp FirstLoop
+ * \snippet tutorials/basics/04_Indexing.cpp FirstLoop
  *
  * In the loop body, the logial coordinates are translated to the index in the corresponding array
  * using the index function for vertex DoFs on a macro-face:
  *
- * \snippet tutorials/04_Indexing.cpp IndexFunction
+ * \snippet tutorials/basics/04_Indexing.cpp IndexFunction
  *
  * \section T04-Indexing-iterators Iterators
  *
@@ -93,7 +93,7 @@ namespace hyteg {
  * For example to iterate over the inner macro-face, we can call the iterator
  * for vertex DoFs on a macro-face with the parameter offsetToCenter set to 1:
  *
- * \snippet tutorials/04_Indexing.cpp Iterator
+ * \snippet tutorials/basics/04_Indexing.cpp Iterator
  *
  * The Index variable \code it \endcode contains the current (logical) coordinates of the iterator in
  * the macro face.
@@ -101,11 +101,11 @@ namespace hyteg {
  * For convenient access to the neighboring DoFs of a certain DoF, there are indexing functions that return
  * the array index of neighboring DoFs of a certain direction:
  *
- * \snippet tutorials/04_Indexing.cpp Stencil
+ * \snippet tutorials/basics/04_Indexing.cpp Stencil
  *
  * \section T04-Indexing-code Complete Program
  *
- * \include tutorials/04_Indexing.cpp
+ * \include tutorials/basics/04_Indexing.cpp
  *
  */
 void IndexingTutorial()

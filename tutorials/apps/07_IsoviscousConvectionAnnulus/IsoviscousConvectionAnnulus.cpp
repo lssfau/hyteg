@@ -21,7 +21,7 @@
 /**
  * \page 07_IsoviscousConvectionAnnulus Tutorial 07 - Convection on an annulus
  *
- * \dontinclude tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
+ * \dontinclude tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
  *
  * \brief In this tutorial we will set up a complete app that solves a coupled system
  * of the Stokes equations and the advection-diffusion equation.
@@ -55,7 +55,7 @@
  * 3. A geometry mapping is applied to map the primitives to the physical domain.
  * 4. The primitives are distributed among the parallel processes via construction of the final PrimitiveStorage object.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Domain setup
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Domain setup
  *
  * \section T07-IsoviscousConvectionAnnulus-functionsandoperators Function spaces and operators
  *
@@ -71,19 +71,19 @@
  *
  * Functions (== elements of a finite element space) are represented by corresponding types in HyTeG.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function and operator typedefs
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function and operator typedefs
  *
  * Since we focus multigrid solvers, functions and operators are constructed over a hierarchy of levels.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function setup
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Operator setup
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function setup
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Operator setup
  *
  * \section T07-IsoviscousConvectionAnnulus-initialcondition Initial and boundary conditions
  *
  * Analytical functions can be interpolated (think 'sampled') into the finite element functions by a call to interpolate.
  * Here we define an initial (and boundary) temperature function for the mantle.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Initial temperature
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Initial temperature
  *
  * \section T07-IsoviscousConvectionAnnulus-solvers Solvers
  *
@@ -98,71 +98,71 @@
  * Most components are derived from a base class Solver, and templated with the linear operator
  * so that e.g. the same GeometricMultigridSolver implementation is reused also for other discretizations or equations.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes solver setup
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes solver setup
  *
  * For the unsteady diffusion, we require a linear solver for the operator and use a wrapper that simplifies time stepping.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Diffusion solver setup
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Diffusion solver setup
  *
  * The advection is treated by a Lagrangian solver that employs tracer particles.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Advection solver setup
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Advection solver setup
  *
  * To visualize the results, we employ VTK. To output functions in VTK format, we prepare a VTKOutput object and add the
  * functions of interest.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK
  *
  * Before solving the Stokes equation, we need to assemble the right-hand side according to the Boussinesq-approximation.
  * Note that the temperature enters the RHS in strong form if we simply set \f$ f := Ra * c * n \f$.
  * So we need to premultiply with the finite element mass matrix first.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp RHS
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp RHS
  *
  * For an initial velocity field != 0 we solve the Stokes equation before starting the actual time stepping.
  * For simplicity, we apply a fixed number of v-cycles. In practical applications we could also steer this
  * via a residual threshold.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes solve initial
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes solve initial
  *
  * We compute the variable time-step size via a CFL condition.
  * Therefore we compute the maximum velocity.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Max velocity
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Max velocity
  *
  * \section T07-IsoviscousConvectionAnnulus-output Output
  *
  * VTK output is pretty straightforward ...
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK write
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK write
  *
  * Simulations are worthless without storing relevant results in some way.
  * This can be done e.g. via a SQLite interface. In parallel runs, it is advisable to only write into the database from
  * one process (e.g. root). If necessary, relevant, distributed data should be reduced first.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp DB
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp DB
  *
  * \section T07-IsoviscousConvectionAnnulus-timeloop Time loop
  *
  * As discussed, we compute the time-step size via a CFL condition.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp CFL
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp CFL
  *
  * In each time step, we now first call the advection solver.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Advection
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Advection
  *
  * Then the diffusion solver.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Diffusion
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Diffusion
  *
  * Update the right-hand side.
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp RHS update
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp RHS update
  *
  * And then solve the Stokes equation (again with a fixed number of iterations for simplicity).
  *
- * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes
+ * \snippet tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes
  *
  * \section T07-IsoviscousConvectionAnnulus-results Results
  *
@@ -195,7 +195,7 @@
  *
  *
  * \section T07-IsoviscousConvectionAnnulus-fullApp Full Application
- * \include tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
+ * \include tutorials/apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
 */
 
 #include <cmath>
