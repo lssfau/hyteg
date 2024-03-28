@@ -21,12 +21,12 @@
 
 #include <adios2.h>
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 
 namespace hyteg::adiosCheckpointHelpers {
 

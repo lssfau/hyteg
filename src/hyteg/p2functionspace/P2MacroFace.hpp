@@ -19,13 +19,13 @@
  */
 #pragma once
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 
 namespace hyteg {
 namespace P2 {

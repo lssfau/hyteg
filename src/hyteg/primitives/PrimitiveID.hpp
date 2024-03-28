@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Benjamin Mann, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,38 +44,69 @@ using walberla::math::uintMSBPosition;
 
 /// \brief Implementation of the PrimitiveID (unique identifiers for primitives).
 ///
-/// It serves as a (global) unique identifier of a primitive.
+/// A %PrimitiveID serves as a globally, i.e. across all MPI ranks, unique identifier of a primitive.
 ///
-/// To be able to create new, unique PrimitiveIDs during refinement without requiring global communication in a distributed
-/// setting, the refinement is encoded in the bitstring. This is similar to what is done in walberla's BlockID and described e.g.
-/// in
+/// To be able to create new and unique PrimitiveIDs in the case of refinement without the need for
+/// global communication in a distributed setting, the %PrimitiveID is encoded in the form of a
+/// bitstream, which incorporates the refinement information. This is similar to what is done in
+/// the BlockID of waLBerla and described in detail in
 ///
-///     Schornbaum, F. (2018). Block-structured adaptive mesh refinement for simulations on extreme-scale supercomputers
-///     (Doctoral dissertation, Friedrich-Alexander-Universität Erlangen-Nürnberg (FAU)).
+/// <b>Schornbaum, F. (2018):</b>
+/// <a href="https://www10.cs.fau.de/publications/dissertations/Diss_2018-Schornbaum.pdf">Block-structured
+/// adaptive mesh refinement for simulations on extreme-scale supercomputers</a>,<br/>
+/// <b>doctoral dissertation, Friedrich-Alexander-Universität Erlangen-Nürnberg (FAU)</b>
 ///
-/// Example:
+/// The bit pattern of a %PrimitiveID is composed of four parts which from (conceptual) left to right
+/// are given by:
 ///
-///   0000..000 1 00110011 000 010 000
-///   |         | |        |
-///   a         b c        d
+///  - a block of variable length containing zero bits
+///  - a single control or most significant bit (MSB) marking the start of the actual ID by being always set to one
+///  - a block of fixed length containing PrimitiveID::BITS_COARSE_LEVEL_ID bits giving either the primitive's ID,
+///    if no refinement is used, or the ID of the primitive's grand-grand-parent on the coarsest level,
+///    if refinement is used
+///  - a block of variable length composed of one set of PrimitiveID::BITS_REFINEMENT bits per refinement level
 ///
-/// a) leading zeros
-/// b) marker bit (always one)
-/// c) the ID of the coarsest primitive (here, 8 bits are reserved)
-/// d) one additional, fixed-length bitstring for each refinement level (here, 3 bits are reserved)
+/// The following shows three examples for a choice of BITS_TOTAL = 64, BITS_COARSE_LEVEL_ID = 32 and BITS_REFINEMENT = 5
+/*! \htmlonly
+  <center>
+  <table border="0">
+  <tr>
+  <td>structure of the pattern for base mesh w/o refinement</td>
+  </tr>
+  <tr>
+  <td><img src="PrimitiveID-noRefinement.png" width="869" height="148"/></td>
+  </tr>
+  <tr>
+  <td>structure of the pattern after one refinement step</td>
+  </tr>
+  <tr>
+  <td><img src="PrimitiveID-oneRefinementStep.png" width="869" height="148"/></td>
+  </tr>
+  <tr>
+  <td>structure of the pattern after the maximally possible six refinement steps</td>
+  </tr>
+  <tr>
+  <td><img src="PrimitiveID-sixRefinementSteps.png" width="869" height="148"/></td>
+  </tr>
+  </table>
+  </center></br>
+  \endhtmlonly
+*/
+/// Using a variable length bitstring will allow for an infinite number of refinement steps. The current implementation,
+/// however, uses a fixed sized std::bitset. The length of the latter is fixed at compile time to PrimitiveID::BITS_TOTAL.
+/// For internal technical reasons this number must be a multiple of 64.
 ///
-/// The size of the bitstring can be either determined at compile time (e.g. 64 bit unsigned) or the PrimitiveID's representation
-/// is implemented via a variable length bitstring. The latter case allows for infinite refinement.
+/// The length of the ID for the coarsest primitive is also fixed at compile time by PrimitiveID::BITS_COARSE_LEVEL_ID,
+/// while PrimitiveID::BITS_REFINEMENT gives the length of the block required for an individual refinement level. This
+/// value limits the number of child primitives a parent primitive can be split into to 2<sup>BITS_REFINEMENT</sup>. Thus,
+/// if set to 5, we can construct 32 child primitives. In the case of tetrahedra the number should be (at least) 17.
 ///
-/// The length of the ID for the coarsest Primitive is fixed at compile time.
+/// Example: Assume we choose the total number of bits to be 128 and reserve 32 bits for the coarse level ID. Then, after
+/// subtracting the single control bit, we are left with 95 bits for refinement. If each new level requires 5 bits, this
+/// will allow to perform a maximum of 19 refinement step.
 ///
-/// The length of the short bitstrings for each refinement level is fixed at compile time. If set to 5, refinement of
-/// Primitives is limited to 32 child primitives (17 is required for tets).
-///
-/// The marker bit is required to signal the start of the ID. Without the marker bit, refinement may produce duplicate IDs.
-///
-/// For example: if we encode the ID in a 128-bit unsigned integer, subtract one marker bit, reserve 32 bits for the coarse level
-/// ID, we have 95 bits left for refinement. If each level requires 5 bits, this allows for 19 additional refinement levels.
+/// The control bit is required to signal the start of actual ID part of the bit pattern. Without the control bit,
+/// refinement may produce duplicate IDs.
 ///
 class PrimitiveID
 {
@@ -92,20 +123,27 @@ class PrimitiveID
    /// The internal data type used to store the PrimitiveID.
    using IDType = std::bitset< BITS_TOTAL >;
 
-   /// Representation of IDType as an array of integers
+   ///@{
+   ///
+   /// \brief Representation of IDType as an array of integers
    template < typename UINT = uint64_t >
    inline std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) >& asIntArray()
    {
       return *( reinterpret_cast< std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) >* >( &id_ ) );
    }
-   /// Representation of IDType as an array of integers
+
    template < typename UINT = uint64_t >
    inline const std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) >& asIntArray() const
    {
       return *( reinterpret_cast< std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) > const* >( &id_ ) );
    }
+   ///@}
 
-   /// compute the position of the most significant bit
+   /// Determine the position of the most significant (a.k.a. control) bit
+   ///
+   /// The control bit marks the start of the bits in the bit pattern that are
+   /// truly significant for the ID. The position is counted starting from the
+   /// (conceptual) right and one-based.
    inline uint_t msbPosition() const
    {
       for ( uint_t i = BITS_TOTAL; i > 0; --i )
@@ -136,7 +174,7 @@ class PrimitiveID
    : id_( IDType( 0 ) )
    {}
 
-   /// Creates 2**BITS_REFINEMENT new PrimitiveIDs that can be assigned to new Primitives that result from mesh refinement.
+   /// Creates 2<sup>BITS_REFINEMENT</sup> new PrimitiveIDs that can be assigned to new Primitives that result from mesh refinement
    inline auto createChildren() const
    {
       WALBERLA_CHECK( id_ != IDType( 0 ), "Can't refineme invalid PrimitiveID" );
@@ -150,7 +188,7 @@ class PrimitiveID
       return children;
    }
 
-   // maximum number of times the function createChildren can be applied recursively on a coarse ID
+   // Maximal number of times the function createChildren can be applied recursively on a coarse ID
    static inline uint_t maxRefinement() { return ( BITS_TOTAL - BITS_COARSE_LEVEL_ID - 1 ) / BITS_REFINEMENT; }
 
    inline uint_t numAncestors() const { return ( msbPosition() - BITS_COARSE_LEVEL_ID - 1 ) / BITS_REFINEMENT; }
@@ -172,6 +210,7 @@ class PrimitiveID
 
    bool operator!=( const PrimitiveID& rhs ) const { return id_ != rhs.id_; }
 
+   /// Returns the number of used, i.e. significant, bits in the pattern representing the %PrimitiveID
    uint_t getUsedBits() const { return msbPosition(); }
 
    uint_t getUsedBytes() const

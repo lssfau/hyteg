@@ -30,10 +30,10 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-#include "hyteg/PrimitiveID.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {

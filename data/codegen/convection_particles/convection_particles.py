@@ -20,7 +20,7 @@ if __name__ == '__main__':
     ps.add_property("currentBlock", "blockforest::BlockID", defValue="", syncMode="NEVER")
 
     ps.add_include("hyteg/indexing/Common.hpp")
-    ps.add_include("hyteg/PrimitiveID.hpp")
+    ps.add_include("hyteg/primitives/PrimitiveID.hpp")
     ps.add_include("hyteg/edgedofspace/EdgeDoFIndexing.hpp")
 
     ps.add_property("startPosition", "walberla::mesa_pd::Vec3", defValue="real_t(0)", syncMode="ALWAYS")

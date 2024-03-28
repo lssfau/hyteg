@@ -39,7 +39,6 @@ target_sources(hyteg
       Math.hpp
       MeshQuality.hpp
       OpenMPManager.hpp
-      PrimitiveID.hpp
       Stencil.hpp
       StencilDirections.hpp
       )
