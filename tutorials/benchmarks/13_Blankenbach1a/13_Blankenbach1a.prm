@@ -11,32 +11,32 @@ Parameters
     cflMax 0.25;
     diffusivity 1.0;
     
-    RayleighNumber 1e6;
+    RayleighNumber 1e4;
 
     NTimesteps 50000;
     endTime 4;
 
     stokesIter 10000;
-    stokesRelTol 1e-3;
+    stokesRelTol 1e-6;
 
     transportIter 10000;
-    transportRelTol 1e-5;
+    transportRelTol 1e-6;
 
-    logNsFreq 1;
+    logNsFreq 100;
 
     useAdios2 true;
     adiosXmlConfig ./ADIOS2demo.xml;
 
-    outputPath ./vtk;
+    outputPath ./output;
     outputFilename Blankenbach_Case1a;
     logFilenameWithTime false;
-    dataWriteFrequency 100;
+    dataWriteFrequency 10;
 
-    storeCheckpoint true;
+    storeCheckpoint false;
     checkpointFreq 100;
 
     startFromCheckpoint false;
 
-    checkpointFilepath ./vtk;
+    checkpointFilepath ./output;
     checkpointFilename Blankenbach_Case1a_Checkpoint;
 }

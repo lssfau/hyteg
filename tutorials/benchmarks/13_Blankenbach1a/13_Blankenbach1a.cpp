@@ -49,8 +49,127 @@
 /**
  * \page 13_Blankenbach1a Tutorial 13 - Blankenbach Benchmark
  *
- * \include tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp
+ * \dontinclude tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp
+ * 
+ * \brief We have demonstrated a plume rising on a cube and convection on annulus before. In this tutorial we will implement 
+ * a standard benchmark from Geophysical literature, the Blankenbach problem, specially case 1a. It involves solving the 
+ * respective equations on an unit squaree and calculation of Nusselt numbers and velocity RMS values to verify the code.
+ * 
+ * \section T-13-BlankenbachBenchmark-GoverningEquations Model and Equations
+ * 
+ * The governing equations are basically the Stokes and energy equations,
+ * 
+ * \f{align*}{
+ *  -\nabla\cdot\tau + \nabla p &= \text{Ra}T \\
+ *  \nabla u &= 0 \\
+ *  \frac{\partial T}{\partial t} + u \cdot \nabla T - \nabla \cdot \kappa \nabla T &= 0
+ * \f}
+ * 
+ * The initial conditions for temperature is prescribed as,
+ * 
+ * \f{equation*}{
+ *  T(x, y, t = 0) = (1-y) + A\cos{\pi x}\sin{\pi y}
+ * \f}
+ * 
+ * while freeslip boundary conditions is imposed on all four walls of the square.
+ * For the temperature field, a Dirichlet of T = 0 and T = 1 is imposed 
+ * at the top and bottom and zero flux on the sides. This induces a single convection cell 
+ * in the square and eventually reaches a steady state. Once this state is reached, 
+ * the Nusselt number values are calculated and verified.
  *
+ * \section T-13-BlankenbachBenchmark-Domain Domain
+ * 
+ * Through the geometry module in HyTeG, a rectangle mesh can be created with the `meshRectangle`, 
+ * which is used to create the unit square mesh. In addition to creating the macro mesh with required subdivisions, 
+ * the boundary nodes must be marked properly which will be used downstream when defining the boundary conditions
+ * for the finite element functions, which is what is done in the following snippet.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp SetupStorageAndMarkings
+ * 
+ * \section T-13-BlankenbachBenchmark-BCs Boundary Conditions
+ * 
+ * The boundary conditions for the Temperature and Velocity are defined appropriately. For temperature, a Dirichlet is defined
+ * on the top and bottom and zero flux on the side walls.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp BoundaryConditionsTemperature
+ * 
+ * For the velocity freeslip boundary conditions must be imposed on all four walls. For this, the coordinates can be seperately
+ * defined a Dirichlet and Neumann condition, but here we generally impose freeslip boundary condition.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp BoundaryConditionsVelocity
+ * 
+ * \section T-13-BlankenbachBenchmark-OpStokes Operators -- Stokes
+ * 
+ * The application of freeslip boundary condition is done with a project normal operator 
+ * which needs the normals defined at the boundaries, with which the
+ * velocity field is projected and the normal component is set to zero. Here the normals are defined through a lambda
+ * function,
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp NormalsFunctionForFS
+ * 
+ * And then passed on to the project normal operator
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp ProjectNormalForFS
+ * 
+ * This is then inturn used in defining the freeslip wrapper which wraps the Stokes operator and uses the projection operator
+ * to set the normal components to zero.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp StokesFreeslipOperator
+ * 
+ * \section T-13-BlankenbachBenchmark-OpEnergy Operators -- Energy
+ * 
+ * For the solution of the energy equations, we use a particle approach based on the modified method of characteristics (MMOC).
+ * Hence the advection operator can be defined with
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp MMOCForTransport
+ * 
+ * As the operator splitting approach is used, this must be taken care in the time stepping algorithm. We use an implicit Euler
+ * scheme for timestepping the diffusion and the MMOC is used to step for advection. The `apply` function of the 
+ * `P2TransportTimesteppingOperator` applies the time discretized form of the weak form considering only the diffusion.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp TransportOperatorApply
+ * 
+ * \section T-13-BlankenbachBenchmark-SolverStokes Solver -- Stokes
+ * 
+ * Minres solver is used to compute the solution to the Stokes system. The RHS is calculated and the projection is applied 
+ * before starting the iterative solve. As the Minres solver calls the wrapped Stokes operator, it is ensured that the 
+ * projection is done at every step of the iterative solve, hence strongly applying the freeslip boundary condition.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp StokesSolverLambdaFunction
+ * 
+ * \section T-13-BlankenbachBenchmark-SolverEnergy Solver -- Energy
+ * 
+ * The timestep for the energy equation solver is calculated according to the CFL condition using the velocity from the most recent
+ * Stokes solution. This is then used for the MMOC solver to step the advection, then also used for the diffusion solver.
+ * Here we use CG solver for the timestepping solver as the system is nicely symmetric with only diffusion present.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp TransportSolverLambdaFunction
+ * 
+ * \section T-13-BlankenbachBenchmark-Timestepping Timestepping
+ * 
+ * First the temperature \f$ T(x, t_0) \f$ is initialized to the prescribed field according to the above equation.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp TemperatureInitialization
+ * 
+ * Then the Stokes system is solved to get the initial velocity field, else the program can also be started from a checkpoint.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp InitialSolveOrCheckpoint
+ * 
+ * This is then used to step the transport solver, both advection and the diffusion parts, with 
+ * MMOC and implicit Euler respectively. With this we compute the temperature field at time \f$ t_1 \f$. Then the Stokes system is
+ * solved again to obtain the corresponding velocity field at time \f$ t_1 \f$ and so on.
+ * 
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp TimeStepLoopStart
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp SolveEnergy
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp SolveStokes
+ * \snippet tutorials/benchmarks/13_Blankenbach1a/13_Blankenbach1a.cpp WriteDataOut
+ * 
+ * \section T-13-BlankenbachBenchmark-Results Results
+ * 
+ * 
+ * <img src="13_BlankenbachSquareUpdated.png" width="50%" />
+ * 
+ * 
  */
 
 using namespace hyteg;
@@ -72,6 +191,7 @@ class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P
    , k_( k )
    {}
 
+   ///[TransportOperatorApply]
    void apply( const P2Function< real_t >& src,
                const P2Function< real_t >& dst,
                size_t                      level,
@@ -82,6 +202,7 @@ class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P
       dst.assign( { k_ * dt }, { dst }, level, flag );
       massOperator.apply( src, dst, level, flag, Add );
    }
+   ///[TransportOperatorApply]
 
    void setDt( real_t dt_ ) { dt = dt_; }
 
@@ -106,7 +227,7 @@ int main( int argc, char* argv[] )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      cfg->readParameterFile( "./Blankenbach_Case1a.prm" );
+      cfg->readParameterFile( "./13_Blankenbach1a.prm" );
    }
    else
    {
@@ -153,11 +274,6 @@ int main( int argc, char* argv[] )
    bool startFromCheckpoint = mainConf.getParameter< bool >( "startFromCheckpoint" );
 
    uint_t checkpointFreq = mainConf.getParameter< uint_t >( "checkpointFreq" );
-
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISSCROSS, nx, ny );
-
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    enum BoundaryMarkers
    {
@@ -226,6 +342,12 @@ int main( int argc, char* argv[] )
       }
    };
 
+   ///[SetupStorageAndMarkings]
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISSCROSS, nx, ny );
+
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
+       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
    setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Bottom, bottomMarker );
    setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Left, leftMarker );
    setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Right, rightMarker );
@@ -233,17 +355,22 @@ int main( int argc, char* argv[] )
    setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Corners, cornerMarker );
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
+   ///[SetupStorageAndMarkings]
 
    BoundaryCondition bcTemp, bcVelocity;
 
+   ///[BoundaryConditionsTemperature]
    bcTemp.createAllInnerBC();
    bcTemp.createDirichletBC( "DirichletTopAndBottom", { BoundaryMarkers::Bottom, BoundaryMarkers::Top } );
    bcTemp.createNeumannBC( "NeumannSides", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
+   ///[BoundaryConditionsTemperature]
 
+   ///[BoundaryConditionsVelocity]
    bcVelocity.createAllInnerBC();
    bcVelocity.createDirichletBC( "DirichletCorners", { BoundaryMarkers::Corners } );
    bcVelocity.createFreeslipBC(
        "FreeslipAll", { BoundaryMarkers::Bottom, BoundaryMarkers::Top, BoundaryMarkers::Left, BoundaryMarkers::Right } );
+   ///[BoundaryConditionsVelocity]
 
    P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel, bcVelocity );
    P2P1TaylorHoodFunction< real_t > uPrev( "uPrev", storage, minLevel, maxLevel, bcVelocity );
@@ -255,10 +382,15 @@ int main( int argc, char* argv[] )
    P2Function< real_t > fT( "fT", storage, minLevel, maxLevel, bcTemp );
 
    auto stokesOperator = std::make_shared< P2P1ElementwiseBlendingStokesOperator >( storage, minLevel, maxLevel );
-   P2TransportTimesteppingOperator         transportOperator( storage, minLevel, maxLevel, diffusivity );
+
+   ///[TransportOperatorDeclaration]
+   P2TransportTimesteppingOperator transportOperator( storage, minLevel, maxLevel, diffusivity );
+   ///[TransportOperatorDeclaration]
+
    P2ElementwiseBlendingMassOperator       massOperator( storage, minLevel, maxLevel );
    P2ElementwiseBlendingVectorMassOperator vectorMassOperator( storage, minLevel, maxLevel );
 
+   ///[NormalsFunctionForFS]
    std::function< void( const Point3D&, Point3D& ) > normalsFS = [&]( const Point3D& x, Point3D& normal ) {
       if ( rightMarker( x ) )
       {
@@ -282,16 +414,23 @@ int main( int argc, char* argv[] )
       }
       else
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Probably shoudln't be here!" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Probably shouldn't be here!" );
       }
    };
+   ///[NormalsFunctionForFS]
 
+   ///[ProjectNormalForFS]
    auto projectionNormal = std::make_shared< P2ProjectNormalOperator >( storage, minLevel, maxLevel, normalsFS );
+   ///[ProjectNormalForFS]
 
+   ///[MMOCForTransport]
    auto mmocTransport = MMOCTransport< P2Function< real_t > >( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   ///[MMOCForTransport]
 
+   ///[StokesFreeslipOperator]
    StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true > stokesOperatorFS(
        stokesOperator, projectionNormal, FreeslipBoundary );
+   ///[StokesFreeslipOperator]
 
    MinResSolver< StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true > > minresSolver(
        storage, minLevel, maxLevel, stokesIter, stokesRelTol );
@@ -301,11 +440,13 @@ int main( int argc, char* argv[] )
 
    const real_t AiniPerturb = 0.05;
 
+   ///[TemperatureInitialization]
    std::function< real_t( const Point3D& ) > TIni = [&]( const Point3D& x ) {
       return ( 1 - x[1] ) + AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
    };
 
    T.interpolate( TIni, maxLevel, All );
+   ///[TemperatureInitialization]
 
    real_t dt = 0.0001;
 
@@ -322,11 +463,13 @@ int main( int argc, char* argv[] )
       outputFilename = ossVtkName.str();
    }
 
+   ///[ADIOSVTKOutputDeclaration]
    VTKOutput vtkOutput( outputPath, outputFilename, storage );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    AdiosWriter adios2Output( outputPath, outputFilename, adiosXmlConfig, storage );
 #endif
+   ///[ADIOSVTKOutputDeclaration]
 
    if ( useAdios2 )
    {
@@ -358,6 +501,7 @@ int main( int argc, char* argv[] )
       }
    };
 
+   ///[StokesSolverLambdaFunction]
    std::function< void() > solveU = [&]() {
       u.interpolate( 0.0, maxLevel, DirichletBoundary );
       fStrong.uvw().component( 1U ).interpolate( Ra, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
@@ -369,7 +513,9 @@ int main( int argc, char* argv[] )
       projectionNormal->project( f, maxLevel, FreeslipBoundary );
       minresSolver.solve( stokesOperatorFS, u, f, maxLevel );
    };
+   ///[StokesSolverLambdaFunction]
 
+   ///[TransportSolverLambdaFunction]
    std::function< void() > solveT = [&]() {
       real_t vMax = u.uvw().getMaxComponentMagnitude( maxLevel, All );
 
@@ -386,7 +532,9 @@ int main( int argc, char* argv[] )
       massOperator.apply( T, fT, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
       transportSolver.solve( transportOperator, T, fT, maxLevel );
    };
+   ///[TransportSolverLambdaFunction]
 
+   ///[InitialSolveOrCheckpoint]
    if ( startFromCheckpoint )
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
@@ -398,8 +546,11 @@ int main( int argc, char* argv[] )
       WALBERLA_ABORT( "ADIOS2 checkpoint requested in prm file but ADIOS2 was not compiled!" );
 #endif
    }
-
-   solveU();
+   else
+   {
+      solveU();
+   }
+   ///[InitialSolveOrCheckpoint]
 
    uPrev.assign( { 1.0 }, { u }, maxLevel, All );
 
@@ -409,11 +560,15 @@ int main( int argc, char* argv[] )
 
    uint_t iTimestep = 1U;
 
+   ///[TimeStepLoopStart]
    for ( iTimestep = 1U; iTimestep <= NTimesteps; iTimestep++ )
+   ///[TimeStepLoopStart]
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Started step %d at time %4.7e", iTimestep, simulationTime ) );
 
+      ///[SolveEnergy]
       solveT();
+      ///[SolveEnergy]
 
       simulationTime += dt;
 
@@ -421,7 +576,9 @@ int main( int argc, char* argv[] )
 
       uPrev.assign( { 1.0 }, { u }, maxLevel, All );
 
+      ///[SolveStokes]
       solveU();
+      ///[SolveStokes]
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Stokes done", iTimestep ) );
 
@@ -433,10 +590,12 @@ int main( int argc, char* argv[] )
          break;
       }
 
+      ///[WriteDataOut]
       if ( iTimestep % dataWriteFrequency == 0 )
       {
          writeDataOut( iTimestep );
       }
+      ///[WriteDataOut]
 
       if ( iTimestep % logNsFreq == 0 )
       {
