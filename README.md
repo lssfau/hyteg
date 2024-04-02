@@ -2,8 +2,8 @@
 
 ![](doc/logos/HYTEG_large.png)
 
-![CI master](https://i10git.cs.fau.de/hyteg/hyteg/badges/master/pipeline.svg?&key_text=master&key_width=60)
-![CI nightly](https://i10git.cs.fau.de/hyteg/hyteg/badges/nightly/pipeline.svg?&key_text=nightly&key_width=60)
+[![CI master](https://i10git.cs.fau.de/hyteg/hyteg/badges/master/pipeline.svg?&key_text=master&key_width=60)](https://i10git.cs.fau.de/hyteg/hyteg/pipelines/latest?ref=master)
+[![CI nightly](https://i10git.cs.fau.de/hyteg/hyteg/badges/nightly/pipeline.svg?&key_text=nightly&key_width=60)](https://i10git.cs.fau.de/hyteg/hyteg/pipelines/latest?ref=nightly)
 
 ## About
 
