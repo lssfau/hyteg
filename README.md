@@ -127,7 +127,7 @@ CMake will search for installed Boost libraries. Should these not be found, you 
 Our [documentation page](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Docs") 
 provides additional documentation beyond this README, such as tutorials, API reference, etc.
 
-  _**Consult the tutorial programs under `tutorials/` and the [generated documentation](Tutorials.html) to get started with
+  _**Consult the tutorial programs under `tutorials/` and the [generated documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/Tutorials.html) to get started with
 the software.**_
 
 See also the publications below for more in-depth discussion of applications, scalability, and results computed with HyTeG.
@@ -233,7 +233,7 @@ Nils Kohl `nils.kohl@lmu.de` or Dominik Thönnes `dominik.thoennes@fau.de`.
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html).
+This project is licensed under the [GNU General Public License v3.0 or later](https://i10git.cs.fau.de/hyteg/hyteg/-/blob/master/LICENSE).
 
 ## Acknowledgements
 
