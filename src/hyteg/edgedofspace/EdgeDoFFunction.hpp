@@ -147,7 +147,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
              DoFType                                                                            flag = All ) const;
 
    /// @name Member functions for interpolation using BoundaryUID flags
-   //@{
+   ///@{
    void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
@@ -156,10 +156,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                      const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
                      uint_t                                                                               level,
                      BoundaryUID                                                                          boundaryUID ) const;
-   //@}
+   ///@}
 
    /// @name Member functions for interpolation using DoFType flags
-   //@{
+   ///@{
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
@@ -179,7 +179,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-   //@}
+   ///@}
 
    /// Compute the product of several functions in an elementwise fashion
    ///
@@ -349,8 +349,8 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
 
-   /// conversion to/from linear algebra representation
-   /// @{
+   /// @name conversion to/from linear algebra representation
+   ///@{
    void toVector( const EdgeDoFFunction< idx_t >&       numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
@@ -360,7 +360,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
                     DoFType                               flag ) const;
-   /// @}
+   ///@}
 
  private:
    inline void deleteFunctionMemory()
