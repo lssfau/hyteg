@@ -56,11 +56,35 @@ std::shared_ptr< PrimitiveStorage >
    return storage;
 }
 
+void checkProfile( const terraneo::RadialProfile& profile )
+{
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.min.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.max.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.mean.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.count.size() )
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %8s | %8s | %8s | %8s ", "radius", "min", "mean", "max", "count" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " ---------+----------+----------+----------+---------- " );
+   for ( uint_t i = 0; i < profile.shellRadii.size(); i++ )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8f | %8f | %8f | %8f | %8u ",
+                                                   profile.shellRadii[i],
+                                                   profile.min[i],
+                                                   profile.mean[i],
+                                                   profile.max[i],
+                                                   profile.count[i] ) )
+
+      const auto eps = std::abs( profile.mean[i] ) * 1e-8;
+      WALBERLA_CHECK_LESS_EQUAL( profile.min[i], profile.mean[i] + eps );
+      WALBERLA_CHECK_LESS_EQUAL( profile.mean[i], profile.max[i] + eps );
+   }
+}
+
 /// Tests multiple pieces of code from the terraneo module:
 /// - Uses some of the temperature initialization functions.
 /// - Computes radial profiles.
 /// - Checks whether the radial profiles give reasonable numbers.
-template < typename FunctionType >
+template < typename FunctionType, typename VectorFunctionType >
 void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const real_t& rMin, const uint_t& level )
 {
    walberla::math::seedRandomGenerator( 42 );
@@ -69,6 +93,8 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
 
    FunctionType temperature( "temperature", storage, level, level );
    FunctionType temperatureDev( "temperatureDev", storage, level, level );
+
+   VectorFunctionType velocity( "velocity", storage, level, level );
 
    real_t Tsurface = 300;
    real_t Tcmb     = 4200;
@@ -111,6 +137,9 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
       temperature.interpolate( initTemperatureSPH, level );
    }
 
+   // Just interpolating something for testing.
+   velocity.interpolate( initTemperatureWhiteNoise, level );
+
    std::string outputDirectory = "./output";
    std::string baseName        = "Test_T_field_Init";
 
@@ -119,30 +148,14 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
       std::filesystem::create_directories( outputDirectory );
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Computing profiles" )
-   auto profile = terraneo::computeScalarRadialProfile( temperature, rMin, rMax, nRad, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "Computing profile - scalar function" )
+   auto profile = terraneo::computeRadialProfile( temperature, rMin, rMax, nRad, level );
+   checkProfile( profile );
+   WALBERLA_LOG_INFO_ON_ROOT( "Computing profile - vector function" )
+   auto profileVector = terraneo::computeRadialProfile( velocity, rMin, rMax, nRad, level );
+   checkProfile( profileVector );
 
-   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.min.size() )
-   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.max.size() )
-   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.mean.size() )
-   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.count.size() )
-
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %8s | %8s | %8s | %8s ", "radius", "min", "mean", "max", "count" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( " ---------+----------+----------+----------+---------- " );
-   for ( uint_t i = 0; i < profile.shellRadii.size(); i++ )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8f | %8f | %8f | %8f | %8u ",
-                                                   profile.shellRadii[i],
-                                                   profile.min[i],
-                                                   profile.mean[i],
-                                                   profile.max[i],
-                                                   profile.count[i] ) )
-
-      const auto eps = std::abs( profile.mean[i] ) * 1e-8;
-      WALBERLA_CHECK_LESS_EQUAL( profile.min[i], profile.mean[i] + eps );
-      WALBERLA_CHECK_LESS_EQUAL( profile.mean[i], profile.max[i] + eps );
-   }
-
+   // Just logging to check if that runs through.
    profile.logToFile( outputDirectory + "/" + baseName + ".txt", "temperature" );
 
    // The following code subtracts the mean from every shell.
@@ -159,7 +172,7 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
 
    temperatureDev.interpolate( temperatureDevFct, { temperature }, level, All );
 
-   auto profileTest = terraneo::computeScalarRadialProfile( temperatureDev, rMin, rMax, nRad, level );
+   auto profileTest = terraneo::computeRadialProfile( temperatureDev, rMin, rMax, nRad, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Test mean after subtraction" )
    for ( auto p : profileTest.mean )
@@ -191,6 +204,6 @@ int main( int argc, char** argv )
    uint_t nTan  = 3;
    uint_t nRad  = 2;
 
-   runTest< P2Function< real_t > >( nTan, nRad, rMax, rMin, level );
+   runTest< P2Function< real_t >, P2VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level );
    return 0;
 }

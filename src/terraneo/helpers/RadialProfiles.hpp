@@ -30,7 +30,7 @@ using namespace hyteg;
 namespace terraneo {
 
 /// Just a simple struct holding std::vectors for convenient computation of and access to radial profiles.
-struct ScalarRadialProfile
+struct RadialProfile
 {
    std::vector< real_t > shellRadii;
    std::vector< real_t > mean;
@@ -72,30 +72,33 @@ struct ScalarRadialProfile
    }; // namespace terraneo
 };
 
-/// Computes radial profiles from a scalar FE function.
+/// Computes radial profiles from a scalar or vector-valued FE function.
 ///
 /// Assumes that the underlying domain is the spherical shell.
 ///
 /// Iterating over the coefficients of the passed FE function, this function computes and returns the min, max, and mean of the
-/// coefficients in radial layers.
+/// coefficients (for scalar functions) or of the magnitude (for vector-valued functions) in radial layers.
 ///
 /// Involves global communication!
 ///
-///! Note: Currently only implemented for P2 Scalar functions on spherical meshes with evenly distributed radial layers
+///! Note: Currently only implemented for P1Functions, P2Functions, P1VectorFunctions, and P2VectorFunctions - but can easily be
+/// extended.
 ///
-/// \tparam ScalarFunctionType type of a scalar FE function (e.g. P2Function< real_t >)
-/// \param u                   scalar FE function that is evaluated
+/// \tparam FunctionType       type of a FE function (e.g. P2Function< real_t > or P2VectorFunction< real_t >)
+/// \param u                   FE function that is evaluated
 /// \param rMin                radius of innermost shell
 /// \param rMax                radius of outermost shell
 /// \param nRad                number of radial layers
 /// \param level               FE function refinement level
-/// \return a filled ScalarRadialProfile struct
-template < typename ScalarFunctionType >
-ScalarRadialProfile computeScalarRadialProfile( const ScalarFunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+/// \return a filled RadialProfile struct
+template < typename FunctionType >
+RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
 {
    WALBERLA_CHECK_LESS_EQUAL( rMin, rMax );
 
-   ScalarRadialProfile profile;
+   WALBERLA_CHECK( u.getStorage()->hasGlobalCells(), "The radial profile can only be computed in 3D on the spherical shell." )
+
+   RadialProfile profile;
 
    const auto numberOfLayers = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( level ) - 1 );
 
@@ -122,28 +125,64 @@ ScalarRadialProfile computeScalarRadialProfile( const ScalarFunctionType& u, rea
    std::fill( profile.mean.begin(), profile.mean.end(), real_c( 0 ) );
    std::fill( profile.count.begin(), profile.count.end(), uint_c( 0 ) );
 
-   //interpolate is used to cycle through all DoFs on a process and fill relevant parts of profile with total temperature and number of DoFs
+   // Interpolate is used to cycle through all DoFs on a process and fill relevant parts of profile with total temperature and
+   // number of DoFs.
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > gatherValues =
        [&]( const Point3D& x, const std::vector< real_t >& values ) {
-          WALBERLA_ASSERT_EQUAL( values.size(), 1, "Why pass more than one function?" );
           real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+
+          auto scalarValue = real_c( 0.0 );
+
+          // Note for developers: there is probably a better way but this implementation is simple and should do the trick.
+          if constexpr ( std::is_same_v< typename FunctionType::Tag, P1FunctionTag > ||
+                         std::is_same_v< typename FunctionType::Tag, P2FunctionTag > )
+          {
+             scalarValue = values[0];
+          }
+          else if constexpr ( std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > ||
+                              std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
+          {
+             // We assume being on the spherical shell.
+             scalarValue = std::sqrt( values[0] * values[0] + values[1] * values[1] + values[2] * values[2] );
+          }
+          else
+          {
+             WALBERLA_ABORT( "Radial profile cannot be computed for the selected function type." );
+          }
 
           uint_t shell = getShell( radius );
 
           // Manual bounds checking.
           WALBERLA_ASSERT_LESS( shell, numberOfLayers + 1 );
 
-          // Add value to corresponding row in profile (using shell number)
-          profile.min[shell] = std::min( profile.min[shell], values[0] );
-          profile.max[shell] = std::max( profile.max[shell], values[0] );
-          profile.mean[shell] += values[0];
+          // Add value to corresponding row in profile (using the shell number)
+          profile.min[shell] = std::min( profile.min[shell], scalarValue );
+          profile.max[shell] = std::max( profile.max[shell], scalarValue );
+          profile.mean[shell] += scalarValue;
           profile.count[shell] += 1;
 
+          // Returning the value of the first function to ensure that the values are not altered.
+          // This should be called on the first component of a CSFVectorFunction until we have a better implementation that
+          // does not abuse interpolate().
           return values[0];
        };
 
-   u.interpolate( gatherValues, { u }, level, All );
+   if constexpr ( std::is_same_v< typename FunctionType::Tag, P1FunctionTag > ||
+                  std::is_same_v< typename FunctionType::Tag, P2FunctionTag > )
+   {
+      u.interpolate( gatherValues, { u }, level, All );
+   }
+   else if constexpr ( std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > ||
+                       std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
+   {
+      // We assume being on the spherical shell.
+      u[0].interpolate( gatherValues, { u[0], u[1], u[2] }, level, All );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Radial profile cannot be computed for the selected function type." );
+   }
 
    // Reduce values on each shell over all processes
    walberla::mpi::allReduceInplace( profile.min, walberla::mpi::MIN );
