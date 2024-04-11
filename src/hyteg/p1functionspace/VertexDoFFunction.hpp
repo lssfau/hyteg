@@ -246,7 +246,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
    /// @name Member functions for interpolation using BoundaryUID flags
-   //@{
+   ///@{
    void interpolate( ValueType constant, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
@@ -255,10 +255,10 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                      const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                      uint_t                                                                               level,
                      BoundaryUID                                                                          boundaryUID ) const;
-   //@}
+   ///@}
 
    /// @name Member functions for interpolation using DoFType flags
-   //@{
+   ///@{
    /// Interpolates a given expression to a VertexDoFFunction
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
@@ -276,7 +276,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                      const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
-   //@}
+   ///@}
 
    /// interpolate data from a coarser mesh.
    ///
@@ -430,8 +430,8 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
 
-   /// conversion to/from linear algebra representation
-   /// @{
+   /// @name conversion to/from linear algebra representation
+   ///@{
    void toVector( const VertexDoFFunction< idx_t >&     numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
@@ -441,7 +441,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
                     DoFType                               flag ) const;
-   /// @}
+   ///@}
 
    /// \brief Returns the number of DoFs that are allocated on this process.
    uint_t getNumberOfLocalDoFs( uint_t level ) const { return numberOfLocalDoFs< P1FunctionTag >( *this->storage_, level ); }

@@ -177,7 +177,7 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
              DoFType                                                                               flag = All ) const;
 
    /// @name Member functions for interpolation using BoundaryUID flags
-   //@{
+   ///@{
    void interpolate( VectorType constant, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolate( const std::function< VectorType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
@@ -186,10 +186,10 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
                      const std::vector< std::reference_wrapper< const N1E1VectorFunction< ValueType > > >&  srcFunctions,
                      uint_t                                                                                 level,
                      BoundaryUID                                                                            boundaryUID ) const;
-   //@}
+   ///@}
 
    /// @name Member functions for interpolation using DoFType flags
-   //@{
+   ///@{
    void interpolate( VectorType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< VectorType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
@@ -206,7 +206,7 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       this->interpolate( expr[0], level, flag );
    };
-   //@}
+   ///@}
 
    /// Compute the product of several functions in an elementwise fashion
    ///
@@ -381,8 +381,8 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    /// \param localCommunicationMode
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );
 
-   /// conversion to/from linear algebra representation
-   /// @{
+   /// @name conversion to/from linear algebra representation
+   ///@{
    inline void toVector( const N1E1VectorFunction< idx_t >&    numerator,
                          const std::shared_ptr< VectorProxy >& vec,
                          uint_t                                level,
@@ -398,11 +398,11 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    {
       dofs_->fromVector( *numerator.getDoFs(), vec, level, flag );
    }
-   /// @}
+   ///@}
 
    /// @name Scalar methods are needed for compatibility with \sa FunctionWrapper.
    /// They work like their vector counterparts with all vector-components being equal to the scalar.
-   /// @{
+   ///@{
    inline void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
    {
       add( VectorType{ scalar, scalar, scalar }, level, flag );
@@ -430,7 +430,7 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       interpolate( expr[0], level, flag );
    };
-   /// @}
+   ///@}
 
  private:
    using Function< N1E1VectorFunction< ValueType > >::communicators_;
