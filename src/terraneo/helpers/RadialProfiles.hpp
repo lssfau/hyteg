@@ -63,11 +63,6 @@ struct RadialProfile
                 "%6.4f  %7.4f  %6.4f  %6.4f \n", shellRadii.at( shell ), mean.at( shell ), max.at( shell ), min.at( shell ) );
          }
          outFile.close();
-
-         if ( outFile.is_open() )
-         {
-            WALBERLA_ABORT( "Failed to close file \"" << fileName << "\" when logging radial profiles. " )
-         }
       }
    }; // namespace terraneo
 };
