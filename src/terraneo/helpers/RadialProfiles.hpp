@@ -64,7 +64,7 @@ struct RadialProfile
          }
          outFile.close();
       }
-   }; // namespace terraneo
+   };
 };
 
 /// Computes radial profiles from a scalar or vector-valued FE function.
