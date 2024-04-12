@@ -134,7 +134,6 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
           else if constexpr ( std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > ||
                               std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
           {
-             // We assume being on the spherical shell.
              scalarValue = std::sqrt( values[0] * values[0] + values[1] * values[1] + values[2] * values[2] );
           }
           else
@@ -167,7 +166,6 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    else if constexpr ( std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > ||
                        std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
    {
-      // We assume being on the spherical shell.
       u[0].interpolate( gatherValues, { u[0], u[1], u[2] }, level, All );
    }
    else
