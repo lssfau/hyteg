@@ -24,7 +24,7 @@
 
 #include "core/extern/json.hpp"
 
-#include "terraneo/dataimport/io.hpp"
+#include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/conversions.hpp"
 #include "terraneo/helpers/typeAliases.hpp"
 #include "terraneo/plates/functionsForRotations.hpp"

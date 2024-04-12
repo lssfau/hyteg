@@ -198,12 +198,26 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/terraneo/plates)
    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/terraneo/plates")
 endif()
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles)
+   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles")
+endif()
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/testing)
+   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/testing")
+endif()
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/templates)
+   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityprofiles/templates")
+endif()
+
 waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
 waLBerla_link_files_to_builddir(data/kerncraftMachineFiles/*.yml)
 waLBerla_link_files_to_builddir(doc/images/*.png)
 waLBerla_link_files_to_builddir(data/terraneo/*.json)
+waLBerla_link_files_to_builddir(data/terraneo/viscosityprofiles/testing/*.json)
+waLBerla_link_files_to_builddir(data/terraneo/viscosityprofiles/*.json)
 waLBerla_link_files_to_builddir(data/terraneo/plates/*.geojson)
 waLBerla_link_files_to_builddir(data/terraneo/plates/*.rot)
 

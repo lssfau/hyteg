@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "terraneo/dataimport/io.hpp"
+#include "terraneo/dataimport/FileIO.hpp"
 
 namespace terraneo {
 namespace plates {

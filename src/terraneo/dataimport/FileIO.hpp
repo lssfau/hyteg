@@ -40,11 +40,7 @@ using walberla::uint_t;
 inline std::ifstream openFileForReading( std::string& fileName )
 {
    std::ifstream infile( fileName, std::ios::in );
-   if ( !infile.is_open() )
-   {
-      std::cerr << "Failed to open file '" << fileName << "' for reading!" << std::endl;
-      std::abort();
-   }
+   WALBERLA_CHECK( infile.is_open(), "Failed to open file '" << fileName << "' for reading!" )
    return infile;
 }
 
