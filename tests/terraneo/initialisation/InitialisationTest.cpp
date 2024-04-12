@@ -61,7 +61,7 @@ void checkProfile( const terraneo::RadialProfile& profile )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.min.size() )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.max.size() )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.mean.size() )
-   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.count.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.numDoFsPerShell.size() )
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %8s | %8s | %8s | %8s ", "radius", "min", "mean", "max", "count" ) );
    WALBERLA_LOG_INFO_ON_ROOT( " ---------+----------+----------+----------+---------- " );
@@ -72,7 +72,7 @@ void checkProfile( const terraneo::RadialProfile& profile )
                                                    profile.min[i],
                                                    profile.mean[i],
                                                    profile.max[i],
-                                                   profile.count[i] ) )
+                                                   profile.numDoFsPerShell[i] ) )
 
       const auto eps = std::abs( profile.mean[i] ) * 1e-8;
       WALBERLA_CHECK_LESS_EQUAL( profile.min[i], profile.mean[i] + eps );

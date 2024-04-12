@@ -36,7 +36,7 @@ struct RadialProfile
    std::vector< real_t > mean;
    std::vector< real_t > max;
    std::vector< real_t > min;
-   std::vector< uint_t > count;
+   std::vector< uint_t > numDoFsPerShell;
 
    /// Simple logging of all vectors to file.
    void logToFile( std::string fileName, std::string fieldName )
@@ -44,7 +44,7 @@ struct RadialProfile
       WALBERLA_CHECK_EQUAL( shellRadii.size(), mean.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), max.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), min.size() );
-      WALBERLA_CHECK_EQUAL( shellRadii.size(), count.size() );
+      WALBERLA_CHECK_EQUAL( shellRadii.size(), numDoFsPerShell.size() );
 
       WALBERLA_ROOT_SECTION()
       {
@@ -96,6 +96,13 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    RadialProfile profile;
 
    const auto numberOfLayers = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( level ) - 1 );
+   const auto numberOfShells = numberOfLayers + 1;
+
+   profile.shellRadii.resize( numberOfShells );
+   profile.min.resize( numberOfShells, std::numeric_limits< real_t >::max() );
+   profile.max.resize( numberOfShells, std::numeric_limits< real_t >::lowest() );
+   profile.mean.resize( numberOfShells );
+   profile.numDoFsPerShell.resize( numberOfShells );
 
    auto getRadius = [&]( const uint_t& shell ) -> real_t {
       return rMin + real_c( shell ) * ( rMax - rMin ) / real_c( numberOfLayers );
@@ -105,20 +112,10 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
       return static_cast< uint_t >( std::round( real_c( numberOfLayers ) * ( ( radius - rMin ) / ( rMax - rMin ) ) ) );
    };
 
-   for ( uint_t shell = 0; shell < numberOfLayers + 1; ++shell )
+   for ( uint_t shell = 0; shell < numberOfShells; ++shell )
    {
-      profile.shellRadii.push_back( getRadius( shell ) );
+      profile.shellRadii[shell] = getRadius( shell );
    }
-
-   profile.min.resize( numberOfLayers + 1 );
-   profile.max.resize( numberOfLayers + 1 );
-   profile.mean.resize( numberOfLayers + 1 );
-   profile.count.resize( numberOfLayers + 1 );
-
-   std::fill( profile.min.begin(), profile.min.end(), std::numeric_limits< real_t >::max() );
-   std::fill( profile.max.begin(), profile.max.end(), std::numeric_limits< real_t >::lowest() );
-   std::fill( profile.mean.begin(), profile.mean.end(), real_c( 0 ) );
-   std::fill( profile.count.begin(), profile.count.end(), uint_c( 0 ) );
 
    // Interpolate is used to cycle through all DoFs on a process and fill relevant parts of profile with total temperature and
    // number of DoFs.
@@ -129,7 +126,6 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
 
           auto scalarValue = real_c( 0.0 );
 
-          // Note for developers: there is probably a better way but this implementation is simple and should do the trick.
           if constexpr ( std::is_same_v< typename FunctionType::Tag, P1FunctionTag > ||
                          std::is_same_v< typename FunctionType::Tag, P2FunctionTag > )
           {
@@ -149,13 +145,13 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
           uint_t shell = getShell( radius );
 
           // Manual bounds checking.
-          WALBERLA_ASSERT_LESS( shell, numberOfLayers + 1 );
+          WALBERLA_ASSERT_LESS( shell, numberOfShells );
 
           // Add value to corresponding row in profile (using the shell number)
           profile.min[shell] = std::min( profile.min[shell], scalarValue );
           profile.max[shell] = std::max( profile.max[shell], scalarValue );
           profile.mean[shell] += scalarValue;
-          profile.count[shell] += 1;
+          profile.numDoFsPerShell[shell] += 1;
 
           // Returning the value of the first function to ensure that the values are not altered.
           // This should be called on the first component of a CSFVectorFunction until we have a better implementation that
@@ -183,12 +179,12 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    walberla::mpi::allReduceInplace( profile.min, walberla::mpi::MIN );
    walberla::mpi::allReduceInplace( profile.max, walberla::mpi::MAX );
    walberla::mpi::allReduceInplace( profile.mean, walberla::mpi::SUM );
-   walberla::mpi::allReduceInplace( profile.count, walberla::mpi::SUM );
+   walberla::mpi::allReduceInplace( profile.numDoFsPerShell, walberla::mpi::SUM );
 
    // Now compute mean with total / counter
-   for ( uint_t shell = 0; shell < numberOfLayers + 1; ++shell )
+   for ( uint_t shell = 0; shell < numberOfShells; ++shell )
    {
-      profile.mean[shell] /= real_c( profile.count[shell] );
+      profile.mean[shell] /= real_c( profile.numDoFsPerShell[shell] );
    }
 
    return profile;
