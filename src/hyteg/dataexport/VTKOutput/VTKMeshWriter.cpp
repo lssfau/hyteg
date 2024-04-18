@@ -379,10 +379,11 @@ void VTKMeshWriter::writeElementNodeAssociationP1Triangles( dstStream_t&        
             offset += 2u;
             --inner_rowsize;
          }
-      }
 
-      // prepare offset for next cell
-      ++offset;
+         // prepare offset for next cell
+         // only necessary for continuous elements
+         ++offset;
+      }
    }
 }
 
