@@ -574,9 +574,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       // else, we first interpolate u before applying load balancing
       t0 = walberla::timing::getWcTime();
       if ( loadbalancing )
-         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY );
+         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY, true, true );
       else
-         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
+         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN, true, true );
       t1              = walberla::timing::getWcTime();
       t_loadbalancing = t1 - t0;
    }

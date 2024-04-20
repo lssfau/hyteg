@@ -117,9 +117,13 @@ class K_Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
+      @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN );
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
+                                const bool           allow_split_siblings = false,
+                                const bool           verbose              = false );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -134,11 +138,12 @@ class K_Mesh
  private:
    /* apply round robin loadbalancing to volume elements
    */
-   void loadbalancing_roundRobin();
+   std::vector< uint_t > loadbalancing_roundRobin( const bool allow_split_siblings );
 
    /* apply greedy loadbalancing to volume elements
    */
-   void loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood );
+   std::vector< uint_t > loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
+                                               const bool                                   allow_split_siblings );
 
    /* remove green edges from _T and replace them with their parents
    */
@@ -149,7 +154,8 @@ class K_Mesh
       @param vtxs_added Flag that will be set to true if any new vertices are added during this step
       @return set R of elements requiring red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U, bool& vtxs_added );
+   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U,
+                                                                              bool& vtxs_added );
 
    /*
       apply red refinement to all elements in R and remove them from U
@@ -372,17 +378,21 @@ class Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
+      @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN )
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
+                                const bool           allow_split_siblings = false,
+                                const bool           verbose              = false )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->loadbalancing( lbScheme );
+         return _mesh3D->loadbalancing( lbScheme, allow_split_siblings, verbose );
       }
       else
       {
-         return _mesh2D->loadbalancing( lbScheme );
+         return _mesh2D->loadbalancing( lbScheme, allow_split_siblings, verbose );
       }
    }
 

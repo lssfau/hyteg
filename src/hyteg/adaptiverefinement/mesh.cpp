@@ -296,7 +296,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 }
 
 template < class K_Simplex >
-MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
+MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const bool allow_split_siblings, const bool verbose )
 {
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::map< PrimitiveID, VertexData >   vtxs_old;
@@ -312,21 +312,40 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
       el->setTargetRank( _n_processes );
    }
 
+   if ( !allow_split_siblings )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing with allow_split_siblings disabled may result in bad load balance!" );
+   }
+
+   std::vector< uint_t > n_vol_on_rnk;
+
    // assign volume primitives
    if ( lb == ROUND_ROBIN )
    {
-      loadbalancing_roundRobin();
+      n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
    }
    else if ( lb == GREEDY )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme GREEDY might lead to some processes not being assigned any work!" );
-      loadbalancing_greedy( nbrHood );
+      n_vol_on_rnk = loadbalancing_greedy( nbrHood, allow_split_siblings );
    }
    else
    {
       // todo: implement better loadbalancing
       WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme not implemented! Using Round Robin instead" );
-      loadbalancing_roundRobin();
+      n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
+   }
+
+   if ( verbose )
+   {
+      uint_t max_load = 0;
+      uint_t min_load = _n_elements;
+      for ( auto& load : n_vol_on_rnk )
+      {
+         max_load = std::max( load, max_load );
+         min_load = std::min( load, min_load );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "min/max/mean load (number of vol. elements): "
+                                 << min_load << " / " << max_load << " / " << double( _n_elements ) / double( _n_processes ) );
    }
 
    // extract data with new targetRank
@@ -405,8 +424,11 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
+std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool allow_split_siblings )
 {
+   if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
+      return std::vector<uint_t>(0);
+
    // apply roundRobin to volume elments
    uint_t                targetRnk = 0;
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
@@ -433,7 +455,7 @@ void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
       }
 
       // assign el to targetRnk
-      if ( el->has_green_edge() )
+      if ( !allow_split_siblings && el->has_green_edge() )
       {
          /* elements coming from a green step must reside on the same process
             to ensure compatibility with further refinement (interpolation between grids)
@@ -452,28 +474,29 @@ void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
          ++n_vol_on_rnk[targetRnk];
       }
    }
+   return n_vol_on_rnk;
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood )
+std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
+                                                                 const bool allow_split_siblings )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
-      return;
+      return std::vector<uint_t>(0);
 
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
    uint_t                n_vol_max0     = _n_elements / _n_processes;
    uint_t                n_vol_max1     = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
    uint_t                n_assigned     = 0;
-   bool                  fill_any       = false;
    auto                  random_element = _T.begin();
 
-   if ( n_vol_max0 < 4 )
-   {
-      WALBERLA_LOG_WARNING(
-          "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
+   // if ( n_vol_max0 < 4 )
+   // {
+   //    WALBERLA_LOG_WARNING(
+   //        "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
 
-      return loadbalancing_roundRobin();
-   }
+   //    return loadbalancing_roundRobin();
+   // }
 
    std::map< PrimitiveID, K_Simplex* > id_to_el;
    for ( auto& el : _T )
@@ -481,10 +504,28 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
       id_to_el[el->getPrimitiveID()] = el.get();
    }
 
-   while ( n_assigned < _n_elements )
+   for ( bool fill_any = false; n_assigned < _n_elements; fill_any = true )
    {
+      // in the first run, all ranks are assigned at least n_vol_max0 elements
+      // if there are still unassigned elements left, we distribute them at random (fill_any)
+
       for ( uint_t targetRnk = 0; targetRnk < _n_processes; ++targetRnk )
       {
+         if ( fill_any )
+         {
+            // when distributing leftover elements, we have to reset these numbers
+            n_vol_max0 = _n_elements / _n_processes;
+            n_vol_max1 = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
+         }
+         else
+         {
+            // on the initial run, use the number of currently unassigned elements and empty processes
+            auto n_unassigned = _n_elements - n_assigned;
+            auto n_empty_proc = _n_processes - targetRnk;
+            n_vol_max0        = n_unassigned / n_empty_proc;
+            n_vol_max1        = n_vol_max0 + std::min( uint_t( 1 ), n_unassigned % n_empty_proc );
+         }
+
          std::queue< std::vector< K_Simplex* > > Q;
          std::unordered_map< K_Simplex*, bool >  visited;
          // add element to queue
@@ -495,7 +536,7 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
             }
 
             std::vector< K_Simplex* > next;
-            if ( el->has_green_edge() )
+            if ( !allow_split_siblings && el->has_green_edge() )
             {
                /* elements coming from a green step must reside on the same process
                   to ensure compatibility with further refinement (interpolation between grids)
@@ -573,22 +614,8 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
             }
          }
       }
-
-      // all ranks have been assigned at least n_vol_max0 elements but there are still elements left
-      fill_any = true;
    }
-
-   WALBERLA_DEBUG_SECTION()
-   {
-      uint_t max_load = 0;
-      uint_t min_load = _n_elements;
-      for ( auto& load : n_vol_on_rnk )
-      {
-         max_load = std::max( load, max_load );
-         min_load = std::min( load, min_load );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "min/max/mean load (number of vol. elements): " << min_load << " / " << max_load << " / " << double(_n_elements)/double(_n_processes));
-   }
+   return n_vol_on_rnk;
 }
 
 template < class K_Simplex >
