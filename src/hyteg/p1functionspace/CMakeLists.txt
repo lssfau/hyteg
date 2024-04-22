@@ -3,6 +3,7 @@ target_sources( hyteg
     VertexDoFMacroCell.hpp
     P1VariableOperator.hpp
     P1ProjectNormalOperator.hpp
+    P1RotationOperator.hpp
     P1Operator.hpp
     P1DataHandling.hpp
     VertexDoFFunction.cpp
@@ -20,6 +21,7 @@ target_sources( hyteg
     VertexDoFMacroFace.hpp
     P1VectorFunction.hpp
     P1ProjectNormalOperator.cpp
+    P1RotationOperator.cpp
     P1DataHandling.cpp
     P1Function.hpp
     VertexDoFMacroVertex.hpp     

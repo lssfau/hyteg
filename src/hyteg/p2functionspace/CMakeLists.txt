@@ -7,11 +7,13 @@ target_sources( hyteg
     P2SurrogateOperator.hpp
     P2TransferOperators.hpp
     P2ProjectNormalOperator.cpp
+    P2RotationOperator.cpp
     P2MacroFace.cpp
     P2Elements3D.hpp
     P2MacroCell.hpp
     P2Function.hpp
     P2ProjectNormalOperator.hpp
+    P2RotationOperator.hpp
     P2MacroFace.hpp
     P2VectorFunction.hpp
     P2MacroCell.cpp
