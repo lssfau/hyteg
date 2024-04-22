@@ -148,7 +148,7 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
 
          Point3D computationalLocation;
          face->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
-         Point2D computationalLocation2D(  computationalLocation[0], computationalLocation[1]  );
+         Point2D computationalLocation2D( computationalLocation[0], computationalLocation[1] );
 
          if ( isPointInTriangle( computationalLocation2D,
                                  Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
@@ -169,7 +169,7 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                const auto neighborFace = storage.getFace( neighborFaceID );
                Point3D    computationalLocationNeighbor;
                neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
-               Point2D computationalLocationNeighbor2D(  computationalLocationNeighbor[0], computationalLocationNeighbor[1]  );
+               Point2D computationalLocationNeighbor2D( computationalLocationNeighbor[0], computationalLocationNeighbor[1] );
 
                if ( isPointInTriangle(
                         computationalLocationNeighbor2D,
@@ -940,7 +940,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
 
    WALBERLA_MPI_SECTION()
    {
-      const int TAG = 98234;
+      const int TAG = 31224;
 #ifdef _MSC_VER
       //need a first receive to avoid blocking on windows while communicating with itself
       int         selfCommMessage = 0;
@@ -1030,7 +1030,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       ranksToReceiveFrom.insert( 0 );
    }
 
-   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 654654555 );
+   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 27385 );
 
    for ( const auto& p : particleStorage )
    {
