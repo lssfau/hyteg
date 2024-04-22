@@ -270,7 +270,7 @@ struct ModelProblem
       if ( type == DIRAC )
       {
          _f = [=]( const Point3D& x ) -> real_t {
-            return ( x.norm() < 1e-100 ) ? std::numeric_limits< real_t >::infinity() : 0.0;
+            return ( x.norm() < 1e-10 ) ? std::numeric_limits< real_t >::infinity() : 0.0;
          };
 
          if ( dim == 2 )
