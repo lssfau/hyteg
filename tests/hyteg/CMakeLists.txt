@@ -894,7 +894,8 @@ if (HYTEG_BUILD_WITH_TRILINOS)
     waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
 
     waLBerla_compile_test(FILES trilinos/TrilinosDirectSolverTest.cpp DEPENDS hyteg core mixed_operator)
-    waLBerla_execute_test(NAME TrilinosDirectSolverTest)
+    #TODO: add one the solver is supported by mumps verison in image
+    #waLBerla_execute_test(NAME TrilinosDirectSolverTest)
 
     waLBerla_compile_test(FILES trilinos/TrilinosVectorTest.cpp DEPENDS hyteg core constant_stencil_operator)
     waLBerla_execute_test(NAME TrilinosVectorTest)
