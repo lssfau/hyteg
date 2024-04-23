@@ -24,7 +24,8 @@ To build HyTeG, clone the [GitLab repository](https://i10git.cs.fau.de/hyteg/hyt
     $ git clone --recurse-submodules https://i10git.cs.fau.de/hyteg/hyteg.git
 
 The option `--recurse-submodules` is **required** and will automatically initialize and clone 
-[waLBerla](http://walberla.net "waLBerla homepage") and [Eigen](http://eigen.tuxfamily.org) as git submodules.
+[waLBerla](http://walberla.net "waLBerla homepage"), [Eigen](http://eigen.tuxfamily.org) and [hyteg-operators](https://i10git.cs.fau.de/hyteg/hyteg-operators 
+"hyteg-operators repository") as git submodules (details below).
 
 Create a build directory and invoke `cmake`:
 
@@ -66,6 +67,7 @@ Optional:
 * [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
 * [MPFR](https://www.mpfr.org/ "MPFR homepage") for emulated floating point datatypes (CMake option `-DHYTEG_BUILD_WITH_MPFR=yes`)
 * [Doxygen](https://www.doxygen.nl/ "Doxygen homepage") for building the documentation locally (version >= 1.10.0)
+* [HyTeG Operator Generator (HOG)](https://i10git.cs.fau.de/hyteg/hog "HOG repository") for generating fast matrix-free finite element compute kernels (see details below)
 
 ### Configuration options
 
@@ -122,6 +124,22 @@ CMake will search for installed Boost libraries. Should these not be found, you 
 
     -DHYTEG_DOWNLOAD_BOOST=yes
 
+### HyTeG Operator Generator
+
+The [HyTeG Operator Generator](https://i10git.cs.fau.de/hyteg/hog "HOG repository") (HOG) is a python library for the 
+automated generation of matrix-free C++ compute kernels from a symbolic description of the weak form of a finite element 
+operator.
+
+To avoid having users of HyTeG generate (or implement) their required kernels from scratch, many generated 
+and optimized operators are available under `src/hyteg_operators` and `src/hyteg_operators_composites`.
+`src/hyteg_operators` is a git submodule that is cloned automatically from the 
+[hyteg-operators](https://i10git.cs.fau.de/hyteg/hyteg-operators "hyteg-operators") repository.
+
+For specific needs, additional operators can be generated from the scripts therein or directly using the HOG.
+Our preprint ([arXiv:2404.08371](https://arxiv.org/abs/2404.08371)) provides background information on its design and 
+performance analysis.
+
+
 ## Documentation
 
 Our [documentation page](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Docs") 
@@ -163,21 +181,27 @@ Multigrid for Stokes
 Eulerian-Lagrangian methods
 
 * Kohl, N., Mohr, M., Eibl, S., & Rüde, U. (2022). 
-  A Massively Parallel Eulerian-Lagrangian Method for Advection-Dominated Transport in Viscous Fluids. 
+  _A Massively Parallel Eulerian-Lagrangian Method for Advection-Dominated Transport in Viscous Fluids_. 
   SIAM Journal on Scientific Computing.
   [10.1137/21M1402510](https://doi.org/10.1137/21M1402510)
 
-Performance engineering
+Performance engineering ...
 
 * Thönnes, D., & Rüde, U. (2023). 
-  Model-Based Performance Analysis of the HyTeG Finite Element Framework. 
+  _Model-Based Performance Analysis of the HyTeG Finite Element Framework_. 
   In Proceedings of the Platform for Advanced Scientific Computing Conference.
   [10.1145/3592979.3593422](https://doi.org/10.1145/3592979.3593422)
+
+... and kernel generation
+
+* Böhm, F., Bauer, D., Kohl, N., Alappat, C., Thönnes, D., Mohr, M., Köstler, H. & Rüde, U. (2024). 
+  _Code Generation and Performance Engineering for Matrix-Free Finite Element Methods on Hybrid Tetrahedral Grids_. 
+  Submitted. arXiv preprint [arXiv:2404.08371](https://arxiv.org/abs/2404.08371).
 
 TerraNeo
 
 * Bauer, S., Bunge, H. P., Drzisga, D., Ghelichkhan, S., Huber, M., Kohl, N., Mohr, M., Rüde, U., Thönnes, D., & Wohlmuth, B. I. (2020).
-  TerraNeo — Mantle Convection Beyond a Trillion Degrees of Freedom. 
+  _TerraNeo — Mantle Convection Beyond a Trillion Degrees of Freedom_. 
   In Software for Exascale Computing-SPPEXA 2016-2019. 
   Springer International Publishing.
   [10.1007/978-3-030-47956-5_19](https://doi.org/10.1007/978-3-030-47956-5_19)
@@ -185,7 +209,7 @@ TerraNeo
 Surrogates
 
 * Drzisga, D., Wagner, A., & Wohlmuth, B. (2023). 
-  A matrix-free ILU realization based on surrogates. 
+  _A matrix-free ILU realization based on surrogates_. 
   SIAM Journal on Scientific Computing.
   [10.1137/22M1529415](https://doi.org/10.1137/22M1529415)
 
