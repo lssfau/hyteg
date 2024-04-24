@@ -1,3 +1,4 @@
+if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES EGFunctionspaceTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME EGFunctionspaceTest)
 
@@ -19,4 +20,4 @@
 
     waLBerla_compile_test(FILES EGEpsilonConvergenceTest.cpp DEPENDS hyteg core mixed_operator)
     waLBerla_execute_test(NAME EGEpsilonConvergenceTest COMMAND $<TARGET_FILE:EGEpsilonConvergenceTest> )
-
+endif ()
