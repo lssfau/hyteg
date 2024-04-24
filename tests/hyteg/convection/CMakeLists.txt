@@ -1,0 +1,3 @@
+waLBerla_compile_test(FILES Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES AlgebraicUpwind3DCircularConvectionTest.cpp DEPENDS hyteg core constant_stencil_operator)
+
