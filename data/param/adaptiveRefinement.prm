@@ -30,8 +30,9 @@ Parameters
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
   n_refinements 5; // number of refinement steps
-  p_refinement 0.2; // proportion of elements that will be marked for refinement in each step [0,1].
-                    // if p_refinement is not set, all elements whith sqared error greater than mean sqared error will be refined.
+  refinement_strategy 2; //0:MEAN_SQUARED_ERROR, 1:PROPORTION, 2:AGGRESSIVE
+  p_refinement 0.2; // proportion of elements that will be marked for refinement
+                    // in each step when refinement_strategy=1. p in [0,1]
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
