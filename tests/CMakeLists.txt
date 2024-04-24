@@ -1,7 +1,5 @@
 add_subdirectory( hyteg )
-add_subdirectory( constant_stencil_operator )
 add_subdirectory( convection_particles )
-add_subdirectory( mixed_operator )
 add_subdirectory( unresolved_particles )
 
 if( HYTEG_TERRANEO_MODULE )
