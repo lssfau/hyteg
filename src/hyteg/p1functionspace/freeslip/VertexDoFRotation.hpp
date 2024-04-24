@@ -37,15 +37,15 @@ using walberla::uint_t;
 namespace hyteg {
 namespace vertexdof {
 
-void rotationMatrix2D( const Point3D& normal, Matrix2r& projection )
+void rotationMatrix2D( const Point3D& normal, Matrix2r& rotation )
 {
-   projection( 0, 0 ) = -normal[1];
-   projection( 0, 1 ) = normal[0];
-   projection( 1, 0 ) = normal[0];
-   projection( 1, 1 ) = normal[1];
+   rotation( 0, 0 ) = -normal[1];
+   rotation( 0, 1 ) = normal[0];
+   rotation( 1, 0 ) = normal[0];
+   rotation( 1, 1 ) = normal[1];
 }
 
-void rotationMatrix3D( const Point3D& n, Matrix3r& projection )
+void rotationMatrix3D( const Point3D& n, Matrix3r& rotation, bool transpose )
 {
    Point3D nCross[] = {
        n.cross( Point3D( 1.0, 0.0, 0.0 ) ), n.cross( Point3D( 0.0, 1.0, 0.0 ) ), n.cross( Point3D( 0.0, 0.0, 1.0 ) ) };
@@ -61,15 +61,20 @@ void rotationMatrix3D( const Point3D& n, Matrix3r& projection )
 
    // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "n.t1 = %f, n.t2 = %f, t1.t2 = %f", n.dot( t1 ), n.dot( t2 ), t1.dot( t2 ) ) );
 
-   projection( 0, 0 ) = t1[0];
-   projection( 0, 1 ) = t1[1];
-   projection( 0, 2 ) = t1[2];
-   projection( 1, 0 ) = t2[0];
-   projection( 1, 1 ) = t2[1];
-   projection( 1, 2 ) = t2[2];
-   projection( 2, 0 ) = n[0];
-   projection( 2, 1 ) = n[1];
-   projection( 2, 2 ) = n[2];
+   rotation( 0, 0 ) = t1[0];
+   rotation( 0, 1 ) = t1[1];
+   rotation( 0, 2 ) = t1[2];
+   rotation( 1, 0 ) = t2[0];
+   rotation( 1, 1 ) = t2[1];
+   rotation( 1, 2 ) = t2[2];
+   rotation( 2, 0 ) = n[0];
+   rotation( 2, 1 ) = n[1];
+   rotation( 2, 2 ) = n[2];
+
+   if(transpose)
+   {
+      rotation.transposeInPlace();
+   }
 }
 
 namespace macroface {
@@ -81,7 +86,8 @@ inline void rotation3D( uint_t                                                  
                         const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdV,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW )
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW,
+                        bool                                                        transpose )
 {
    if ( face.getNumNeighborCells() == 2 )
    {
@@ -93,7 +99,7 @@ inline void rotation3D( uint_t                                                  
    auto dstW = face.getData( dstIdW )->getPointer( level );
 
    Point3D  normal;
-   Matrix3r projection;
+   Matrix3r rotation;
    Point3D  in;
    Point3D  out;
 
@@ -107,7 +113,7 @@ inline void rotation3D( uint_t                                                  
 
       normal_function( xPhy, normal );
 
-      rotationMatrix3D( normal, projection );
+      rotationMatrix3D( normal, rotation, transpose );
 
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
 
@@ -115,7 +121,7 @@ inline void rotation3D( uint_t                                                  
       in[1] = dstV[idx];
       in[2] = dstW[idx];
 
-      out = projection * in;
+      out = rotation * in;
 
       dstU[idx] = out[0];
       dstV[idx] = out[1];
@@ -123,14 +129,15 @@ inline void rotation3D( uint_t                                                  
    }
 }
 
-template < typename ValueType >
-inline void rotationT3D( uint_t                                                      level,
-                         const Face&                                                 face,
-                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                         const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdU,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdV,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW )
+inline void saveRotationOperator3D( uint_t                                                   level,
+                                    const Face&                                              face,
+                                    const std::shared_ptr< PrimitiveStorage >&               storage,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdU,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdV,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdW,
+                                    const std::shared_ptr< SparseMatrixProxy >&              mat,
+                                    bool                                                     transpose )
 {
    if ( face.getNumNeighborCells() == 2 )
    {
@@ -142,13 +149,10 @@ inline void rotationT3D( uint_t                                                 
    auto dstW = face.getData( dstIdW )->getPointer( level );
 
    Point3D  normal;
-   Matrix3r projection;
-   Point3D  in;
-   Point3D  out;
+   Matrix3r rotation;
 
    Point3D x;
    Point3D xPhy;
-
    for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
    {
       x = coordinateFromIndex( level, face, it );
@@ -156,21 +160,20 @@ inline void rotationT3D( uint_t                                                 
 
       normal_function( xPhy, normal );
 
-      rotationMatrix3D( normal, projection );
-
-      projection.transposeInPlace();
+      Matrix3r rotation;
+      rotationMatrix3D( normal, rotation, transpose );
 
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
 
-      in[0] = dstU[idx];
-      in[1] = dstV[idx];
-      in[2] = dstW[idx];
+      const idx_t idxUVW[] = { dstU[idx], dstV[idx], dstW[idx] };
 
-      out = projection * in;
-
-      dstU[idx] = out[0];
-      dstV[idx] = out[1];
-      dstW[idx] = out[2];
+      for ( uint_t iMat = 0U; iMat < 3U; iMat++ )
+      {
+         for ( uint_t jMat = 0U; jMat < 3U; jMat++ )
+         {
+            mat->addValue( uint_c( idxUVW[iMat] ), uint_c( idxUVW[jMat] ), rotation( iMat, jMat ) );
+         }
+      }
    }
 }
 
@@ -199,7 +202,7 @@ inline void rotation2D( uint_t                                                  
    Face* faceS = storage->getFace( edge.neighborFaces()[0] );
 
    Point3D  normal;
-   Matrix2r projection;
+   Matrix2r rotation;
    Point2D  in;
    Point2D  out;
 
@@ -214,64 +217,12 @@ inline void rotation2D( uint_t                                                  
       faceS->getGeometryMap()->evalF( x, xPhy );
       normal_function( xPhy, normal );
 
-      rotationMatrix2D( normal, projection );
+      rotationMatrix2D( normal, rotation );
 
       in[0] = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       in[1] = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
 
-      out = projection * in;
-
-      dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = out[0];
-      dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = out[1];
-
-      x += dx;
-   }
-}
-
-template < typename ValueType >
-inline void rotationT2D( uint_t                                                      level,
-                         const Edge&                                                 edge,
-                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                         const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV )
-{
-   if ( edge.getNumNeighborFaces() == 2 )
-   {
-      WALBERLA_ABORT( "Cannot project normals if not a boundary edge" );
-   }
-
-   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-
-   auto dstU = edge.getData( dstIdU )->getPointer( level );
-   auto dstV = edge.getData( dstIdV )->getPointer( level );
-
-   Face* faceS = storage->getFace( edge.neighborFaces()[0] );
-
-   Point3D  normal;
-   Matrix2r projection;
-   Point2D  in;
-   Point2D  out;
-
-   Point3D x  = edge.getCoordinates()[0];
-   real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
-   Point3D dx = h * edge.getDirection();
-   x += dx;
-   Point3D xPhy;
-
-   for ( size_t i = 1; i < rowsize - 1; ++i )
-   {
-      faceS->getGeometryMap()->evalF( x, xPhy );
-      normal_function( xPhy, normal );
-
-      rotationMatrix2D( normal, projection );
-
-      projection.transposeInPlace();
-
-      in[0] = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-      in[1] = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-
-      out = projection * in;
+      out = rotation * in;
 
       dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = out[0];
       dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = out[1];
@@ -287,14 +238,15 @@ inline void rotation3D( uint_t                                                  
                         const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW )
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW,
+                        bool                                                        transpose )
 {
    auto dstU = edge.getData( dstIdU )->getPointer( level );
    auto dstV = edge.getData( dstIdV )->getPointer( level );
    auto dstW = edge.getData( dstIdW )->getPointer( level );
 
    Point3D  normal;
-   Matrix3r projection;
+   Matrix3r rotation;
    Point3D  in;
    Point3D  out;
 
@@ -308,7 +260,7 @@ inline void rotation3D( uint_t                                                  
 
       normal_function( xPhy, normal );
 
-      rotationMatrix3D( normal, projection );
+      rotationMatrix3D( normal, rotation, transpose );
 
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
 
@@ -316,53 +268,7 @@ inline void rotation3D( uint_t                                                  
       in[1] = dstV[idx];
       in[2] = dstW[idx];
 
-      out = projection * in;
-
-      dstU[idx] = out[0];
-      dstV[idx] = out[1];
-      dstW[idx] = out[2];
-   }
-}
-
-template < typename ValueType >
-inline void rotationT3D( uint_t                                                      level,
-                         const Edge&                                                 edge,
-                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                         const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW )
-{
-   auto dstU = edge.getData( dstIdU )->getPointer( level );
-   auto dstV = edge.getData( dstIdV )->getPointer( level );
-   auto dstW = edge.getData( dstIdW )->getPointer( level );
-
-   Point3D  normal;
-   Matrix3r projection;
-   Point3D  in;
-   Point3D  out;
-
-   Point3D x;
-   Point3D xPhy;
-
-   for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
-   {
-      x = coordinateFromIndex( level, edge, it );
-      edge.getGeometryMap()->evalF( x, xPhy );
-
-      normal_function( xPhy, normal );
-
-      rotationMatrix3D( normal, projection );
-
-      projection.transposeInPlace();
-
-      const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
-
-      in[0] = dstU[idx];
-      in[1] = dstV[idx];
-      in[2] = dstW[idx];
-
-      out = projection * in;
+      out = rotation * in;
 
       dstU[idx] = out[0];
       dstV[idx] = out[1];
@@ -403,64 +309,59 @@ inline void saveRotationOperator2D( uint_t                                      
       const auto idxU = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       const auto idxV = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
 
-      Matrix2r projection;
+      Matrix2r rotation;
 
-      rotationMatrix2D( normal, projection );
+      rotationMatrix2D( normal, rotation );
 
-      mat->addValue( uint_c( idxU ), uint_c( idxU ), projection( 0, 0 ) );
-      mat->addValue( uint_c( idxU ), uint_c( idxV ), projection( 0, 1 ) );
-      mat->addValue( uint_c( idxV ), uint_c( idxU ), projection( 1, 0 ) );
-      mat->addValue( uint_c( idxV ), uint_c( idxV ), projection( 1, 1 ) );
+      mat->addValue( uint_c( idxU ), uint_c( idxU ), rotation( 0, 0 ) );
+      mat->addValue( uint_c( idxU ), uint_c( idxV ), rotation( 0, 1 ) );
+      mat->addValue( uint_c( idxV ), uint_c( idxU ), rotation( 1, 0 ) );
+      mat->addValue( uint_c( idxV ), uint_c( idxV ), rotation( 1, 1 ) );
 
       x += dx;
    }
 }
 
-inline void saveRotationTOperator2D( uint_t                                                   level,
-                                     const Edge&                                              edge,
-                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                     const std::function< void( const Point3D&, Point3D& ) >& normal_function,
-                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
-                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
-                                     const std::shared_ptr< SparseMatrixProxy >&              mat )
+inline void saveRotationOperator3D( uint_t                                                   level,
+                                    const Edge&                                              edge,
+                                    const std::shared_ptr< PrimitiveStorage >&               storage,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdW,
+                                    const std::shared_ptr< SparseMatrixProxy >&              mat,
+                                    bool                                                     transpose )
 {
-   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-
    auto dstU = edge.getData( dstIdU )->getPointer( level );
    auto dstV = edge.getData( dstIdV )->getPointer( level );
+   auto dstW = edge.getData( dstIdW )->getPointer( level );
 
-   Face* faceS = storage->getFace( edge.neighborFaces()[0] );
+   Point3D  normal;
+   Matrix3r rotation;
 
-   Point3D              normal;
-   std::vector< idx_t > in( 2 );
-   std::vector< idx_t > out( 2 );
-
-   Point3D x  = edge.getCoordinates()[0];
-   real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
-   Point3D dx = h * edge.getDirection();
-   x += dx;
+   Point3D x;
    Point3D xPhy;
 
-   for ( size_t i = 1; i < rowsize - 1; ++i )
+   for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
    {
-      faceS->getGeometryMap()->evalF( x, xPhy );
+      x = coordinateFromIndex( level, edge, it );
+      edge.getGeometryMap()->evalF( x, xPhy );
+
       normal_function( xPhy, normal );
 
-      const auto idxU = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-      const auto idxV = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      rotationMatrix3D( normal, rotation, transpose );
 
-      Matrix2r projection;
+      const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
 
-      rotationMatrix2D( normal, projection );
+      const idx_t idxUVW[] = { dstU[idx], dstV[idx], dstW[idx] };
 
-      projection.transposeInPlace();
-
-      mat->addValue( uint_c( idxU ), uint_c( idxU ), projection( 0, 0 ) );
-      mat->addValue( uint_c( idxU ), uint_c( idxV ), projection( 0, 1 ) );
-      mat->addValue( uint_c( idxV ), uint_c( idxU ), projection( 1, 0 ) );
-      mat->addValue( uint_c( idxV ), uint_c( idxV ), projection( 1, 1 ) );
-
-      x += dx;
+      for ( uint_t iMat = 0U; iMat < 3U; iMat++ )
+      {
+         for ( uint_t jMat = 0U; jMat < 3U; jMat++ )
+         {
+            mat->addValue( uint_c( idxUVW[iMat] ), uint_c( idxUVW[jMat] ), rotation( iMat, jMat ) );
+         }
+      }
    }
 }
 
@@ -489,50 +390,14 @@ inline void rotation2D( uint_t                                                  
    Point3D normal( Point3D::Zero() );
    normal_function( xPhy, normal );
 
-   Matrix2r projection;
+   Matrix2r rotation;
 
-   rotationMatrix2D( normal, projection );
-
-   Point2D in;
-   in[0]       = *dstU;
-   in[1]       = *dstV;
-   Point2D out = projection * in;
-
-   *dstU = out[0];
-   *dstV = out[1];
-}
-
-template < typename ValueType >
-inline void rotationT2D( uint_t                                                        level,
-                         const Vertex&                                                 vertex,
-                         const std::shared_ptr< PrimitiveStorage >&                    storage,
-                         const std::function< void( const Point3D&, Point3D& ) >&      normal_function,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdU,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdV )
-{
-   WALBERLA_CHECK( storage->onBoundary( vertex.getID() ) );
-
-   auto dstU = vertex.getData( dstIdU )->getPointer( level );
-   auto dstV = vertex.getData( dstIdV )->getPointer( level );
-
-   Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
-
-   Point3D xPhy( Point3D::Zero() );
-   faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
-
-   Point3D normal( Point3D::Zero() );
-   normal_function( xPhy, normal );
-
-   Matrix2r projection;
-
-   rotationMatrix2D( normal, projection );
-
-   projection.transposeInPlace();
+   rotationMatrix2D( normal, rotation );
 
    Point2D in;
    in[0]       = *dstU;
    in[1]       = *dstV;
-   Point2D out = projection * in;
+   Point2D out = rotation * in;
 
    *dstU = out[0];
    *dstV = out[1];
@@ -545,14 +410,15 @@ inline void rotation3D( uint_t                                                  
                         const std::function< void( const Point3D&, Point3D& ) >&      normal_function,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdV,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdW )
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdW,
+                        bool                                                          transpose )
 {
    auto dstU = vertex.getData( dstIdU )->getPointer( level );
    auto dstV = vertex.getData( dstIdV )->getPointer( level );
    auto dstW = vertex.getData( dstIdW )->getPointer( level );
 
    Point3D  normal;
-   Matrix3r projection;
+   Matrix3r rotation;
    Point3D  in;
    Point3D  out;
 
@@ -562,52 +428,13 @@ inline void rotation3D( uint_t                                                  
 
    normal_function( xPhy, normal );
 
-   rotationMatrix3D( normal, projection );
+   rotationMatrix3D( normal, rotation, transpose );
 
    in[0] = dstU[0];
    in[1] = dstV[0];
    in[2] = dstW[0];
 
-   out = projection * in;
-
-   dstU[0] = out[0];
-   dstV[0] = out[1];
-   dstW[0] = out[2];
-}
-
-template < typename ValueType >
-inline void rotationT3D( uint_t                                                        level,
-                         const Vertex&                                                 vertex,
-                         const std::shared_ptr< PrimitiveStorage >&                    storage,
-                         const std::function< void( const Point3D&, Point3D& ) >&      normal_function,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdU,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdV,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdW )
-{
-   auto dstU = vertex.getData( dstIdU )->getPointer( level );
-   auto dstV = vertex.getData( dstIdV )->getPointer( level );
-   auto dstW = vertex.getData( dstIdW )->getPointer( level );
-
-   Point3D  normal;
-   Matrix3r projection;
-   Point3D  in;
-   Point3D  out;
-
-   Point3D x = vertex.getCoordinates();
-   Point3D xPhy;
-   vertex.getGeometryMap()->evalF( x, xPhy );
-
-   normal_function( xPhy, normal );
-
-   rotationMatrix3D( normal, projection );
-
-   projection.transposeInPlace();
-
-   in[0] = dstU[0];
-   in[1] = dstV[0];
-   in[2] = dstW[0];
-
-   out = projection * in;
+   out = rotation * in;
 
    dstU[0] = out[0];
    dstV[0] = out[1];
@@ -635,56 +462,59 @@ inline void saveRotationOperator2D( uint_t                                      
    Point3D normal;
    normal_function( xPhy, normal );
 
-   Matrix2r projection;
+   Matrix2r rotation;
 
-   rotationMatrix2D( normal, projection );
+   rotationMatrix2D( normal, rotation );
 
    const auto idxU = *dstU;
    const auto idxV = *dstV;
 
-   mat->addValue( uint_c( idxU ), uint_c( idxU ), projection( 0, 0 ) );
-   mat->addValue( uint_c( idxU ), uint_c( idxV ), projection( 0, 1 ) );
-   mat->addValue( uint_c( idxV ), uint_c( idxU ), projection( 1, 0 ) );
-   mat->addValue( uint_c( idxV ), uint_c( idxV ), projection( 1, 1 ) );
+   mat->addValue( uint_c( idxU ), uint_c( idxU ), rotation( 0, 0 ) );
+   mat->addValue( uint_c( idxU ), uint_c( idxV ), rotation( 0, 1 ) );
+   mat->addValue( uint_c( idxV ), uint_c( idxU ), rotation( 1, 0 ) );
+   mat->addValue( uint_c( idxV ), uint_c( idxV ), rotation( 1, 1 ) );
 }
 
-inline void saveRotationTOperator2D( uint_t                                                    level,
-                                     const Vertex&                                             vertex,
-                                     const std::shared_ptr< PrimitiveStorage >&                storage,
-                                     const std::function< void( const Point3D&, Point3D& ) >&  normal_function,
-                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdU,
-                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdV,
-                                     const std::shared_ptr< SparseMatrixProxy >&               mat )
+inline void saveRotationOperator3D( uint_t                                                    level,
+                                    const Vertex&                                             vertex,
+                                    const std::shared_ptr< PrimitiveStorage >&                storage,
+                                    const std::function< void( const Point3D&, Point3D& ) >&  normal_function,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdU,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdV,
+                                    const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdW,
+                                    const std::shared_ptr< SparseMatrixProxy >&               mat,
+                                    bool                                                      transpose )
 {
    WALBERLA_CHECK( storage->onBoundary( vertex.getID() ) );
 
    auto dstU = vertex.getData( dstIdU )->getPointer( level );
    auto dstV = vertex.getData( dstIdV )->getPointer( level );
+   auto dstW = vertex.getData( dstIdW )->getPointer( level );
 
-   Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
-
+   Point3D x = vertex.getCoordinates();
    Point3D xPhy;
-   faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
+   vertex.getGeometryMap()->evalF( x, xPhy );
 
    Point3D normal;
    normal_function( xPhy, normal );
 
-   Matrix2r projection;
-
-   rotationMatrix2D( normal, projection );
-
-   projection.transposeInPlace();
+   Matrix3r rotation;
+   rotationMatrix3D( normal, rotation, transpose );
 
    const auto idxU = *dstU;
    const auto idxV = *dstV;
+   const auto idxW = *dstW;
 
-   mat->addValue( uint_c( idxU ), uint_c( idxU ), projection( 0, 0 ) );
-   mat->addValue( uint_c( idxU ), uint_c( idxV ), projection( 0, 1 ) );
-   mat->addValue( uint_c( idxV ), uint_c( idxU ), projection( 1, 0 ) );
-   mat->addValue( uint_c( idxV ), uint_c( idxV ), projection( 1, 1 ) );
+   const idx_t idxUVW[] = { idxU, idxV, idxW };
+
+   for ( uint_t iMat = 0U; iMat < 3U; iMat++ )
+   {
+      for ( uint_t jMat = 0U; jMat < 3U; jMat++ )
+      {
+         mat->addValue( uint_c( idxUVW[iMat] ), uint_c( idxUVW[jMat] ), rotation( iMat, jMat ) );
+      }
+   }
 }
-
 } // namespace macrovertex
-
 } // namespace vertexdof
 } // namespace hyteg

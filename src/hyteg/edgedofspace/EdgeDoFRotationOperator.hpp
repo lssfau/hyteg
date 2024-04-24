@@ -61,7 +61,8 @@ class EdgeDoFRotationOperator final : public Operator< hyteg::EdgeDoFFunction< r
                              const EdgeDoFFunction< idx_t >&             numV,
                              const EdgeDoFFunction< idx_t >&             numW,
                              uint_t                                      level,
-                             DoFType                                     flag ) const;
+                             DoFType                                     flag,
+                             bool                                        transpose = false ) const;
 
  private:
    const std::function< void( const Point3D&, Point3D& ) > normal_function_;

@@ -85,39 +85,18 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
          {
             if ( storage_->hasGlobalCells() )
             {
-               if ( transpose )
-               {
-                  edgedof::macroedge::rotationT3D< real_t >( level,
-                                                             edge,
-                                                             storage_,
-                                                             normal_function_,
-                                                             dst_u.getEdgeDataID(),
-                                                             dst_v.getEdgeDataID(),
-                                                             dst_w.getEdgeDataID() );
-               }
-               else
-               {
                   edgedof::macroedge::rotation3D< real_t >( level,
                                                             edge,
                                                             storage_,
                                                             normal_function_,
                                                             dst_u.getEdgeDataID(),
                                                             dst_v.getEdgeDataID(),
-                                                            dst_w.getEdgeDataID() );
-               }
+                                                            dst_w.getEdgeDataID(), transpose );
             }
             else
             {
-               if ( transpose )
-               {
-                  edgedof::macroedge::rotationT2D< real_t >(
-                      level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
-               }
-               else
-               {
                   edgedof::macroedge::rotation2D< real_t >(
                       level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
-               }
             }
          }
       }
@@ -138,26 +117,13 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
          {
             if ( storage_->hasGlobalCells() )
             {
-               if ( transpose )
-               {
-                  edgedof::macroface::rotationT3D< real_t >( level,
-                                                             face,
-                                                             storage_,
-                                                             normal_function_,
-                                                             dst_u.getFaceDataID(),
-                                                             dst_v.getFaceDataID(),
-                                                             dst_w.getFaceDataID() );
-               }
-               else
-               {
                   edgedof::macroface::rotation3D< real_t >( level,
                                                             face,
                                                             storage_,
                                                             normal_function_,
                                                             dst_u.getFaceDataID(),
                                                             dst_v.getFaceDataID(),
-                                                            dst_w.getFaceDataID() );
-               }
+                                                            dst_w.getFaceDataID(), transpose );
             }
          }
       }
@@ -173,7 +139,8 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
                                                    const EdgeDoFFunction< idx_t >&             numV,
                                                    const EdgeDoFFunction< idx_t >&             numW,
                                                    uint_t                                      level,
-                                                   DoFType                                     flag ) const
+                                                   DoFType                                     flag,
+                                                   bool                                        transpose ) const
 {
    communication::syncFunctionBetweenPrimitives( numU, level );
    communication::syncFunctionBetweenPrimitives( numV, level );
@@ -195,7 +162,15 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               edgedof::macroedge::saveRotationOperator3D( level,
+                                                           edge,
+                                                           storage_,
+                                                           normal_function_,
+                                                           numU.getEdgeDataID(),
+                                                           numV.getEdgeDataID(),
+                                                           numW.getEdgeDataID(),
+                                                           mat,
+                                                           transpose );
             }
             else
             {
@@ -226,7 +201,15 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               edgedof::macroface::saveRotationOperator3D( level,
+                                                           face,
+                                                           storage_,
+                                                           normal_function_,
+                                                           numU.getFaceDataID(),
+                                                           numV.getFaceDataID(),
+                                                           numW.getFaceDataID(),
+                                                           mat,
+                                                           transpose );
             }
             else
             {
@@ -242,6 +225,14 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
                saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
             }
          }
+      }
+
+      for ( const auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+         saveCellIdentityOperator( level, cell, numU.getCellDataID(), mat );
+         saveCellIdentityOperator( level, cell, numV.getCellDataID(), mat );
+         saveCellIdentityOperator( level, cell, numW.getCellDataID(), mat );
       }
    }
 }

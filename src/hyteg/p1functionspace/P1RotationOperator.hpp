@@ -28,7 +28,10 @@
 namespace hyteg {
 
 using walberla::real_t;
-
+/**
+ * @brief Class that performs rotations on the finite element vector field with respect to the normal function
+ *        The rotation matrix is calculated as given in, Engelman 1982.
+ */
 class P1RotationOperator : public Operator< P1VectorFunction< real_t >, P1VectorFunction< real_t > >
 {
  public:
@@ -39,6 +42,16 @@ class P1RotationOperator : public Operator< P1VectorFunction< real_t >, P1Vector
 
    ~P1RotationOperator() override = default;
 
+   /**
+    * @brief Rotates the vector function and transform into poalr/spherical coordinates.
+    *        In 2D: (ux, uy) --> (uTangential, uRadial)
+    *        In 3D: (ux, uy, uz) --> (uTheta1, uTheta2, uRadial)
+    *               
+    *        For 3D, the two theta components may not be exactly what is intended, 
+    *        this is because we could choose infinitely many pairs of orthogonal 
+    *        directions on a plane (here the tangential plane to the surface at a point)
+    *        Here we choose however is done in Engelman 1982
+    */
    void rotate( const P1Function< real_t >& dst_u,
                 const P1Function< real_t >& dst_v,
                 const P1Function< real_t >& dst_w,
@@ -55,25 +68,28 @@ class P1RotationOperator : public Operator< P1VectorFunction< real_t >, P1Vector
                   const P1Function< idx_t >&                  numV,
                   const P1Function< idx_t >&                  numW,
                   uint_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag,
+                  bool                                        transpose = false ) const;
 
-   /// Assemble operator as sparse matrix
-   ///
-   /// \param mat   a sparse matrix proxy
-   /// \param numU  P1Function for determining row indices
-   /// \param numV  P1Function for determining row indices
-   /// \param numW  P1Function for determining row indices
-   /// \param level level in mesh hierarchy for which local operator is to be assembled
-   /// \param flag  determines on which primitives this operator is assembled
-   ///
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1VectorFunction< idx_t >&            src,
                   const P1VectorFunction< idx_t >&            dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const override
+                  DoFType                                     flag,
+                  bool                                        transpose = false ) const
    {
       WALBERLA_UNUSED( dst );
-      toMatrix( mat, src[0], src[1], src[2], level, flag );
+      uint_t idx = src.getDimension() == 3 ? 2 : 1;
+      toMatrix( mat, src[0], src[1], src[idx], level, flag, transpose );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&,
+                  const P1VectorFunction< idx_t >&,
+                  const P1VectorFunction< idx_t >&,
+                  uint_t,
+                  DoFType ) const override
+   {
+      WALBERLA_ABORT( "Do not use this variant of toMatrix for RotationOperator, please use the one with transpose flag" );
    }
 
  private:

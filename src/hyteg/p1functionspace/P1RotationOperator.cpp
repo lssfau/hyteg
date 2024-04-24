@@ -85,39 +85,19 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
       {
          if ( storage_->hasGlobalCells() )
          {
-            if ( transpose )
-            {
-               vertexdof::macrovertex::rotationT3D< real_t >( level,
-                                                              vertex,
-                                                              storage_,
-                                                              normal_function_,
-                                                              dst_u.getVertexDataID(),
-                                                              dst_v.getVertexDataID(),
-                                                              dst_w.getVertexDataID() );
-            }
-            else
-            {
-               vertexdof::macrovertex::rotation3D< real_t >( level,
-                                                             vertex,
-                                                             storage_,
-                                                             normal_function_,
-                                                             dst_u.getVertexDataID(),
-                                                             dst_v.getVertexDataID(),
-                                                             dst_w.getVertexDataID() );
-            }
+            vertexdof::macrovertex::rotation3D< real_t >( level,
+                                                          vertex,
+                                                          storage_,
+                                                          normal_function_,
+                                                          dst_u.getVertexDataID(),
+                                                          dst_v.getVertexDataID(),
+                                                          dst_w.getVertexDataID(),
+                                                          transpose );
          }
          else
          {
-            if ( transpose )
-            {
-               vertexdof::macrovertex::rotationT2D< real_t >(
-                   level, vertex, storage_, normal_function_, dst_u.getVertexDataID(), dst_v.getVertexDataID() );
-            }
-            else
-            {
-               vertexdof::macrovertex::rotation2D< real_t >(
-                   level, vertex, storage_, normal_function_, dst_u.getVertexDataID(), dst_v.getVertexDataID() );
-            }
+            vertexdof::macrovertex::rotation2D< real_t >(
+                level, vertex, storage_, normal_function_, dst_u.getVertexDataID(), dst_v.getVertexDataID() );
          }
       }
    }
@@ -137,39 +117,19 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
          {
             if ( storage_->hasGlobalCells() )
             {
-               if ( transpose )
-               {
-                  vertexdof::macroedge::rotationT3D< real_t >( level,
-                                                               edge,
-                                                               storage_,
-                                                               normal_function_,
-                                                               dst_u.getEdgeDataID(),
-                                                               dst_v.getEdgeDataID(),
-                                                               dst_w.getEdgeDataID() );
-               }
-               else
-               {
-                  vertexdof::macroedge::rotation3D< real_t >( level,
-                                                              edge,
-                                                              storage_,
-                                                              normal_function_,
-                                                              dst_u.getEdgeDataID(),
-                                                              dst_v.getEdgeDataID(),
-                                                              dst_w.getEdgeDataID() );
-               }
+               vertexdof::macroedge::rotation3D< real_t >( level,
+                                                           edge,
+                                                           storage_,
+                                                           normal_function_,
+                                                           dst_u.getEdgeDataID(),
+                                                           dst_v.getEdgeDataID(),
+                                                           dst_w.getEdgeDataID(),
+                                                           transpose );
             }
             else
             {
-               if ( transpose )
-               {
-                  vertexdof::macroedge::rotationT2D< real_t >(
-                      level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
-               }
-               else
-               {
-                  vertexdof::macroedge::rotation2D< real_t >(
-                      level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
-               }
+               vertexdof::macroedge::rotation2D< real_t >(
+                   level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
             }
          }
       }
@@ -190,26 +150,14 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
          {
             if ( storage_->hasGlobalCells() )
             {
-               if ( transpose )
-               {
-                  vertexdof::macroface::rotationT3D< real_t >( level,
-                                                               face,
-                                                               storage_,
-                                                               normal_function_,
-                                                               dst_u.getFaceDataID(),
-                                                               dst_v.getFaceDataID(),
-                                                               dst_w.getFaceDataID() );
-               }
-               else
-               {
-                  vertexdof::macroface::rotation3D< real_t >( level,
-                                                              face,
-                                                              storage_,
-                                                              normal_function_,
-                                                              dst_u.getFaceDataID(),
-                                                              dst_v.getFaceDataID(),
-                                                              dst_w.getFaceDataID() );
-               }
+               vertexdof::macroface::rotation3D< real_t >( level,
+                                                           face,
+                                                           storage_,
+                                                           normal_function_,
+                                                           dst_u.getFaceDataID(),
+                                                           dst_v.getFaceDataID(),
+                                                           dst_w.getFaceDataID(),
+                                                           transpose );
             }
          }
       }
@@ -252,39 +200,19 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
       {
          if ( storage_->hasGlobalCells() )
          {
-            if ( transpose )
-            {
-               vertexdof::macrovertex::rotationT3D< real_t >( level,
-                                                              vertex,
-                                                              storage_,
-                                                              normal_function_,
-                                                              dst.uvw()[0].getVertexDataID(),
-                                                              dst.uvw()[1].getVertexDataID(),
-                                                              dst.uvw()[2].getVertexDataID() );
-            }
-            else
-            {
-               vertexdof::macrovertex::rotation3D< real_t >( level,
-                                                             vertex,
-                                                             storage_,
-                                                             normal_function_,
-                                                             dst.uvw()[0].getVertexDataID(),
-                                                             dst.uvw()[1].getVertexDataID(),
-                                                             dst.uvw()[2].getVertexDataID() );
-            }
+            vertexdof::macrovertex::rotation3D< real_t >( level,
+                                                          vertex,
+                                                          storage_,
+                                                          normal_function_,
+                                                          dst.uvw()[0].getVertexDataID(),
+                                                          dst.uvw()[1].getVertexDataID(),
+                                                          dst.uvw()[2].getVertexDataID(),
+                                                          transpose );
          }
          else
          {
-            if ( transpose )
-            {
-               vertexdof::macrovertex::rotationT2D< real_t >(
-                   level, vertex, storage_, normal_function_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
-            }
-            else
-            {
-               vertexdof::macrovertex::rotation2D< real_t >(
-                   level, vertex, storage_, normal_function_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
-            }
+            vertexdof::macrovertex::rotation2D< real_t >(
+                level, vertex, storage_, normal_function_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
          }
       }
    }
@@ -304,39 +232,19 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
          {
             if ( storage_->hasGlobalCells() )
             {
-               if ( transpose )
-               {
-                  vertexdof::macroedge::rotationT3D< real_t >( level,
-                                                               edge,
-                                                               storage_,
-                                                               normal_function_,
-                                                               dst.uvw()[0].getEdgeDataID(),
-                                                               dst.uvw()[1].getEdgeDataID(),
-                                                               dst.uvw()[2].getEdgeDataID() );
-               }
-               else
-               {
-                  vertexdof::macroedge::rotation3D< real_t >( level,
-                                                              edge,
-                                                              storage_,
-                                                              normal_function_,
-                                                              dst.uvw()[0].getEdgeDataID(),
-                                                              dst.uvw()[1].getEdgeDataID(),
-                                                              dst.uvw()[2].getEdgeDataID() );
-               }
+               vertexdof::macroedge::rotation3D< real_t >( level,
+                                                           edge,
+                                                           storage_,
+                                                           normal_function_,
+                                                           dst.uvw()[0].getEdgeDataID(),
+                                                           dst.uvw()[1].getEdgeDataID(),
+                                                           dst.uvw()[2].getEdgeDataID(),
+                                                           transpose );
             }
             else
             {
-               if ( transpose )
-               {
-                  vertexdof::macroedge::rotationT2D< real_t >(
-                      level, edge, storage_, normal_function_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
-               }
-               else
-               {
-                  vertexdof::macroedge::rotation2D< real_t >(
-                      level, edge, storage_, normal_function_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
-               }
+               vertexdof::macroedge::rotation2D< real_t >(
+                   level, edge, storage_, normal_function_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
             }
          }
       }
@@ -357,26 +265,14 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
          {
             if ( storage_->hasGlobalCells() )
             {
-               if ( transpose )
-               {
-                  vertexdof::macroface::rotationT3D< real_t >( level,
-                                                               face,
-                                                               storage_,
-                                                               normal_function_,
-                                                               dst.uvw()[0].getFaceDataID(),
-                                                               dst.uvw()[1].getFaceDataID(),
-                                                               dst.uvw()[2].getFaceDataID() );
-               }
-               else
-               {
-                  vertexdof::macroface::rotation3D< real_t >( level,
-                                                              face,
-                                                              storage_,
-                                                              normal_function_,
-                                                              dst.uvw()[0].getFaceDataID(),
-                                                              dst.uvw()[1].getFaceDataID(),
-                                                              dst.uvw()[2].getFaceDataID() );
-               }
+               vertexdof::macroface::rotation3D< real_t >( level,
+                                                           face,
+                                                           storage_,
+                                                           normal_function_,
+                                                           dst.uvw()[0].getFaceDataID(),
+                                                           dst.uvw()[1].getFaceDataID(),
+                                                           dst.uvw()[2].getFaceDataID(),
+                                                           transpose );
             }
          }
       }
@@ -392,7 +288,8 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
                                    const P1Function< idx_t >&                  numV,
                                    const P1Function< idx_t >&                  numW,
                                    uint_t                                      level,
-                                   DoFType                                     flag ) const
+                                   DoFType                                     flag,
+                                   bool                                        transpose ) const
 {
    communication::syncFunctionBetweenPrimitives( numU, level );
    communication::syncFunctionBetweenPrimitives( numV, level );
@@ -412,10 +309,19 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
       {
          if ( storage_->hasGlobalCells() )
          {
-            WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+            vertexdof::macrovertex::saveRotationOperator3D( level,
+                                                            vertex,
+                                                            storage_,
+                                                            normal_function_,
+                                                            numU.getVertexDataID(),
+                                                            numV.getVertexDataID(),
+                                                            numW.getVertexDataID(),
+                                                            mat,
+                                                            transpose );
          }
          else
          {
+            // Transpose not used because rotation matrix in 2D is symmetric
             vertexdof::macrovertex::saveRotationOperator2D(
                 level, vertex, storage_, normal_function_, numU.getVertexDataID(), numV.getVertexDataID(), mat );
          }
@@ -443,7 +349,15 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               vertexdof::macroedge::saveRotationOperator3D( level,
+                                                             edge,
+                                                             storage_,
+                                                             normal_function_,
+                                                             numU.getEdgeDataID(),
+                                                             numV.getEdgeDataID(),
+                                                             numW.getEdgeDataID(),
+                                                             mat,
+                                                             transpose );
             }
             else
             {
@@ -475,7 +389,15 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+               vertexdof::macroface::saveRotationOperator3D( level,
+                                                             face,
+                                                             storage_,
+                                                             normal_function_,
+                                                             numU.getFaceDataID(),
+                                                             numV.getFaceDataID(),
+                                                             numW.getFaceDataID(),
+                                                             mat,
+                                                             transpose );
             }
             else
             {
@@ -491,6 +413,14 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
                vertexdof::macroface::saveIdentityOperator( level, face, numW.getFaceDataID(), mat );
             }
          }
+      }
+
+      for ( const auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+         vertexdof::macrocell::saveIdentityOperator( level, cell, numU.getCellDataID(), mat );
+         vertexdof::macrocell::saveIdentityOperator( level, cell, numV.getCellDataID(), mat );
+         vertexdof::macrocell::saveIdentityOperator( level, cell, numW.getCellDataID(), mat );
       }
    }
 }

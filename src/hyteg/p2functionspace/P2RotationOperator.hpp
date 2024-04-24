@@ -28,10 +28,18 @@
 namespace hyteg {
 
 using walberla::real_t;
-
+/**
+ * @brief Class that performs rotations on the finite element vector field with respect to the normal function
+ *        The rotation matrix is calculated as given in, Engelman 1982.
+ */
 class P2RotationOperator : public Operator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
 {
  public:
+   /**
+    * @brief Constructs a P2RotationOperator object.
+    * @param storage, minLevel, maxLevel Must be trivial by now!
+    * @param normal_function Lambda function evaluating the normal on the boundary.
+    */
    P2RotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                        size_t                                                   minLevel,
                        size_t                                                   maxLevel,
@@ -39,6 +47,16 @@ class P2RotationOperator : public Operator< P2VectorFunction< real_t >, P2Vector
 
    ~P2RotationOperator() override = default;
 
+   /**
+    * @brief Rotates the vector function and transform into poalr/spherical coordinates.
+    *        In 2D: (ux, uy) --> (uTangential, uRadial)
+    *        In 3D: (ux, uy, uz) --> (uTheta1, uTheta2, uRadial)
+    *               
+    *        For 3D, the two theta components may not be exactly what is intended, 
+    *        this is because we could choose infinitely many pairs of orthogonal 
+    *        directions on a plane (here the tangential plane to the surface at a point)
+    *        Here we choose however is done in Engelman 1982
+    */
    void rotate( const P2Function< real_t >& dst_u,
                 const P2Function< real_t >& dst_v,
                 const P2Function< real_t >& dst_w,
@@ -53,42 +71,39 @@ class P2RotationOperator : public Operator< P2VectorFunction< real_t >, P2Vector
 
    void rotate( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag, bool transpose = false ) const;
 
-   /// Assemble operator as sparse matrix
-   ///
-   /// \param mat   a sparse matrix proxy
-   /// \param numU  P2Function for determining row indices
-   /// \param numV  P2Function for determining row indices
-   /// \param numW  P2Function for determining row indices
-   /// \param level level in mesh hierarchy for which local operator is to be assembled
-   /// \param flag  determines on which primitives this operator is assembled
-   ///
+
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2Function< idx_t >&                  numU,
                   const P2Function< idx_t >&                  numV,
                   const P2Function< idx_t >&                  numW,
                   uint_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag,
+                  bool                                        transpose = false ) const;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2VectorFunction< idx_t >&            num,
                   uint_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag,
+                  bool                                        transpose = false ) const;
 
-   /// Assemble operator as sparse matrix
-   ///
-   /// \param mat   a sparse matrix proxy
-   /// \param num   P2VectorFunction for determining row indices
-   /// \param level level in mesh hierarchy for which local operator is to be assembled
-   /// \param flag  determines on which primitives this operator is assembled
-   ///
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2VectorFunction< idx_t >&            src,
                   const P2VectorFunction< idx_t >&            dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const override
+                  DoFType                                     flag,
+                  bool                                        transpose ) const
    {
       WALBERLA_UNUSED( dst );
-      toMatrix( mat, src, level, flag );
+      toMatrix( mat, src, level, flag, transpose );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&,
+                  const P2VectorFunction< idx_t >&,
+                  const P2VectorFunction< idx_t >&,
+                  uint_t,
+                  DoFType ) const override
+   {
+      WALBERLA_ABORT( "Do not use this variant of toMatrix for RotationOperator, please use the one with transpose flag" );
    }
 
  private:

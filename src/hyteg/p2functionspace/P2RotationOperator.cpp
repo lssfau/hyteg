@@ -59,21 +59,23 @@ void P2RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
                                    const P2Function< idx_t >&                  numV,
                                    const P2Function< idx_t >&                  numW,
                                    uint_t                                      level,
-                                   DoFType                                     flag ) const
+                                   DoFType                                     flag,
+                                   bool                                        transpose ) const
 {
-   p1Operator.toMatrix( mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag );
+   p1Operator.toMatrix( mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag, transpose );
    edgeDoFOperator.assembleLocalMatrix(
-       mat, numU.getEdgeDoFFunction(), numV.getEdgeDoFFunction(), numW.getEdgeDoFFunction(), level, flag );
+       mat, numU.getEdgeDoFFunction(), numV.getEdgeDoFFunction(), numW.getEdgeDoFFunction(), level, flag, transpose );
 }
 
 void P2RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                                    const P2VectorFunction< idx_t >&            num,
                                    uint_t                                      level,
-                                   DoFType                                     flag ) const
+                                   DoFType                                     flag,
+                                   bool                                        transpose ) const
 {
    // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
    uint_t idx = num.getDimension() == 2 ? 0 : 2;
-   toMatrix( mat, num[0], num[1], num[idx], level, flag );
+   toMatrix( mat, num[0], num[1], num[idx], level, flag, transpose );
 }
 
 } // namespace hyteg
