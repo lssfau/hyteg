@@ -437,6 +437,25 @@ class Mesh
       }
    }
 
+   // get all faces of the 2d mesh
+   const std::set< std::shared_ptr< Simplex2 > >& get_elements2d() const { return _mesh2D->get_elements(); }
+
+   // get all tets of the 3d mesh
+   const std::set< std::shared_ptr< Simplex3 > >& get_elements3d() const { return _mesh3D->get_elements(); }
+
+   // get vertex coordinates
+   const std::vector< Point3D >& get_vertices() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->get_vertices();
+      }
+      else
+      {
+         return _mesh2D->get_vertices();
+      }
+   }
+
  private:
    uint_t                    _DIM;    // spacial dimension
    std::shared_ptr< Mesh2D > _mesh2D; // internal mesh object for the case _DIM=2
