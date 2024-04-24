@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
    /// read mesh file and create storage
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );

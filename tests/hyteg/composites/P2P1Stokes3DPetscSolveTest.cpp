@@ -253,10 +253,10 @@ int main( int argc, char* argv[] )
 
   printPETScVersionNumberString();
 
-  petscSolveTest( 0, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
-  petscSolveTest( 1, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
-  petscSolveTest( 2, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
-  petscSolveTest( 2, 1, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 0, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 1, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 2, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 2, 1, 2, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
 
   return EXIT_SUCCESS;
 }

@@ -40,7 +40,7 @@ static void testP1DataHandling()
   uint_t minLevel =  1;
   uint_t maxLevel = 10;
 
-  std::string meshFileName = "../../data/meshes/tri_2el.msh";
+  std::string meshFileName = "../../meshes/tri_2el.msh";
 
   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );

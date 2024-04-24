@@ -178,7 +178,7 @@ private:
 static void testBufferedCommunication()
 {
 
-  std::string meshFileName = "../../data/meshes/bfs_126el.msh";
+  std::string meshFileName = "../../meshes/bfs_126el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );

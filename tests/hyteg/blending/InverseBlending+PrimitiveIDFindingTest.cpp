@@ -282,7 +282,7 @@ void runTests2D()
    // ----------------------
    //  Flow Around Cylinder
    // ----------------------
-   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/flow_around_cylinder.msh" );
+   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( "../../meshes/flow_around_cylinder.msh" );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    storage = std::make_shared< PrimitiveStorage >( setupStorage2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Running 2D test with Flow-Around-Cylinder mesh" );
@@ -306,7 +306,7 @@ void runTests3D()
    // --------------------
    //  Cube with 24 Cells
    // --------------------
-   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
+   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( "../../meshes/3D/cube_24el.msh" );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    storage = std::make_shared< PrimitiveStorage >( setupStorage2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Running 3D test with cube_24el mesh" );

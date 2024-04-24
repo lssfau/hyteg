@@ -36,7 +36,7 @@ namespace hyteg {
 
 static void testFunctionSpaceDataTypes()
 {
-  const std::string meshFileName = "../../data/meshes/tri_2el.msh";
+  const std::string meshFileName = "../../meshes/tri_2el.msh";
 
   const uint_t minLevel = 2;
   const uint_t maxLevel = 5;

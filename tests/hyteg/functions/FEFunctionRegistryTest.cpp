@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    const uint_t maxLevel{ 2 };
 
    // Prepare mesh and primitive storages
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );

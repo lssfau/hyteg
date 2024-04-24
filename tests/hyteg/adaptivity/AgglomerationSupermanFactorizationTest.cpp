@@ -205,7 +205,7 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
 
 void runTests( bool superman )
 {
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/annulus_coarse.msh", 4, 8, 3e-7, superman );
+   hyteg::AgglomerationConvergenceTest( "../../meshes/annulus_coarse.msh", 4, 8, 3e-7, superman );
 }
 
 int main( int argc, char* argv[] )

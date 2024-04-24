@@ -94,18 +94,18 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 0 );
-   hyteg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 1 );
-   hyteg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 2 );
-   hyteg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 3 );
+   hyteg::testFunctionIterator( "../../meshes/annulus_coarse.msh", 0 );
+   hyteg::testFunctionIterator( "../../meshes/annulus_coarse.msh", 1 );
+   hyteg::testFunctionIterator( "../../meshes/annulus_coarse.msh", 2 );
+   hyteg::testFunctionIterator( "../../meshes/annulus_coarse.msh", 3 );
 
-   hyteg::testFunctionIterator( "../../data/meshes/3D/regular_octahedron_8el.msh", 0 );
-   hyteg::testFunctionIterator( "../../data/meshes/3D/regular_octahedron_8el.msh", 1 );
+   hyteg::testFunctionIterator( "../../meshes/3D/regular_octahedron_8el.msh", 0 );
+   hyteg::testFunctionIterator( "../../meshes/3D/regular_octahedron_8el.msh", 1 );
 
-   hyteg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 0 );
-   hyteg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 1 );
-   hyteg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 2 );
-   hyteg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 3 );
+   hyteg::testFunctionIterator( "../../meshes/3D/cube_24el.msh", 0 );
+   hyteg::testFunctionIterator( "../../meshes/3D/cube_24el.msh", 1 );
+   hyteg::testFunctionIterator( "../../meshes/3D/cube_24el.msh", 2 );
+   hyteg::testFunctionIterator( "../../meshes/3D/cube_24el.msh", 3 );
 
    return EXIT_SUCCESS;
 }

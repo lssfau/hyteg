@@ -49,7 +49,7 @@ void runTest1( std::string tag )
    WALBERLA_LOG_INFO_ON_ROOT( "Running Test #1 for '" << tag << "'" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName( "../../data/meshes/annulusTriangle" );
+   std::string meshFileName( "../../meshes/annulusTriangle" );
    meshFileName += tag + ".msh";
    MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
 
@@ -105,7 +105,7 @@ void runTest0( std::string tag )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName( "../../data/meshes/annulusTriangle" );
+   std::string meshFileName( "../../meshes/annulusTriangle" );
    meshFileName += tag + ".msh";
    MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
 
@@ -217,7 +217,7 @@ void runTest2( std::string tag, uint_t level )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName( "../../data/meshes/annulusTriangle" );
+   std::string meshFileName( "../../meshes/annulusTriangle" );
    meshFileName += tag + ".msh";
    MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
 

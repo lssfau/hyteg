@@ -45,7 +45,7 @@ using walberla::uint_t;
 
 void testMatVec()
 {
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

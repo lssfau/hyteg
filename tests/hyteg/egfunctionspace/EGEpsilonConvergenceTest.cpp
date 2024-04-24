@@ -70,7 +70,7 @@ int main( int argc, char* argv[] )
    if constexpr ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Testing varying viscosity Epsilon 2D ###" )
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -309,7 +309,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
    // cube_6el, inhom. solution, EGP0
    if ( false )
    {
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -385,7 +385,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
    // cube_6el, inhom. solution, EGP0 Nitsche BCs
    if ( true )
    {
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -461,7 +461,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
    if ( false )
    {
 
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

@@ -248,28 +248,28 @@ int main( int argc, char* argv[] )
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda1,
                                                               "EGLaplaceOperatorNitscheBC_tri_1el_4_src1",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" ),
                                                               eps,
                                                               writeVTK );
 
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda3,
                                                               "EGLaplaceOperatorNitscheBC_tri_1el_4_src3",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" ),
                                                               eps,
                                                               writeVTK );
 
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda1,
                                                               "EGLaplaceOperatorNitscheBC_quad_4el_4_src1",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ),
                                                               eps,
                                                               writeVTK );
 
    hyteg::EGApplyNitscheBCTest< EGLaplaceOperatorNitscheBC >( srcLambda3,
                                                               "EGLaplaceOperatorNitscheBC_quad_4el_4_src3",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ),
                                                               eps,
                                                               writeVTK );
 
@@ -277,7 +277,7 @@ int main( int argc, char* argv[] )
        srcLambda4,
        "EGLaplaceOperatorNitscheBC_cube_6el_3_src4",
        3,
-       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
+       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" ),
        eps,
        writeVTK );
 
@@ -285,21 +285,21 @@ int main( int argc, char* argv[] )
        srcLambda5,
        "EGLaplaceOperatorNitscheBC_cube_6el_3_src5",
        3,
-       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
+       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" ),
        eps,
        writeVTK );
 
    hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda1,
                                                               "EGEpsilonOperatorNitscheBC_quad_4el_3_src1",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ),
                                                               eps,
                                                               writeVTK );
 
    hyteg::EGApplyNitscheBCTest< EGEpsilonOperatorNitscheBC >( srcLambda3,
                                                               "EGEpsilonOperatorNitscheBC_quad_4el_3_src3",
                                                               4,
-                                                              hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ),
+                                                              hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ),
                                                               eps,
                                                               writeVTK );
 
@@ -307,7 +307,7 @@ int main( int argc, char* argv[] )
        srcLambda4,
        "EGEpsilonOperatorNitscheBC_cube_6el_3_src4",
        3,
-       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
+       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" ),
        eps,
        writeVTK );
 
@@ -315,100 +315,100 @@ int main( int argc, char* argv[] )
        srcLambda5,
        "EGEpsilonOperatorNitscheBC_cube_6el_3_src5",
        3,
-       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" ),
+       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" ),
        eps,
        writeVTK );
 
    hyteg::EGApplyTest(
-       srcLambda1, "tri_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), eps, writeVTK );
+       srcLambda1, "tri_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda1, "tri_2el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), eps, writeVTK );
+       srcLambda1, "tri_2el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_2el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda1, "quad_4el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), eps, writeVTK );
+       srcLambda1, "quad_4el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ), eps, writeVTK );
 
    hyteg::EGApplyTest(
-       srcLambda2, "tri_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), eps, writeVTK );
+       srcLambda2, "tri_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda2, "tri_2el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), eps, writeVTK );
+       srcLambda2, "tri_2el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_2el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda2, "quad_4el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), eps, writeVTK );
+       srcLambda2, "quad_4el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ), eps, writeVTK );
 
    hyteg::EGApplyTest(
-       srcLambda3, "tri_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" ), eps, writeVTK );
+       srcLambda3, "tri_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda3, "tri_2el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" ), eps, writeVTK );
+       srcLambda3, "tri_2el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/tri_2el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda3, "quad_4el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), eps, writeVTK );
+       srcLambda3, "quad_4el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ), eps, writeVTK );
 
    hyteg::EGApplyTest(
-       srcLambda1, "tet_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), eps, writeVTK );
+       srcLambda1, "tet_1el_4_src1", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda2, "tet_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), eps, writeVTK );
+       srcLambda2, "tet_1el_4_src3", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" ), eps, writeVTK );
    hyteg::EGApplyTest(
-       srcLambda3, "tet_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" ), eps, writeVTK );
+       srcLambda3, "tet_1el_4_src2", 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" ), eps, writeVTK );
 
    hyteg::EGApplyTest( srcLambda1,
                        "pyramid_2el_3_src1",
                        3,
-                       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" ),
                        2.0e-15,
                        writeVTK );
    hyteg::EGApplyTest( srcLambda2,
                        "pyramid_2el_3_src2",
                        3,
-                       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" ),
                        2.0e-15,
                        writeVTK );
    hyteg::EGApplyTest( srcLambda3,
                        "pyramid_2el_3_src3",
                        3,
-                       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" ),
+                       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" ),
                        2.0e-15,
                        writeVTK );
 
    hyteg::EGApplyTest( srcLambda1,
                        "pyramid_4el_3_src1",
                        3,
-                       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ),
+                       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_4el.msh" ),
                        2.0e-15,
                        writeVTK );
    hyteg::EGApplyTest( srcLambda2,
                        "pyramid_4el_3_src2",
                        3,
-                       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ),
+                       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_4el.msh" ),
                        2.0e-15,
                        writeVTK );
    hyteg::EGApplyTest( srcLambda3,
                        "pyramid_4el_3_src3",
                        3,
-                       hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" ),
+                       hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_4el.msh" ),
                        2.0e-15,
                        writeVTK );
 
    /*
       * // Test divT operator
      EGApplyTestDivt(
-         "EGApplyDivT3D", 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), true );
+         "EGApplyDivT3D", 3, hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_center_at_origin_24el.msh" ), true );
 
-    EGApplyTestDivt( "EGApplyDivT2D", 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" ), true );
+    EGApplyTestDivt( "EGApplyDivT2D", 3, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ), true );
 
 
     // test div operator
-    EGApplyTestDiv("EGApplyDiv_2D_Ones", 3, hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh"), 0, true);
-    EGApplyTestDiv("EGApplyDiv_2D_AllOnes", 3, hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh"), 1, true);
+    EGApplyTestDiv("EGApplyDiv_2D_Ones", 3, hyteg::MeshInfo::fromGmshFile("../../meshes/quad_4el.msh"), 0, true);
+    EGApplyTestDiv("EGApplyDiv_2D_AllOnes", 3, hyteg::MeshInfo::fromGmshFile("../../meshes/quad_4el.msh"), 1, true);
     EGApplyTestDiv(
         "EGApplyDiv_2D_Sinusoidal", 3,
-        hyteg::MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh"), 2, true);
+        hyteg::MeshInfo::fromGmshFile("../../meshes/quad_4el.msh"), 2, true);
 
     EGApplyTestDiv(
         "EGApplyDiv_3D_Ones", 3,
-        hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 0, true);
+        hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_center_at_origin_24el.msh"), 0, true);
     EGApplyTestDiv(
         "EGApplyDiv_3D_AllOnes", 3,
-        hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 1, true);
+        hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_center_at_origin_24el.msh"), 1, true);
     EGApplyTestDiv(
         "EGApplyDiv_3D_Sinusoidal", 3,
-        hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 2, true);
+        hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_center_at_origin_24el.msh"), 2, true);
     */
 
    return EXIT_SUCCESS;

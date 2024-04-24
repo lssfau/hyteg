@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
 
   const uint_t      minLevel        = 0;
   const uint_t      maxLevel        = 3;
-  const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
+  const std::string meshFile        = "../../meshes/3D/regular_octahedron_8el.msh";
 
   const uint_t      numVCycles      = 4;
 //  const uint_t      numPreSmoothingSteps  = 2;

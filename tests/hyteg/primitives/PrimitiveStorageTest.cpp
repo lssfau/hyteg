@@ -34,9 +34,9 @@ static void testPrimitiveStorage()
 {
   uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-  const std::string meshFileName = "../../data/meshes/porous_fine.msh";
-  // const std::string meshFileName = "../../data/meshes/bfs_126el.msh";
-  // const std::string meshFileName = "../../data/meshes/tri_2el.msh";
+  const std::string meshFileName = "../../meshes/porous_fine.msh";
+  // const std::string meshFileName = "../../meshes/bfs_126el.msh";
+  // const std::string meshFileName = "../../meshes/tri_2el.msh";
   const std::string distributionFile = "../../output/PrimitiveStorageTestDistribution.csv";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );

@@ -35,7 +35,7 @@ static void testP2P1Transfer()
 {
    const uint_t level = 4;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -188,7 +188,7 @@ void run2D_P1ToP2EmbeddingTest( uint_t level )
 
 void run3D_P1ToP2EmbeddingTest( uint_t level )
 {
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

@@ -35,7 +35,7 @@ using walberla::real_t;
 static void testOperator() {
   const uint_t level = 3;
 
-  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../meshes/quad_4el.msh");
 
   SetupPrimitiveStorage setupStorage(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
 

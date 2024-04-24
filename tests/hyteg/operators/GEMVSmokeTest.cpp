@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
 
    // 3D
    {
-      auto                  meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+      auto                  meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
       SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       loadbalancing::roundRobin( setupStorage );
       std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );

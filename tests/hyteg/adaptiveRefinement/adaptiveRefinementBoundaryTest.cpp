@@ -41,11 +41,11 @@ void adaptiveRefinementBoundaryTest( uint_t n_refinements )
 
    if ( K == 2 )
    {
-      meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+      meshInfo = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
    }
    else
    {
-      meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+      meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
    }
 
    SetupPrimitiveStorage setupStorage_init( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

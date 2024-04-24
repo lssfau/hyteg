@@ -262,8 +262,8 @@ int main( int argc, char* argv[] )
 
    std::string filePath{ "." };
    std::string fileName{ "CheckpointRestoreTest.bp" };
-   // std::string meshFile{ "../../data/meshes/LShape_6el.msh" };
-   std::string meshFile{ "../../data/meshes/3D/cube_6el.msh" };
+   // std::string meshFile{ "../../meshes/LShape_6el.msh" };
+   std::string meshFile{ "../../meshes/3D/cube_6el.msh" };
 
    bool onlyImport = false;
    if ( argc > 1 )

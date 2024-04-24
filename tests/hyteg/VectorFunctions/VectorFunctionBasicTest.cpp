@@ -48,7 +48,7 @@ static void testVectorFunction( bool beVerbose, std::string tag, std::string typ
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -138,8 +138,8 @@ static void testEnumerate( bool beVerbose, std::string typeName )
    const uint_t minLevel = 3;
    const uint_t maxLevel = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/flow_around_cylinder.msh" );
-   // MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/quad_2el.msh" );
+   MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/flow_around_cylinder.msh" );
+   // MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/quad_2el.msh" );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );

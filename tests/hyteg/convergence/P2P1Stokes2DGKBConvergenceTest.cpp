@@ -180,12 +180,12 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 
    petscSolveTest(
-       4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 0, 0, 2.2e-09, 0.00033, 0.0184 );
+       4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_center_at_origin_4el.msh" ), 0, 0, 2.2e-09, 0.00033, 0.0184 );
    petscSolveTest(
-       4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 1, 0, 2.2e-09, 0.00033, 0.0184 );
+       4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_center_at_origin_4el.msh" ), 1, 0, 2.2e-09, 0.00033, 0.0184 );
    //TODO AL with nu = 100 converges faster for velocity, but still has a problem for the pressure
    petscSolveTest(
-       4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 0, 100, 10, 0.00033, 10 );
+       4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_center_at_origin_4el.msh" ), 0, 100, 10, 0.00033, 10 );
 
    return EXIT_SUCCESS;
 }

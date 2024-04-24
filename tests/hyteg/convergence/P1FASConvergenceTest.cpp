@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
 
   const uint_t      minLevel  = 2;
   const uint_t      maxLevel  = 5;
-  const std::string meshFile  = "../../data/meshes/quad_8el.msh";
+  const std::string meshFile  = "../../meshes/quad_8el.msh";
   const real_t      coarseGridSolverTolerance = 1e-16;
   const uint_t      maxCoarseGridSolverIter   = 10000;
   const uint_t      numVCycles = 10;

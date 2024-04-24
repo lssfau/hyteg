@@ -351,21 +351,21 @@ int main(int argc, char *argv[]) {
     walberla::MPIManager::instance()->initializeMPI(&argc, &argv);
     walberla::MPIManager::instance()->useWorldComm();
     hyteg::PETScManager petscManager(&argc, &argv);
-    petscSolveTest2(1, 3, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh"), 8.0e-15,
+    petscSolveTest2(1, 3, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_6el.msh"), 8.0e-15,
                    0.118, 2.78653);
 
 /*
-    petscSolveTest(1, 3, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 8.0e-15,
+    petscSolveTest(1, 3, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_center_at_origin_24el.msh"), 8.0e-15,
                    0.118, 2.78653);
-    petscSolveTest(1, 4, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 8.0e-15,
+    petscSolveTest(1, 4, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_center_at_origin_24el.msh"), 8.0e-15,
                    0.118, 2.78653);
-    petscSolveTest(1, 5, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_center_at_origin_24el.msh"), 8.0e-15,
+    petscSolveTest(1, 5, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_center_at_origin_24el.msh"), 8.0e-15,
                    0.118, 2.78653);
-    petscSolveTest(1, 3, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh"), 8.0e-15,
+    petscSolveTest(1, 3, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_6el.msh"), 8.0e-15,
                      0.118, 2.78653);
-    petscSolveTest(1, 4, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh"), 8.0e-15,
+    petscSolveTest(1, 4, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_6el.msh"), 8.0e-15,
                    0.118, 2.78653);
-    petscSolveTest(1, 5, hyteg::MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh"), 8.0e-15,
+    petscSolveTest(1, 5, hyteg::MeshInfo::fromGmshFile("../../meshes/3D/cube_6el.msh"), 8.0e-15,
                    0.118, 2.78653);
 */
     return EXIT_SUCCESS;

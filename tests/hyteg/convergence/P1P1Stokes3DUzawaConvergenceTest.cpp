@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
 
    hyteg::PETScManager manager;
 
-   const std::string meshFileName  = "../../data/meshes/3D/cube_24el.msh";
+   const std::string meshFileName  = "../../meshes/3D/cube_24el.msh";
    const uint_t      minLevel      = 2;
    const uint_t      maxLevel      = 5;
    const uint_t      maxIterations = 3;

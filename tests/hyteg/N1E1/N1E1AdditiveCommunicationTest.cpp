@@ -127,22 +127,22 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../data/meshes/3D/tet_1el.msh" );
+                                    "../../meshes/3D/tet_1el.msh" );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../data/meshes/3D/tet_1el.msh" );
+                                    "../../meshes/3D/tet_1el.msh" );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../data/meshes/3D/pyramid_2el.msh" );
+                                    "../../meshes/3D/pyramid_2el.msh" );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../data/meshes/3D/pyramid_2el.msh" );
+                                    "../../meshes/3D/pyramid_2el.msh" );
 
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../data/meshes/3D/pyramid_4el.msh" );
+                                    "../../meshes/3D/pyramid_4el.msh" );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../data/meshes/3D/pyramid_4el.msh" );
+                                    "../../meshes/3D/pyramid_4el.msh" );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../data/meshes/3D/regular_octahedron_8el.msh" );
+                                    "../../meshes/3D/regular_octahedron_8el.msh" );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../data/meshes/3D/regular_octahedron_8el.msh" );
+                                    "../../meshes/3D/regular_octahedron_8el.msh" );
 
    return EXIT_SUCCESS;
 }

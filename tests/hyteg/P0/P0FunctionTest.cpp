@@ -100,8 +100,8 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test_dotLocalGlobal("../../data/meshes/tri_4el.msh"); // 2D
-   test_dotLocalGlobal("../../data/meshes/3D/pyramid_4el.msh"); // 3D
+   test_dotLocalGlobal("../../meshes/tri_4el.msh"); // 2D
+   test_dotLocalGlobal("../../meshes/3D/pyramid_4el.msh"); // 3D
 
    return EXIT_SUCCESS;
 }

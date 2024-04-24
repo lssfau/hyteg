@@ -86,7 +86,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level < 6; level++ )
    {
-      auto err = hyteg::test( "../../data/meshes/quad_4el.msh", level );
+      auto err = hyteg::test( "../../meshes/quad_4el.msh", level );
       WALBERLA_LOG_INFO_ON_ROOT( "level: " << level << " | err: " << err );
 
       if ( level > 2 )

@@ -45,7 +45,7 @@ int main( int argc, char* argv[] )
 
   const uint_t      lowerLevel       = 3;
   const uint_t      higherLevel     = lowerLevel + 1;
-  const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
+  const std::string meshFile        = "../../meshes/3D/regular_octahedron_8el.msh";
   const bool        writeVTK        = false;
   const bool        enableChecks    = true;
 

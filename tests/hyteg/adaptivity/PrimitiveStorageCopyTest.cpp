@@ -81,7 +81,7 @@ int main( int argc, char* argv[] )
 
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-   hyteg::testPrimitiveStorageCopy( hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" ) );
+   hyteg::testPrimitiveStorageCopy( hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_24el.msh" ) );
 
    return EXIT_SUCCESS;
 }

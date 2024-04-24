@@ -37,7 +37,7 @@ namespace hyteg {
 static void testP2Prolongate() {
   const uint_t sourceLevel = 2;
 
-  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../meshes/tri_1el.msh");
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
@@ -165,7 +165,7 @@ static void testP2Prolongate() {
 static void testP2Prolongate2() {
 
   const uint_t sourceLevel = 2;
-  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../meshes/tri_1el.msh");
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
@@ -321,7 +321,7 @@ static void testP2InterpolateAndProlongate() {
 
   const uint_t sourceLevel = 2;
   const uint_t targetLevel = sourceLevel + 3;
-  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../meshes/quad_4el.msh");
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);

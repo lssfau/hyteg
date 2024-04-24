@@ -92,7 +92,7 @@ void testRuleOfThree()
 {
    uint_t level = 2;
 
-   auto                  meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
+   auto                  meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/cube_24el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto            storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
@@ -253,13 +253,13 @@ void testCopyAssignment() {
 
    uint_t level = 2;
 
-   auto                  meshInfo1 = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   auto                  meshInfo1 = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
    SetupPrimitiveStorage setupStorage1( meshInfo1, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto            storage1 = std::make_shared< PrimitiveStorage >( setupStorage1, 1 );
  
    func_t orig( "original", storage1, level, level );
 
-   auto                  meshInfo2 = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   auto                  meshInfo2 = MeshInfo::fromGmshFile( "../../meshes/tri_2el.msh" );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto            storage2 = std::make_shared< PrimitiveStorage >( setupStorage2, 1 );
 

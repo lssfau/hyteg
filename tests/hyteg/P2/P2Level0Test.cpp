@@ -64,7 +64,7 @@ void P2Level0InterpolateTest()
 {
    const uint_t level = 0;
 
-   MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
@@ -212,7 +212,7 @@ void P2Level0EnumerateTet1elTest()
 
   const uint_t level = 0;
 
-  MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+  MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );

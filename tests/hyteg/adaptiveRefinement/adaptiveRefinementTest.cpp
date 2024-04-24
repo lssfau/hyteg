@@ -44,7 +44,7 @@ void adaptiveRefinementTest()
 
    if ( K == 2 )
    {
-      meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+      meshInfo     = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
       barycenter_0 = ( 1. / 3. ) * hyteg::Point3D(  1, 1, 0  );
       volume       = 1. / 2.;
       n_el_1       = 4;
@@ -53,7 +53,7 @@ void adaptiveRefinementTest()
    }
    else
    {
-      meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+      meshInfo     = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
       barycenter_0 = ( 1. / 4. ) * hyteg::Point3D(  1, 1, 1  );
       volume       = 1. / 6.;
       n_el_1       = 8;

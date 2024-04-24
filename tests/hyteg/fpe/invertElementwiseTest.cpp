@@ -59,8 +59,8 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    // Set mesh and primitives
-   // MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/unitsquare_with_circular_hole.msh" );
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   // MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/unitsquare_with_circular_hole.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

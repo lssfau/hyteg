@@ -72,7 +72,7 @@ void runTest( const std::string& kind )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "RUNNING WITH '" << kind << "'" );
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -166,7 +166,7 @@ void testEnumerate()
    const uint_t minLevel = 2;
    const uint_t maxLevel = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
+   MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
@@ -201,7 +201,7 @@ void testPETScConversion( const std::string& kind, bool exportVTU = false )
    WALBERLA_LOG_INFO_ON_ROOT( "RUNNING WITH '" << kind << "'" );
    // WALBERLA_LOG_INFO_ON_ROOT( "-> Running test for " << FunctionTrait< FunctionKind< real_t > >::getTypeName() );
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
