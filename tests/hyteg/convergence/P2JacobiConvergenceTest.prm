@@ -1,6 +1,6 @@
 Parameters
 {
-  mesh ../../../meshes/tri_1el.msh;
+  mesh ../../meshes/tri_1el.msh;
   level 2;
   maxiter 100;
   vtkOutput false;
