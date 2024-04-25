@@ -41,7 +41,7 @@ template< typename P2LaplaceOperator_T >
 void jacobiTest()
 {
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   cfg->readParameterFile( "../../data/param/jacobi_P2.prm" );
+   cfg->readParameterFile( "./P2JacobiConvergenceTest.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
    size_t                        level      = parameters.getParameter< size_t >( "level" );
    size_t                        maxiter    = parameters.getParameter< size_t >( "maxiter" );

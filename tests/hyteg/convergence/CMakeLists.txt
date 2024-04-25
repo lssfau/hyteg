@@ -1,3 +1,5 @@
+waLBerla_link_files_to_builddir( *.prm )
+
 waLBerla_compile_test(FILES ElementwiseDivKGradCGConvergenceTest.cpp DEPENDS hyteg core opgen-div_k_grad)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)

@@ -1,0 +1,13 @@
+Parameters
+{
+  mesh ../../meshes/tri_1el.msh;
+  minLevel 2;
+  maxLevel 3;
+  max_outer_iter 7;
+  max_cg_iter 10000;
+  mg_tolerance 1e-16;
+  coarse_tolerance 1e-16;
+  vtkOutput false;
+  printTiming false;
+  useExactWeights false;
+}
