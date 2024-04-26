@@ -70,9 +70,9 @@ struct RefinementStrategy
 {
    enum Strategy
    {
-      MEAN_SQUARED_ERROR, // refine all elements j where e_j^2 > 1/n (∑_i e_i^2)
+      MEAN_SQUARED_ERROR, // refine T_j if e_j^2 > (∑_i w_i e_i^2)/(∑_i w_i), w_i = (n-i)^p
       PROPORTION,         // refine the p*n elements where the error is largest
-      AGGRESSIVE,         // only refine those elements with a vertex at (0,0,0)
+      SINGULARITY,        // only refine those elements with a vertex at (0,0,0)
       __NOT_AVAILABLE
    };
 
@@ -86,54 +86,17 @@ struct RefinementStrategy
       }
    }
 
-   std::function< bool( const adaptiveRefinement::ErrorVector&, uint_t ) >
-       criterion( const adaptiveRefinement::ErrorVector& local_errors, adaptiveRefinement::Mesh& mesh ) const
+   real_t refineRG( const adaptiveRefinement::ErrorVector& local_errors, adaptiveRefinement::Mesh& mesh, uint_t n_el_max ) const
    {
-      auto                                                                    n_el = mesh.n_elements();
-      std::function< bool( const adaptiveRefinement::ErrorVector&, uint_t ) > crit;
       if ( s == MEAN_SQUARED_ERROR )
       {
-         auto e2m = real_t( 0.0 );
-         for ( auto& e2 : local_errors )
-         {
-            e2m += e2.first;
-         }
-         walberla::mpi::allReduceInplace( e2m, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-         e2m /= real_t( n_el );
-
-         crit = [e2m]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
-            auto e2i = err_global[i].first;
-            if ( i == 0 )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i^2 = " << err_global.back().first );
-               WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i^2 = " << err_global.front().first );
-               WALBERLA_LOG_INFO_ON_ROOT( " -> mean squared error = " << e2m );
-               WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i^2 >= " << e2m );
-            }
-            else if ( e2i <= e2m && err_global[i - 1].first > e2m )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( " -> " << i << " elements marked for refinement." );
-            }
-
-            return e2i > e2m;
-         };
+         return mesh.refineRG( local_errors, adaptiveRefinement::WEIGHTED_MEAN, this->p, true );
       }
       if ( s == PROPORTION )
       {
-         const auto sizeR = uint_t( std::round( double( n_el ) * this->p ) );
-         crit             = [sizeR, n_el]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
-            if ( i == 0 )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( " -> min_i err_i^2 = " << err_global.back().first );
-               WALBERLA_LOG_INFO_ON_ROOT( " -> max_i err_i^2 = " << err_global.front().first );
-               if ( sizeR > 0 )
-                  WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where err_i^2 >= " << err_global[sizeR - 1].first );
-               WALBERLA_LOG_INFO_ON_ROOT( " -> " << sizeR << " elements marked for refinement." );
-            }
-            return i < sizeR;
-         };
+         return mesh.refineRG( local_errors, adaptiveRefinement::PERCENTILE, this->p, true );
       }
-      if ( s == AGGRESSIVE )
+      if ( s == SINGULARITY )
       {
          auto vertices = mesh.get_vertices();
 
@@ -161,11 +124,15 @@ struct RefinementStrategy
             }
          }
 
-         crit = [center_elements]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
+         auto crit = [center_elements]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
             return ( center_elements.count( err_global[i].second ) > 0 );
          };
+         return mesh.refineRG( local_errors, crit, n_el_max );
       }
-      return crit;
+      else
+      {
+         WALBERLA_ABORT( "Invalid argument for refinement strategy: Must be less than " << Strategy::__NOT_AVAILABLE );
+      }
    }
 
    Strategy s;
@@ -1169,10 +1136,9 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
       // apply refinement
-      auto t0        = walberla::timing::getWcTime();
-      auto criterion = ref_strat.criterion( local_errors, mesh );
-      auto ratio     = mesh.refineRG( local_errors, criterion, n_el_max );
-      auto t1        = walberla::timing::getWcTime();
+      auto t0    = walberla::timing::getWcTime();
+      auto ratio = ref_strat.refineRG( local_errors, mesh, n_el_max );
+      auto t1    = walberla::timing::getWcTime();
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent for refinement: %12.3e", t1 - t0 ) );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
       // compute mesh quality
@@ -1299,7 +1265,7 @@ int main( int argc, char* argv[] )
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
    const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
    const uint_t ref_strat    = parameters.getParameter< uint_t >( "refinement_strategy", RefinementStrategy::MEAN_SQUARED_ERROR );
-   const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", 1.0 );
+   const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", 0.0 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    const bool   global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
 
@@ -1383,13 +1349,15 @@ int main( int argc, char* argv[] )
    if ( refinementStrategy.s == RefinementStrategy::MEAN_SQUARED_ERROR )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+          "    with weighted mean μ(x) = (∑_i i^%e x_i)/(∑_i i^%e) for x_1 <= x_2 <= ...", p_refinement, p_refinement ) );
    }
    if ( refinementStrategy.s == RefinementStrategy::PROPORTION )
    {
       WALBERLA_LOG_INFO_ON_ROOT(
           walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
    }
-   if ( refinementStrategy.s == RefinementStrategy::AGGRESSIVE )
+   if ( refinementStrategy.s == RefinementStrategy::SINGULARITY )
    {
       if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER )
       {
@@ -1397,7 +1365,7 @@ int main( int argc, char* argv[] )
       }
       else
       {
-         WALBERLA_ABORT( "Refinement strategy AGGRESSIVE only applicable for model problems 'dirac' and 'reentrant corner'!" );
+         WALBERLA_ABORT( "Refinement strategy SINGULARITY only applicable for model problems 'dirac' and 'reentrant corner'!" );
       }
    }
    if ( error_indicator )

@@ -229,52 +229,127 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
 }
 
 template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
-                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                                      uint_t                                                     n_el_max )
+void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVector& err_glob_sorted ) const
 {
-   // communication
-   ErrorVector errors_all, errors_other;
+   ErrorVector err_other;
 
    walberla::mpi::SendBuffer send;
    walberla::mpi::RecvBuffer recv;
 
-   send << errors_local;
+   send << err_loc;
    walberla::mpi::allGathervBuffer( send, recv );
    for ( uint_t rnk = 0; rnk < _n_processes; ++rnk )
    {
-      recv >> errors_other;
-      errors_all.insert( errors_all.end(), errors_other.begin(), errors_other.end() );
+      recv >> err_other;
+      err_glob_sorted.insert( err_glob_sorted.end(), err_other.begin(), err_other.end() );
    }
 
-   if ( errors_all.size() != _n_elements )
+   if ( err_glob_sorted.size() != _n_elements )
    {
       WALBERLA_ABORT( "total number of error values must be equal to number of macro elements (cells/faces)" );
    }
 
    // sort by errors
-   std::sort( errors_all.begin(), errors_all.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
+   std::sort( err_glob_sorted.begin(), err_glob_sorted.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
+}
+
+template < class K_Simplex >
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
+                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                                      uint_t                                                     n_el_max )
+{
+   ErrorVector err_glob;
+   gatherGlobalError( errors_local, err_glob );
 
    // apply criterion
    std::vector< PrimitiveID > elements_to_refine;
    for ( uint_t i = 0; i < _n_elements; ++i )
    {
-      if ( criterion( errors_all, i ) )
+      if ( criterion( err_glob, i ) )
       {
-         elements_to_refine.push_back( errors_all[i].second );
+         elements_to_refine.push_back( err_glob[i].second );
       }
    }
 
-   // apply refinement
    return refineRG( elements_to_refine, n_el_max );
 }
 
 template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ratio_to_refine, uint_t n_el_max )
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
+                                      RefinementStrategy strategy,
+                                      real_t             p,
+                                      bool               verbose,
+                                      uint_t             n_el_max )
 {
-   auto N_ref     = uint_t( std::ceil( real_t( _n_elements ) * ratio_to_refine ) );
-   auto criterion = [=]( const ErrorVector&, uint_t i ) { return i < N_ref; };
-   return refineRG( errors_local, criterion, n_el_max );
+   ErrorVector err_glob;
+   gatherGlobalError( errors_local, err_glob );
+
+   if ( verbose )
+   {
+      if ( strategy == WEIGHTED_MEAN )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: weighted mean with w_i = (n-i)^" << p );
+      }
+      if ( strategy == PERCENTILE )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: percentile with p = " << p * 100 << "%" );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( " -> min_i e_i = " << err_glob.back().first );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> max_i e_i = " << err_glob.front().first );
+   }
+
+   std::function< bool( real_t, uint_t ) > crit;
+   if ( strategy == WEIGHTED_MEAN )
+   {
+      auto e_mean_w = real_t( 0.0 );
+      auto sum_w    = real_t( 0.0 );
+      auto n        = err_glob.size();
+      for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
+      {
+         // iterate in reverse order to add smallest contribution first, reducing round off error
+         auto   i   = n - n_i; // n - (n-i) = i
+         real_t e_i = err_glob[i].first;
+         real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
+         sum_w += w_i;
+         e_mean_w += w_i * e_i;
+      }
+      e_mean_w /= sum_w;
+
+      crit = [e_mean_w]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean_w; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> weighted mean = " << e_mean_w );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean_w );
+      }
+   }
+   if ( strategy == PERCENTILE )
+   {
+      const auto sizeR = uint_t( std::round( real_t( _n_elements ) * p ) );
+
+      crit = [sizeR]( real_t, uint_t i ) -> bool { return i < sizeR; };
+      if ( verbose )
+      {
+         if ( sizeR > 0 )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
+      }
+   }
+
+   std::vector< PrimitiveID > elements_to_refine;
+   for ( uint_t i = 0; i < _n_elements; ++i )
+   {
+      if ( crit( err_glob[i].first, i ) )
+      {
+         elements_to_refine.push_back( err_glob[i].second );
+      }
+      else
+      {
+         if ( verbose )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> " << i << " elements marked for refinement." );
+         break;
+      }
+   }
+
+   return refineRG( elements_to_refine, n_el_max );
 }
 
 template < class K_Simplex >
@@ -427,7 +502,7 @@ template < class K_Simplex >
 std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool allow_split_siblings )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
-      return std::vector<uint_t>(0);
+      return std::vector< uint_t >( 0 );
 
    // apply roundRobin to volume elments
    uint_t                targetRnk = 0;
@@ -482,7 +557,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map<
                                                                  const bool allow_split_siblings )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
-      return std::vector<uint_t>(0);
+      return std::vector< uint_t >( 0 );
 
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
    uint_t                n_vol_max0     = _n_elements / _n_processes;
