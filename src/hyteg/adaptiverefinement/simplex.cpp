@@ -166,6 +166,12 @@ Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes
 }
 
 template < uint_t K, class K_Simplex >
+real_t Simplex< K, K_Simplex >::radius( const std::vector< Point3D >& nodes ) const
+{
+   return radius( this->coordinates( nodes ) );
+}
+
+template < uint_t K, class K_Simplex >
 real_t Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
 {
    return volume( this->coordinates( nodes ) );

@@ -134,6 +134,12 @@ class Simplex
       @param nodes  coordinates of the global vertices
    */
    Point3D barycenter( const std::vector< Point3D >& nodes ) const;
+   /* compute the radius of the smallest ball B centered at the
+      barycenter of a K simplex S, s.th. S ⊂ B.
+      @param nodes  coordinates of the global vertices
+      @return max_i||vertices[i] - barycenter(vertices)||
+   */
+   real_t radius( const std::vector< Point3D >& nodes ) const;
    /* compute the volme of a simplex
       @param nodes  coordinates of the global vertices
    */

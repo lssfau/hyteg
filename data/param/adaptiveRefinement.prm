@@ -62,6 +62,7 @@ Parameters
   // vtkName err_ex;
   // writeDomainPartitioning 1;
   writeMeshfile 1;
+  printMeshData 0;
   // initialMesh output/_mesh_6.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/reentrant_corner_2D_mesh_25.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/jump_coeff_2D_mesh_20.msh; // use custom initial mesh e.g. written from previous run

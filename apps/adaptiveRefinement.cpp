@@ -24,6 +24,7 @@
 #include <core/math/Constants.h>
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
+#include <iomanip>
 
 #include "hyteg-operators/operators/mass/P1ElementwiseMass.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
@@ -622,6 +623,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        std::string                              vtkname,
                                        bool                                     writePartitioning,
                                        bool                                     writeMeshfile,
+                                       bool                                     printMeshData,
                                        uint_t                                   refinement_step,
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
@@ -1037,6 +1039,36 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       mesh.exportMesh( "output/" + vtkname + "_mesh_" + std::to_string( refinement_step ) + ".msh" );
    }
 
+   if ( printMeshData )
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         std::ofstream file( "output/" + vtkname + "_mesh_" + std::to_string( refinement_step ) + ".dat" );
+
+         file << std::setw( 13 ) << "#||centroid||" << std::setw( 13 ) << "R" << std::setw( 13 ) << "V"
+              << "\n";
+
+         if ( mesh.dim() == 2 )
+         {
+            for ( auto& el : mesh.get_elements2d() )
+            {
+               file << std::setw( 13 ) << el->barycenter( mesh.get_vertices() ).norm() //
+                    << std::setw( 13 ) << el->radius( mesh.get_vertices() )            //
+                    << std::setw( 13 ) << el->volume( mesh.get_vertices() ) << "\n";
+            }
+         }
+         if ( mesh.dim() == 3 )
+         {
+            for ( auto& el : mesh.get_elements3d() )
+            {
+               file << std::setw( 13 ) << el->barycenter( mesh.get_vertices() ).norm() //
+                    << std::setw( 13 ) << el->radius( mesh.get_vertices() )            //
+                    << std::setw( 13 ) << el->volume( mesh.get_vertices() ) << "\n";
+            }
+         }
+      }
+   }
+
    // update u_old
    u_old.swap( u );
 
@@ -1063,6 +1095,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 std::string                  vtkname,
                                 bool                         writePartitioning,
                                 bool                         writeMeshfile,
+                                bool                         printMeshData,
                                 bool                         error_indicator,
                                 bool                         global_error_estimate,
                                 int                          error_freq,
@@ -1094,6 +1127,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           vtkname,
                                           writePartitioning,
                                           writeMeshfile,
+                                          printMeshData,
                                           refinement,
                                           error_indicator,
                                           global_error_estimate,
@@ -1116,6 +1150,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            vtkname,
                                            writePartitioning,
                                            writeMeshfile,
+                                           printMeshData,
                                            refinement,
                                            error_indicator,
                                            global_error_estimate,
@@ -1189,6 +1224,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            vtkname,
                            writePartitioning,
                            writeMeshfile,
+                           printMeshData,
                            refinement,
                            error_indicator,
                            global_error_estimate,
@@ -1213,6 +1249,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             vtkname,
                             writePartitioning,
                             writeMeshfile,
+                            printMeshData,
                             refinement,
                             error_indicator,
                             global_error_estimate,
@@ -1289,6 +1326,7 @@ int main( int argc, char* argv[] )
    std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
    const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
+   const bool  printMeshData     = parameters.getParameter< bool >( "printMeshData", false );
 
    const RefinementStrategy refinementStrategy( ref_strat, p_refinement );
 
@@ -1397,6 +1435,7 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write domain partitioning", writePartitioning ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export final mesh as file", writeMeshfile ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export final mesh as file", printMeshData ) );
 
    // solve/refine iteratively
    solve_for_each_refinement( setupStorage,
@@ -1419,6 +1458,7 @@ int main( int argc, char* argv[] )
                               vtkname,
                               writePartitioning,
                               writeMeshfile,
+                              printMeshData,
                               error_indicator,
                               global_error_estimate,
                               l2error,
