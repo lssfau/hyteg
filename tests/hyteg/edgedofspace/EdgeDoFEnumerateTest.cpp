@@ -142,17 +142,17 @@ int main (int argc, char ** argv ) {
   walberla::debug::enterTestMode();
 
 
-  checkComm< 2 > ("../../data/meshes/quad_2el.msh");
-  checkComm< 2 > ("../../data/meshes/quad_2el.msh");
-  checkComm< 2 > ("../../data/meshes/bfs_12el.msh");
+  checkComm< 2 > ("../../meshes/quad_2el.msh");
+  checkComm< 2 > ("../../meshes/quad_2el.msh");
+  checkComm< 2 > ("../../meshes/bfs_12el.msh");
 
-  checkComm< 3 > ("../../data/meshes/tri_1el.msh");
-  checkComm< 3 > ("../../data/meshes/quad_2el.msh");
-  checkComm< 3 > ("../../data/meshes/bfs_12el.msh");
+  checkComm< 3 > ("../../meshes/tri_1el.msh");
+  checkComm< 3 > ("../../meshes/quad_2el.msh");
+  checkComm< 3 > ("../../meshes/bfs_12el.msh");
 
-  checkComm< 4 > ("../../data/meshes/tri_1el.msh");
-  checkComm< 4 > ("../../data/meshes/quad_2el.msh");
-  checkComm< 4 > ("../../data/meshes/bfs_12el.msh");
+  checkComm< 4 > ("../../meshes/tri_1el.msh");
+  checkComm< 4 > ("../../meshes/quad_2el.msh");
+  checkComm< 4 > ("../../meshes/bfs_12el.msh");
 
 
 }

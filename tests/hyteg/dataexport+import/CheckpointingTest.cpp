@@ -99,7 +99,7 @@ void checkTagGenerationForP2( const P2Function< real_t >& func, uint_t level )
 
 void storeCheckpoint( std::string filePath, std::string fileName )
 {
-   std::string           meshFileName{ "../../data/meshes/3D/pyramid_2el.msh" };
+   std::string           meshFileName{ "../../meshes/3D/pyramid_2el.msh" };
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

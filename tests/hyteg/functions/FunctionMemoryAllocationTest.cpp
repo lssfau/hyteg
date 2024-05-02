@@ -42,7 +42,7 @@ using namespace hyteg;
 
 void TestFunctionMemoryAllocation()
 {
-   auto meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/cube_24el.msh");
+   auto meshInfo = MeshInfo::fromGmshFile("../../meshes/3D/cube_24el.msh");
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

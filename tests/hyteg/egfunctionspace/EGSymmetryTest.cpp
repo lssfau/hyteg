@@ -83,20 +83,20 @@ int main( int argc, char* argv[] )
    for ( uint_t level = 2; level <= 3; level++ )
    {
 
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/tri_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/quad_4el.msh", level );
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/3D/tet_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../data/meshes/3D/cube_6el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/tri_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/quad_4el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/3D/tet_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/3D/cube_6el.msh", level );
 
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/tri_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/quad_4el.msh", level );
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/3D/tet_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../data/meshes/3D/cube_6el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/tri_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/quad_4el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/3D/tet_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/3D/cube_6el.msh", level );
 
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/tri_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/quad_4el.msh", level );
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/3D/tet_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../data/meshes/3D/cube_6el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/tri_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/quad_4el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/3D/tet_1el.msh", level );
+      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/3D/cube_6el.msh", level );
    }
 
    return 0;

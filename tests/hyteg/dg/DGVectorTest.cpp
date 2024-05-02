@@ -40,7 +40,7 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
 {
    using namespace dg;
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

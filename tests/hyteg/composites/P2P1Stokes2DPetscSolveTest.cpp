@@ -134,7 +134,7 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
   PETScManager petscManager( &argc, &argv );
 
-  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184 );
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184 );
 
   return EXIT_SUCCESS;
 }

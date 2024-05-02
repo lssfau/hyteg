@@ -227,7 +227,7 @@ namespace hyteg {
               hyteg::runTestcase("EGVectorLaplaceConvergence_tri_1el",
                                  minLevel,
                                  maxLevel,
-                                 MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh"),
+                                 MeshInfo::fromGmshFile("../../meshes/tri_1el.msh"),
                                  std::make_tuple(solFunc, solFunc, solFunc),
                                  std::make_tuple(rhsFunc, rhsFunc, rhsFunc),
                                  solverType,
@@ -244,7 +244,7 @@ namespace hyteg {
               hyteg::runTestcase("EGVectorLaplaceConvergence_tri_1el",
                                  minLevel,
                                  maxLevel,
-                                 MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh"),
+                                 MeshInfo::fromGmshFile("../../meshes/tri_1el.msh"),
                                  std::make_tuple(solFunc, solFunc, solFunc),
                                  std::make_tuple(rhsFunc, rhsFunc, rhsFunc),
                                  solverType,
@@ -253,7 +253,7 @@ namespace hyteg {
 
           WALBERLA_LOG_INFO_ON_ROOT("### Test on 2 triangles, inhom. BC, rhs = 0 ###");
           {
-              MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_2el.msh");
+              MeshInfo meshInfo = MeshInfo::fromGmshFile("../../meshes/tri_2el.msh");
 
               std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
                   return sin(pi * x[0]) * sin(pi * x[1]);
@@ -274,7 +274,7 @@ namespace hyteg {
 
           WALBERLA_LOG_INFO_ON_ROOT("### Test on quad 2D, inhom. BC, rhs = 0 ###");
           {
-              MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+              MeshInfo meshInfo = MeshInfo::fromGmshFile("../../meshes/quad_4el.msh");
 
               std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
                   return sin(pi * x[0]) * sin(pi * x[1]);
@@ -324,7 +324,7 @@ namespace hyteg {
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test pyramid_2el, first ###");
         {
-            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/pyramid_2el.msh");
+            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../meshes/3D/pyramid_2el.msh");
 
             std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
                 return sin(x[0]) * sin(x[1]) * sin(x[2]);
@@ -346,7 +346,7 @@ namespace hyteg {
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test pyramid_2el, second ###");
         {
-            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/pyramid_2el.msh");
+            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../meshes/3D/pyramid_2el.msh");
 
             std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
                 return sin(x[0]) * sinh(x[1]) * x[2];
@@ -365,7 +365,7 @@ namespace hyteg {
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test pyramid_4el, first ###");
         {
-            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/pyramid_4el.msh");
+            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../meshes/3D/pyramid_4el.msh");
 
             std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
                 return sin(pi * x[0]) * sin(pi * x[1]) * sin(pi * x[2]);
@@ -387,7 +387,7 @@ namespace hyteg {
 
         WALBERLA_LOG_INFO_ON_ROOT("### Test pyramid_4el, second ###");
         {
-            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/pyramid_4el.msh");
+            MeshInfo meshInfo = MeshInfo::fromGmshFile("../../meshes/3D/pyramid_4el.msh");
 
             std::function<real_t(const Point3D &)> solFunc = [](const Point3D &x) {
                 return sin(x[0]) * sinh(x[1]) * x[2];

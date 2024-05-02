@@ -85,11 +85,11 @@ int main( int argc, char* argv[] )
 
    const auto numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   hyteg::primitiveStorageParallelSetupWrite( "../../../data/meshes/bfs_126el.msh", numProcesses, "test_00.data" );
-   hyteg::primitiveStorageParallelSetupWrite( "../../../data/meshes/3D/cube_24el.msh", numProcesses, "test_01.data" );
+   hyteg::primitiveStorageParallelSetupWrite( "../../meshes/bfs_126el.msh", numProcesses, "test_00.data" );
+   hyteg::primitiveStorageParallelSetupWrite( "../../meshes/3D/cube_24el.msh", numProcesses, "test_01.data" );
 
-   hyteg::primitiveStorageParallelSetupRead( "../../../data/meshes/bfs_126el.msh", numProcesses, "test_00.data" );
-   hyteg::primitiveStorageParallelSetupRead( "../../../data/meshes/3D/cube_24el.msh", numProcesses, "test_01.data" );
+   hyteg::primitiveStorageParallelSetupRead( "../../meshes/bfs_126el.msh", numProcesses, "test_00.data" );
+   hyteg::primitiveStorageParallelSetupRead( "../../meshes/3D/cube_24el.msh", numProcesses, "test_01.data" );
 
    return EXIT_SUCCESS;
 }

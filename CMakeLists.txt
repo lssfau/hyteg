@@ -8,6 +8,10 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+if(${CMAKE_VERSION} VERSION_GREATER "3.27.0")
+   cmake_policy(SET CMP0144 NEW)
+endif()
+
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 include(DetectPlatformFeatures)
@@ -27,6 +31,7 @@ set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_BUILD_WITH_BOOST       OFF )
+set(WALBERLA_BUILD_WITH_OPENMESH    OFF )
 set(WALBERLA_BUILD_TESTS            OFF )
 set(WALBERLA_BUILD_BENCHMARKS       OFF )
 set(WALBERLA_BUILD_TUTORIALS        OFF )
@@ -40,7 +45,7 @@ link_directories(${EIGEN_DIR})
 include_directories(src)
 
 unset(CMAKE_CXX_FLAGS_DEBUGOPTIMIZED CACHE)
-find_package(waLBerla)
+find_package(waLBerla QUIET)
 
 if ( HYTEG_BUILD_WITH_MPFR )
     # Extends cmake module path - so that FindMPFR.cmake in the current directory is found

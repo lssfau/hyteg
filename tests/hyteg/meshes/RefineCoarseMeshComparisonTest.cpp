@@ -169,9 +169,9 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::runtest( 1, 1, "../../data/meshes/3D/cube_6el.msh" );
-   hyteg::runtest( 1, 2, "../../data/meshes/3D/cube_6el.msh" );
-   hyteg::runtest( 1, 3, "../../data/meshes/3D/cube_6el.msh" );
-   hyteg::runtest( 2, 2, "../../data/meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 1, "../../meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 2, "../../meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 3, "../../meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 2, 2, "../../meshes/3D/cube_6el.msh" );
    hyteg::runtest( 1, 2, "TORUS" );
 }

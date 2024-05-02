@@ -73,7 +73,7 @@ void printEdgeData( uint_t level, int* edgeData, uint_t funcSize )
 
 void check1tet( bool bufferComm = false )
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -262,7 +262,7 @@ void check1tet( bool bufferComm = false )
 
 void checkComm3d( const uint_t level )
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -630,27 +630,27 @@ int main (int argc, char ** argv ) {
    walberla::MPIManager::instance()->useWorldComm();
    walberla::debug::enterTestMode();
 
-   checkComm<3>("../../data/meshes/tri_1el.msh", true);
+   checkComm<3>("../../meshes/tri_1el.msh", true);
 
-   checkComm<3>("../../data/meshes/tri_1el.msh", false);
+   checkComm<3>("../../meshes/tri_1el.msh", false);
 
-   checkComm<4>("../../data/meshes/tri_1el.msh", true);
+   checkComm<4>("../../meshes/tri_1el.msh", true);
 
-   checkComm<4>("../../data/meshes/tri_1el.msh", false);
+   checkComm<4>("../../meshes/tri_1el.msh", false);
 
-   checkComm<3>("../../data/meshes/quad_4el.msh", true);
+   checkComm<3>("../../meshes/quad_4el.msh", true);
 
-   checkComm<4>("../../data/meshes/quad_4el.msh", true);
+   checkComm<4>("../../meshes/quad_4el.msh", true);
 
-   checkComm<5>("../../data/meshes/quad_4el.msh", true);
+   checkComm<5>("../../meshes/quad_4el.msh", true);
 
-   checkComm<4>("../../data/meshes/quad_4el.msh", false);
+   checkComm<4>("../../meshes/quad_4el.msh", false);
 
-   checkComm<5>("../../data/meshes/quad_4el.msh", false);
+   checkComm<5>("../../meshes/quad_4el.msh", false);
 
-   checkComm<3>("../../data/meshes/bfs_12el.msh", true);
+   checkComm<3>("../../meshes/bfs_12el.msh", true);
 
-   checkComm<3>("../../data/meshes/bfs_12el.msh", false);
+   checkComm<3>("../../meshes/bfs_12el.msh", false);
 
    check1tet();
 

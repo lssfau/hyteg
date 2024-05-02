@@ -147,13 +147,13 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hyteg::All, 8.7e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hyteg::All, 2.6e-13 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hyteg::All, 7.3e-16 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_4el.msh", hyteg::All, 1.4e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::All, 4.0e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hyteg::All, 3.5e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../meshes/quad_4el.msh", hyteg::All, 8.7e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../meshes/annulus_coarse.msh", hyteg::All, 2.6e-13 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/pyramid_2el.msh", hyteg::All, 7.3e-16 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/pyramid_4el.msh", hyteg::All, 1.4e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::All, 4.0e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/cube_24el.msh", hyteg::All, 3.5e-15 );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 

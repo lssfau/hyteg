@@ -171,15 +171,15 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-//  testGridTransfer3D( "../../data/meshes/tri_1el.msh", 2 );
-//  testGridTransfer3D( "../../data/meshes/quad_8el.msh", 2 );
-  testGridTransfer3D( "../../data/meshes/tri_1el.msh", 3 );
-  testGridTransfer3D( "../../data/meshes/quad_8el.msh", 3 );
-  testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-  testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
-  testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
-  testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
-  testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+//  testGridTransfer3D( "../../meshes/tri_1el.msh", 2 );
+//  testGridTransfer3D( "../../meshes/quad_8el.msh", 2 );
+  testGridTransfer3D( "../../meshes/tri_1el.msh", 3 );
+  testGridTransfer3D( "../../meshes/quad_8el.msh", 3 );
+  testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 3 );
+  testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 3 );
+  testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 3 );
+  testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 3 );
+  testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 3 );
 
   return 0;
 }

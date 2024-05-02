@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    const uint_t      level    = 4;
-   const std::string meshFile = "../../data/meshes/quad_8el.msh";
+   const std::string meshFile = "../../meshes/quad_8el.msh";
 
    auto meshInfo = MeshInfo::fromGmshFile( meshFile );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

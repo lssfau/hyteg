@@ -49,7 +49,7 @@ void testWeightsInCellVertexDoF()
 
    const uint_t lowerLevel = 2;
 
-   const auto            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+   const auto            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -105,7 +105,7 @@ void testWeightsInCellEdgeDoF()
 
    const uint_t lowerLevel = 2;
 
-   const auto            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+   const auto            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -331,49 +331,49 @@ int main( int argc, char* argv[] )
    testWeightsInCellVertexDoF();
    testWeightsInCellEdgeDoF();
 
-   testGridTransfer3D( "../../data/meshes/quad_8el.msh", 0 );
-   testGridTransfer3D( "../../data/meshes/bfs_126el.msh", 0 );
-   testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 0 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 0 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 0 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 0 );
-   testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 0 );
+   testGridTransfer3D( "../../meshes/quad_8el.msh", 0 );
+   testGridTransfer3D( "../../meshes/bfs_126el.msh", 0 );
+   testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 0 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 0 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 0 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 0 );
+   testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 0 );
 
-   testGridTransfer3D( "../../data/meshes/quad_8el.msh", 1 );
-   testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 1 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 1 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 1 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 1 );
-   testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 1 );
+   testGridTransfer3D( "../../meshes/quad_8el.msh", 1 );
+   testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 1 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 1 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 1 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 1 );
+   testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 1 );
 
-   testGridTransfer3D( "../../data/meshes/quad_8el.msh", 3 );
-   testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
-   testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
-   testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+   testGridTransfer3D( "../../meshes/quad_8el.msh", 3 );
+   testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 3 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 3 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 3 );
+   testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 3 );
+   testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 3 );
 
-   testProlongateAndAdd3D( "../../data/meshes/quad_8el.msh", 0 );
-   testProlongateAndAdd3D( "../../data/meshes/bfs_126el.msh", 0 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/tet_1el.msh", 0 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_2el.msh", 0 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_4el.msh", 0 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 0 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/quad_8el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/bfs_126el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/3D/tet_1el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_2el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_4el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_tilted_4el.msh", 0 );
+   testProlongateAndAdd3D( "../../meshes/3D/regular_octahedron_8el.msh", 0 );
 
-   testProlongateAndAdd3D( "../../data/meshes/quad_8el.msh", 1 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/tet_1el.msh", 1 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_2el.msh", 1 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_4el.msh", 1 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 1 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 1 );
+   testProlongateAndAdd3D( "../../meshes/quad_8el.msh", 1 );
+   testProlongateAndAdd3D( "../../meshes/3D/tet_1el.msh", 1 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_2el.msh", 1 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_4el.msh", 1 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_tilted_4el.msh", 1 );
+   testProlongateAndAdd3D( "../../meshes/3D/regular_octahedron_8el.msh", 1 );
 
-   testProlongateAndAdd3D( "../../data/meshes/quad_8el.msh", 3 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
-   testProlongateAndAdd3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+   testProlongateAndAdd3D( "../../meshes/quad_8el.msh", 3 );
+   testProlongateAndAdd3D( "../../meshes/3D/tet_1el.msh", 3 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_2el.msh", 3 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_4el.msh", 3 );
+   testProlongateAndAdd3D( "../../meshes/3D/pyramid_tilted_4el.msh", 3 );
+   testProlongateAndAdd3D( "../../meshes/3D/regular_octahedron_8el.msh", 3 );
 
    return 0;
 }

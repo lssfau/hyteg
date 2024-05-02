@@ -1,0 +1,3 @@
+waLBerla_compile_test(FILES MatrixConstructFromEigenTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MatrixConstructFromEigenTest)
+

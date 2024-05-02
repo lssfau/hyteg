@@ -281,7 +281,7 @@ int main( int argc, char* argv[] )
 
   // Generate mesh from meshfile (mesh represents unit cube)
   MeshInfo meshInfo3D = MeshInfo::emptyMeshInfo();
-  meshInfo3D = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+  meshInfo3D = MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
 
   // Generate primitives
   SetupPrimitiveStorage setupStorage3D( meshInfo3D,

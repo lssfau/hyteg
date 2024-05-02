@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
 
    PETScManager petscManager( &argc, &argv );
 
-   std::string meshFileName = "../../data/meshes/quad_8el.msh";
+   std::string meshFileName = "../../meshes/quad_8el.msh";
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

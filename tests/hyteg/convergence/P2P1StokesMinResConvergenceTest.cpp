@@ -35,7 +35,7 @@ using walberla::real_c;
 template< typename P2P1P1StokesOperator >
 void stokesMinResConvergenceTest()
 {
-   std::string meshFileName = "../../data/meshes/quad_4el_neumann.msh";
+   std::string meshFileName = "../../meshes/quad_4el_neumann.msh";
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

@@ -127,12 +127,12 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::p1PetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hyteg::All, 1.0e-15 );
-   hyteg::p1PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hyteg::All, 1.7e-13 );
-   hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh", hyteg::Inner, 7.6e-18 );
-   hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hyteg::Inner, 2.0e-16 );
-   hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hyteg::Inner, 1.0e-15 );
-   hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 1.0e-15 );
+   hyteg::p1PetscApplyTest( 3, "../../meshes/quad_4el.msh", hyteg::All, 1.0e-15 );
+   hyteg::p1PetscApplyTest( 3, "../../meshes/annulus_coarse.msh", hyteg::All, 1.7e-13 );
+   hyteg::p1PetscApplyTest( 3, "../../meshes/3D/tet_1el.msh", hyteg::Inner, 7.6e-18 );
+   hyteg::p1PetscApplyTest( 3, "../../meshes/3D/pyramid_2el.msh", hyteg::Inner, 2.0e-16 );
+   hyteg::p1PetscApplyTest( 3, "../../meshes/3D/pyramid_4el.msh", hyteg::Inner, 1.0e-15 );
+   hyteg::p1PetscApplyTest( 3, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 1.0e-15 );
 
    return EXIT_SUCCESS;
 }

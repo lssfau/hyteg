@@ -38,7 +38,7 @@ static void testP2SmoothConvergence()
 {
   const uint_t level = 2;
 
-  MeshInfo mesh  = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
+  MeshInfo mesh  = MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" );
   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

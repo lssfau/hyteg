@@ -1,0 +1,11 @@
+waLBerla_compile_test(FILES adaptiveRefinementTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementTest)
+
+waLBerla_compile_test(FILES adaptiveRefinementBoundaryTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBoundaryTest)
+
+if(WALBERLA_DOUBLE_ACCURACY)
+waLBerla_compile_test(FILES adaptiveRefinementBlendingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME adaptiveRefinementBlendingTest)
+endif()
+

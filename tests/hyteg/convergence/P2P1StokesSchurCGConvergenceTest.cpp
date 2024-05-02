@@ -146,7 +146,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  P2P1SchurCGConvergenceTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ) );
+  P2P1SchurCGConvergenceTest( 3, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_center_at_origin_4el.msh" ) );
 
   return EXIT_SUCCESS;
 }

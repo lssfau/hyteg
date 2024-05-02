@@ -46,7 +46,7 @@ void testWeightsInCell( const uint_t& lowerLevel )
 {
    typedef edgedof::EdgeDoFOrientation eo;
 
-   const auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+   const auto storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/tet_1el.msh" );
 
    P2Function< real_t > u( "u", storage, lowerLevel, lowerLevel + 1 );
    u.interpolate( 1.0, lowerLevel + 1 );

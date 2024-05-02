@@ -165,7 +165,7 @@ int main( int argc, char** argv )
 
    // Test with backward facing step
    logSectionHeader( "Testing with BFS" );
-   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+   meshInfo = MeshInfo::fromGmshFile( "../../meshes/bfs_12el.msh" );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
@@ -239,7 +239,7 @@ int main( int argc, char** argv )
 
    // Test with unit square containing circular hole
    logSectionHeader( "Testing with BLENDING( SQUARE with CIRCULAR HOLE )" );
-   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/unitsquare_with_circular_hole.msh" );
+   meshInfo = MeshInfo::fromGmshFile( "../../meshes/unitsquare_with_circular_hole.msh" );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -278,7 +278,7 @@ int main( int argc, char** argv )
 
    // Test with backward facing step and affine mapping
    logSectionHeader( "Testing with BLENDING( AFFINE_MAP rotation )" );
-   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+   meshInfo = MeshInfo::fromGmshFile( "../../meshes/bfs_12el.msh" );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    vec         = Point2D(  0.0, 0.0  );
@@ -296,7 +296,7 @@ int main( int argc, char** argv )
 
    // Test with backward facing step and affine mapping
    logSectionHeader( "Testing with BLENDING( AFFINE_MAP shear, scale + shift )" );
-   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+   meshInfo = MeshInfo::fromGmshFile( "../../meshes/bfs_12el.msh" );
    setStore =
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    vec            = Point2D(  -2.0, 3.0  );

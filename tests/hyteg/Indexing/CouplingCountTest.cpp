@@ -111,9 +111,9 @@ int main( int argc, char* argv[] )
    // ----------------------------
    if ( run2DTests )
    {
-      // std::string           meshFileName = "../../data/meshes/quad_16el.msh";
-      // std::string           meshFileName = "../../data/meshes/tri_1el.msh";
-      std::string           meshFileName = "../../data/meshes/annulus_coarse.msh";
+      // std::string           meshFileName = "../../meshes/quad_16el.msh";
+      // std::string           meshFileName = "../../meshes/tri_1el.msh";
+      std::string           meshFileName = "../../meshes/annulus_coarse.msh";
       MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
       SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       loadbalancing::roundRobin( setupStorage );
@@ -143,12 +143,12 @@ int main( int argc, char* argv[] )
    // ----------------------------
    if ( run3DTests )
    {
-      // std::string           meshFileName = "../../data/meshes/3D/tet_tilted_1el.msh";
-      // std::string           meshFileName = "../../data/meshes/3D/pyramid_2el.msh";
-      // std::string           meshFileName = "../../data/meshes/3D/three_tets_with_two_joint_faces.msh";
-      // std::string           meshFileName = "../../data/meshes/3D/pyramid_4el.msh";
-      std::string meshFileName = "../../data/meshes/3D/regular_octahedron_8el.msh";
-      // std::string           meshFileName = "../../data/meshes/3D/cube_4120el.msh";
+      // std::string           meshFileName = "../../meshes/3D/tet_tilted_1el.msh";
+      // std::string           meshFileName = "../../meshes/3D/pyramid_2el.msh";
+      // std::string           meshFileName = "../../meshes/3D/three_tets_with_two_joint_faces.msh";
+      // std::string           meshFileName = "../../meshes/3D/pyramid_4el.msh";
+      std::string meshFileName = "../../meshes/3D/regular_octahedron_8el.msh";
+      // std::string           meshFileName = "../../meshes/3D/cube_4120el.msh";
       MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
       SetupPrimitiveStorage setupStorage3D( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage3D.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

@@ -137,12 +137,12 @@ int main(int argc, char* argv[])
   walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
-  test( "../../data/meshes/quad_8el.msh", 4, 20, 0 );
-  test( "../../data/meshes/quad_8el.msh", 4, 20, 1 );
-  test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 0 );
-  test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 1 );
-  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 0 );
-  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 1 );
+  test( "../../meshes/quad_8el.msh", 4, 20, 0 );
+  test( "../../meshes/quad_8el.msh", 4, 20, 1 );
+  test( "../../meshes/3D/tet_1el.msh", 4, 20, 0 );
+  test( "../../meshes/3D/tet_1el.msh", 4, 20, 1 );
+  test( "../../meshes/3D/regular_octahedron_8el.msh", 4, 20, 0 );
+  test( "../../meshes/3D/regular_octahedron_8el.msh", 4, 20, 1 );
 
 
   return 0;

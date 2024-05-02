@@ -33,7 +33,7 @@ static void testPrimitiveRelativeOrdering()
 {
   // Checking logical macro-primitive indexing according to documentation
 
-  std::shared_ptr< PrimitiveStorage > storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+  std::shared_ptr< PrimitiveStorage > storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/tet_1el.msh" );
 
   WALBERLA_CHECK_EQUAL( storage->getNumberOfLocalCells(), 1 );
   WALBERLA_CHECK_EQUAL( storage->getNumberOfLocalFaces(), 4 );

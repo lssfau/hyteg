@@ -112,8 +112,8 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::test( "../../data/meshes/annulus_coarse.msh", level );
-      hyteg::test( "../../data/meshes/bfs_126el.msh", level );
+      hyteg::test( "../../meshes/annulus_coarse.msh", level );
+      hyteg::test( "../../meshes/bfs_126el.msh", level );
 
       hyteg::testAMR( level, 4 );
    }
@@ -122,10 +122,10 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::test( "../../data/meshes/3D/tet_1el.msh", level );
-      hyteg::test( "../../data/meshes/3D/pyramid_2el.msh", level );
-      hyteg::test( "../../data/meshes/3D/pyramid_4el.msh", level );
-      hyteg::test( "../../data/meshes/3D/cube_24el.msh", level );
+      hyteg::test( "../../meshes/3D/tet_1el.msh", level );
+      hyteg::test( "../../meshes/3D/pyramid_2el.msh", level );
+      hyteg::test( "../../meshes/3D/pyramid_4el.msh", level );
+      hyteg::test( "../../meshes/3D/cube_24el.msh", level );
    }
 
    return 0;

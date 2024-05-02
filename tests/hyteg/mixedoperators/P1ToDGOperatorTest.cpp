@@ -39,9 +39,9 @@ void checkP1ToDG1ByIntegral( const uint_t dim )
 {
    std::string mesh_file;
    if ( dim == 2 )
-      mesh_file = "../../data/meshes/quad_4el.msh";
+      mesh_file = "../../meshes/quad_4el.msh";
    else
-      mesh_file = "../../data/meshes/3D/cube_6el.msh";
+      mesh_file = "../../meshes/3D/cube_6el.msh";
 
    MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
 
@@ -79,7 +79,7 @@ void checkP1ToDG1ByIntegral( const uint_t dim )
 
 void enumerateTest()
 {
-   std::string mesh_file = "../../data/meshes/quad_4el.msh";
+   std::string mesh_file = "../../meshes/quad_4el.msh";
 
    MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
 
@@ -107,7 +107,7 @@ void enumerateTest()
 
 void checkTranspose()
 {
-   std::string mesh_file = "../../data/meshes/quad_4el.msh";
+   std::string mesh_file = "../../meshes/quad_4el.msh";
 
    MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
 

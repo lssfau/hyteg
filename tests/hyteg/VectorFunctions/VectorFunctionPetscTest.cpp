@@ -79,7 +79,7 @@ int main( int argc, char* argv[] )
 
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   std::string meshFileName = "../../data/meshes/quad_16el.msh";
+   std::string meshFileName = "../../meshes/quad_16el.msh";
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

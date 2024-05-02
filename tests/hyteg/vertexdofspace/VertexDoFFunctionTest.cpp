@@ -261,7 +261,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 
 void testInvertElementwise()
 {
-   auto   storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" );
+   auto   storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" );
    uint_t level   = 3;
 
    vertexdof::VertexDoFFunction< real_t > vFunc( "testFunc", storage, level, level );
@@ -281,9 +281,9 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                 "../../data/meshes/3D/tet_1el.msh" );
+                                 "../../meshes/3D/tet_1el.msh" );
    hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                 "../../data/meshes/3D/tet_1el.msh" );
+                                 "../../meshes/3D/tet_1el.msh" );
 
    hyteg::testInvertElementwise();
 

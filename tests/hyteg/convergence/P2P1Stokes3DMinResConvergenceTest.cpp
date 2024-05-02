@@ -47,7 +47,7 @@ using walberla::uint_t;
 template < typename P2P1P1StokesOperator >
 void stokesMinResConvergenceTest()
 {
-   const std::string meshFileName  = "../../data/meshes/3D/cube_24el.msh";
+   const std::string meshFileName  = "../../meshes/3D/cube_24el.msh";
    const uint_t      minLevel      = 2;
    const uint_t      maxLevel      = 2;
    const uint_t      maxIterations = 20;

@@ -147,10 +147,10 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    std::vector< std::string > meshes;
-   meshes.push_back( "../../data/meshes/quad_4el.msh" );
-   meshes.push_back( "../../data/meshes/annulus_coarse.msh" );
-   meshes.push_back( "../../data/meshes/3D/regular_octahedron_8el.msh" );
-   meshes.push_back( "../../data/meshes/3D/cube_6el.msh" );
+   meshes.push_back( "../../meshes/quad_4el.msh" );
+   meshes.push_back( "../../meshes/annulus_coarse.msh" );
+   meshes.push_back( "../../meshes/3D/regular_octahedron_8el.msh" );
+   meshes.push_back( "../../meshes/3D/cube_6el.msh" );
 
    uint_t maxLevel = 3;
 

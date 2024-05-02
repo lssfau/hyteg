@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   cfg->readParameterFile( "../../data/param/gmg_P2.prm" );
+   cfg->readParameterFile( "./P2GMGConvergenceTest.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
 
    const uint_t minLevel         = parameters.getParameter< uint_t >( "minLevel" );
