@@ -21,7 +21,7 @@
 /**
  * \page 12_UnresolvedParticles Tutorial 12 - Unresolved particulate flow
  *
- * \dontinclude tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp
+ * \dontinclude tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp
  *
  * \brief In this tutorial, unresolved particles are transported subject to an underlying velocity field.
  *
@@ -31,27 +31,27 @@
  * velocities, such that their mass and size does not influence the results.
  *
  * First we set up a simple cube shaped domain.
- * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp domain
+ * \snippet tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp domain
  *
  * Then we define a velocity field that acts on our particles.
  * It resembles a convection cell in the x-y-plane. We will later scale it depending on the simulated time.
- * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp velocity
+ * \snippet tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp velocity
  *
  * We use two fields to avoid the usually slow interpolate function. Instead of interpolating the function every time step,
  * we just store the unscaled function, and scale it via the assign() method. This way, we replace the interpolate() call by an
  * assign() call which is generally much faster, at the cost of a little bit of memory. It clearly only works here as we simply
  * scale the convection cell.
- * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp fields
+ * \snippet tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp fields
  *
  * Now we allocate our particles. The setup is commented inline below.
- * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp particles
+ * \snippet tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp particles
  *
  * The VTK output needs to be initialized explicitly.
- * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp vtk
+ * \snippet tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp vtk
  *
  * Lets run our simulation. We alter the velocity field in each time step, apply it to the particles, and then integrate to
  * advect the particles.
- * \snippet tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp simulation
+ * \snippet tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp simulation
  *
  * The particles are advected along the velocity field. Results are shown below.
  *
@@ -67,7 +67,7 @@
    \endhtmlonly
  *
  * \section code Complete Program
- * \include tutorials/12_UnresolvedParticles/12_UnresolvedParticles.cpp
+ * \include tutorials/apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp
  *
  */
 

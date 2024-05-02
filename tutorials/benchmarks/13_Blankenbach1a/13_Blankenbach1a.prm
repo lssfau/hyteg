@@ -1,0 +1,42 @@
+Parameters
+{
+    nx 4;
+    ny 4;
+
+    minLevel 4;
+    maxLevel 4;
+
+    verbose false;
+
+    cflMax 0.25;
+    diffusivity 1.0;
+    
+    RayleighNumber 1e4;
+
+    NTimesteps 50000;
+    endTime 4;
+
+    stokesIter 10000;
+    stokesRelTol 1e-6;
+
+    transportIter 10000;
+    transportRelTol 1e-6;
+
+    logNsFreq 100;
+
+    useAdios2 true;
+    adiosXmlConfig ./ADIOS2demo.xml;
+
+    outputPath ./output;
+    outputFilename Blankenbach_Case1a;
+    logFilenameWithTime false;
+    dataWriteFrequency 10;
+
+    storeCheckpoint false;
+    checkpointFreq 100;
+
+    startFromCheckpoint false;
+
+    checkpointFilepath ./output;
+    checkpointFilename Blankenbach_Case1a_Checkpoint;
+}
