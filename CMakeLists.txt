@@ -237,7 +237,7 @@ add_subdirectory( tutorials )
 #
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
-  find_package ( Doxygen )
+  find_package ( Doxygen 1.10.0...<90.0.0 )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
@@ -300,7 +300,7 @@ if ( DOXYGEN_FOUND )
 
 else ()
 
-  message( STATUS "Doxygen not found. You will not be able to build documentation." )
+  message( STATUS "No (suitable version of) Doxygen was found. You might not be able to build the documentation (properly)." )
 
 endif ( )
 
