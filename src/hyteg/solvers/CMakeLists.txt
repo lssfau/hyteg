@@ -2,6 +2,7 @@ target_sources( hyteg
     PRIVATE
     StokesPCGSolver.hpp
     EmptySolver.hpp
+    FlexibleMultigridSolver.hpp
     FullMultigridSolver.hpp
     Smoothables.hpp
     GeometricMultigridSolver.hpp

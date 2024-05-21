@@ -22,6 +22,7 @@
 #include "core/DataTypes.h"
 
 namespace hyteg {
+
 template < class OperatorType >
 class Solver
 {
@@ -35,3 +36,24 @@ class Solver
    virtual ~Solver() = default;
 };
 } // namespace hyteg
+
+// namespace evostencils
+namespace evostencils {
+
+enum SolverType 
+{
+  Empty = 0,
+  CG = 1,
+  Chebyshev = 2,
+  GaussSeidel = 3,
+  GKB = 4,
+  GMRES= 5,
+  Minres = 6,
+  SOR = 7,
+  StokesPCG = 8,
+  SymmetricGaussSeidel = 9,
+  SymmetricSOR = 10,
+  Uzawa = 11,
+  WeightedJacobi = 12,
+};
+} // namespace evostencils

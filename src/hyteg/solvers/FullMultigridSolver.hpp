@@ -30,7 +30,7 @@
 
 namespace hyteg {
 
-template < class OperatorType >
+template < class OperatorType, class MultigridSolverType = GeometricMultigridSolver< OperatorType > > // MultigridSolverType: chose GeometricMultigridSolver or FlexibleMultigridSolver
 class FullMultigridSolver : public Solver< OperatorType >
 {
  public:
@@ -38,24 +38,24 @@ class FullMultigridSolver : public Solver< OperatorType >
 
    FullMultigridSolver(
        const std::shared_ptr< PrimitiveStorage >&                         storage,
-       const std::shared_ptr< GeometricMultigridSolver< OperatorType > >& gmgSolver,
+       const std::shared_ptr< MultigridSolverType > & gmgSolver,
        const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
        const uint_t&                                                      minLevel,
        const uint_t&                                                      maxLevel,
        const uint_t&                                                      cyclesPerLevel    = 1,
        const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ) {} )
-   : FullMultigridSolver< OperatorType >( storage,
-                                          gmgSolver,
-                                          fmgProlongation,
-                                          minLevel,
-                                          maxLevel,
-                                          std::vector< uint_t >( maxLevel + 1, cyclesPerLevel ),
-                                          postCycleCallback )
+   : FullMultigridSolver( storage,
+                        gmgSolver,
+                        fmgProlongation,
+                        minLevel,
+                        maxLevel,
+                        std::vector< uint_t >( maxLevel + 1, cyclesPerLevel ),
+                        postCycleCallback )
    {}
 
    FullMultigridSolver(
        const std::shared_ptr< PrimitiveStorage >&                         storage,
-       const std::shared_ptr< GeometricMultigridSolver< OperatorType > >& gmgSolver,
+       const std::shared_ptr< MultigridSolverType >& gmgSolver,
        const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
        const uint_t&                                                      minLevel,
        const uint_t&                                                      maxLevel,
@@ -104,7 +104,7 @@ class FullMultigridSolver : public Solver< OperatorType >
    }
 
  private:
-   std::shared_ptr< GeometricMultigridSolver< OperatorType > > gmgSolver_;
+   std::shared_ptr< MultigridSolverType > gmgSolver_;
    std::shared_ptr< ProlongationOperator< FunctionType > >     fmgProlongation_;
 
    uint_t minLevel_;

@@ -1,0 +1,31 @@
+Parameters
+{
+    numEdgesPerSide 1;
+    discretization P1;
+    L2residualTolerance 1e-8;
+    minLevel 0;
+    maxLevel 4; 
+    calculateDiscretizationError 0;
+
+    numCycles 100;
+    cycleType V;
+    fmgInnerCycles 0; // 0 == no fmg
+    preSmoothingSteps 1;
+    postSmoothingSteps 1;
+    smoothingIncrement 0;
+
+    coarseGridMaxIterations 20000;
+    coarseGridResidualTolerance 1e-9;
+    blockLowRank false;
+    blockLowRankTolerance 1e-5;
+
+    flexCycle false;
+    cycleStructure -1,-1,-1,-1,1,1,1,1;
+    smootherWeights 1,1,1,1,1,1,1,1,1;
+    smootherTypes 7,7,7,7,7,7,7,7,7;
+    outputBaseDirectory .;
+    outputVTK false;
+    outputTiming false;
+    outputTimingJSON false;
+    outputTimingJSONFile timing.json;
+}
