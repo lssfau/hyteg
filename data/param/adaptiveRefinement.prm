@@ -11,7 +11,7 @@ Parameters
   // 6: wave shape induced by coefficient
   // 7: jump coefficient
   // 8: jump coefficient regularized
-  modelProblem 3;
+  modelProblem 7;
   // spacial dimension of domain
   dim 2;
 
@@ -19,9 +19,9 @@ Parameters
   n_waves 8; // number of waves (problem 4/6)
   squeeze_waves 100; // factor to 'squeeze' the waves towards the corners (problem 4/6)
   k_low 1; // value of coefficient before jump (problem 7)
-  k_high 100;// value of coefficient after jump (problem 7)
+  k_high 10000;// value of coefficient after jump (problem 7)
 
-  initial_resolution 2; // initial number of elements in each direction
+  initial_resolution 3; // initial number of elements in each direction
 
   // adaptive refinement:
   error_indicator 0; // else refine based on actual L2 error (using analytic solution)
@@ -29,39 +29,39 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 10; // number of refinement steps
-  refinement_strategy 2; //0:MEAN_SQUARED_ERROR, 1:PROPORTION, 2:SINGULARITY
-  p_refinement 0.2; // additional parameter for refinement (default=0):
+  n_refinements 0; // number of refinement steps
+  refinement_strategy 0; //0:MEAN_SQUARED_ERROR, 1:PROPORTION, 2:SINGULARITY
+  p_refinement 1; // additional parameter for refinement (default=0):
                     // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
                     // PROPORTION: proportion of elements that will be marked for refinement, p in [0,1]
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 0;
+  microlevel 4;
   // microlevel_final 8; // use different micro level for final solve step
 
 
   // // linear solver (GMG)
-  presmooth 2; // number of gs iterations for smoothing
-  postsmooth 1;
+  presmooth 8; // number of gs iterations for smoothing
+  postsmooth 8;
   n_cycles 1; // number of V-cycles on each level in FMG+
-  n_iterations 5; // first iteration FMG, then V-cycles
+  n_iterations 10; // first iteration FMG, then V-cycles
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
-  // cg_level 2; // defaults to 0
-  cg_tolerance 1e-9;
+  cg_level 0; // defaults to 0
+  cg_tolerance 1e-3;
   // initial_guess 1; // 0: zero, 1: u_h from previous refinement
 
   // // misc
   loadbalancing 1; // else, assign macros via round robin
-  l2error 1; // compute actual L2 error after every n-th iteration
+  l2error -1; // compute actual L2 error after every n-th iteration
               // 0: only after last iteration (default)
               // -1: never
-  vtkName auto;
+  // vtkName auto;
   // vtkName err_ex;
   // writeDomainPartitioning 1;
-  writeMeshfile 1;
+  writeMeshfile 0;
   printMeshData 0;
   // initialMesh output/_mesh_6.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/reentrant_corner_2D_mesh_25.msh; // use custom initial mesh e.g. written from previous run

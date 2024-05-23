@@ -30,37 +30,41 @@
 
 namespace hyteg {
 
-template < class OperatorType, class MultigridSolverType = GeometricMultigridSolver< OperatorType > > // MultigridSolverType: chose GeometricMultigridSolver or FlexibleMultigridSolver
+template < class OperatorType,
+           class MultigridSolverType = GeometricMultigridSolver<
+               OperatorType > > // MultigridSolverType: chose GeometricMultigridSolver or FlexibleMultigridSolver
 class FullMultigridSolver : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
    FullMultigridSolver(
-       const std::shared_ptr< PrimitiveStorage >&                         storage,
-       const std::shared_ptr< MultigridSolverType > & gmgSolver,
-       const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
-       const uint_t&                                                      minLevel,
-       const uint_t&                                                      maxLevel,
-       const uint_t&                                                      cyclesPerLevel    = 1,
-       const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ) {} )
+       const std::shared_ptr< PrimitiveStorage >&                     storage,
+       const std::shared_ptr< MultigridSolverType >&                  gmgSolver,
+       const std::shared_ptr< ProlongationOperator< FunctionType > >& fmgProlongation,
+       const uint_t&                                                  minLevel,
+       const uint_t&                                                  maxLevel,
+       const uint_t&                                                  cyclesPerLevel         = 1,
+       const std::function< void( uint_t currentLevel ) >&            postCycleCallback      = []( uint_t ) {},
+       const std::function< void( uint_t currentLevel ) >&            postProlongateCallback = []( uint_t ) {} )
    : FullMultigridSolver( storage,
-                        gmgSolver,
-                        fmgProlongation,
-                        minLevel,
-                        maxLevel,
-                        std::vector< uint_t >( maxLevel + 1, cyclesPerLevel ),
-                        postCycleCallback )
+                          gmgSolver,
+                          fmgProlongation,
+                          minLevel,
+                          maxLevel,
+                          std::vector< uint_t >( maxLevel + 1, cyclesPerLevel ),
+                          postCycleCallback )
    {}
 
    FullMultigridSolver(
-       const std::shared_ptr< PrimitiveStorage >&                         storage,
-       const std::shared_ptr< MultigridSolverType >& gmgSolver,
-       const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
-       const uint_t&                                                      minLevel,
-       const uint_t&                                                      maxLevel,
-       const std::vector< uint_t >&                                       cyclesPerLevel,
-       const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ) {} )
+       const std::shared_ptr< PrimitiveStorage >&                     storage,
+       const std::shared_ptr< MultigridSolverType >&                  gmgSolver,
+       const std::shared_ptr< ProlongationOperator< FunctionType > >& fmgProlongation,
+       const uint_t&                                                  minLevel,
+       const uint_t&                                                  maxLevel,
+       const std::vector< uint_t >&                                   cyclesPerLevel,
+       const std::function< void( uint_t currentLevel ) >&            postCycleCallback      = []( uint_t ) {},
+       const std::function< void( uint_t currentLevel ) >&            postProlongateCallback = []( uint_t ) {} )
    : gmgSolver_( gmgSolver )
    , fmgProlongation_( fmgProlongation )
    , minLevel_( minLevel )
@@ -99,13 +103,17 @@ class FullMultigridSolver : public Solver< OperatorType >
             fmgProlongation_->prolongate( x, currentLevel, flag_ );
          }
          timingTree_->stop( "FMG Prolongation" );
+
+         timingTree_->start( "Post-prolongate callback" );
+         postCycleCallback_( currentLevel );
+         timingTree_->stop( "Post-prolongate callback" );
       }
       timingTree_->stop( "FMG Solver" );
    }
 
  private:
-   std::shared_ptr< MultigridSolverType > gmgSolver_;
-   std::shared_ptr< ProlongationOperator< FunctionType > >     fmgProlongation_;
+   std::shared_ptr< MultigridSolverType >                  gmgSolver_;
+   std::shared_ptr< ProlongationOperator< FunctionType > > fmgProlongation_;
 
    uint_t minLevel_;
    uint_t maxLevel_;
