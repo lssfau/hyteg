@@ -21,7 +21,7 @@
 /**
  * \page 11_CouetteFlow Tutorial 11 - Couette flow
  * 
- * \dontinclude tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp
+ * \dontinclude tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp
  * 
  * \brief This tutorial demonstrates the implementation of a Couette flow problem on an annulus, i.e. the flow
  * is driven purely by different tangential velocities on the inner and outer boundary of the annulus. Additionally
@@ -69,10 +69,10 @@
  * as we would like to steer computations by providing parameters through a file, handling the latter:
  * 
  * \subsection T11-env Environment
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp Create Environment
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp Create Environment
  * 
  * \subsection T11-readPrm Read parameter file
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp Read prm file
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp Read prm file
  * 
  * \subsection T11-setupMesh Setup the annulus mesh
  * 
@@ -82,30 +82,30 @@
  *
  * \note Currently using CRISSCROSS as meshing flavour is not compatible with using blending (below).
  *
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp annulus mesh
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp annulus mesh
  * 
  * Next the `SetupPrimitiveStorage` object is set with the annulus mesh and the MPI manager which sets up the distributed data structure in the MPI processes to store the mesh
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp setup setupstorage
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp setup setupstorage
  * 
  * When the mesh is refined up to the maximum level from an initial coarse mesh, the curvature of the annulus will not be captured by the fine mesh. This is fixed by using
  * a blending map. In our case, unsurprisingly, the `AnnulusMap` is appropriate. We set this, so that the mesh is mapped accordingly. Note that using blending implies that
  * compatible blending-aware operators need to be used later.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp blending map
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp blending map
  * 
  * \subsection T11-BCs Boundary conditions
  * 
  * The `meshAnnulus` function automatically tags the primitives of the annulus mesh. When setting the Dirichlet boundary conditions of the inner and outer boundary we can
  * use the corresponding flags.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp boundary cond
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp boundary cond
  * 
  * Let `u` be our `P2P1TaylorHoodFunction< real_t >`, i.e. a function object storing both, the P2 velocity field and the P1 pressure field.
  * We can access the velocity component of `u` as `u.uvw()` and can pass our boundary condition object `bcVelocity`, when we want to interpolate the Dirichlet values for
  * the boundary conditions by passing an appropriate lambda functions which sets the BC values on the Dirichlet boundary and on the level specified.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp bcValues
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp bcValues
  * 
  * The lambda functions `boundaryConditionsX` and `boundaryConditionsY` are used to set the boundary values for velocity. In our example, the prescribed velocity vectors
  * are tangent to the boundaries. In the lambda functions we calculate their cartesian components and impose those on the boundary. The lambda functions that are passed
@@ -116,7 +116,7 @@
  * Here we define the finite element functions needed for our FE computations and error norm calculations. These functions store thevalues of the degrees of freedom in a
  * distributed fashion on the MPI processes that are running the program.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp declare p2p1funcs
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp declare p2p1funcs
  * 
  * \subsection T11-FEOps FE Operators
  * 
@@ -127,7 +127,7 @@
  * The operator will 'live' on all levels of our mesh hierarchy, starting from `minLevel` up to `maxLevel`. As we intend to employ a geometric multigrid solver for the linear
  * system of equations resulting from the FE discretisation of the problem, we allow to specify different values for the latter.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp StokesOperator
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp StokesOperator
  * 
  * \subsection T11-gmg Multigrid solver
  * 
@@ -136,22 +136,22 @@
  * - coarse grid solver \f$ \Rightarrow\f$ for this we use a pressure preconditioned MINRES solver which is wrapped as a solver template under `solvertemplates::stokesMinResSolver`
  * - restriction and prolongation operators \f$ \Rightarrow\f$ the `P2P1StokesToP2P1StokesProlongation` operator is appropriate here; it uses quadratic interpolation for prolongation of velocity and a linear one for prolongation of pressure; the tranpose operatgor is used for restriction
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp gmg
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp gmg
  * 
  * We then call the GMG solver a certain number of times to solve the system on our desired target level `maxLevel`, i.e. where we start our V-cycle:
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp gmgSolve
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp gmgSolve
  * 
  * \subsection T11-err Error calculation
  * 
  * The computed finite element solution is projected to a higher level and then the error is computed with the analytical solution on that level. To approximate the L2-norm of the
  * error we use the mass operator which performs the integration of the L2 norm in the FE space.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp calcErr
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp calcErr
  * 
  * This function basically computes the L2 norm on the finite element space,
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp normL2
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp normL2
  * 
  * \f[
  * \begin{equation*}
@@ -168,8 +168,8 @@
  * 
  * Hence we define the appropriate mass operator for our FE space which also supports blending for the annulus to compute the norm of the velocity error.
  * 
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp massOpErr
- * \snippet tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp calcErrNorm
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp massOpErr
+ * \snippet tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp calcErrNorm
  *
  * \subsection T11-res Results
  * 
@@ -183,7 +183,7 @@
  * <img src="11_CouetteFlow_Pressure.png" width="50%"/> 
  * 
  * \section T11-fullCode Code without comments
- * \include tutorials/apps/11_CouetteFlow/11_CouetteFlow2D.cpp
+ * \include tutorials/full-apps/11_CouetteFlow/11_CouetteFlow2D.cpp
  */
 
 #include <iostream>

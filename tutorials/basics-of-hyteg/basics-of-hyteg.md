@@ -1,7 +1,4 @@
-\page Basics_Hyteg Basics - HyTeG
-
-* \subpage 01_PrimitiveStorage
-    - Setting up a distributed simulation domain using the PrimitiveStorage class
+\page Basics_HyTeG Basics - HyTeG
 
 * \subpage 02_PrimitiveData
     - Adding data to primitives

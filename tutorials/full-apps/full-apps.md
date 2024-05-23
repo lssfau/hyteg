@@ -1,4 +1,4 @@
-\page Apps Apps
+\page Full_Apps Full Apps
 
 * \subpage 05_FullAppP1GMG
     - Setting up a complete app using P1 elements which will perform geometric multigrid to solve the Laplace equation

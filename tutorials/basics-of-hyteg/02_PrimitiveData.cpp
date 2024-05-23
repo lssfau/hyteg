@@ -29,7 +29,7 @@ namespace hyteg {
 /**
  * \page 02_PrimitiveData Tutorial 02 - Adding data to primitives
  *
- * \dontinclude tutorials/basics/02_PrimitiveData.cpp
+ * \dontinclude tutorials/basics-of-hyteg/02_PrimitiveData.cpp
  *
  * \brief In this tutorial we will add data to primitives
  *
@@ -46,12 +46,12 @@ namespace hyteg {
  * Typically, we want our primitives to carry simulation data in form of floating point arrays.
  * Therefore let's create a simple class that wraps such a structure.
  *
- * \snippet tutorials/basics/02_PrimitiveData.cpp SimulationData
+ * \snippet tutorials/basics-of-hyteg/02_PrimitiveData.cpp SimulationData
  *
  * Since our domain has no idea how to call the constructor, we need to implement a data handling
  * for our custom data structure:
  *
- * \snippet tutorials/basics/02_PrimitiveData.cpp SimulationDataHandling
+ * \snippet tutorials/basics-of-hyteg/02_PrimitiveData.cpp SimulationDataHandling
  *
  * Our custom data handling must subclass PrimitiveDataHandling, which is templated with
  * the type of the data and the type of the primitive this data belongs to. Since our data
@@ -63,7 +63,7 @@ namespace hyteg {
  * The most important one is PrimitiveDataHandling::initialize(). This function returns a shared pointer to
  * an initialized object. This way, the PrimitiveStorage does not need to know what type of data it stores.
  *
- * \snippet tutorials/basics/02_PrimitiveData.cpp SimulationDataHandlingInitialize
+ * \snippet tutorials/basics-of-hyteg/02_PrimitiveData.cpp SimulationDataHandlingInitialize
  *
  * The PrimitiveDataHandling::serialize() and PrimitiveDataHandling::deserialize() methods can be used
  * for runtime load balancing or checkpoint-restart features (but are not required for this tutorial).
@@ -78,7 +78,7 @@ namespace hyteg {
  *
  * Data is added via the PrimitiveStorage:
  *
- * \snippet tutorials/basics/02_PrimitiveData.cpp AddingData
+ * \snippet tutorials/basics-of-hyteg/02_PrimitiveData.cpp AddingData
  *
  * In this step, each Primitive initializes one instance of SimulationData.
  *
@@ -86,11 +86,11 @@ namespace hyteg {
  *
  * To obtain the data from a Primitive, simply call its respective method using the PrimitiveDataID:
  *
- * \snippet tutorials/basics/02_PrimitiveData.cpp DataRetrieval
+ * \snippet tutorials/basics-of-hyteg/02_PrimitiveData.cpp DataRetrieval
  *
  * \section T02-PrimitiveData-code Complete Program
  *
- * \include tutorials/basics/02_PrimitiveData.cpp
+ * \include tutorials/basics-of-hyteg/02_PrimitiveData.cpp
  *
  */
 

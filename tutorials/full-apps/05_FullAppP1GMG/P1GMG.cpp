@@ -41,7 +41,7 @@ using walberla::uint_t;
 /**
  * \page 05_FullAppP1GMG Tutorial 05 - Geometric multigrid
  *
- * \dontinclude tutorials/apps/05_FullAppP1GMG/P1GMG.cpp
+ * \dontinclude tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp
  *
  * \brief In this tutorial we will set up a complete app using P1 elements which will perform geometric
  * multigrid to solve the Laplace equation.
@@ -51,7 +51,7 @@ using walberla::uint_t;
  * At we first we create a walberla Environment which handles mpi init and set the communicator for all
  * prozesses to WorldComm
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Create Environment
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Create Environment
  *
  * \section T05-FullAppP1GMG-parameters Set Parameters
  *
@@ -65,7 +65,7 @@ using walberla::uint_t;
  * See walberla documentation for more details:
  * http://www.walberla.net/doxygen/classwalberla_1_1config_1_1Config.html
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Get Parameters
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Get Parameters
  *
  *
  * \section T05-FullAppP1GMG-storage Primitive Storage
@@ -75,7 +75,7 @@ using walberla::uint_t;
  * This creation can be split into more steps for more flexibility like using other load
  * balancing techniques
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Primitive Storage
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Primitive Storage
  *
  * \section T05-FullAppP1GMG-functionSpaces Create P1 Function Spaces
  *
@@ -90,7 +90,7 @@ using walberla::uint_t;
  *
  * Be aware that the highest level is included
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Function Spaces
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Function Spaces
  *
  * \section T05-FullAppP1GMG-boundaries Create functions for boundary conditions
  *
@@ -110,7 +110,7 @@ using walberla::uint_t;
  * for example hyteg::Inner for all points no on a boundary or hyteg::NeumannBondary for points which are
  * specified as Neumann boundaries
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Boundary Conditions
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Boundary Conditions
  *
  * \section T05-FullAppP1GMG-solver Solver
  *
@@ -128,7 +128,7 @@ using walberla::uint_t;
  *
  * Furthermore we need to create an instance of the P1LaplaceOperator
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Solvers
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Solvers
  *
  * \section T05-FullAppP1GMG-multigrid Perform Multigrid
  *
@@ -152,7 +152,7 @@ using walberla::uint_t;
  * When calling the solve function with CycleType::VCycle one cycle is performed per call.
  * We use a for loop to perform the desired number of V cycles
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Multigrid
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Multigrid
  *
  * \section T05-FullAppP1GMG-Calculate Residual
  *
@@ -165,7 +165,7 @@ using walberla::uint_t;
  *
  * See: http://www.walberla.net/doxygen/classwalberla_1_1logging_1_1Logging.html
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Residual
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Residual
  *
  * \section T05-FullAppP1GMG-output Write VTK Output
  *
@@ -179,10 +179,10 @@ using walberla::uint_t;
  * By specifiying a certain level as paramter in the write function, the desired level will be written to
  * disk
  *
- * \snippet tutorials/apps/05_FullAppP1GMG/P1GMG.cpp Output
+ * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Output
  *
  * \section T05-FullAppP1GMG-fullApp Full Application
- * \include tutorials/apps/05_FullAppP1GMG/P1GMG.cpp
+ * \include tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp
  *
  */
 

@@ -21,7 +21,7 @@
 /**
  * \page 09_BoundaryConditions Tutorial 09 - Multiple boundary conditions
  *
- * \dontinclude tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp
+ * \dontinclude tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp
  *
  * \brief In this tutorial, we are going to demonstrate how one can set different types of boundary conditions
  * on different parts of the boundary and/or for different components of the problem.
@@ -98,7 +98,7 @@
  * However, this method requires a little more consideration w.r.t. the callbacks as the flags for higher-dimensional
  * primitives are derived from those of their associated vertices.
  * 
- * \snippet tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp Flag_Boundaries_Parts
+ * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Flag_Boundaries_Parts
  *
  * \subsection T09-Step2 Step #2: Create BoundaryCondition objects
  * 
@@ -117,7 +117,7 @@
  * Note that the symbolic names we supply as arguments are stored internally in the object and must be unique,
  * but currently find no further usage.
  * 
- * \snippet tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp BC_Objects
+ * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp BC_Objects
  * 
  * \subsection T09-Step3 Step #3: Create Functions
  * 
@@ -159,7 +159,7 @@
  * only for the velocity component. For the pressure component an object will be generated automatically via
  * \link hyteg::BoundaryCondition::createAllInnerBC() `createAllInnerBC()`\endlink.
  * 
- * \snippet tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp Function_Creation
+ * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Function_Creation
  * 
  * \subsection T09-Step4 Step #4: Setting Boundary and Initial Conditions
  *
@@ -182,12 +182,12 @@
  * write a corresponding lambda expression to use as callback. However, it is more convenient to simply work
  * with the corresponding BoundaryUIDs instead:
  *
- * \snippet tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Temp
+ * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Temp
  *
  * When we set boundary values for velocity we must to take into account that this is a vector-valued function.
  * Thus, we need to either specify one constant or one std::function per component.
  *
- * \snippet tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Vel
+ * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Vel
  *
  * As a final aspect let us demonstrate how to combine different DoFType values to set the initial values for
  * the temperature. Note that the initiation function
@@ -197,7 +197,7 @@
  * \f]
  * is consistent with the Dirichlet boundary conditions so we could also use `All` to combine setting boundary
  * and initial conditions for time \f$t=t_0\f$.
- * \snippet tutorials/basics/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_ICs
+ * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_ICs
  *
  */
 

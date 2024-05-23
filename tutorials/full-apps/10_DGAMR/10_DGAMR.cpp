@@ -21,7 +21,7 @@
 /**
  * \page 10_DGAMR Tutorial 10 - DG and AMR
  *
- * \dontinclude tutorials/apps/10_DGAMR/10_DGAMR.cpp
+ * \dontinclude tutorials/full-apps/10_DGAMR/10_DGAMR.cpp
  *
  * \brief In this tutorial, we solve the Poisson equation using a discontinuous Galerkin discretization and adaptive mesh
  * refinement.
@@ -77,7 +77,7 @@
  *
  * All of this happens in one method. It requires only to pass the PrimitiveID of all (local) volume primitives to be refined.
  *
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp macro refinement
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp macro refinement
  *
  * In this example we simply refine all primitives that have a vertex at the origin multiple times. The result looks like this:
  *
@@ -102,11 +102,11 @@
  * DG functions and operators are almost used as it's done for other conforming discretizations. The main difference is that
  * the basis and degree are passed in the constructor. This also applied for the operators - the form has to be passed here, too.
  *
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp DG parameters
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp DG parameters
  *
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp DG functions
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp DG functions
  *
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp DG operators
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp DG operators
  *
  * The weak enforcement of Dirichlet boundary conditions is handled by a function that also takes as an argument the Form object.
  *
@@ -118,12 +118,12 @@
  * \f]
  * That requires the solution of a linear system involving the mass matrix \f$ M \f$:
  *
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp interpolation
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp interpolation
  *
  * Eventually, we solve the linear system and plot the error over \f$ \frac{1}{h} \f$.
  *
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp solve
- * \snippet tutorials/apps/10_DGAMR/10_DGAMR.cpp error
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp solve
+ * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp error
  *
  * \htmlonly
    <center>
