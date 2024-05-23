@@ -1,4 +1,4 @@
 \page Geophysics_Benchmarks Geophysical Benchmarks
 
-* \subpage 13_Blankenbach1a
+* \subpage GB.01_BlankenbachCase1a
     - Implementation of a standard benchmark from Geophysical literature, the Blankenbach problem

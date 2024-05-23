@@ -1,11 +1,11 @@
-waLBerla_add_executable( NAME 02_PrimitiveData
-        FILES 02_PrimitiveData.cpp
+waLBerla_add_executable( NAME BH.01_PrimitiveData
+        FILES BH.01_PrimitiveData.cpp
         DEPENDS hyteg )
 
-waLBerla_add_executable( NAME 03_Communication
-        FILES 03_Communication.cpp
+waLBerla_add_executable( NAME BH.02_Communication
+        FILES BH.02_Communication.cpp
         DEPENDS hyteg )
 
-waLBerla_add_executable( NAME 04_Indexing
-        FILES 04_Indexing.cpp
+waLBerla_add_executable( NAME BH.03_Indexing
+        FILES BH.03_Indexing.cpp
         DEPENDS hyteg )

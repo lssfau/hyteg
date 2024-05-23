@@ -19,9 +19,9 @@
  */
 
 /**
- * \page 12_UnresolvedParticles Tutorial 12 - Unresolved particulate flow
+ * \page FA.07_UnresolvedParticles Tutorial FA.07 - Unresolved particulate flow
  *
- * \dontinclude tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp
+ * \dontinclude tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp
  *
  * \brief In this tutorial, unresolved particles are transported subject to an underlying velocity field.
  *
@@ -31,43 +31,43 @@
  * velocities, such that their mass and size does not influence the results.
  *
  * First we set up a simple cube shaped domain.
- * \snippet tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp domain
+ * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp domain
  *
  * Then we define a velocity field that acts on our particles.
  * It resembles a convection cell in the x-y-plane. We will later scale it depending on the simulated time.
- * \snippet tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp velocity
+ * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp velocity
  *
  * We use two fields to avoid the usually slow interpolate function. Instead of interpolating the function every time step,
  * we just store the unscaled function, and scale it via the assign() method. This way, we replace the interpolate() call by an
  * assign() call which is generally much faster, at the cost of a little bit of memory. It clearly only works here as we simply
  * scale the convection cell.
- * \snippet tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp fields
+ * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp fields
  *
  * Now we allocate our particles. The setup is commented inline below.
- * \snippet tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp particles
+ * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp particles
  *
  * The VTK output needs to be initialized explicitly.
- * \snippet tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp vtk
+ * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp vtk
  *
  * Lets run our simulation. We alter the velocity field in each time step, apply it to the particles, and then integrate to
  * advect the particles.
- * \snippet tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp simulation
+ * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp simulation
  *
  * The particles are advected along the velocity field. Results are shown below.
  *
  * \htmlonly
    <center>
    <table>
-   <tr><td><img src="12_UnresolvedParticles.0000.png" width="100%"/><center>initial</center></td></tr>
-   <tr><td><img src="12_UnresolvedParticles.0050.png" width="100%"/><center>time step 50</center></td></tr>
-   <tr><td><img src="12_UnresolvedParticles.0100.png" width="100%"/><center>time step 100</center></td></tr>
-   <tr><td><img src="12_UnresolvedParticles.0500.png" width="100%"/><center>time step 500</center></td></tr>
+   <tr><td><img src="FA.07_UnresolvedParticles.0000.png" width="100%"/><center>initial</center></td></tr>
+   <tr><td><img src="FA.07_UnresolvedParticles.0050.png" width="100%"/><center>time step 50</center></td></tr>
+   <tr><td><img src="FA.07_UnresolvedParticles.0100.png" width="100%"/><center>time step 100</center></td></tr>
+   <tr><td><img src="FA.07_UnresolvedParticles.0500.png" width="100%"/><center>time step 500</center></td></tr>
    </table>
    </center>
    \endhtmlonly
  *
- * \section code Complete Program
- * \include tutorials/full-apps/12_UnresolvedParticles/12_UnresolvedParticles.cpp
+ * \section FA07-code Complete Program
+ * \include tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp
  *
  */
 
@@ -228,7 +228,7 @@ int main( int argc, char** argv )
 
    auto cfg = std::make_shared< walberla::config::Config >();
    WALBERLA_CHECK_NOT_NULLPTR( env.config(), "No parameter file given. Bye." );
-   const walberla::Config::BlockHandle mainConf = env.config()->getBlock( "Parameters" );
+   const walberla::Config::BlockHandle mainConf = env.config()->getBlock( "FA.07_UnresolvedParticles.prm" );
 
    WALBERLA_ROOT_SECTION()
    {

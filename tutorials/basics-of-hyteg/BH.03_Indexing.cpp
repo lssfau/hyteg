@@ -27,13 +27,13 @@
 namespace hyteg {
 
 /**
- * \page 04_Indexing Tutorial 04 - Indexing and iterating
+ * \page BH.03_Indexing Tutorial BH.03 - Indexing and iterating
  *
- * \dontinclude tutorials/basics-of-hyteg/04_Indexing.cpp
+ * \dontinclude tutorials/basics-of-hyteg/BH.03_Indexing.cpp
  *
  * \brief In this tutorial we will iterate over simulation data
  *
- * \section T04-Indexing-intro Introduction
+ * \section BH03-Indexing-intro Introduction
  *
  * To allow for convenient iteration over the degrees of freedom of a macro-primitive in a FEM simulation
  * we introduce indexing functions that translate logical coordinates of the DoFs to array indices.
@@ -44,11 +44,11 @@ namespace hyteg {
  *
  * In this tutorial we will show different approaches to iterate over the vertex DoFs of a macro face.
  *
- * \section T04-Indexing-forloop A Simple Loop
+ * \section BH03-Indexing-forloop A Simple Loop
  *
  * First we need to specify the refinement level, which defines the number of DoFs in the macro primitive.
  *
- * \snippet tutorials/basics-of-hyteg/04_Indexing.cpp Level
+ * \snippet tutorials/basics-of-hyteg/BH.03_Indexing.cpp Level
  *
  * The logical layouts of the DoFs for the different primitive types are defined in the documentation.
  * For vertex DoFs on a macro face with refinement level 3, the DoFs are numbered as follows:
@@ -71,18 +71,18 @@ namespace hyteg {
  * Therefore, to build a loop over the triangle structure, we need to calculate the number of DoFs
  * in the bottom row i.e. the width (and height) of the structure:
  *
- * \snippet tutorials/basics-of-hyteg/04_Indexing.cpp LevelInfo
+ * \snippet tutorials/basics-of-hyteg/BH.03_Indexing.cpp LevelInfo
  *
  * The loop over the logical indices could be implemented as follows:
  *
- * \snippet tutorials/basics-of-hyteg/04_Indexing.cpp FirstLoop
+ * \snippet tutorials/basics-of-hyteg/BH.03_Indexing.cpp FirstLoop
  *
  * In the loop body, the logial coordinates are translated to the index in the corresponding array
  * using the index function for vertex DoFs on a macro-face:
  *
- * \snippet tutorials/basics-of-hyteg/04_Indexing.cpp IndexFunction
+ * \snippet tutorials/basics-of-hyteg/BH.03_Indexing.cpp IndexFunction
  *
- * \section T04-Indexing-iterators Iterators
+ * \section BH03-Indexing-iterators Iterators
  *
  * However, often we do not want to iterate over the complete macro-face but rather over the
  * inner DoFs or over the borders of the macro-face in order to collect data that shall be communicated
@@ -93,7 +93,7 @@ namespace hyteg {
  * For example to iterate over the inner macro-face, we can call the iterator
  * for vertex DoFs on a macro-face with the parameter offsetToCenter set to 1:
  *
- * \snippet tutorials/basics-of-hyteg/04_Indexing.cpp Iterator
+ * \snippet tutorials/basics-of-hyteg/BH.03_Indexing.cpp Iterator
  *
  * The Index variable \code it \endcode contains the current (logical) coordinates of the iterator in
  * the macro face.
@@ -101,11 +101,11 @@ namespace hyteg {
  * For convenient access to the neighboring DoFs of a certain DoF, there are indexing functions that return
  * the array index of neighboring DoFs of a certain direction:
  *
- * \snippet tutorials/basics-of-hyteg/04_Indexing.cpp Stencil
+ * \snippet tutorials/basics-of-hyteg/BH.03_Indexing.cpp Stencil
  *
- * \section T04-Indexing-code Complete Program
+ * \section BH03-Indexing-code Complete Program
  *
- * \include tutorials/basics-of-hyteg/04_Indexing.cpp
+ * \include tutorials/basics-of-hyteg/BH.03_Indexing.cpp
  *
  */
 void IndexingTutorial()

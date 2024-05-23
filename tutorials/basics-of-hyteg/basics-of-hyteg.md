@@ -1,10 +1,10 @@
 \page Basics_HyTeG Basics - HyTeG
 
-* \subpage 02_PrimitiveData
+* \subpage BH.01_PrimitiveData
     - Adding data to primitives
     
-* \subpage 03_Communication
+* \subpage BH.02_Communication
     - Communicate data between primitives
 
-* \subpage 04_Indexing
+* \subpage BH.03_Indexing
     - Iterating over simulation data

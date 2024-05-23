@@ -19,21 +19,21 @@
  */
 
 /**
- * \page 06_FullAppPlumeInCube Tutorial 06 - Convection in a cube
+ * \page FA.03_PlumeInCube Tutorial FA.03 - Convection in a cube
  *
- * \dontinclude tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp
+ * \dontinclude tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp
  *
  * \brief In this tutorial we will set up a complete app that will solve a coupled system
  * of the Stokes equations and the convection-diffusion equation.
  *
- * \section T06-FullAppPlumeInCube-param Parameter file reader
+ * \section FA03-FullAppPlumeInCube-param Parameter file reader
  *
  * As in all applications, we first setup the MPI environment.
  * We also load a parameter file to change parameters without having to rebuild the application.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Setup environment
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Setup environment
  *
- * \section T06-FullAppPlumeInCube-domain Domain
+ * \section FA03-FullAppPlumeInCube-domain Domain
  *
  * Next, we define our domain. In this tutorial, we will use one of the internal
  * mesh generators to create a cuboid mesh.
@@ -43,7 +43,7 @@
  * to set all flags of all primitives on the boundary to 1 and all others to 0.
  * Later, this helps us to define boundary conditions.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Domain
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Domain
  *
  * \note
  * Each individual function variable may treat the boundary flags at the primitives differently.
@@ -57,7 +57,7 @@
  * all flags as inner domain. This makes sense since we do not really have boundary conditions for
  * the pressure in theory.
  *
- * \section T06-FullAppPlumeInCube-discretization Discretization, function spaces and operators
+ * \section FA03-FullAppPlumeInCube-discretization Discretization, function spaces and operators
  *
  * Now we define the function spaces and respective variables as well as our discrete operators.
  * Alternately, we solve the Stokes equation to obtain a velocity and pressure field from an
@@ -70,9 +70,9 @@
  * steps using a monolithic multigrid method with inexact-Uzawa type relaxation. All quantities are discretized
  * with linear finite elements. Therefore we employ a PSPG stabilization for the pressure.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Discretization
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Discretization
  *
- * \section T06-FullAppPlumeInCube-bc Initial and boundary conditions
+ * \section FA03-FullAppPlumeInCube-bc Initial and boundary conditions
  *
  * Now we interpolate the initial conditions. Boundary conditions for the velocity are no-slip
  * (== Dirichlet, u = 0) everywhere. Since this is the default, we do not need do anything here.
@@ -81,15 +81,15 @@
  * It constantly (== Dirichlet) heats up the bottom of the domain and cools down towards the top. Also initializes
  * points that do not lie on the boundary.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp BC
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp BC
  *
- * \section T06-FullAppPlumeInCube-info Simulation info
+ * \section FA03-FullAppPlumeInCube-info Simulation info
  *
  * We add some code to print information of our setup like the number of DoFs and the coarse grid structure.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Info
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Info
  *
- * \section T06-FullAppPlumeInCube-VTK VTK
+ * \section FA03-FullAppPlumeInCube-VTK VTK
  *
  * To visualize our results, we add the relevant function variables to our VTK output instance.
  * The output interval can directly be set in the constructor. Therefore it is not necessary
@@ -97,9 +97,9 @@
  * is simply called in each time step and decides internally if output is written or not.
  * We also plot the initial conditions (time step == 0) and the coarse grid domain.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp VTK
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp VTK
  *
- * \section T06-FullAppPlumeInCube-solvers Solvers
+ * \section FA03-FullAppPlumeInCube-solvers Solvers
  *
  * To solve the Stokes equation we setup our geometric multigrid solver.
  * We need to define
@@ -124,14 +124,14 @@
  *
  * The rest are standard multigrid components.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Solvers
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Solvers
  *
- * \section T06-FullAppPlumeInCube-simulation Simulation loop
+ * \section FA03-FullAppPlumeInCube-simulation Simulation loop
  *
  * Now we start the actual simulation. We define a short lambda to calculate the current residual
  * in the L2 norm.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Residual
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Residual
  *
  * Then we start the main time stepping loop.
  *
@@ -139,12 +139,12 @@
  * field. Then we perform a few V-cycles to approximately solve the equation and calculate the average residual
  * reduction and some other infos.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Simulation Stokes
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Simulation Stokes
  *
  * With the result we advance the temperature transport by several time steps using the algebraic upwind operator.
  * We also write the VTK output.
  *
- * \snippet tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp Simulation Advection
+ * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Simulation Advection
  *
  * This process is repeated until the simulation ends.
  *
@@ -153,16 +153,16 @@
      <center>
      <table>
      <tr>
-     <td align="center"><img src="plume.0000.png" width="80%"/></td>
-     <td align="center"><img src="plume.0004.png" width="80%"/></td>
+     <td align="center"><img src="FA.03_plume.0000.png" width="80%"/></td>
+     <td align="center"><img src="FA.03_plume.0004.png" width="80%"/></td>
      </tr>
      <tr>
      <td align="center">initial state</td>
      <td align="center">after 400 time steps</td>
      </tr>
      <tr>
-     <td align="center"><img src="plume.0007.png" width="80%"/></td>
-     <td align="center"><img src="plume.0010.png" width="80%"/></td>
+     <td align="center"><img src="FA.03_plume.0007.png" width="80%"/></td>
+     <td align="center"><img src="FA.03_plume.0010.png" width="80%"/></td>
      </tr>
      <tr>
      <td align="center">after 700 time steps</td>
@@ -173,8 +173,8 @@
      \endhtmlonly
  *
  *
- * \section T06-FullAppPlumeInCube-fullApp Full Application
- * \include tutorials/full-apps/06_FullAppPlumeInCube/Plume.cpp
+ * \section FA03-FullAppPlumeInCube-fullApp Full Application
+ * \include tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp
  *
  */
 
@@ -219,7 +219,7 @@ int main( int argc, char* argv[] )
    // Parameters
 
    auto config = std::make_shared< walberla::config::Config >();
-   config->readParameterFile( "./PlumeParameters.prm" );
+   config->readParameterFile( "./FA.03_PlumeInCube.prm" );
 
    const walberla::Config::BlockHandle mainConf = config->getBlock( "Parameters" );
 

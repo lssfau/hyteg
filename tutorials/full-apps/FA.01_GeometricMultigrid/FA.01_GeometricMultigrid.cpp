@@ -39,21 +39,21 @@ using walberla::uint_c;
 using walberla::uint_t;
 
 /**
- * \page 05_FullAppP1GMG Tutorial 05 - Geometric multigrid
+ * \page FA.01_FullAppP1GMG Tutorial FA.01 - Geometric multigrid
  *
- * \dontinclude tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp
+ * \dontinclude tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp
  *
  * \brief In this tutorial we will set up a complete app using P1 elements which will perform geometric
  * multigrid to solve the Laplace equation.
  *
- * \section T05-FullAppP1GMG-setup Setup MPI
+ * \section FA01-FullAppP1GMG-setup Setup MPI
  *
  * At we first we create a walberla Environment which handles mpi init and set the communicator for all
  * prozesses to WorldComm
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Create Environment
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Create Environment
  *
- * \section T05-FullAppP1GMG-parameters Set Parameters
+ * \section FA01-FullAppP1GMG-parameters Set Parameters
  *
  * One way to set the parameters for the simulation is to use a parameter file.
  *
@@ -65,19 +65,19 @@ using walberla::uint_t;
  * See walberla documentation for more details:
  * http://www.walberla.net/doxygen/classwalberla_1_1config_1_1Config.html
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Get Parameters
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Get Parameters
  *
  *
- * \section T05-FullAppP1GMG-storage Primitive Storage
+ * \section FA01-FullAppP1GMG-storage Primitive Storage
  *
  * In this step we create a fully distributed PrimitiveStorage from a mesh file
  *
  * This creation can be split into more steps for more flexibility like using other load
  * balancing techniques
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Primitive Storage
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Primitive Storage
  *
- * \section T05-FullAppP1GMG-functionSpaces Create P1 Function Spaces
+ * \section FA01-FullAppP1GMG-functionSpaces Create P1 Function Spaces
  *
  * Here we allocate the necessary P1 Functions.
  *
@@ -90,9 +90,9 @@ using walberla::uint_t;
  *
  * Be aware that the highest level is included
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Function Spaces
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Function Spaces
  *
- * \section T05-FullAppP1GMG-boundaries Create functions for boundary conditions
+ * \section FA01-FullAppP1GMG-boundaries Create functions for boundary conditions
  *
  * To set the boundary conditions we create a function using a lamba function. The functions needs to return
  * a real_t and take and hyteg::Point3D as an argument.
@@ -110,9 +110,9 @@ using walberla::uint_t;
  * for example hyteg::Inner for all points no on a boundary or hyteg::NeumannBondary for points which are
  * specified as Neumann boundaries
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Boundary Conditions
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Boundary Conditions
  *
- * \section T05-FullAppP1GMG-solver Solver
+ * \section FA01-FullAppP1GMG-solver Solver
  *
  * Now we will setup the solvers.
  *
@@ -128,9 +128,9 @@ using walberla::uint_t;
  *
  * Furthermore we need to create an instance of the P1LaplaceOperator
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Solvers
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Solvers
  *
- * \section T05-FullAppP1GMG-multigrid Perform Multigrid
+ * \section FA01-FullAppP1GMG-multigrid Perform Multigrid
  *
  * In order to perform the multigrid iterations we call the function solve.
  *
@@ -152,9 +152,9 @@ using walberla::uint_t;
  * When calling the solve function with CycleType::VCycle one cycle is performed per call.
  * We use a for loop to perform the desired number of V cycles
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Multigrid
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Multigrid
  *
- * \section T05-FullAppP1GMG-Calculate Residual
+ * \section FA01-FullAppP1GMG-Calculate Residual
  *
  * To validate the result we calculate the residual by first writing the result of multiplying the
  * Laplace operator with the function into the laplaceTimesFunction function.
@@ -165,9 +165,9 @@ using walberla::uint_t;
  *
  * See: http://www.walberla.net/doxygen/classwalberla_1_1logging_1_1Logging.html
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Residual
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Residual
  *
- * \section T05-FullAppP1GMG-output Write VTK Output
+ * \section FA01-FullAppP1GMG-output Write VTK Output
  *
  * If set in the parameter file the results are written onto disc in the vtk file format.
  *
@@ -179,10 +179,10 @@ using walberla::uint_t;
  * By specifiying a certain level as paramter in the write function, the desired level will be written to
  * disk
  *
- * \snippet tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp Output
+ * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Output
  *
- * \section T05-FullAppP1GMG-fullApp Full Application
- * \include tutorials/full-apps/05_FullAppP1GMG/P1GMG.cpp
+ * \section FA01-FullAppP1GMG-fullApp Full Application
+ * \include tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp
  *
  */
 
@@ -195,7 +195,7 @@ int main( int argc, char** argv )
 
    /// [Get Parameters]
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   cfg->readParameterFile( "./P1GMG.prm" );
+   cfg->readParameterFile( "./FA.01_GeomericMultigrid.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
    parameters.listParameters();
 

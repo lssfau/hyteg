@@ -33,13 +33,13 @@ using walberla::uint_t;
 namespace hyteg {
 
 /**
- * \page 03_Communication Tutorial 03 - Communicating data between primitives
+ * \page BH.02_Communication Tutorial BH.02 - Communicating data between primitives
  *
- * \dontinclude tutorials/basics-of-hyteg/03_Communication.cpp
+ * \dontinclude tutorials/basics-of-hyteg/BH.02_Communication.cpp
  *
  * \brief In this tutorial we will communicate data between primitives
  *
- * \section T03-Communication-intro Introduction
+ * \section BH02-Communication-intro Introduction
  *
  * During typical simulations, the simulation domain is partitioned and distributed
  * among processes. In hhg, the primitives define the topology of the domain.
@@ -58,7 +58,7 @@ namespace hyteg {
  *
  * We will in this tutorial show how to implement these steps.
  *
- * \section T03-Communication-packinfo (Un-)Packing data
+ * \section BH02-Communication-packinfo (Un-)Packing data
  *
  * For packing and unpacking data into and from MPI buffers, the framework provides the
  * interface hyteg::communication::PackInfo.
@@ -75,42 +75,42 @@ namespace hyteg {
  * Therefore we introduce a struct TestData (plus the respective data handling) that carries the ID of the
  * carrier and a vector of neighboring IDs:
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp TestData
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp TestData
  *
  * Now let us implement the three virtual functions of the abstract class hyteg::communication::PackInfo that are needed to
  * send data from vertices to edges:
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp PackInfo
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp PackInfo
  *
  * Note that we implement the method communicateLocalVertexToEdge. It can be used automatically (we will see that later)
  * if both primitives reside on the same process to optimize the communication step.
  *
- * \section T03-Communication Communication 
+ * \section BH02-Communication Communication 
  *
  * To communicate the data, we need a hyteg::PrimitiveStorage and primitives that carry our struct:
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp Setup
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Setup
  *
  * Then we create an instance of our PackInfo implementation and an instance of hyteg::communication::BufferedCommunicator
  * which will carry out the communication.
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp Communicator
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Communicator
  *
  * To tell the communicator that it shall communicate our test data during every communication, we need
  * to add our PackInfo. Only data with registered PackInfo will be communicated.
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp AddPackInfo
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp AddPackInfo
  *
  * As previously mentioned, local communication can be performed directly, without buffering (which is set by default).
  * However, the local communication mode can be changed via:
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp LocalMode
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp LocalMode
  *
  * See hyteg::communication::BufferedCommunicator for more details on the local communication modes.
  *
  * Now we perform the buffered, non-blocking communication:
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp Communication
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Communication
  *
  * Since the communication is buffered and non-blocking, we perform it in two steps:
  * - startCommunication packs the data into buffers and starts non-blocking MPI sends
@@ -122,11 +122,11 @@ namespace hyteg {
  * After the communication is done, we expect to have two IDs unpacked on all edges since every
  * edge has two neighboring vertices. Let's check that:
  *
- * \snippet tutorials/basics-of-hyteg/03_Communication.cpp Check
+ * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Check
  *
- * \section T03-Communication-code Complete Program
+ * \section BH02-Communication-code Complete Program
  *
- * \include tutorials/basics-of-hyteg/03_Communication.cpp
+ * \include tutorials/basics-of-hyteg/BH.02_Communication.cpp
  *
  */
 

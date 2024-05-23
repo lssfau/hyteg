@@ -5,7 +5,7 @@ endif()
 waLBerla_link_files_to_builddir( *.ipynb )
 
 if (HYTEG_BUILD_WITH_PETSC)
-    waLBerla_add_executable( NAME 10_DGAMR
-            FILES 10_DGAMR.cpp
+    waLBerla_add_executable( NAME FA.06_DG+AMR
+            FILES FA.06_DG+AMR.cpp
             DEPENDS hyteg core sqlite)
 endif()

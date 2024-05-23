@@ -5,6 +5,6 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.xml )
 
-waLBerla_add_executable( NAME 13_Blankenbach1a
-        FILES 13_Blankenbach1a.cpp
+waLBerla_add_executable( NAME GB.01_BlankenbachCase1a
+        FILES GB.01_BlankenbachCase1a.cpp
         DEPENDS hyteg terraneo convection_particles sqlite mixed_operator)

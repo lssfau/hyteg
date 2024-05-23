@@ -19,14 +19,14 @@
  */
 
 /**
- * \page 07_IsoviscousConvectionAnnulus Tutorial 07 - Convection on an annulus
+ * \page FA.04_IsoviscousConvectionAnnulus Tutorial FA.04 - Convection on an annulus
  *
- * \dontinclude tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
+ * \dontinclude tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp
  *
  * \brief In this tutorial we will set up a complete app that solves a coupled system
  * of the Stokes equations and the advection-diffusion equation.
  *
- * \section T07-IsoviscousConvectionAnnulus-equations Governing equations
+ * \section FA04-IsoviscousConvectionAnnulus-equations Governing equations
  *
  * We are in this tutorial considering a 2D simulation of isoviscous convection on an annular domain.
  * The convection is modeled using the Boussinesq-approximation, by coupling the Stokes equations to an advection-diffusion
@@ -46,7 +46,7 @@
  * Also we assume no internal heating.
  *
  *
- * \section T07-IsoviscousConvectionAnnulus-domain Domain
+ * \section FA04-IsoviscousConvectionAnnulus-domain Domain
  *
  * The annulus domain is created in four steps.
  * 1. We define the unstructured mesh through a MeshInfo object. There are some pre-defined mesh generators, for example for the
@@ -55,9 +55,9 @@
  * 3. A geometry mapping is applied to map the primitives to the physical domain.
  * 4. The primitives are distributed among the parallel processes via construction of the final PrimitiveStorage object.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Domain setup
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Domain setup
  *
- * \section T07-IsoviscousConvectionAnnulus-functionsandoperators Function spaces and operators
+ * \section FA04-IsoviscousConvectionAnnulus-functionsandoperators Function spaces and operators
  *
  * We now define the function spaces and operators that we need in our app.
  *
@@ -71,21 +71,21 @@
  *
  * Functions (== elements of a finite element space) are represented by corresponding types in HyTeG.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function and operator typedefs
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Function and operator typedefs
  *
  * Since we focus multigrid solvers, functions and operators are constructed over a hierarchy of levels.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function setup
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Operator setup
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Function setup
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Operator setup
  *
- * \section T07-IsoviscousConvectionAnnulus-initialcondition Initial and boundary conditions
+ * \section FA04-IsoviscousConvectionAnnulus-initialcondition Initial and boundary conditions
  *
  * Analytical functions can be interpolated (think 'sampled') into the finite element functions by a call to interpolate.
  * Here we define an initial (and boundary) temperature function for the mantle.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Initial temperature
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Initial temperature
  *
- * \section T07-IsoviscousConvectionAnnulus-solvers Solvers
+ * \section FA04-IsoviscousConvectionAnnulus-solvers Solvers
  *
  * We solve the non-linear system by splitting it into three components that are solved in an alternating fashion.
  *
@@ -98,73 +98,73 @@
  * Most components are derived from a base class Solver, and templated with the linear operator
  * so that e.g. the same GeometricMultigridSolver implementation is reused also for other discretizations or equations.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes solver setup
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Stokes solver setup
  *
  * For the unsteady diffusion, we require a linear solver for the operator and use a wrapper that simplifies time stepping.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Diffusion solver setup
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Diffusion solver setup
  *
  * The advection is treated by a Lagrangian solver that employs tracer particles.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Advection solver setup
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Advection solver setup
  *
  * To visualize the results, we employ VTK. To output functions in VTK format, we prepare a VTKOutput object and add the
  * functions of interest.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp VTK
  *
  * Before solving the Stokes equation, we need to assemble the right-hand side according to the Boussinesq-approximation.
  * Note that the temperature enters the RHS in strong form if we simply set \f$ f := Ra * c * n \f$.
  * So we need to premultiply with the finite element mass matrix first.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp RHS
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp RHS
  *
  * For an initial velocity field != 0 we solve the Stokes equation before starting the actual time stepping.
  * For simplicity, we apply a fixed number of v-cycles. In practical applications we could also steer this
  * via a residual threshold.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes solve initial
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Stokes solve initial
  *
  * We compute the variable time-step size via a CFL condition.
  * Therefore we compute the maximum velocity.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Max velocity
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Max velocity
  *
- * \section T07-IsoviscousConvectionAnnulus-output Output
+ * \section FA04-IsoviscousConvectionAnnulus-output Output
  *
  * VTK output is pretty straightforward ...
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK write
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp VTK write
  *
  * Simulations are worthless without storing relevant results in some way.
  * This can be done e.g. via a SQLite interface. In parallel runs, it is advisable to only write into the database from
  * one process (e.g. root). If necessary, relevant, distributed data should be reduced first.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp DB
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp DB
  *
- * \section T07-IsoviscousConvectionAnnulus-timeloop Time loop
+ * \section FA04-IsoviscousConvectionAnnulus-timeloop Time loop
  *
  * As discussed, we compute the time-step size via a CFL condition.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp CFL
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp CFL
  *
  * In each time step, we now first call the advection solver.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Advection
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Advection
  *
  * Then the diffusion solver.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Diffusion
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Diffusion
  *
  * Update the right-hand side.
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp RHS update
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp RHS update
  *
  * And then solve the Stokes equation (again with a fixed number of iterations for simplicity).
  *
- * \snippet tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes
+ * \snippet tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp Stokes
  *
- * \section T07-IsoviscousConvectionAnnulus-results Results
+ * \section FA04-IsoviscousConvectionAnnulus-results Results
  *
  * The resulting temperature field after a simulation over 1000 time-steps is shown below.
  * Plumes are rising from the heated inner boundary outwards to the outer boundary.
@@ -175,27 +175,27 @@
   <center>
   <table>
   <tr>
-  <td><img src="convection_annulus.0000.png" width="100%"/><center>initial condition</center></td>
-  <td><img src="convection_annulus.0025.png" width="100%"/><center>after 25 time-steps</center></td>
-  <td><img src="convection_annulus.0050.png" width="100%"/><center>after 50 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0000.png" width="100%"/><center>initial condition</center></td>
+  <td><img src="FA.04_convection_annulus.0025.png" width="100%"/><center>after 25 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0050.png" width="100%"/><center>after 50 time-steps</center></td>
   </tr>
   <tr>
-  <td><img src="convection_annulus.0075.png" width="100%"/><center>after 75 time-steps</center></td>
-  <td><img src="convection_annulus.0100.png" width="100%"/><center>after 100 time-steps</center></td>
-  <td><img src="convection_annulus.0200.png" width="100%"/><center>after 200 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0075.png" width="100%"/><center>after 75 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0100.png" width="100%"/><center>after 100 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0200.png" width="100%"/><center>after 200 time-steps</center></td>
   </tr>
   <tr>
-  <td><img src="convection_annulus.0500.png" width="100%"/><center>after 500 time-steps</center></td>
-  <td><img src="convection_annulus.0800.png" width="100%"/><center>after 800 time-steps</center></td>
-  <td><img src="convection_annulus.1000.png" width="100%"/><center>after 1000 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0500.png" width="100%"/><center>after 500 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.0800.png" width="100%"/><center>after 800 time-steps</center></td>
+  <td><img src="FA.04_convection_annulus.1000.png" width="100%"/><center>after 1000 time-steps</center></td>
   </tr>
   </table>
   </center>
   \endhtmlonly
  *
  *
- * \section T07-IsoviscousConvectionAnnulus-fullApp Full Application
- * \include tutorials/full-apps/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
+ * \section FA04-IsoviscousConvectionAnnulus-fullApp Full Application
+ * \include tutorials/full-apps/FA.04_IsoviscousConvectionAnnulus/FA.04_IsoviscousConvectionAnnulus.cpp
 */
 
 #include <cmath>
@@ -741,7 +741,7 @@ int main( int argc, char** argv )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      auto defaultFile = "./parameters.prm";
+      auto defaultFile = "./FA.04_IsoviscousConvectionAnnulus.prm";
       WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
    }

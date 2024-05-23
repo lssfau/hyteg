@@ -19,14 +19,14 @@
  */
 
 /**
- * \page 09_BoundaryConditions Tutorial 09 - Multiple boundary conditions
+ * \page BA.04_BoundaryConditions Tutorial BA.04 - Multiple boundary conditions
  *
- * \dontinclude tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp
+ * \dontinclude tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp
  *
  * \brief In this tutorial, we are going to demonstrate how one can set different types of boundary conditions
  * on different parts of the boundary and/or for different components of the problem.
  *
- * \section T09-Task Task
+ * \section BA04-Task Task
  * Assume that we want to solve a convection problem for a strongly viscous fluid. We assume that convection
  * is driven by thermally induced density differences and that a Boussinesq approximation is employed. This
  * will leads us, in a simple case, to a PDE system similar to the following one:
@@ -44,8 +44,8 @@
  * 
  * For demonstration purposes we use the following boundary conditions:
  * <table border="0" width="90%"><tr>
- * <td><img src="09_BoundaryConditions_Velocity.png" width="95%" /></td>
- * <td><img src="09_BoundaryConditions_Temperature.png" width="95%" /></td>
+ * <td><img src="BA.04_BoundaryConditions_Velocity.png" width="95%" /></td>
+ * <td><img src="BA.04_BoundaryConditions_Temperature.png" width="95%" /></td>
  * </tr></table>
  * Expressed mathematically we require for the velocity
  * \f[
@@ -74,18 +74,18 @@
  * \f]
  * which both must hold for all times \f$t\in(t_0,t_1)\f$.
  *
- * \section T09-Implementation Implementation
+ * \section BA04-Implementation Implementation
  * 
  * We will now take a look at how we can set these boundary conditions in HyTeG.
  *
- * \subsection T09-Step1 Step #1: Mark parts of the Boundary
+ * \subsection BA04-Step1 Step #1: Mark parts of the Boundary
  * 
  * The first step we need to perform is mark the four different parts of the boundary of our problem domain,
  * i.e. the four edges of our rectangle, by setting corresponding **MeshBoundaryFlags**. These are simple
  * integer values that will allow us to differentiate between the parts when setting the boundary conditions.
  * We are going to use the following values:
  *
- * <img src="09_BoundaryConditions_Flags.png" width="45%" /></td>
+ * <img src="BA.04_BoundaryConditions_Flags.png" width="45%" /></td>
  * 
  * The flags will be set on the \link hyteg::SetupPrimitiveStorage `SetupPrimitiveStorage`\endlink object we
  * generate from our mesh using one of the different `setMeshBoundaryFlags` methods. In our case
@@ -98,9 +98,9 @@
  * However, this method requires a little more consideration w.r.t. the callbacks as the flags for higher-dimensional
  * primitives are derived from those of their associated vertices.
  * 
- * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Flag_Boundaries_Parts
+ * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Flag_Boundaries_Parts
  *
- * \subsection T09-Step2 Step #2: Create BoundaryCondition objects
+ * \subsection BA04-Step2 Step #2: Create BoundaryCondition objects
  * 
  * The next step is to create one object of type \link hyteg::BoundaryCondition `BoundaryCondition` \endlink
  * for each unknown function we have in our
@@ -117,9 +117,9 @@
  * Note that the symbolic names we supply as arguments are stored internally in the object and must be unique,
  * but currently find no further usage.
  * 
- * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp BC_Objects
+ * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp BC_Objects
  * 
- * \subsection T09-Step3 Step #3: Create Functions
+ * \subsection BA04-Step3 Step #3: Create Functions
  * 
  * Now we can instantiate function objects for our unknown functions. We are going to use a P<sub>2</sub> space for temperature
  * and velocity and a P<sub>1</sub> space for pressure. Note that in HyTeG each function knowns about its boundary condition.
@@ -159,9 +159,9 @@
  * only for the velocity component. For the pressure component an object will be generated automatically via
  * \link hyteg::BoundaryCondition::createAllInnerBC() `createAllInnerBC()`\endlink.
  * 
- * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Function_Creation
+ * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Function_Creation
  * 
- * \subsection T09-Step4 Step #4: Setting Boundary and Initial Conditions
+ * \subsection BA04-Step4 Step #4: Setting Boundary and Initial Conditions
  *
  * Setting values on our function is done by using the `%interpolate()` method. There are two possible ways
  * to specify which degrees of freedom we want to change:
@@ -182,12 +182,12 @@
  * write a corresponding lambda expression to use as callback. However, it is more convenient to simply work
  * with the corresponding BoundaryUIDs instead:
  *
- * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Temp
+ * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Setting_BC_Temp
  *
  * When we set boundary values for velocity we must to take into account that this is a vector-valued function.
  * Thus, we need to either specify one constant or one std::function per component.
  *
- * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_BC_Vel
+ * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Setting_BC_Vel
  *
  * As a final aspect let us demonstrate how to combine different DoFType values to set the initial values for
  * the temperature. Note that the initiation function
@@ -197,7 +197,7 @@
  * \f]
  * is consistent with the Dirichlet boundary conditions so we could also use `All` to combine setting boundary
  * and initial conditions for time \f$t=t_0\f$.
- * \snippet tutorials/basics-for-apps/09_BoundaryConditions/09_BoundaryConditions.cpp Setting_ICs
+ * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Setting_ICs
  *
  */
 

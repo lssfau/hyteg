@@ -19,9 +19,9 @@
  */
 
 /**
- * \page 10_DGAMR Tutorial 10 - DG and AMR
+ * \page FA.06_DG+AMR Tutorial FA.06 - DG and AMR
  *
- * \dontinclude tutorials/full-apps/10_DGAMR/10_DGAMR.cpp
+ * \dontinclude tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp
  *
  * \brief In this tutorial, we solve the Poisson equation using a discontinuous Galerkin discretization and adaptive mesh
  * refinement.
@@ -47,10 +47,11 @@
  *
  *
  * This tutorial demonstrates how adaptive mesh refinement (AMR) is applied together with the discontinuous Galerkin method.
- * For details on the discretization we refer to the literature, for example <em>Rivière, B. (2008). Discontinuous Galerkin methods
- * for solving elliptic and parabolic equations: theory and implementation</em>.
+ * For details on the discretization we refer to the literature, for example
+ * <a href="https://doi.org/10.1137/1.9780898717440">Rivière, B. (2008), Discontinuous Galerkin methods
+ * for solving elliptic and parabolic equations: theory and implementation</a>.
  *
- * \section T10-domainsetuprefinement Domain setup and refinement.
+ * \section FA06-domainsetuprefinement Domain setup and refinement.
  *
  * We first create the PrimitiveStorage from a mesh file has has been done in previous examples.
  *
@@ -77,7 +78,7 @@
  *
  * All of this happens in one method. It requires only to pass the PrimitiveID of all (local) volume primitives to be refined.
  *
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp macro refinement
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp macro refinement
  *
  * In this example we simply refine all primitives that have a vertex at the origin multiple times. The result looks like this:
  *
@@ -85,9 +86,9 @@
     <center>
     <table>
     <tr>
-    <td><img src="10_macro_0_ref.png" width="100%"/><center>initial coarse grid</center></td>
-    <td><img src="10_macro_2_ref.png" width="100%"/><center>after 2 refinements</center></td>
-    <td><img src="10_macro_5_ref.png" width="100%"/><center>after 5 refinements</center></td>
+    <td><img src="FA.06_macro_0_ref.png" width="100%"/><center>initial coarse grid</center></td>
+    <td><img src="FA.06_macro_2_ref.png" width="100%"/><center>after 2 refinements</center></td>
+    <td><img src="FA.06_macro_5_ref.png" width="100%"/><center>after 5 refinements</center></td>
     </tr>
     </table>
     </center>
@@ -97,16 +98,16 @@
  *
  *
  *
- * \section T10-dg Discontinuous Galerkin
+ * \section FA06-dg Discontinuous Galerkin
  * 
  * DG functions and operators are almost used as it's done for other conforming discretizations. The main difference is that
  * the basis and degree are passed in the constructor. This also applied for the operators - the form has to be passed here, too.
  *
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp DG parameters
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp DG parameters
  *
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp DG functions
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp DG functions
  *
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp DG operators
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp DG operators
  *
  * The weak enforcement of Dirichlet boundary conditions is handled by a function that also takes as an argument the Form object.
  *
@@ -118,19 +119,19 @@
  * \f]
  * That requires the solution of a linear system involving the mass matrix \f$ M \f$:
  *
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp interpolation
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp interpolation
  *
  * Eventually, we solve the linear system and plot the error over \f$ \frac{1}{h} \f$.
  *
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp solve
- * \snippet tutorials/full-apps/10_DGAMR/10_DGAMR.cpp error
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp solve
+ * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp error
  *
  * \htmlonly
    <center>
    <table>
    <tr>
-   <td><img src="10_error_conv_vs_h.png" width="100%"/><center>error vs refinement</center></td>
-   <td><img src="10_error_conv_vs_dofs.png" width="100%"/><center>error vs DoFs</center></td>
+   <td><img src="FA.06_error_conv_vs_h.png" width="100%"/><center>error vs refinement</center></td>
+   <td><img src="FA.06_error_conv_vs_dofs.png" width="100%"/><center>error vs DoFs</center></td>
    </tr>
    </table>
    </center>
@@ -143,7 +144,7 @@
   <center>
   <table>
   <tr>
-  <td><img src="10_errors_0_2_5.png" width="100%"/><center>Plot of the error on different macro-refinement levels (0, 2, and 5). Uniform level is 3 for all three images.</center></td>
+  <td><img src="FA.06_errors_0_2_5.png" width="100%"/><center>Plot of the error on different macro-refinement levels (0, 2, and 5). Uniform level is 3 for all three images.</center></td>
   </tr>
   </table>
   </center>
@@ -153,7 +154,7 @@
    <center>
    <table>
    <tr>
-   <td><img src="10_sol_5_level3.png" width="100%"/><center>Plot of the computed solution and the mesh after 5 local and 3 uniform refinement steps.</center></td>
+   <td><img src="FA.06_sol_5_level3.png" width="100%"/><center>Plot of the computed solution and the mesh after 5 local and 3 uniform refinement steps.</center></td>
    </tr>
    </table>
    </center>
