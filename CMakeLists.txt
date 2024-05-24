@@ -298,6 +298,11 @@ if ( DOXYGEN_FOUND )
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
     COMMENT "Generating API documentation with Doxygen" VERBATIM )
 
+  if ( ${DOXYGEN_VERSION} STRLESS "1.11.0" )
+    message( WARNING "Doxygen version is older than 1.11.0 !\nThus, your version does not include a patch for "
+      "issue https://github.com/doxygen/doxygen/issues/10517\nwhich affects some of HyTeG's tutorials" )
+  endif()
+
 else ()
 
   message( STATUS "No (suitable version of) Doxygen was found. You might not be able to build the documentation (properly)." )
