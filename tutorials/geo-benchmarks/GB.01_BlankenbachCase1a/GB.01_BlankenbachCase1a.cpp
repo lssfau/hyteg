@@ -87,19 +87,19 @@
  * the boundary nodes must be marked properly which will be used downstream when defining the boundary conditions
  * for the finite element functions, which is what is done in the following snippet.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp SetupStorageAndMarkings
+ * \snippet{trimleft} this SetupStorageAndMarkings
  * 
  * \section GB01-BlankenbachBenchmark-BCs Boundary Conditions
  * 
  * The boundary conditions for the Temperature and Velocity are defined appropriately. For temperature, a Dirichlet is defined
  * on the top and bottom and zero flux on the side walls.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp BoundaryConditionsTemperature
+ * \snippet{trimleft} this BoundaryConditionsTemperature
  * 
  * For the velocity freeslip boundary conditions must be imposed on all four walls. For this, the coordinates can be seperately
  * defined a Dirichlet and Neumann condition, but here we generally impose freeslip boundary condition.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp BoundaryConditionsVelocity
+ * \snippet{trimleft} this BoundaryConditionsVelocity
  * 
  * \section GB01-BlankenbachBenchmark-OpStokes Operators -- Stokes
  * 
@@ -108,29 +108,29 @@
  * velocity field is projected and the normal component is set to zero. Here the normals are defined through a lambda
  * function,
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp NormalsFunctionForFS
+ * \snippet{trimleft} this NormalsFunctionForFS
  * 
  * And then passed on to the project normal operator
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp ProjectNormalForFS
+ * \snippet{trimleft} this ProjectNormalForFS
  * 
  * This is then inturn used in defining the freeslip wrapper which wraps the Stokes operator and uses the projection operator
  * to set the normal components to zero.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp StokesFreeslipOperator
+ * \snippet{trimleft} this StokesFreeslipOperator
  * 
  * \section GB01-BlankenbachBenchmark-OpEnergy Operators -- Energy
  * 
  * For the solution of the energy equations, we use a particle approach based on the modified method of characteristics (MMOC).
  * Hence the advection operator can be defined with
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp MMOCForTransport
+ * \snippet{trimleft} this MMOCForTransport
  * 
  * As the operator splitting approach is used, this must be taken care in the time stepping algorithm. We use an implicit Euler
  * scheme for timestepping the diffusion and the MMOC is used to step for advection. The `apply` function of the 
  * `P2TransportTimesteppingOperator` applies the time discretized form of the weak form considering only the diffusion.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp TransportOperatorApply
+ * \snippet{trimleft} this TransportOperatorApply
  * 
  * \section GB01-BlankenbachBenchmark-SolverStokes Solver -- Stokes
  * 
@@ -138,7 +138,7 @@
  * before starting the iterative solve. As the Minres solver calls the wrapped Stokes operator, it is ensured that the 
  * projection is done at every step of the iterative solve, hence strongly applying the freeslip boundary condition.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp StokesSolverLambdaFunction
+ * \snippet{trimleft} this StokesSolverLambdaFunction
  * 
  * \section GB01-BlankenbachBenchmark-SolverEnergy Solver -- Energy
  * 
@@ -146,26 +146,26 @@
  * Stokes solution. This is then used for the MMOC solver to step the advection, then also used for the diffusion solver.
  * Here we use CG solver for the timestepping solver as the system is nicely symmetric with only diffusion present.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp TransportSolverLambdaFunction
+ * \snippet{trimleft} this TransportSolverLambdaFunction
  * 
  * \section GB01-BlankenbachBenchmark-Timestepping Timestepping
  * 
  * First the temperature \f$ T(x, t_0) \f$ is initialized to the prescribed field according to the above equation.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp TemperatureInitialization
+ * \snippet{trimleft} this TemperatureInitialization
  * 
  * Then the Stokes system is solved to get the initial velocity field, else the program can also be started from a checkpoint.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp InitialSolveOrCheckpoint
+ * \snippet{trimleft} this InitialSolveOrCheckpoint
  * 
  * This is then used to step the transport solver, both advection and the diffusion parts, with 
  * MMOC and implicit Euler respectively. With this we compute the temperature field at time \f$ t_1 \f$. Then the Stokes system is
  * solved again to obtain the corresponding velocity field at time \f$ t_1 \f$ and so on.
  * 
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp TimeStepLoopStart
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp SolveEnergy
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp SolveStokes
- * \snippet tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp WriteDataOut
+ * \snippet{trimleft} this TimeStepLoopStart
+ * \snippet{trimleft} this SolveEnergy
+ * \snippet{trimleft} this SolveStokes
+ * \snippet{trimleft} this WriteDataOut
  * 
  * \section GB01-BlankenbachBenchmark-Results Results
  * 

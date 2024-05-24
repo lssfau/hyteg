@@ -78,7 +78,7 @@
  *
  * All of this happens in one method. It requires only to pass the PrimitiveID of all (local) volume primitives to be refined.
  *
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp macro refinement
+ * \snippet{trimleft} this macro refinement
  *
  * In this example we simply refine all primitives that have a vertex at the origin multiple times. The result looks like this:
  *
@@ -103,11 +103,11 @@
  * DG functions and operators are almost used as it's done for other conforming discretizations. The main difference is that
  * the basis and degree are passed in the constructor. This also applied for the operators - the form has to be passed here, too.
  *
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp DG parameters
+ * \snippet{trimleft} this DG parameters
  *
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp DG functions
+ * \snippet{trimleft} this DG functions
  *
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp DG operators
+ * \snippet{trimleft} this DG operators
  *
  * The weak enforcement of Dirichlet boundary conditions is handled by a function that also takes as an argument the Form object.
  *
@@ -119,12 +119,12 @@
  * \f]
  * That requires the solution of a linear system involving the mass matrix \f$ M \f$:
  *
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp interpolation
+ * \snippet{trimleft} this interpolation
  *
  * Eventually, we solve the linear system and plot the error over \f$ \frac{1}{h} \f$.
  *
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp solve
- * \snippet tutorials/full-apps/FA.06_DG+AMR/FA.06_DG+AMR.cpp error
+ * \snippet{trimleft} this solve
+ * \snippet{trimleft} this error
  *
  * \htmlonly
    <center>

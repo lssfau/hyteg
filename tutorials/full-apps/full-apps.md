@@ -1,6 +1,6 @@
 \page Full_Apps Full Apps
 
-* \subpage FA.01_FullAppP1GMG
+* \subpage FA.01_GeometricMultigrid
     - Setting up a complete app using P1 elements which will perform geometric multigrid to solve the Laplace equation
 
 * \subpage FA.02_CouetteFlow

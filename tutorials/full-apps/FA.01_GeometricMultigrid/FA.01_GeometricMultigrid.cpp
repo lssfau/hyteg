@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Bartuschat, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Bartuschat, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -39,7 +39,7 @@ using walberla::uint_c;
 using walberla::uint_t;
 
 /**
- * \page FA.01_FullAppP1GMG Tutorial FA.01 - Geometric multigrid
+ * \page FA.01_GeometricMultigrid Tutorial FA.01 - Geometric multigrid
  *
  * \dontinclude tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp
  *
@@ -51,7 +51,7 @@ using walberla::uint_t;
  * At we first we create a walberla Environment which handles mpi init and set the communicator for all
  * prozesses to WorldComm
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Create Environment
+ * \snippet{trimleft} this Create Environment
  *
  * \section FA01-FullAppP1GMG-parameters Set Parameters
  *
@@ -65,7 +65,7 @@ using walberla::uint_t;
  * See walberla documentation for more details:
  * http://www.walberla.net/doxygen/classwalberla_1_1config_1_1Config.html
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Get Parameters
+ * \snippet{trimleft} this Get Parameters
  *
  *
  * \section FA01-FullAppP1GMG-storage Primitive Storage
@@ -75,7 +75,7 @@ using walberla::uint_t;
  * This creation can be split into more steps for more flexibility like using other load
  * balancing techniques
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Primitive Storage
+ * \snippet{trimleft} this Primitive Storage
  *
  * \section FA01-FullAppP1GMG-functionSpaces Create P1 Function Spaces
  *
@@ -90,7 +90,7 @@ using walberla::uint_t;
  *
  * Be aware that the highest level is included
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Function Spaces
+ * \snippet{trimleft} this Function Spaces
  *
  * \section FA01-FullAppP1GMG-boundaries Create functions for boundary conditions
  *
@@ -110,7 +110,7 @@ using walberla::uint_t;
  * for example hyteg::Inner for all points no on a boundary or hyteg::NeumannBondary for points which are
  * specified as Neumann boundaries
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Boundary Conditions
+ * \snippet{trimleft} this Boundary Conditions
  *
  * \section FA01-FullAppP1GMG-solver Solver
  *
@@ -128,7 +128,7 @@ using walberla::uint_t;
  *
  * Furthermore we need to create an instance of the P1LaplaceOperator
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Solvers
+ * \snippet{trimleft} this Solvers
  *
  * \section FA01-FullAppP1GMG-multigrid Perform Multigrid
  *
@@ -152,7 +152,7 @@ using walberla::uint_t;
  * When calling the solve function with CycleType::VCycle one cycle is performed per call.
  * We use a for loop to perform the desired number of V cycles
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Multigrid
+ * \snippet{trimleft} this Multigrid
  *
  * \section FA01-FullAppP1GMG-Calculate Residual
  *
@@ -165,7 +165,7 @@ using walberla::uint_t;
  *
  * See: http://www.walberla.net/doxygen/classwalberla_1_1logging_1_1Logging.html
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Residual
+ * \snippet{trimleft} this Residual
  *
  * \section FA01-FullAppP1GMG-output Write VTK Output
  *
@@ -179,7 +179,7 @@ using walberla::uint_t;
  * By specifiying a certain level as paramter in the write function, the desired level will be written to
  * disk
  *
- * \snippet tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp Output
+ * \snippet{trimleft} this Output
  *
  * \section FA01-FullAppP1GMG-fullApp Full Application
  * \include tutorials/full-apps/FA.01_GeometricMultigrid/FA.01_GeometricMultigrid.cpp
@@ -222,10 +222,11 @@ int main( int argc, char** argv )
    std::function< real_t( const hyteg::Point3D& ) > boundaryConditions = []( const hyteg::Point3D& x ) {
       real_t radius = sqrt( x[0] * x[0] + x[1] * x[1] );
       real_t angle  = std::atan2( x[1], x[0] );
-      if( radius < 1.1 )
+      if ( radius < 1.1 )
       {
          return std::sin( 10 * angle );
-      } else if( radius > 1.9 )
+      }
+      else if ( radius > 1.9 )
       {
          return std::sin( 5 * angle );
       }
@@ -249,7 +250,7 @@ int main( int argc, char** argv )
    /// [Solvers]
 
    /// [Multigrid]
-   for( uint_t i = 0; i < max_outer_iter; ++i )
+   for ( uint_t i = 0; i < max_outer_iter; ++i )
    {
       multiGridSolver.solve( laplaceOperator, function, rightHandSide, maxLevel );
    }
@@ -257,13 +258,13 @@ int main( int argc, char** argv )
 
    /// [Residual]
    laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, hyteg::Inner );
-   residual.assign( {1.0, -1.0}, {rightHandSide, laplaceTimesFunction}, maxLevel, hyteg::Inner );
+   residual.assign( { 1.0, -1.0 }, { rightHandSide, laplaceTimesFunction }, maxLevel, hyteg::Inner );
    real_t residualEuclideanNorm = std::sqrt( residual.dotGlobal( residual, maxLevel, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Euclidean norm of residual: " << residualEuclideanNorm )
    /// [Residual]
 
    /// [Output]
-   if( parameters.getParameter< bool >( "vtkOutput" ) )
+   if ( parameters.getParameter< bool >( "vtkOutput" ) )
    {
       hyteg::VTKOutput vtkOutput( ".", "FullAppP1GMG", storage );
       vtkOutput.add( function );

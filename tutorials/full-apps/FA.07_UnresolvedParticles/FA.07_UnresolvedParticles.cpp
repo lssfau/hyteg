@@ -31,27 +31,27 @@
  * velocities, such that their mass and size does not influence the results.
  *
  * First we set up a simple cube shaped domain.
- * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp domain
+ * \snippet{trimleft} this domain
  *
  * Then we define a velocity field that acts on our particles.
  * It resembles a convection cell in the x-y-plane. We will later scale it depending on the simulated time.
- * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp velocity
+ * \snippet{trimleft} this velocity
  *
  * We use two fields to avoid the usually slow interpolate function. Instead of interpolating the function every time step,
  * we just store the unscaled function, and scale it via the assign() method. This way, we replace the interpolate() call by an
  * assign() call which is generally much faster, at the cost of a little bit of memory. It clearly only works here as we simply
  * scale the convection cell.
- * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp fields
+ * \snippet{trimleft} this fields
  *
  * Now we allocate our particles. The setup is commented inline below.
- * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp particles
+ * \snippet{trimleft} this particles
  *
  * The VTK output needs to be initialized explicitly.
- * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp vtk
+ * \snippet{trimleft} this vtk
  *
  * Lets run our simulation. We alter the velocity field in each time step, apply it to the particles, and then integrate to
  * advect the particles.
- * \snippet tutorials/full-apps/FA.07_UnresolvedParticles/FA.07_UnresolvedParticles.cpp simulation
+ * \snippet{trimleft} this simulation
  *
  * The particles are advected along the velocity field. Results are shown below.
  *

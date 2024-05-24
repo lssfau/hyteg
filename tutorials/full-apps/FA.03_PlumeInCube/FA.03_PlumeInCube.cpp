@@ -31,7 +31,7 @@
  * As in all applications, we first setup the MPI environment.
  * We also load a parameter file to change parameters without having to rebuild the application.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Setup environment
+ * \snippet{trimleft} this Setup environment
  *
  * \section FA03-FullAppPlumeInCube-domain Domain
  *
@@ -43,7 +43,7 @@
  * to set all flags of all primitives on the boundary to 1 and all others to 0.
  * Later, this helps us to define boundary conditions.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Domain
+ * \snippet{trimleft} this Domain
  *
  * \note
  * Each individual function variable may treat the boundary flags at the primitives differently.
@@ -70,7 +70,7 @@
  * steps using a monolithic multigrid method with inexact-Uzawa type relaxation. All quantities are discretized
  * with linear finite elements. Therefore we employ a PSPG stabilization for the pressure.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Discretization
+ * \snippet{trimleft} this Discretization
  *
  * \section FA03-FullAppPlumeInCube-bc Initial and boundary conditions
  *
@@ -81,13 +81,13 @@
  * It constantly (== Dirichlet) heats up the bottom of the domain and cools down towards the top. Also initializes
  * points that do not lie on the boundary.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp BC
+ * \snippet{trimleft} this BC
  *
  * \section FA03-FullAppPlumeInCube-info Simulation info
  *
  * We add some code to print information of our setup like the number of DoFs and the coarse grid structure.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Info
+ * \snippet{trimleft} this Info
  *
  * \section FA03-FullAppPlumeInCube-VTK VTK
  *
@@ -97,7 +97,7 @@
  * is simply called in each time step and decides internally if output is written or not.
  * We also plot the initial conditions (time step == 0) and the coarse grid domain.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp VTK
+ * \snippet{trimleft} this VTK
  *
  * \section FA03-FullAppPlumeInCube-solvers Solvers
  *
@@ -124,14 +124,14 @@
  *
  * The rest are standard multigrid components.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Solvers
+ * \snippet{trimleft} this Solvers
  *
  * \section FA03-FullAppPlumeInCube-simulation Simulation loop
  *
  * Now we start the actual simulation. We define a short lambda to calculate the current residual
  * in the L2 norm.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Residual
+ * \snippet{trimleft} this Residual
  *
  * Then we start the main time stepping loop.
  *
@@ -139,12 +139,12 @@
  * field. Then we perform a few V-cycles to approximately solve the equation and calculate the average residual
  * reduction and some other infos.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Simulation Stokes
+ * \snippet{trimleft} this Simulation Stokes
  *
  * With the result we advance the temperature transport by several time steps using the algebraic upwind operator.
  * We also write the VTK output.
  *
- * \snippet tutorials/full-apps/FA.03_PlumeInCube/FA.03_PlumeInCube.cpp Simulation Advection
+ * \snippet{trimleft} this Simulation Advection
  *
  * This process is repeated until the simulation ends.
  *

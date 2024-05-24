@@ -98,7 +98,7 @@
  * However, this method requires a little more consideration w.r.t. the callbacks as the flags for higher-dimensional
  * primitives are derived from those of their associated vertices.
  * 
- * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Flag_Boundaries_Parts
+ * \snippet{trimleft} this Flag_Boundaries_Parts
  *
  * \subsection BA04-Step2 Step #2: Create BoundaryCondition objects
  * 
@@ -117,7 +117,7 @@
  * Note that the symbolic names we supply as arguments are stored internally in the object and must be unique,
  * but currently find no further usage.
  * 
- * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp BC_Objects
+ * \snippet{trimleft} this BC_Objects
  * 
  * \subsection BA04-Step3 Step #3: Create Functions
  * 
@@ -145,7 +145,7 @@
  * \link hyteg::SetupPrimitiveStorage::setMeshBoundaryFlagsOnBoundary() `setMeshBoundaryFlagsOnBoundary()`\endlink and no
  * `BoundaryCondition` object was explicitely created.
  * As an example consider the following call from tutorial #8.
- * \snippet tutorials/apps/08_CahnHilliard/CahnHilliard.cpp create_storage neumann
+ * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp create_storage neumann
  * It marks all parts of the boundary by assigning their vertices a flag
  * value of 2, and all other vertices by flagging them with 0. In combination with the object returned by `create0123BC()`
  * this corresponds to Neumann boundary conditions everywhere on the boundary.
@@ -159,7 +159,7 @@
  * only for the velocity component. For the pressure component an object will be generated automatically via
  * \link hyteg::BoundaryCondition::createAllInnerBC() `createAllInnerBC()`\endlink.
  * 
- * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Function_Creation
+ * \snippet{trimleft} this Function_Creation
  * 
  * \subsection BA04-Step4 Step #4: Setting Boundary and Initial Conditions
  *
@@ -182,12 +182,12 @@
  * write a corresponding lambda expression to use as callback. However, it is more convenient to simply work
  * with the corresponding BoundaryUIDs instead:
  *
- * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Setting_BC_Temp
+ * \snippet{trimleft} this Setting_BC_Temp
  *
  * When we set boundary values for velocity we must to take into account that this is a vector-valued function.
  * Thus, we need to either specify one constant or one std::function per component.
  *
- * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Setting_BC_Vel
+ * \snippet{trimleft} this Setting_BC_Vel
  *
  * As a final aspect let us demonstrate how to combine different DoFType values to set the initial values for
  * the temperature. Note that the initiation function
@@ -197,7 +197,7 @@
  * \f]
  * is consistent with the Dirichlet boundary conditions so we could also use `All` to combine setting boundary
  * and initial conditions for time \f$t=t_0\f$.
- * \snippet tutorials/basics-for-apps/BA.04_BoundaryConditions/BA.04_BoundaryConditions.cpp Setting_ICs
+ * \snippet{trimleft} this Setting_ICs
  *
  */
 

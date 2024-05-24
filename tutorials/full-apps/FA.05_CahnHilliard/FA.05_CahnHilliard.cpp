@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Andreas Wagner.
+ * Copyright (c) 2021-2024 Andreas Wagner, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -63,7 +63,7 @@
  *
  * The energy minimization of $F$ is usually something we want to enforce by our time discretization.
  *
- * For this, we split up the potential $\boldsymbol \psi$ into a convex and a concave part, such that
+ * For this, we split up the potential \f$\boldsymbol \psi\f$ into a convex and a concave part, such that
  * \f{align*}{
  *     \boldsymbol \psi = \boldsymbol \psi_c - \boldsymbol \psi_e
  * \f}
@@ -186,7 +186,7 @@
  * We start with defining a block function representing the state of our system at a given time step by inheriting from the hyteg::BlockFunction.
  * The first component will correspond to the chemical potential, while the second is the indicator function for our mixtures.
  *
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction definition
+ * \snippet{trimleft} this CahnHilliardFunction definition
  *
  * The two components for the \f$\phi \f$ and \f$\mu\f$ are defined inside the constructor by pushing a hyteg::P1Function onto the
  * `subFunc_` vector.
@@ -200,7 +200,7 @@
  * For instance, its name, its value type, and it needs a tag for certain meta programming features.
  * This can be achieved by extending the given trait system:
  *
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction meta-information
+ * \snippet{trimleft} this CahnHilliardFunction meta-information
  *
  * If one of HyTeG's internal algorithms needs to know the value type of an unknown function type `UnknownType`, it can do this by calling
  * `hyteg::FunctionTrait< UnknownType >::ValueType` at compile time.
@@ -211,7 +211,7 @@
  * <a href="https://www.boost.org/doc/libs/1_53_0/libs/geometry/doc/html/geometry/design.html">www.boost.org</a>.
  *
  * To keep our type names within "reasonable bounds" we will introduce the shorthand `chType` for our `P1CahnHilliardFunction`:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction chType-definition
+ * \snippet{trimleft} this CahnHilliardFunction chType-definition
  *
  * \subsection FA05-rhs-assembly The right-hand-side assembly
  *
@@ -224,7 +224,7 @@
  * which has to happen after every time step using the updated value for our indicator function \f$\phi^{(n)}_h\f$.
  *
  * We will hide the assembly process in the RhsAssembler class, given by
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction ClassRhsAssembler
+ * \snippet{trimleft} this CahnHilliardFunction ClassRhsAssembler
  *
  * The `RhsAssembler::assemble` method, will take the solution of the previous time step `u_prev` as an input value
  * and write the result into the vector `rhs`.
@@ -254,7 +254,7 @@
  *
  * The operator \f$M_{\kappa}\f$ is realized in the hyteg::P1ElementwiseKMassOperator, and takes the given bilinear form in its constructor.
  * The assembly code becomes
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction assemble
+ * \snippet{trimleft} this CahnHilliardFunction assemble
  * To calculate \f$\boldsymbol{g}\f$, we first define a lambda function `kappa` which takes a quadrature point and returns the value of \f$\tilde \kappa\f$ at that point.
  * For this, we get the \f$\phi\f$-component of `u_prev` and evaluate it at `p` with hyteg::P1Function::evaluate.
  * The functional is inserted into the form for \f$m_{\tilde \kappa}\f$, which is used to initialize the operator `op_m_kappa_tilde` or \f$M_{\tilde \kappa}\f$ in our previous notation.
@@ -277,19 +277,19 @@
  * But since they are all linear combinations of the mass- and stiffness matrix, we can use the hyteg::P1LinearCombinationForm to construct
  * them from the mass and stiffness forms already defined in HyTeG. The mass and stiffness forms are
  *
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction forms-definitions
+ * \snippet{trimleft} this CahnHilliardFunction forms-definitions
  *
  * Here, they are given as `hyteg::P1FenicsForm`s, with the first type-argument for the 2D form and the second type-argument for the 3D form.
  * The form for the lower-right block can now be constructed by
  *
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction block-form-11
+ * \snippet{trimleft} this CahnHilliardFunction block-form-11
  *
  * We first define the hyteg::P1LinearCombinationForm, which defaults to the zero form.
  * We then add the stiffness form scaled by \f$-\epsilon^2\sqrt{\tau}\f$.
  * Finally, we add the mass scaled with \f$ - 2 \sqrt \tau \f$.
  *
  * The upper-left block is a bit simpler to construct since it only requires to scale the stiffness form:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction block-form-00
+ * \snippet{trimleft} this CahnHilliardFunction block-form-00
  *
  * We now have the correct forms, but still, need to construct proper operators from them.
  * We could do this explicitly by
@@ -300,7 +300,7 @@
  * For the off-diagonal blocks no additional forms are needed and we can resort directly to the hyteg::P1ConstantMassOperator.
  *
  * We construct the complete block-operator in the following factory-function:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction lhs-assembly
+ * \snippet{trimleft} this CahnHilliardFunction lhs-assembly
  *
  * The hyteg::BlockOperator takes the dimension of the block-system in the last two arguments.
  * By calling the hyteg::BlockOperator::createSubOperator method we can construct the blocks.
@@ -317,7 +317,7 @@
  * given \f$ \boldsymbol u^{(n)} = (\boldsymbol \mu^{(n)}, \boldsymbol \phi^{(n)}) \f$ we want to calculate the values at the next time step
  * \f$ \boldsymbol u^{n+1} = (\boldsymbol \mu^{n+1}, \boldsymbol \phi^{n+1}) \f$.
  * This will be handled by the following operator
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction ClassCahnHilliardEvolutionOperator
+ * \snippet{trimleft} this CahnHilliardFunction ClassCahnHilliardEvolutionOperator
  *
  * Note that `lhsOp_` is the operator we constructed in the previous step and ignore all the references to solvers for now.
  * The apply method takes function `u_prev` and "evolves" it to `u_now` on the given level.
@@ -353,10 +353,10 @@
  * - and scale again the result with the diagonal matrix.
  *
  * The multiplication with the diagonal matrix is done implicitly in the `scale` method by using the hyteg::P1Function::assign on both components
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction scale
+ * \snippet{trimleft} this CahnHilliardFunction scale
  *
  * The apply method can thus be written as
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction time-evolution-apply
+ * \snippet{trimleft} this CahnHilliardFunction time-evolution-apply
  * which is essentially the list of operations given before, wrapped by some calls to the timing-tree API.
  * This is especially useful to get a feeling of how long solving the system takes compared to assembling the right-hand side.
  *
@@ -365,7 +365,7 @@
  * We will now discuss how to invert the `lhsOp_` Operator from the previous step.
  * As an outer solver we will use a diagonally preconditioned MINRES, which is configured in the `create_solver` factory function,
  * which was called in the constructor of the CahnHilliardEvolutionOperator of the previous step.
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction minres-solver
+ * \snippet{trimleft} this CahnHilliardFunction minres-solver
  * First, we construct the CahnHilliardDiagonalPreconditioner, which we will implement in a second and will have the usual hyteg::Solver interface.
  * The preconditioner is passed to the constructor of the hyteg::MinResSolver, together with the maximum number of iteration and the absolute tolerance of the residual.
  * The default preconditioner is the hyteg::IdentityPreconditioner which is commented out.
@@ -384,19 +384,19 @@
  * We will use a multigrid algorithm to invert the diagonal blocks.
  *
  * The CahnHilliardDiagonalPreconditioner inherits from the solver interface:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardFunction CahnHilliardDiagonalPreconditioner
+ * \snippet{trimleft} this CahnHilliardFunction CahnHilliardDiagonalPreconditioner
  * The CahnHilliardDiagonalPreconditioner::create_block_00_form and CahnHilliardDiagonalPreconditioner::create_block_11_form methods
  * will create the hyteg::P1LinearCombinationForm%s for \f$ \sqrt{\tau} K + M \f$
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardDiagonalPreconditioner block00form
+ * \snippet{trimleft} this CahnHilliardDiagonalPreconditioner block00form
  * and \f$\sqrt{\tau} \epsilon^2 K + M\f$
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardDiagonalPreconditioner block11form
+ * \snippet{trimleft} this CahnHilliardDiagonalPreconditioner block11form
  * which are used to construct the operators `block_00_operator` and `block_11_operator`.
  *
- * The CahnHilliardDiagonalPreconditioner::create_multigrid_solver initializes our multigrid algorithm in the same way as in \ref 05_FullAppP1GMG:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardDiagonalPreconditioner create-multigrid-solver
+ * The CahnHilliardDiagonalPreconditioner::create_multigrid_solver initializes our multigrid algorithm in the same way as in \ref FA.01_GeometricMultigrid :
+ * \snippet{trimleft} this CahnHilliardDiagonalPreconditioner create-multigrid-solver
  *
  * Now that we are finished with the setup phase, implementing the action of the preconditioner in the `solve` method is simple:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp CahnHilliardDiagonalPreconditioner solve
+ * \snippet{trimleft} this CahnHilliardDiagonalPreconditioner solve
  * We apply the multigrid solver first on the \f$\mu\f$-component of our vector `numVCyclesMu_`-times.
  * After that, we do the same for the lower-right block.
  *
@@ -404,14 +404,14 @@
  *
  * We will solve the Cahn-Hilliard equations on a rectangular or cubic domain, depending on whether we are in 2D or 3D.
  * A rectangular domain can be constructed with
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp create_storage rectangle
+ * \snippet{trimleft} this create_storage rectangle
  * The only notable thing which changes compared to the previous tutorial is, that we need Neumann boundary conditions on the whole domain.
  * For this we use the hyteg::SetupPrimitiveStorage::setMeshBoundaryFlagsOnBoundary method.
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp create_storage neumann
+ * \snippet{trimleft} this create_storage neumann
  *
  * Since we want to seamlessly switch between 2D and 3D the whole construction of the primitive storage gets moved into an auxillary function,
  * which takes the boolean flag `use3D` as an argument:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp create_storage fun
+ * \snippet{trimleft} this create_storage fun
  * We stress, that this will be the only place in our code where different code paths are taken depending on the spatial dimension.
  *
  * \subsection FA05-main The main function
@@ -420,10 +420,10 @@
  * In principle, it should not contain anything surprising which was not encountered in the previous tutorials yet.
  *
  * We start with configuring walberla
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main config-walberla
+ * \snippet{trimleft} this main config-walberla
  *
  * We do not want to hardcode most of our parameters and hence have to read in a configuration file:
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main config-file
+ * \snippet{trimleft} this main config-file
  * As before `minLevel` and `maxLevel` refer to the coarsest and finest level of our multigrid algorithm.
  * Since we do not want to output our solution after every time step, we define an `outputInterval`, so that we only get every `outputInterval`th step.
  * The parameters `tau` and `epsilon` refer to the time step width and interface width.
@@ -435,25 +435,25 @@
  * Finally, the time when our simulation stops is given in `t_end`.
  *
  * We create the storage with our previously defined helper function
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main storage
+ * \snippet{trimleft} this main storage
  *
  * Next we define functions for storing the state of our CH equation at the current and previous time step
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main functions
+ * \snippet{trimleft} this main functions
  *
  * Next we setup the CahnHilliardEvolutionOperator as
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main evolution-operator
+ * \snippet{trimleft} this main evolution-operator
  * We have added the flag `printMinresConvergence` to activate the verbose output mode of our MINRES solver.
  * This allows us to check how many iterations we need until convergence and how the iteration count changes for finer meshes.
  *
  * A common benchmark for a Cahn-Hilliard solver is to start with a homogeneous mixture of fluids that is disturbed by some random noise.
  * We will thus use walberla::math::realRandom to initialize `u_prev` with random values in the interval \f$[-0.01, +0.01]\f$
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main initial-values
+ * \snippet{trimleft} this main initial-values
  * The seed for these random functions can be set with walberla::math::seedRandomGenerator.
  * We use the processor rank as an initial seed to avoid having the same random values on all processes.
  * This would lead to symmetric patterns in our solution, due to the homogeneous mesh.
  *
  * The actual time loop is fairly simple
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main time-loop
+ * \snippet{trimleft} this main time-loop
  * We increment our current time `t_now` in every time step by `tau`, apply our CahnHilliardEvolutionOperator on `u_prev` to get
  * the updated state of our PDE-system in `u_now`.
  * This gets copied to u_prev with the hyteg::P1Function::assign method.
@@ -462,7 +462,7 @@
  * When our simulation finally reaches `t_end` and finishes we might want to get additional information about the runtime of the application to identify bottlenecks.
  * For instance, whether it is worth optimizing our inefficient right-hand-side assembly.
  * This can be done by printing the walberla::timing::TimingTree of the hyteg::PrimitiveStorage to the console.
- * \snippet tutorials/full-apps/FA.05_CahnHilliard/FA.05_CahnHilliard.cpp main timing-tree
+ * \snippet{trimleft} this main timing-tree
  *
  * \section FA05-Results Results in 2D
  *

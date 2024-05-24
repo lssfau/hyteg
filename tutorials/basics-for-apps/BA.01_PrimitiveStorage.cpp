@@ -55,7 +55,7 @@ namespace hyteg {
  *
  * To parse a mesh file simple use the respective static method of the class. To parse a
  * file in the GMSH format, run:
- * \snippet tutorials/basics-for-apps/BA.01_PrimitiveStorage.cpp MeshInfo
+ * \snippet{trimleft} this MeshInfo
  *
  * Alternatively you can use one of the inline mesh generators available in HyTeG. The
  * code below e.g. will generate a regular criss-cross mesh composed of (3 x 2) sub-cells
@@ -76,7 +76,7 @@ namespace hyteg {
  * from the MeshInfo. The resulting storage object is not distributed. However, in this phase the
  * primitives only carry metadata and no actual simulation data is allocated on them.
  *
- * \snippet tutorials/basics-for-apps/BA.01_PrimitiveStorage.cpp SetupPrimitiveStorage
+ * \snippet{trimleft} this SetupPrimitiveStorage
  *
  * The main purpose of the SetupPrimitiveStorage is to assign the primitives to the processes.
  * We achieve this by calling a load balancing function on it. There are some simple load balancers
@@ -84,19 +84,19 @@ namespace hyteg {
  * the user does not have to call it in the application. Anyway, here is an example of how to use
  * them in practice:
  *
- * \snippet tutorials/basics-for-apps/BA.01_PrimitiveStorage.cpp Loadbalancing
+ * \snippet{trimleft} this Loadbalancing
  *
  * \section T01-storage Creating a distributed PrimitiveStorage
  *
  * Finally we are able to create the distributed PrimitiveStorage instance. It requires us to specify
 {Paraview/link_002_tomo_SEMUCB_T_angle_}{0}{35}}; * the rank it is located on.
  *
- * \snippet tutorials/basics-for-apps/BA.01_PrimitiveStorage.cpp PrimitiveStorage
+ * \snippet{trimleft} this PrimitiveStorage
  *
  * You can see that the data structure is now distributed since different ranks carry different primitives.
  * Querying the number of primitives should therefore (in general) result in different numbers on different processes:
  *
- * \snippet tutorials/basics-for-apps/BA.01_PrimitiveStorage.cpp PrimitiveStorageNumberOfVertices
+ * \snippet{trimleft} this PrimitiveStorageNumberOfVertices
  *
  * \section code Complete Program
  * \include tutorials/basics-for-apps/BA.01_PrimitiveStorage.cpp

@@ -75,12 +75,12 @@ namespace hyteg {
  * Therefore we introduce a struct TestData (plus the respective data handling) that carries the ID of the
  * carrier and a vector of neighboring IDs:
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp TestData
+ * \snippet{trimleft} this TestData
  *
  * Now let us implement the three virtual functions of the abstract class hyteg::communication::PackInfo that are needed to
  * send data from vertices to edges:
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp PackInfo
+ * \snippet{trimleft} this PackInfo
  *
  * Note that we implement the method communicateLocalVertexToEdge. It can be used automatically (we will see that later)
  * if both primitives reside on the same process to optimize the communication step.
@@ -89,28 +89,28 @@ namespace hyteg {
  *
  * To communicate the data, we need a hyteg::PrimitiveStorage and primitives that carry our struct:
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Setup
+ * \snippet{trimleft} this Setup
  *
  * Then we create an instance of our PackInfo implementation and an instance of hyteg::communication::BufferedCommunicator
  * which will carry out the communication.
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Communicator
+ * \snippet{trimleft} this Communicator
  *
  * To tell the communicator that it shall communicate our test data during every communication, we need
  * to add our PackInfo. Only data with registered PackInfo will be communicated.
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp AddPackInfo
+ * \snippet{trimleft} this AddPackInfo
  *
  * As previously mentioned, local communication can be performed directly, without buffering (which is set by default).
  * However, the local communication mode can be changed via:
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp LocalMode
+ * \snippet{trimleft} this LocalMode
  *
  * See hyteg::communication::BufferedCommunicator for more details on the local communication modes.
  *
  * Now we perform the buffered, non-blocking communication:
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Communication
+ * \snippet{trimleft} this Communication
  *
  * Since the communication is buffered and non-blocking, we perform it in two steps:
  * - startCommunication packs the data into buffers and starts non-blocking MPI sends
@@ -122,7 +122,7 @@ namespace hyteg {
  * After the communication is done, we expect to have two IDs unpacked on all edges since every
  * edge has two neighboring vertices. Let's check that:
  *
- * \snippet tutorials/basics-of-hyteg/BH.02_Communication.cpp Check
+ * \snippet{trimleft} this Check
  *
  * \section BH02-Communication-code Complete Program
  *
