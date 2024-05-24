@@ -237,7 +237,8 @@ add_subdirectory( tutorials )
 #
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
-  find_package ( Doxygen 1.10.0...<90.0.0 )
+
+  find_package ( Doxygen 1.10.0 )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
