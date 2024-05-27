@@ -1441,8 +1441,8 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "vtk name", vtkname.c_str() ) );
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write domain partitioning", writePartitioning ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export final mesh as file", writeMeshfile ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export final mesh as file", printMeshData ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write  mesh to file", writeMeshfile ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export mesh data", printMeshData ) );
 
    // solve/refine iteratively
    solve_for_each_refinement( setupStorage,
