@@ -1,0 +1,7 @@
+add_subdirectory(FA.01_GeometricMultigrid)
+add_subdirectory(FA.02_CouetteFlow)
+add_subdirectory(FA.03_PlumeInCube)
+add_subdirectory(FA.04_IsoviscousConvectionAnnulus)
+add_subdirectory(FA.05_CahnHilliard)
+add_subdirectory(FA.06_DG+AMR)
+add_subdirectory(FA.07_UnresolvedParticles)
