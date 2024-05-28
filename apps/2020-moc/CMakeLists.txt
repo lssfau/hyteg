@@ -33,7 +33,7 @@ waLBerla_add_executable( NAME Benchmark_05_PipeScaling
         FILES Benchmark_05_PipeScaling.cpp Helpers.cpp
         DEPENDS hyteg convection_particles sqlite mixed_operator)
 
-if ( HYTEG_BUILD_WITH_PETSC )
+if ( HYTEG_BUILD_WITH_PETSC AND HYTEG_TERRANEO_MODULE )
     waLBerla_add_executable( NAME MantleConvection
             FILES MantleConvection.cpp
             DEPENDS hyteg convection_particles sqlite terraneo mixed_operator)
