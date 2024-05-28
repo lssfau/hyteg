@@ -857,13 +857,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // apply error indicator
    // global error estimate on levels {L, L-1, L-2, L-3, L-4}
    std::array< double, 5 > err_est{ 0, 0, 0, 0, 0 };
-   if ( error_indicator ) // use error indicator
+   if ( error_indicator || global_error_estimate ) // use error indicator
    {
       // for global error estimate we need L-4, L-3, and L-2
       // for error indication, we require L-1
+      int min_offset = error_indicator ? 1 : 2;
       int max_offset = global_error_estimate ? 4 : 1;
 
-      for ( int offset = 1; offset <= max_offset; ++offset )
+      for ( int offset = min_offset; offset <= max_offset; ++offset )
       {
          auto lvl = l_max - offset;
          // store coarse solution (for testing purposes) //todo: remove this
@@ -923,10 +924,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             e = std::sqrt( e );
          }
          // compute estimate on h-convergence h^q
-         auto theta3 = err_est[3] / err_est[4];
-         auto theta2 = err_est[2] / err_est[3];
-         auto rho  = std::min( theta2, theta3 ) / std::max( theta2, theta3 );
-         auto q    = -log( theta2 ) / log( 2.0 );
+         auto theta3       = err_est[3] / err_est[4];
+         auto theta2       = err_est[2] / err_est[3];
+         auto rho          = std::min( theta2, theta3 ) / std::max( theta2, theta3 );
+         auto q            = -log( theta2 ) / log( 2.0 );
+         auto theta_pow_j  = theta2 * theta2;
+         auto theta_pow_j1 = theta2 * theta2 * theta2;
+         auto C1           = pow( 1.0 - theta_pow_j, 3 ) / pow( 1.0 + theta_pow_j1, 2 );
+         auto C2           = pow( 1.0 + theta_pow_j, 3 ) / pow( 1.0 - theta_pow_j1, 2 );
 
          t1 = walberla::timing::getWcTime();
          t_error_indicator += t1 - t0;
@@ -934,8 +939,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          // check whether convergence is asymptotic
          if ( rho < 0.9 || q > 2.1 )
          {
-            WALBERLA_LOG_WARNING_ON_ROOT(
-                " ->  Convergence seems to be pre-asymptotic: Below estimate might be severely inaccurate!" )
+            WALBERLA_LOG_WARNING_ON_ROOT( " ->  Convergence seems to be pre-asymptotic:" )
             WALBERLA_LOG_WARNING_ON_ROOT(
                 walberla::format( " ->       reliability: ϱ=%1.2f, convergence rate: q≈%1.2f", rho, q ) );
             WALBERLA_LOG_WARNING_ON_ROOT( " ->  Below estimate might be severely inaccurate!" )
@@ -946,6 +950,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
              walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ eta = %1.2e", l_max, err_est[0] ) );
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " ->  estimated convergence w.r.t. lvl: θ ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", 1. / theta2, q ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+             " ->  accuracy of estimate: C1 <= η/||e_%d||_L2 <= C2  with C1 ≈ %1.2f, C2 ≈ %1.2f", l_max, C1, C2 ) );
       }
    }
 
@@ -1305,7 +1311,7 @@ int main( int argc, char* argv[] )
    const uint_t ref_strat    = parameters.getParameter< uint_t >( "refinement_strategy", RefinementStrategy::MEAN_SQUARED_ERROR );
    const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", 0.0 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
-   const bool   global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
+   bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
 
    const uint_t l_min   = parameters.getParameter< uint_t >( "cg_level", 0 );
    const uint_t l_max   = parameters.getParameter< uint_t >( "microlevel" );
@@ -1335,18 +1341,24 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 #endif
 
+   if ( error_indicator && l_max - l_min < 1 )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT(
+          "Local error indicator requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 2." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.error_indicator=0" );
+      global_error_estimate = 0;
+   }
    if ( global_error_estimate && l_max - l_min < 4 )
    {
-      WALBERLA_ABORT( "Global error estimation requires at least 5 multigrid levels, i.e., microlevel - cg_level >= 4" );
-   }
-   if ( global_error_estimate && !error_indicator )
-   {
-      WALBERLA_ABORT( "Global error estimation only available in combination with error indicator!" );
+      WALBERLA_LOG_WARNING_ON_ROOT(
+          "Global error estimation requires at least 5 multigrid levels, i.e., microlevel - cg_level >= 4." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
+      global_error_estimate = 0;
    }
    if ( l2error < 0 && !error_indicator )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT(
-          "Running without error indicator requires computation of exact error. Resetting --Parameters.l2error=0!" )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Running without error indicator requires computation of exact error." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.l2error=0!" )
       l2error = 0;
    }
 
