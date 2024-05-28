@@ -840,7 +840,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
       bool converged = norm_r <= tol;
 
-      if ( iter % error_freq == 0 || ( converged && error_freq == int( max_iter ) ) )
+      if ( iter % error_freq == 0 || ( converged && error_freq <= int( max_iter ) ) )
       {
          auto eL2 = compute_L2error();
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
@@ -893,7 +893,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                auto eMe = vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 );
                err_est[offset] += eMe;
                if ( offset == 1 )
-                  err_el[id] = std::sqrt( eMe );
+                  err_el[id] = eMe;
             }
          }
          else // dim == 3
@@ -905,7 +905,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                auto eMe = vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 );
                err_est[offset] += eMe;
                if ( offset == 1 )
-                  err_el[id] = std::sqrt( eMe );
+                  err_el[id] = eMe;
             }
          }
 
@@ -923,29 +923,29 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
             e = std::sqrt( e );
          }
          // compute estimate on h-convergence h^q
-         auto rho3 = err_est[3] / err_est[4];
-         auto rho2 = err_est[2] / err_est[3];
-         auto rho  = std::max( rho2, rho3 );
-         auto q    = -log( rho ) / log( 2.0 );
+         auto theta3 = err_est[3] / err_est[4];
+         auto theta2 = err_est[2] / err_est[3];
+         auto rho  = std::min( theta2, theta3 ) / std::max( theta2, theta3 );
+         auto q    = -log( theta2 ) / log( 2.0 );
 
          t1 = walberla::timing::getWcTime();
          t_error_indicator += t1 - t0;
 
          // check whether convergence is asymptotic
-         if ( abs( rho2 - rho3 ) / rho > 0.1 || q > 2.1 )
+         if ( rho < 0.9 || q > 2.1 )
          {
             WALBERLA_LOG_WARNING_ON_ROOT(
                 " ->  Convergence seems to be pre-asymptotic: Below estimate might be severely inaccurate!" )
             WALBERLA_LOG_WARNING_ON_ROOT(
-                walberla::format( " ->       (rho_%d≈1/%1.2f, rho_%d≈1/%1.2f)", l_max - 3, 1. / rho3, l_max - 2, 1. / rho2 ) );
+                walberla::format( " ->       reliability: ϱ=%1.2f, convergence rate: q≈%1.2f", rho, q ) );
             WALBERLA_LOG_WARNING_ON_ROOT( " ->  Below estimate might be severely inaccurate!" )
          }
-         err_est[1] = err_est[2] * rho;
-         err_est[0] = err_est[1] * rho;
+         err_est[1] = err_est[2] * theta2;
+         err_est[0] = err_est[1] * theta2;
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ eta = %1.2e", l_max, err_est[0] ) );
          WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( " ->  estimated convergence w.r.t. lvl: rho ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", 1. / rho, q ) );
+             walberla::format( " ->  estimated convergence w.r.t. lvl: θ ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", 1. / theta2, q ) );
       }
    }
 
@@ -1395,7 +1395,7 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-          "    with weighted mean μ(x) = (∑_i i^%e x_i)/(∑_i i^%e) for x_1 <= x_2 <= ...", p_refinement, p_refinement ) );
+          "    with weighted mean μ(x) = (∑_i i^%1.1f x_i)/(∑_i i^%1.1f) for x_1 <= x_2 <= ...", p_refinement, p_refinement ) );
    }
    if ( refinementStrategy.s == RefinementStrategy::PROPORTION )
    {
