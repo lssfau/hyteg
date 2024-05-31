@@ -36,6 +36,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 // clang on
 
+#include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
+
 #include "hyteg/dataexport/VTKOutput/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKN1E1Writer.hpp"
@@ -43,7 +45,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
 
-// from walblera
+// from walberla
 #include "vtk/Base64Writer.h"
 
 namespace hyteg {
@@ -110,60 +112,6 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
  private:
-   /// Wrapper class that handles writing data in ASCII or binary format.
-   ///
-   /// \tparam DTypeInVTK data type that the input data is converted to before writing it to the VTK file
-   template < typename DTypeInVTK >
-   class VTKStreamWriter
-   {
-    public:
-      explicit VTKStreamWriter( vtk::DataFormat vtkDataFormat )
-      : vtkDataFormat_( vtkDataFormat )
-      {
-         if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
-         {
-            outputAscii_ << std::scientific;
-         }
-      }
-
-      template < typename T >
-      VTKStreamWriter& operator<<( const T& data )
-      {
-         if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
-         {
-            outputAscii_ << static_cast< DTypeInVTK >( data ) << "\n";
-         }
-         else if ( vtkDataFormat_ == vtk::DataFormat::BINARY )
-         {
-            outputBase64_ << static_cast< DTypeInVTK >( data );
-         }
-
-         return *this;
-      }
-
-      void toStream( std::ostream& os )
-      {
-         if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
-         {
-            os << outputAscii_.str();
-            // reset string stream
-            // outputAscii_.str( std::string() );
-            // outputAscii_.clear();
-         }
-         else if ( vtkDataFormat_ == vtk::DataFormat::BINARY )
-         {
-            outputBase64_.toStream( os );
-            // Base64Writer::toStream() already reset the object
-            // so nothing left to do for us here
-         }
-      }
-
-    private:
-      vtk::DataFormat             vtkDataFormat_;
-      std::ostringstream          outputAscii_;
-      walberla::vtk::Base64Writer outputBase64_;
-   };
-
    static const std::map< vtk::DoFType, std::string > DoFTypeToString_;
 
    void   writeDoFByType( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const;

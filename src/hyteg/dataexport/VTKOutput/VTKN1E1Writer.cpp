@@ -53,7 +53,7 @@ void VTKN1E1Writer::write( const VTKOutput& mgr, std::ostream& output, const uin
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    {
-      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
       VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level );
       streamWriter.toStream( output );
    }
@@ -95,7 +95,7 @@ void VTKN1E1Writer::writeVectorFunction( std::ostream&                          
 
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), function.getDimension(), vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
 
    for ( const auto& it : storage->getCells() )
    {

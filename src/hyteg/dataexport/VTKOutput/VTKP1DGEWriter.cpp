@@ -65,7 +65,7 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    {
-      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
       VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level, true );
       streamWriter.toStream( output );
    }
@@ -113,7 +113,7 @@ void VTKP1DGEWriter::writeVectorFunction( std::ostream&                         
 {
    WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
 
-   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), function.getDimension(), vtkDataFormat );
 
    if ( write2D )

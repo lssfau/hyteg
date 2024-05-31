@@ -17,5 +17,6 @@ target_sources( hyteg
     VTKP1Writer.hpp
     VTKP2Writer.cpp
     VTKP2Writer.hpp
+    VTKStreamWriter.hpp
 )
 

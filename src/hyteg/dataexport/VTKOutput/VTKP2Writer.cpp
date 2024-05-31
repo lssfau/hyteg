@@ -61,7 +61,7 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    {
-      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
       VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level + 1 );
       streamWriter.toStream( output );
    }
@@ -126,7 +126,7 @@ void VTKP2Writer::writeScalarFunction( std::ostream&                            
 
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
    writeP2FunctionData( write2D, streamWriter, function, storage, level );
    streamWriter.toStream( output );
 
@@ -146,7 +146,7 @@ void VTKP2Writer::writeVectorFunction( std::ostream&                            
    uint_t dim = function.getDimension();
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), dim, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
    writeP2VectorFunctionData( write2D, streamWriter, function, storage, level );
    streamWriter.toStream( output );
 
