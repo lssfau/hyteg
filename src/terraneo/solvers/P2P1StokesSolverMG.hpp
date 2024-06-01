@@ -27,7 +27,7 @@
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 
-#include "P2P1StokesOperatorProjection.hpp"
+#include "terraneo/operators/P2P1StokesOperatorProjection.hpp"
 
 namespace hyteg {
 
@@ -38,6 +38,7 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
                        const std::shared_ptr< P2P1StokesFullIcosahedralShellMapOperatorFS >& stokesOperatorFSSelf,
                        const std::shared_ptr< P2ProjectNormalOperator >&                     projectionOperator,
                        const uint_t&                                                         fGMRESOuterIter,
+                       const real_t&                                                         fGMRESTol,
                        const real_t&                                                         uzawaSmootherOmega,
                        BoundaryCondition                                                     bcVelocity,
                        bool                                                                  estimateUzawaOmegaValue = false,
@@ -227,7 +228,7 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
        projectionOperator );
 
    auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorFS > >(
-       storage, minLevel, maxLevel, fGMRESOuterIter, 50, 1e-6, 1e-6, 0, uzawaSmoother );
+       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, uzawaSmoother );
    finalStokesSolver->setPrintInfo( true );
 
    return finalStokesSolver;

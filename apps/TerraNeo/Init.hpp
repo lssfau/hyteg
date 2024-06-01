@@ -366,7 +366,8 @@ void ConvectionSimulation::setupSolversAndOperators()
                                        TN.domainParameters.maxLevel,
                                        stokesOperatorFS,
                                        projectionOperator,
-                                       25,
+                                       TN.solverParameters.stokesMaxNumIterations,
+                                       TN.solverParameters.stokesRelativeResidualUTolerance,
                                        0.3,
                                        bcVelocity );
 

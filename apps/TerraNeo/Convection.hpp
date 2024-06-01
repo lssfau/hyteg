@@ -79,9 +79,10 @@
 #include "terraneo/helpers/RadialProfiles.hpp"
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
+#include "terraneo/operators/P2P1StokesOperatorProjection.hpp"
+#include "terraneo/solvers/P2P1StokesSolverMG.hpp"
+#include "terraneo/operators/P2TransportOperatorTALA.hpp"
 // Custom Advection-Diffusion Operator as a workaround
-#include "StokesWrappers/P2P1StokesOperatorProjection.hpp"
-#include "StokesWrappers/P2P1StokesSolverMG.hpp"
 #include "TerraNeoDiffOperatorWrapper.hpp"
 
 namespace terraneo {

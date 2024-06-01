@@ -17,7 +17,7 @@ Parameters
    
    // Refinement level
    
-   maxLevel 2;
+   maxLevel 3;
    minLevel 0;
     
    //////////////////////////////////
@@ -72,7 +72,7 @@ Parameters
 
    // Input viscosity profile
 
-   //viscosityProfile viscosity_profile_geodySia.txt;
+   // viscosityProfile viscosity_profile_geodySia.txt;
    
    characteristicVelocity 1e-6;
 
@@ -158,7 +158,7 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 10;
+   maxNumTimeSteps 100;
    fixedTimeStep false;
    cflMax 0.75;
    dtConstant 1e-4;
@@ -248,7 +248,7 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory /import/freenas-m-03-geodynamics/pponkumar/output/;
+   outputDirectory ./output;
    outputBaseName 3d_convection;
 
    verbose true;

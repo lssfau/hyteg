@@ -533,7 +533,8 @@ real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Tempera
 
    if ( TN.simulationParameters.haveViscosityProfile )
    {
-      //retVal = TN.physicalParameters.viscosityProfile;
+      // retVal = TN.physicalParameters.viscosityProfile;
+      WALBERLA_LOG_WARNING_ON_ROOT( "Viscosity profiles are not yet supported" );
    }
    else
    {
