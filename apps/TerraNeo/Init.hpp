@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Convection.hpp"
-
 #include "terraneo/dataimport/ParameterIO.hpp"
 
 namespace terraneo {
@@ -298,25 +297,23 @@ void ConvectionSimulation::initialiseFunctions()
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
 
-   referenceTemperatureFct = [=](const Point3D& x)
-   {
-    real_t radius = x.norm();
-    if ( TN.simulationParameters.adaptiveRefTemp )
-    {
-        uint_t shell = static_cast< uint_t >( std::round(
-            real_c( TN.simulationParameters.numLayers ) *
-            ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
-        WALBERLA_ASSERT( shell < T.size() );
-        return temperatureProfiles->mean.at( shell );
-    }
-    else
-    {
-        return referenceTemperatureFunction(x);
-    }
+   referenceTemperatureFct = [=]( const Point3D& x ) {
+      real_t radius = x.norm();
+      if ( TN.simulationParameters.adaptiveRefTemp )
+      {
+         uint_t shell = static_cast< uint_t >(
+             std::round( real_c( TN.simulationParameters.numLayers ) *
+                         ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
+         WALBERLA_ASSERT( shell < T.size() );
+         return temperatureProfiles->mean.at( shell );
+      }
+      else
+      {
+         return referenceTemperatureFunction( x );
+      }
    };
 
-   temperatureReference->interpolate(referenceTemperatureFct, TN.domainParameters.maxLevel, All);
-   
+   temperatureReference->interpolate( referenceTemperatureFct, TN.domainParameters.maxLevel, All );
 }
 
 void ConvectionSimulation::setupSolversAndOperators()
@@ -355,6 +352,24 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    stokesOperator =
        std::make_shared< StokesOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *viscosityFE );
+
+   stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
+                                                            TN.domainParameters.minLevel,
+                                                            TN.domainParameters.maxLevel,
+                                                            *viscosityFE,
+                                                            viscosityFEInv->getVertexDoFFunction(),
+                                                            *projectionOperator,
+                                                            bcVelocity );
+
+   stokesSolverFS = stokesGMGFSSolver( storage,
+                                       TN.domainParameters.minLevel,
+                                       TN.domainParameters.maxLevel,
+                                       stokesOperatorFS,
+                                       projectionOperator,
+                                       25,
+                                       0.3,
+                                       bcVelocity );
+
    schurOperator =
        std::make_shared< SchurOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, viscInvTest );
    auto APrecOperator = std::make_shared< SubstAType >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
@@ -501,4 +516,4 @@ void ConvectionSimulation::setupSolversAndOperators()
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
-}
+} // namespace terraneo

@@ -2,8 +2,7 @@
 
 #include "Convection.hpp"
 
-namespace terraneo
-{
+namespace terraneo {
 void ConvectionSimulation::setupOutput()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
@@ -106,7 +105,7 @@ void ConvectionSimulation::setupOutput()
 
       _output->add( *temperatureReference );
 
-      _output->add( *diffusionFE );  
+      _output->add( *diffusionFE );
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified!" );
 #endif
@@ -196,4 +195,4 @@ void ConvectionSimulation::dataOutput()
    TN.outputParameters.prevOutputTime = std::round( TN.simulationParameters.modelRunTimeMa );
 }
 
-}
+} // namespace terraneo

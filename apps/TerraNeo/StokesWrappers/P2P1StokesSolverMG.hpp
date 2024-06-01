@@ -31,7 +31,7 @@
 
 namespace hyteg {
 
-std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
+inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
     stokesGMGFSSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
                        const uint_t&                                                         minLevel,
                        const uint_t&                                                         maxLevel,

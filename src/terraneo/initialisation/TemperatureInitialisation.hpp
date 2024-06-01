@@ -106,7 +106,7 @@ struct TemperatureInitializationParameters
 /// \param tempInitParams TemperatureInitializationParameters struct initialized with suitable parameters
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-std::function< real_t( const Point3D& ) >
+inline std::function< real_t( const Point3D& ) >
     temperatureReferenceExponential( const TemperatureInitializationParameters& tempInitParams )
 {
    return [=]( const Point3D& x ) {
@@ -144,7 +144,7 @@ std::function< real_t( const Point3D& ) >
 /// \param referenceTemp  a std::function that represents a some reference temperature profile
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
+inline std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
                                                                  const std::function< real_t( const Point3D& ) >& referenceTemp,
                                                                  real_t                                           noiseFactor )
 {
@@ -195,7 +195,7 @@ std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const Temperatu
 /// \param initialTemperatureSteepness  Factor for filtering anomalies.
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureInitializationParameters&       tempInitParams,
+inline std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureInitializationParameters&       tempInitParams,
                                                           const std::function< real_t( const Point3D& ) >& referenceTemp,
                                                           const uint_t                                     tempInit,
                                                           const uint_t                                     deg,
@@ -213,7 +213,8 @@ std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureIniti
       const auto Tsurface = tempInitParams.Tsurface();
 
       auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-      real_t retVal;
+
+      real_t retVal = referenceTemp( x );
 
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
@@ -225,7 +226,6 @@ std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureIniti
          return Tsurface / ( Tcmb - Tsurface );
       }
 
-      retVal = referenceTemp( x );
 
       std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
       real_t                                    filter;

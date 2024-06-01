@@ -27,9 +27,8 @@
 //   Initialisation   //
 ////////////////////////
 
-#include "Init.hpp"
-
 #include "IO.hpp"
+#include "Init.hpp"
 
 namespace terraneo {
 
@@ -314,8 +313,7 @@ void ConvectionSimulation::setupStokesRHS()
 
       //interpolate above function and assign to scalar field
       // temperatureDev->interpolate( temperatureDevFunction, { *temperature }, l, All );
-      temperatureDev->assign({1.0, -1.0}, {*temperature, *temperatureReference}, l, All);
-      
+      temperatureDev->assign( { 1.0, -1.0 }, { *temperature, *temperatureReference }, l, All );
 
       // Multiply with mass matrix (of velocity space -- P2) to get the weak form
 
@@ -493,7 +491,9 @@ void ConvectionSimulation::solveStokes()
 
    localTimer.start();
    storage->getTimingTree()->start( "Stokes Solve" );
-   stokesSolver->solve( *stokesOperator, *stokesLHS, *stokesRHS, TN.domainParameters.maxLevel );
+   projectionOperator->project( *stokesRHS, TN.domainParameters.maxLevel, FreeslipBoundary );
+   stokesSolverFS->solve( *stokesOperatorFS, *stokesLHS, *stokesRHS, TN.domainParameters.maxLevel );
+   // stokesSolver->solve( *stokesOperator, *stokesLHS, *stokesRHS, TN.domainParameters.maxLevel );
    storage->getTimingTree()->stop( "Stokes Solve" );
    localTimer.end();
 

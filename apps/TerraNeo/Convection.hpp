@@ -80,6 +80,8 @@
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 // Custom Advection-Diffusion Operator as a workaround
+#include "StokesWrappers/P2P1StokesOperatorProjection.hpp"
+#include "StokesWrappers/P2P1StokesSolverMG.hpp"
 #include "TerraNeoDiffOperatorWrapper.hpp"
 
 namespace terraneo {
@@ -111,6 +113,7 @@ class ConvectionSimulation
    typedef P2P1TaylorHoodFunction< real_t >                                                  StokesFunction;
    typedef P2Function< real_t >                                                              ScalarFunction;
    typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator              StokesOperator;
+   typedef P2P1StokesFullIcosahedralShellMapOperatorFS                                       StokesOperatorFS;
    typedef hyteg::operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator       BlockLaplaceOperator;
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap                  SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap               DiffusionOperator;
@@ -203,9 +206,11 @@ class ConvectionSimulation
    std::shared_ptr< CGSolver< DiffusionOperator > >          diffusionSolver;
    std::shared_ptr< CGSolver< P2DiffusionOperatorWrapper > > diffusionSolverTest;
    std::shared_ptr< FGMRESSolver< StokesOperator > >         stokesSolver;
+   std::shared_ptr< Solver< StokesOperatorFS > >             stokesSolverFS;
 
    // Operators
    std::shared_ptr< StokesOperator >                    stokesOperator;
+   std::shared_ptr< StokesOperatorFS >                  stokesOperatorFS;
    std::shared_ptr< SchurOperator >                     schurOperator;
    std::shared_ptr< MMOCTransport< ScalarFunction > >   transportOperator;
    std::shared_ptr< DiffusionOperator >                 diffusionOperator;
