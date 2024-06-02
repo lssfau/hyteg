@@ -155,6 +155,15 @@ void ConvectionSimulation::setupFunctions()
    diffusionFE = std::make_shared< ScalarFunction >(
        "k", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
 
+   adiabaticTermCoeff = std::make_shared< ScalarFunction >(
+       "adiabaticTermCoeff", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
+
+   shearHeatingTermCoeff = std::make_shared< ScalarFunction >(
+       "shearHeatingTermCoeff", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
+
+   constEnergyCoeff = std::make_shared< ScalarFunction >(
+       "constEnergyCoeff", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
+
    stokesLHS =
        std::make_shared< StokesFunction >( "u", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
 
@@ -176,11 +185,14 @@ void ConvectionSimulation::setupFunctions()
    stokesTmp = std::make_shared< StokesFunction >(
        "fTmp", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
 
-   gradRhoOverRho = std::make_shared< P1VectorFunction< real_t > >(
+   gradRhoOverRho = std::make_shared< P2VectorFunction< real_t > >(
        "gradRho", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
 
    inwardNormal = std::make_shared< P2VectorFunction< real_t > >(
        "outwardNormal", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
+
+   oppositeGravityField = std::make_shared< P2VectorFunction< real_t > >(
+       "oppositeGravityField", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
 
    velocityMagnitudeSquared = std::make_shared< ScalarFunction >(
        "uMagnitudeSquared", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
@@ -272,6 +284,8 @@ void ConvectionSimulation::initialiseFunctions()
       stokesTmp->uvw().interpolate( { zeros, zeros, zeros }, level, All );
 
       inwardNormal->interpolate( { normalX, normalY, normalZ }, level, All );
+
+      oppositeGravityField->assign( { -1.0 }, { *inwardNormal }, level, All );
 
       onesFE->interpolate( real_c( 1 ), level, All );
       gradRhoOverRho->interpolate( { normalX, normalY, normalZ }, level, All );
@@ -486,9 +500,34 @@ void ConvectionSimulation::setupSolversAndOperators()
    MassOperatorVelocityP1 =
        std::make_shared< P1MassOperatorVelocity >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
+   frozenVelocityRHSX = std::make_shared< FrozenVelocityOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, gradRhoOverRho->component( 0U ) );
+   frozenVelocityRHSY = std::make_shared< FrozenVelocityOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, gradRhoOverRho->component( 1U ) );
+   frozenVelocityRHSZ = std::make_shared< FrozenVelocityOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, gradRhoOverRho->component( 2U ) );
+
    /////////////////////////
    // Diffusion Operator //
    ////////////////////////
+
+   transportOperatorTALA =
+       std::make_shared< P2TransportOperatorTALA >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+
+   transportOperatorTALA->setVelocity( stokesLHS );
+   transportOperatorTALA->setViscosity( viscosityFE );
+   transportOperatorTALA->setTemperature( temperature );
+
+   transportOperatorTALA->setInvGravity( oppositeGravityField );
+
+   transportOperatorTALA->setDiffusivityCoeff( diffusionFE );
+   transportOperatorTALA->setAdiabaticCoeff( adiabaticTermCoeff );
+   transportOperatorTALA->setShearHeatingCoeff( shearHeatingTermCoeff );
+   transportOperatorTALA->setConstEnergyCoeff( constEnergyCoeff );
+
+   transportOperatorTALA->setReferenceTemperature( temperatureReference );
+
+   transportOperatorTALA->initializeOperators();
 
    diffusionOperator =
        std::make_shared< DiffusionOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *diffusionFE );
@@ -496,20 +535,29 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
 
+   transportSolverTALA =
+       std::make_shared< CGSolver< P2TransportOperatorTALA > >( storage,
+                                                                TN.domainParameters.minLevel,
+                                                                TN.domainParameters.maxLevel,
+                                                                TN.solverParameters.diffusionMaxNumIterations,
+                                                                TN.solverParameters.diffusionAbsoluteResidualUTolerance );
+
+   transportSolverTALA->setPrintInfo( true );
+
    diffusionSolver = std::make_shared< CGSolver< DiffusionOperator > >( storage,
                                                                         TN.domainParameters.minLevel,
                                                                         TN.domainParameters.maxLevel,
                                                                         TN.solverParameters.diffusionMaxNumIterations,
                                                                         TN.solverParameters.diffusionAbsoluteResidualUTolerance );
 
-   diffusionSolverTest =
-       std::make_shared< CGSolver< P2DiffusionOperatorWrapper > >( storage,
-                                                                   TN.domainParameters.minLevel,
-                                                                   TN.domainParameters.maxLevel,
-                                                                   TN.solverParameters.diffusionMaxNumIterations,
-                                                                   TN.solverParameters.diffusionAbsoluteResidualUTolerance );
+//    diffusionSolverTest =
+//        std::make_shared< CGSolver< P2DiffusionOperatorWrapper > >( storage,
+//                                                                    TN.domainParameters.minLevel,
+//                                                                    TN.domainParameters.maxLevel,
+//                                                                    TN.solverParameters.diffusionMaxNumIterations,
+//                                                                    TN.solverParameters.diffusionAbsoluteResidualUTolerance );
 
-   diffusionSolverTest->setPrintInfo( true );
+//    diffusionSolverTest->setPrintInfo( true );
 
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup solvers & operators: Finished -------" );

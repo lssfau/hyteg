@@ -68,6 +68,7 @@
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockLaplaceOperator.hpp"
 // Particle transport
@@ -80,10 +81,8 @@
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 #include "terraneo/operators/P2P1StokesOperatorProjection.hpp"
-#include "terraneo/solvers/P2P1StokesSolverMG.hpp"
 #include "terraneo/operators/P2TransportOperatorTALA.hpp"
-// Custom Advection-Diffusion Operator as a workaround
-#include "TerraNeoDiffOperatorWrapper.hpp"
+#include "terraneo/solvers/P2P1StokesSolverMG.hpp"
 
 namespace terraneo {
 
@@ -119,6 +118,7 @@ class ConvectionSimulation
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap                  SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap               DiffusionOperator;
    typedef VectorMassOperator< real_t, P1VectorFunction, P1ElementwiseBlendingMassOperator > P1MassOperatorVelocity;
+   typedef hyteg::operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap              FrozenVelocityOperator;
 
    void setupDomain();
    void setupBoundaryConditions();
@@ -176,6 +176,9 @@ class ConvectionSimulation
 
    // scalar field for Diffusion pre factor
    std::shared_ptr< ScalarFunction > diffusionFE;
+   std::shared_ptr< ScalarFunction > adiabaticTermCoeff;
+   std::shared_ptr< ScalarFunction > shearHeatingTermCoeff;
+   std::shared_ptr< ScalarFunction > constEnergyCoeff;
 
    // Vector and scalar field storing velocity and pressure fields (stokes equation)
    std::shared_ptr< StokesFunction >             stokesLHS;
@@ -192,10 +195,11 @@ class ConvectionSimulation
    // Vector field storing the inward normal of the sphere
    std::shared_ptr< P2VectorFunction< real_t > > inwardNormal;
    //Vector field for Grad(Rho)/Rho in RHS mass
-   std::shared_ptr< P1VectorFunction< real_t > > gradRhoOverRho;
+   std::shared_ptr< P2VectorFunction< real_t > > gradRhoOverRho;
    // Scalar field storing the magnitude of the velocity
    std::shared_ptr< ScalarFunction > velocityMagnitudeSquared;
 
+   std::shared_ptr< P2VectorFunction< real_t > > oppositeGravityField;
    // Temporary scalar fields
    std::shared_ptr< ScalarFunction > scalarTmp;
 
@@ -205,19 +209,26 @@ class ConvectionSimulation
    // Solvers
 
    std::shared_ptr< CGSolver< DiffusionOperator > >          diffusionSolver;
-   std::shared_ptr< CGSolver< P2DiffusionOperatorWrapper > > diffusionSolverTest;
+   // std::shared_ptr< CGSolver< P2DiffusionOperatorWrapper > > diffusionSolverTest;
    std::shared_ptr< FGMRESSolver< StokesOperator > >         stokesSolver;
    std::shared_ptr< Solver< StokesOperatorFS > >             stokesSolverFS;
+   std::shared_ptr< CGSolver< P2TransportOperatorTALA > >    transportSolverTALA;
 
    // Operators
    std::shared_ptr< StokesOperator >                    stokesOperator;
    std::shared_ptr< StokesOperatorFS >                  stokesOperatorFS;
    std::shared_ptr< SchurOperator >                     schurOperator;
    std::shared_ptr< MMOCTransport< ScalarFunction > >   transportOperator;
+   std::shared_ptr< P2TransportOperatorTALA >           transportOperatorTALA;
    std::shared_ptr< DiffusionOperator >                 diffusionOperator;
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P1MassOperatorVelocity >            MassOperatorVelocityP1;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
+
+   std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSX;
+   std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSY;
+   std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSZ;
+
    std::shared_ptr< InexactUzawaPreconditioner< StokesOperator, StokesOperator::ViscousOperator_T, SchurOperator > >
                                                uzawaSmoother;
    std::shared_ptr< Solver< StokesOperator > > coarseGridSolver;

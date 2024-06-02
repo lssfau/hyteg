@@ -33,6 +33,7 @@ void ConvectionSimulation::setupOutput()
 
    if ( TN.outputParameters.vtk )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( " VTK is NOT recommended for speed and memory management " );
       if ( TN.outputParameters.OutputTemperature )
       {
          if ( TN.outputParameters.vtkOutputVertexDoFs )
@@ -104,8 +105,8 @@ void ConvectionSimulation::setupOutput()
       }
 
       _output->add( *temperatureReference );
-
       _output->add( *diffusionFE );
+      _output->add( *densityFE );      
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified!" );
 #endif

@@ -32,10 +32,10 @@
 
 namespace hyteg {
 
-using P2ShearHeatingOperator = operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap;
-using P2DivKGradOperator     = operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap;
-using P2KMassOperator        = operatorgeneration::P2ElementwiseKMassIcosahedralShellMap;
-using P2MassOperator         = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
+using P2ShearHeatingOperatorTALA = operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap;
+using P2DivKGradOperatorTALA     = operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap;
+using P2KMassOperatorTALA        = operatorgeneration::P2ElementwiseKMassIcosahedralShellMap;
+using P2MassOperatorTALA         = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
 // using P2AdvectionOperator    = operatorgeneration::P2ElementwiseAdvection_float64;
 
 // using P2SUPGShearHeatingOperator = operatorgeneration::P2ElementwiseSUPGShearHeating_float64;
@@ -345,7 +345,7 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
       WALBERLA_CHECK_NOT_NULLPTR( viscosity_ );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator" );
       // shearHeatingOperator_ = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscosity_ );
-      shearHeatingOperator_ = std::make_shared< P2ShearHeatingOperator >( storage_,
+      shearHeatingOperator_ = std::make_shared< P2ShearHeatingOperatorTALA >( storage_,
                                                                           minLevel_,
                                                                           maxLevel_,
                                                                           *viscosity_,
@@ -356,13 +356,13 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
 
       WALBERLA_CHECK_NOT_NULLPTR( adiabaticCoeff_ );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator" );
-      adiabaticOperator_ = std::make_shared< P2KMassOperator >(
+      adiabaticOperator_ = std::make_shared< P2KMassOperatorTALA >(
           storage_, minLevel_, maxLevel_, temp1_ ); // Yes this is not adiabaticCoeff_, it will be used in apply directly
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator Done" );
 
       WALBERLA_CHECK_NOT_NULLPTR( diffusivityCoeff_ );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Diffusion Operator" );
-      diffusionOperator_ = std::make_shared< P2DivKGradOperator >( storage_, minLevel_, maxLevel_, *diffusivityCoeff_ );
+      diffusionOperator_ = std::make_shared< P2DivKGradOperatorTALA >( storage_, minLevel_, maxLevel_, *diffusivityCoeff_ );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Diffusion Operator Done" );
 
       // WALBERLA_CHECK_NOT_NULLPTR( velocity_ );
@@ -473,6 +473,7 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
    }
 
    void setVelocity( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > velocity ) { velocity_ = velocity; }
+   // This is -g, NOT 1/g
    void setInvGravity( std::shared_ptr< P2VectorFunction< real_t > > invGravity ) { invGravity_ = invGravity; }
    void setViscosity( std::shared_ptr< P2Function< real_t > > viscosity ) { viscosity_ = viscosity; }
    void setShearHeatingCoeff( std::shared_ptr< P2Function< real_t > > shearHeatingCoeff )
@@ -501,6 +502,11 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
       }
    }
 
+   void setTimestep(real_t dt)
+   {
+      timestep = dt;
+   }
+
    uint_t iTimestep;
 
    uint_t zComp = 2U;
@@ -513,11 +519,11 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
 
    bool useMMOC = true, useSUPG = false;
 
-   P2MassOperator                                           massOperator_;
+   P2MassOperatorTALA                                           massOperator_;
    std::shared_ptr< MMOCTransport< P2Function< real_t > > > mmocTransport_;
-   std::shared_ptr< P2ShearHeatingOperator >                shearHeatingOperator_;
-   std::shared_ptr< P2DivKGradOperator >                    diffusionOperator_;
-   std::shared_ptr< P2KMassOperator >                       adiabaticOperator_;
+   std::shared_ptr< P2ShearHeatingOperatorTALA >                shearHeatingOperator_;
+   std::shared_ptr< P2DivKGradOperatorTALA >                    diffusionOperator_;
+   std::shared_ptr< P2KMassOperatorTALA >                       adiabaticOperator_;
 
    /*
    std::shared_ptr< P2AdvectionOperator >        advectionOperator_;

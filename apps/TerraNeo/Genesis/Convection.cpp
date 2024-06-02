@@ -27,8 +27,8 @@
 //   Initialisation   //
 ////////////////////////
 
-#include "IO.hpp"
-#include "Init.hpp"
+#include "SimulationIO.hpp"
+#include "ModelInit.hpp"
 
 namespace terraneo {
 
@@ -263,9 +263,9 @@ void ConvectionSimulation::solveDiffusion()
 
    // Implementation of a distinct Diffusion operator dealing with time stepping and diffusion solving
 
-   auto DivOperatorStep = P2DiffusionOperatorWrapper(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TN.simulationParameters.dt, diffusionFE, energyRHS );
-   DivOperatorStep.initDifOperator();
+   // auto DivOperatorStep = P2DiffusionOperatorWrapper(
+   //     storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TN.simulationParameters.dt, diffusionFE, energyRHS );
+   // DivOperatorStep.initDifOperator();
    //DivOperatorStep.apply( *temperature, *temperatureTmp, TN.domainParameters.maxLevel, All );
 
    // for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
@@ -275,9 +275,16 @@ void ConvectionSimulation::solveDiffusion()
    // temperatureTmp->assign(
    //     { real_c( 1.0 ), real_c( -1.0 ) }, { *temperatureTmp, *energyRHSWeak }, TN.domainParameters.maxLevel, All );
 
-   P2MassOperator->apply( *temperature, *energyRHSWeak, TN.domainParameters.maxLevel, All );
+   transportOperatorTALA->setTimestep( TN.simulationParameters.dt );
 
-   diffusionSolverTest->solve( DivOperatorStep, *temperature, *energyRHSWeak, TN.domainParameters.maxLevel );
+   transportOperatorTALA->applyRHS( *energyRHSWeak, TN.domainParameters.maxLevel, All );
+
+   transportSolverTALA->solve( *transportOperatorTALA, *temperature, *energyRHSWeak, TN.domainParameters.maxLevel );
+
+   transportOperatorTALA->incrementTimestep();
+
+   // P2MassOperator->apply( *temperature, *energyRHSWeak, TN.domainParameters.maxLevel, All );
+   // diffusionSolverTest->solve( DivOperatorStep, *temperature, *energyRHSWeak, TN.domainParameters.maxLevel );
 }
 
 void ConvectionSimulation::setupStokesRHS()
@@ -343,33 +350,42 @@ void ConvectionSimulation::setupStokesRHS()
       // Provide the option to run incompressible simulations for test or educational purposes
       if ( TN.simulationParameters.compressible )
       {
-         // Derive P1 approximation of uvw by extracting P2 vertex DoFs and treating them as P1 DoFs
+         frozenVelocityRHSX->apply( stokesLHS->uvw().component( 0U ), stokesRHS->p(), l, All, Replace );
+         frozenVelocityRHSY->apply( stokesLHS->uvw().component( 1U ), stokesRHS->p(), l, All, Add );
+         frozenVelocityRHSZ->apply( stokesLHS->uvw().component( 2U ), stokesRHS->p(), l, All, Add );
 
-         for ( size_t i = 0; i < 3; ++i )
-         {
-            ( *stokesLHSP1 )[i].assign( { real_c( 1 ) }, { stokesLHS->uvw()[i].getVertexDoFFunction() }, l, All );
-         }
+         stokesRHS->p().assign( { -1.0 },
+                                { stokesRHS->p() },
+                                l,
+                                All );
 
-         //convert to weak form
-         MassOperatorVelocityP1->apply( *stokesLHSP1, *stokesLHSP1Weak, l, All );
+         // // Derive P1 approximation of uvw by extracting P2 vertex DoFs and treating them as P1 DoFs
 
-         //function to calculate -(Grad(rho) / rho) DOT u
-         std::function< real_t( const Point3D&, const std::vector< real_t >& ) > gradRhoOverRhoDotU =
-             [&]( const Point3D& x, const std::vector< real_t >& fields ) {
-                WALBERLA_UNUSED( x );
-                return -( fields[0] * fields[3] + fields[1] * fields[4] + fields[2] * fields[5] );
-             };
+         // for ( size_t i = 0; i < 3; ++i )
+         // {
+         //    ( *stokesLHSP1 )[i].assign( { real_c( 1 ) }, { stokesLHS->uvw()[i].getVertexDoFFunction() }, l, All );
+         // }
 
-         //interpolate mass RHS to grad (rho) DOT u
-         stokesRHS->p().interpolate( gradRhoOverRhoDotU,
-                                     { ( *gradRhoOverRho )[0],
-                                       ( *gradRhoOverRho )[1],
-                                       ( *gradRhoOverRho )[2],
-                                       ( *stokesLHSP1Weak )[0],
-                                       ( *stokesLHSP1Weak )[1],
-                                       ( *stokesLHSP1Weak )[2] },
-                                     l,
-                                     All );
+         // //convert to weak form
+         // MassOperatorVelocityP1->apply( *stokesLHSP1, *stokesLHSP1Weak, l, All );
+
+         // //function to calculate -(Grad(rho) / rho) DOT u
+         // std::function< real_t( const Point3D&, const std::vector< real_t >& ) > gradRhoOverRhoDotU =
+         //     [&]( const Point3D& x, const std::vector< real_t >& fields ) {
+         //        WALBERLA_UNUSED( x );
+         //        return -( fields[0] * fields[3] + fields[1] * fields[4] + fields[2] * fields[5] );
+         //     };
+
+         // //interpolate mass RHS to grad (rho) DOT u
+         // stokesRHS->p().interpolate( gradRhoOverRhoDotU,
+         //                             { ( *gradRhoOverRho )[0],
+         //                               ( *gradRhoOverRho )[1],
+         //                               ( *gradRhoOverRho )[2],
+         //                               ( *stokesLHSP1Weak )[0],
+         //                               ( *stokesLHSP1Weak )[1],
+         //                               ( *stokesLHSP1Weak )[2] },
+         //                             l,
+         //                             All );
       }
       else
       {
@@ -527,14 +543,14 @@ const SimulationParameters& ConvectionSimulation::getSimulationParams()
 real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Temperature )
 {
    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-   real_t retVal;
+   real_t retVal = 1.0;
 
    // If a viscosity profile is provided, use it, otherwise use the constant viscosity
 
    if ( TN.simulationParameters.haveViscosityProfile )
    {
       // retVal = TN.physicalParameters.viscosityProfile;
-      WALBERLA_LOG_WARNING_ON_ROOT( "Viscosity profiles are not yet supported" );
+      WALBERLA_ABORT( "Viscosity profiles are not yet supported" );
    }
    else
    {
