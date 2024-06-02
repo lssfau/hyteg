@@ -33,7 +33,26 @@ int main( int argc, char** argv )
    auto cfgDefault = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
+<<<<<<< HEAD:apps/TerraNeo/Origin/Convection.cpp
       auto defaultFile = "./default.prm";
+=======
+      WALBERLA_ROOT_SECTION()
+      {
+         WALBERLA_LOG_INFO( "Concatenating parameter files" );
+         auto returnCode = system( "cat <(echo Parameters) <(echo {) "
+                                   "config/domain.prm <(echo) "
+                                   "config/initialisation.prm <(echo) "
+                                   "config/material.prm <(echo) "
+                                   "config/simulation.prm <(echo) "
+                                   "config/solver.prm <(echo) "
+                                   "config/output.prm <(echo) "
+                                   "<(echo }) > parameters.prm" );
+
+         WALBERLA_ASSERT( returnCode == 0 );
+      }
+
+      auto defaultFile = "./parameters.prm";
+>>>>>>> 3a0f42c18 (Move implementation files into an initial model folder):apps/TerraNeo/Genesis/TerraNeo.cpp
       WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfgDefault->readParameterFile( defaultFile );
    }
