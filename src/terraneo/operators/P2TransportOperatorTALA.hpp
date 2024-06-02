@@ -47,6 +47,7 @@ enum OperatorTermKey
 {
    SHEAR_HEATING_TERM,
    ADIABATIC_HEATING_TERM,
+   INTERNAL_HEATING_TERM,
    ADVECTION_TERM,
    DIFFUSION_TERM,
    SUPG_STABILISATION
@@ -73,99 +74,10 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
 
       TALADict_ = { { SHEAR_HEATING_TERM, false },
                     { ADIABATIC_HEATING_TERM, false },
+                    { INTERNAL_HEATING_TERM, false },
                     { ADVECTION_TERM, false },
                     { DIFFUSION_TERM, true },
                     { SUPG_STABILISATION, false } };
-
-      /*
-      supgDeltaFunc = [=]( const Point3D& x, const std::vector< real_t >& velocityAndK ) {
-         real_t ux = velocityAndK[0];
-         real_t uy = velocityAndK[1];
-         real_t uz = velocityAndK[2];
-
-         real_t k = velocityAndK[3];
-
-         real_t u = 0.0;
-
-         if ( storage_->hasGlobalCells() )
-         {
-            u = std::sqrt( ux * ux + uy * uy + uz * uz );
-         }
-         else
-         {
-            u = std::sqrt( ux * ux + uy * uy );
-         }
-
-         real_t Pe = u * hMax / ( 2 * k );
-
-         real_t xiPe = ( 1.0 / std::tanh( Pe ) ) - ( 1.0 / Pe );
-
-         real_t delta =  hMax * xiPe / ( 2.0 * u );
-
-         if(std::isnan(delta))
-         {  
-            return 0.0;
-            // WALBERLA_LOG_INFO_ON_ROOT("x = , " << x << ", u = " << u << ", k = " << k << ", Pe = " << Pe << ", xiPe = " << xiPe);
-            // WALBERLA_ABORT("Nan found");
-         }
-
-         return delta;
-      };
-      */
-
-      supgDeltaFunc = [=]( const Point3D& x, const std::vector< real_t >& velocityAndK ) {
-         real_t ux = velocityAndK[0];
-         real_t uy = velocityAndK[1];
-         real_t uz = velocityAndK[2];
-
-         real_t k = velocityAndK[3];
-
-         real_t u = 0.0;
-
-         if ( storage_->hasGlobalCells() )
-         {
-            u = std::sqrt( ux * ux + uy * uy + uz * uz );
-         }
-         else
-         {
-            u = std::sqrt( ux * ux + uy * uy );
-         }
-
-         real_t h = hMax;
-
-         real_t Pe = h * u / ( 2 * k );
-
-         real_t xi;
-
-         // replace xi with approximations in case Pe is too small or too large
-         if ( Pe <= 0.5 )
-         {
-            // error smaller than ~1e-5 here
-            xi = Pe / 3.0 - ( Pe * Pe * Pe ) / 45.0;
-         }
-         else if ( Pe >= 20.0 )
-         {
-            // error smaller than ~1e-15 here
-            xi = 1.0 - 1.0 / Pe;
-         }
-         else
-         {
-            xi = 1.0 + 2.0 / ( std::exp( 2.0 * Pe ) - 1.0 ) - 1.0 / Pe;
-         }
-
-         real_t SUPG_scaling_ = 1.0;
-
-         real_t delta = SUPG_scaling_ * h / ( 2 * u ) * xi;
-
-         if ( std::isnan( delta ) )
-         {
-            return 0.0;
-            // WALBERLA_LOG_INFO_ON_ROOT("x = , " << x << ", u = " << u << ", k = " << k << ", Pe = " << Pe << ", xiPe = " << xiPe);
-            // WALBERLA_ABORT("Nan found");
-         }
-
-         return delta;
-      };
    }
 
    void apply( const P2Function< real_t >& src,
@@ -318,7 +230,32 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
          dst.assign( { 1.0, timestep }, { dst, temp1_ }, level, flag );
       }
 
-      dst.assign( { 1.0, timestep }, { dst, *constHeatingCoeff_ }, level, flag );
+      if ( TALADict_.at( OperatorTermKey::ADIABATIC_HEATING_TERM ) )
+      {
+         WALBERLA_CHECK_NOT_NULLPTR( surfTempCoeff_ );
+         // $\Delta t \int_\Omega C_{adiabatic} T_h^{n+1} s_h d\Omega$
+         temp2_.uvw().multElementwise( { velocity_->uvw(), *invGravity_ }, level, All );
+         if ( dst.getStorage()->hasGlobalCells() )
+         {
+            temp1_.assign( { 1.0, 1.0, 1.0 },
+                           { temp2_.uvw().component( 0U ), temp2_.uvw().component( 1U ), temp2_.uvw().component( 2U ) },
+                           level,
+                           All );
+         }
+         else
+         {
+            temp1_.assign( { 1.0, 1.0 }, { temp2_.uvw().component( 0U ), temp2_.uvw().component( 1U ) }, level, All );
+         }
+         temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, All );
+         adiabaticOperator_->apply( *surfTempCoeff_, temp2_.uvw().component( 0U ), level, flag );
+         dst.assign( { 1.0, timestep }, { dst, temp2_.uvw().component( 0U ) }, level, flag );
+      }
+
+      if ( TALADict_.at( OperatorTermKey::INTERNAL_HEATING_TERM ) )
+      {
+         massOperator_.apply(*constHeatingCoeff_, temp1_, level, flag);
+         dst.assign( { 1.0, timestep }, { dst, temp1_ }, level, flag );
+      }
 
       if ( TALADict_.at( OperatorTermKey::SUPG_STABILISATION ) )
       {
@@ -346,12 +283,12 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator" );
       // shearHeatingOperator_ = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscosity_ );
       shearHeatingOperator_ = std::make_shared< P2ShearHeatingOperatorTALA >( storage_,
-                                                                          minLevel_,
-                                                                          maxLevel_,
-                                                                          *viscosity_,
-                                                                          velocity_->uvw().component( 0U ),
-                                                                          velocity_->uvw().component( 1U ),
-                                                                          velocity_->uvw().component( zComp ) );
+                                                                              minLevel_,
+                                                                              maxLevel_,
+                                                                              *viscosity_,
+                                                                              velocity_->uvw().component( 0U ),
+                                                                              velocity_->uvw().component( 1U ),
+                                                                              velocity_->uvw().component( zComp ) );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator Done" );
 
       WALBERLA_CHECK_NOT_NULLPTR( adiabaticCoeff_ );
@@ -502,10 +439,7 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
       }
    }
 
-   void setTimestep(real_t dt)
-   {
-      timestep = dt;
-   }
+   void setTimestep( real_t dt ) { timestep = dt; }
 
    uint_t iTimestep;
 
@@ -519,11 +453,11 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
 
    bool useMMOC = true, useSUPG = false;
 
-   P2MassOperatorTALA                                           massOperator_;
+   P2MassOperatorTALA                                       massOperator_;
    std::shared_ptr< MMOCTransport< P2Function< real_t > > > mmocTransport_;
-   std::shared_ptr< P2ShearHeatingOperatorTALA >                shearHeatingOperator_;
-   std::shared_ptr< P2DivKGradOperatorTALA >                    diffusionOperator_;
-   std::shared_ptr< P2KMassOperatorTALA >                       adiabaticOperator_;
+   std::shared_ptr< P2ShearHeatingOperatorTALA >            shearHeatingOperator_;
+   std::shared_ptr< P2DivKGradOperatorTALA >                diffusionOperator_;
+   std::shared_ptr< P2KMassOperatorTALA >                   adiabaticOperator_;
 
    /*
    std::shared_ptr< P2AdvectionOperator >        advectionOperator_;
@@ -559,7 +493,7 @@ class P2TransportOperatorTALA : public Operator< P2Function< real_t >, P2Functio
    std::shared_ptr< P2Function< real_t > > adiabaticCoeff_;
    std::shared_ptr< P2Function< real_t > > viscosity_;
 
-   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > supgDeltaFunc;
+   // std::function< real_t( const Point3D&, const std::vector< real_t >& ) > supgDeltaFunc;
 
    std::map< OperatorTermKey, bool > TALADict_;
 };

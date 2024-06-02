@@ -1,0 +1,45 @@
+//////////////////////////
+//  Solver parameters  //
+//////////////////////////
+
+// Stokes solver abort criteria
+
+stokesMaxNumIterations 2;
+
+// Residual tolerances for repeated V cycles 
+
+stokesAbsoluteResidualUTolerance 1e-6;
+stokesRelativeResidualUTolerance 1e-6;
+
+// Residual tolerances for FMG and repeated V cycles
+
+coarseGridAbsoluteResidualTolerance 1e-6;
+coarseGridRelativeResidualTolerance 1e-6;
+
+// Stokes solver parameters
+
+uzawaPreSmooth 3;
+uzawaPostSmooth 3;
+uzawaInnerIterations 3;
+uzawaOmega 0.3;
+numVCyclesPerLevel 2;
+estimateUzawaOmega false;
+
+//max number of iterations used for spectral radius estimation for preconditioning of chebyshev smoother
+chebyshevIterations 50;
+
+//if stokes resduals diverge beyond this value, kill simulation
+stokesKillTolerance 10;
+
+//if true, use FMG, if false, use repeated V cycles 
+fullMultigrid false;
+
+//if true, precompute and store stokes local element matrices. If false, compute on-the-fly
+
+preComputeStokesElementMatrices true;
+
+// Diffusion equation aborting criteria
+
+diffusionMaxNumIterations 1000;
+diffusionAbsoluteResidualUTolerance 1e-12;
+gmresApproximationToleranceTransport 1e-12;

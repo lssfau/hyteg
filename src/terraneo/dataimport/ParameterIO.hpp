@@ -227,17 +227,26 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    solverParam.solverType = mainConf.getParameter< uint_t >( "SolverType" );
 
-   outputParam.outputDirectory     = mainConf.getParameter< std::string >( "outputDirectory" );
-   outputParam.outputBaseName      = mainConf.getParameter< std::string >( "outputBaseName" );
-   outputParam.dataOutput          = mainConf.getParameter< bool >( "dataOutput" );
-   outputParam.ADIOS2ParamKey      = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
-   outputParam.ADIOS2Value         = mainConf.getParameter< std::string >( "ADIOS2Value" );
-   outputParam.vtk                 = mainConf.getParameter< bool >( "vtk" );
-   outputParam.outputConfig        = mainConf.getParameter< std::string >( "outputConfig" );
+   outputParam.outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
+   outputParam.outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
+   outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );
+   outputParam.vtk             = mainConf.getParameter< bool >( "vtk" );
+
    outputParam.OutputVelocity      = mainConf.getParameter< bool >( "OutputVelocity" );
    outputParam.OutputTemperature   = mainConf.getParameter< bool >( "OutputTemperature" );
    outputParam.OutputInterval      = mainConf.getParameter< uint_t >( "OutputInterval" );
    outputParam.vtkOutputVertexDoFs = mainConf.getParameter< bool >( "OutputVertexDoFs" );
+
+   outputParam.ADIOS2ParamKey           = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
+   outputParam.ADIOS2Value              = mainConf.getParameter< std::string >( "ADIOS2Value" );
+   outputParam.ADIOS2OutputConfig       = mainConf.getParameter< std::string >( "ADIOS2OutputConfig" );
+   outputParam.ADIOS2CheckpointPath     = mainConf.getParameter< std::string >( "ADIOS2CheckpointPath" );
+   outputParam.ADIOS2CheckpointFilename = mainConf.getParameter< std::string >( "ADIOS2CheckpointFilename" );
+
+   outputParam.ADIOS2StartFromCheckpoint = mainConf.getParameter< bool >( "ADIOS2StartFromCheckpoint" );
+   outputParam.ADIOS2StoreCheckpoint     = mainConf.getParameter< bool >( "ADIOS2StoreCheckpoint" );
+
+   outputParam.ADIOS2StoreCheckpointFrequency = mainConf.getParameter< uint_t >( "ADIOS2StoreCheckpointFrequency" );
 
    outputParam.outputProfiles = mainConf.getParameter< bool >( "outputProfiles" );
 
@@ -424,10 +433,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Chebyshev iterations                   : " << solverParam.chebyshevIterations );
 
-   WALBERLA_ROOT_SECTION()
-   {
-      walberla::logging::Logging::instance()->stopLoggingToFile();
-   }
+   WALBERLA_ROOT_SECTION() { walberla::logging::Logging::instance()->stopLoggingToFile(); }
 }
 
 } // namespace terraneo

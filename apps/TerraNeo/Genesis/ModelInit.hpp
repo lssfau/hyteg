@@ -164,6 +164,9 @@ void ConvectionSimulation::setupFunctions()
    constEnergyCoeff = std::make_shared< ScalarFunction >(
        "constEnergyCoeff", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
 
+   surfTempCoeff = std::make_shared< ScalarFunction >(
+       "surfTempCoeff", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
+
    stokesLHS =
        std::make_shared< StokesFunction >( "u", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
 
@@ -385,116 +388,6 @@ void ConvectionSimulation::setupSolversAndOperators()
                                        0.3,
                                        bcVelocity );
 
-   schurOperator =
-       std::make_shared< SchurOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, viscInvTest );
-   auto APrecOperator = std::make_shared< SubstAType >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-   APrecOperator->computeInverseDiagonalOperatorValues();
-
-   auto ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
-   auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
-   auto ABlockCoarseGridSolver     = std::make_shared< CGSolver< SubstAType > >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 10, 1e-8 );
-   auto ABlockSmoother =
-       std::make_shared< ChebyshevSmoother< SubstAType > >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-
-   //temporarily alter U so so it is not in the kernel of stokesOperator, required for spectral radius estimation
-   stokesTmp->uvw().interpolate( randFunc, TN.domainParameters.maxLevel, All );
-
-   auto spectralRadiusA = chebyshev::estimateRadius( *APrecOperator,
-                                                     TN.domainParameters.maxLevel,
-                                                     TN.solverParameters.chebyshevIterations,
-                                                     storage,
-                                                     stokesTmp->uvw(),
-                                                     stokesRHS->uvw() );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "------ Chebyshev spectral radius: " << spectralRadiusA << " ------" );
-   WALBERLA_LOG_INFO_ON_ROOT( " " );
-
-   ABlockSmoother->setupCoefficients( 3, spectralRadiusA );
-
-   //reset plates
-
-   if ( TN.simulationParameters.simulationType == "CirculationModel" )
-   {
-      updatePlateVelocities( *stokesLHS );
-   }
-
-   auto ABlockMultigridSolver = std::make_shared< GeometricMultigridSolver< SubstAType > >( storage,
-                                                                                            ABlockSmoother,
-                                                                                            ABlockCoarseGridSolver,
-                                                                                            ABlockRestrictionOperator,
-                                                                                            ABlockProlongationOperator,
-                                                                                            TN.domainParameters.minLevel,
-                                                                                            TN.domainParameters.maxLevel,
-                                                                                            TN.solverParameters.uzawaPreSmooth,
-                                                                                            TN.solverParameters.uzawaPostSmooth,
-                                                                                            0,
-                                                                                            CycleType::VCYCLE );
-
-   auto SubstABlockSolver =
-       std::make_shared< SubstitutePreconditioner< typename StokesOperator::ViscousOperator_T, SubstAType > >(
-           ABlockMultigridSolver, APrecOperator );
-
-   auto ABlockSolver = std::make_shared< CGSolver< typename StokesOperator::ViscousOperator_T > >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 3, 1e-2, SubstABlockSolver );
-
-   auto SchurSolver = std::make_shared< CGSolver< SchurOperator > >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 50, 1e-8 );
-
-   uint_t chebyshevIterationsPerUzawa = 1;
-   uzawaSmoother =
-       std::make_shared< InexactUzawaPreconditioner< StokesOperator, StokesOperator::ViscousOperator_T, SchurOperator > >(
-           storage,
-           TN.domainParameters.minLevel,
-           TN.domainParameters.maxLevel,
-           *schurOperator,
-           ABlockSolver,
-           SchurSolver,
-           1.0,
-           1.0,
-           chebyshevIterationsPerUzawa );
-
-   if ( TN.solverParameters.solverType == 1 )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "Solver: MINRES PETSc" );
-#ifdef HYTEG_BUILD_WITH_PETSC
-      PETScManager petscManager;
-      coarseGridSolver =
-          std::make_shared< PETScMinResSolver< StokesOperator > >( storage,
-                                                                   TN.domainParameters.minLevel,
-                                                                   TN.solverParameters.coarseGridRelativeResidualTolerance,
-                                                                   TN.solverParameters.coarseGridAbsoluteResidualTolerance,
-                                                                   TN.solverParameters.stokesMaxNumIterations );
-#else
-      WALBERLA_ABORT( "PETSc module not found or enabled." );
-#endif
-   }
-   else
-   {
-      coarseGridSolver =
-          solvertemplates::stokesMinResSolver< StokesOperator >( storage,
-                                                                 TN.domainParameters.minLevel,
-                                                                 TN.solverParameters.coarseGridAbsoluteResidualTolerance,
-                                                                 TN.solverParameters.stokesMaxNumIterations,
-                                                                 TN.simulationParameters.verbose );
-   }
-
-   auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
-                                                                                          uzawaSmoother,
-                                                                                          coarseGridSolver,
-                                                                                          restrictionOperator,
-                                                                                          prolongationOperator,
-                                                                                          TN.domainParameters.minLevel,
-                                                                                          TN.domainParameters.maxLevel,
-                                                                                          2,
-                                                                                          2,
-                                                                                          2,
-                                                                                          CycleType::VCYCLE );
-
-   stokesSolver = std::make_shared< FGMRESSolver< StokesOperator > >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 100, 50, 1e-6, 1e-6, 0, multigridSolver );
-   stokesSolver->setPrintInfo( true );
-
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
    MassOperatorVelocityP1 =
@@ -524,8 +417,13 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorTALA->setAdiabaticCoeff( adiabaticTermCoeff );
    transportOperatorTALA->setShearHeatingCoeff( shearHeatingTermCoeff );
    transportOperatorTALA->setConstEnergyCoeff( constEnergyCoeff );
+   transportOperatorTALA->setSurfTempCoeff( surfTempCoeff );
 
    transportOperatorTALA->setReferenceTemperature( temperatureReference );
+
+   transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, false },
+                                         { OperatorTermKey::SHEAR_HEATING_TERM, false },
+                                         { OperatorTermKey::INTERNAL_HEATING_TERM, false } } );
 
    transportOperatorTALA->initializeOperators();
 
@@ -549,15 +447,6 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                                         TN.domainParameters.maxLevel,
                                                                         TN.solverParameters.diffusionMaxNumIterations,
                                                                         TN.solverParameters.diffusionAbsoluteResidualUTolerance );
-
-//    diffusionSolverTest =
-//        std::make_shared< CGSolver< P2DiffusionOperatorWrapper > >( storage,
-//                                                                    TN.domainParameters.minLevel,
-//                                                                    TN.domainParameters.maxLevel,
-//                                                                    TN.solverParameters.diffusionMaxNumIterations,
-//                                                                    TN.solverParameters.diffusionAbsoluteResidualUTolerance );
-
-//    diffusionSolverTest->setPrintInfo( true );
 
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup solvers & operators: Finished -------" );

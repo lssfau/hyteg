@@ -100,17 +100,26 @@ struct SolverParameters
 // Output parameters
 struct OutputParameters
 {
-   std::string outputDirectory   = std::string( "output" );
-   std::string outputBaseName    = std::string( "conv_sim" );
-   std::string outputConfig      = std::string( "ADIOS2config.xml" );
-   std::string ADIOS2ParamKey    = std::string( "NumAggregators" );
-   std::string ADIOS2Value       = std::string( "16" );
-   bool        dataOutput        = true;
-   bool        vtk               = true;
-   bool        OutputVelocity    = true;
-   bool        OutputViscosity   = true;
-   bool        OutputTemperature = true;
-   uint_t      OutputInterval    = 1;
+   std::string outputDirectory = std::string( "output" );
+   std::string outputBaseName  = std::string( "conv_sim" );
+
+   std::string ADIOS2OutputConfig       = std::string( "ADIOS2config.xml" );
+   std::string ADIOS2ParamKey           = std::string( "NumAggregators" );
+   std::string ADIOS2Value              = std::string( "16" );
+   std::string ADIOS2CheckpointPath     = std::string( "output" );
+   std::string ADIOS2CheckpointFilename = std::string( "conv_sim" );
+
+   bool ADIOS2StartFromCheckpoint = false;
+   bool ADIOS2StoreCheckpoint     = false;
+
+   uint_t ADIOS2StoreCheckpointFrequency = 100U;
+
+   bool   dataOutput        = true;
+   bool   vtk               = true;
+   bool   OutputVelocity    = true;
+   bool   OutputViscosity   = true;
+   bool   OutputTemperature = true;
+   uint_t OutputInterval    = 1;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;

@@ -1,0 +1,46 @@
+//////////////////////////////
+//  Simulation parameters   //
+//////////////////////////////
+
+// Boundary Condition (Surface / CMB)
+// 1 = No-Slip / No-Slip
+// 2 = Free-Slip / Free-Slip
+// 3 = No-Slip / Free-Slip 
+// default: 1
+
+boundaryCond 1;
+
+// Model simulation type: ConvectionModel / CirculationModel
+
+simulationType ConvectionModel;
+
+// Solver type
+// 0: MINRES + pressure prec. (HyTeG)
+// 1: MINRES + no prec. (PETSc)
+
+solverType 0;
+
+compressible true;
+shearHeating false;
+
+// Time steps 
+
+maxNumTimeSteps 100;
+fixedTimeStep false;
+cflMax 0.75;
+dtConstant 1e-4;
+
+// Adaptive reference Temperature 
+// true: update to radial mean Temperature
+
+adaptiveRefTemp false;
+
+// Input files for circulation model
+
+fnameTopologies       ../../../data/terraneo/plates/topologies0-100Ma.geojson;
+fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
+initialAge 100;
+finalAge 1;
+plateVelocityScaling 4;
+//distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)
+plateSmoothingDistance 110;

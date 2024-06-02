@@ -25,6 +25,8 @@
 #include <core/mpi/MPIManager.h>
 
 #include "hyteg/MeshQuality.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -132,7 +134,7 @@ class ConvectionSimulation
    void updateRefViscosity();
    void updatePlateVelocities( StokesFunction& );
    void solveStokes();
-   void solveDiffusion();
+   void solveEnergy();
 
    void dataOutput();
    void normalFunc( const Point3D& p, Point3D& n );
@@ -179,6 +181,7 @@ class ConvectionSimulation
    std::shared_ptr< ScalarFunction > adiabaticTermCoeff;
    std::shared_ptr< ScalarFunction > shearHeatingTermCoeff;
    std::shared_ptr< ScalarFunction > constEnergyCoeff;
+   std::shared_ptr< ScalarFunction > surfTempCoeff;
 
    // Vector and scalar field storing velocity and pressure fields (stokes equation)
    std::shared_ptr< StokesFunction >             stokesLHS;
@@ -208,11 +211,11 @@ class ConvectionSimulation
 
    // Solvers
 
-   std::shared_ptr< CGSolver< DiffusionOperator > >          diffusionSolver;
+   std::shared_ptr< CGSolver< DiffusionOperator > > diffusionSolver;
    // std::shared_ptr< CGSolver< P2DiffusionOperatorWrapper > > diffusionSolverTest;
-   std::shared_ptr< FGMRESSolver< StokesOperator > >         stokesSolver;
-   std::shared_ptr< Solver< StokesOperatorFS > >             stokesSolverFS;
-   std::shared_ptr< CGSolver< P2TransportOperatorTALA > >    transportSolverTALA;
+   std::shared_ptr< FGMRESSolver< StokesOperator > >      stokesSolver;
+   std::shared_ptr< Solver< StokesOperatorFS > >          stokesSolverFS;
+   std::shared_ptr< CGSolver< P2TransportOperatorTALA > > transportSolverTALA;
 
    // Operators
    std::shared_ptr< StokesOperator >                    stokesOperator;
@@ -237,6 +240,9 @@ class ConvectionSimulation
    // ADIOS2 data output
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    std::shared_ptr< AdiosWriter > _output;
+
+   std::shared_ptr< AdiosCheckpointExporter > checkpointExporter;
+   std::shared_ptr< AdiosCheckpointImporter > checkpointImporter;
 #endif
 
    // std::functions for various functionalities

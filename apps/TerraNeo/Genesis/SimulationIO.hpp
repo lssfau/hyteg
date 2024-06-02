@@ -23,9 +23,19 @@ void ConvectionSimulation::setupOutput()
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       WALBERLA_LOG_INFO_ON_ROOT( "Output format: ADIOS2 - BP4" );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      _output = std::make_shared< AdiosWriter >(
-          TN.outputParameters.outputDirectory, TN.outputParameters.outputBaseName, TN.outputParameters.outputConfig, storage );
+      _output = std::make_shared< AdiosWriter >( TN.outputParameters.outputDirectory,
+                                                 TN.outputParameters.outputBaseName,
+                                                 TN.outputParameters.ADIOS2OutputConfig,
+                                                 storage );
       _output->setParameter( TN.outputParameters.ADIOS2ParamKey, TN.outputParameters.ADIOS2Value );
+
+      if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
+      {
+         checkpointImporter = std::make_shared< AdiosCheckpointImporter >( TN.outputParameters.ADIOS2CheckpointPath,
+                                                                           TN.outputParameters.ADIOS2CheckpointFilename,
+                                                                           TN.outputParameters.ADIOS2OutputConfig );
+      }
+
 #else
       WALBERLA_LOG_INFO_ON_ROOT( " No submodule ADIOS2 enabled. No data output " );
 #endif
@@ -106,7 +116,7 @@ void ConvectionSimulation::setupOutput()
 
       _output->add( *temperatureReference );
       _output->add( *diffusionFE );
-      _output->add( *densityFE );      
+      _output->add( *densityFE );
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified!" );
 #endif
@@ -172,6 +182,16 @@ void ConvectionSimulation::dataOutput()
       storage->getTimingTree()->start( "Adios2 data output" );
       _output->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
       storage->getTimingTree()->stop( "Adios2 data output" );
+
+      if ( TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
+           TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+         checkpointExporter->registerFunction( *temperature, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2CheckpointPath,
+                                              TN.outputParameters.ADIOS2CheckpointFilename );
+      }
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified! " );
 #endif

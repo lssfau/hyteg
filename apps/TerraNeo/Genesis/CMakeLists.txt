@@ -1,5 +1,5 @@
-waLBerla_add_executable( NAME TerraNeo
-    FILES TerraNeo.cpp Convection.cpp
+waLBerla_add_executable( NAME Convection
+    FILES Convection.cpp
     DEPENDS hyteg terraneo core sqlite convection_particles 
     constant_stencil_operator mixed_operator opgen-mass opgen-k_mass opgen-composites-stokes opgen-div_k_grad opgen-shear_heating
 )

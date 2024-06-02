@@ -1,0 +1,41 @@
+//////////////////////////
+//  Output parameters   //
+//////////////////////////
+
+dataOutput true;
+vtk false;
+OutputVelocity true;
+OutputTemperature true;
+OutputInterval 1;
+OutputVertexDoFs false;
+
+//If desired: output per Myr:
+
+outputMyr false;
+outputIntervalMyr 1;
+
+outputProfiles true;
+ADIOS2OutputConfig ADIOS2config.xml;
+
+ADIOS2CheckpointPath /import/freenas-m-03-geodynamics/pponkumar/output/checkpoint;
+ADIOS2CheckpointFilename 3d_convection_nsns_tala_checkpoint;
+ADIOS2StartFromCheckpoint true;
+ADIOS2StoreCheckpoint true;
+
+// In steps
+ADIOS2StoreCheckpointFrequency 3;
+
+// ADIOS2 parameter keys and values for data output
+
+ADIOS2ParamKey AggregatorRatio;
+ADIOS2Value 4;
+
+outputDirectory /import/freenas-m-03-geodynamics/pponkumar/output;
+outputBaseName 3d_convection_nsns_tala_checkin;
+
+verbose true;
+
+// Output of json file containing timing results of default Timing Tree results
+// default: false
+
+timingAnalysis true;
