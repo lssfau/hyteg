@@ -3,7 +3,7 @@
 ////////////////////////////
 
 thermalExpansivity 2.238e-5;
-thermalConductivity 3e4;
+thermalConductivity 3;
 specificHeatCapacity 1260;
 internalHeatingRate 6e-12;
 referenceDensity 4448;
@@ -38,7 +38,7 @@ tempDependentViscosity false;
 
 tempDependentViscosityType 3; 
 
-activationEnergy 5;
+activationEnergy 2;
 depthViscosityFactor 2.5;
 viscosityLowerBound 2e19;
 viscosityUpperBound 1e24;

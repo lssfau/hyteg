@@ -241,8 +241,16 @@ Parameters
    outputIntervalMyr 1;
 
    outputProfiles true;
-   outputConfig ADIOS2config.xml;
+   ADIOS2OutputConfig ADIOS2config.xml;
    
+   ADIOS2CheckpointPath ../../output/checkpoint/;
+   ADIOS2CheckpointFilename 3d_convection_checkpoint;
+   ADIOS2StartFromCheckpoint false;
+   ADIOS2StoreCheckpoint false;
+
+   // In steps
+   ADIOS2StoreCheckpointFrequency 3;
+
    // ADIOS2 parameter keys and values for data output
 
    ADIOS2ParamKey AggregatorRatio;

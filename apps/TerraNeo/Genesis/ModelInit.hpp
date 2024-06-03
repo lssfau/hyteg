@@ -420,7 +420,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorTALA->setReferenceTemperature( temperatureReference );
 
    transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, true },
-                                         { OperatorTermKey::SHEAR_HEATING_TERM, true },
+                                         { OperatorTermKey::SHEAR_HEATING_TERM, false },
                                          { OperatorTermKey::INTERNAL_HEATING_TERM, true } } );
 
    transportOperatorTALA->initializeOperators();

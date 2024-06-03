@@ -308,6 +308,7 @@ void ConvectionSimulation::setupStokesRHS()
       //    Momentum    //
       ////////////////////
 
+      temperatureReference->interpolate( referenceTemperatureFct, l, All );
       temperatureDev->assign( { 1.0, -1.0 }, { *temperature, *temperatureReference }, l, All );
 
       // Multiply with mass matrix (of velocity space -- P2) to get the weak form
@@ -685,17 +686,17 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 
    if ( ( radius - TN.domainParameters.rMin ) < real_c( 1e-10 ) )
    {
-      return TN.physicalParameters.cmbTemp / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+      return real_c(1);
    }
    else if ( ( TN.domainParameters.rMax - radius ) < real_c( 1e-10 ) )
    {
-      return TN.physicalParameters.surfaceTemp / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+      return real_c(0);
    }
 
    real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
                  std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
 
-   real_t retVal = temp / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+   real_t retVal = (temp - TN.physicalParameters.surfaceTemp) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
 
    return retVal;
 }

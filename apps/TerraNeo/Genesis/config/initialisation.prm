@@ -42,4 +42,4 @@ superposition true;
 
 // scaling temperature anomalies in the initial state
 
-buoyancyFactor 0.01;
+buoyancyFactor 0.05;

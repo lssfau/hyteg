@@ -114,7 +114,7 @@ inline std::function< real_t( const Point3D& ) >
       real_t temp =
           tempInitParams.TsurfaceAdb() * std::exp( ( tempInitParams.dissipationNumber() * ( tempInitParams.rMax() - radius ) ) );
 
-      real_t retVal = temp / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+      real_t retVal = (temp - tempInitParams.Tsurface()) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
 
       return retVal;
    };
@@ -157,15 +157,15 @@ inline std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const Te
 
       const auto Tcmb     = tempInitParams.Tcmb();
       const auto Tsurface = tempInitParams.Tsurface();
-
+      
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return Tcmb / ( Tcmb - Tsurface );
+         return real_c(1);
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return Tsurface / ( Tcmb - Tsurface );
+         return real_c(0);
       }
       else
       {
@@ -219,11 +219,11 @@ inline std::function< real_t( const Point3D& ) > temperatureSPH( const Temperatu
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return Tcmb / ( Tcmb - Tsurface );
+         return real_c(1);
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return Tsurface / ( Tcmb - Tsurface );
+         return real_c(0);
       }
 
 
