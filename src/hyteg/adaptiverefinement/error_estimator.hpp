@@ -22,7 +22,7 @@
 
 #include <limits>
 
-#include "hyteg-operators/operators/mass/P1ElementwiseMass.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -222,9 +222,10 @@ class ErrorEstimator
       }
    }
 
-   /// @brief get estimates to the bounds C1, C2 s.th. C1 <= eta_j / ||e|| <= C2
+   /// @brief get estimates to the bounds C1, C2 s.th. C1 <= eta_j / ||e|| <= C2.
+   ///         Note: these estimates are only reliable if convergence is asymptotic!
    /// @param j
-   /// @return C1, C2
+   /// @return estimates to C1, C2
    std::pair< valueType, valueType > bounds( uint_t j ) const
    {
       if ( check_j_exists( j ) )

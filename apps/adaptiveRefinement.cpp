@@ -26,7 +26,6 @@
 #include <core/timing/Timer.h>
 #include <iomanip>
 
-#include "hyteg-operators/operators/mass/P1ElementwiseMass.hpp"
 #include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -876,29 +875,36 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       t1 = walberla::timing::getWcTime();
       t_error_indicator += t1 - t0;
    }
+   // print error estimate
    if ( global_error_estimate )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ eta_j for j = %d, ..., %d", l_max, 1, j_max - 1 ) );
-      for ( uint_t j = 1; j < j_max; ++j )
+      real_t theta_min = 1.0, theta_max = 0.0;
+      for ( uint_t j = 1; j <= j_max; ++j )
       {
-         auto eta      = errorEstimator->eta( j );
-         auto theta_j  = errorEstimator->theta( j );
-         auto theta_j1 = errorEstimator->theta( j + 1 );
-         auto C12      = errorEstimator->bounds( j );
+         auto eta   = errorEstimator->eta( j );
+         auto theta = errorEstimator->theta( j );
+         auto C12   = errorEstimator->bounds( j );
 
-         auto q   = -log( theta_j ) / log( 2.0 );
-         auto rho = std::min( theta_j, theta_j1 ) / std::max( theta_j, theta_j1 );
-
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  error: η_(j=%d) = %1.2e", j, eta ) );
-         WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( " ->  convergence: θ_(j=%d) ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", j, 1. / theta_j, q ) );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  bounds: C1 ≈ %1.2f, C2 ≈ %1.2f", C12.first, C12.second ) );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  reliability: ϱ = %1.2f", rho ) );
-         if ( rho < 0.9 || q > 2.1 )
+         auto q = -log( theta ) / log( 2.0 );
+         if ( j > 1 ) // for j=1, the estimates tend to be inaccurate
          {
-            WALBERLA_LOG_WARNING_ON_ROOT( " ->  Above result unreliable. Estimates may be very inaccurate!" )
+            theta_min = std::min( theta, theta_min );
+            theta_max = std::max( theta, theta_max );
          }
+
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  j=%d", j ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->     error: η_j = %1.2e", j, eta ) );
+         WALBERLA_LOG_INFO_ON_ROOT(
+             walberla::format( " ->     convergence: θ_j ≈ %1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", j, theta, q ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->     bounds: C1 ≈ %1.2f, C2 ≈ %1.2f", C12.first, C12.second ) );
+      }
+      auto rho = ( j_max < 3 ) ? 0.0 : theta_min / theta_max;
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  reliability: ϱ = %1.2f", rho ) );
+      if ( rho < 0.9 )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( " ->  Above estimates may be very inaccurate!" )
       }
    }
 
