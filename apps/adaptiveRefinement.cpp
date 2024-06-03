@@ -27,6 +27,7 @@
 #include <iomanip>
 
 #include "hyteg-operators/operators/mass/P1ElementwiseMass.hpp"
+#include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
@@ -671,7 +672,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // operators
    t0 = walberla::timing::getWcTime();
    std::shared_ptr< A_t > A;
-   auto                   M = std::make_shared< Mass >( storage, l_min, l_max );
    auto                   P = std::make_shared< P1toP1LinearProlongation<> >();
    auto                   R = std::make_shared< P1toP1LinearRestriction<> >();
 
@@ -690,7 +690,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    P1Function< real_t > b( "b(f)", storage, l_min, l_max );                                           // rhs of weak form
    P1Function< real_t > r( "r", storage, l_min, l_max );                                              // residual
    P1Function< real_t > tmp( "tmp", storage, l_min, l_max );                                          // temporary vector
-   P1Function< real_t > ei( "ei", storage, l_min, l_max );                                            // error indicator
 
    std::function< real_t( const Point3D& ) > u_anal;
 
@@ -792,20 +791,30 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    A->computeInverseDiagonalOperatorValues();
    auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol, precond );
 #endif
-   // multigrid
+
+   // error indicator
    t_error_indicator = 0.0;
-   auto copyUtoEi    = [&]( uint_t lvl ) { // copy values from u to ei to use as error indicator
-      if ( lvl < l_max )
-      {
+   std::unique_ptr< adaptiveRefinement::ErrorEstimator< P1Function< real_t > > > errorEstimator;
+   uint_t j_max = global_error_estimate ? l_max - l_min - 1 : 0;
+   if ( error_indicator || global_error_estimate )
+   {
+      errorEstimator = std::make_unique< adaptiveRefinement::ErrorEstimator< P1Function< real_t > > >( *u, j_max );
+   }
+
+   // multigrid
+   auto gmg = std::make_shared< GeometricMultigridSolver< A_t > >( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
+   auto fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles );
+   if ( error_indicator || global_error_estimate )
+   {
+      auto callback = [&]( uint_t lvl ) {
          real_t my_t0 = walberla::timing::getWcTime();
-         ei.copyFrom( *u, lvl + 1 ); // we copy the values after they have been prolongated to the next higher level
+         errorEstimator->fmg_callback( lvl );
          real_t my_t1 = walberla::timing::getWcTime();
          t_error_indicator += my_t1 - my_t0;
-      }
+      };
+      fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
    };
-   auto gmg = std::make_shared< GeometricMultigridSolver< A_t > >( storage, smoother, cgs, R, P, l_min, l_max, n1, n2 );
-   auto fmg =
-       std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, copyUtoEi );
+
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
 
@@ -855,127 +864,43 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    }
 
    // apply error indicator
-   // global error estimate on levels {L, L-1, L-2, L-3, L-4}
-   std::array< double, 5 > err_est{ 0, 0, 0, 0, 0 };
-   if ( error_indicator || global_error_estimate ) // use error indicator
+   adaptiveRefinement::ErrorVector err_2_elwise_loc;
+   if ( error_indicator || global_error_estimate )
    {
-      // for global error estimate we need L-4, L-3, and L-2
-      // for error indication, we require L-1
-      int min_offset = error_indicator ? 1 : 2;
-      int max_offset = global_error_estimate ? 4 : 1;
-
-      for ( int offset = min_offset; offset <= max_offset; ++offset )
+      t0 = walberla::timing::getWcTime();
+      errorEstimator->estimate();
+      if ( error_indicator )
       {
-         auto lvl = l_max - offset;
-         // store coarse solution (for testing purposes) //todo: remove this
-         // u->copyFrom( ei, lvl + 1 );
-
-         t0 = walberla::timing::getWcTime();
-
-         // prolongate u_lvl to finest level (the first prolongations happens within FMG)
-         for ( uint_t k = lvl + 1; k < l_max; ++k )
-            P->prolongate( ei, k, All );
-         // substract fine grid solution to obtain estimate for e_lvl
-         ei.add( { -1 }, { *u }, l_max, All );
-         ei.interpolate( 0, l_max, DirichletBoundary );
-         // compute local dot product ei*M*ei !!! using ELEMENTWISE operator !!!
-         // (after M.apply(), volume-primitives only contain local contributions. Additive interface data only stored on interfaces)
-         M->apply( ei, tmp, l_max, Inner | NeumannBoundary, Replace );
-
-         // compute local error indicator
-         if ( offset == 1 )
-            err_el.clear();
-         if ( problem.dim == 2 )
-         {
-            auto& e  = ei.getFaceDataID();
-            auto& Me = tmp.getFaceDataID();
-            for ( auto& [id, face] : storage->getFaces() )
-            {
-               auto eMe = vertexdof::macroface::dot< real_t >( l_max, *face, e, Me, 0 );
-               err_est[offset] += eMe;
-               if ( offset == 1 )
-                  err_el[id] = eMe;
-            }
-         }
-         else // dim == 3
-         {
-            auto& e  = ei.getCellDataID();
-            auto& Me = tmp.getCellDataID();
-            for ( auto& [id, cell] : storage->getCells() )
-            {
-               auto eMe = vertexdof::macrocell::dot< real_t >( l_max, *cell, e, Me, 0 );
-               err_est[offset] += eMe;
-               if ( offset == 1 )
-                  err_el[id] = eMe;
-            }
-         }
-
-         t1 = walberla::timing::getWcTime();
-         t_error_indicator += t1 - t0;
+         err_2_elwise_loc = errorEstimator->eta_T_sq();
       }
-
-      // global error estimate
-      if ( global_error_estimate )
+      t1 = walberla::timing::getWcTime();
+      t_error_indicator += t1 - t0;
+   }
+   if ( global_error_estimate )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+          " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ eta_j for j = %d, ..., %d", l_max, 1, j_max - 1 ) );
+      for ( uint_t j = 1; j < j_max; ++j )
       {
-         t0 = walberla::timing::getWcTime();
-         for ( auto& e : err_est )
-         {
-            walberla::mpi::allReduceInplace( e, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-            e = std::sqrt( e );
-         }
-         // compute estimate on h-convergence h^q
-         auto theta3       = err_est[3] / err_est[4];
-         auto theta2       = err_est[2] / err_est[3];
-         auto rho          = std::min( theta2, theta3 ) / std::max( theta2, theta3 );
-         auto q            = -log( theta2 ) / log( 2.0 );
-         auto theta_pow_j  = theta2 * theta2;
-         auto theta_pow_j1 = theta2 * theta2 * theta2;
-         auto C1           = pow( 1.0 - theta_pow_j, 3 ) / pow( 1.0 + theta_pow_j1, 2 );
-         auto C2           = pow( 1.0 + theta_pow_j, 3 ) / pow( 1.0 - theta_pow_j1, 2 );
+         auto eta      = errorEstimator->eta( j );
+         auto theta_j  = errorEstimator->theta( j );
+         auto theta_j1 = errorEstimator->theta( j + 1 );
+         auto C12      = errorEstimator->bounds( j );
 
-         t1 = walberla::timing::getWcTime();
-         t_error_indicator += t1 - t0;
+         auto q   = -log( theta_j ) / log( 2.0 );
+         auto rho = std::min( theta_j, theta_j1 ) / std::max( theta_j, theta_j1 );
 
-         // check whether convergence is asymptotic
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  error: η_(j=%d) = %1.2e", j, eta ) );
+         WALBERLA_LOG_INFO_ON_ROOT(
+             walberla::format( " ->  convergence: θ_(j=%d) ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", j, 1. / theta_j, q ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  bounds: C1 ≈ %1.2f, C2 ≈ %1.2f", C12.first, C12.second ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  reliability: ϱ = %1.2f", rho ) );
          if ( rho < 0.9 || q > 2.1 )
          {
-            WALBERLA_LOG_WARNING_ON_ROOT( " ->  Convergence seems to be pre-asymptotic:" )
-            WALBERLA_LOG_WARNING_ON_ROOT(
-                walberla::format( " ->       reliability: ϱ=%1.2f, convergence rate: q≈%1.2f", rho, q ) );
-            WALBERLA_LOG_WARNING_ON_ROOT( " ->  Below estimate might be severely inaccurate!" )
+            WALBERLA_LOG_WARNING_ON_ROOT( " ->  Above result unreliable. Estimates may be very inaccurate!" )
          }
-         err_est[1] = err_est[2] * theta2;
-         err_est[0] = err_est[1] * theta2;
-         WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ eta = %1.2e", l_max, err_est[0] ) );
-         WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( " ->  estimated convergence w.r.t. lvl: θ ≈ 1/%1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", 1. / theta2, q ) );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-             " ->  accuracy of estimate: C1 <= η/||e_%d||_L2 <= C2  with C1 ≈ %1.2f, C2 ≈ %1.2f", l_max, C1, C2 ) );
       }
    }
-
-   t0 = walberla::timing::getWcTime();
-   adaptiveRefinement::ErrorVector err_2_elwise_loc;
-   for ( auto& [id, err] : err_el )
-   {
-      err_2_elwise_loc.push_back( { err, id } );
-   }
-   t1 = walberla::timing::getWcTime();
-   t_error_indicator += t1 - t0;
-
-   // if ( global_error_estimate && err_est[0] <= 0 )
-   // {
-   //    // compute actual L2 error on lvl L-2
-   //    auto err = [&]( const Point3D& x, const PrimitiveID& id ) {
-   //       real_t ux;
-   //       u->evaluate( x, l_max - 2, ux, 1e-5, id );
-   //       return u_anal( x ) - ux;
-   //    };
-   //    L2.setLvl( l_max - 2 );
-   //    auto eL2 = L2.norm( err );
-   //    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %33s ||e_%d||_L2 = %1.1e", "for comparison:", l_max - 2, eL2 ) );
-   // }
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "system solve", t_solve ) );
@@ -1348,13 +1273,13 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.error_indicator=0" );
       global_error_estimate = 0;
    }
-   if ( global_error_estimate && l_max - l_min < 4 )
-   {
-      WALBERLA_LOG_WARNING_ON_ROOT(
-          "Global error estimation requires at least 5 multigrid levels, i.e., microlevel - cg_level >= 4." )
-      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
-      global_error_estimate = 0;
-   }
+   // if ( global_error_estimate && l_max - l_min < 4 )
+   // {
+   //    WALBERLA_LOG_WARNING_ON_ROOT(
+   //        "Global error estimation requires at least 5 multigrid levels, i.e., microlevel - cg_level >= 4." )
+   //    WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
+   //    global_error_estimate = 0;
+   // }
    if ( l2error < 0 && !error_indicator )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "Running without error indicator requires computation of exact error." )
