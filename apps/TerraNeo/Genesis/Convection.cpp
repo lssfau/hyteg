@@ -45,7 +45,10 @@ int main( int argc, char** argv )
                                    "config/output.prm <(echo) "
                                    "<(echo }) > parameters.prm" );
 
-         WALBERLA_ASSERT( returnCode == 0 );
+         if(returnCode != 0)
+         {
+            WALBERLA_ABORT("Something wrong with concatenating parameter files");
+         }
       }
 
       auto defaultFile = "./parameters.prm";

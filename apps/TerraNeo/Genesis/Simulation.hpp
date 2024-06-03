@@ -277,7 +277,7 @@ void ConvectionSimulation::solveEnergy()
        };
 
    std::function< real_t( const Point3D& ) > internalHeatingCoeffCalc = [=]( const Point3D& ) {
-      real_t intHeatingFactor = 0.0;
+      real_t intHeatingFactor = 1.0;
       return TN.physicalParameters.hNumber * intHeatingFactor;
    };
 

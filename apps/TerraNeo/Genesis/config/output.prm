@@ -17,10 +17,10 @@ outputIntervalMyr 1;
 outputProfiles true;
 ADIOS2OutputConfig ADIOS2config.xml;
 
-ADIOS2CheckpointPath /import/freenas-m-03-geodynamics/pponkumar/output/checkpoint;
-ADIOS2CheckpointFilename 3d_convection_nsns_tala_checkpoint;
-ADIOS2StartFromCheckpoint true;
-ADIOS2StoreCheckpoint true;
+ADIOS2CheckpointPath ./output/checkpoint;
+ADIOS2CheckpointFilename 3d_convection_checkpoint;
+ADIOS2StartFromCheckpoint false;
+ADIOS2StoreCheckpoint false;
 
 // In steps
 ADIOS2StoreCheckpointFrequency 3;
@@ -30,8 +30,8 @@ ADIOS2StoreCheckpointFrequency 3;
 ADIOS2ParamKey AggregatorRatio;
 ADIOS2Value 4;
 
-outputDirectory /import/freenas-m-03-geodynamics/pponkumar/output;
-outputBaseName 3d_convection_nsns_tala_checkin;
+outputDirectory ./output;
+outputBaseName 3d_convection;
 
 verbose true;
 

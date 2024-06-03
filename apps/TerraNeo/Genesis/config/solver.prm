@@ -4,7 +4,7 @@
 
 // Stokes solver abort criteria
 
-stokesMaxNumIterations 2;
+stokesMaxNumIterations 5;
 
 // Residual tolerances for repeated V cycles 
 
