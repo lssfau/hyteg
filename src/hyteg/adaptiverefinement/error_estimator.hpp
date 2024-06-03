@@ -99,6 +99,7 @@ class ErrorEstimator
    {
       // reset flag
       _estimate_called = false;
+      _fmg_called      = true;
 
       // copy P * u[lvl] to w[lvl+1]
       if ( _l_min <= lvl && lvl < _l_max )
@@ -286,7 +287,7 @@ class ErrorEstimator
    {
       if ( j < 1 || j > _j_max || !_estimate_called )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "Estimate eta(j) not computed for desired level j!" );
+         WALBERLA_LOG_WARNING_ON_ROOT( walberla::format( "Estimate not computed for level j=%d!", j ) );
          return false;
       }
       return true;

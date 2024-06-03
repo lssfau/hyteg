@@ -1269,17 +1269,17 @@ int main( int argc, char* argv[] )
    if ( error_indicator && l_max - l_min < 1 )
    {
       WALBERLA_LOG_WARNING_ON_ROOT(
-          "Local error indicator requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 2." )
+          "Local error indicator requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 1." )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.error_indicator=0" );
       global_error_estimate = 0;
    }
-   // if ( global_error_estimate && l_max - l_min < 4 )
-   // {
-   //    WALBERLA_LOG_WARNING_ON_ROOT(
-   //        "Global error estimation requires at least 5 multigrid levels, i.e., microlevel - cg_level >= 4." )
-   //    WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
-   //    global_error_estimate = 0;
-   // }
+   if ( global_error_estimate && l_max - l_min < 3 )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT(
+          "Global error estimation requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 3." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
+      global_error_estimate = 0;
+   }
    if ( l2error < 0 && !error_indicator )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "Running without error indicator requires computation of exact error." )
