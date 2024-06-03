@@ -117,6 +117,7 @@ void ConvectionSimulation::setupOutput()
       _output->add( *temperatureReference );
       _output->add( *diffusionFE );
       _output->add( *densityFE );
+      _output->add( *viscosityFE );
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified!" );
 #endif

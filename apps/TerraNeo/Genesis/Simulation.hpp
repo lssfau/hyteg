@@ -271,7 +271,7 @@ void ConvectionSimulation::solveEnergy()
    transportOperatorTALA->setTimestep( TN.simulationParameters.dt );
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc =
-       [=]( const Point3D& x, const std::vector< real_t >& density ) {
+       [=]( const Point3D&, const std::vector< real_t >& density ) {
           return TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
                  ( TN.physicalParameters.rayleighNumber * density[0] );
        };

@@ -340,8 +340,6 @@ void ConvectionSimulation::setupSolversAndOperators()
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   using SubstAType = BlockLaplaceOperator;
-
    auto                                      normalFunc_ = [&]( const Point3D& p, Point3D& n ) { normalFunc( p, n ); };
    std::function< real_t( const Point3D& ) > zeros       = []( const Point3D& ) { return real_c( 0 ); };
 
@@ -421,9 +419,9 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    transportOperatorTALA->setReferenceTemperature( temperatureReference );
 
-   transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, false },
-                                         { OperatorTermKey::SHEAR_HEATING_TERM, false },
-                                         { OperatorTermKey::INTERNAL_HEATING_TERM, false } } );
+   transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, true },
+                                         { OperatorTermKey::SHEAR_HEATING_TERM, true },
+                                         { OperatorTermKey::INTERNAL_HEATING_TERM, true } } );
 
    transportOperatorTALA->initializeOperators();
 
