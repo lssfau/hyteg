@@ -84,10 +84,10 @@ class Function
    virtual uint_t getDimension() const = 0;
 
    /// Query function object for minimal level on which it defined
-   uint_t getMinLevel() { return minLevel_; }
+   uint_t getMinLevel() const { return minLevel_; }
 
    /// Query function object for maximal level on which it defined
-   uint_t getMaxLevel() { return maxLevel_; }
+   uint_t getMaxLevel() const { return maxLevel_; }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
