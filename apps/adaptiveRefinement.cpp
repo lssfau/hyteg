@@ -36,7 +36,6 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/numerictools/L2Space.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -893,20 +892,16 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       {
          auto eta   = errorEstimator->eta( j );
          auto theta = errorEstimator->theta( j );
-         auto C12   = errorEstimator->bounds( j );
+         auto q     = -log( theta ) / log( 2.0 );
 
-         auto q = -log( theta ) / log( 2.0 );
          if ( j > 1 ) // for j=1, the estimates tend to be inaccurate
          {
             theta_min = std::min( theta, theta_min );
             theta_max = std::max( theta, theta_max );
          }
 
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  j=%d", j ) );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->     error: η_j = %1.2e", j, eta ) );
          WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( " ->     convergence: θ_j ≈ %1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", j, theta, q ) );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->     bounds: C1 ≈ %1.2f, C2 ≈ %1.2f", C12.first, C12.second ) );
+             walberla::format( " ->  j=%d: η_j = %1.2e, θ_j ≈ %1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", j, eta, theta, q ) );
       }
       auto rho = ( j_max < 3 ) ? 0.0 : theta_min / theta_max;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  reliability: ϱ = %1.2f", rho ) );

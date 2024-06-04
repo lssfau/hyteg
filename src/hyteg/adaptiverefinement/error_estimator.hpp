@@ -222,23 +222,6 @@ class ErrorEstimator
       }
    }
 
-   /// @brief get estimates to the bounds C1, C2 s.th. C1 <= eta_j / ||e|| <= C2.
-   ///         Note: these estimates are only reliable if convergence is asymptotic!
-   /// @param j
-   /// @return estimates to C1, C2
-   std::pair< valueType, valueType > bounds( uint_t j ) const
-   {
-      if ( check_j_exists( j ) )
-      {
-         return { _C1[j - 1], _C2[j - 1] };
-      }
-      else
-      {
-         auto nan = std::numeric_limits< valueType >::quiet_NaN();
-         return { nan, nan };
-      }
-   }
-
    /// @brief get list of squared error estimates for each macro cell
    /// @return [(eta_T)^2, id_T] for all T owned by this process
    const ErrorVector& eta_T_sq() const
