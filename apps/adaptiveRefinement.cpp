@@ -629,11 +629,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        int                                      error_freq,
                                        bool                                     loadbalancing )
 {
-   if ( error_freq == 0 )
-      error_freq = int( max_iter );
-   if ( error_freq == -1 )
-      error_freq = int( max_iter ) + 1;
-
    // timing
    real_t t0, t1;
    real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
@@ -698,7 +693,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    tmp.interpolate( 1.0, l_min, Inner | NeumannBoundary );
    auto n_dof_coarse = uint_t( tmp.dotGlobal( tmp, l_min ) );
 
-   t0     = walberla::timing::getWcTime();
+   t1     = walberla::timing::getWcTime();
    t_init = t1 - t0;
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
    auto v_mean = mesh.volume() / real_t( mesh.n_elements() );
@@ -847,7 +842,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
       bool converged = norm_r <= tol;
 
-      if ( iter % error_freq == 0 || ( converged && error_freq <= int( max_iter ) ) )
+      if ( error_freq > 0 && ( converged || int( iter ) % error_freq == 0 ) )
       {
          auto eL2 = compute_L2error();
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
@@ -885,8 +880,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // print error estimate
    if ( global_error_estimate )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-          " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ eta_j for j = %d, ..., %d", l_max, 1, j_max - 1 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  global error estimate for lvl L: ||e_%d||_L2 ≈ η_j", l_max ) );
       real_t theta_min = 1.0, theta_max = 0.0;
       for ( uint_t j = 1; j <= j_max; ++j )
       {
@@ -907,7 +901,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  reliability: ϱ = %1.2f", rho ) );
       if ( rho < 0.9 )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( " ->  Above estimates may be very inaccurate!" )
+         WALBERLA_LOG_WARNING_ON_ROOT( " ->  Low reliability! Above estimates may be inaccurate!" )
       }
    }
 
@@ -1292,8 +1286,8 @@ int main( int argc, char* argv[] )
    if ( l2error < 0 && !error_indicator )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "Running without error indicator requires computation of exact error." )
-      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.l2error=0!" )
-      l2error = 0;
+      WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.l2error=max_iter!" )
+      l2error = max_iter;
    }
 
    // setup model problem

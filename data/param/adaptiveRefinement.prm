@@ -55,9 +55,7 @@ Parameters
 
   // // misc
   loadbalancing 1; // else, assign macros via round robin
-  l2error -1; // compute actual L2 error after every n-th iteration
-              // 0: only after last iteration (default)
-              // -1: never
+  l2error 0; // compute actual L2 error after every n-th iteration; default: 0 (never)
   // vtkName auto;
   // vtkName err_ex;
   // writeDomainPartitioning 1;
