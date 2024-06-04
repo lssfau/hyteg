@@ -23,7 +23,7 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
-
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1TaylorHoodFunction< real_t > >
@@ -61,4 +61,26 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
 
    bool projectMeanAfterRestriction_;
 };
+
+class P2P1StokesToP2P1StokesRestrictionWithProjection : public P2P1StokesToP2P1StokesRestriction
+{
+ public:
+   P2P1StokesToP2P1StokesRestrictionWithProjection( std::shared_ptr< P2ProjectNormalOperator > projection )
+   : P2P1StokesToP2P1StokesRestriction(false)
+   , projection_( projection )
+   {}
+
+   void restrict( const P2P1TaylorHoodFunction< real_t >& function,
+                  const uint_t&                           sourceLevel,
+                  const DoFType&                          flag ) const override
+   {
+      P2P1StokesToP2P1StokesRestriction::restrict(function, sourceLevel, flag);
+      projection_->project( function, sourceLevel-1, FreeslipBoundary );
+      vertexdof::projectMean( function.p(), sourceLevel-1 );
+   }
+
+ private:
+   std::shared_ptr< P2ProjectNormalOperator > projection_;
+};
+
 } // namespace hyteg

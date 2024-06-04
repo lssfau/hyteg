@@ -24,7 +24,7 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
-
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1TaylorHoodFunction< real_t > >
@@ -59,4 +59,40 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
    P2toP2QuadraticProlongation quadraticProlongationOperator_;
    P1toP1LinearProlongation<>  linearProlongationOperator_;
 };
+
+class P2P1StokesToP2P1StokesProlongationWithProjection : public P2P1StokesToP2P1StokesProlongation
+{
+ public:
+   P2P1StokesToP2P1StokesProlongationWithProjection( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp,
+                                                     std::shared_ptr< P2ProjectNormalOperator >          projection )
+   : P2P1StokesToP2P1StokesProlongation()
+   , temp_( temp )
+   , projection_( projection )
+   {}
+
+   void prolongate( const P2P1TaylorHoodFunction< real_t >& function,
+                    const uint_t&                           sourceLevel,
+                    const DoFType&                          flag ) const override
+   {
+      P2P1StokesToP2P1StokesProlongation::prolongate( function, sourceLevel, flag );
+      projection_->project( function, sourceLevel + 1, FreeslipBoundary );
+      vertexdof::projectMean( function.p(), sourceLevel + 1 );
+   }
+
+   // prolongateAndAdd has a different implementation than prolongate and seemingly needs internal projections
+   // as a quick fix we are using prolongate on a temporary function and add it manually
+   void prolongateAndAdd( const P2P1TaylorHoodFunction< real_t >& function,
+                          const uint_t&                           sourceLevel,
+                          const DoFType&                          flag ) const override
+   {
+      temp_->assign( { 1.0 }, { function }, sourceLevel, All );
+      prolongate( *temp_, sourceLevel, flag );
+      function.assign( { 1.0, 1.0 }, { function, *temp_ }, sourceLevel + 1, flag );
+   }
+
+ private:
+   std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp_;
+   std::shared_ptr< P2ProjectNormalOperator >          projection_;
+};
+
 } // namespace hyteg
