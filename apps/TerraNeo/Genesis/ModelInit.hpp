@@ -122,9 +122,6 @@ void ConvectionSimulation::setupFunctions()
    temperaturePrev = std::make_shared< ScalarFunction >(
        "temperature_Prev_tstep", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
 
-   temperatureExtrapolated = std::make_shared< ScalarFunction >(
-       "temperature_extrapolated", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
-
    temperatureDev = std::make_shared< ScalarFunction >(
        "temperature_dev", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcTemperature );
 
@@ -175,9 +172,6 @@ void ConvectionSimulation::setupFunctions()
 
    stokesLHSP1Weak = std::make_shared< P1VectorFunction< real_t > >(
        "uP1Weak", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
-
-   stokesLHSExtrapolated = std::make_shared< StokesFunction >(
-       "u_extrapolated", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
 
    stokesLHSPrev = std::make_shared< StokesFunction >(
        "uPrev", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, bcVelocity );
@@ -259,7 +253,13 @@ void ConvectionSimulation::initialiseFunctions()
          temperature->interpolate( initTemperatureSPH, l, All );
       }
    }
-
+   if ( TN.simulationParameters.simulationType == "CirculationModel" )
+   {
+      // initialise plate velocity oracle
+      WALBERLA_LOG_INFO_ON_ROOT( "Setup Oracle for Plates" );
+      terraneo::oracle = std::make_shared< terraneo::plates::PlateVelocityProvider >(
+          TN.simulationParameters.fnameTopologies, TN.simulationParameters.fnameReconstructions );
+   }
    // Assign temperature field to temperaturePrev
 
    for ( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; ++level )
@@ -350,15 +350,6 @@ void ConvectionSimulation::setupSolversAndOperators()
    //non-dimensionalise viscosity such that minimum value = 1
    updateRefViscosity();
 
-   P1Function< real_t > muInv( "muInv", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-
-   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   {
-      muInv.interpolate( 1.0 / TN.physicalParameters.referenceViscosity, l, All );
-   }
-
-   auto viscInvTest = viscosityFEInv->getVertexDoFFunction();
-
    projectionOperator = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
@@ -373,16 +364,15 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             *projectionOperator,
                                                             bcVelocity );
 
-   stokesSolverFS = temporary::stokesGMGFSSolver< StokesOperatorFS, P2ProjectNormalOperator >(
-       storage,
-       TN.domainParameters.minLevel,
-       TN.domainParameters.maxLevel,
-       stokesOperatorFS,
-       projectionOperator,
-       TN.solverParameters.stokesMaxNumIterations,
-       TN.solverParameters.stokesRelativeResidualUTolerance,
-       0.3,
-       bcVelocity );
+   stokesSolverFS = temporary::stokesGMGFSSolver( storage,
+                                                  TN.domainParameters.minLevel,
+                                                  TN.domainParameters.maxLevel,
+                                                  stokesOperatorFS,
+                                                  projectionOperator,
+                                                  TN.solverParameters.stokesMaxNumIterations,
+                                                  TN.solverParameters.stokesRelativeResidualUTolerance,
+                                                  TN.solverParameters.uzawaOmega,
+                                                  bcVelocity );
 
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );

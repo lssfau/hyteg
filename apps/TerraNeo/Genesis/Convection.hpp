@@ -156,7 +156,6 @@ class ConvectionSimulation
 
    // Scalar fields for temperature
    std::shared_ptr< ScalarFunction > temperature;
-   std::shared_ptr< ScalarFunction > temperatureExtrapolated;
    std::shared_ptr< ScalarFunction > temperaturePrev;
    std::shared_ptr< ScalarFunction > temperatureDev;
    std::shared_ptr< ScalarFunction > temperatureTmp;
@@ -189,8 +188,6 @@ class ConvectionSimulation
    std::shared_ptr< P1VectorFunction< real_t > > stokesLHSP1Weak;
    // Vector and scalar field storing velocity and pressure fields (of the Prev timestep) (stokes equation)
    std::shared_ptr< StokesFunction > stokesLHSPrev;
-   // Vector and scalar field storing velocity and pressure fields (stokes equation)
-   std::shared_ptr< StokesFunction > stokesLHSExtrapolated;
    // Vector and scalar field storing right hand side of stokes equation
    std::shared_ptr< StokesFunction > stokesRHS;
    // Temporary vector and scalar filed storing RHS of stokes equation

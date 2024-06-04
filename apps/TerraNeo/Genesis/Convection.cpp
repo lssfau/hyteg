@@ -45,9 +45,9 @@ int main( int argc, char** argv )
                                    "config/output.prm <(echo) "
                                    "<(echo }) > parameters.prm" );
 
-         if(returnCode != 0)
+         if ( returnCode != 0 )
          {
-            WALBERLA_ABORT("Something wrong with concatenating parameter files");
+            WALBERLA_ABORT( "Something wrong with concatenating parameter files" );
          }
       }
 

@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
+
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 #include "Convection.hpp"
@@ -37,14 +39,6 @@ namespace terraneo {
 
 void ConvectionSimulation::step()
 {
-   // _output->write( TN.domainParameters.maxLevel, 0 );
-
-   // solveStokes();
-
-   // _output->write( TN.domainParameters.maxLevel, 1 );
-
-   // return;
-
    if ( TN.simulationParameters.timeStep == 0 )
    {
       //set up logging
@@ -127,35 +121,9 @@ void ConvectionSimulation::step()
 
    /*############ EXTRAPOLATE FIELDS FOR RHS ############*/
 
-   if ( TN.simulationParameters.timeStep > 1 )
-   {
-      stokesLHSExtrapolated->assign(
-          {
-              real_c( 1 ) + TN.simulationParameters.dt / TN.simulationParameters.dtPrev,
-              -TN.simulationParameters.dt / TN.simulationParameters.dtPrev,
-          },
-          { *stokesLHS, *stokesLHSPrev },
-          TN.domainParameters.maxLevel,
-          All );
-
-      temperatureExtrapolated->assign(
-          {
-              real_c( 1 ) + TN.simulationParameters.dt / TN.simulationParameters.dtPrev,
-              -TN.simulationParameters.dt / TN.simulationParameters.dtPrev,
-          },
-          { *temperature, *temperaturePrev },
-          TN.domainParameters.maxLevel,
-          All );
-   }
-   else
-   {
-      stokesLHSExtrapolated->assign( { real_c( 1 ) }, { *stokesLHS }, TN.domainParameters.maxLevel, All );
-      temperatureExtrapolated->assign( { real_c( 1 ) }, { *temperature }, TN.domainParameters.maxLevel, All );
-   }
-
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
-      updatePlateVelocities( *stokesLHSExtrapolated );
+      updatePlateVelocities( *stokesLHS );
    }
 
    /*############ ADVECTION STEP ############*/
@@ -264,7 +232,7 @@ void ConvectionSimulation::solveEnergy()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
-   WALBERLA_LOG_INFO_ON_ROOT( "------- Energy Solve ------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "------- Energy Solve ---------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
@@ -302,8 +270,6 @@ void ConvectionSimulation::setupStokesRHS()
 {
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      // std::function to calculate temperature difference between temperature and reference/background temperature
-
       ////////////////////
       //    Momentum    //
       ////////////////////
@@ -351,49 +317,6 @@ void ConvectionSimulation::setupStokesRHS()
       }
    }
 }
-
-// void ConvectionSimulation::setupEnergyRHS()
-// {
-//    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > EnergyRHS =
-//        [&]( const Point3D& x, const std::vector< real_t >& fields ) {
-//           // Currently the internal heating function is a scalar (hNumber)
-//           real_t retVal = real_c( 1 ) * TN.physicalParameters.hNumber; //internal heating term
-
-//           if ( TN.simulationParameters.compressible )
-//           {
-//              //add adiabatic heating term
-//              retVal += TN.physicalParameters.dissipationNumber *
-//                        ( fields[0] * fields[3] + fields[1] * fields[4] + fields[2] * fields[5] ) * //this part is u dot g
-//                        ( fields[6] + ( TN.physicalParameters.surfaceTemp /
-//                                        ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) );
-//           }
-
-//           if ( TN.simulationParameters.shearHeating )
-//           {
-//              WALBERLA_UNUSED( x );
-//              //add shear heating term
-//              WALBERLA_LOG_INFO_ON_ROOT( "No shear-heating available currently -> on my ToDo list!" );
-//              // For the shear-heating term update grad U is necessary which is currently not applicable
-//              // using the new solvers -> Fix this!
-//           }
-//           return retVal;
-//        };
-//    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-//    {
-//       energyRHS->interpolate( EnergyRHS,
-//                               { stokesLHS->uvw()[0],  //fields[0]
-//                                 stokesLHS->uvw()[1],  //fields[1]
-//                                 stokesLHS->uvw()[2],  //fields[2]
-//                                 ( *inwardNormal )[0], //fields[3]
-//                                 ( *inwardNormal )[1], //fields[4]
-//                                 ( *inwardNormal )[2], //fields[5]
-//                                 *temperature },       //fields[6]
-//                               l,
-//                               All );
-//       // derive weak formulation of the right hand side
-//       P2MassOperator->apply( *energyRHS, *energyRHSWeak, l, All );
-//    }
-// }
 
 void ConvectionSimulation::solveStokes()
 {
@@ -603,43 +526,39 @@ real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
           ( densityFunction( x ) * TN.physicalParameters.pecletNumber * TN.physicalParameters.specificHeatCapacity );
 }
 
-void ConvectionSimulation::updatePlateVelocities( StokesFunction& )
+void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
 {
-   // CURRENTLY NOT IMPLEMENTED -> ORACLE STUFF NOT WORKING
+   uint_t coordIdx = 0;
 
-   //    //needed for capture below
-   //    uint_t coordIdx = 0;
+   //function to return plate velocities, copied and adapted from PlateVelocityDemo.cpp.
+   std::function< real_t( const Point3D& ) > Velocity = [this, &coordIdx]( const Point3D& x ) {
+      terraneo::vec3D coords{ x[0], x[1], x[2] };
+      //get velocity at current plate age (intervals of 1Ma)
+      terraneo::vec3D velocity = oracle->getPointVelocity(
+          coords,
+          TN.simulationParameters.plateAge,
+          terraneo::plates::LinearDistanceSmoother{ real_c( 1 ) / TN.simulationParameters.plateSmoothingDistance },
+          terraneo::plates::DefaultPlateNotFoundHandler{} );
 
-   //    //function to return plate velocities, copied and adapted from PlateVelocityDemo.cpp.
-   //    std::function< real_t( const Point3D& ) > Velocity = [this, &coordIdx]( const Point3D& x ) {
-   //       terraneo::vec3D coords{ x[0], x[1], x[2] };
-   //       //get velocity at current plate age (intervals of 1Ma)
-   //       terraneo::vec3D velocity = TN.oracle->getPointVelocity(
-   //           coords,
-   //           TN.simulationParameters.plateAge,
-   //           terraneo::plates::LinearDistanceSmoother{ real_c( 1 ) / TN.simulationParameters.plateSmoothingDistance },
-   //           terraneo::plates::DefaultPlateNotFoundHandler{} );
+      return velocity[int_c( coordIdx )] /
+             ( TN.physicalParameters.characteristicVelocity *
+               TN.simulationParameters.plateVelocityScaling ); //non-dimensionalise by dividing by characteristic velocity
+   };
 
-   //       return velocity[int_c( coordIdx )] /
-   //              ( TN.physicalParameters.characteristicVelocity *
-   //                TN.simulationParameters.plateVelocityScaling ); //non-dimensionalise by dividing by characteristic velocity
-   //    };
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
+   {
+      for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
+      {
+         //interpolate current plate velocities at the surface
+         U.uvw()[coordIdx].interpolate( Velocity, l, idSurface );
 
-   //    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
-   //    {
-   //       for ( coordIdx = 0; coordIdx < 3; ++coordIdx )
-   //       {
-   //          //interpolate current plate velocities at the surface
-   //          U.uvw()[coordIdx].interpolate( Velocity, l, idSurface );
-
-   //          //just used for setting up stokesLHSPrev in the initialisation
-   //          if ( TN.simulationParameters.timeStep == 0 )
-   //          {
-   //             stokesLHSPrev->uvw()[coordIdx].interpolate( Velocity, l, idSurface );
-   //          }
-   //       }
-   //    }
-   WALBERLA_LOG_INFO_ON_ROOT( "No plates moving, Earth has no tectonics." );
+         //just used for setting up stokesLHSPrev in the initialisation
+         if ( TN.simulationParameters.timeStep == 0 )
+         {
+            stokesLHSPrev->uvw()[coordIdx].interpolate( Velocity, l, idSurface );
+         }
+      }
+   }
 }
 
 void ConvectionSimulation::updateRefViscosity()
@@ -686,17 +605,18 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 
    if ( ( radius - TN.domainParameters.rMin ) < real_c( 1e-10 ) )
    {
-      return real_c(1);
+      return real_c( 1 );
    }
    else if ( ( TN.domainParameters.rMax - radius ) < real_c( 1e-10 ) )
    {
-      return real_c(0);
+      return real_c( 0 );
    }
 
    real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
                  std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
 
-   real_t retVal = (temp - TN.physicalParameters.surfaceTemp) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+   real_t retVal =
+       ( temp - TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
 
    return retVal;
 }

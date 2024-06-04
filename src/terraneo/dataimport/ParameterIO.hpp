@@ -43,6 +43,9 @@ using walberla::uint_t;
  * It populates the corresponding variables and performs necessary calculations for non-dimensional numbers.
  */
 
+// define plate velocity oracle
+std::shared_ptr< terraneo::plates::PlateVelocityProvider > oracle;
+
 inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
    DomainParameters         domainParam;
@@ -174,9 +177,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          simulationParam.plateAge               = simulationParam.initialAge;
          simulationParam.plateVelocityScaling   = mainConf.getParameter< real_t >( "plateVelocityScaling" );
          simulationParam.plateSmoothingDistance = mainConf.getParameter< real_t >( "plateSmoothingDistance" );
-
-         auto oracle = std::make_shared< terraneo::plates::PlateVelocityProvider >( simulationParam.fnameTopologies,
-                                                                                    simulationParam.fnameReconstructions );
       }
 
       else
