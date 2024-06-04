@@ -134,5 +134,4 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
 
    ViscousOperatorFS_T& getA() { return viscousFSOp; }
 };
-
 } // namespace hyteg

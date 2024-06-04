@@ -31,19 +31,55 @@
 
 namespace hyteg {
 
-inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
-    stokesGMGFSSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
-                       const uint_t&                                                         minLevel,
-                       const uint_t&                                                         maxLevel,
-                       const std::shared_ptr< P2P1StokesFullIcosahedralShellMapOperatorFS >& stokesOperatorFSSelf,
-                       const std::shared_ptr< P2ProjectNormalOperator >&                     projectionOperator,
-                       const uint_t&                                                         fGMRESOuterIter,
-                       const real_t&                                                         fGMRESTol,
-                       const real_t&                                                         uzawaSmootherOmega,
-                       BoundaryCondition                                                     bcVelocity,
-                       bool                                                                  estimateUzawaOmegaValue = false,
-                       bool                                                                  verbose                 = false )
+namespace temporary {
+// clang-format off
+
+enum StokesGMGFSSolverParamKey
 {
+    NUM_POWER_ITERATIONS_SPECTRUM,
+    FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
+    FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,   
+
+        INEXACT_UZAWA_VELOCITY_ITER, 
+
+            ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
+            ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
+                ABLOCK_MG_PRESMOOTH,    
+                ABLOCK_MG_POSTSMOOTH,
+                    ABLOCK_COARSE_ITER,
+                    ABLOCK_COARSE_TOLERANCE,
+            
+            SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
+            SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
+                SCHUR_MG_PRESMOOTH,    
+                SCHUR_MG_POSTSMOOTH,
+                    SCHUR_COARSE_GRID_CG_ITER,
+                    SCHUR_COARSE_GRID_CG_TOLERANCE
+};
+
+// clang-format on
+
+// Things are still restricted to P2-P1 space
+template < typename StokesOperatorType, typename ProjectionType >
+inline std::shared_ptr< Solver< StokesOperatorType > >
+    stokesGMGFSSolver( const std::shared_ptr< PrimitiveStorage >&    storage,
+                       const uint_t&                                 minLevel,
+                       const uint_t&                                 maxLevel,
+                       const std::shared_ptr< StokesOperatorType >&  stokesOperatorFSSelf,
+                       const std::shared_ptr< ProjectionType >&      projectionOperator,
+                       const uint_t&                                 fGMRESOuterIter,
+                       const real_t&                                 fGMRESTol,
+                       const real_t&                                 uzawaSmootherOmega,
+                       BoundaryCondition                             bcVelocity,
+                       bool                                          estimateUzawaOmegaValue = false,
+                       bool                                          verbose                 = false,
+                       std::map< StokesGMGFSSolverParamKey, real_t > extraParams             = {} )
+{
+   if ( extraParams.size() > 0U )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "Ignoring extraParams variable for now as solver is still in preliminary stage" );
+   }
+
    auto uTmp = std::make_shared< P2P1TaylorHoodFunction< real_t > >(
        "uTmp_stokesGMGFSSolver_solvertemplate", storage, minLevel, maxLevel, bcVelocity );
 
@@ -62,8 +98,8 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
    auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithProjection >( projectionOperator );
 
    // Multigridsolver for A
-   typedef P2P1StokesFullIcosahedralShellMapOperatorFS::ViscousOperatorFS_T SubstAType;
-   typedef P2P1StokesFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
+   typedef typename StokesOperatorType::ViscousOperatorFS_T SubstAType;
+   typedef StokesOperatorType                               StokesOperatorFS;
 
    auto APrecOperator = stokesOperatorFSSelf->getA();
 
@@ -126,25 +162,24 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
    real_t estimatedSigma = 1.0;
    if ( estimateUzawaOmegaValue )
    {
-      estimatedSigma =
-          estimateUzawaSigma< StokesOperatorFS, typename StokesOperatorFS::ViscousOperatorFS_T >( storage,
-                                                                                                  minLevel,
-                                                                                                  maxLevel,
-                                                                                                  *stokesOperatorFSSelf,
-                                                                                                  ABlockSolver,
-                                                                                                  5,
-                                                                                                  1,
-                                                                                                  bcVelocity,
-                                                                                                  bcVelocity,
-                                                                                                  bcVelocity,
-                                                                                                  42,
-                                                                                                  projectionOperator );
+      estimatedSigma = estimateUzawaSigma< StokesOperatorFS, SubstAType >( storage,
+                                                                           minLevel,
+                                                                           maxLevel,
+                                                                           *stokesOperatorFSSelf,
+                                                                           ABlockSolver,
+                                                                           5,
+                                                                           1,
+                                                                           bcVelocity,
+                                                                           bcVelocity,
+                                                                           bcVelocity,
+                                                                           42,
+                                                                           projectionOperator );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated sigma: " << estimatedSigma );
 
    // Multigridsolver for Schur
-   typedef StokesOperatorFS::SchurOperator_T SubstSType;
+   typedef typename StokesOperatorFS::SchurOperator_T SubstSType;
 
    auto SchurProlongationOperator = std::make_shared< P1toP1LinearProlongation< real_t > >();
    auto SchurRestrictionOperator  = std::make_shared< P1toP1LinearRestriction< real_t > >();
@@ -190,22 +225,20 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
    if ( estimateUzawaOmegaValue )
    {
       ABlockCoarseGridSolver->setPrintInfo( verbose );
-      estimatedOmega =
-          estimateUzawaOmega< StokesOperatorFS, StokesOperatorFS::ViscousOperatorFS_T, StokesOperatorFS::SchurOperator_T >(
-              storage,
-              minLevel,
-              maxLevel,
-              *stokesOperatorFSSelf,
-              stokesOperatorFSSelf->getSchur(),
-              ABlockCoarseGridSolver,
-              SchurSolver,
-              15,
-              1,
-              bcVelocity,
-              bcVelocity,
-              bcVelocity,
-              42,
-              projectionOperator );
+      estimatedOmega = estimateUzawaOmega< StokesOperatorFS, SubstAType, SubstSType >( storage,
+                                                                                       minLevel,
+                                                                                       maxLevel,
+                                                                                       *stokesOperatorFSSelf,
+                                                                                       stokesOperatorFSSelf->getSchur(),
+                                                                                       ABlockCoarseGridSolver,
+                                                                                       SchurSolver,
+                                                                                       15,
+                                                                                       1,
+                                                                                       bcVelocity,
+                                                                                       bcVelocity,
+                                                                                       bcVelocity,
+                                                                                       42,
+                                                                                       projectionOperator );
       ABlockCoarseGridSolver->setPrintInfo( false );
    }
 
@@ -214,8 +247,7 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
    WALBERLA_LOG_INFO_ON_ROOT( "Sigma: " << estimatedSigma << " ; "
                                         << "Omega: " << estimatedOmega );
 
-   auto uzawaSmoother = std::make_shared<
-       InexactUzawaPreconditioner< StokesOperatorFS, StokesOperatorFS::ViscousOperatorFS_T, StokesOperatorFS::SchurOperator_T > >(
+   auto uzawaSmoother = std::make_shared< InexactUzawaPreconditioner< StokesOperatorFS, SubstAType, SubstSType > >(
        storage,
        minLevel,
        maxLevel,
@@ -233,4 +265,5 @@ inline std::shared_ptr< Solver< P2P1StokesFullIcosahedralShellMapOperatorFS > >
 
    return finalStokesSolver;
 }
+} // namespace temporary
 } // namespace hyteg

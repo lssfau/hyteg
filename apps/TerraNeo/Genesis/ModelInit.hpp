@@ -362,9 +362,6 @@ void ConvectionSimulation::setupSolversAndOperators()
    projectionOperator = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
-   auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
-   auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
-
    stokesOperator =
        std::make_shared< StokesOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *viscosityFE );
 
@@ -376,15 +373,16 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             *projectionOperator,
                                                             bcVelocity );
 
-   stokesSolverFS = stokesGMGFSSolver( storage,
-                                       TN.domainParameters.minLevel,
-                                       TN.domainParameters.maxLevel,
-                                       stokesOperatorFS,
-                                       projectionOperator,
-                                       TN.solverParameters.stokesMaxNumIterations,
-                                       TN.solverParameters.stokesRelativeResidualUTolerance,
-                                       0.3,
-                                       bcVelocity );
+   stokesSolverFS = temporary::stokesGMGFSSolver< StokesOperatorFS, P2ProjectNormalOperator >(
+       storage,
+       TN.domainParameters.minLevel,
+       TN.domainParameters.maxLevel,
+       stokesOperatorFS,
+       projectionOperator,
+       TN.solverParameters.stokesMaxNumIterations,
+       TN.solverParameters.stokesRelativeResidualUTolerance,
+       0.3,
+       bcVelocity );
 
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
@@ -419,9 +417,9 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    transportOperatorTALA->setReferenceTemperature( temperatureReference );
 
-   transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, true },
+   transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, false },
                                          { OperatorTermKey::SHEAR_HEATING_TERM, false },
-                                         { OperatorTermKey::INTERNAL_HEATING_TERM, true } } );
+                                         { OperatorTermKey::INTERNAL_HEATING_TERM, false } } );
 
    transportOperatorTALA->initializeOperators();
 
