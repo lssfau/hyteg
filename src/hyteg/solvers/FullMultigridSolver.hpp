@@ -53,7 +53,8 @@ class FullMultigridSolver : public Solver< OperatorType >
                           minLevel,
                           maxLevel,
                           std::vector< uint_t >( maxLevel + 1, cyclesPerLevel ),
-                          postCycleCallback )
+                          postCycleCallback,
+                          postProlongateCallback )
    {}
 
    FullMultigridSolver(
