@@ -626,7 +626,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   refinement_step,
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
-                                       int                                      error_freq,
+                                       uint_t                                   error_freq,
                                        bool                                     loadbalancing )
 {
    // timing
@@ -842,7 +842,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
       bool converged = norm_r <= tol;
 
-      if ( error_freq > 0 && ( converged || int( iter ) % error_freq == 0 ) )
+      if ( error_freq > 0 && ( converged || iter % error_freq == 0 ) )
       {
          auto eL2 = compute_L2error();
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
@@ -1033,7 +1033,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 bool                         printMeshData,
                                 bool                         error_indicator,
                                 bool                         global_error_estimate,
-                                int                          error_freq,
+                                uint_t                       error_freq,
                                 bool                         loadbalancing )
 {
    // construct adaptive mesh
@@ -1256,7 +1256,7 @@ int main( int argc, char* argv[] )
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
    const bool  loadbalancing     = parameters.getParameter< bool >( "loadbalancing", false );
-   int         l2error           = parameters.getParameter< int >( "l2error", 0 );
+   uint_t      l2error           = parameters.getParameter< uint_t >( "l2error", 0 );
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -1283,7 +1283,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
       global_error_estimate = 0;
    }
-   if ( l2error < 0 && !error_indicator )
+   if ( l2error == 0 && !error_indicator )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "Running without error indicator requires computation of exact error." )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.l2error=max_iter!" )
