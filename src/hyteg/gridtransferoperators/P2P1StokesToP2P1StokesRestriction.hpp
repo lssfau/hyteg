@@ -62,10 +62,14 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
    bool projectMeanAfterRestriction_;
 };
 
-class P2P1StokesToP2P1StokesRestrictionWithProjection : public P2P1StokesToP2P1StokesRestriction
+/***************************************************************************
+NOTE: This restricts the FE function and calls the project function on it 
+      so that the normal components are set to zero on the FreeslipBoundary
+***************************************************************************/
+class P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection : public P2P1StokesToP2P1StokesRestriction
 {
  public:
-   P2P1StokesToP2P1StokesRestrictionWithProjection( std::shared_ptr< P2ProjectNormalOperator > projection )
+   P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection( std::shared_ptr< P2ProjectNormalOperator > projection )
    : P2P1StokesToP2P1StokesRestriction(false)
    , projection_( projection )
    {}

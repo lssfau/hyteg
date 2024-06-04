@@ -204,8 +204,13 @@ class ChebyshevSmoother : public Solver< OperatorType >
    DoFType               flag_;
 };
 
+/***************************************************************************
+NOTE: This is similar to the Chebyshev smoother except that projection is 
+      applied to set normal components to zero at the FreeslipBoundary at 
+      every step of working
+***************************************************************************/
 template < typename OperatorType >
-class ChebyshevSmootherWithProjection : public ChebyshevSmoother< OperatorType >
+class ChebyshevSmootherWithFreeSlipProjection : public ChebyshevSmoother< OperatorType >
 {
  public:
    using FunctionType = typename OperatorType::srcType;
@@ -214,7 +219,7 @@ class ChebyshevSmootherWithProjection : public ChebyshevSmoother< OperatorType >
    using ChebyshevSmoother< OperatorType >::flag_;
    using ChebyshevSmoother< OperatorType >::coefficients;
 
-   ChebyshevSmootherWithProjection( const std::shared_ptr< PrimitiveStorage >& storage,
+   ChebyshevSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >& storage,
                                     size_t                                     minLevel,
                                     size_t                                     maxLevel,
                                     std::shared_ptr< P2ProjectNormalOperator > projection )

@@ -26,6 +26,11 @@
 
 namespace hyteg {
 
+/***************************************************************************************************
+NOTE: Here FS denotes FreeSlip, Stokes A block operator is wrapped with a FreeSlip Projection Wrapper
+      Changes the linear system from $Ku    = f $
+                                  to $PKP^T = Pf$
+***************************************************************************************************/
 class P2ViscousIcosahedralShellMapOperatorFS : public Operator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
 {
  public:

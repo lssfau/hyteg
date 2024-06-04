@@ -60,10 +60,14 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
    P1toP1LinearProlongation<>  linearProlongationOperator_;
 };
 
-class P2P1StokesToP2P1StokesProlongationWithProjection : public P2P1StokesToP2P1StokesProlongation
+/***************************************************************************
+NOTE: This prolongates the FE function and calls the project function on it 
+      so that the normal components are set to zero on the FreeslipBoundary
+***************************************************************************/
+class P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection : public P2P1StokesToP2P1StokesProlongation
 {
  public:
-   P2P1StokesToP2P1StokesProlongationWithProjection( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp,
+   P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp,
                                                      std::shared_ptr< P2ProjectNormalOperator >          projection )
    : P2P1StokesToP2P1StokesProlongation()
    , temp_( temp )

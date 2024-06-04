@@ -27,6 +27,11 @@
 
 namespace hyteg {
 
+/***************************************************************************************************
+NOTE: Here FS denotes FreeSlip, Normal Stokes operator is wrapped with a FreeSlip Projection Wrapper
+      Changes the linear system from $Ku    = f $
+                                  to $PKP^T = Pf$
+***************************************************************************************************/
 class P2P1StokesFullIcosahedralShellMapOperatorFS
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {

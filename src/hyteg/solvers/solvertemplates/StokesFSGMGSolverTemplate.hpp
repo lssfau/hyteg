@@ -33,11 +33,10 @@
 
 namespace hyteg {
 namespace solvertemplates {
-namespace temporary {
 
 // clang-format off
 
-enum StokesGMGFSSolverParamKey
+enum class StokesGMGFSSolverParamKey
 {
     NUM_POWER_ITERATIONS_SPECTRUM,
     FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
@@ -77,65 +76,62 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
                        std::map< StokesGMGFSSolverParamKey, real_t > extraParams             = {} )
 {
    std::map< StokesGMGFSSolverParamKey, real_t > defaultParams = {
-       { NUM_POWER_ITERATIONS_SPECTRUM, 25.0 },
-       { FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, 5.0 },
-       { FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE, 1e-6 },
-       { INEXACT_UZAWA_VELOCITY_ITER, 1.0 },
-       { INEXACT_UZAWA_OMEGA, 1.0 },
-       { ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER, 3 },
-       { ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, 1e-6 },
-       { ABLOCK_MG_PRESMOOTH, 3 },
-       { ABLOCK_MG_POSTSMOOTH, 3 },
-       { ABLOCK_COARSE_ITER, 10 },
-       { ABLOCK_COARSE_TOLERANCE, 1e-8 },
-       { SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, 1 },
-       { SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, 1e-6 },
-       { SCHUR_MG_PRESMOOTH, 3 },
-       { SCHUR_MG_POSTSMOOTH, 3 },
-       { SCHUR_COARSE_GRID_CG_ITER, 1 },
-       { SCHUR_COARSE_GRID_CG_TOLERANCE, 1e-6 },
+       { StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25.0 },
+       { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, 5.0 },
+       { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE, 1e-6 },
+       { StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, 1.0 },
+       { StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, 1.0 },
+       { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER, 3 },
+       { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, 1e-6 },
+       { StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, 3 },
+       { StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, 3 },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, 10 },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE, 1e-8 },
+       { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, 1 },
+       { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, 1e-6 },
+       { StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, 3 },
+       { StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, 3 },
+       { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER, 1 },
+       { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE, 1e-6 },
    };
 
-   if ( extraParams.size() > 0U )
-   {
-      for (auto const& param : extraParams)
-      {
-        if(defaultParams.find(param.first) == defaultParams.end())
-        {
-            WALBERLA_ABORT("Passed parameter key not found");
-        }
-        else
-        {
-            defaultParams[param.first] = real_c(param.second);
-        }
-      }
-   }
+    for (auto const& param : extraParams)
+    {
+    if(defaultParams.find(param.first) == defaultParams.end())
+    {
+        WALBERLA_ABORT("Passed parameter key not found");
+    }
+    else
+    {
+        defaultParams[param.first] = real_c(param.second);
+    }
+    }
 
-   uint_t numPowerIteration = uint_c(defaultParams[NUM_POWER_ITERATIONS_SPECTRUM]);
+   uint_t numPowerIteration = uint_c(defaultParams[StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM]);
 
-   uint_t fGMRESOuterIter = uint_c(defaultParams[FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER]);
-   real_t fGMRESTol = real_c(defaultParams[FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE]);
+   uint_t fGMRESOuterIter = uint_c(defaultParams[StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER]);
+   real_t fGMRESTol = real_c(defaultParams[StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE]);
 
-   uint_t uzawaVelocityIter = uint_c(defaultParams[INEXACT_UZAWA_VELOCITY_ITER]);
-   real_t uzawaSmootherOmega = real_c(defaultParams[INEXACT_UZAWA_OMEGA]);
+   uint_t uzawaVelocityIter = uint_c(defaultParams[StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER]);
+   real_t uzawaSmootherOmega = real_c(defaultParams[StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA]);
 
-   uint_t ABlockCGOuterIter = uint_c(defaultParams[ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER]);
-   real_t ABlockCGOuterTol = real_c(defaultParams[ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE]);
+   uint_t ABlockCGOuterIter = uint_c(defaultParams[StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER]);
+   real_t ABlockCGOuterTol = real_c(defaultParams[StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE]);
 
-   uint_t ABlockCGPreSmooth = uint_c(defaultParams[ABLOCK_MG_PRESMOOTH]);
-   uint_t ABlockCGPostSmooth = uint_c(defaultParams[ABLOCK_MG_POSTSMOOTH]);
+   uint_t ABlockCGPreSmooth = uint_c(defaultParams[StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH]);
+   uint_t ABlockCGPostSmooth = uint_c(defaultParams[StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH]);
 
-   uint_t ABlockCGCoarseIter = uint_c(defaultParams[ABLOCK_COARSE_ITER]);
-   real_t ABlockCGCoarseTol = real_c(defaultParams[ABLOCK_COARSE_TOLERANCE]);
+   uint_t ABlockCGCoarseIter = uint_c(defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER]);
+   real_t ABlockCGCoarseTol = real_c(defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE]);
 
-   uint_t SchurCGOuterIter = uint_c(defaultParams[SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER]);
-   real_t SchurCGOuterTol = real_c(defaultParams[SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE]);
+   uint_t SchurCGOuterIter = uint_c(defaultParams[StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER]);
+   real_t SchurCGOuterTol = real_c(defaultParams[StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE]);
 
-   uint_t SchurCGPreSmooth = uint_c(defaultParams[SCHUR_MG_PRESMOOTH]);
-   uint_t SchurCGPostSmooth = uint_c(defaultParams[SCHUR_MG_POSTSMOOTH]);
+   uint_t SchurCGPreSmooth = uint_c(defaultParams[StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH]);
+   uint_t SchurCGPostSmooth = uint_c(defaultParams[StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH]);
 
-   uint_t SchurCGCoarseIter = uint_c(defaultParams[SCHUR_COARSE_GRID_CG_ITER]);
-   real_t SchurCGCoarseTol = real_c(defaultParams[SCHUR_COARSE_GRID_CG_TOLERANCE]);
+   uint_t SchurCGCoarseIter = uint_c(defaultParams[StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER]);
+   real_t SchurCGCoarseTol = real_c(defaultParams[StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE]);
 
    auto uTmp = std::make_shared< P2P1TaylorHoodFunction< real_t > >(
        "uTmp_stokesGMGFSSolver_solvertemplate", storage, minLevel, maxLevel, bcVelocity );
@@ -149,8 +145,8 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
    auto uTmpSpec = std::make_shared< P2P1TaylorHoodFunction< real_t > >(
        "uTmpSpec_stokesGMGFSSolver_solvertemplate", storage, minLevel, maxLevel, bcVelocity );
 
-   auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongationWithProjection >( uTmp, projectionOperator );
-   auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithProjection >( projectionOperator );
+   auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection >( uTmp, projectionOperator );
+   auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection >( projectionOperator );
 
    // Multigridsolver for A
    typedef typename StokesOperatorType::ViscousOperatorFS_T SubstAType;
@@ -161,8 +157,8 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
    APrecOperator.computeInverseDiagonalOperatorValues();
 
    auto ABlockProlongationOperator =
-       std::make_shared< P2toP2QuadraticVectorProlongationWithProjection >( tempFct, projectionOperator );
-   auto ABlockRestrictionOperator = std::make_shared< P2toP2QuadraticVectorRestrictionWithProjection >( projectionOperator );
+       std::make_shared< P2toP2QuadraticVectorProlongationWithFreeSlipProjection >( tempFct, projectionOperator );
+   auto ABlockRestrictionOperator = std::make_shared< P2toP2QuadraticVectorRestrictionWithFreeSlipProjection >( projectionOperator );
 
    // TODO: TO CHECK THIS!
    // auto Jacobi = std::make_shared< WeightedJacobiSmoother< SubstAType > >( storage, minLevel, maxLevel, 2.0 / 3.0 );
@@ -177,7 +173,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
    // ABlockCoarseGridSolver->setSolverName("ABlockCoarseGridSolver");
 
    auto ABlockSmoother =
-       std::make_shared< ChebyshevSmootherWithProjection< SubstAType > >( storage, minLevel, maxLevel, projectionOperator );
+       std::make_shared< ChebyshevSmootherWithFreeSlipProjection< SubstAType > >( storage, minLevel, maxLevel, projectionOperator );
 
    std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
       return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
@@ -321,6 +317,5 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
    return finalStokesSolver;
 }
 
-} // namespace temporary
 } // namespace solvertemplates
 } // namespace hyteg

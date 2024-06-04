@@ -20,22 +20,22 @@
 
 #include <core/Environment.h>
 #include <core/config/Config.h>
-#include <core/mpi/MPIManager.h>
 #include <core/math/Constants.h>
+#include <core/mpi/MPIManager.h>
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/numerictools/L2Space.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
-#include "mixed_operator/VectorMassOperator.hpp"
-#include "hyteg/numerictools/L2Space.hpp"
 
+#include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2StokesABlockWithProjection.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
@@ -57,9 +57,9 @@ int main( int argc, char* argv[] )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    BoundaryCondition bcVelocity;
-   bcVelocity.createDirichletBC( "DirichletOuter", {MeshInfo::hollowFlag::flagOuterBoundary} );
+   bcVelocity.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
    // bcVelocity.createDirichletBC( "DirichletInner", {MeshInfo::hollowFlag::flagInnerBoundary} );
-   bcVelocity.createFreeslipBC( "FreeslipInner", {MeshInfo::hollowFlag::flagInnerBoundary} );
+   bcVelocity.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
 
    uint_t minLevel = 2U, maxLevel = 3U;
 
@@ -76,7 +76,7 @@ int main( int argc, char* argv[] )
    terraneo::SphericalHarmonicsTool sphTool( lMax );
 
    // Some coefficient and its inverse.
-   auto visc    = [&]( const Point3D& x ) { return 2 + std::sin( x[0] ) * std::cos( x[1] ); };
+   auto visc = [&]( const Point3D& x ) { return 2 + std::sin( x[0] ) * std::cos( x[1] ); };
    // auto visc    = [&]( const Point3D& x ) { return 1.0; };
    auto viscInv = [&]( const Point3D& x ) { return 1.0 / visc( x ); };
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
@@ -101,16 +101,23 @@ int main( int argc, char* argv[] )
    auto stokesOperatorFS = std::make_shared< P2P1StokesFullIcosahedralShellMapOperatorFS >(
        storage, minLevel, maxLevel, mu, muInv, *projectionOperator, bcVelocity );
 
+   P2ElementwiseBlendingVectorMassOperator vecMassOperator( storage, minLevel, maxLevel );
 
-   P2ElementwiseBlendingVectorMassOperator vecMassOperator(storage, minLevel, maxLevel);
-
-   vecMassOperator.apply(fStrong.uvw(), f.uvw(), maxLevel, All);
+   vecMassOperator.apply( fStrong.uvw(), f.uvw(), maxLevel, All );
 
    auto stokesSolverTest =
-       solvertemplates::temporary::stokesGMGFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-           storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, bcVelocity );
+       solvertemplates::stokesGMGFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
+           storage,
+           minLevel,
+           maxLevel,
+           stokesOperatorFS,
+           projectionOperator,
+           bcVelocity,
+           false,
+           false,
+           { { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, 10 } } );
 
-   projectionOperator->project(f, maxLevel, FreeslipBoundary);
+   projectionOperator->project( f, maxLevel, FreeslipBoundary );
    stokesSolverTest->solve( *stokesOperatorFS, u, f, maxLevel );
 
    stokesOperatorFS->apply( u, res, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
@@ -118,7 +125,7 @@ int main( int argc, char* argv[] )
 
    real_t unscaledFinalResiduum = std::sqrt( res.dotGlobal( res, maxLevel, Inner | FreeslipBoundary ) );
 
-   real_t unscaledResidualEpsilon = 1e-3;
+   real_t unscaledResidualEpsilon = 2e-4;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Final residual: " << unscaledFinalResiduum );
    WALBERLA_CHECK_LESS( unscaledFinalResiduum, unscaledResidualEpsilon );
