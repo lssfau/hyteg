@@ -875,6 +875,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       t1 = walberla::timing::getWcTime();
       t_error_indicator += t1 - t0;
    }
+   if ( !error_indicator )
+   {
+      // use actual local L2 error
+      for ( auto& [id, err] : err_el )
+      {
+         err_2_elwise_loc.push_back( { err, id } );
+      }
+   }
    // print error estimate
    if ( global_error_estimate )
    {
