@@ -9,3 +9,5 @@ waLBerla_execute_test(NAME InitialisationTest)
 
 waLBerla_compile_test(FILES parameter/TerraNeoParameterTest.cpp DEPENDS terraneo hyteg core )
 waLBerla_execute_test(NAME TerraNeoParameterTest)
+
+add_subdirectory( solvers )

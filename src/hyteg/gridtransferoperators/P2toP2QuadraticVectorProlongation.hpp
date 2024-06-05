@@ -52,10 +52,14 @@ class P2toP2QuadraticVectorProlongation : public ProlongationOperator< P2VectorF
    P2toP2QuadraticProlongation quadraticProlongationOperator_;
 };
 
-class P2toP2QuadraticVectorProlongationWithProjection : public P2toP2QuadraticVectorProlongation
+/***************************************************************************
+NOTE: This prolongates the FE function and calls the project function on it 
+      so that the normal components are set to zero on the FreeslipBoundary
+***************************************************************************/
+class P2toP2QuadraticVectorProlongationWithFreeSlipProjection : public P2toP2QuadraticVectorProlongation
 {
  public:
-   P2toP2QuadraticVectorProlongationWithProjection( std::shared_ptr< P2VectorFunction< real_t > > temp,
+   P2toP2QuadraticVectorProlongationWithFreeSlipProjection( std::shared_ptr< P2VectorFunction< real_t > > temp,
                                                     std::shared_ptr< P2ProjectNormalOperator >    projection )
    : P2toP2QuadraticVectorProlongation()
    , temp_( temp )

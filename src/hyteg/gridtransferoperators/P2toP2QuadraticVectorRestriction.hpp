@@ -46,10 +46,14 @@ class P2toP2QuadraticVectorRestriction : public RestrictionOperator< P2VectorFun
    P2toP2QuadraticRestriction quadraticRestrictionOperator_;
 };
 
-class P2toP2QuadraticVectorRestrictionWithProjection : public P2toP2QuadraticVectorRestriction
+/***************************************************************************
+NOTE: This restricts the FE function and calls the project function on it 
+      so that the normal components are set to zero on the FreeslipBoundary
+***************************************************************************/
+class P2toP2QuadraticVectorRestrictionWithFreeSlipProjection : public P2toP2QuadraticVectorRestriction
 {
  public:
-   P2toP2QuadraticVectorRestrictionWithProjection( std::shared_ptr< P2ProjectNormalOperator > projection )
+   P2toP2QuadraticVectorRestrictionWithFreeSlipProjection( std::shared_ptr< P2ProjectNormalOperator > projection )
    : P2toP2QuadraticVectorRestriction()
    , projection_( projection )
    {}

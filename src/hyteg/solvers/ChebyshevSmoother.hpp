@@ -25,6 +25,7 @@
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 
 #include "Solver.hpp"
 
@@ -41,14 +42,14 @@ class ChebyshevSmoother : public Solver< OperatorType >
    : coefficients{}
    , tmp1_( "cheb_tmp1", storage, minLevel, maxLevel )
    , tmp2_( "cheb_tmp2", storage, minLevel, maxLevel )
-   , flag_( Inner | NeumannBoundary )
+   , flag_( Inner | NeumannBoundary | FreeslipBoundary )
    {}
 
    ChebyshevSmoother( const FunctionType& tmp1, const FunctionType& tmp2 )
    : coefficients{}
    , tmp1_( tmp1 )
    , tmp2_( tmp2 )
-   , flag_( Inner | NeumannBoundary )
+   , flag_( Inner | NeumannBoundary | FreeslipBoundary )
    {}
 
    /// Executes an iteration step of the smoother.
@@ -196,11 +197,93 @@ class ChebyshevSmoother : public Solver< OperatorType >
       }
    }
 
- private:
+ protected:
    std::vector< real_t > coefficients;
    FunctionType          tmp1_;
    FunctionType          tmp2_;
    DoFType               flag_;
+};
+
+/***************************************************************************
+NOTE: This is similar to the Chebyshev smoother except that projection is 
+      applied to set normal components to zero at the FreeslipBoundary at 
+      every step of working
+***************************************************************************/
+template < typename OperatorType >
+class ChebyshevSmootherWithFreeSlipProjection : public ChebyshevSmoother< OperatorType >
+{
+ public:
+   using FunctionType = typename OperatorType::srcType;
+   using ChebyshevSmoother< OperatorType >::tmp1_;
+   using ChebyshevSmoother< OperatorType >::tmp2_;
+   using ChebyshevSmoother< OperatorType >::flag_;
+   using ChebyshevSmoother< OperatorType >::coefficients;
+
+   ChebyshevSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >& storage,
+                                    size_t                                     minLevel,
+                                    size_t                                     maxLevel,
+                                    std::shared_ptr< P2ProjectNormalOperator > projection )
+   : ChebyshevSmoother< OperatorType >( storage, minLevel, maxLevel )
+   , projection_( projection )
+   {}
+
+   /// Executes an iteration step of the smoother.
+   void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
+   {
+      std::shared_ptr< typename OperatorType::srcType > inverseDiagonalValues = nullptr;
+
+      if ( const auto* A_with_inv_diag =
+               dynamic_cast< const OperatorWithInverseDiagonal< typename OperatorType::srcType >* >( &(A.viscousOperator) ) )
+      {
+         inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
+      }
+      else
+      {
+         throw std::runtime_error( "The Chebyshev-Smoother requires the OperatorWithInverseDiagonal interface." );
+      }
+
+      tmp1_.copyBoundaryConditionFromFunction( x );
+      tmp2_.copyBoundaryConditionFromFunction( x );
+
+      WALBERLA_DEBUG_SECTION()
+      {
+         WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
+         WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
+
+         const real_t localNormSqr = inverseDiagonalValues->dotLocal( *inverseDiagonalValues, level, flag_ );
+         WALBERLA_UNUSED( localNormSqr );
+         WALBERLA_ASSERT_GREATER( localNormSqr, 0.0, "diagonal not set" );
+      }
+
+      // tmp1_ := Ax
+      A.apply( x, tmp1_, level, flag_ );
+      // tmp1_ := b-Ax
+      tmp1_.assign( { real_t( 1. ), real_t( -1. ) }, { b, tmp1_ }, level, flag_ );
+      // tmp1_ := D^{-1} (b-Ax)
+      tmp1_.multElementwise( { *inverseDiagonalValues, tmp1_ }, level, flag_ );
+      projection_->project( tmp1_, level, FreeslipBoundary );
+      // x := x + omega_0 D^{-1} (b-Ax)
+      x.assign( { 1., coefficients[0] }, { x, tmp1_ }, level, flag_ );
+
+      // Loop preconditions before the kth iteration:
+      // 1.)  x := x + sum_{i<k} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
+      // 2.) tmp1_ := (D^{-1}A)^{k-1} D^{-1} (b-Ax)
+      for ( uint_t k = 1; k < coefficients.size(); k += 1 )
+      {
+         // tmp2_ := A (D^{-1}A)^{k-1} D^{-1} (b-Ax)
+         A.apply( tmp1_, tmp2_, level, flag_ );
+         // tmp1_ := (D^{-1}A)^{k} D^{-1} (b-Ax)
+         tmp1_.multElementwise( { *inverseDiagonalValues, tmp2_ }, level, flag_ );
+         projection_->project( tmp1_, level, FreeslipBoundary );
+         // x := x + sum_{i<k+1} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
+         x.assign( { 1, coefficients[k] }, { x, tmp1_ }, level, flag_ );
+      }
+
+      projection_->project( tmp1_, level, FreeslipBoundary );
+   }
+
+ private:
+   std::shared_ptr< P2ProjectNormalOperator > projection_;
 };
 
 /// Namespace for utility functions of the Chebyshev-Smoother
