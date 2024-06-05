@@ -47,6 +47,14 @@ enum Loadbalancing
    SFC_VISUALIZE // use space filling curve for loadbalancing. Also export the sfc to vtk (NOT IMPLEMENTED YET)
 };
 
+enum RefinementStrategy
+{
+   /* refine all elements j where e_j >= (∑_i w_i e_i)/(∑_i w_i) with w_i = (n-i)^p,
+      i.e., p=0: standard mean, p→∞: refine T_0, p→-∞: refine all elements */
+   WEIGHTED_MEAN,
+   PERCENTILE // refine the p*n elements where the error is largest
+};
+
 using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;
 
 // adaptively refinable mesh for K-dimensional domains
@@ -88,15 +96,19 @@ class K_Mesh
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param ratio_to_refine  ratio of total elements that shall be refined, i.e., only those
+      @param strategy         predefined refinement strategy
+      @param p                parameter for refinement strategy
                               ratio*n_elements elements with the largest error will be refined
       @param n_el_max         upper bound for number of elements in refined mesh
+      @param verbose          print information about refinement
       @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
                               remain unrefined, respectively. Note that the result will be 1
                               unless n_el_max has been reached.
    */
    real_t refineRG( const ErrorVector& local_errors,
-                    real_t             ratio_to_refine,
+                    RefinementStrategy strategy,
+                    real_t             p,
+                    bool               verbose  = false,
                     uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
 
    // get minimum and maximum angle of the elements of T
@@ -117,9 +129,13 @@ class K_Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
+      @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN );
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
+                                const bool           allow_split_siblings = false,
+                                const bool           verbose              = false );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -134,11 +150,12 @@ class K_Mesh
  private:
    /* apply round robin loadbalancing to volume elements
    */
-   void loadbalancing_roundRobin();
+   std::vector< uint_t > loadbalancing_roundRobin( const bool allow_split_siblings );
 
    /* apply greedy loadbalancing to volume elements
    */
-   void loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood );
+   std::vector< uint_t > loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
+                                               const bool                                   allow_split_siblings );
 
    /* remove green edges from _T and replace them with their parents
    */
@@ -146,9 +163,11 @@ class K_Mesh
 
    /* find all elements in U which require a red refinement step
       @param U set of unprocessed elements
+      @param vtxs_added Flag that will be set to true if any new vertices are added during this step
       @return set R of elements requiring red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U );
+   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U,
+                                                                              bool& vtxs_added );
 
    /*
       apply red refinement to all elements in R and remove them from U
@@ -197,6 +216,11 @@ class K_Mesh
                                                              std::map< PrimitiveID, EdgeData >&   edges,
                                                              std::map< PrimitiveID, FaceData >&   faces,
                                                              std::map< PrimitiveID, CellData >&   cells );
+
+   /// @brief create sorted global error vector from local error vectors
+   /// @param err_loc         local error vectors
+   /// @param err_glob_sorted container for output data
+   void gatherGlobalError( const ErrorVector& err_loc, ErrorVector& err_glob_sorted ) const;
 
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
@@ -283,23 +307,28 @@ class Mesh
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param ratio_to_refine  ratio of total elements that shall be refined, i.e., only those
+      @param strategy         predefined refinement strategy
+      @param p                parameter for refinement strategy
                               ratio*n_elements elements with the largest error will be refined
       @param n_el_max         upper bound for number of elements in refined mesh
+      @param verbose          print information about refinement
       @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
                               remain unrefined, respectively. Note that the result will be 1
                               unless n_el_max has been reached.
    */
-   real_t
-       refineRG( const ErrorVector& local_errors, real_t ratio_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
+   real_t refineRG( const ErrorVector& local_errors,
+                    RefinementStrategy strategy,
+                    real_t             p,
+                    bool               verbose  = false,
+                    uint_t             n_el_max = std::numeric_limits< uint_t >::max() )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->refineRG( local_errors, ratio_to_refine, n_el_max );
+         return _mesh3D->refineRG( local_errors, strategy, p, verbose, n_el_max );
       }
       else
       {
-         return _mesh2D->refineRG( local_errors, ratio_to_refine, n_el_max );
+         return _mesh2D->refineRG( local_errors, strategy, p, verbose, n_el_max );
       }
    }
 
@@ -371,17 +400,21 @@ class Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
+      @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme = ROUND_ROBIN )
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
+                                const bool           allow_split_siblings = false,
+                                const bool           verbose              = false )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->loadbalancing( lbScheme );
+         return _mesh3D->loadbalancing( lbScheme, allow_split_siblings, verbose );
       }
       else
       {
-         return _mesh2D->loadbalancing( lbScheme );
+         return _mesh2D->loadbalancing( lbScheme, allow_split_siblings, verbose );
       }
    }
 
@@ -423,6 +456,25 @@ class Mesh
       else
       {
          return _mesh2D->exportMesh( filename );
+      }
+   }
+
+   // get all faces of the 2d mesh
+   const std::set< std::shared_ptr< Simplex2 > >& get_elements2d() const { return _mesh2D->get_elements(); }
+
+   // get all tets of the 3d mesh
+   const std::set< std::shared_ptr< Simplex3 > >& get_elements3d() const { return _mesh3D->get_elements(); }
+
+   // get vertex coordinates
+   const std::vector< Point3D >& get_vertices() const
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->get_vertices();
+      }
+      else
+      {
+         return _mesh2D->get_vertices();
       }
    }
 

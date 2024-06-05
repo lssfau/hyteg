@@ -187,14 +187,14 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
          std::set< std::shared_ptr< K_Simplex > > R_prt( done, prt );
          R_prt.erase( nullptr );
 
-         /* recursively apply red refinement for elements
-         that otherwise would be subject to multiple
-         green refinement steps later on
+         /* iteratively apply red refinement to elements that would otherwise
+            be subject to multiple green refinement steps later on
          */
-         while ( !R_prt.empty() )
+         bool vtxs_added = false;
+         while ( !R_prt.empty() || vtxs_added )
          {
             refined.merge( refine_red( R_prt, U ) );
-            R_prt = find_elements_for_red_refinement( U );
+            R_prt = find_elements_for_red_refinement( U, vtxs_added );
          }
 
          // predict number of elements after required green step
@@ -229,52 +229,127 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
 }
 
 template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
-                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                                      uint_t                                                     n_el_max )
+void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVector& err_glob_sorted ) const
 {
-   // communication
-   ErrorVector errors_all, errors_other;
+   ErrorVector err_other;
 
    walberla::mpi::SendBuffer send;
    walberla::mpi::RecvBuffer recv;
 
-   send << errors_local;
+   send << err_loc;
    walberla::mpi::allGathervBuffer( send, recv );
    for ( uint_t rnk = 0; rnk < _n_processes; ++rnk )
    {
-      recv >> errors_other;
-      errors_all.insert( errors_all.end(), errors_other.begin(), errors_other.end() );
+      recv >> err_other;
+      err_glob_sorted.insert( err_glob_sorted.end(), err_other.begin(), err_other.end() );
    }
 
-   if ( errors_all.size() != _n_elements )
+   if ( err_glob_sorted.size() != _n_elements )
    {
       WALBERLA_ABORT( "total number of error values must be equal to number of macro elements (cells/faces)" );
    }
 
    // sort by errors
-   std::sort( errors_all.begin(), errors_all.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
+   std::sort( err_glob_sorted.begin(), err_glob_sorted.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
+}
+
+template < class K_Simplex >
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
+                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
+                                      uint_t                                                     n_el_max )
+{
+   ErrorVector err_glob;
+   gatherGlobalError( errors_local, err_glob );
 
    // apply criterion
    std::vector< PrimitiveID > elements_to_refine;
    for ( uint_t i = 0; i < _n_elements; ++i )
    {
-      if ( criterion( errors_all, i ) )
+      if ( criterion( err_glob, i ) )
       {
-         elements_to_refine.push_back( errors_all[i].second );
+         elements_to_refine.push_back( err_glob[i].second );
       }
    }
 
-   // apply refinement
    return refineRG( elements_to_refine, n_el_max );
 }
 
 template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, real_t ratio_to_refine, uint_t n_el_max )
+real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
+                                      RefinementStrategy strategy,
+                                      real_t             p,
+                                      bool               verbose,
+                                      uint_t             n_el_max )
 {
-   auto N_ref     = uint_t( std::ceil( real_t( _n_elements ) * ratio_to_refine ) );
-   auto criterion = [=]( const ErrorVector&, uint_t i ) { return i < N_ref; };
-   return refineRG( errors_local, criterion, n_el_max );
+   ErrorVector err_glob;
+   gatherGlobalError( errors_local, err_glob );
+
+   if ( verbose )
+   {
+      if ( strategy == WEIGHTED_MEAN )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: weighted mean with w_i = (n-i)^" << p );
+      }
+      if ( strategy == PERCENTILE )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: percentile with p = " << p * 100 << "%" );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( " -> min_i e_i = " << err_glob.back().first );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> max_i e_i = " << err_glob.front().first );
+   }
+
+   std::function< bool( real_t, uint_t ) > crit;
+   if ( strategy == WEIGHTED_MEAN )
+   {
+      auto e_mean_w = real_t( 0.0 );
+      auto sum_w    = real_t( 0.0 );
+      auto n        = err_glob.size();
+      for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
+      {
+         // iterate in reverse order to add smallest contribution first, reducing round off error
+         auto   i   = n - n_i; // n - (n-i) = i
+         real_t e_i = err_glob[i].first;
+         real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
+         sum_w += w_i;
+         e_mean_w += w_i * e_i;
+      }
+      e_mean_w /= sum_w;
+
+      crit = [e_mean_w]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean_w; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> weighted mean = " << e_mean_w );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean_w );
+      }
+   }
+   if ( strategy == PERCENTILE )
+   {
+      const auto sizeR = uint_t( std::round( real_t( _n_elements ) * p ) );
+
+      crit = [sizeR]( real_t, uint_t i ) -> bool { return i < sizeR; };
+      if ( verbose )
+      {
+         if ( sizeR > 0 )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
+      }
+   }
+
+   std::vector< PrimitiveID > elements_to_refine;
+   for ( uint_t i = 0; i < _n_elements; ++i )
+   {
+      if ( crit( err_glob[i].first, i ) )
+      {
+         elements_to_refine.push_back( err_glob[i].second );
+      }
+      else
+      {
+         if ( verbose )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> " << i << " elements marked for refinement." );
+         break;
+      }
+   }
+
+   return refineRG( elements_to_refine, n_el_max );
 }
 
 template < class K_Simplex >
@@ -296,7 +371,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 }
 
 template < class K_Simplex >
-MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
+MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const bool allow_split_siblings, const bool verbose )
 {
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::map< PrimitiveID, VertexData >   vtxs_old;
@@ -312,21 +387,40 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
       el->setTargetRank( _n_processes );
    }
 
+   if ( !allow_split_siblings )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing with allow_split_siblings disabled may result in bad load balance!" );
+   }
+
+   std::vector< uint_t > n_vol_on_rnk;
+
    // assign volume primitives
    if ( lb == ROUND_ROBIN )
    {
-      loadbalancing_roundRobin();
+      n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
    }
    else if ( lb == GREEDY )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme GREEDY might lead to some processes not being assigned any work!" );
-      loadbalancing_greedy( nbrHood );
+      n_vol_on_rnk = loadbalancing_greedy( nbrHood, allow_split_siblings );
    }
    else
    {
       // todo: implement better loadbalancing
       WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme not implemented! Using Round Robin instead" );
-      loadbalancing_roundRobin();
+      n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
+   }
+
+   if ( verbose )
+   {
+      uint_t max_load = 0;
+      uint_t min_load = _n_elements;
+      for ( auto& load : n_vol_on_rnk )
+      {
+         max_load = std::max( load, max_load );
+         min_load = std::min( load, min_load );
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "min/max/mean load (number of vol. elements): "
+                                 << min_load << " / " << max_load << " / " << double( _n_elements ) / double( _n_processes ) );
    }
 
    // extract data with new targetRank
@@ -405,8 +499,11 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb )
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
+std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool allow_split_siblings )
 {
+   if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
+      return std::vector< uint_t >( 0 );
+
    // apply roundRobin to volume elments
    uint_t                targetRnk = 0;
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
@@ -433,7 +530,7 @@ void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
       }
 
       // assign el to targetRnk
-      if ( el->has_green_edge() )
+      if ( !allow_split_siblings && el->has_green_edge() )
       {
          /* elements coming from a green step must reside on the same process
             to ensure compatibility with further refinement (interpolation between grids)
@@ -452,28 +549,29 @@ void K_Mesh< K_Simplex >::loadbalancing_roundRobin()
          ++n_vol_on_rnk[targetRnk];
       }
    }
+   return n_vol_on_rnk;
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood )
+std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
+                                                                 const bool allow_split_siblings )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
-      return;
+      return std::vector< uint_t >( 0 );
 
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
    uint_t                n_vol_max0     = _n_elements / _n_processes;
    uint_t                n_vol_max1     = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
    uint_t                n_assigned     = 0;
-   bool                  fill_any       = false;
    auto                  random_element = _T.begin();
 
-   if ( n_vol_max0 < 4 )
-   {
-      WALBERLA_LOG_WARNING(
-          "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
+   // if ( n_vol_max0 < 4 )
+   // {
+   //    WALBERLA_LOG_WARNING(
+   //        "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
 
-      return loadbalancing_roundRobin();
-   }
+   //    return loadbalancing_roundRobin();
+   // }
 
    std::map< PrimitiveID, K_Simplex* > id_to_el;
    for ( auto& el : _T )
@@ -481,10 +579,28 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
       id_to_el[el->getPrimitiveID()] = el.get();
    }
 
-   while ( n_assigned < _n_elements )
+   for ( bool fill_any = false; n_assigned < _n_elements; fill_any = true )
    {
+      // in the first run, all ranks are assigned at least n_vol_max0 elements
+      // if there are still unassigned elements left, we distribute them at random (fill_any)
+
       for ( uint_t targetRnk = 0; targetRnk < _n_processes; ++targetRnk )
       {
+         if ( fill_any )
+         {
+            // when distributing leftover elements, we have to reset these numbers
+            n_vol_max0 = _n_elements / _n_processes;
+            n_vol_max1 = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
+         }
+         else
+         {
+            // on the initial run, use the number of currently unassigned elements and empty processes
+            auto n_unassigned = _n_elements - n_assigned;
+            auto n_empty_proc = _n_processes - targetRnk;
+            n_vol_max0        = n_unassigned / n_empty_proc;
+            n_vol_max1        = n_vol_max0 + std::min( uint_t( 1 ), n_unassigned % n_empty_proc );
+         }
+
          std::queue< std::vector< K_Simplex* > > Q;
          std::unordered_map< K_Simplex*, bool >  visited;
          // add element to queue
@@ -495,7 +611,7 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
             }
 
             std::vector< K_Simplex* > next;
-            if ( el->has_green_edge() )
+            if ( !allow_split_siblings && el->has_green_edge() )
             {
                /* elements coming from a green step must reside on the same process
                   to ensure compatibility with further refinement (interpolation between grids)
@@ -573,18 +689,8 @@ void K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Nei
             }
          }
       }
-
-      // all ranks have been assigned at least n_vol_max0 elements but there are still elements left
-      fill_any = true;
    }
-
-   WALBERLA_DEBUG_SECTION()
-   {
-      for ( uint_t i = 0; i < n_vol_on_rnk.size(); ++i )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "elements on rank " << i << ": " << n_vol_on_rnk[i] );
-      }
-   }
+   return n_vol_on_rnk;
 }
 
 template < class K_Simplex >
@@ -1390,9 +1496,11 @@ void K_Mesh< K_Simplex >::remove_green_edges()
 
 template <>
 std::set< std::shared_ptr< Simplex2 > >
-    K_Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U )
+    K_Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U, bool& vtxs_added )
 {
    std::set< std::shared_ptr< Simplex2 > > R;
+
+   vtxs_added = false;
 
    for ( auto& el : U )
    {
@@ -1407,38 +1515,53 @@ std::set< std::shared_ptr< Simplex2 > >
 
 template <>
 std::set< std::shared_ptr< Simplex3 > >
-    K_Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U )
+    K_Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U, bool& vtxs_added )
 {
    std::set< std::shared_ptr< Simplex3 > > R;
 
+   vtxs_added = false;
+
    for ( auto& el : U )
    {
+      // find red faces
       uint_t n_red = 0;
-
       for ( auto& face : el->get_faces() )
       {
          if ( face->vertices_on_edges() > 1 )
          {
+            n_red += 1;
+
             if ( face->get_children().size() == 2 )
             {
                // remove green edge from face
                face->kill_children();
             }
-
             if ( !face->has_children() )
             {
                // apply red refinement to face
                refine_face_red( _vertices, _V, face );
+               vtxs_added = true;
             }
-
-            ++n_red;
          }
       }
 
-      // if more than one face has been red-refined, mark cell for red refinement
+      // if there is more than one red face, mark cell for red refinement
       if ( n_red > 1 )
       {
          R.insert( el );
+      }
+      else if ( el->vertices_on_edges() > 3 ) // this actually can't happen
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Something went wrong: Cell has only "
+                                    << n_red << " red faces but " << el->vertices_on_edges() << " vertices on its edges." );
+         uint_t k = 0;
+         for ( auto& face : el->get_faces() )
+         {
+            auto n = face->vertices_on_edges();
+            WALBERLA_LOG_INFO_ON_ROOT( "     face << " << k << " has " << n << " vertices on its edges," );
+            ++k;
+         }
+         WALBERLA_ABORT( "ERROR: Illegal mesh configuration!" )
       }
    }
 
