@@ -6,6 +6,11 @@ This app could serve as the first template/base, if someone in the future wants 
 
 For the benefit of the user the parameter files are split in the config folder. One can use the appropriate files to specify/control the model variable they need.
 
+Parameter file
+- The default parameter file `default.prm` just contains paths.
+- The user can either give the path to the config folder with the specific `prm` files or can choose to load the full parameter file from the `default.prm`.
+- Other parameters must be set in either `config` or the parameter file the user chooses to use.
+
 Attributes of the app
 - ToDo
 

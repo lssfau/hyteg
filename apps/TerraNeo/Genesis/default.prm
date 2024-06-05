@@ -1,0 +1,7 @@
+Parameters
+{
+    configParamsPath ./;
+
+    useDefaultParam false;
+    defaultParamFile parameters_default.prm;
+}

@@ -30,20 +30,55 @@ int main( int argc, char** argv )
    hyteg::PETScManager manager( &argc, &argv );
 #endif
 
-   auto cfg = std::make_shared< walberla::config::Config >();
+   auto cfgDefault = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
+   {
+      auto defaultFile = "./default.prm";
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      cfgDefault->readParameterFile( defaultFile );
+   }
+   else
+   {
+      cfgDefault = env.config();
+   }
+
+   const walberla::Config::BlockHandle mainConfDefault = cfgDefault->getBlock( "Parameters" );
+
+   std::string configParamsPath = mainConfDefault.getParameter< std::string >( "configParamsPath" );
+
+   bool        useDefaultParam  = mainConfDefault.getParameter< bool >( "useDefaultParam" );
+   std::string defaultParamFile = mainConfDefault.getParameter< std::string >( "defaultParamFile" );
+
+   configParamsPath.append( "/" );
+
+   auto cfg = std::make_shared< walberla::config::Config >();
+
+   if ( useDefaultParam )
+   {
+      cfg->readParameterFile( defaultParamFile.c_str() );
+   }
+   else
    {
       WALBERLA_ROOT_SECTION()
       {
          WALBERLA_LOG_INFO( "Concatenating parameter files" );
-         auto returnCode = system( "cat <(echo Parameters) <(echo {) "
-                                   "config/domain.prm <(echo) "
-                                   "config/initialisation.prm <(echo) "
-                                   "config/material.prm <(echo) "
-                                   "config/simulation.prm <(echo) "
-                                   "config/solver.prm <(echo) "
-                                   "config/output.prm <(echo) "
-                                   "<(echo }) > parameters.prm" );
+         std::string command = walberla::format( "cat <(echo Parameters) <(echo {) "
+                                                 "%sconfig/domain.prm <(echo) "
+                                                 "%sconfig/initialisation.prm <(echo) "
+                                                 "%sconfig/material.prm <(echo) "
+                                                 "%sconfig/simulation.prm <(echo) "
+                                                 "%sconfig/solver.prm <(echo) "
+                                                 "%sconfig/output.prm <(echo) "
+                                                 "<(echo }) > %sparameters.prm",
+                                                 configParamsPath.c_str(),
+                                                 configParamsPath.c_str(),
+                                                 configParamsPath.c_str(),
+                                                 configParamsPath.c_str(),
+                                                 configParamsPath.c_str(),
+                                                 configParamsPath.c_str(),
+                                                 configParamsPath.c_str() );
+
+         auto returnCode = system( command.c_str() );
 
          if ( returnCode != 0 )
          {
@@ -51,13 +86,7 @@ int main( int argc, char** argv )
          }
       }
 
-      auto defaultFile = "./parameters.prm";
-      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
-      cfg->readParameterFile( defaultFile );
-   }
-   else
-   {
-      cfg = env.config();
+      cfg->readParameterFile( walberla::format( "%sparameters.prm", configParamsPath.c_str() ).c_str() );
    }
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
