@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -204,6 +204,13 @@ void ConvectionSimulation::step()
    }
 
    //update ref temp vector based on new temperature field
+
+   temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *temperature,
+                                                                                  TN.domainParameters.rMin,
+                                                                                  TN.domainParameters.rMax,
+                                                                                  TN.domainParameters.nRad,
+                                                                                  TN.domainParameters.maxLevel ) );
+
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
    solveStokes();
@@ -426,7 +433,7 @@ real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Tempera
    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
    real_t retVal = 1.0;
 
-   // If a viscosity profile is provided, use it, otherwise use the constant viscosity
+   // If a viscosity profile is provided, use it, otherwise use a constant background viscosity
 
    if ( TN.simulationParameters.haveViscosityProfile )
    {
