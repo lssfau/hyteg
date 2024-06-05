@@ -33,6 +33,8 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
+/// @brief ErrorEstimator based on CITATION.
+///         ! Requires using FMG as solver !
 template < class FE_function >
 class ErrorEstimator
 {
