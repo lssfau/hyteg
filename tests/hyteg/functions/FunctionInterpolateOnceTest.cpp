@@ -48,9 +48,9 @@ void runTest( const MeshInfo& meshInfo, const uint_t& level )
 
    uint_t numberOfInvocations = 0;
 
-   std::function< real_t( const Point3D& x ) > countingFunction = [&]( const Point3D& x ) {
+   std::function< real_t( const Point3D& ) > countingFunction = [&]( const Point3D& ) {
       numberOfInvocations++;
-      return 1.0;
+      return real_c( 1 );
    };
 
    u.interpolate( countingFunction, level );
@@ -62,7 +62,7 @@ void runTest( const MeshInfo& meshInfo, const uint_t& level )
 
    WALBERLA_CHECK_EQUAL( numberOfInvocations, numberOfDoFs );
 
-   bool vtk = true;
+   bool vtk = false;
 
    if ( vtk )
    {
