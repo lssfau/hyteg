@@ -43,15 +43,44 @@ using walberla::uint_t;
 
 namespace terraneo {
 
+/*******************************************************************************************************
+NOTE: This enum class can be used as a key for a (key, value) pair std::map passed to the operator
+      To switch on/off different terms in the operator. The enum name is self explanatory to some extent
+*******************************************************************************************************/
 enum class TransportOperatorTermKey
 {
    SHEAR_HEATING_TERM,
    ADIABATIC_HEATING_TERM,
    INTERNAL_HEATING_TERM,
-   ADVECTION_TERM,
+   ADVECTION_TERM_WITH_MMOC,
+   ADVECTION_TERM_WITH_APPLY,
    DIFFUSION_TERM,
    SUPG_STABILISATION
 };
+
+/********************************************************************************************************************
+   The operator implemented here is heavily based on the energy formulation we want in the first
+   version of TerraNeo app.
+   Some documentation can be found here
+   https://i10git.cs.fau.de/terraneo/hhg_doku/-/blob/master/definition_of_TN_terms/Energy_Operator_Hamish.pdf
+   https://doi.org/10.1111/j.1365-246X.2009.04413.x
+
+   Timestepping: Only implicit Euler is done for now!
+
+   To use,
+      1) First initialize the operator
+      2) Set all the respective FE and coefficient functions
+      3) Call initializeOperators()
+      4) Now apply can be used for the iterative solvers
+
+   Advection,
+      - Two variations possible
+         Variant A: MMOC handles advection, apply() handles rest of the equation
+         Variant B: apply() handles everything
+         NOTE: For variant A, the user has to take care of calling stepMMOC from the app
+
+IMPORTANTNOTE: Further optimisations to reduce temp functions should be done before this goes for production level runs
+***********************************************************************************************************************/
 
 template < typename P2MassOperatorTALA,
            typename P2KMassOperatorTALA,
@@ -79,7 +108,8 @@ class P2TransportOperatorTemplate : public hyteg::Operator< hyteg::P2Function< r
       TALADict_ = { { TransportOperatorTermKey::SHEAR_HEATING_TERM, false },
                     { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, false },
                     { TransportOperatorTermKey::INTERNAL_HEATING_TERM, false },
-                    { TransportOperatorTermKey::ADVECTION_TERM, false },
+                    { TransportOperatorTermKey::ADVECTION_TERM_WITH_MMOC, true },
+                    { TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY, false },
                     { TransportOperatorTermKey::DIFFUSION_TERM, true },
                     { TransportOperatorTermKey::SUPG_STABILISATION, false } };
    }
@@ -103,9 +133,9 @@ class P2TransportOperatorTemplate : public hyteg::Operator< hyteg::P2Function< r
          dst.assign( { 1.0, timestep }, { dst, temp1_ }, level, flag );
       }
 
-      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM ) )
+      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY ) )
       {
-         WALBERLA_ABORT( "Only MMOC is possible for now" );
+         WALBERLA_ABORT( "Only MMOC is implemented now, Advection inside apply will be implemented with SUPG" );
          // $\Delta t \int_\Omega \mathbf{u} \cdot \nabla T_h^{n+1} s_h d\Omega$
          // advectionOperator_->apply( src, temp1_, level, flag );
          // dst.assign( { 1.0, timestep }, { dst, temp1_ }, level, flag );
@@ -192,7 +222,7 @@ class P2TransportOperatorTemplate : public hyteg::Operator< hyteg::P2Function< r
 
       mat->createFromMatrixLinComb( { 1.0, timestep }, { matProxyMass, matProxyDiffusion } );
 
-      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM ) )
+      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY ) )
       {
          WALBERLA_ABORT( "Only MMOC is possible for now" );
          // advectionOperator_->toMatrix( matProxyAdvection, src, dst, level, flag );
@@ -381,31 +411,38 @@ class P2TransportOperatorTemplate : public hyteg::Operator< hyteg::P2Function< r
 
    void stepMMOC( uint_t level )
    {
-      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM ) )
+      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY ) )
       {
-         WALBERLA_ABORT( "ADVECTION_TERM set to true but stepMMOC chyteg::Alled, so aborting!" );
+         WALBERLA_ABORT( "ADVECTION_TERM_WITH_APPLY set to true but stepMMOC called, so aborting!" );
       }
 
-      WALBERLA_CHECK_NOT_NULLPTR( mmocTransport_ );
-      if ( iTimestep == 0U )
+      if ( TALADict_.at( TransportOperatorTermKey::ADVECTION_TERM_WITH_MMOC ) )
       {
-         mmocTransport_->step( *temperature_,
-                               velocity_->uvw(),
-                               velocity_->uvw(),
-                               level,
-                               hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
-                               timestep,
-                               1U );
+         WALBERLA_CHECK_NOT_NULLPTR( mmocTransport_ );
+         if ( iTimestep == 0U )
+         {
+            mmocTransport_->step( *temperature_,
+                                  velocity_->uvw(),
+                                  velocity_->uvw(),
+                                  level,
+                                  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                  timestep,
+                                  1U );
+         }
+         else
+         {
+            mmocTransport_->step( *temperature_,
+                                  velocity_->uvw(),
+                                  velocityPrev_.uvw(),
+                                  level,
+                                  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                  timestep,
+                                  1U );
+         }
       }
       else
       {
-         mmocTransport_->step( *temperature_,
-                               velocity_->uvw(),
-                               velocityPrev_.uvw(),
-                               level,
-                               hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
-                               timestep,
-                               1U );
+         WALBERLA_ABORT( "stepMMOC called but ADVECTION_TERM_WITH_MMOC set to false" );
       }
    }
 
