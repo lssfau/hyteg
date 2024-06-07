@@ -41,3 +41,7 @@ waLBerla_execute_test(NAME FunctionMultElementwiseTest)
 waLBerla_compile_test(FILES FunctionExtendedExpressionInterpolationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionExtendedExpressionInterpolationTest)
 
+waLBerla_compile_test(FILES FunctionInterpolateOnceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionInterpolateOnceTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 1)
+waLBerla_execute_test(NAME FunctionInterpolateOnceTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2)
+waLBerla_execute_test(NAME FunctionInterpolateOnceTest4 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 4)

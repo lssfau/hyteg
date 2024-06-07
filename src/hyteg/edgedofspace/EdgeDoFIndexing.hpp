@@ -86,13 +86,12 @@ inline std::ostream& operator<<( std::ostream& out, const EdgeDoFOrientation orn
 }
 
 /// \brief Given two logical vertexdof indices, this function returns the appropriate edgedof orientation.
-inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::Index& vertexIndex0,
-                                                  const indexing::Index& vertexIndex1 )
+inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::Index& vertexIndex0, const indexing::Index& vertexIndex1 )
 {
    const indexing::Index offset = vertexIndex1 - vertexIndex0;
-   const int                      x      = offset.x();
-   const int                      y      = offset.y();
-   const int                      z      = offset.z();
+   const int             x      = offset.x();
+   const int             y      = offset.y();
+   const int             z      = offset.z();
    //
    //  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
    //  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );
@@ -140,8 +139,7 @@ inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::Index& vertexI
 
 /// \brief Given two logical vertexdof indices, this function returns the logical index of the edgedof inbetween.
 /// This function also implicitly calculates the orientation.
-inline indexing::Index calcEdgeDoFIndex( const indexing::Index& vertexIndex0,
-                                                  const indexing::Index& vertexIndex1 )
+inline indexing::Index calcEdgeDoFIndex( const indexing::Index& vertexIndex0, const indexing::Index& vertexIndex1 )
 {
    const EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIndex0, vertexIndex1 );
    switch ( orientation )
@@ -172,8 +170,7 @@ inline indexing::Index calcEdgeDoFIndex( const indexing::Index& vertexIndex0,
 inline std::array< indexing::Index, 2 > calcNeighboringVertexDoFIndices( const edgedof::EdgeDoFOrientation& orientation )
 {
    std::array< indexing::Index, 2 > vertexIndices = {
-       indexing::Index(
-           std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ),
+       indexing::Index( std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ),
        indexing::Index(
            std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ) };
    vertexIndices[0] = indexing::Index( 0, 0, 0 );
@@ -989,43 +986,37 @@ inline constexpr uint_t
 
 inline bool isInnerXEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
-   return onCellFaces.count( 0 ) == 0 && onCellFaces.count( 1 ) == 0;
+   return level > 0 && idx.y() > 0 && idx.z() > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level );
 }
 
 inline bool isInnerYEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
-   return onCellFaces.count( 0 ) == 0 && onCellFaces.count( 2 ) == 0;
+   return level > 0 && idx.x() > 0 && idx.z() > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level );
 }
 
 inline bool isInnerZEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
-   return onCellFaces.count( 1 ) == 0 && onCellFaces.count( 2 ) == 0;
+   return level > 0 && idx.x() > 0 && idx.y() > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level );
 }
 
 inline bool isInnerXYEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
-   return onCellFaces.count( 0 ) == 0 && onCellFaces.count( 3 ) == 0;
+   return level >= 2 && idx.z() > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level ) - 1;
 }
 
 inline bool isInnerXZEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
-   return onCellFaces.count( 1 ) == 0 && onCellFaces.count( 3 ) == 0;
+   return level >= 2 && idx.y() > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level ) - 1;
 }
 
 inline bool isInnerYZEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
-   return onCellFaces.count( 2 ) == 0 && onCellFaces.count( 3 ) == 0;
+   return level >= 2 && idx.x() > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level ) - 1;
 }
 
-inline bool isInnerXYZEdgeDoF( const uint_t&, const indexing::Index& )
+inline bool isInnerXYZEdgeDoF( const uint_t& level, const indexing::Index& idx )
 {
-   return true;
+   return level > 0 && idx.sum() < levelinfo::num_microedges_per_edge( level ) - 1;
 }
 
 inline bool isInnerEdgeDoF( const uint_t& level, const indexing::Index& idx, const EdgeDoFOrientation& orientation )
