@@ -53,14 +53,15 @@ void testShellMath()
 {
    // For the thick spherical shell, nRad is the number of radial SHELLS, not layers.
    // So the number of shells on refinement level 0 must be the same as nRad.
+   // Considering P1 functions here (vertices).
    for ( uint_t nRad = 1; nRad < 10; nRad++ )
    {
-      WALBERLA_CHECK_EQUAL( numberOfShells( nRad, 0 ), nRad );
+      WALBERLA_CHECK_EQUAL( numberOfShells( nRad, 0, 1 ), nRad );
    }
 }
 
 template < typename FunctionType >
-void testRadialOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, uint_t level )
+void testRadialPointCloudOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, uint_t level )
 {
    auto storage = setupSphericalShellStorage( nTan, nRad, rMin, rMax );
 
@@ -75,7 +76,7 @@ void testRadialOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, uint_
    shellData.addDataFromFunction( "u", u, rMin, rMax, nRad, level );
 
    uint_t numPointsOnAllShellsCombined = 0;
-   for ( uint_t shell = 0; shell < numberOfShells( nRad, level ); shell++ )
+   for ( uint_t shell = 0; shell < numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() ); shell++ )
    {
       auto numPointsOnShell = shellData.points( shell ).size();
       walberla::mpi::reduceInplace( numPointsOnShell, walberla::mpi::Operation::SUM );
@@ -84,11 +85,11 @@ void testRadialOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, uint_
       numPointsOnAllShellsCombined += numPointsOnShell;
    }
    // That number should be the same as the number of DoFs!
-   auto numGlobalDoFs = u.getNumberOfGlobalDoFs( level );
+   auto numGlobalDoFs = numberOfGlobalDoFs( u, level );
    WALBERLA_CHECK_EQUAL( numPointsOnAllShellsCombined, numGlobalDoFs );
 
    // Write one file per shell.
-   for ( uint_t shell = 0; shell < numberOfShells( nRad, level ); shell++ )
+   for ( uint_t shell = 0; shell < numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() ); shell++ )
    {
       VTKPointCloudOutput vtk( ".", "point_cloud_level_" + std::to_string( level ) + "_shell_" + std::to_string( shell ) );
       vtk.setPoints( shellData.points( shell ) );
@@ -96,7 +97,25 @@ void testRadialOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, uint_
       vtk.write();
    }
 
-   VTKOutput vtkMesh( ".", "data_with_mesh", storage );
+   const bool vtk = false;
+   if ( vtk )
+   {
+      VTKOutput vtkMesh( ".", "data_with_mesh", storage );
+      vtkMesh.add( u );
+      vtkMesh.write( level );
+   }
+}
+
+template < typename FunctionType >
+void testRadialIntegerIDOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rMax, uint_t level )
+{
+   auto storage = setupSphericalShellStorage( nTan, nRad, rMin, rMax );
+
+   FunctionType u( "u", storage, level, level );
+
+   interpolateRadialShellID( u, rMin, rMax, nRad, level );
+
+   VTKOutput vtkMesh( ".", "data_integer_id", storage );
    vtkMesh.add( u );
    vtkMesh.write( level );
 }
@@ -108,15 +127,20 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   WALBERLA_LOG_INFO_ON_ROOT( "testShellMath()" )
    terraneo::testShellMath();
 
-   terraneo::testRadialOutput< P1Function< real_t > >( 5, 2, 0.5, 1.0, 0 );
-   terraneo::testRadialOutput< P1Function< real_t > >( 5, 2, 0.5, 1.0, 1 );
-   terraneo::testRadialOutput< P1Function< real_t > >( 5, 2, 0.5, 1.0, 2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P1Function< real_t > >()" )
+   terraneo::testRadialPointCloudOutput< P1Function< real_t > >( 5, 3, 0.5, 1.0, 2 );
 
-   terraneo::testRadialOutput< P1Function< real_t > >( 5, 3, 0.5, 1.0, 0 );
-   terraneo::testRadialOutput< P1Function< real_t > >( 5, 3, 0.5, 1.0, 1 );
-   terraneo::testRadialOutput< P1Function< real_t > >( 5, 3, 0.5, 1.0, 2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P2Function< real_t > >()" )
+   terraneo::testRadialPointCloudOutput< P2Function< real_t > >( 5, 3, 0.5, 1.0, 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P1Function< real_t > >()" )
+   terraneo::testRadialIntegerIDOutput< P1Function< int32_t > >( 5, 3, 0.5, 1.0, 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P2Function< real_t > >()" )
+   terraneo::testRadialIntegerIDOutput< P2Function< int32_t > >( 5, 3, 0.5, 1.0, 2 );
 
    return 0;
 }

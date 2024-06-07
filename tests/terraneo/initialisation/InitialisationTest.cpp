@@ -161,12 +161,11 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
    // The following code subtracts the mean from every shell.
    // This way we can test if the mean after that is zero on every shell.
 
-   auto numLayers = 2 * ( nRad - 1 ) * ( levelinfo::num_microvertices_per_edge( level ) - 1 );
-
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFct =
        [&]( const Point3D& x, const std::vector< real_t >& T ) {
           auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-          auto shell  = uint_c( std::round( real_c( numLayers ) * ( ( radius - rMin ) / ( rMax - rMin ) ) ) );
+          auto shell = terraneo::nearestShellFromRadius(
+              radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
           return T[0] - profile.mean[shell];
        };
 
@@ -204,6 +203,7 @@ int main( int argc, char** argv )
    uint_t nTan  = 3;
    uint_t nRad  = 2;
 
+   runTest< P1Function< real_t >, P1VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level );
    runTest< P2Function< real_t >, P2VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level );
    return 0;
 }
