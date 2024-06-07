@@ -45,3 +45,5 @@ set_tests_properties(KeyValueStoreTestCheckOutput PROPERTIES FIXTURES_REQUIRED K
 waLBerla_compile_test(FILES VTKOutputTest.cpp DEPENDS hyteg core mixed_operator)
 waLBerla_execute_test(NAME VTKOutputTest)
 
+waLBerla_compile_test(FILES VTKDuplicatePointCountingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VTKDuplicatePointCountingTest)
