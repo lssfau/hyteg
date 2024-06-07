@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -339,9 +339,7 @@ void VTKMeshWriter::writeElementNodeAssociationP1Triangles( dstStream_t&        
                                                             uint_t                                     faceWidth,
                                                             bool                                       discontinuous )
 {
-   // TODO: this should? be consistent with the type in the StreamWriterCell, but that performs a cast anyhow.
-   using CellType  = uint32_t;
-   CellType offset = 0;
+   uint_t offset = 0u;
 
    for ( auto& it : storage->getFaces() )
    {
@@ -362,15 +360,15 @@ void VTKMeshWriter::writeElementNodeAssociationP1Triangles( dstStream_t&        
       }
       else
       {
-         CellType rowsize       = static_cast< CellType >( faceWidth ) - 1;
-         CellType inner_rowsize = rowsize;
+         uint_t rowsize       = static_cast< uint_t >( faceWidth ) - 1u;
+         uint_t inner_rowsize = rowsize;
 
-         for ( CellType i = 0; i < rowsize; ++i )
+         for ( uint_t i = 0; i < rowsize; ++i )
          {
-            for ( CellType j = 0; j < inner_rowsize - 1; ++j )
+            for ( uint_t j = 0; j < inner_rowsize - 1; ++j )
             {
                dstStream << offset << offset + 1u << offset + inner_rowsize + 1u;
-               dstStream << offset + 1 << offset + inner_rowsize + 2u << offset + inner_rowsize + 1u;
+               dstStream << offset + 1u << offset + inner_rowsize + 2u << offset + inner_rowsize + 1u;
                ++offset;
             }
 
@@ -473,8 +471,7 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
 #define VTK_QUADRATIC_TRIANGLE_LOG( msg )
 #endif
 
-   using CellType  = uint32_t;
-   CellType offset = 0;
+   uint_t offset = 0;
 
    for ( auto& it : storage->getFaces() )
    {
@@ -482,9 +479,9 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
 
       // we execute the loops on a (virtually) refined mesh, so indices will fit to the vertices written
       // with writePointsForMicroVertices for P2 on (level+1)
-      CellType rowsize       = static_cast< CellType >( levelinfo::num_microvertices_per_edge( level + 1 ) ) - 1;
-      CellType inner_rowsize = rowsize;
-      CellType idx0{}, idx1{}, idx2{}, idx3{}, idx4{}, idx5{};
+      uint_t rowsize       = levelinfo::num_microvertices_per_edge( level + 1 ) - 1u;
+      uint_t inner_rowsize = rowsize;
+      uint_t idx0{}, idx1{}, idx2{}, idx3{}, idx4{}, idx5{};
 
       VTK_QUADRATIC_TRIANGLE_LOG( "rowsize = " << rowsize );
 
@@ -506,12 +503,12 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                                             << std::setw( 2 ) << idx4 << " " << std::setw( 2 ) << idx5 );
 
             // upper right triangle
-            idx0 = offset + 2 * inner_rowsize + 1;
-            idx1 = idx0 + 2;
-            idx2 = offset + 2;
-            idx3 = idx0 + 1;
-            idx4 = offset + inner_rowsize + 3;
-            idx5 = idx4 - 1;
+            idx0 = offset + 2u * inner_rowsize + 1u;
+            idx1 = idx0 + 2u;
+            idx2 = offset + 2u;
+            idx3 = idx0 + 1u;
+            idx4 = offset + inner_rowsize + 3u;
+            idx5 = idx4 - 1u;
 
             dstStream << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
             VTK_QUADRATIC_TRIANGLE_LOG( "[" << i << " , " << j << "]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 ) << idx1
@@ -519,16 +516,16 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                                             << std::setw( 2 ) << idx4 << " " << std::setw( 2 ) << idx5 );
 
             // triangles live on refinement level "level"
-            offset += 2;
+            offset += 2u;
          }
 
          // lower left triangle on top of column
          idx0 = offset;
-         idx1 = offset + 2 * inner_rowsize + 1;
-         idx2 = offset + 2;
-         idx3 = offset + inner_rowsize + 1;
-         idx4 = offset + inner_rowsize + 2;
-         idx5 = offset + 1;
+         idx1 = offset + 2u * inner_rowsize + 1u;
+         idx2 = offset + 2u;
+         idx3 = offset + inner_rowsize + 1u;
+         idx4 = offset + inner_rowsize + 2u;
+         idx5 = offset + 1u;
 
          dstStream << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
          VTK_QUADRATIC_TRIANGLE_LOG( "[" << i << " , *]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 ) << idx1 << " "
@@ -536,17 +533,17 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                                          << idx4 << " " << std::setw( 2 ) << idx5 );
 
          // skip on column w.r.t. fine level
-         offset += 2 + inner_rowsize + 1;
-         inner_rowsize -= 2;
+         offset += 2u + inner_rowsize + 1u;
+         inner_rowsize -= 2u;
       }
 
       // lower left triangle on the very "right"
       idx0 = offset;
-      idx1 = offset + 2 * inner_rowsize + 1;
-      idx2 = offset + 2;
-      idx3 = offset + inner_rowsize + 1;
-      idx4 = offset + inner_rowsize + 2;
-      idx5 = offset + 1;
+      idx1 = offset + 2u * inner_rowsize + 1u;
+      idx2 = offset + 2u;
+      idx3 = offset + inner_rowsize + 1u;
+      idx4 = offset + inner_rowsize + 2u;
+      idx5 = offset + 1u;
 
       dstStream << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
       VTK_QUADRATIC_TRIANGLE_LOG( "[* , *]:" << std::setw( 2 ) << idx0 << " " << std::setw( 2 ) << idx1 << " " << std::setw( 2 )
@@ -554,7 +551,7 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                                              << std::setw( 2 ) << idx5 );
 
       // prepare offset for next cell
-      offset += 6;
+      offset += 6u;
    }
 }
 
@@ -638,8 +635,7 @@ void VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons( dstStream_t&     
    };
 
    const uint_t numberOfVertices = levelinfo::num_microvertices_per_cell_from_width( width );
-   using CellIdx_T               = uint32_t;
-   CellIdx_T offset              = 0;
+   uint_t       offset           = 0u;
 
    for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
    {
@@ -652,7 +648,7 @@ void VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons( dstStream_t&     
             for ( const auto& idxIt : indexing::CellIterator( numMicroCellsAtBoundary ) )
             {
                dstStream << offset << offset + 1u << offset + 2u << offset + 3u;
-               offset += 4;
+               offset += 4u;
                WALBERLA_UNUSED( idxIt );
             }
          }
@@ -755,7 +751,7 @@ void VTKMeshWriter::writeConnectivityP2Tetrahedrons( vtk::DataFormat            
    // this is the number of vtkQuadraticTetra cells in the mesh
    const uint_t numberOfCells = levelinfo::num_microcells_per_cell( level );
 
-   using OffsetType           = uint32_t;
+   using OffsetType = uint32_t;
    vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, vtkDataFormat );
 
    VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
@@ -857,12 +853,12 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
    for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
    {
       uint_t baseIdx{ macroCellIdx * numberOfVertices };
-      writeConnectivityForAllCellsOfType( width - 1, baseIdx, celldof::CellType::WHITE_UP );
-      writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::BLUE_UP );
-      writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::GREEN_UP );
-      writeConnectivityForAllCellsOfType( width - 3, baseIdx, celldof::CellType::WHITE_DOWN );
-      writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::BLUE_DOWN );
-      writeConnectivityForAllCellsOfType( width - 2, baseIdx, celldof::CellType::GREEN_DOWN );
+      writeConnectivityForAllCellsOfType( width - 1u, baseIdx, celldof::CellType::WHITE_UP );
+      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::BLUE_UP );
+      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::GREEN_UP );
+      writeConnectivityForAllCellsOfType( width - 3u, baseIdx, celldof::CellType::WHITE_DOWN );
+      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::BLUE_DOWN );
+      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::GREEN_DOWN );
    }
 }
 
@@ -904,8 +900,8 @@ template void VTKMeshWriter::writeElementNodeAssociationP2Triangles( AdiosWriter
 
 template void
     VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( AdiosWriter::StreamAccessBuffer< uint64_t, 11 >& dstStream_t,
-                                                              const std::shared_ptr< PrimitiveStorage >&      storage,
-                                                              uint_t                                          level );
+                                                              const std::shared_ptr< PrimitiveStorage >&       storage,
+                                                              uint_t                                           level );
 
 #endif
 

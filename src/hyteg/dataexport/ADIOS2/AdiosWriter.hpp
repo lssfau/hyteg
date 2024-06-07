@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -35,9 +35,6 @@
 
 namespace hyteg {
 
-// using walberla::real_c;
-// using walberla::uint64_t;
-// using walberla::uint_c;
 using walberla::real_t;
 using walberla::uint_t;
 
@@ -211,23 +208,21 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
          {
             WALBERLA_ABORT( " localDims.size() = " << localDims.size() );
          }
-
-         // WALBERLA_LOG_INFO_ON_ROOT( "**** capacity of StreamAccessBuffer is " << capacity_ );
-         // WALBERLA_LOG_INFO_ON_ROOT( "**** blockStride is " << blockStride );
       };
 
-      StreamAccessBuffer& operator<<( const entry_t& value )
+      template < typename input_t >
+      StreamAccessBuffer& operator<<( const input_t& value )
       {
          if constexpr ( blockStride > 0 )
          {
             if ( position_ % blockStride == 0 )
             {
                WALBERLA_ASSERT( position_ < capacity_ );
-               buffer_[position_++] = blockStride - 1u;
+               buffer_[position_++] = static_cast< entry_t >( blockStride - 1u );
             }
          }
          WALBERLA_ASSERT( position_ < capacity_ );
-         buffer_[position_++] = value;
+         buffer_[position_++] = static_cast< entry_t >( value );
          return *this;
       }
 
