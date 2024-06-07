@@ -884,25 +884,27 @@ template void VTKMeshWriter::writePointsForMicroVertices( bool                  
                                                           uint_t                                     level,
                                                           bool                                       discontinuous );
 
-template void VTKMeshWriter::writeElementNodeAssociationP1Triangles( AdiosWriter::StreamAccessBuffer< uint64_t, 4 >& dstStream,
-                                                                     const std::shared_ptr< PrimitiveStorage >&      storage,
-                                                                     uint_t                                          faceWidth,
-                                                                     bool discontinuous );
+template void VTKMeshWriter::writeElementNodeAssociationP1Triangles(
+    AdiosWriter::StreamAccessBuffer< ADIOS2_PARAVIEW_INT_TYPE, 4 >& dstStream,
+    const std::shared_ptr< PrimitiveStorage >&                      storage,
+    uint_t                                                          faceWidth,
+    bool                                                            discontinuous );
 
-template void VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons( AdiosWriter::StreamAccessBuffer< uint64_t, 5 >& dstStream,
-                                                                        const std::shared_ptr< PrimitiveStorage >&      storage,
-                                                                        uint_t                                          width,
-                                                                        bool discontinuous );
+template void VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons(
+    AdiosWriter::StreamAccessBuffer< ADIOS2_PARAVIEW_INT_TYPE, 5 >& dstStream,
+    const std::shared_ptr< PrimitiveStorage >&                      storage,
+    uint_t                                                          width,
+    bool                                                            discontinuous );
 
-template void VTKMeshWriter::writeElementNodeAssociationP2Triangles( AdiosWriter::StreamAccessBuffer< uint64_t, 7 >& dstStream_t,
-                                                                     const std::shared_ptr< PrimitiveStorage >&      storage,
-                                                                     uint_t                                          level );
+template void VTKMeshWriter::writeElementNodeAssociationP2Triangles(
+    AdiosWriter::StreamAccessBuffer< ADIOS2_PARAVIEW_INT_TYPE, 7 >& dstStream_t,
+    const std::shared_ptr< PrimitiveStorage >&                      storage,
+    uint_t                                                          level );
 
-template void
-    VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( AdiosWriter::StreamAccessBuffer< uint64_t, 11 >& dstStream_t,
-                                                              const std::shared_ptr< PrimitiveStorage >&       storage,
-                                                              uint_t                                           level );
-
+template void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons(
+    AdiosWriter::StreamAccessBuffer< ADIOS2_PARAVIEW_INT_TYPE, 11 >& dstStream_t,
+    const std::shared_ptr< PrimitiveStorage >&                        storage,
+    uint_t                                                            level );
 #endif
 
 } // namespace hyteg

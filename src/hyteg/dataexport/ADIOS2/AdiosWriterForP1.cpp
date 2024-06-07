@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -138,6 +138,9 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
 
 void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionList )
 {
+   // integer datatype for node enumeration/connectivity and entity counts
+   using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
+
    // store the generic XML file as attribute as part of the binary data
    std::vector< std::string > emptyList;
    std::string                vtkMetaInfo = adiosHelpers::generateVTKMetaInfo( p1FunctionList, emptyList );
@@ -159,19 +162,19 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
    }
 
    // store entity counts as scalar variables
-   adios2::Variable< uint32_t > varNumberOfNodes =
-       io_.DefineVariable< uint32_t >( "NumberOfVertices", { adios2::LocalValueDim } );
-   adios2::Variable< uint32_t > varNumberOfFaces =
-       io_.DefineVariable< uint32_t >( "NumberOfElements", { adios2::LocalValueDim } );
+   adios2::Variable< intData_t > varNumberOfNodes =
+       io_.DefineVariable< intData_t >( "NumberOfVertices", { adios2::LocalValueDim } );
+   adios2::Variable< intData_t > varNumberOfFaces =
+       io_.DefineVariable< intData_t >( "NumberOfElements", { adios2::LocalValueDim } );
 
-   engine_.Put( varNumberOfNodes, static_cast< uint32_t >( numVertices ) );
-   engine_.Put( varNumberOfFaces, static_cast< uint32_t >( numElements ) );
+   engine_.Put( varNumberOfNodes, static_cast< intData_t >( numVertices ) );
+   engine_.Put( varNumberOfFaces, static_cast< intData_t >( numElements ) );
 
    // store the type of elements in the mesh as scalar variable
    // 5u = "Triangle", 10u = "Tetrahedron"
    using elementMarker_t                               = uint32_t;
    elementMarker_t                     elementMarker   = dim == 2 ? 5u : 10u;
-   adios2::Variable< elementMarker_t > varElementTypes = io_.DefineVariable< uint32_t >( "types" );
+   adios2::Variable< elementMarker_t > varElementTypes = io_.DefineVariable< elementMarker_t >( "types" );
    engine_.Put( varElementTypes, elementMarker );
 
    // store node coordinates (always x,y,z even for 2D!)
@@ -181,19 +184,19 @@ void AdiosWriterForP1::writeMesh( const std::vector< std::string >& p1FunctionLi
    VTKMeshWriter::writePointsForMicroVertices( dim == 2, vertexStream, storage_, level_, false );
 
    // store element connectivity
-   adios2::Variable< uint64_t > varConnectivity =
-       io_.DefineVariable< uint64_t >( "connectivity", {}, {}, { numElements, dim + 2 } );
-   adios2::Variable< uint64_t >::Span connectivity = engine_.Put< uint64_t >( varConnectivity );
+   adios2::Variable< intData_t > varConnectivity =
+       io_.DefineVariable< intData_t >( "connectivity", {}, {}, { numElements, dim + 2 } );
+   adios2::Variable< intData_t >::Span connectivity = engine_.Put< intData_t >( varConnectivity );
 
    if ( dim == 3 )
    {
-      AdiosWriter::StreamAccessBuffer< uint64_t, 5 > connectivityStream( connectivity, varConnectivity.Count() );
+      AdiosWriter::StreamAccessBuffer< intData_t, 5 > connectivityStream( connectivity, varConnectivity.Count() );
       VTKMeshWriter::writeElementNodeAssociationP1Tetrahedrons(
           connectivityStream, storage_, levelinfo::num_microvertices_per_edge( level_ ), false );
    }
    else
    {
-      AdiosWriter::StreamAccessBuffer< uint64_t, 4 > connectivityStream( connectivity, varConnectivity.Count() );
+      AdiosWriter::StreamAccessBuffer< intData_t, 4 > connectivityStream( connectivity, varConnectivity.Count() );
       VTKMeshWriter::writeElementNodeAssociationP1Triangles(
           connectivityStream, storage_, levelinfo::num_microvertices_per_edge( level_ ), false );
    }
