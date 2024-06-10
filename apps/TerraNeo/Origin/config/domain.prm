@@ -16,4 +16,4 @@ threeDim true;
 // Refinement level
 
 maxLevel 3;
-minLevel 0;
+minLevel 2;

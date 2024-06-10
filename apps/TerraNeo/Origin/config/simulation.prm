@@ -8,7 +8,7 @@
 // 3 = No-Slip / Free-Slip 
 // default: 1
 
-boundaryCond 1;
+boundaryCond 3;
 
 // Model simulation type: ConvectionModel / CirculationModel
 
@@ -22,6 +22,8 @@ solverType 0;
 
 compressible true;
 shearHeating false;
+adiabaticHeating false;
+internalHeating false;
 
 // Time steps 
 

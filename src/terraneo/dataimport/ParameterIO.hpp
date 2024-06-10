@@ -148,6 +148,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.simulationType         = mainConf.getParameter< std::string >( "simulationType" );
    simulationParam.compressible           = mainConf.getParameter< bool >( "compressible" );
    simulationParam.shearHeating           = mainConf.getParameter< bool >( "shearHeating" );
+   simulationParam.adiabaticHeating       = mainConf.getParameter< bool >( "adiabaticHeating" );
+   simulationParam.internalHeating        = mainConf.getParameter< bool >( "internalHeating" );
    simulationParam.boundaryCond           = mainConf.getParameter< uint_t >( "boundaryCond" );
    solverParam.solverType                 = mainConf.getParameter< uint_t >( "SolverType" );
    simulationParam.timingAnalysis         = mainConf.getParameter< bool >( "timingAnalysis" );
@@ -382,6 +384,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "MaxNumTimesteps         : " << simulationParam.maxNumTimesteps );
    WALBERLA_LOG_INFO_ON_ROOT( "Compressible            : " << ( simulationParam.compressible ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.shearHeating ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.adiabaticHeating ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.internalHeating ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "T-dependent Viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.      : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
 

@@ -168,6 +168,8 @@ struct SimulationParameters
    real_t      plateSmoothingDistance = real_c( 110 );
    bool        compressible           = true; // default: Compressible foŕmulation
    bool        shearHeating           = true; //default: include shear heating
+   bool        adiabaticHeating       = true; //default: include adiabatic heating
+   bool        internalHeating        = true; //default: include internal heating
    uint_t      boundaryCond           = 1;    // default: No-Slip/No-Slip
    bool        boundaryCondFreeSlip   = false;
    bool        verbose                = false;

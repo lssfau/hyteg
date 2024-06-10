@@ -287,7 +287,7 @@ inline std::function< real_t( const Point3D& ) > temperatureSPH( const Temperatu
       else
       {
          // Single spherical harmonic for the initialisation.
-         retVal += ( buoyancyFactor * filter * sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) /
+         retVal += ( buoyancyFactor * filter * std::sin(walberla::math::pi * (radius - rMin)/(rMax - rMin))  * sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) /
                      std::sqrt( real_c( 4 ) * walberla::math::pi ) );
       }
       return retVal;

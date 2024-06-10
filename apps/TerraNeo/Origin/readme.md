@@ -1,4 +1,4 @@
-### TerraNeo - Genesis
+### TerraNeo - Origin
 
 This is the first app under TerraNeo, which currently implements the TALA formulation in Mantle convection modelling.
 
@@ -10,6 +10,8 @@ Parameter file
 - The default parameter file `default.prm` just contains paths.
 - The user can either give the path to the config folder with the specific `prm` files or can choose to load the full parameter file from the `default.prm`.
 - Other parameters must be set in either `config` or the parameter file the user chooses to use.
+
+##### NOTE: Make sure to use proper file paths (maybe all absolute to be safe)
 
 Attributes of the app
 - ToDo

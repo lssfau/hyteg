@@ -258,7 +258,7 @@ void ConvectionSimulation::solveEnergy()
 
    adiabaticTermCoeff->interpolate( TN.physicalParameters.dissipationNumber, TN.domainParameters.maxLevel, All );
    shearHeatingTermCoeff->interpolate( shearHeatingCoeffCalc, { *densityFE }, TN.domainParameters.maxLevel, All );
-   surfTempCoeff->interpolate( TN.physicalParameters.surfaceTemp /
+   surfTempCoeff->interpolate( -TN.physicalParameters.surfaceTemp /
                                    ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ),
                                TN.domainParameters.maxLevel,
                                All );
@@ -529,8 +529,8 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
 
 real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
 {
-   return ( real_c( 1.0 ) * TN.physicalParameters.thermalDiffusivity ) /
-          ( densityFunction( x ) * TN.physicalParameters.pecletNumber * TN.physicalParameters.specificHeatCapacity );
+   return ( real_c( 1.0 ) ) /
+          ( densityFunction( x ) * TN.physicalParameters.pecletNumber );
 }
 
 void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
