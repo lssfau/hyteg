@@ -304,7 +304,7 @@ void ConvectionSimulation::initialiseFunctions()
        *temperature, TN.domainParameters.rMin, TN.domainParameters.rMax, TN.domainParameters.nRad, TN.domainParameters.maxLevel );
    temperatureProfiles = std::make_shared< RadialProfile >( temperatureRadialProfile );
 
-   if ( TN.outputParameters.outputProfiles & TN.simulationParameters.tempDependentViscosity )
+   if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
    {
       auto viscosityRadialProfile = computeRadialProfile( *viscosityFE,
                                                           TN.domainParameters.rMin,

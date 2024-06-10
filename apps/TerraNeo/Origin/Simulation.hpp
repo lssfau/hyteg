@@ -119,13 +119,6 @@ void ConvectionSimulation::step()
    //                  ENERGY EQUATION                     //
    //######################################################//
 
-   /*############ EXTRAPOLATE FIELDS FOR RHS ############*/
-
-   if ( TN.simulationParameters.simulationType == "CirculationModel" )
-   {
-      updatePlateVelocities( *stokesLHS );
-   }
-
    /*############ ADVECTION STEP ############*/
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -200,7 +193,7 @@ void ConvectionSimulation::step()
          updatePlateVelocities( *stokesLHS );
       }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Plage age: " << TN.simulationParameters.plateAge << " Ma" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Plate age: " << TN.simulationParameters.plateAge << " Ma" )
    }
 
    //update ref temp vector based on new temperature field
@@ -215,6 +208,15 @@ void ConvectionSimulation::step()
 
    solveStokes();
 
+   // update viscosity Profiles for logging
+   if ( TN.simulationParameters.tempDependentViscosity )
+   {
+      viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *viscosityFE,
+                                                                                   TN.domainParameters.rMin,
+                                                                                   TN.domainParameters.rMax,
+                                                                                   TN.domainParameters.nRad,
+                                                                                   TN.domainParameters.maxLevel ) );
+   }
    //######################################################//
    //                  DUMP OUTPUT                         //
    //######################################################//
@@ -330,6 +332,14 @@ void ConvectionSimulation::solveStokes()
    if ( TN.simulationParameters.tempDependentViscosity )
    {
       updateRefViscosity();
+      // Update stokesOperator
+      stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
+                                                               TN.domainParameters.minLevel,
+                                                               TN.domainParameters.maxLevel,
+                                                               *viscosityFE,
+                                                               viscosityFEInv->getVertexDoFFunction(),
+                                                               *projectionOperator,
+                                                               bcVelocity );
    }
 
    if ( TN.simulationParameters.tempDependentViscosity && TN.simulationParameters.resetSolver &&
@@ -413,7 +423,7 @@ void ConvectionSimulation::solveStokes()
 
 real_t ConvectionSimulation::calculateStokesResidual( uint_t level )
 {
-   stokesOperator->apply( *stokesLHS, *stokesTmp, level, Inner | NeumannBoundary | FreeslipBoundary );
+   stokesOperatorFS->apply( *stokesLHS, *stokesTmp, level, Inner | NeumannBoundary | FreeslipBoundary );
    stokesTmp->assign(
        { real_c( 1 ), real_c( -1 ) }, { *stokesTmp, *stokesRHS }, level, Inner | NeumannBoundary | FreeslipBoundary );
    return std::sqrt( stokesTmp->dotGlobal( *stokesTmp, level, Inner | NeumannBoundary | FreeslipBoundary ) );
@@ -437,8 +447,40 @@ real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Tempera
 
    if ( TN.simulationParameters.haveViscosityProfile )
    {
-      // retVal = TN.physicalParameters.viscosityProfile;
-      WALBERLA_ABORT( "Viscosity profiles are not yet supported" );
+      // Check if radius and viscosity std::vector are filled and at least 2 entries for radius are present
+      if ( TN.physicalParameters.radius.size() != TN.physicalParameters.viscosityProfile.size() ||
+           TN.physicalParameters.radius.size() < 2 )
+      {
+         WALBERLA_ABORT( "Viscosity and radius vector must be of the same size and contain at least two elements." );
+      }
+      // Check boundaries and set viscosity values accordingly
+
+      if ( radius >= TN.physicalParameters.radius[0] )
+      {
+         retVal = TN.physicalParameters.viscosityProfile[0];
+      }
+      if ( radius <= TN.physicalParameters.radius[TN.physicalParameters.radius.size()] )
+      {
+         retVal = TN.physicalParameters.viscosityProfile[TN.physicalParameters.radius.size()];
+      }
+      // Loop over radius vector and find a datapoint that lies in between two given values
+      // If true: perform interpolation to estimate the value
+
+      for ( uint_t i = 0; i < TN.physicalParameters.radius.size(); i++ )
+      {
+         if ( radius < TN.physicalParameters.radius[i] && radius > TN.physicalParameters.radius[i + 1] )
+         {
+            real_t interpolFactor = ( radius - TN.physicalParameters.radius[i] ) /
+                                    ( TN.physicalParameters.radius[i + 1] - TN.physicalParameters.radius[i] );
+            retVal = ( interpolFactor *
+                       ( TN.physicalParameters.viscosityProfile[i + 1] - TN.physicalParameters.viscosityProfile[i] ) ) +
+                     TN.physicalParameters.viscosityProfile[i];
+         }
+         else if ( radius - TN.physicalParameters.radius[i] < 10e-4 )
+         {
+            retVal = TN.physicalParameters.viscosityProfile[i];
+         }
+      }
    }
    else
    {
@@ -529,8 +571,7 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
 
 real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
 {
-   return ( real_c( 1.0 ) ) /
-          ( densityFunction( x ) * TN.physicalParameters.pecletNumber );
+   return ( real_c( 1.0 ) ) / ( densityFunction( x ) * TN.physicalParameters.pecletNumber );
 }
 
 void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
@@ -538,7 +579,7 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
    uint_t coordIdx = 0;
 
    //function to return plate velocities, copied and adapted from PlateVelocityDemo.cpp.
-   std::function< real_t( const Point3D& ) > Velocity = [this, &coordIdx]( const Point3D& x ) {
+   std::function< real_t( const Point3D& ) > Velocity = [&coordIdx]( const Point3D& x ) {
       terraneo::vec3D coords{ x[0], x[1], x[2] };
       //get velocity at current plate age (intervals of 1Ma)
       terraneo::vec3D velocity = oracle->getPointVelocity(
@@ -591,6 +632,17 @@ void ConvectionSimulation::updateRefViscosity()
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity: " << maxViscosity );
+   if ( TN.simulationParameters.tempDependentViscosity )
+   {
+      // Update reference viscosity with new min Viscosity value
+      TN.physicalParameters.referenceViscosity = minRefViscosity;
+
+      TN.physicalParameters.rayleighNumber =
+          ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
+            std::pow( TN.physicalParameters.mantleThickness, 3 ) *
+            ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
+          ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
+   }
 }
 void ConvectionSimulation::normalFunc( const Point3D& p, Point3D& n )
 {
