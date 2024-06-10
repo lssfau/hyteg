@@ -140,7 +140,7 @@ class RadialShellData
  public:
    void addDataFromFunction( std::string key, const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
    {
-      WALBERLA_CHECK_LESS_EQUAL( rMin, rMax );
+      WALBERLA_CHECK_LESS( rMin, rMax, "The thick spherical seems to be degenerate :/" );
 
       WALBERLA_CHECK( u.getStorage()->hasGlobalCells(),
                       "The radial shell data can only be gathered in 3D on the spherical shell." )
@@ -160,6 +160,11 @@ class RadialShellData
                      std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
       {
          numComponents = 3;
+      }
+      else if constexpr ( !std::is_same_v< typename FunctionType::Tag, P1FunctionTag > &&
+                          !std::is_same_v< typename FunctionType::Tag, P2FunctionTag > )
+      {
+         WALBERLA_ABORT( "Currently only PxFunctions and PxVectorFunctions for x in {1, 2} are supported." );
       }
 
       if ( !arePointsInitialized )
@@ -228,6 +233,7 @@ class RadialShellData
 
    const std::vector< real_t >& values( std::string key, uint_t component, uint_t shellId ) const
    {
+      WALBERLA_CHECK_GREATER( values_.count( key ), 0, "Key not registered in RadialShellData instance." );
       return values_.at( key ).at( component ).at( shellId );
    }
 
