@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <utility>
+
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
@@ -87,6 +89,60 @@ auto exportCheckpoint( const std::string&                         filePath,
 }
 
 template < template < typename > class func_t, typename value_t >
+auto exportCheckpointContinuous( const std::string&                         filePath,
+                                 const std::string&                         fileName,
+                                 const std::shared_ptr< PrimitiveStorage >& storage,
+                                 const uint_t                               minLevel,
+                                 const uint_t                               maxLevel,
+                                 const uint_t                               nSteps,
+                                 bool                                       verbose = false )
+{
+   WALBERLA_UNUSED( verbose );
+
+   std::vector< std::shared_ptr< func_t< value_t > > > funcsToWrite;
+   std::vector< real_t >                               timeVector;
+
+   funcsToWrite.reserve( nSteps );
+   timeVector.reserve( nSteps );
+
+   std::string       funcName = "Test_" + FunctionTrait< func_t< value_t > >::getTypeName();
+   func_t< value_t > feFunc( funcName, storage, minLevel, maxLevel );
+
+   AdiosCheckpointExporter checkpointer( "" );
+
+   checkpointer.registerFunction( feFunc, minLevel, maxLevel );
+
+   for ( uint_t tStep = 1U; tStep <= nSteps; tStep++ )
+   {
+      std::function< real_t( const hyteg::Point3D& ) > expr = [tStep]( const Point3D& p ) -> real_t {
+         return real_c( -2 ) * p[0] + real_c( 3 ) * p[1] + real_c( 4 ) * real_c( tStep );
+      };
+
+      for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+      {
+         feFunc.interpolate( expr, lvl );
+      }
+
+      real_t time = real_c( tStep ) * real_c( 0.1 );
+
+      timeVector.push_back( time );
+
+      auto func = std::make_shared< func_t< value_t > >( funcName + "_" + std::to_string( tStep ), storage, minLevel, maxLevel );
+
+      for ( uint_t l = minLevel; l <= maxLevel; l++ )
+      {
+         func->assign( { static_cast< value_t >( 1.0 ) }, { feFunc }, l, All );
+      }
+
+      funcsToWrite.push_back( func );
+
+      checkpointer.storeCheckpointContinuous( filePath, fileName, time, tStep == nSteps );
+   }
+
+   return std::make_pair( funcsToWrite, timeVector );
+}
+
+template < template < typename > class func_t, typename value_t >
 auto importCheckpoint( const std::string&                         filePath,
                        const std::string&                         fileName,
                        const std::shared_ptr< PrimitiveStorage >& storage,
@@ -110,6 +166,56 @@ auto importCheckpoint( const std::string&                         filePath,
    restorer.restoreFunction( feFunc );
 
    return feFunc;
+}
+
+template < template < typename > class func_t, typename value_t >
+auto importCheckpointContinuous( const std::string&                         filePath,
+                                 const std::string&                         fileName,
+                                 const std::shared_ptr< PrimitiveStorage >& storage,
+                                 const uint_t                               minLevel,
+                                 const uint_t                               maxLevel,
+                                 bool                                       verbose = false )
+{
+   WALBERLA_UNUSED( verbose );
+
+   AdiosCheckpointImporter restorer( filePath, fileName, "" );
+
+   if ( verbose )
+   {
+      restorer.printCheckpointInfo();
+   }
+
+   auto& funcDescr = restorer.getFunctionDetails();
+   WALBERLA_CHECK_EQUAL( funcDescr[0].minLevel, minLevel );
+   WALBERLA_CHECK_EQUAL( funcDescr[0].maxLevel, maxLevel );
+
+   func_t< value_t > feFunc( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
+
+   std::vector< real_t > timestepInfo = restorer.getTimestepInfo();
+
+   uint_t checkpointSteps = timestepInfo.size();
+
+   std::vector< std::shared_ptr< func_t< value_t > > > funcsToWrite;
+
+   funcsToWrite.resize( checkpointSteps );
+
+   // Let's read in reverse, as we need for adjoints!
+   for ( uint_t tStep = checkpointSteps; tStep >= 1; tStep-- )
+   {
+      restorer.restoreFunction( feFunc, tStep - 1 );
+
+      auto func = std::make_shared< func_t< value_t > >(
+          funcDescr[0].name + "_" + std::to_string( tStep - 1 ), storage, minLevel, maxLevel );
+
+      for ( uint_t l = minLevel; l <= maxLevel; l++ )
+      {
+         func->assign( { static_cast< value_t >( 1.0 ) }, { feFunc }, l, All );
+      }
+
+      funcsToWrite[tStep - 1] = func;
+   }
+
+   return std::make_pair( funcsToWrite, timestepInfo );
 }
 
 template < template < typename > class func_t, typename value_t >
@@ -141,7 +247,9 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
                                        const std::string& meshFileName,
                                        const uint_t       minLevel,
                                        const uint_t       maxLevel,
-                                       bool               verbose = false )
+                                       bool               verbose          = false,
+                                       const uint_t       testContinuous   = false,
+                                       const uint_t       nStepsContinuous = 0U )
 {
    bool exportFuncs = false;
 
@@ -188,11 +296,79 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
       }
       if ( exportFuncs )
       {
-         AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
-         adiosWriter.add( funcOriginal );
-         adiosWriter.add( funcRestored );
-         adiosWriter.add( difference );
-         adiosWriter.write( lvl );
+         // AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
+         // adiosWriter.add( funcOriginal );
+         // adiosWriter.add( funcRestored );
+         // adiosWriter.add( difference );
+         // adiosWriter.write( lvl );
+      }
+   }
+
+   if ( testContinuous )
+   {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " * exporting checkpoint continuous" );
+      }
+      auto funcListTimePairExported = exportCheckpointContinuous< func_t, value_t >(
+          filePath, "Continuous" + fileName, storage, minLevel, maxLevel, nStepsContinuous );
+
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint continuous" );
+      }
+
+      auto funcListTimePairImported =
+          importCheckpointContinuous< func_t, value_t >( filePath, "Continuous" + fileName, storage, minLevel, maxLevel );
+
+      WALBERLA_CHECK_EQUAL( nStepsContinuous, funcListTimePairImported.first.size() );
+      WALBERLA_CHECK_EQUAL( nStepsContinuous, funcListTimePairImported.second.size() );
+
+      std::string       funcNameExport = "TestWriteExport_" + FunctionTrait< func_t< value_t > >::getTypeName();
+      func_t< value_t > feFuncExport( funcNameExport, storage, minLevel, maxLevel );
+
+      std::string       funcNameImport = "TestWriteImport_" + FunctionTrait< func_t< value_t > >::getTypeName();
+      func_t< value_t > feFuncImport( funcNameImport, storage, minLevel, maxLevel );
+
+      AdiosWriter adiosWriterContinuous( ".", "ContinuousCheckpointRestoreTestOutput", storage );
+      adiosWriterContinuous.add( feFuncExport );
+      adiosWriterContinuous.add( feFuncImport );
+      adiosWriterContinuous.add( difference );
+
+      for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+      {
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " * checking differences on refinement level " << lvl << " ..." );
+         }
+         for ( uint_t tStep = 0U; tStep < nStepsContinuous; tStep++ )
+         {
+            if ( lvl == minLevel )
+            {
+               // Check this only once
+               WALBERLA_CHECK_LESS_EQUAL( funcListTimePairExported.second[tStep] - funcListTimePairImported.second[tStep],
+                                          real_c( 0 ) );
+            }
+
+            difference.assign( { static_cast< value_t >( 1 ), static_cast< value_t >( -1 ) },
+                               { *( funcListTimePairExported.first[tStep] ), *( funcListTimePairImported.first[tStep] ) },
+                               lvl,
+                               All );
+            value_t error = computeCheckValue( difference, lvl );
+
+            WALBERLA_CHECK_LESS_EQUAL( error, static_cast< value_t >( 0 ) );
+
+            if ( exportFuncs )
+            {
+               feFuncExport.assign( { static_cast< value_t >( 1 ) }, { *( funcListTimePairExported.first[tStep] ) }, lvl, All );
+               feFuncImport.assign( { static_cast< value_t >( 1 ) }, { *( funcListTimePairImported.first[tStep] ) }, lvl, All );
+               adiosWriterContinuous.write( lvl, tStep );
+            }
+         }
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "   ... okay" );
+         }
       }
    }
 }
@@ -262,7 +438,9 @@ int main( int argc, char* argv[] )
 
    std::string filePath{ "." };
    std::string fileName{ "CheckpointRestoreTest.bp" };
-   // std::string meshFile{ "../../meshes/LShape_6el.msh" };
+   std::string meshFile2D{ "../../meshes/LShape_6el.msh" };
+
+   // Some issue with AdiosWriter, so cannot visualise with this mesh!
    std::string meshFile{ "../../meshes/3D/cube_6el.msh" };
 
    bool onlyImport = false;
@@ -287,8 +465,14 @@ int main( int argc, char* argv[] )
       fileName = "CheckpointRestoreTest+reuse.bp";
       runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
+      runTestWithIdenticalCommunicator< P2VectorFunction, real_t >(
+          filePath, fileName, meshFile, minLevel, maxLevel, true, true, 4U );
+      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true, true, 4U );
+      runTestWithIdenticalCommunicator< P2Function, real_t >(
+          filePath, fileName, meshFile2D, minLevel, maxLevel, true, true, 4U );
+
       // We currently would need to import the two component functions separately; Better than having specialised code here,
-      // alter AdiosCheckpoint[Ex|Im]porter
+      // alter AdiosCheckpoint[Ex|Im]porter meshFile2D
       // runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
    }
 
