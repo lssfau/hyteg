@@ -25,6 +25,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 
@@ -142,9 +143,9 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    ///                       the input function; note that low-level errors, will still lead to
    ///                       an abort
    template < template < typename > class func_t, typename value_t >
-   bool restoreFunction( func_t< value_t >& function, bool abortOnError = true )
+   bool restoreFunction( func_t< value_t >& function, uint_t step = 0U, bool abortOnError = true )
    {
-      return restoreFunction( function, function.getMinLevel(), function.getMaxLevel(), abortOnError );
+      return restoreFunction( function, function.getMinLevel(), function.getMaxLevel(), step, abortOnError );
    }
 
    /// Populate an existing FE function with data from the checkpoint
@@ -161,7 +162,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    ///                       the input function; note that low-level errors, will still lead to
    ///                       an abort
    template < template < typename > class func_t, typename value_t >
-   bool restoreFunction( func_t< value_t >& function, uint_t minLevel, uint_t maxLevel, bool abortOnError = true )
+   bool restoreFunction( func_t< value_t >& function, uint_t minLevel, uint_t maxLevel, uint_t step = 0U, bool abortOnError = true )
    {
       // check that function is included in checkpoint and that levels make sense
       WALBERLA_ASSERT( minLevel <= maxLevel );
@@ -200,12 +201,24 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       }
 
       adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-          io_, engine_, function, minLevel, maxLevel, adiosCheckpointHelpers::importVariables< func_t, value_t > );
+          io_, engine_, function, minLevel, maxLevel, adiosCheckpointHelpers::importVariables< func_t, value_t >, step );
 
       // might be more efficient to do this only after ALL functions were scheduled for restoration!
       engine_.PerformGets();
 
       return true;
+   }
+
+   const std::vector<real_t>& getTimestepInfo()
+   {
+      auto varTimestepInfo = io_.InquireVariable<double>("TimestepInfo");
+      auto size = varTimestepInfo.SelectionSize();
+
+      timestepInfo.resize(size);
+
+      engine_.Get(varTimestepInfo, timestepInfo.data(), adios2::Mode::Sync);
+
+      return timestepInfo;
    }
 
  private:
@@ -215,6 +228,8 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    adios2::IO     io_;
    adios2::Engine engine_;
    ///@}
+
+   std::vector<real_t> timestepInfo;
 
    /// meta information on the FE functions stored in the checkpoint
    std::vector< FunctionDescription > funcDescr_;
