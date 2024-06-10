@@ -364,15 +364,19 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             *projectionOperator,
                                                             bcVelocity );
 
-   stokesSolverFS = temporary::stokesGMGFSSolver( storage,
-                                                  TN.domainParameters.minLevel,
-                                                  TN.domainParameters.maxLevel,
-                                                  stokesOperatorFS,
-                                                  projectionOperator,
-                                                  TN.solverParameters.stokesMaxNumIterations,
-                                                  TN.solverParameters.stokesRelativeResidualUTolerance,
-                                                  TN.solverParameters.uzawaOmega,
-                                                  bcVelocity );
+   stokesSolverFS = hyteg::solvertemplates::stokesGMGFSSolver(
+       storage,
+       TN.domainParameters.minLevel,
+       TN.domainParameters.maxLevel,
+       stokesOperatorFS,
+       projectionOperator,
+       bcVelocity,
+       false,
+       false,
+       {
+           { solvertemplates::StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25.0 },
+           { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, 5.0 },
+       } );
 
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
@@ -390,8 +394,8 @@ void ConvectionSimulation::setupSolversAndOperators()
    // Diffusion Operator //
    ////////////////////////
 
-   transportOperatorTALA =
-       std::make_shared< P2TransportOperatorTALA >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   transportOperatorTALA = std::make_shared< P2TransportIcosahedralShellMapOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
    transportOperatorTALA->setVelocity( stokesLHS );
    transportOperatorTALA->setViscosity( viscosityFE );
@@ -407,9 +411,10 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    transportOperatorTALA->setReferenceTemperature( temperatureReference );
 
-   transportOperatorTALA->setTALADict( { { OperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-                                         { OperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
-                                         { OperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
+   transportOperatorTALA->setTALADict(
+       { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+         { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
+         { TransportOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
 
    transportOperatorTALA->initializeOperators();
 
@@ -419,12 +424,12 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
 
-   transportSolverTALA =
-       std::make_shared< CGSolver< P2TransportOperatorTALA > >( storage,
-                                                                TN.domainParameters.minLevel,
-                                                                TN.domainParameters.maxLevel,
-                                                                TN.solverParameters.diffusionMaxNumIterations,
-                                                                TN.solverParameters.diffusionAbsoluteResidualUTolerance );
+   transportSolverTALA = std::make_shared< CGSolver< P2TransportIcosahedralShellMapOperator > >(
+       storage,
+       TN.domainParameters.minLevel,
+       TN.domainParameters.maxLevel,
+       TN.solverParameters.diffusionMaxNumIterations,
+       TN.solverParameters.diffusionAbsoluteResidualUTolerance );
 
    transportSolverTALA->setPrintInfo( true );
 

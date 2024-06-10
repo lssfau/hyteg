@@ -155,6 +155,8 @@ Parameters
 
    compressible true;
    shearHeating true;
+   adiabaticHeating true;
+   internalHeating true;
 
    // Time steps 
 
