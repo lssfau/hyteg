@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,23 +27,32 @@
 #cmakedefine HYTEG_USE_GENERATED_KERNELS
 #cmakedefine HYTEG_TERRANEO_MODULE
 #cmakedefine HYTEG_BUILD_WITH_PYTHON3
+#cmakedefine HYTEG_USE_SIGNED_INT_FOR_ADIOS2
 
+namespace hyteg {
+namespace globalDefines {
 #ifdef HYTEG_USE_GENERATED_KERNELS
-namespace hyteg {
-namespace globalDefines {
 constexpr bool useGeneratedKernels = true;
-} // namespace globalDefines
-} // namespace hyteg
 #else
-namespace hyteg {
-namespace globalDefines {
 constexpr bool useGeneratedKernels = false;
+#endif
 } // namespace globalDefines
 } // namespace hyteg
-#endif
 
 // clang-format off
 #define HYTEG_ARCH_ENDIANESS ${CMAKE_CXX_BYTE_ORDER}
 // clang-format on
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+
+// set integer type for connectivity information to be used when
+// writing BP files for ParaView to either uint64_t or int64_t
+#ifdef HYTEG_USE_SIGNED_INT_FOR_ADIOS2
+#define ADIOS2_PARAVIEW_INT_TYPE int64_t
+#else
+#define ADIOS2_PARAVIEW_INT_TYPE uint64_t
+#endif
+
+#endif
 
 #define RESTRICT WALBERLA_RESTRICT
