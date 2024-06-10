@@ -128,7 +128,7 @@ inline void interpolateRadialShellID( ScalarFunctionType& u, real_t rMin, real_t
 /// Scalar functions are stored with component set to 0.
 ///
 /// (To be really space-efficient, you can store Px functions and components of PxVectorFunctions in the same instance.
-/// This avoids storing the points twice. The components must then be signalled through the key, all component indices with be
+/// This avoids storing the points twice. The components must then be signalled through the key, all component indices will be
 /// zero.)
 ///
 /// No mesh information is stored - you get shell-wise point clouds.
@@ -138,14 +138,14 @@ template < typename FunctionType >
 class RadialShellData
 {
  public:
-   void addDataFromFunction( std::string key, const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+   void addDataFromFunction( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
    {
       WALBERLA_CHECK_LESS( rMin, rMax, "The thick spherical seems to be degenerate :/" );
 
       WALBERLA_CHECK( u.getStorage()->hasGlobalCells(),
                       "The radial shell data can only be gathered in 3D on the spherical shell." )
 
-      WALBERLA_CHECK_EQUAL( values_.count( key ), 0, "There already is data stored for the passed key." )
+      WALBERLA_CHECK_EQUAL( values_.count( u.getFunctionName() ), 0, "There already is data stored for that function name." )
 
       WALBERLA_CHECK_GREATER( nRad, 0, "No layers?" );
 
@@ -173,12 +173,14 @@ class RadialShellData
       }
 
       // Initialize/resize arrays
-      values_[key].resize( numComponents );
+      values_[u.getFunctionName()].resize( numComponents );
       for ( uint_t component = 0; component < numComponents; component++ )
       {
-         values_[key][component].resize( numShells );
+         values_[u.getFunctionName()][component].resize( numShells );
       }
+
       // TODO: Can we easily precompute the number of DoFs per shell to resize the vectors? Might be hard in parallel.
+      //       Instead, we could issue an additional interpolate() to count the number of local DoFs.
 
       // Interpolate is used to cycle through all DoFs on a process and fill relevant parts of profile with total temperature and
       // number of DoFs.
@@ -204,7 +206,7 @@ class RadialShellData
                 }
 
                 // Add value to corresponding shell in data array.
-                values_[key][component][shell].push_back( scalarValue );
+                values_[u.getFunctionName()][component][shell].push_back( scalarValue );
 
                 // Returning the value to ensure that the values are not altered.
                 return scalarValue;
@@ -225,16 +227,16 @@ class RadialShellData
             WALBERLA_ABORT( "Radial data cannot be collected for the selected function type." );
          }
 
-         auto arePointsInitialized = true;
+         arePointsInitialized = true;
       }
    }
 
    const std::vector< Point3D >& points( uint_t shellId ) const { return points_.at( shellId ); }
 
-   const std::vector< real_t >& values( std::string key, uint_t component, uint_t shellId ) const
+   const std::vector< real_t >& values( std::string functionName, uint_t component, uint_t shellId ) const
    {
-      WALBERLA_CHECK_GREATER( values_.count( key ), 0, "Key not registered in RadialShellData instance." );
-      return values_.at( key ).at( component ).at( shellId );
+      WALBERLA_CHECK_GREATER( values_.count( functionName ), 0, "Key not registered in RadialShellData instance." );
+      return values_.at( functionName ).at( component ).at( shellId );
    }
 
  private:

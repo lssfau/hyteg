@@ -73,7 +73,7 @@ void testRadialPointCloudOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t r
 
    RadialShellData< FunctionType > shellData;
 
-   shellData.addDataFromFunction( "u", u, rMin, rMax, nRad, level );
+   shellData.addDataFromFunction( u, rMin, rMax, nRad, level );
 
    uint_t numPointsOnAllShellsCombined = 0;
    for ( uint_t shell = 0; shell < numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() ); shell++ )
@@ -86,7 +86,13 @@ void testRadialPointCloudOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t r
    }
    // That number should be the same as the number of DoFs!
    auto numGlobalDoFs = numberOfGlobalDoFs( u, level );
-   WALBERLA_CHECK_EQUAL( numPointsOnAllShellsCombined, numGlobalDoFs );
+
+   const bool testableFunctionType = std::is_same_v< typename FunctionType::Tag, P1FunctionTag > ||
+                                     std::is_same_v< typename FunctionType::Tag, P2FunctionTag > ||
+                                     std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > ||
+                                     std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag >;
+   WALBERLA_CHECK( testableFunctionType, "The next WALBERLA_CHECK_EQUAL() is not applicable for all function types :)" )
+   WALBERLA_CHECK_EQUAL( numPointsOnAllShellsCombined, numGlobalDoFs / u.getDimension() );
 
    // Write one file per shell.
    for ( uint_t shell = 0; shell < numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() ); shell++ )
@@ -133,8 +139,14 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P1Function< real_t > >()" )
    terraneo::testRadialPointCloudOutput< P1Function< real_t > >( 5, 3, 0.5, 1.0, 2 );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P1VectorFunction< real_t > >()" )
+   terraneo::testRadialPointCloudOutput< P1VectorFunction< real_t > >( 5, 3, 0.5, 1.0, 2 );
+
    WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P2Function< real_t > >()" )
    terraneo::testRadialPointCloudOutput< P2Function< real_t > >( 5, 3, 0.5, 1.0, 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P2VectorFunction< real_t > >()" )
+   terraneo::testRadialPointCloudOutput< P2VectorFunction< real_t > >( 5, 3, 0.5, 1.0, 2 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P1Function< real_t > >()" )
    terraneo::testRadialIntegerIDOutput< P1Function< int32_t > >( 5, 3, 0.5, 1.0, 2 );
