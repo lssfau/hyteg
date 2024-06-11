@@ -167,9 +167,50 @@ class RadialShellData
          WALBERLA_ABORT( "Currently only PxFunctions and PxVectorFunctions for x in {1, 2} are supported." );
       }
 
+      // To allocate the correct amount of memory required to store all process-local points and values on each shell, we need to
+      // count them first. Computing that number analytically may be possible, but is certainly very tricky.
+
+      std::vector< uint_t > numLocalPointsPerShell( numShells, 0 );
+
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > countNodes =
+          [&]( const Point3D& x, const std::vector< real_t >& values ) {
+             real_t radius      = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+             real_t scalarValue = values[0];
+
+             uint_t shell =
+                 nearestShellFromRadius( radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+
+             // Manual bounds checking.
+             WALBERLA_ASSERT_LESS( shell, numShells );
+
+             numLocalPointsPerShell[shell]++;
+
+             // Returning the value to ensure that the values are not altered.
+             return scalarValue;
+          };
+
+      if constexpr ( std::is_same_v< typename FunctionType::Tag, P1FunctionTag > ||
+                     std::is_same_v< typename FunctionType::Tag, P2FunctionTag > )
+      {
+         u.interpolate( countNodes, { u }, level, All );
+      }
+      else if constexpr ( std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > ||
+                          std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
+      {
+         u[0].interpolate( countNodes, { u[0] }, level, All );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Radial data cannot be collected for the selected function type." );
+      }
+
       if ( !arePointsInitialized )
       {
          points_.resize( numShells );
+         for ( uint_t shell = 0; shell < numShells; shell++ )
+         {
+            points_[shell].reserve( numLocalPointsPerShell[shell] );
+         }
       }
 
       // Initialize/resize arrays
@@ -177,10 +218,11 @@ class RadialShellData
       for ( uint_t component = 0; component < numComponents; component++ )
       {
          values_[u.getFunctionName()][component].resize( numShells );
+         for ( uint_t shell = 0; shell < numShells; shell++ )
+         {
+            values_[u.getFunctionName()][component][shell].reserve( numLocalPointsPerShell[shell] );
+         }
       }
-
-      // TODO: Can we easily precompute the number of DoFs per shell to resize the vectors? Might be hard in parallel.
-      //       Instead, we could issue an additional interpolate() to count the number of local DoFs.
 
       // Interpolate is used to cycle through all DoFs on a process and fill relevant parts of profile with total temperature and
       // number of DoFs.
@@ -202,10 +244,12 @@ class RadialShellData
                 // Set point
                 if ( !arePointsInitialized )
                 {
+                   // No worries about push_back(), enough space has been reserved previously.
                    points_[shell].push_back( x );
                 }
 
                 // Add value to corresponding shell in data array.
+                // No worries about push_back(), enough space has been reserved previously.
                 values_[u.getFunctionName()][component][shell].push_back( scalarValue );
 
                 // Returning the value to ensure that the values are not altered.
