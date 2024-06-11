@@ -20,7 +20,10 @@
 
 #pragma once
 
+#include "hyteg/composites/P1P0StokesFunction.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -50,13 +53,20 @@ void bccpy( const FunctionType< value_t1 >& src, FunctionType< value_t2 >& dst )
       dst.setBoundaryCondition( src.getBoundaryCondition() );
    }
    else if constexpr ( std::is_same_v< FunctionType< value_t1 >, P2P1TaylorHoodFunction< value_t1 > > ||
-                       std::is_same_v< FunctionType< value_t2 >, P2P1TaylorHoodFunction< value_t2 > > )
+                       std::is_same_v< FunctionType< value_t2 >, P2P1TaylorHoodFunction< value_t2 > > ||
+                       std::is_same_v< FunctionType< value_t1 >, P1StokesFunction< value_t1 > > ||
+                       std::is_same_v< FunctionType< value_t2 >, P1StokesFunction< value_t2 > > ||
+                       std::is_same_v< FunctionType< value_t1 >, P2P2StokesFunction< value_t1 > > ||
+                       std::is_same_v< FunctionType< value_t2 >, P2P2StokesFunction< value_t2 > > ||
+                       std::is_same_v< FunctionType< value_t1 >, P1P0StokesFunction< value_t1 > > ||
+                       std::is_same_v< FunctionType< value_t2 >, P1P0StokesFunction< value_t2 > > )
    {
       uint_t dim = src.uvw().getDimension();
       for ( uint_t iDim = 0U; iDim < dim; iDim++ )
       {
          dst.uvw().component( iDim ).setBoundaryCondition( src.uvw().component( iDim ).getBoundaryCondition() );
       }
+      dst.p().setBoundaryCondition( src.p().getBoundaryCondition() );
    }
    else
    {
