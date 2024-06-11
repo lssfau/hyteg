@@ -801,7 +801,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    {
       auto callback = [&]( uint_t lvl ) {
          real_t my_t0 = walberla::timing::getWcTime();
-         errorEstimator->fmg_callback( lvl );
+         errorEstimator->fmg_callback()( lvl );
          real_t my_t1 = walberla::timing::getWcTime();
          t_error_indicator += my_t1 - my_t0;
       };

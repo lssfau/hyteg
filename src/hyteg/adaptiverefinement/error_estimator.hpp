@@ -22,11 +22,11 @@
 
 #include <limits>
 
-#include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
 
 #include "mesh.hpp"
 
@@ -93,29 +93,29 @@ class ErrorEstimator
          // todo: implement P2, etc.
          WALBERLA_ABORT( "ErrorEstimator not implemented for desired FE space" )
       }
+
+      // set up callback function for FMG
+      _fmg_callback = [&]( uint_t lvl ) {
+         // reset flag
+         _estimate_called = false;
+         _fmg_called      = true;
+         // copy P * u[lvl] to w[lvl+1]
+         if ( _l_min <= lvl && lvl < _l_max )
+         {
+            _w->copyFrom( _u, lvl + 1 );
+         }
+         // store fmg levels to check later
+         if ( !_fmg_called )
+         {
+            _l_min_fmg = lvl;
+         }
+         _l_max_fmg = lvl;
+      };
    }
 
    /// @brief postProlongateCallback required to be used in FullMultigridSolver
-   /// @param lvl
-   void fmg_callback( uint_t lvl )
-   {
-      // reset flag
-      _estimate_called = false;
-      _fmg_called      = true;
-
-      // copy P * u[lvl] to w[lvl+1]
-      if ( _l_min <= lvl && lvl < _l_max )
-      {
-         _w->copyFrom( _u, lvl + 1 );
-      }
-
-      // store fmg levels to check later
-      if ( !_fmg_called )
-      {
-         _l_min_fmg = lvl;
-      }
-      _l_max_fmg = lvl;
-   }
+   /// @return callback function
+   const std::function< void( uint_t currentLevel ) >& fmg_callback() const { return _fmg_callback; }
 
    /// @brief trigger computation of error estimates. Call AFTER fmg solver.
    void estimate()
@@ -288,6 +288,7 @@ class ErrorEstimator
    std::vector< valueType >                                _eta, _theta, _C1, _C2;
    adaptiveRefinement::ErrorVector                         _eta_T_sq;
    bool                                                    _fmg_called, _estimate_called;
+   std::function< void( uint_t lvl ) >                     _fmg_callback;
 };
 
 } // namespace adaptiveRefinement
