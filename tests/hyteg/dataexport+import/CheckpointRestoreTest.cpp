@@ -154,10 +154,10 @@ auto importCheckpoint( const std::string&                         filePath,
 
    AdiosCheckpointImporter restorer( filePath, fileName, "" );
 
-   if ( verbose )
-   {
+   // if ( verbose )
+   // {
       restorer.printCheckpointInfo();
-   }
+   // }
 
    auto& funcDescr = restorer.getFunctionDetails();
    WALBERLA_CHECK_EQUAL( funcDescr[0].minLevel, minLevel );
@@ -461,15 +461,15 @@ int main( int argc, char* argv[] )
       runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
       runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
-      // we are going to reuse this checkpoint in the next part of this pipeline job
-      fileName = "CheckpointRestoreTest+reuse.bp";
-      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
-
       runTestWithIdenticalCommunicator< P2VectorFunction, real_t >(
           filePath, fileName, meshFile, minLevel, maxLevel, true, true, 4U );
       runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true, true, 4U );
       runTestWithIdenticalCommunicator< P2Function, real_t >(
           filePath, fileName, meshFile2D, minLevel, maxLevel, true, true, 4U );
+
+      // we are going to reuse this checkpoint in the next part of this pipeline job
+      fileName = "CheckpointRestoreTest+reuse.bp";
+      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
       // We currently would need to import the two component functions separately; Better than having specialised code here,
       // alter AdiosCheckpoint[Ex|Im]porter meshFile2D

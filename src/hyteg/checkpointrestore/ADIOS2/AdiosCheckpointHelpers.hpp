@@ -187,11 +187,11 @@ void importVariableForScalarFunction( adios2::IO&              io,
 
    // check that associated variable exists in checkpoint
    adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
-   varDoFData.SetStepSelection( { step, 1U } );
    if ( !varDoFData )
    {
       WALBERLA_ABORT( "ADIOS2 variable '" << varName << "' does not exist!" );
    }
+   varDoFData.SetStepSelection( { step, 1U } );
 
    switch ( primitive.getType() )
    {
