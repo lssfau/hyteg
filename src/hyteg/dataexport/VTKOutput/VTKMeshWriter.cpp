@@ -282,7 +282,7 @@ void VTKMeshWriter::writeCells2D( vtk::DataFormat                            vtk
    const uint_t numberOfCells = levelinfo::num_microfaces_per_face_from_width( faceWidth );
 
    // connectivity
-   VTKOutput::VTKStreamWriter< CellType > streamWriterCells( vtkDataFormat );
+   VTKStreamWriter< CellType > streamWriterCells( vtkDataFormat );
    writeElementNodeAssociationP1Triangles( streamWriterCells, storage, faceWidth, discontinuous );
    streamWriterCells.toStream( output );
 
@@ -292,7 +292,7 @@ void VTKMeshWriter::writeCells2D( vtk::DataFormat                            vtk
 
    vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
+   VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
 
    // offsets
    offset = 3;
@@ -315,7 +315,7 @@ void VTKMeshWriter::writeCells2D( vtk::DataFormat                            vtk
 
    vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
+   VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
 
    // cell types
    for ( auto& it : storage->getFaces() )
@@ -405,7 +405,7 @@ void VTKMeshWriter::writeConnectivityP2Triangles( vtk::DataFormat               
 
    else
    {
-      VTKOutput::VTKStreamWriter< CellType > streamWriterCells( vtkDataFormat );
+      VTKStreamWriter< CellType > streamWriterCells( vtkDataFormat );
       writeElementNodeAssociationP2Triangles( streamWriterCells, storage, level );
       streamWriterCells.toStream( output );
    }
@@ -416,7 +416,7 @@ void VTKMeshWriter::writeConnectivityP2Triangles( vtk::DataFormat               
 
    vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
+   VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
 
    // offsets
    CellType offset = 6;
@@ -439,7 +439,7 @@ void VTKMeshWriter::writeConnectivityP2Triangles( vtk::DataFormat               
 
    vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
+   VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
 
    // cell types
    const unsigned char vtkQuadraticTriangleID = 22;
@@ -568,7 +568,7 @@ void VTKMeshWriter::writeCells3D( vtk::DataFormat                            vtk
    output << "<Cells>\n";
    vtk::openDataElement( output, typeToString< CellIdx_T >(), "connectivity", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< CellIdx_T > streamWriterCells( vtkDataFormat );
+   VTKStreamWriter< CellIdx_T > streamWriterCells( vtkDataFormat );
    writeElementNodeAssociationP1Tetrahedrons( streamWriterCells, storage, width, discontinuous );
    streamWriterCells.toStream( output );
 
@@ -577,7 +577,7 @@ void VTKMeshWriter::writeCells3D( vtk::DataFormat                            vtk
    using OffsetType = uint32_t;
    vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
+   VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
 
    // offsets
    offset = 4;
@@ -599,7 +599,7 @@ void VTKMeshWriter::writeCells3D( vtk::DataFormat                            vtk
    using CellTypeType = uint16_t;
    vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
+   VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
 
    // cell types
    for ( const auto& it : storage->getCells() )
@@ -741,7 +741,7 @@ void VTKMeshWriter::writeConnectivityP2Tetrahedrons( vtk::DataFormat            
    vtk::openDataElement( output, typeToString< CellIdx_T >(), "connectivity", 0, vtkDataFormat );
 
    {
-      VTKOutput::VTKStreamWriter< CellIdx_T > streamWriterCells( vtkDataFormat );
+      VTKStreamWriter< CellIdx_T > streamWriterCells( vtkDataFormat );
       writeElementNodeAssociationP2Tetrahedrons( streamWriterCells, storage, level );
       streamWriterCells.toStream( output );
    }
@@ -754,7 +754,7 @@ void VTKMeshWriter::writeConnectivityP2Tetrahedrons( vtk::DataFormat            
    using OffsetType = uint32_t;
    vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
+   VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
 
    // offsets
    uint_t offset = 10;
@@ -776,7 +776,7 @@ void VTKMeshWriter::writeConnectivityP2Tetrahedrons( vtk::DataFormat            
    using CellTypeType = uint16_t;
    vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, vtkDataFormat );
 
-   VTKOutput::VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
+   VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
 
    // cell types
    const unsigned char vtkQuadraticTetraID = 24;
@@ -866,13 +866,13 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
 //  explicit instantiation
 // ========================
 template void VTKMeshWriter::writePointsForMicroVertices( bool                                       write2D,
-                                                          VTKOutput::VTKStreamWriter< real_t >&      dstStream,
+                                                          VTKStreamWriter< real_t >&                 dstStream,
                                                           const std::shared_ptr< PrimitiveStorage >& storage,
                                                           uint_t                                     level,
                                                           bool                                       discontinuous );
 
 template void VTKMeshWriter::writePointsForMicroEdges( bool                                       write2D,
-                                                       VTKOutput::VTKStreamWriter< real_t >&      dstStream,
+                                                       VTKStreamWriter< real_t >&                 dstStream,
                                                        const std::shared_ptr< PrimitiveStorage >& storage,
                                                        uint_t                                     level,
                                                        const vtk::DoFType&                        dofType );

@@ -75,7 +75,7 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
    vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    {
-      VTKOutput::VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
+      VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
       VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, dofType );
       streamWriter.toStream( output );
    }
@@ -131,7 +131,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
                     dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||
                     dofType == vtk::DoFType::EDGE_XYZ );
 
-   VTKOutput::VTKStreamWriter< value_t > streamWriter( mgr.vtkDataFormat_ );
+   VTKStreamWriter< value_t > streamWriter( mgr.vtkDataFormat_ );
 
    if ( mgr.write2D_ )
    {

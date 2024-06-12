@@ -440,6 +440,26 @@ inline uint_t maxNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorag
                                     walberla::mpi::MPIManager::instance()->comm() );
 }
 
+/// Returns the polynomial degree of the basis functions of the corresponding function type, if implemented and meaningful.
+template < typename FunctionType >
+inline uint_t polynomialDegreeOfBasisFunctions()
+{
+   if ( std::is_same_v< typename FunctionType::Tag, P1FunctionTag > ||
+        std::is_same_v< typename FunctionType::Tag, P1VectorFunctionTag > )
+   {
+      return 1;
+   }
+   else if ( std::is_same_v< typename FunctionType::Tag, P2FunctionTag > ||
+             std::is_same_v< typename FunctionType::Tag, P2VectorFunctionTag > )
+   {
+      return 2;
+   }
+   else
+   {
+      WALBERLA_ABORT( "polynomialDegreeOfBasisFunctions() not implemented or not meaningful for this function type." )
+   }
+}
+
 /// \brief Prints infos about the memory consumption of all functions.
 ///
 /// Note 1: this function may be expensive since it performs global reduction (multiple times)
