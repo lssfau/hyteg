@@ -211,7 +211,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
 
    const std::vector<real_t>& getTimestepInfo()
    {
-      auto varTimestepInfo = io_.InquireVariable<double>("TimestepInfo");
+      auto varTimestepInfo = io_.InquireVariable<real_t>("TimestepInfo");
       auto size = varTimestepInfo.SelectionSize();
 
       timestepInfo.resize(size);

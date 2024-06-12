@@ -273,7 +273,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
          adiosHelpers::generateSoftwareMetaData( io_ );
          addVersionInformation( io_ );
 
-         io_.DefineVariable< double >( "TIME" );
+         io_.DefineVariable< real_t >( "TIME" );
 
          // generate variables for export
          defineAndOrExportVariables< P1Function, real_t >( io_, engine_, ExportType::ONLY_DEFINE );
@@ -315,7 +315,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       defineAndOrExportVariables< P2VectorFunction, int32_t >( io_, engine_, ExportType::ONLY_EXPORT );
       defineAndOrExportVariables< P2VectorFunction, int64_t >( io_, engine_, ExportType::ONLY_EXPORT );
 
-      auto varTimeStep = io_.InquireVariable< double >( "TIME" );
+      auto varTimeStep = io_.InquireVariable< real_t >( "TIME" );
       engine_.Put( varTimeStep, time );
 
       timestepInfo_.push_back( time );
