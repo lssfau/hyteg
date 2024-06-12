@@ -302,6 +302,43 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
+   /// reduces the function locally using the reduceOperation
+   /// \param level the refinement level
+   /// \param reduceOperation the first argument of the function is the already reduced value; the second argument is the new value
+   /// \param initialValue the initial value of the reduction
+   /// \param flag the hyteg flags on which to perform the reduction. See \ref DoFType
+   /// \return the locally reduced value
+   ValueType reduceLocal( uint_t                                              level,
+                          std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                          ValueType                                           initialValue,
+                          DoFType                                             flag = All ) const;
+
+   /// reduces the function locally and performs a MPI reduction
+   /// \param level the refinement level
+   /// \param reduceOperation the first argument of the function is the already reduced value; the second argument is the new value
+   /// \param initialValue the initial value of the reduction
+   /// \param mpiReduceOperation the MPI reduce operation e.g. walberla::MPI::MAX
+   /// \param flag the hyteg flags on which to perform the reduction. See \ref DoFType
+   /// \return the globally reduced value
+   ValueType reduceGlobal( uint_t                                              level,
+                           std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                           ValueType                                           initialValue,
+                           walberla::mpi::Operation                            mpiReduceOperation,
+                           DoFType                                             flag = All ) const;
+
+   /// reduces the function locally and performs a reduction over all processes
+   /// this variant performs an allGather and local reduction
+   /// only use this if no MPI reduce operation can be used since the performance will be worse due to the allGather
+   /// \param level the refinement level
+   /// \param reduceOperation the first argument of the function is the already reduced value; the second argument is the new value
+   /// \param initialValue the initial value of the reduction
+   /// \param flag the hyteg flags on which to perform the reduction. See \ref DoFType
+   /// \return the globally reduced value
+   ValueType reduceGlobal( uint_t                                              level,
+                           std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                           ValueType                                           initialValue,
+                           DoFType                                             flag = All ) const;
+
    BoundaryCondition getBoundaryCondition() const;
    void              setBoundaryCondition( BoundaryCondition bc );
 

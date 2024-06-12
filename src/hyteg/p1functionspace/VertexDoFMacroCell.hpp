@@ -718,6 +718,22 @@ inline ValueType
    return localMax;
 }
 
+template < typename ValueType >
+inline ValueType reduce( uint_t                                                      level,
+                         std::function< ValueType( ValueType, ValueType ) >&         reduceOperation,
+                         ValueType                                                   initialValue,
+                         Cell&                                                       cell,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+{
+   auto src = cell.getData( srcId )->getPointer( level );
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   {
+      initialValue = reduceOperation(
+          initialValue, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )] );
+   }
+   return initialValue;
+}
+
 inline void saveOperator( const uint_t&                                                                         Level,
                           Cell&                                                                                 cell,
                           const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& operatorId,

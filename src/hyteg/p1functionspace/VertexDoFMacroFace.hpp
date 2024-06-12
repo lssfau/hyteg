@@ -955,6 +955,22 @@ inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDa
 }
 
 template < typename ValueType >
+inline ValueType reduce( uint_t                                                      level,
+                         std::function< ValueType( ValueType, ValueType ) >&         reduceOperation,
+                         ValueType                                                   initialValue,
+                         Face&                                                       face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+{
+   auto src = face.getData( srcId )->getPointer( level );
+   for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      initialValue = reduceOperation(
+          initialValue, src[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C )] );
+   }
+   return initialValue;
+}
+
+template < typename ValueType >
 inline void saveOperator( const uint_t&                                              Level,
                           Face&                                                      face,
                           const PrimitiveDataID< StencilMemory< ValueType >, Face >& operatorId,

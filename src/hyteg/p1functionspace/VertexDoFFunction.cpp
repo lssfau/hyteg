@@ -2053,6 +2053,81 @@ ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType fla
 }
 
 template < typename ValueType >
+ValueType VertexDoFFunction< ValueType >::reduceGlobal( uint_t                                              level,
+                                                        std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                                                        ValueType                                           initialValue,
+                                                        walberla::mpi::Operation                            mpiReduceOperation,
+                                                        DoFType                                             flag) const
+{
+   initialValue = reduceLocal(level, reduceOperation, initialValue, flag);
+   walberla::mpi::allReduceInplace( initialValue, mpiReduceOperation );
+   return initialValue;
+}
+
+template < typename ValueType >
+ValueType VertexDoFFunction< ValueType >::reduceGlobal( uint_t                                              level,
+                                                        std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                                                        ValueType                                           initialValue,
+                                                        DoFType                                             flag) const
+{
+   ValueType localReduce = reduceLocal(level, reduceOperation, initialValue, flag);
+   auto gatherVector = walberla::mpi::allGather( localReduce );
+   for ( auto localValue : gatherVector )
+   {
+      localReduce = reduceOperation( initialValue, localValue );
+   }
+   return localReduce;
+}
+
+template < typename ValueType >
+ValueType VertexDoFFunction< ValueType >::reduceLocal( uint_t                                              level,
+                                                       std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                                                       ValueType                                           initialValue,
+                                                       DoFType                                             flag) const
+{
+   for ( auto& it : this->getStorage()->getCells() )
+   {
+      //Cell&     cell = *it.second;
+      auto cellReduced =
+          vertexdof::macrocell::reduce< ValueType >( level, reduceOperation, initialValue, *it.second, cellDataID_ );
+      initialValue = reduceOperation( initialValue, cellReduced );
+   }
+
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, flag ) )
+      {
+         auto faceReduced =
+             vertexdof::macroface::reduce< ValueType >( level, reduceOperation, initialValue, *it.second, faceDataID_ );
+         initialValue = reduceOperation( initialValue, faceReduced );
+      }
+   }
+
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         auto edgeReduced =
+             vertexdof::macroedge::reduce< ValueType >( level, reduceOperation, initialValue, *it.second, edgeDataID_ );
+         initialValue = reduceOperation( initialValue, edgeReduced );
+      }
+   }
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex&       vertex   = *it.second;
+      const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, flag ) )
+      {
+         initialValue = reduceOperation( initialValue, vertex.getData( vertexDataID_ )->getPointer( level )[0] );
+      }
+   }
+   return initialValue;
+}
+
+template < typename ValueType >
 void VertexDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
 {
