@@ -6,6 +6,10 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         FILES IndexFunctionVSManualVersion.cpp
         DEPENDS hyteg constant_stencil_operator)
 
+waLBerla_add_executable(NAME CollectiveOperationsBenchmark
+      FILES CollectiveOperationsBenchmark.cpp
+      DEPENDS hyteg)
+
 add_subdirectory(KernelBench)
 if (WALBERLA_DOUBLE_ACCURACY)
     add_subdirectory(ApplyPerformanceAnalysis-2D-P2)

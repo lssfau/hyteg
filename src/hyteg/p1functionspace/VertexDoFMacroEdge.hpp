@@ -634,6 +634,22 @@ inline ValueType getMinValue( const uint_t& level, Edge& edge, const PrimitiveDa
    return localMin;
 }
 
+template < typename ValueType >
+inline ValueType reduce( uint_t                                                      level,
+                         std::function< ValueType( ValueType, ValueType ) >&         reduceOperation,
+                         ValueType                                                   initialValue,
+                         Edge&                                                       face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+{
+   auto src = face.getData( srcId )->getPointer( level );
+   for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
+   {
+      initialValue = reduceOperation( initialValue,
+                                      src[vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C )] );
+   }
+   return initialValue;
+}
+
 template< typename ValueType >
 inline void saveOperator( const uint_t&                                           level,
                           Edge&                                                   edge,
