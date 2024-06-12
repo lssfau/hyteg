@@ -51,9 +51,13 @@ void ConvectionSimulation::step()
       // setupStokesRHS();
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
+#ifdef HYTEG_BUILD_WITH_ADIOS2
          checkpointImporter->restoreFunction( *temperature );
          solveStokes();
          dataOutput();
+#else
+         WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
+#endif
       }
       else
       {

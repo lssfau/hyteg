@@ -24,10 +24,13 @@
 #include <core/config/Config.h>
 #include <core/mpi/MPIManager.h>
 
-#include "hyteg/MeshQuality.hpp"
+#ifdef HYTEG_BUILD_WITH_ADIOS2
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#endif
+
+#include "hyteg/MeshQuality.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
