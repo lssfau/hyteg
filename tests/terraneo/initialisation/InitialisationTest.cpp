@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -74,7 +74,7 @@ void checkProfile( const terraneo::RadialProfile& profile )
                                                    profile.max[i],
                                                    profile.numDoFsPerShell[i] ) )
 
-      const auto eps = std::abs( profile.mean[i] ) * 1e-8;
+      const auto eps = std::abs( profile.mean[i] ) * real_c( 1e-8 );
       WALBERLA_CHECK_LESS_EQUAL( profile.min[i], profile.mean[i] + eps );
       WALBERLA_CHECK_LESS_EQUAL( profile.mean[i], profile.max[i] + eps );
    }
@@ -85,7 +85,12 @@ void checkProfile( const terraneo::RadialProfile& profile )
 /// - Computes radial profiles.
 /// - Checks whether the radial profiles give reasonable numbers.
 template < typename FunctionType, typename VectorFunctionType >
-void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const real_t& rMin, const uint_t& level )
+void runTest( const uint_t nTan,
+              const uint_t nRad,
+              const real_t rMax,
+              const real_t rMin,
+              const uint_t level,
+              const real_t epsMeanTest )
 {
    walberla::math::seedRandomGenerator( 42 );
 
@@ -100,16 +105,16 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
    real_t Tcmb     = 4200;
    real_t Tadb     = 1600;
 
-   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, 0.68, rMin, rMax );
+   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, real_c( 0.68 ), rMin, rMax );
 
-   real_t noiseFactor                 = 0.05;
+   real_t noiseFactor                 = real_c( 0.05 );
    uint_t tempInit                    = 10;
    uint_t deg                         = 4;
    int    ord                         = 2;
    uint_t lmax                        = 25;
    uint_t lmin                        = 10;
    bool   superposition               = true;
-   real_t buoyancyFactor              = 0.01;
+   real_t buoyancyFactor              = real_c( 0.01 );
    real_t initialTemperatureSteepness = 10;
 
    auto temperatureReference = terraneo::temperatureReferenceExponential( tempInitParams );
@@ -164,7 +169,7 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFct =
        [&]( const Point3D& x, const std::vector< real_t >& T ) {
           auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-          auto shell = terraneo::nearestShellFromRadius(
+          auto shell  = terraneo::nearestShellFromRadius(
               radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
           return T[0] - profile.mean[shell];
        };
@@ -176,11 +181,11 @@ void runTest( const uint_t& nTan, const uint_t& nRad, const real_t& rMax, const 
    WALBERLA_LOG_INFO_ON_ROOT( "Test mean after subtraction" )
    for ( auto p : profileTest.mean )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( p )
-      WALBERLA_CHECK_FLOAT_EQUAL( p, real_c( 0 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "" << std::showpos << std::scientific << p )
+      WALBERLA_CHECK_LESS( std::abs( p ), epsMeanTest );
    }
 
-   bool output = true;
+   bool output = false;
 
    if ( output )
    {
@@ -197,13 +202,26 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   real_t rMax  = 2.12;
-   real_t rMin  = 1.12;
+   real_t rMax  = real_c( 2.12 );
+   real_t rMin  = real_c( 1.12 );
    uint_t level = 3;
    uint_t nTan  = 3;
    uint_t nRad  = 2;
 
-   runTest< P1Function< real_t >, P1VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level );
-   runTest< P2Function< real_t >, P2VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing with P1 type functions ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
+   {
+      real_t epsMeanTest = real_c( std::is_same_v< double, real_t > ? 1e-13 : 3e-5 );
+      runTest< P1Function< real_t >, P1VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level, epsMeanTest );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing with P2 type functions ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
+   {
+      real_t epsMeanTest = real_c( std::is_same_v< double, real_t > ? 1e-13 : 2e-4 );
+      runTest< P2Function< real_t >, P2VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level, epsMeanTest );
+   }
    return 0;
 }
