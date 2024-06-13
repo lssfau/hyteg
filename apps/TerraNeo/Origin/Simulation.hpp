@@ -174,8 +174,10 @@ void ConvectionSimulation::step()
 
    // setupEnergyRHS();
 
+   storage->getTimingTree()->start( "Solve Energy equation" );
    solveEnergy();
-
+   storage->getTimingTree()->stop( "Solve Energy equation" );
+   
    //######################################################//
    //                  STOKES EQUATIONS                    //
    //######################################################//
@@ -682,6 +684,13 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
        ( temp - TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
 
    return retVal;
+}
+
+
+void ConvectionSimulation::outputTimingTree()
+{
+   auto timer = storage->getTimingTree();
+   writeTimingTreeJSON( *timer, TN.outputParameters.outputDirectory + "/" + "TimingTree.json" );
 }
 
 } // namespace terraneo

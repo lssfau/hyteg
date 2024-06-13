@@ -14,9 +14,9 @@ Parameters
    nTan 3;
    nRad 2;
    threeDim true;
-   
+
    // Refinement level
-   
+
    maxLevel 5;
    minLevel 0;
     
@@ -51,11 +51,11 @@ Parameters
 
    // Spherical Harmonics parameters
 
-   degree 25;
-   order 25;
-   lmin 10;
-   lmax 25;
-   
+   degree 4;
+   order 8;
+   lmin 2;
+   lmax 8;
+
    // Spherical Harmonics superposition
    // generate random superposition of spherical harmonics (lmin -> lmax)
    // false: generate a single spherical harmonic (degree and order defined above)
@@ -64,23 +64,7 @@ Parameters
 
    // scaling temperature anomalies in the initial state
 
-   buoyancyFactor 0.01;
-
-   /////////////////////////
-   //  Model parameters   //
-   /////////////////////////
-
-   // Input viscosity profile
-
-   viscosityProfile ../../data/terraneo/viscosityProfiles/tests/ViscosityProfileTest.json;
-
-   characteristicVelocity 1e-7;
-
-   // Input temperature
-
-   surfacetemp 300.0;
-   cmbtemp 4200.0;
-   
+   buoyancyFactor 0.05;
    ////////////////////////////
    //  Material parameters   //
    ////////////////////////////
@@ -95,14 +79,14 @@ Parameters
    // Adiabatic reference state parameters
 
    // adiabatic reference state parameters
-   
+
    adiabatSurfaceTemp 1600;
    surfaceDensity 3.3745581070e03;
-   
+
    // Derive density profile using Gruneisen parameter
 
    grueneisenParameter 1.1;
-   
+
    ///////////////////////////////////////////
    //  Temp-Dependent Viscosity parameters  //
    ///////////////////////////////////////////
@@ -119,17 +103,32 @@ Parameters
    // default: 0
    //Note that the same values of activationEnergy aren't necessarily relevant for all cases
 
-   tempDependentViscosityType 3; 
+   tempDependentViscosityType 0; 
 
-   activationEnergy 5;
+   activationEnergy 2;
    depthViscosityFactor 2.5;
    viscosityLowerBound 2e19;
    viscosityUpperBound 1e24;
 
    //setup solvers again due to changing spectral bounds of stokes operator
-   
+
    resetSolver true;
    resetSolverFrequency 100; 
+
+   /////////////////////////
+   //  Model parameters   //
+   /////////////////////////
+
+   // Input viscosity profile
+
+   viscosityProfile ../../data/terraneo/viscosityprofiles/testing/ViscosityProfileTest.json;
+
+   characteristicVelocity 1e-8;
+
+   // Input temperature
+
+   surfacetemp 300.0;
+   cmbtemp 4200.0;
 
    //////////////////////////////
    //  Simulation parameters   //
@@ -142,16 +141,10 @@ Parameters
    // default: 1
 
    boundaryCond 1;
-   
-   // Model simulation type: ConvectionModel / CirculationModel
-   
-   simulationType ConvectionModel;
 
-   // Solver type
-   // 0: MINRES + pressure prec. (HyTeG)
-   // 1: MINRES + no prec. (PETSc)
-   
-   solverType 0;
+   // Model simulation type: ConvectionModel / CirculationModel
+
+   simulationType ConvectionModel;
 
    compressible true;
    shearHeating true;
@@ -160,78 +153,73 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 200;
+   maxNumTimeSteps 10;
    fixedTimeStep false;
-   cflMax 1;
+   cflMax 0.75;
    dtConstant 1e-4;
 
    // Adaptive reference Temperature 
    // true: update to radial mean Temperature
 
    adaptiveRefTemp false;
-  
+
    // Input files for circulation model
 
    fnameTopologies       ../../../data/terraneo/plates/topologies0-100Ma.geojson;
    fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
    initialAge 100;
    finalAge 1;
-   plateVelocityScaling 4;
+   plateVelocityScaling 8;
+
    //distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)
+   
    plateSmoothingDistance 110;
-  
+
+   verbose false;
+
    //////////////////////////
    //  Solver parameters  //
    //////////////////////////
 
-   // Stokes solver abort criteria
+   // Number of power iterations for estimating spectral radius
 
-   stokesMaxNumIterations 10;
+   numPowerIterations 50;
 
-   // Residual tolerances for repeated V cycles 
+   // FGMRES solver parameters 
 
-   stokesAbsoluteResidualUTolerance 1e-6;
-   stokesRelativeResidualUTolerance 1e-6;
-
-   // Residual tolerances for FMG and repeated V cycles
-
-   coarseGridAbsoluteResidualTolerance 1e-12;
-   coarseGridRelativeResidualTolerance 1e-12;
-
-   // Stokes solver parameters
-
-   uzawaPreSmooth 3;
-   uzawaPostSmooth 3;
-   uzawaInnerIterations 3;
-   uzawaOmega 0.1;
-   numVCyclesPerLevel 1;
+   FGMRESOuterIterations 5;
+   FGMRESTolerance 1e-6;
+   uzawaIterations 3;
+   uzawaOmega 0.5;
    estimateUzawaOmega false;
+   ABlockMGIterations 3;
+   ABlockMGTolerance 1e-6;
+   ABlockMGPreSmooth 2;
+   ABlockMGPostSmooth 2;
+   ABlockCoarseGridIterations 10;
+   ABlockCoarseGridTolerance 1e-6;
+   SchurMGIterations 3;
+   SchurMGTolerance 1e-6;
+   SchurMGPreSmooth 2;
+   SchurMGPostSmooth 2;
+   SchurCoarseGridIterations 5;
+   SchurCoarseGridTolerance 1e-6;
 
-   //max number of iterations used for spectral radius estimation for preconditioning of chebyshev smoother
-   chebyshevIterations 50;
+   // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   //if stokes resduals diverge beyond this value, kill simulation
-   stokesKillTolerance 1;
+   stokesKillTolerance 10;
 
-   //if true, use FMG, if false, use repeated V cycles 
-   fullMultigrid false;
-
-   //if true, precompute and store stokes local element matrices. If false, compute on-the-fly
-
-   preComputeStokesElementMatrices true;
-
-   // Diffusion equation aborting criteria
+   // Diffusion parameters 
 
    diffusionMaxNumIterations 1000;
    diffusionAbsoluteResidualUTolerance 1e-12;
-   gmresApproximationToleranceTransport 1e-12;
-
+   
    //////////////////////////
    //  Output parameters   //
    //////////////////////////
-   
+
    dataOutput true;
-   vtk false;
+   vtk true;
    OutputVelocity true;
    OutputTemperature true;
    OutputInterval 1;
@@ -244,7 +232,7 @@ Parameters
 
    outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
-   
+
    ADIOS2CheckpointPath ../../output/checkpoint/;
    ADIOS2CheckpointFilename 3d_convection_checkpoint;
    ADIOS2StartFromCheckpoint false;
@@ -261,8 +249,8 @@ Parameters
    outputDirectory ../../output;
    outputBaseName 3d_convection;
 
-   verbose true;
-   
+   // Output of a. json file containing timing tree information
+
    // Output of json file containing timing results of default Timing Tree results
    // default: false
 

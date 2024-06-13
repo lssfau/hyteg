@@ -44,7 +44,7 @@ int main( int argc, char** argv )
    }
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-   terraneo::ConvectionSimulation simulation( mainConf );
+   terraneo::ConvectionSimulation      simulation( mainConf );
    simulation.init();
 
    // Starting simulation
@@ -74,6 +74,9 @@ int main( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( "Circulatin model ran from " << simulation.getSimulationParams().initialAge << " - "
                                                               << simulation.getSimulationParams().ageMa << " Ma." )
    }
-
+   if ( simulation.getSimulationParams().timingAnalysis )
+   {
+      simulation.outputTimingTree();
+   }
    return EXIT_SUCCESS;
 }

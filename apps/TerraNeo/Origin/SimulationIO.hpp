@@ -57,7 +57,9 @@ void ConvectionSimulation::setupOutput()
       }
 
 #else
-      WALBERLA_LOG_INFO_ON_ROOT( " No submodule ADIOS2 enabled. No data output " );
+      WALBERLA_LOG_INFO_ON_ROOT( "No submodule ADIOS2 enabled! " );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "No data output! " );
 #endif
    }
 

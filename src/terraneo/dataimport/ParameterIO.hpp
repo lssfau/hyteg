@@ -151,7 +151,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.adiabaticHeating       = mainConf.getParameter< bool >( "adiabaticHeating" );
    simulationParam.internalHeating        = mainConf.getParameter< bool >( "internalHeating" );
    simulationParam.boundaryCond           = mainConf.getParameter< uint_t >( "boundaryCond" );
-   solverParam.solverType                 = mainConf.getParameter< uint_t >( "SolverType" );
    simulationParam.timingAnalysis         = mainConf.getParameter< bool >( "timingAnalysis" );
 
    if ( simulationParam.tempDependentViscosity )
@@ -204,30 +203,32 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ SOLVER PARAMETERS ############*/
 
-   solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
-   solverParam.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
-   solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
+   solverParam.numPowerIterations    = mainConf.getParameter< uint_t >( "numPowerIterations" );
+   solverParam.FGMRESOuterIterations = mainConf.getParameter< uint_t >( "FGMRESOuterIterations" );
+   solverParam.FGMRESTolerance       = mainConf.getParameter< real_t >( "FGMRESTolerance" );
 
-   solverParam.coarseGridAbsoluteResidualTolerance = mainConf.getParameter< real_t >( "coarseGridAbsoluteResidualTolerance" );
-   solverParam.coarseGridRelativeResidualTolerance = mainConf.getParameter< real_t >( "coarseGridRelativeResidualTolerance" );
+   solverParam.uzawaIterations    = mainConf.getParameter< uint_t >( "uzawaIterations" );
+   solverParam.uzawaOmega         = mainConf.getParameter< real_t >( "uzawaOmega" );
+   solverParam.estimateUzawaOmega = mainConf.getParameter< bool >( "estimateUzawaOmega" );
 
-   solverParam.uzawaOmega                      = mainConf.getParameter< real_t >( "uzawaOmega" );
-   solverParam.uzawaInnerIterations            = mainConf.getParameter< uint_t >( "uzawaInnerIterations" );
-   solverParam.uzawaPreSmooth                  = mainConf.getParameter< uint_t >( "uzawaPreSmooth" );
-   solverParam.uzawaPostSmooth                 = mainConf.getParameter< uint_t >( "uzawaPostSmooth" );
-   solverParam.numVCyclesPerLevel              = mainConf.getParameter< uint_t >( "numVCyclesPerLevel" );
-   solverParam.estimateUzawaOmega              = mainConf.getParameter< bool >( "estimateUzawaOmega" );
-   solverParam.fullMultigrid                   = mainConf.getParameter< bool >( "fullMultigrid" );
-   solverParam.preComputeStokesElementMatrices = mainConf.getParameter< bool >( "preComputeStokesElementMatrices" );
-   solverParam.chebyshevIterations             = mainConf.getParameter< uint_t >( "chebyshevIterations" );
-   solverParam.stokesKillTolerance             = mainConf.getParameter< real_t >( "stokesKillTolerance" );
+   solverParam.ABlockMGIterations         = mainConf.getParameter< uint_t >( "ABlockMGIterations" );
+   solverParam.ABlockMGTolerance          = mainConf.getParameter< real_t >( "ABlockMGTolerance" );
+   solverParam.ABlockMGPreSmooth          = mainConf.getParameter< uint_t >( "ABlockMGPreSmooth" );
+   solverParam.ABlockMGPostSmooth         = mainConf.getParameter< uint_t >( "ABlockMGPostSmooth" );
+   solverParam.ABlockCoarseGridIterations = mainConf.getParameter< uint_t >( "ABlockCoarseGridIterations" );
+   solverParam.ABlockCoarseGridTolerance  = mainConf.getParameter< real_t >( "ABlockCoarseGridTolerance" );
+
+   solverParam.SchurMGIterations         = mainConf.getParameter< uint_t >( "SchurMGIterations" );
+   solverParam.SchurMGTolerance          = mainConf.getParameter< uint_t >( "SchurMGTolerance" );
+   solverParam.SchurMGPreSmooth          = mainConf.getParameter< uint_t >( "SchurMGPreSmooth" );
+   solverParam.SchurMGPostSmooth         = mainConf.getParameter< uint_t >( "SchurMGPostSmooth" );
+   solverParam.SchurCoarseGridIterations = mainConf.getParameter< uint_t >( "SchurCoarseGridIterations" );
+   solverParam.SchurCoarseGridTolerance  = mainConf.getParameter< real_t >( "SchurCoarseGridTolerance" );
+
+   solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
 
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverParam.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
-
-   solverParam.gmresApproximationToleranceTransport = mainConf.getParameter< real_t >( "gmresApproximationToleranceTransport" );
-
-   solverParam.solverType = mainConf.getParameter< uint_t >( "SolverType" );
 
    outputParam.outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
    outputParam.outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
@@ -416,26 +417,24 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "----    Solver Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "Stokes Max Num Iterations              : " << solverParam.stokesMaxNumIterations );
-   WALBERLA_LOG_INFO_ON_ROOT( "Stokes absolute residual U-tolerance   : " << solverParam.stokesAbsoluteResidualUTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "Stokes relative residual U-tolerance   : " << solverParam.stokesRelativeResidualUTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver outer iterations         : " << solverParam.FGMRESOuterIterations );
+   WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver tolerance                : " << solverParam.FGMRESTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "Uzawa smoother iterations              : " << solverParam.uzawaIterations );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid absolute residual tolerance: " << solverParam.coarseGridAbsoluteResidualTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid relative residual tolerance: " << solverParam.coarseGridRelativeResidualTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "Uzawa inner iterations                 : " << solverParam.uzawaInnerIterations );
-   WALBERLA_LOG_INFO_ON_ROOT( "Uzawa pre-smooth                       : " << solverParam.uzawaPreSmooth );
-   WALBERLA_LOG_INFO_ON_ROOT( "Uzawa post-smooth                      : " << solverParam.uzawaPostSmooth );
-   WALBERLA_LOG_INFO_ON_ROOT( "Number of V-Cycles per level           : " << solverParam.numVCyclesPerLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "Uzawa Omega                            : " << solverParam.uzawaOmega );
+   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid solver tolerance     : " << solverParam.ABlockMGTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid iterations           : " << solverParam.ABlockMGIterations );
+   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid pre-smoothing steps  : " << solverParam.ABlockMGPreSmooth );
+   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid post-smoothing steps : " << solverParam.ABlockMGPostSmooth );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid solver tolerance       : " << solverParam.SchurMGTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid iterations             : " << solverParam.SchurMGIterations );
+   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid pre-smoothing steps    : " << solverParam.SchurMGPreSmooth );
+   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid post-smoothing steps   : " << solverParam.SchurMGPostSmooth );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Diffusion max num iterations           : " << solverParam.diffusionMaxNumIterations );
    WALBERLA_LOG_INFO_ON_ROOT( "Diffusion absolute residual U-tolerance: " << solverParam.diffusionAbsoluteResidualUTolerance );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes kill-tolerance                  : " << solverParam.stokesKillTolerance );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Full-multigrid                         : " << ( solverParam.fullMultigrid ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "pre-compute Stokes Element Matrices    : " << ( solverParam.preComputeStokesElementMatrices ? "true" : "false" ) );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Chebyshev iterations                   : " << solverParam.chebyshevIterations );
 
    WALBERLA_ROOT_SECTION() { walberla::logging::Logging::instance()->stopLoggingToFile(); }
 }

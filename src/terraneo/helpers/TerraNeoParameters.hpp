@@ -68,32 +68,30 @@ struct DomainParameters
 struct SolverParameters
 {
    // Stokes solver parameters
-   uint_t stokesMaxNumIterations              = 10000;
-   real_t coarseGridAbsoluteResidualTolerance = real_c( 0 );
-   real_t coarseGridRelativeResidualTolerance = real_c( 0 );
-   uint_t uzawaInnerIterations                = 10;
-   uint_t uzawaPreSmooth                      = 6;
-   uint_t uzawaPostSmooth                     = 6;
-   real_t uzawaOmega                          = real_c( 0.3 );
-   uint_t numVCyclesPerLevel                  = 1;
-   bool   fullMultigrid                       = true;
-   bool   preComputeStokesElementMatrices     = true;
-   bool   estimateUzawaOmega                  = false;
-   uint_t chebyshevIterations                 = 50;
-   real_t stokesKillTolerance                 = real_c( 100 );
+   uint_t numPowerIterations         = 25;
+   uint_t FGMRESOuterIterations      = 5;
+   real_t FGMRESTolerance            = 1e-6;
+   uint_t uzawaIterations            = 5;
+   real_t uzawaOmega                 = real_c( 0.3 );
+   bool   estimateUzawaOmega         = false;
+   uint_t ABlockMGIterations         = 5;
+   real_t ABlockMGTolerance          = 1e-6;
+   uint_t ABlockMGPreSmooth          = 3;
+   uint_t ABlockMGPostSmooth         = 3;
+   uint_t ABlockCoarseGridIterations = 5;
+   real_t ABlockCoarseGridTolerance  = 1e-6;
+   uint_t SchurMGIterations          = 5;
+   real_t SchurMGTolerance           = 1e-6;
+   uint_t SchurMGPreSmooth           = 3;
+   uint_t SchurMGPostSmooth          = 3;
+   uint_t SchurCoarseGridIterations  = 5;
+   real_t SchurCoarseGridTolerance   = 1e-6;
+   real_t stokesKillTolerance        = real_c( 1000 );
 
-   //parameters needed for repeated V-cycles
-   real_t stokesAbsoluteResidualUTolerance = real_c( 0 );
-   real_t stokesRelativeResidualUTolerance = real_c( 0 );
-   real_t initialResidualU                 = real_c( 0 );
-   real_t vCycleResidualUPrev              = real_c( 0 );
-   uint_t numVCycles                       = 0;
-   real_t averageResidualReductionU        = real_c( 0 );
    // Diffusion solver parameters
+
    uint_t diffusionMaxNumIterations           = 10000;
    real_t diffusionAbsoluteResidualUTolerance = real_c( 10000 );
-   // Solver types (MinRes / PETSc)
-   uint_t solverType = 0;
 
    real_t gmresApproximationToleranceTransport = real_c( 1e-5 );
 };
