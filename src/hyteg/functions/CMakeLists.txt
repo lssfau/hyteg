@@ -1,15 +1,16 @@
 target_sources( hyteg
     PRIVATE
+    BlockFunction.hpp     
+    CSFVectorFunction.hpp
+    FEFunctionRegistry.hpp
+    Function.hpp
     FunctionIterator.hpp
-    GenericFunction.hpp
+    FunctionMultiStore.hpp
+    FunctionProperties.cpp
+    FunctionProperties.hpp
     FunctionTraits.hpp
     FunctionWrapper.hpp
-    Function.hpp
-    FunctionProperties.hpp
-    FunctionMultiStore.hpp
-    CSFVectorFunction.hpp
+    GenericFunction.hpp
     VectorFunctionTools.hpp
-    FunctionProperties.cpp
-    BlockFunction.hpp     
 )
 

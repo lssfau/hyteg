@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,8 @@
 #pragma once
 
 #include "core/DataTypes.h"
+
+using walberla::uint_t;
 
 namespace hyteg {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,9 +19,9 @@
  */
 #include "Syncing.hpp"
 
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
+#include "hyteg/functions/FEFunctionRegistry.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/all.hpp"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,7 +22,7 @@
 #include <adios2.h>
 
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
+#include "hyteg/functions/FEFunctionRegistry.hpp"
 
 namespace hyteg {
 
