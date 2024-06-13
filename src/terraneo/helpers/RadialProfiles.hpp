@@ -77,6 +77,36 @@ inline real_t
    return rMin + real_c( shell ) * ( rMax - rMin ) / real_c( numberOfLayers( nRad, level, polynomialOrderOfLagrangeDiscr ) );
 }
 
+std::vector< real_t >
+    computeShellRadii( const std::vector< real_t >& layers, uint_t level, uint_t polynomialOrderOfLagrangeDiscr )
+
+{
+   uint_t effectiveLevel = level + polynomialOrderOfLagrangeDiscr - 1;
+
+   uint_t                nRad      = layers.size();
+   uint_t                numShells = numberOfShells( nRad, level, polynomialOrderOfLagrangeDiscr );
+   std::vector< real_t > shellRadii( numShells, 0.0 );
+
+   for ( int iShell = 0U; iShell < nRad - 1; iShell++ )
+   {
+      shellRadii[( 1 << effectiveLevel ) * iShell] = layers[iShell];
+      uint_t shell                                 = ( 1 << effectiveLevel ) * iShell;
+      // WALBERLA_LOG_INFO_ON_ROOT("Shell Layer " << shell << " = " << profile.shellRadii[shell]);
+      for ( int jShell = 0U; jShell < ( 1 << effectiveLevel ) - 1; jShell++ )
+      {
+         shellRadii[( 1 << effectiveLevel ) * iShell + jShell + 1] =
+             layers[iShell] + ( jShell + 1 ) * ( layers[iShell + 1] - layers[iShell] ) / ( 1 << effectiveLevel );
+
+         shell = ( 1 << effectiveLevel ) * iShell + jShell + 1;
+         // WALBERLA_LOG_INFO_ON_ROOT("Shell Layer " << shell << " = " << profile.shellRadii[shell]);
+      }
+   }
+
+   shellRadii[numShells - 1] = layers[nRad - 1];
+
+   return shellRadii;
+}
+
 /// Computes the index of the nearest shell from a given radius.
 inline uint_t nearestShellFromRadius( real_t radius,
                                       real_t rMin,
@@ -89,15 +119,50 @@ inline uint_t nearestShellFromRadius( real_t radius,
                                              ( ( radius - rMin ) / ( rMax - rMin ) ) ) );
 }
 
+/// Computes the index of the nearest shell from a given radius.
+inline uint_t nearestShellFromRadius( real_t radius, const std::vector< real_t >& shellRadii )
+{
+   real_t eps = 1e-12;
+   for ( uint_t iShell = 0U; iShell < shellRadii.size() - 1; iShell++ )
+   {
+      if ( radius > shellRadii[iShell] - eps && radius < shellRadii[iShell + 1] + eps )
+      {
+         if ( radius - shellRadii[iShell] > shellRadii[iShell + 1] - radius )
+         {
+            return iShell + 1;
+         }
+         else
+         {
+            return iShell;
+         }
+      }
+   }
+
+   // WALBERLA_LOG_INFO_ON_ROOT("radius = " << radius);
+
+   WALBERLA_ABORT( "Shouldn't be here" );
+}
+
+/// Computes the index of the nearest shell from a given radius.
+inline uint_t nearestShellFromRadius( real_t                       radius,
+                                      const std::vector< real_t >& layers,
+                                      uint_t                       level,
+                                      uint_t                       polynomialOrderOfLagrangeDiscr )
+{
+   auto shellRadii = computeShellRadii(layers, level, polynomialOrderOfLagrangeDiscr);
+
+   return nearestShellFromRadius(radius, shellRadii);
+}
+
 /// Interpolates the radial shell ID at the nodes of the passed scalar P1 or P2 function.
 template < typename ScalarFunctionType >
 inline void interpolateRadialShellID( ScalarFunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
 {
    using ShellIDType = typename ScalarFunctionType::valueType;
 
-   WALBERLA_CHECK(
-       std::is_integral_v< ShellIDType >,
-       "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
+   // WALBERLA_CHECK(
+   //     std::is_integral_v< ShellIDType >,
+   //     "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
 
    const bool isP1Function = std::is_same_v< typename ScalarFunctionType::Tag, P1FunctionTag >;
    const bool isP2Function = std::is_same_v< typename ScalarFunctionType::Tag, P2FunctionTag >;
@@ -109,6 +174,34 @@ inline void interpolateRadialShellID( ScalarFunctionType& u, real_t rMin, real_t
 
       ShellIDType shellID = static_cast< ShellIDType >(
           nearestShellFromRadius( radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< ScalarFunctionType >() ) );
+
+      // Returning the value to ensure that the values are not altered.
+      return shellID;
+   };
+
+   u.interpolate( radialShellID, level );
+}
+
+/// Interpolates the radial shell ID at the nodes of the passed scalar P1 or P2 function.
+template < typename ScalarFunctionType >
+inline void interpolateRadialShellID( ScalarFunctionType& u, std::vector< real_t > layers, uint_t level )
+{
+   using ShellIDType = typename ScalarFunctionType::valueType;
+
+   // WALBERLA_CHECK(
+   //     std::is_integral_v< ShellIDType >,
+   //     "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
+
+   const bool isP1Function = std::is_same_v< typename ScalarFunctionType::Tag, P1FunctionTag >;
+   const bool isP2Function = std::is_same_v< typename ScalarFunctionType::Tag, P2FunctionTag >;
+
+   WALBERLA_CHECK( isP1Function || isP2Function, "interpolateRadialShellID() only supported for scalar P1 and P2 functions." );
+
+   std::function< ShellIDType( const Point3D& ) > radialShellID = [&]( const Point3D& x ) {
+      real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+
+      ShellIDType shellID = static_cast< ShellIDType >(
+          nearestShellFromRadius( radius, layers, level, polynomialDegreeOfBasisFunctions< ScalarFunctionType >() ) );
 
       // Returning the value to ensure that the values are not altered.
       return shellID;
@@ -138,7 +231,7 @@ template < typename FunctionType >
 class RadialShellData
 {
  public:
-   void addDataFromFunction( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+   void addDataFromFunction( const FunctionType& u, real_t rMin, real_t rMax, std::vector< real_t > layers, uint_t level )
    {
       WALBERLA_CHECK_LESS( rMin, rMax, "The thick spherical seems to be degenerate :/" );
 
@@ -146,6 +239,8 @@ class RadialShellData
                       "The radial shell data can only be gathered in 3D on the spherical shell." )
 
       WALBERLA_CHECK_EQUAL( values_.count( u.getFunctionName() ), 0, "There already is data stored for that function name." )
+
+      uint_t nRad = layers.size();
 
       WALBERLA_CHECK_GREATER( nRad, 0, "No layers?" );
 
@@ -172,13 +267,15 @@ class RadialShellData
 
       std::vector< uint_t > numLocalPointsPerShell( numShells, 0 );
 
+      auto shellRadii = computeShellRadii(layers, level, polynomialDegreeOfBasisFunctions< FunctionType >());
+
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > countNodes =
           [&]( const Point3D& x, const std::vector< real_t >& values ) {
              real_t radius      = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
              real_t scalarValue = values[0];
 
              uint_t shell =
-                 nearestShellFromRadius( radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+                 nearestShellFromRadius( radius, shellRadii );
 
              // Manual bounds checking.
              WALBERLA_ASSERT_LESS( shell, numShells );
@@ -236,7 +333,7 @@ class RadialShellData
                 real_t scalarValue = values[0];
 
                 uint_t shell =
-                    nearestShellFromRadius( radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+                    nearestShellFromRadius( radius, shellRadii );
 
                 // Manual bounds checking.
                 WALBERLA_ASSERT_LESS( shell, numShells );
@@ -273,6 +370,17 @@ class RadialShellData
 
          arePointsInitialized = true;
       }
+   }
+
+   void addDataFromFunction( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+   {
+      std::vector< real_t > layers( nRad, 0.0 );
+      for ( uint_t layer = 0; layer < nRad; layer++ )
+      {
+         layers[layer] = rMin + ( ( rMax - rMin ) / real_c( nRad - 1 ) ) * real_c( layer );
+      }
+
+      addDataFromFunction( u, rMin, rMax, layers, level );
    }
 
    const std::vector< Point3D >& points( uint_t shellId ) const { return points_.at( shellId ); }
@@ -350,14 +458,17 @@ struct RadialProfile
 /// \param nRad                number of radial layers
 /// \param level               FE function refinement level
 /// \return a filled RadialProfile struct
+
 template < typename FunctionType >
-RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, std::vector< real_t > layers, uint_t level )
 {
    WALBERLA_CHECK_LESS_EQUAL( rMin, rMax );
 
    WALBERLA_CHECK( u.getStorage()->hasGlobalCells(), "The radial profile can only be computed in 3D on the spherical shell." )
 
    RadialProfile profile;
+
+   uint_t nRad = layers.size();
 
    const auto numLayers = numberOfLayers( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
    const auto numShells = numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
@@ -368,11 +479,17 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    profile.mean.resize( numShells );
    profile.numDoFsPerShell.resize( numShells );
 
-   for ( uint_t shell = 0; shell < numShells; ++shell )
-   {
-      profile.shellRadii[shell] =
-          radiusOfShell( shell, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
-   }
+   // for ( uint_t shell = 0; shell < numShells; ++shell )
+   // {
+   //    profile.shellRadii[shell] =
+   //        radiusOfShell( shell, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+
+   //    // WALBERLA_LOG_INFO_ON_ROOT("Shell " << shell << " = " << profile.shellRadii[shell]);
+   // }
+
+   profile.shellRadii = computeShellRadii(layers, level, polynomialDegreeOfBasisFunctions< FunctionType >());
+
+   // WALBERLA_LOG_INFO_ON_ROOT("Shell Layer " << numShells - 1 << " = " << profile.shellRadii[numShells - 1]);
 
    // Interpolate is used to cycle through all DoFs on a process and fill relevant parts of profile with total temperature and
    // number of DoFs.
@@ -398,8 +515,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
              WALBERLA_ABORT( "Radial profile cannot be computed for the selected function type." );
           }
 
-          uint_t shell =
-              nearestShellFromRadius( radius, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+          uint_t shell = nearestShellFromRadius( radius, profile.shellRadii );
 
           // Manual bounds checking.
           WALBERLA_ASSERT_LESS( shell, numShells );
@@ -444,6 +560,18 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    }
 
    return profile;
+}
+
+template < typename FunctionType >
+RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+{
+   std::vector< real_t > layers( nRad, 0.0 );
+   for ( uint_t layer = 0; layer < nRad; layer++ )
+   {
+      layers[layer] = rMin + ( ( rMax - rMin ) / real_c( nRad - 1 ) ) * real_c( layer );
+   }
+
+   return computeRadialProfile( u, rMin, rMax, layers, level );
 }
 
 } //namespace terraneo

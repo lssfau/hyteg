@@ -27,6 +27,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 
 #include "terraneo/helpers/RadialProfiles.hpp"
 
@@ -79,7 +80,7 @@ void testRadialPointCloudOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t r
    for ( uint_t shell = 0; shell < numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() ); shell++ )
    {
       auto numPointsOnShell = shellData.points( shell ).size();
-      walberla::mpi::reduceInplace( numPointsOnShell, walberla::mpi::Operation::SUM );
+      walberla::mpi::allReduceInplace( numPointsOnShell, walberla::mpi::Operation::SUM );
       WALBERLA_LOG_INFO_ON_ROOT( "shell " << shell << " | points: " << numPointsOnShell );
 
       numPointsOnAllShellsCombined += numPointsOnShell;
