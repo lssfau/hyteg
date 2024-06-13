@@ -25,6 +25,7 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -54,22 +55,24 @@ int main( int argc, char* argv[] )
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Setup some functions
-   P0Function< real_t > p0ScalarFunc1( "P0 scalar function 1", storageDG, minLevel, maxLevel );
+   P0Function< real_t >  p0ScalarFunc1( "P0 scalar function 1", storageDG, minLevel, maxLevel );
    P0Function< int64_t > p0ScalarFunc2( "P0 scalar function 2", storageDG, minLevel, maxLevel );
 
-   P1Function< real_t > p1ScalarFunc1( "P1 scalar function 1", storage, minLevel, maxLevel );
+   P1Function< real_t >  p1ScalarFunc1( "P1 scalar function 1", storage, minLevel, maxLevel );
    P1Function< int32_t > p1ScalarFunc2( "P1 scalar function 2", storage, minLevel, maxLevel );
 
-   P2Function< real_t > p2ScalarFunc1( "P2 scalar function 1", storage, minLevel, maxLevel );
+   P2Function< real_t >  p2ScalarFunc1( "P2 scalar function 1", storage, minLevel, maxLevel );
    P2Function< int64_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
 
-   DG1Function< real_t > dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
+   DG1Function< real_t >  dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
    DG1Function< int32_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
 
-   P1VectorFunction< real_t > p1VectorFunc( "P1 vector function", storage, minLevel, maxLevel );
+   P1VectorFunction< real_t >  p1VectorFunc( "P1 vector function", storage, minLevel, maxLevel );
    P2VectorFunction< int64_t > p2VectorFunc( "P2 vector function", storage, minLevel, maxLevel );
 
-   EGFunction< real_t >       egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
+   P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes function", storage, minLevel, maxLevel );
+
+   EGFunction< real_t > egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
 
    n1e1::N1E1VectorFunction< real_t > n1e1VectorFunc( "N1E1 vector function", storage, minLevel, maxLevel );
 
@@ -100,21 +103,26 @@ int main( int argc, char* argv[] )
    registry.add( p1VectorFunc );
    registry.add( p2VectorFunc );
 
+   // adding this will increate the count of P1Function and P2VectorFunction
+   registry.add( stokesFunc );
+
    // check name extraction individually for all kinds
-   std::vector< functionTraits::FunctionKind > kinds{ DG_FUNCTION, P1_FUNCTION, P2_FUNCTION, P1_VECTOR_FUNCTION, P2_VECTOR_FUNCTION, N1E1_VECTOR_FUNCTION, EG_FUNCTION };
-   std::vector< uint_t > count{ 3, 2, 1, 1, 1, 1, 1 };
-   for( uint_t k = 0; k < kinds.size(); ++k ) {
-     names.clear();
-     registry.extractFunctionNames( names, kinds[k] );
-     WALBERLA_CHECK_EQUAL( names.size(), count[k] );
+   std::vector< functionTraits::FunctionKind > kinds{
+       DG_FUNCTION, P1_FUNCTION, P2_FUNCTION, P1_VECTOR_FUNCTION, P2_VECTOR_FUNCTION, N1E1_VECTOR_FUNCTION, EG_FUNCTION };
+   std::vector< uint_t > count{ 3, 3, 1, 1, 2, 1, 1 };
+   for ( uint_t k = 0; k < kinds.size(); ++k )
+   {
+      names.clear();
+      registry.extractFunctionNames( names, kinds[k] );
+      WALBERLA_CHECK_EQUAL( names.size(), count[k] );
    }
 
    // selectively check function extraction
    const auto p1Funcs = registry.getP1Functions();
-   WALBERLA_CHECK_EQUAL( p1Funcs.size(), 2 );
+   WALBERLA_CHECK_EQUAL( p1Funcs.size(), 3 );
 
    const auto p2VecFuncs = registry.getP2VectorFunctions();
-   WALBERLA_CHECK_EQUAL( p2VecFuncs.size(), 1 );
+   WALBERLA_CHECK_EQUAL( p2VecFuncs.size(), 2 );
 
    const auto nedelecFuncs = registry.getN1E1VectorFunctions();
    WALBERLA_CHECK_EQUAL( nedelecFuncs.size(), 1 );
@@ -127,8 +135,13 @@ int main( int argc, char* argv[] )
 
    // test deregistring a function works
    registry.remove( p2VectorFunc );
+   WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), 1 );
+
    registry.remove( p0ScalarFunc1 );
+
+   registry.remove( stokesFunc );
    WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), 0 );
+   WALBERLA_CHECK_EQUAL( registry.getP1Functions().size(), 2 );
 
    return EXIT_SUCCESS;
 }

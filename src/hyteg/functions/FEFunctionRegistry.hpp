@@ -269,22 +269,22 @@ class FEFunctionRegistry
       // P1StokesFunction
       else if constexpr ( std::is_same_v< func_t< value_t >, P1StokesFunction< value_t > > )
       {
-         this->add( function.uvw() );
-         this->add( function.p() );
+         this->remove( function.uvw() );
+         this->remove( function.p() );
       }
 
       // P2P1TaylorHoodFunction
       else if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
       {
-         this->add( function.uvw() );
-         this->add( function.p() );
+         this->remove( function.uvw() );
+         this->remove( function.p() );
       }
 
       // EGP0StokesFunction
       else if constexpr ( std::is_same_v< func_t< value_t >, EGP0StokesFunction< value_t > > )
       {
-         this->add( function.uvw() );
-         this->add( function.p() );
+         this->remove( function.uvw() );
+         this->remove( function.p() );
       }
 
       // -----------------------
