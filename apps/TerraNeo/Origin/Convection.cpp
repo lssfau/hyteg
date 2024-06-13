@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Andreas Burkhart,
+ * Nils Kohl, Hamish Brown, Ponsuganth Ilangovan, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
