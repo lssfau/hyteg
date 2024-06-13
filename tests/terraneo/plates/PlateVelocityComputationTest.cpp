@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Berta Vilacis, Marcus Mohr.
+ * Copyright (c) 2022-2024 Berta Vilacis, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -120,8 +120,8 @@ int main( int argc, char* argv[] )
    auto refVals = setupReferenceValues();
 
    // limits for deviation of computed values from reference
-   real_t absTol = real_c( 1.0e-15 );
-   real_t relTol = real_c( 3 * 1e-8 );
+   real_t absTol = real_c( std::is_same_v< real_t, double > ? 1.0e-15 : 5 * 1e-13f );
+   real_t relTol = real_c( std::is_same_v< real_t, double > ? 3 * 1e-8 : 3 * 1e-4f );
 
    // do the testing
    for ( uint_t idx = 0; idx < refVals.size(); ++idx )
@@ -155,7 +155,7 @@ int main( int argc, char* argv[] )
       }
 
       // orthogonality check
-      real_t angleTol  = real_c( 1e-13 );
+      real_t angleTol  = real_c( std::is_same_v< real_t, double > ? 1e-13 : 1e-5f );
       real_t innerProd = velXYZ.dot( pointXYZ );
       real_t angle     = std::acos( innerProd / ( velXYZ.norm() * pointXYZ.norm() ) );
       angle *= real_c( 180 ) / terraneo::conversions::pi;
