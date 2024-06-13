@@ -18,7 +18,7 @@ Parameters
    // Refinement level
 
    maxLevel 4;
-   minLevel 0;
+   minLevel 2;
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -30,7 +30,7 @@ Parameters
    // tempInit = 1: keep anomalies near the surface
    // tempInit = 2: keep anomalies near both boundaries 
 
-   tempInit 3;
+   tempInit 0;
 
    // Steepness of temperature filtering
 
@@ -63,7 +63,7 @@ Parameters
 
    // scaling temperature anomalies in the initial state
 
-   buoyancyFactor 0.05;
+   buoyancyFactor 0.01;
    ////////////////////////////
    //  Material parameters   //
    ////////////////////////////
@@ -104,10 +104,10 @@ Parameters
 
    tempDependentViscosityType 0; 
 
-   activationEnergy 2;
-   depthViscosityFactor 2.5;
-   viscosityLowerBound 2e19;
-   viscosityUpperBound 1e24;
+   activationEnergy 0;
+   depthViscosityFactor 0;
+   viscosityLowerBound 5e19;
+   viscosityUpperBound 1e23;
 
    //setup solvers again due to changing spectral bounds of stokes operator
 
@@ -122,7 +122,7 @@ Parameters
 
    //viscosityProfile ViscosityProfile_Lin_et_al_2022.json;
 
-   characteristicVelocity 1e-6;
+   characteristicVelocity 1e-5;
 
    // Input temperature
 
@@ -154,8 +154,8 @@ Parameters
 
    maxNumTimeSteps 10;
    fixedTimeStep false;
-   cflMax 0.75;
-   dtConstant 1e-4;
+   cflMax 0.1;
+   dtConstant 100;
 
    // Adaptive reference Temperature 
    // true: update to radial mean Temperature
@@ -183,6 +183,13 @@ Parameters
    // Number of power iterations for estimating spectral radius
 
    numPowerIterations 50;
+
+   // 0 - FMGRES
+   // 1 - Uzawa
+   SolverFlag 1;
+
+   // Uzawa solver parameters
+
 
    // FGMRES solver parameters 
 
@@ -232,7 +239,7 @@ Parameters
    outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
 
-   ADIOS2CheckpointPath ./output/checkpoint;
+   ADIOS2CheckpointPath /import/freenas-m-03-geodynamics/pponkumar/output/checkpoint;
    ADIOS2CheckpointFilename 3d_convection_checkpoint;
    ADIOS2StartFromCheckpoint false;
    ADIOS2StoreCheckpoint false;
@@ -245,7 +252,7 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory ./output;
+   outputDirectory /import/freenas-m-03-geodynamics/pponkumar/output;
    outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information

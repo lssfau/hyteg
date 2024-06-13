@@ -36,6 +36,7 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
+   typedef P2ViscousIcosahedralShellMapOperatorFS       VelocityOperator_T;
    typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator::ViscousOperator_T       ViscousOperator_T;
    typedef P2ViscousIcosahedralShellMapOperatorFS                                                 ViscousOperatorFS_T;
    typedef ViscousOperatorFS_T                                                                    VelocityOperator_T;
@@ -82,6 +83,8 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
 
       StokesOp.apply( tmp_, dst, level, flag, updateType );
       projectNormal_.project( dst, level, FreeslipBoundary );
+
+      vertexdof::projectMean( dst.p(), level );
    }
 
    P2P1TaylorHoodFunction< real_t > tmp_;
@@ -93,6 +96,8 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
    SchurOperator_T                                               schurOperator;
    P2ProjectNormalOperator&                                      projectNormal_;
    ViscousOperatorFS_T                                           viscousFSOp;
+
+   P1PSPGInvDiagOperator pspg_inv_diag_;
 
    P2ElementwiseBlendingMassOperator massOperator;
 

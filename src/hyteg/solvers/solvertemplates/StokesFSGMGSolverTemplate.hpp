@@ -168,7 +168,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
    // auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< SubstAType > >( storage, minLevel );
 
    auto ABlockCoarseGridSolver =
-       std::make_shared< hyteg::CGSolver< SubstAType > >( storage, minLevel, maxLevel, ABlockCGCoarseIter, ABlockCGCoarseTol );
+       std::make_shared< hyteg::MinResSolver< SubstAType > >( storage, minLevel, maxLevel, ABlockCGCoarseIter, ABlockCGCoarseTol );
 
    // auto ABlockCoarseGridSolver =
    //     std::make_shared< hyteg::MinResSolver< SubstAType > >( storage, minLevel, maxLevel, 100, 1e-8 );

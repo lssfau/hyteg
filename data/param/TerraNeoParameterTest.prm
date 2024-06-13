@@ -185,6 +185,10 @@ Parameters
 
    numPowerIterations 50;
 
+   // 0 - FMGRES
+   // 1 - Uzawa
+   SolverFlag 1;
+
    // FGMRES solver parameters 
 
    FGMRESOuterIterations 5;

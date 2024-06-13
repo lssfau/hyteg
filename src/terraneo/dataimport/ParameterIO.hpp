@@ -202,6 +202,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    initialisationParam.noiseFactor                  = mainConf.getParameter< real_t >( "noiseFactor" );
 
    /*############ SOLVER PARAMETERS ############*/
+   solverParam.solverFlag = mainConf.getParameter< uint_t >( "solverFlag" );
 
    solverParam.numPowerIterations    = mainConf.getParameter< uint_t >( "numPowerIterations" );
    solverParam.FGMRESOuterIterations = mainConf.getParameter< uint_t >( "FGMRESOuterIterations" );

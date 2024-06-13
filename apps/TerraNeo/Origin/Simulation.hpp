@@ -527,7 +527,7 @@ real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Tempera
       //Arrhenius type
       case 3: {
          retVal *= std::exp( TN.physicalParameters.activationEnergy *
-                                 ( ( real_c( 1 ) / ( Temperature + real_c( 0.5 ) ) ) - real_c( 1 ) ) +
+                                 ( ( real_c( 1 ) / ( Temperature + real_c( 0.25 ) ) ) - real_c( 1.45 ) ) +
                              TN.physicalParameters.depthViscosityFactor * ( TN.domainParameters.rMax - radius ) /
                                  ( TN.domainParameters.rMax - TN.domainParameters.rMin ) );
 

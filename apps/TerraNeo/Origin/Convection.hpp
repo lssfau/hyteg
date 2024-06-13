@@ -71,6 +71,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
+#include "hyteg/solvers/solvertemplates/StokesFSGMGUzawaSolverTemplate.hpp"
 // HOG generated HyTeG operator
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"

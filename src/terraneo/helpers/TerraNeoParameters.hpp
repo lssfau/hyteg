@@ -67,6 +67,7 @@ struct DomainParameters
 
 struct SolverParameters
 {
+   uint_t solverFlag                 = 0u;
    // Stokes solver parameters
    uint_t numPowerIterations         = 25;
    uint_t FGMRESOuterIterations      = 5;

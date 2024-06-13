@@ -55,7 +55,7 @@ class P2ViscousIcosahedralShellMapOperatorFS : public Operator< P2VectorFunction
                const UpdateType                  updateType = Replace ) const
    {
       tmp_.assign( { 1 }, { src }, level, All );
-      projectNormal_.project( tmp_, level, FreeslipBoundary );
+      // projectNormal_.project( tmp_, level, FreeslipBoundary );
 
       viscousOperator.apply( tmp_, dst, level, flag, updateType );
       projectNormal_.project( dst, level, FreeslipBoundary );
