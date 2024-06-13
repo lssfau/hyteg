@@ -91,6 +91,9 @@ static void exportFunctions2D( uint_t level )
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    egVectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
+   p2ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
+   p2ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+
    // Output VTK
    bool beVerbose = true;
    if ( beVerbose )
@@ -114,10 +117,20 @@ static void exportFunctions2D( uint_t level )
       fName = "VTKOutputTest-P2";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput2( fPath, fName, storage );
-      vtkOutput2.add( p2ScalarFunc1 );
       vtkOutput2.add( p2ScalarFunc2 );
       vtkOutput2.add( p2VectorFunc );
-      vtkOutput2.write( maxLevel );
+      for ( uint_t ts = 0; ts <= 2; ++ts )
+      {
+         vtkOutput2.write( maxLevel, ts );
+         if ( ts == 0 )
+         {
+            vtkOutput2.remove( p2ScalarFunc2 );
+         }
+         else if ( ts == 1 )
+         {
+            vtkOutput2.add( p2ScalarFunc1 );
+         }
+      }
 
       fName = "VTKOutputTest-DG1";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );

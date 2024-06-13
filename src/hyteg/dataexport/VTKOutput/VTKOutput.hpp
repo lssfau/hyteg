@@ -77,6 +77,13 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
       feFunctionRegistry_.add< func_t, value_t >( function );
    }
 
+   /// Remove an FE Function so that it is no longer included in the next dataexport phase
+   template < template < typename > class func_t, typename value_t >
+   inline void remove( const func_t< value_t >& function )
+   {
+      feFunctionRegistry_.remove( function );
+   }
+
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
    /// Appends the time step to the filename.
