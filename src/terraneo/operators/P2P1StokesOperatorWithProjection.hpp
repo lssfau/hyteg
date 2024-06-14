@@ -38,6 +38,7 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
  public:
    typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator::ViscousOperator_T       ViscousOperator_T;
    typedef P2ViscousIcosahedralShellMapOperatorFS                                                 ViscousOperatorFS_T;
+   typedef ViscousOperatorFS_T                                                                    VelocityOperator_T;
    typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator::DivergenceOperator_T    DivOperator_T;
    typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator::GradientOperator_T      GradOperator_T;
    typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator::StabilizationOperator_T StabOperator_T;
@@ -59,6 +60,7 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
    , schurOperator( storage, minLevel, maxLevel, muInv )
    , projectNormal_( projectNormal )
    , viscousFSOp( storage, minLevel, maxLevel, mu, projectNormal_, bcVelocity )
+   , pspg_inv_diag_(storage, minLevel, maxLevel)
    , massOperator( storage, minLevel, maxLevel )
    {
       StokesOp.getA().computeInverseDiagonalOperatorValues();
@@ -99,6 +101,11 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
    const GradOperator_T&      getBT() const { return StokesOp.getBT(); }
    const SchurOperator_T&     getSchur() const { return schurOperator; }
    const StabOperator_T&      getStab() const { return StokesOp.getStab(); }
+
+   P1PSPGInvDiagOperator pspg_inv_diag_;
+
+   const GradOperator_T divT = StokesOp.getBT();
+   const DivOperator_T div = StokesOp.getB();
 
    ViscousOperatorFS_T& getA() { return viscousFSOp; }
 };
