@@ -318,14 +318,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       auto varTimeStep = io_.InquireVariable< real_t >( "TIME" );
       engine_.Put( varTimeStep, time );
 
-      timestepInfo_.push_back( time );
-
       if ( finalCall )
       {
-         auto varTimestepInfo =
-             io_.DefineVariable< real_t >( "TimestepInfo", {}, {}, { static_cast< unsigned long >( timestepInfo_.size() ) } );
-         WALBERLA_ROOT_SECTION() { engine_.Put( varTimestepInfo, timestepInfo_.data() ); }
-
          // add user defined attributes
          WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
          for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
@@ -385,9 +379,6 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
 
    /// remember if we already had a storeCheckpointContinuous() episode
    bool firstWriteDidHappen_ = false;
-
-   /// Timestep information for continuous checkpoint
-   std::vector< real_t > timestepInfo_;
 
    /// auxilliary variable to add management information to checkpoint
    ///@{

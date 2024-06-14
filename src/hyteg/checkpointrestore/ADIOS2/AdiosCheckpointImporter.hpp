@@ -209,17 +209,26 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       return true;
    }
 
-   const std::vector<real_t>& getTimestepInfo()
+   std::vector< real_t > getTimestepInfo()
    {
-      auto varTimestepInfo = io_.InquireVariable<real_t>("TimestepInfo");
-      auto size = varTimestepInfo.SelectionSize();
+      auto varTimestepInfo = io_.InquireVariable< real_t >( "TIME" );
+      auto nSteps          = varTimestepInfo.Steps();
 
-      timestepInfo.resize(size);
+      std::vector< real_t > timestepInfo;
 
-      engine_.Get(varTimestepInfo, timestepInfo.data(), adios2::Mode::Sync);
+      timestepInfo.resize( nSteps );
+
+      for ( uint_t idx = 0u; idx < nSteps; ++idx )
+      {
+         varTimestepInfo.SetStepSelection( { idx, 1u } );
+         engine_.Get( varTimestepInfo, timestepInfo[idx] );
+      } 
+
+      engine_.PerformGets();
 
       return timestepInfo;
    }
+
 
  private:
    /// central ADIOS2 interface objects
