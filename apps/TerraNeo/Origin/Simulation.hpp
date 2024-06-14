@@ -309,6 +309,13 @@ void ConvectionSimulation::solveEnergy()
    // Solve
    transportSolverTALA->solve( *transportOperatorTALA, *temperature, *energyRHSWeak, TN.domainParameters.maxLevel );
 
+   real_t energyResidual = calculateEnergyResidual( TN.domainParameters.maxLevel );
+
+   if ( std::isnan( energyResidual ) )
+   {
+      WALBERLA_ABORT( "NaN values detected in temperatures after Energy solve" );
+   }
+
    transportOperatorTALA->incrementTimestep();
 }
 
@@ -454,6 +461,11 @@ void ConvectionSimulation::solveStokes()
 
    stokesResidual = calculateStokesResidual( TN.domainParameters.maxLevel );
 
+   if ( std::isnan( stokesResidual ) )
+   {
+      WALBERLA_ABORT( "NaN values detected in velocity after Stokes solve" );
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes residual (final): " << stokesResidual );
 }
@@ -464,6 +476,14 @@ real_t ConvectionSimulation::calculateStokesResidual( uint_t level )
    stokesTmp->assign(
        { real_c( 1 ), real_c( -1 ) }, { *stokesTmp, *stokesRHS }, level, Inner | NeumannBoundary | FreeslipBoundary );
    return std::sqrt( stokesTmp->dotGlobal( *stokesTmp, level, Inner | NeumannBoundary | FreeslipBoundary ) );
+}
+
+real_t ConvectionSimulation::calculateEnergyResidual( uint_t level )
+{
+   transportOperatorTALA->apply( *temperature, *temperatureTmp, level, Inner | NeumannBoundary | FreeslipBoundary );
+   temperatureTmp->assign(
+       { real_c( 1 ), real_c( -1 ) }, { *temperatureTmp, *energyRHSWeak }, level, Inner | NeumannBoundary | FreeslipBoundary );
+   return std::sqrt( temperatureTmp->dotGlobal( *temperatureTmp, level, Inner | NeumannBoundary | FreeslipBoundary ) );
 }
 
 ////////////////////////

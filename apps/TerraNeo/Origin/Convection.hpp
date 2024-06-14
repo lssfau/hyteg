@@ -114,6 +114,7 @@ class ConvectionSimulation
    real_t                      densityFunction( const Point3D& x );
    real_t                      diffPreFactorFunction( const Point3D& x );
    real_t                      calculateStokesResidual( uint_t level );
+   real_t                      calculateEnergyResidual( uint_t level );
    real_t                      referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
