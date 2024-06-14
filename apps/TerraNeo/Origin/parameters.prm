@@ -41,11 +41,11 @@ Parameters
    // generate random Gaussian noise to replce spherical harmonics 
    // false: generate spherical harmonics 
 
-   temperatureNoise false;
+   temperatureNoise true;
    temperatureSphericalHarmonic true;
 
    // the default value of noiseFactor is set to 0.05
-   noiseFactor 0.05; 
+   noiseFactor 0.02; 
    /************************************************************/
 
    // Spherical Harmonics parameters
@@ -122,7 +122,7 @@ Parameters
 
    //viscosityProfile ViscosityProfile_Lin_et_al_2022.json;
 
-   characteristicVelocity 1e-5;
+   characteristicVelocity 1e-6;
 
    // Input temperature
 
@@ -146,13 +146,19 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
-   shearHeating true;
-   adiabaticHeating true;
-   internalHeating true;
+   shearHeating false;
+   adiabaticHeating false;
+   internalHeating false;
+
+   // Define Lithosphere thickness [km] and shear heating scaling factor 
+   // for scaling the shear heating contribution within the Lithosphere
+
+   shearHeatingScaling 1;
+   lithosphereThickness 100;
 
    // Time steps 
 
-   maxNumTimeSteps 10;
+   maxNumTimeSteps 5;
    fixedTimeStep false;
    cflMax 0.1;
    dtConstant 100;
@@ -225,7 +231,7 @@ Parameters
    //////////////////////////
 
    dataOutput true;
-   vtk true;
+   vtk false;
    OutputVelocity true;
    OutputTemperature true;
    OutputInterval 1;
@@ -239,7 +245,7 @@ Parameters
    outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
 
-   ADIOS2CheckpointPath /import/freenas-m-03-geodynamics/pponkumar/output/checkpoint;
+   ADIOS2CheckpointPath ./output/checkpoint;
    ADIOS2CheckpointFilename 3d_convection_checkpoint;
    ADIOS2StartFromCheckpoint false;
    ADIOS2StoreCheckpoint false;
@@ -252,7 +258,7 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory /import/freenas-m-03-geodynamics/pponkumar/output;
+   outputDirectory ./output/ED_Test_Shear_Heating_Off;
    outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information

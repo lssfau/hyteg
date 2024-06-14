@@ -121,7 +121,7 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile ../../data/terraneo/viscosityprofiles/testing/ViscosityProfileTest.json;
+   viscosityProfile ../../data/terraneo/viscosityProfiles/tests/ViscosityProfileTest.json;
 
    characteristicVelocity 1e-8;
 
@@ -150,6 +150,12 @@ Parameters
    shearHeating true;
    adiabaticHeating true;
    internalHeating true;
+
+   // Define Lithosphere thickness [km] and shear heating scaling factor 
+   // for scaling the shear heating contribution within the Lithosphere
+
+   shearHeatingScaling 1e-5;
+   lithosphereThickness 100;
 
    // Time steps 
 

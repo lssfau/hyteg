@@ -177,7 +177,7 @@ void ConvectionSimulation::step()
    storage->getTimingTree()->start( "Solve Energy equation" );
    solveEnergy();
    storage->getTimingTree()->stop( "Solve Energy equation" );
-   
+
    //######################################################//
    //                  STOKES EQUATIONS                    //
    //######################################################//
@@ -255,9 +255,25 @@ void ConvectionSimulation::solveEnergy()
    transportOperatorRHS->setTimestep( TN.simulationParameters.dt );
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc =
-       [=]( const Point3D&, const std::vector< real_t >& density ) {
-          return TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
-                 ( TN.physicalParameters.rayleighNumber * density[0] );
+       [=]( const Point3D& x, const std::vector< real_t >& density ) {
+          real_t radius = x.norm();
+          if ( TN.simulationParameters.shearHeatingScaling > 1 )
+          {
+             WALBERLA_ABORT( "Shear heating scaling factor > 1 not allowed! --- Abort simulation ---" );
+          }
+
+          if ( radius > TN.domainParameters.rMax -
+                            ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
+          {
+             return ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                        ( TN.physicalParameters.rayleighNumber * density[0] ) ) *
+                      TN.simulationParameters.shearHeatingScaling );
+          }
+          else
+          {
+             return TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                    ( TN.physicalParameters.rayleighNumber * density[0] );
+          }
        };
 
    std::function< real_t( const Point3D& ) > internalHeatingCoeffCalc = [=]( const Point3D& ) {
@@ -700,7 +716,6 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 
    return retVal;
 }
-
 
 void ConvectionSimulation::outputTimingTree()
 {

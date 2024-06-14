@@ -67,7 +67,7 @@ struct DomainParameters
 
 struct SolverParameters
 {
-   uint_t solverFlag                 = 0u;
+   uint_t solverFlag = 0u;
    // Stokes solver parameters
    uint_t numPowerIterations         = 25;
    uint_t FGMRESOuterIterations      = 5;
@@ -177,6 +177,11 @@ struct SimulationParameters
 
    //needed for conversions in the simulation
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
+
+   // Shear heating scaling for mantle ciruclation model with
+   // predifned Lithosphere thickness in km
+   real_t shearHeatingScaling  = 1e-5;
+   real_t lithosphereThickness = real_c( 100 );
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
