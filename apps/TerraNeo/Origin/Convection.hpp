@@ -89,6 +89,7 @@
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
+#include "terraneo/operators/P2TransportRHSOperator.hpp"
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
 
 namespace terraneo {
@@ -220,15 +221,16 @@ class ConvectionSimulation
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
 
    // Operators
-   std::shared_ptr< StokesOperator >                         stokesOperator;
-   std::shared_ptr< StokesOperatorFS >                       stokesOperatorFS;
-   std::shared_ptr< SchurOperator >                          schurOperator;
-   std::shared_ptr< MMOCTransport< ScalarFunction > >        transportOperator;
-   std::shared_ptr< P2TransportIcosahedralShellMapOperator > transportOperatorTALA;
-   std::shared_ptr< DiffusionOperator >                      diffusionOperator;
-   std::shared_ptr< P2ElementwiseBlendingMassOperator >      P2MassOperator;
-   std::shared_ptr< P1MassOperatorVelocity >                 MassOperatorVelocityP1;
-   std::shared_ptr< P2ProjectNormalOperator >                projectionOperator;
+   std::shared_ptr< StokesOperator >                            stokesOperator;
+   std::shared_ptr< StokesOperatorFS >                          stokesOperatorFS;
+   std::shared_ptr< SchurOperator >                             schurOperator;
+   std::shared_ptr< MMOCTransport< ScalarFunction > >           transportOperator;
+   std::shared_ptr< P2TransportIcosahedralShellMapOperator >    transportOperatorTALA;
+   std::shared_ptr< P2TransportRHSIcosahedralShellMapOperator > transportOperatorRHS;
+   std::shared_ptr< DiffusionOperator >                         diffusionOperator;
+   std::shared_ptr< P2ElementwiseBlendingMassOperator >         P2MassOperator;
+   std::shared_ptr< P1MassOperatorVelocity >                    MassOperatorVelocityP1;
+   std::shared_ptr< P2ProjectNormalOperator >                   projectionOperator;
 
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSX;
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSY;

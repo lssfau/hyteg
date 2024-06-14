@@ -495,6 +495,29 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    transportOperatorTALA->initializeOperators();
 
+   transportOperatorRHS = std::make_shared< P2TransportRHSIcosahedralShellMapOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+
+   transportOperatorRHS->setVelocity( stokesLHS );
+   transportOperatorRHS->setViscosity( viscosityFE );
+   transportOperatorRHS->setTemperature( temperature );
+
+   transportOperatorRHS->setInvGravity( oppositeGravityField );
+
+   transportOperatorRHS->setDiffusivityCoeff( diffusionFE );
+   transportOperatorRHS->setAdiabaticCoeff( adiabaticTermCoeff );
+   transportOperatorRHS->setShearHeatingCoeff( shearHeatingTermCoeff );
+   transportOperatorRHS->setConstEnergyCoeff( constEnergyCoeff );
+
+   transportOperatorRHS->setReferenceTemperature( temperatureReference );
+
+   transportOperatorRHS->setTALADict(
+       { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+         { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
+         { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
+
+   transportOperatorRHS->initializeOperators();
+
    diffusionOperator =
        std::make_shared< DiffusionOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *diffusionFE );
 

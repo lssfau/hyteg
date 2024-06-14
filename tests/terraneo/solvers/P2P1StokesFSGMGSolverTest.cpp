@@ -152,10 +152,10 @@ int main( int argc, char* argv[] )
 
    real_t unscaledFinalResiduum = std::sqrt( res.dotGlobal( res, maxLevel, Inner | FreeslipBoundary ) );
 
-   real_t unscaledResidualEpsilon = 2e-4;
+   real_t unscaledResidualEpsilon = 5e-3;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Final residual: " << unscaledFinalResiduum );
-   // WALBERLA_CHECK_LESS( unscaledFinalResiduum, unscaledResidualEpsilon );
+   WALBERLA_CHECK_LESS( unscaledFinalResiduum, unscaledResidualEpsilon );
 
    // AdiosWriter adiosWriter( "../../output", "solverTest", storage );
    // adiosWriter.add( u );
