@@ -45,7 +45,8 @@ void doSomethingForAFunctionOnAllPrimitives( adios2::IO&              io,
                                              const func_t< value_t >& function,
                                              uint_t                   minLevel,
                                              uint_t                   maxLevel,
-                                             action_t                 action )
+                                             action_t                 action,
+                                             uint_t                   step = 0U )
 {
    const auto& storage = function.getStorage();
 
@@ -54,7 +55,7 @@ void doSomethingForAFunctionOnAllPrimitives( adios2::IO&              io,
       const Cell& cell = *macroIterator.second;
       for ( uint_t level = minLevel; level <= maxLevel; ++level )
       {
-         action( io, engine, function, level, cell );
+         action( io, engine, function, level, cell, step );
       }
    }
 
@@ -63,7 +64,7 @@ void doSomethingForAFunctionOnAllPrimitives( adios2::IO&              io,
       const Face& face = *macroIterator.second;
       for ( uint_t level = minLevel; level <= maxLevel; ++level )
       {
-         action( io, engine, function, level, face );
+         action( io, engine, function, level, face, step );
       }
    }
 
@@ -72,7 +73,7 @@ void doSomethingForAFunctionOnAllPrimitives( adios2::IO&              io,
       const Edge& edge = *macroIterator.second;
       for ( uint_t level = minLevel; level <= maxLevel; ++level )
       {
-         action( io, engine, function, level, edge );
+         action( io, engine, function, level, edge, step );
       }
    }
 
@@ -81,7 +82,7 @@ void doSomethingForAFunctionOnAllPrimitives( adios2::IO&              io,
       const Vertex& vertex = *macroIterator.second;
       for ( uint_t level = minLevel; level <= maxLevel; ++level )
       {
-         action( io, engine, function, level, vertex );
+         action( io, engine, function, level, vertex, step );
       }
    }
 }
@@ -91,9 +92,11 @@ void generateVariableForScalarFunction( adios2::IO&              io,
                                         adios2::Engine&          engine,
                                         const func_t< value_t >& function,
                                         uint_t                   level,
-                                        const Primitive&         primitive )
+                                        const Primitive&         primitive,
+                                        uint_t                   step = 0U )
 {
    WALBERLA_UNUSED( engine );
+   WALBERLA_UNUSED( step );
    WALBERLA_ASSERT( function.getDimension() == 1 );
 
    std::string varName = generateVariableName( function.getFunctionName(), primitive.getID(), level );
@@ -129,8 +132,10 @@ void exportVariableForScalarFunction( adios2::IO&              io,
                                       adios2::Engine&          engine,
                                       const func_t< value_t >& function,
                                       uint_t                   level,
-                                      const Primitive&         primitive )
+                                      const Primitive&         primitive,
+                                      uint_t                   step = 0U )
 {
+   WALBERLA_UNUSED( step );
    WALBERLA_ASSERT( function.getDimension() == 1 );
 
    std::string varName = generateVariableName( function.getFunctionName(), primitive.getID(), level );
@@ -175,7 +180,8 @@ void importVariableForScalarFunction( adios2::IO&              io,
                                       const func_t< value_t >& function,
                                       const std::string&       varName,
                                       uint_t                   level,
-                                      const Primitive&         primitive )
+                                      const Primitive&         primitive,
+                                      uint_t                   step = 0U )
 {
    WALBERLA_ASSERT( function.getDimension() == 1 );
 
@@ -185,6 +191,7 @@ void importVariableForScalarFunction( adios2::IO&              io,
    {
       WALBERLA_ABORT( "ADIOS2 variable '" << varName << "' does not exist!" );
    }
+   varDoFData.SetStepSelection( { step, 1U } );
 
    switch ( primitive.getType() )
    {
@@ -218,7 +225,8 @@ void generateVariables( adios2::IO&              io,
                         adios2::Engine&          engine,
                         const func_t< value_t >& function,
                         uint_t                   level,
-                        const Primitive&         primitive )
+                        const Primitive&         primitive,
+                        uint_t                   step = 0U )
 {
    if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                   std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
@@ -250,7 +258,8 @@ void exportVariables( adios2::IO&              io,
                       adios2::Engine&          engine,
                       const func_t< value_t >& function,
                       uint_t                   level,
-                      const Primitive&         primitive )
+                      const Primitive&         primitive,
+                      uint_t                   step = 0U )
 {
    if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                   std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
@@ -282,7 +291,8 @@ void importVariables( adios2::IO&              io,
                       adios2::Engine&          engine,
                       const func_t< value_t >& function,
                       uint_t                   level,
-                      const Primitive&         primitive )
+                      const Primitive&         primitive,
+                      uint_t                   step = 0U )
 {
    if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                   std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
@@ -290,7 +300,7 @@ void importVariables( adios2::IO&              io,
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
          std::string varName = generateVariableName( function[k].getFunctionName(), primitive.getID(), level );
-         importVariableForScalarFunction( io, engine, function[k], varName, level, primitive );
+         importVariableForScalarFunction( io, engine, function[k], varName, level, primitive, step );
       }
    }
 
@@ -301,10 +311,10 @@ void importVariables( adios2::IO&              io,
       {
          std::string varName =
              generateVariableName( function[k].getVertexDoFFunction().getFunctionName(), primitive.getID(), level );
-         importVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), varName, level, primitive );
+         importVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), varName, level, primitive, step );
 
          varName = generateVariableName( function[k].getEdgeDoFFunction().getFunctionName(), primitive.getID(), level );
-         importVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), varName, level, primitive );
+         importVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), varName, level, primitive, step );
       }
    }
 

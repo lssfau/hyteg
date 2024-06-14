@@ -198,21 +198,21 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       addVersionInformation( io );
 
       // schedule data for export
-      defineAndExportVariables< P1Function, real_t >( io, engine );
-      defineAndExportVariables< P1Function, int32_t >( io, engine );
-      defineAndExportVariables< P1Function, int64_t >( io, engine );
+      defineAndOrExportVariables< P1Function, real_t >( io, engine );
+      defineAndOrExportVariables< P1Function, int32_t >( io, engine );
+      defineAndOrExportVariables< P1Function, int64_t >( io, engine );
 
-      defineAndExportVariables< P1VectorFunction, real_t >( io, engine );
-      defineAndExportVariables< P1VectorFunction, int32_t >( io, engine );
-      defineAndExportVariables< P1VectorFunction, int64_t >( io, engine );
+      defineAndOrExportVariables< P1VectorFunction, real_t >( io, engine );
+      defineAndOrExportVariables< P1VectorFunction, int32_t >( io, engine );
+      defineAndOrExportVariables< P1VectorFunction, int64_t >( io, engine );
 
-      defineAndExportVariables< P2Function, real_t >( io, engine );
-      defineAndExportVariables< P2Function, int32_t >( io, engine );
-      defineAndExportVariables< P2Function, int64_t >( io, engine );
+      defineAndOrExportVariables< P2Function, real_t >( io, engine );
+      defineAndOrExportVariables< P2Function, int32_t >( io, engine );
+      defineAndOrExportVariables< P2Function, int64_t >( io, engine );
 
-      defineAndExportVariables< P2VectorFunction, real_t >( io, engine );
-      defineAndExportVariables< P2VectorFunction, int32_t >( io, engine );
-      defineAndExportVariables< P2VectorFunction, int64_t >( io, engine );
+      defineAndOrExportVariables< P2VectorFunction, real_t >( io, engine );
+      defineAndOrExportVariables< P2VectorFunction, int32_t >( io, engine );
+      defineAndOrExportVariables< P2VectorFunction, int64_t >( io, engine );
 
       // add user defined attributes
       WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
@@ -246,6 +246,111 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       allFunctionKinds_.clear();
    };
 
+   inline void storeCheckpointContinuous( std::string filePath, std::string fileName, real_t time, bool finalCall = false )
+   {
+      std::vector< std::string > userAttributeNames;
+      std::vector< std::string > userAttributeValues;
+      storeCheckpointContinuous( filePath, fileName, userAttributeNames, userAttributeValues, time, finalCall );
+   }
+
+   inline void storeCheckpointContinuous( std::string                       filePath,
+                                          std::string                       fileName,
+                                          const std::vector< std::string >& userAttributeNames,
+                                          const std::vector< std::string >& userAttributeValues,
+                                          real_t                            time,
+                                          bool                              finalCall = false )
+   {
+      // create the writer and engine for the export
+      std::string cpFileName = filePath + "/" + fileName;
+
+      if ( !firstWriteDidHappen_ )
+      {
+         io_ = adios_.DeclareIO( "AdiosCheckpointExportContinuous" );
+         io_.SetEngine( engineType_ );
+         engine_ = io_.Open( cpFileName, adios2::Mode::Write );
+
+         // export meta-data
+         adiosHelpers::generateSoftwareMetaData( io_ );
+         addVersionInformation( io_ );
+
+         io_.DefineVariable< real_t >( "TIME" );
+
+         // generate variables for export
+         defineAndOrExportVariables< P1Function, real_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P1Function, int32_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P1Function, int64_t >( io_, engine_, ExportType::ONLY_DEFINE );
+
+         defineAndOrExportVariables< P1VectorFunction, real_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P1VectorFunction, int32_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P1VectorFunction, int64_t >( io_, engine_, ExportType::ONLY_DEFINE );
+
+         defineAndOrExportVariables< P2Function, real_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P2Function, int32_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P2Function, int64_t >( io_, engine_, ExportType::ONLY_DEFINE );
+
+         defineAndOrExportVariables< P2VectorFunction, real_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P2VectorFunction, int32_t >( io_, engine_, ExportType::ONLY_DEFINE );
+         defineAndOrExportVariables< P2VectorFunction, int64_t >( io_, engine_, ExportType::ONLY_DEFINE );
+
+         firstWriteDidHappen_ = true;
+      }
+
+      // start the export episode
+      engine_.BeginStep();
+
+      // define variables for export
+      defineAndOrExportVariables< P1Function, real_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P1Function, int32_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P1Function, int64_t >( io_, engine_, ExportType::ONLY_EXPORT );
+
+      defineAndOrExportVariables< P1VectorFunction, real_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P1VectorFunction, int32_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P1VectorFunction, int64_t >( io_, engine_, ExportType::ONLY_EXPORT );
+
+      defineAndOrExportVariables< P2Function, real_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P2Function, int32_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P2Function, int64_t >( io_, engine_, ExportType::ONLY_EXPORT );
+
+      defineAndOrExportVariables< P2VectorFunction, real_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P2VectorFunction, int32_t >( io_, engine_, ExportType::ONLY_EXPORT );
+      defineAndOrExportVariables< P2VectorFunction, int64_t >( io_, engine_, ExportType::ONLY_EXPORT );
+
+      auto varTimeStep = io_.InquireVariable< real_t >( "TIME" );
+      engine_.Put( varTimeStep, time );
+
+      if ( finalCall )
+      {
+         // add user defined attributes
+         WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
+         for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
+         {
+            io_.DefineAttribute< std::string >( userAttributeNames[k], userAttributeValues[k] );
+         }
+
+         // add attributes with meta information on functions in the checkpoint
+         io_.DefineAttribute< std::string >( "FunctionNames", allFunctionNames_.data(), allFunctionNames_.size() );
+         io_.DefineAttribute< std::string >( "FunctionKinds", allFunctionKinds_.data(), allFunctionKinds_.size() );
+         io_.DefineAttribute< std::string >( "FunctionValueTypes", allFunctionValueTypes_.data(), allFunctionValueTypes_.size() );
+         std::vector< uint_t > allMinLevels;
+         std::vector< uint_t > allMaxLevels;
+         for ( const auto& funcName : allFunctionNames_ )
+         {
+            allMinLevels.push_back( functionMinLevel_.at( funcName ) );
+            allMaxLevels.push_back( functionMaxLevel_.at( funcName ) );
+         }
+         io_.DefineAttribute< uint_t >( "FunctionMinLevels", allMinLevels.data(), allMinLevels.size() );
+         io_.DefineAttribute< uint_t >( "FunctionMaxLevels", allMaxLevels.data(), allMaxLevels.size() );
+      }
+
+      // actual export performed here (if lazy not overwritten in config file)
+      engine_.EndStep();
+
+      if ( finalCall )
+      {
+         engine_.Close();
+      }
+   };
+
    /// type of engine to be used for export
    ///
    /// We will use the BP format, but instead of "BP5" use "BP4", because of unclear
@@ -266,15 +371,35 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// central ADIOS2 interface object
    adios2::ADIOS adios_;
 
+   /// central ADIOS2 IO object
+   adios2::IO io_;
+
+   /// central ADIOS2 Engine object
+   adios2::Engine engine_;
+
+   /// remember if we already had a storeCheckpointContinuous() episode
+   bool firstWriteDidHappen_ = false;
+
    /// auxilliary variable to add management information to checkpoint
    ///@{
    std::vector< std::string > allFunctionNames_;
    std::vector< std::string > allFunctionKinds_;
    std::vector< std::string > allFunctionValueTypes_;
+
+   std::map< std::string, adios2::IO > ioObjectsContainer;
+   std::map< std::string, int >        ioObjectsCounter;
    ///@}
 
+   enum class ExportType
+   {
+      ONLY_DEFINE,
+      ONLY_EXPORT,
+      DEFINE_AND_EXPORT
+   };
+
    template < template < typename > class func_t, typename value_t >
-   void defineAndExportVariables( adios2::IO& io, adios2::Engine& engine )
+   void
+       defineAndOrExportVariables( adios2::IO& io, adios2::Engine& engine, ExportType exportType = ExportType::DEFINE_AND_EXPORT )
    {
       // extract all functions of given kind and all value types
       const FunctionMultiStore< func_t >& functionList = feFunctionRegistry_.getFunctions< func_t >();
@@ -289,33 +414,65 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
          WALBERLA_ASSERT( functionMinLevel_.at( function.getFunctionName() ) >= 0 );
          WALBERLA_ASSERT( functionMaxLevel_.at( function.getFunctionName() ) >= 0 );
 
-         // add information on function for later attribute generation
-         allFunctionNames_.push_back( function.getFunctionName() );
-         allFunctionKinds_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
-         allFunctionValueTypes_.push_back( adiosCheckpointHelpers::valueTypeToString< value_t >() );
+         if ( !firstWriteDidHappen_ )
+         {
+            // add information on function for later attribute generation
+            allFunctionNames_.push_back( function.getFunctionName() );
+            allFunctionKinds_.push_back( FunctionTrait< func_t< value_t > >::getTypeName() );
+            allFunctionValueTypes_.push_back( adiosCheckpointHelpers::valueTypeToString< value_t >() );
+         }
 
          if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
                         std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
                         std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > ||
                         std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
          {
-            // first define the variable
-            adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                io,
-                engine,
-                function,
-                functionMinLevel_[function.getFunctionName()],
-                functionMaxLevel_[function.getFunctionName()],
-                adiosCheckpointHelpers::generateVariables< func_t, value_t > );
+            if ( exportType == ExportType::DEFINE_AND_EXPORT )
+            {
+               // first define the variable
+               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
+                   io,
+                   engine,
+                   function,
+                   functionMinLevel_[function.getFunctionName()],
+                   functionMaxLevel_[function.getFunctionName()],
+                   adiosCheckpointHelpers::generateVariables< func_t, value_t > );
 
-            // now schedule the variable for export
-            adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                io,
-                engine,
-                function,
-                functionMinLevel_[function.getFunctionName()],
-                functionMaxLevel_[function.getFunctionName()],
-                adiosCheckpointHelpers::exportVariables< func_t, value_t > );
+               // now schedule the variable for export
+               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
+                   io,
+                   engine,
+                   function,
+                   functionMinLevel_[function.getFunctionName()],
+                   functionMaxLevel_[function.getFunctionName()],
+                   adiosCheckpointHelpers::exportVariables< func_t, value_t > );
+            }
+            else if ( exportType == ExportType::ONLY_DEFINE )
+            {
+               // first define the variable
+               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
+                   io,
+                   engine,
+                   function,
+                   functionMinLevel_[function.getFunctionName()],
+                   functionMaxLevel_[function.getFunctionName()],
+                   adiosCheckpointHelpers::generateVariables< func_t, value_t > );
+            }
+            else if ( exportType == ExportType::ONLY_EXPORT )
+            {
+               // now schedule the variable for export
+               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
+                   io,
+                   engine,
+                   function,
+                   functionMinLevel_[function.getFunctionName()],
+                   functionMaxLevel_[function.getFunctionName()],
+                   adiosCheckpointHelpers::exportVariables< func_t, value_t > );
+            }
+            else
+            {
+               WALBERLA_ABORT( "Shouldn't be here" );
+            }
          }
 
          else
