@@ -25,8 +25,9 @@ With $\eta_0$ as the reference (background) viscosity, $E_A$ being the activatio
 
 The first viscosity profile `ViscosityProfile_Lin_et_al_2022.json` is similar to the one used by Lin et al. 2022 in combination with a Frank-Kamenetskii type 1 temperature dependent viscosity law with an activation energy of $E_A = 4.610$ and a depth dependence factor $df = 3$. 
 This viscosity profile can be used to determine background viscosity values at depth in order to estimate the temperature dependent viscosity following the specified law.
-A detailed description can be found in Lin et al. 2022: `DOI: 10.1029/2022GC010514`
-## Viscosity Profile Lin et al. 2022 ![Viscosity profile 1](doc/images/ViscosityProfile_Lin_et_al_2022.png)
+A detailed description can be found in Lin et al. 2022: `DOI: 10.1029/2022GC010514`!
+
+![Viscosity Profile Lin et al. 2022](doc/images/ViscosityProfile_Lin_et_al_2022.png "Viscosity profile Lin et al. 2022"){width=50%}
 
 
 ## Viscosity Profile after Stotz et al. 2017
@@ -34,5 +35,6 @@ A detailed description can be found in Lin et al. 2022: `DOI: 10.1029/2022GC0105
 The second viscosity profile `ViscosityProfile_Stotz_et_al_2017.json` corresponds to the viscosity profile utilized by Stotz et al. 2017 together with a Frank-Kamenentskii type 1 temperature dependence for $\eta$. The activation energy was defined with $E_A = 4.605$ and a depth dependence factor of $df = 3.976$ was chosen.
 This viscosity profile accounts for a low viscous Asthenosphere of $\eta = 5 \cdot 10^{-19}$ Pa s with a channel thickness of approximately $150$ km. 
 An elaboration of the utilized viscosity profile can be found in Stotz et al. 2017: `DOI: 10.1002/2017GL075697`
-## Viscosity Profile Stotz et al. 2017 ![Viscosity profile 2](doc/images/ViscosityProfile_Stotz_et_al_2017.png)
+
+![Viscosity Profile Stotz et al. 2017 ](doc/images/ViscosityProfile_Stotz_et_al_2017.png "Viscosity profile Stotz et al. 2017"){width=50%}
 
