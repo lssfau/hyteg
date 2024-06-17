@@ -23,6 +23,7 @@
 
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
@@ -112,14 +113,14 @@ class ChebyshevSmoother : public Solver< OperatorType >
    /// which references the article
    ///     Parallel multigrid smoothing: polynomial versus Gauss-Seidel by Adams et al.
    ///
-   /// \param order The order of our polynomial smoother. Only 1 to 5 are supported.
+   /// \param order The order of our polynomial smoother. Only 0 to 4 are supported.
    /// \param spectralRadius An estimate for our spectral radius.
-   void setupCoefficients( const uint_t order, const real_t spectralRadius )
+   void setupCoefficients( const uint_t order, const real_t spectralRadius, real_t upperFactor = real_c(1.2), real_t lowerFactor = real_c(0.3) )
    {
-      const real_t upperBound = 1.2 * spectralRadius;
-      const real_t lowerBound = 0.3 * spectralRadius;
+      const real_t upperBound = upperFactor * spectralRadius;
+      const real_t lowerBound = lowerFactor * spectralRadius;
 
-      setupCoefficients( order, lowerBound, upperBound );
+      setupCoefficientsInternal( order, lowerBound, upperBound );
    }
 
    /// Calculates the coefficients for our Chebyshev-Smoother.
@@ -133,7 +134,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
    /// \param order The order of our polynomial smoother. Only 1 to 5 are supported.
    /// \param lowerBound The smallest eigenvalue whose corresponding eigenvector will be smoothed.
    /// \param upperBound The largest eigenvalue.
-   void setupCoefficients( const uint_t order, const real_t lowerBound, const real_t upperBound )
+   void setupCoefficientsInternal( const uint_t order, const real_t lowerBound, const real_t upperBound )
    {
       WALBERLA_ASSERT_GREATER( order, 0, "Order cannot be 0." );
       WALBERLA_ASSERT_LESS( order, 6, "Chebyshev-Smoother does not support polynomial orders larger than 5." );
@@ -351,6 +352,54 @@ inline real_t estimateRadius( const OperatorType&                        A,
 {
    InvDiagOperatorWrapper< OperatorType > invDiagA( storage, level, level, A );
    return hyteg::estimateSpectralRadiusWithPowerIteration( invDiagA, x, tmp, maxIter, storage, level );
+}
+
+// see Lemma 1 from "Matrix-free Monolithic Multigrid Methods for Stokes and Generalized Stokes Problems" ; Jodlbauer, Langer, Wick and Zulehner 2022
+// https://doi.org/10.48550/arXiv.2205.15770
+//
+// beta is the biggest eigenvalue of D^-1 M
+// (You can use the function estimateRadius in this header)
+// 0 < alpha < beta
+inline real_t determineScalingInternal( uint_t k, real_t alpha, real_t beta )
+{
+   real_t sbar = ( beta + alpha ) / ( beta - alpha );
+
+   real_t chebyshevEval;
+
+   switch ( k + 1 )
+   {
+   case 1: {
+      chebyshevEval = sbar;
+      break;
+   }
+   case 2: {
+      chebyshevEval = real_c( 2.0 ) * std::pow( sbar, real_c( 2.0 ) ) - real_c( 1.0 );
+      break;
+   }
+   case 3: {
+      chebyshevEval = real_c( 4.0 ) * std::pow( sbar, real_c( 3.0 ) ) - real_c( 3.0 ) * sbar;
+      break;
+   }
+   case 4: {
+      chebyshevEval =
+          real_c( 8.0 ) * std::pow( sbar, real_c( 4.0 ) ) - real_c( 8.0 ) * std::pow( sbar, real_c( 2.0 ) ) + real_c( 1.0 );
+      break;
+   }
+   case 5: {
+      chebyshevEval = real_c( 16.0 ) * std::pow( sbar, real_c( 5.0 ) ) - real_c( 20.0 ) * std::pow( sbar, real_c( 3.0 ) ) +
+                      real_c( 5.0 ) * sbar;
+      break;
+   }
+   default:
+      WALBERLA_ABORT( "determineScaling not implemented for order " << k << " Chebyshev smoother." );
+   }
+
+   return chebyshevEval / ( real_c( 1.0 ) + chebyshevEval );
+}
+
+inline real_t determineScaling( uint_t k, real_t spectralRadius, real_t upperFactor = real_c(1.2), real_t lowerFactor = real_c(0.3)  )
+{
+   return determineScalingInternal( k, lowerFactor * spectralRadius, upperFactor * spectralRadius );
 }
 
 } // namespace chebyshev

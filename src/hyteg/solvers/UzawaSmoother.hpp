@@ -27,6 +27,7 @@
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 
 #include "mixed_operator/P1P1StokesOperator.hpp"
 #include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
@@ -402,7 +403,7 @@ class UzawaSmoother : public Solver< OperatorType >
 #endif
    }
 
- private:
+ protected:
    std::shared_ptr< PrimitiveStorage >       storage_;
    std::shared_ptr< Solver< OperatorType > > velocitySmoother_;
    DoFType                                   flag_;
@@ -421,4 +422,136 @@ class UzawaSmoother : public Solver< OperatorType >
    FunctionType tmp_;
 #endif
 };
+
+/***************************************************************************
+NOTE: This is similar to the Uzawa smoother except that projection is 
+      applied to set normal components to zero at the FreeslipBoundary at 
+      every step of working
+***************************************************************************/
+template < class OperatorType >
+class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
+{
+ public:
+   using UzawaSmoother< OperatorType >::flag_;
+   using UzawaSmoother< OperatorType >::r_;
+   using UzawaSmoother< OperatorType >::rhsZeroLevels_;
+   using UzawaSmoother< OperatorType >::rhsZero_;
+   using UzawaSmoother< OperatorType >::numGSIterationsVelocity_;
+   using UzawaSmoother< OperatorType >::velocitySmoother_;
+   using UzawaSmoother< OperatorType >::relaxParam_;
+
+   typedef typename OperatorType::srcType FunctionType;
+
+   UzawaSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
+                                const uint_t                                     minLevel,
+                                const uint_t                                     maxLevel,
+                                real_t                                           relaxParam,
+                                hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                std::shared_ptr< P2ProjectNormalOperator > projection              = nullptr,
+                                const uint_t                               numSmootherIterationsVelocity = 2,
+                                const bool                                 symmetricSmootherPressure     = false,
+                                const uint_t                               numSmootherIterationsPressure = 1 )
+   : UzawaSmootherWithFreeSlipProjection< OperatorType >( storage,
+                                                  velocitySmoother,
+                                                  FunctionType( "uzawa_smoother_r", storage, minLevel, maxLevel ),
+                                                  minLevel,
+                                                  maxLevel,
+                                                  relaxParam,
+                                                  flag,
+                                                  projection,
+                                                  numSmootherIterationsVelocity,
+                                                  symmetricSmootherPressure,
+                                                  numSmootherIterationsPressure )
+   {}
+
+   UzawaSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
+                                const FunctionType&                              tmpFunction,
+                                const uint_t                                     minLevel,
+                                const uint_t                                     maxLevel,
+                                real_t                                           relaxParam,
+                                hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                std::shared_ptr< P2ProjectNormalOperator > projection              = nullptr,
+                                const uint_t                               numSmootherIterationsVelocity = 2,
+                                const bool                                 symmetricSmootherPressure     = false,
+                                const uint_t                               numSmootherIterationsPressure = 1,
+                                const bool                                 rhsZero                 = false,
+                                const std::vector< uint_t >                rhsZeroLevels           = {} )
+   : UzawaSmoother< OperatorType >( storage,
+                                    velocitySmoother,
+                                    tmpFunction,
+                                    minLevel,
+                                    maxLevel,
+                                    relaxParam,
+                                    flag,
+                                    numSmootherIterationsVelocity,
+                                    symmetricSmootherPressure,
+                                    numSmootherIterationsPressure,
+                                    rhsZero,
+                                    rhsZeroLevels )
+   , projection_( projection )
+   {}
+
+ private:
+   void solve( const OperatorType&                   A,
+               const typename OperatorType::srcType& x,
+               const typename OperatorType::dstType& b,
+               const uint_t                          level ) override
+   {
+      r_.copyBoundaryConditionFromFunction( x );
+
+      uzawaSmoothWithProjection( A, x, b, level );
+   }
+
+   // Block-Laplace variant without stabilization
+   void uzawaSmoothWithProjection( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) const
+   {
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         A.getBT().apply( x.p(), r_.uvw(), level, flag_, Replace );
+         r_.uvw().assign( { -1.0 }, { r_.uvw() }, level, flag_ );
+      }
+      else
+      {
+         A.getBT().apply( x.p(), r_.uvw(), level, flag_, Replace );
+         r_.uvw().assign( { 1.0, -1.0 }, { b.uvw(), r_.uvw() }, level, flag_ );
+      }
+
+      if ( projection_.get() != nullptr )
+      {
+         projection_->project( r_.uvw(), level, FreeslipBoundary );
+      }
+
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         velocitySmoother_->solve( A, x, r_, level );
+      }
+
+      A.getB().apply( x.uvw(), r_.p(), level, flag_, Replace );
+
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         r_.p().assign( { -1.0 }, { r_.p() }, level, flag_ );
+      }
+      else
+      {
+         r_.p().assign( { 1.0, -1.0 }, { b.p(), r_.p() }, level, flag_ );
+      }
+
+      // This variant is similar to the one published in
+      // Gaspar et al. (2014): A simple and efficient segregated smoother for the discrete stokes equations
+      // however, we additionally scale Bu with the inverse of the diagonal of the PSPG operator.
+      // This is similar to the old variant where we performed one SOR relaxation step on
+      // the zero vector and added the result to the solution.
+      r_.p().assign( { relaxParam_ }, { r_.p() }, level, flag_ );
+      vertexdof::projectMean( r_.p(), level );
+      A.pspg_inv_diag_.apply( r_.p(), x.p(), level, flag_, Add );
+      vertexdof::projectMean( x.p(), level );
+   }
+
+ private:
+   std::shared_ptr< P2ProjectNormalOperator > projection_;
+};
+
 } // namespace hyteg
