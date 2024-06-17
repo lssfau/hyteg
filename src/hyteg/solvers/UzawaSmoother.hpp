@@ -423,8 +423,13 @@ class UzawaSmoother : public Solver< OperatorType >
 #endif
 };
 
+/***************************************************************************
+NOTE: This is similar to the Uzawa smoother except that projection is 
+      applied to set normal components to zero at the FreeslipBoundary at 
+      every step of working
+***************************************************************************/
 template < class OperatorType >
-class UzawaSmootherWithProjection : public UzawaSmoother< OperatorType >
+class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
 {
  public:
    using UzawaSmoother< OperatorType >::flag_;
@@ -437,17 +442,17 @@ class UzawaSmootherWithProjection : public UzawaSmoother< OperatorType >
 
    typedef typename OperatorType::srcType FunctionType;
 
-   UzawaSmootherWithProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
+   UzawaSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
                                 const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
                                 const uint_t                                     minLevel,
                                 const uint_t                                     maxLevel,
                                 real_t                                           relaxParam,
                                 hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
                                 std::shared_ptr< P2ProjectNormalOperator > projection              = nullptr,
-                                const uint_t                               numGSIterationsVelocity = 2,
-                                const bool                                 symmetricGSPressure     = false,
-                                const uint_t                               numGSIterationsPressure = 1 )
-   : UzawaSmootherWithProjection< OperatorType >( storage,
+                                const uint_t                               numSmootherIterationsVelocity = 2,
+                                const bool                                 symmetricSmootherPressure     = false,
+                                const uint_t                               numSmootherIterationsPressure = 1 )
+   : UzawaSmootherWithFreeSlipProjection< OperatorType >( storage,
                                                   velocitySmoother,
                                                   FunctionType( "uzawa_smoother_r", storage, minLevel, maxLevel ),
                                                   minLevel,
@@ -455,12 +460,12 @@ class UzawaSmootherWithProjection : public UzawaSmoother< OperatorType >
                                                   relaxParam,
                                                   flag,
                                                   projection,
-                                                  numGSIterationsVelocity,
-                                                  symmetricGSPressure,
-                                                  numGSIterationsPressure )
+                                                  numSmootherIterationsVelocity,
+                                                  symmetricSmootherPressure,
+                                                  numSmootherIterationsPressure )
    {}
 
-   UzawaSmootherWithProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
+   UzawaSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
                                 const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
                                 const FunctionType&                              tmpFunction,
                                 const uint_t                                     minLevel,
@@ -468,9 +473,9 @@ class UzawaSmootherWithProjection : public UzawaSmoother< OperatorType >
                                 real_t                                           relaxParam,
                                 hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
                                 std::shared_ptr< P2ProjectNormalOperator > projection              = nullptr,
-                                const uint_t                               numGSIterationsVelocity = 2,
-                                const bool                                 symmetricGSPressure     = false,
-                                const uint_t                               numGSIterationsPressure = 1,
+                                const uint_t                               numSmootherIterationsVelocity = 2,
+                                const bool                                 symmetricSmootherPressure     = false,
+                                const uint_t                               numSmootherIterationsPressure = 1,
                                 const bool                                 rhsZero                 = false,
                                 const std::vector< uint_t >                rhsZeroLevels           = {} )
    : UzawaSmoother< OperatorType >( storage,
@@ -480,9 +485,9 @@ class UzawaSmootherWithProjection : public UzawaSmoother< OperatorType >
                                     maxLevel,
                                     relaxParam,
                                     flag,
-                                    numGSIterationsVelocity,
-                                    symmetricGSPressure,
-                                    numGSIterationsPressure,
+                                    numSmootherIterationsVelocity,
+                                    symmetricSmootherPressure,
+                                    numSmootherIterationsPressure,
                                     rhsZero,
                                     rhsZeroLevels )
    , projection_( projection )

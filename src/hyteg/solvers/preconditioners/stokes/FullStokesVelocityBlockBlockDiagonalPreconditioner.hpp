@@ -26,14 +26,10 @@
 
 namespace hyteg {
 
-/// \brief Applies a Solver to each diagonal block of the velocity block for a Stokes system.
+/// \brief Applies a Solver to the velocity block for a Stokes system.
 ///
-/// This preconditioner should be used in the UzawaSmoother to operate on the velocity block
-/// of a constant-coefficient Stokes system. The passed solver is applied to each block
-/// of the vector-Laplacian. So it could be a standard or symmetric Gauss-Seidel or Jacobi method.
-///
-/// If the velocity block of the Stokes system is the discrete epsilon operator (i.e. the
-/// A-block is not block-diagonal) a different preconditioner should be used.
+/// This preconditioner can be used in the UzawaSmoother to operate on the velocity block
+/// of the Stokes system.
 ///
 template < class OperatorType >
 class FullStokesVelocityBlockBlockDiagonalPreconditioner : public Solver< OperatorType >
@@ -50,10 +46,7 @@ class FullStokesVelocityBlockBlockDiagonalPreconditioner : public Solver< Operat
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, uint_t level ) override
    {
-      // for ( uint_t k = 0; k < x.uvw().getDimension(); k++ )
-      {
-         scalarVelocityPreconditioner_->solve( A.getA(), x.uvw(), b.uvw(), level );
-      }
+      scalarVelocityPreconditioner_->solve( A.getA(), x.uvw(), b.uvw(), level );
    }
 
  private:

@@ -138,7 +138,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
        std::make_shared< FullStokesVelocityBlockBlockDiagonalPreconditioner< StokesOperatorType > >( storage, smoother );
 
    auto _UzawaSmoother =
-       std::make_shared< UzawaSmootherWithProjection< StokesOperatorType > >( storage,
+       std::make_shared< UzawaSmootherWithFreeSlipProjection< StokesOperatorType > >( storage,
                                                                               uzawaVelocityPreconditioner,
                                                                               minLevel,
                                                                               maxLevel,
