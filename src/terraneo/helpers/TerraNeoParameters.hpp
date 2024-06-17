@@ -89,6 +89,15 @@ struct SolverParameters
    real_t SchurCoarseGridTolerance   = 1e-6;
    real_t stokesKillTolerance        = real_c( 1000 );
 
+   // Uzawa type multigrid solver
+   real_t initialResidualU                 = real_c( 0 );
+   real_t vCycleResidualUPrev              = real_c( 0 );
+   uint_t numVCycles                       = 0;
+   real_t averageResidualReductionU        = real_c( 0 );
+   uint_t stokesMaxNumIterations           = 5;
+   real_t stokesRelativeResidualUTolerance = 1e-6;
+   real_t stokesAbsoluteResidualUTolerance = 1e-6;
+
    // Diffusion solver parameters
 
    uint_t diffusionMaxNumIterations           = 10000;

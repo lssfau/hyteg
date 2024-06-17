@@ -437,6 +437,11 @@ void ConvectionSimulation::solveStokes()
    walberla::WcTimer localTimer;
    real_t            stokesResidual = calculateStokesResidual( TN.domainParameters.maxLevel );
 
+   TN.solverParameters.vCycleResidualUPrev       = stokesResidual;
+   TN.solverParameters.initialResidualU          = stokesResidual;
+   TN.solverParameters.averageResidualReductionU = real_c( 0 );
+   TN.solverParameters.numVCycles                = 0;
+
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes residual (initial): " << stokesResidual );
    WALBERLA_LOG_INFO_ON_ROOT( "" );

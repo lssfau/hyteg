@@ -233,6 +233,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
 
+   solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
+   solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< uint_t >( "stokesRelativeResidualUTolerance" );
+   solverParam.stokesAbsoluteResidualUTolerance = mainConf.getParameter< uint_t >( "stokesAbsoluteResidualUTolerance" );
+
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverParam.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
@@ -423,30 +427,48 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Interval   : " << outputParam.OutputInterval );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.vtkOutputVertexDoFs ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputProfiles ? "true" : "false" ) );
+   if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
+                                 << "true" );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature Profiles: " << ( outputParam.outputProfiles ? "true" : "false" ) );
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Solver Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver outer iterations         : " << solverParam.FGMRESOuterIterations );
-   WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver tolerance                : " << solverParam.FGMRESTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "Uzawa smoother iterations              : " << solverParam.uzawaIterations );
+   if ( solverParam.solverFlag == 0u )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver outer iterations         : " << solverParam.FGMRESOuterIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver tolerance                : " << solverParam.FGMRESTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Uzawa smoother iterations              : " << solverParam.uzawaIterations );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid solver tolerance     : " << solverParam.ABlockMGTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid iterations           : " << solverParam.ABlockMGIterations );
-   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid pre-smoothing steps  : " << solverParam.ABlockMGPreSmooth );
-   WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid post-smoothing steps : " << solverParam.ABlockMGPostSmooth );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid solver tolerance     : " << solverParam.ABlockMGTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid iterations           : " << solverParam.ABlockMGIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid pre-smoothing steps  : " << solverParam.ABlockMGPreSmooth );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid post-smoothing steps : " << solverParam.ABlockMGPostSmooth );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid solver tolerance       : " << solverParam.SchurMGTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid iterations             : " << solverParam.SchurMGIterations );
-   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid pre-smoothing steps    : " << solverParam.SchurMGPreSmooth );
-   WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid post-smoothing steps   : " << solverParam.SchurMGPostSmooth );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid solver tolerance       : " << solverParam.SchurMGTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid iterations             : " << solverParam.SchurMGIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid pre-smoothing steps    : " << solverParam.SchurMGPreSmooth );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid post-smoothing steps   : " << solverParam.SchurMGPostSmooth );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Diffusion max num iterations           : " << solverParam.diffusionMaxNumIterations );
-   WALBERLA_LOG_INFO_ON_ROOT( "Diffusion absolute residual U-tolerance: " << solverParam.diffusionAbsoluteResidualUTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Diffusion max num iterations           : " << solverParam.diffusionMaxNumIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Diffusion absolute residual U-tolerance: " << solverParam.diffusionAbsoluteResidualUTolerance );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Stokes kill-tolerance                  : " << solverParam.stokesKillTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Stokes kill-tolerance                  : " << solverParam.stokesKillTolerance );
+   }
+   else if ( solverParam.solverFlag == 1u )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Max Stokes coarse grid iterations      : " << solverParam.stokesMaxNumIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Stokes relative residual U tolerance   : " << solverParam.stokesRelativeResidualUTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Stokes relative absolute U tolerance   : " << solverParam.stokesAbsoluteResidualUTolerance );
+   }
 
    WALBERLA_ROOT_SECTION() { walberla::logging::Logging::instance()->stopLoggingToFile(); }
 }

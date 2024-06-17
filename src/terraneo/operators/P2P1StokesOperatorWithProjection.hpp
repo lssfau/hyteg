@@ -30,13 +30,12 @@ namespace hyteg {
 /***************************************************************************************************
 NOTE: Here FS denotes FreeSlip, Normal Stokes operator is wrapped with a FreeSlip Projection Wrapper
       Changes the linear system from $Ku    = f $
-                                  to $PKP^T = Pf$
+                                  to $PKP^Tu = Pf$
 ***************************************************************************************************/
 class P2P1StokesFullIcosahedralShellMapOperatorFS
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-   typedef P2ViscousIcosahedralShellMapOperatorFS       VelocityOperator_T;
    typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator::ViscousOperator_T       ViscousOperator_T;
    typedef P2ViscousIcosahedralShellMapOperatorFS                                                 ViscousOperatorFS_T;
    typedef ViscousOperatorFS_T                                                                    VelocityOperator_T;
@@ -106,8 +105,6 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
    const GradOperator_T&      getBT() const { return StokesOp.getBT(); }
    const SchurOperator_T&     getSchur() const { return schurOperator; }
    const StabOperator_T&      getStab() const { return StokesOp.getStab(); }
-
-   P1PSPGInvDiagOperator pspg_inv_diag_;
 
    const GradOperator_T divT = StokesOp.getBT();
    const DivOperator_T div = StokesOp.getB();

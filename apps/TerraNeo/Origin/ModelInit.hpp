@@ -432,23 +432,76 @@ void ConvectionSimulation::setupSolversAndOperators()
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
-      stokesSolverFS =
-          solvertemplates::stokesGMGUzawaFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-              storage,
-              TN.domainParameters.minLevel,
-              TN.domainParameters.maxLevel,
-              stokesOperatorFS,
-              projectionOperator,
-              bcVelocity,
-              false,
-              { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 50 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 3 },
-                { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2 } } );
+      auto stopIterationCallback =
+          [&]( const StokesOperatorFS& _A, const StokesFunction& _u, const StokesFunction& _b, const uint_t _level ) {
+             WALBERLA_UNUSED( _A );
+             WALBERLA_UNUSED( _u );
+             WALBERLA_UNUSED( _b );
+             real_t stokesResidual;
+
+             stokesResidual = calculateStokesResidual( _level );
+
+             if ( TN.solverParameters.numVCycles == 0 )
+             {
+                WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+                    "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, TN.solverParameters.vCycleResidualUPrev ) );
+             }
+
+             auto reductionRateU = stokesResidual / TN.solverParameters.vCycleResidualUPrev;
+
+             TN.solverParameters.vCycleResidualUPrev = stokesResidual;
+
+             TN.solverParameters.numVCycles++;
+             TN.solverParameters.averageResidualReductionU += reductionRateU;
+
+             if ( TN.simulationParameters.verbose )
+             {
+                WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "[Uzawa] iter %3d | residual: %10.5e | reduction: %10.5e ",
+                                                             TN.solverParameters.numVCycles,
+                                                             stokesResidual,
+                                                             reductionRateU ) );
+             }
+
+             if ( stokesResidual / TN.solverParameters.initialResidualU < TN.solverParameters.stokesRelativeResidualUTolerance )
+             {
+                WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached relative residual threshold" )
+                return true;
+             }
+
+             if ( stokesResidual < TN.solverParameters.stokesAbsoluteResidualUTolerance )
+             {
+                WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached absolute residual threshold" )
+                return true;
+             }
+
+             if ( reductionRateU > 0.5 )
+             {
+                WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached convergence rate threshold" )
+                return true;
+             }
+
+             return false;
+          };
+
+      auto multigridSolver = solvertemplates::stokesGMGUzawaFSSolver< StokesOperatorFS, P2ProjectNormalOperator >(
+          storage,
+          TN.domainParameters.minLevel,
+          TN.domainParameters.maxLevel,
+          stokesOperatorFS,
+          projectionOperator,
+          bcVelocity,
+          false,
+          { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 50 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 3 },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2 } } );
+
+      stokesSolverFS = std::make_shared< SolverLoop< StokesOperatorFS > >(
+          multigridSolver, TN.solverParameters.stokesMaxNumIterations, stopIterationCallback );
    }
    else
    {

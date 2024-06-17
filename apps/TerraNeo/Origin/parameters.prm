@@ -196,6 +196,9 @@ Parameters
 
    // Uzawa solver parameters
 
+   stokesMaxNumIterations 5;
+   stokesRelativeResidualUTolerance 1e-6;
+   stokesAbsoluteResidualUTolerance 1e-6;
 
    // FGMRES solver parameters 
 
@@ -258,7 +261,7 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory ./output/ED_Test_Shear_Heating_Off;
+   outputDirectory ./output;
    outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information

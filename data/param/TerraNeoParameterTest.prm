@@ -193,7 +193,13 @@ Parameters
 
    // 0 - FMGRES
    // 1 - Uzawa
-   SolverFlag 1;
+   SolverFlag 0;
+
+   // Uzawa solver parameters
+
+   stokesMaxNumIterations 5;
+   stokesRelativeResidualUTolerance 1e-6;
+   stokesAbsoluteResidualUTolerance 1e-6;
 
    // FGMRES solver parameters 
 
