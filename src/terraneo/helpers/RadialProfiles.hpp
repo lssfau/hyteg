@@ -77,6 +77,12 @@ inline real_t
    return rMin + real_c( shell ) * ( rMax - rMin ) / real_c( numberOfLayers( nRad, level, polynomialOrderOfLagrangeDiscr ) );
 }
 
+/// Computes the radius of a specific layer of the macro mesh.
+inline real_t radiusOfMacroMeshLayer( uint_t layer, real_t rMin, real_t rMax, uint_t nRad )
+{
+   return rMin + real_c( layer ) * ( rMax - rMin ) / real_c( nRad - 1 );
+}
+
 std::vector< real_t >
     computeShellRadii( const std::vector< real_t >& layers, uint_t level, uint_t polynomialOrderOfLagrangeDiscr )
 
@@ -139,8 +145,7 @@ inline uint_t nearestShellFromRadius( real_t radius, const std::vector< real_t >
    }
 
    // WALBERLA_LOG_INFO_ON_ROOT("radius = " << radius);
-
-   WALBERLA_ABORT( "Shouldn't be here" );
+   // WALBERLA_ABORT( "Shouldn't be here" );
 }
 
 /// Computes the index of the nearest shell from a given radius.
@@ -149,9 +154,9 @@ inline uint_t nearestShellFromRadius( real_t                       radius,
                                       uint_t                       level,
                                       uint_t                       polynomialOrderOfLagrangeDiscr )
 {
-   auto shellRadii = computeShellRadii(layers, level, polynomialOrderOfLagrangeDiscr);
+   auto shellRadii = computeShellRadii( layers, level, polynomialOrderOfLagrangeDiscr );
 
-   return nearestShellFromRadius(radius, shellRadii);
+   return nearestShellFromRadius( radius, shellRadii );
 }
 
 /// Interpolates the radial shell ID at the nodes of the passed scalar P1 or P2 function.
@@ -160,9 +165,9 @@ inline void interpolateRadialShellID( ScalarFunctionType& u, real_t rMin, real_t
 {
    using ShellIDType = typename ScalarFunctionType::valueType;
 
-   // WALBERLA_CHECK(
-   //     std::is_integral_v< ShellIDType >,
-   //     "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
+   WALBERLA_CHECK(
+       std::is_integral_v< ShellIDType >,
+       "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
 
    const bool isP1Function = std::is_same_v< typename ScalarFunctionType::Tag, P1FunctionTag >;
    const bool isP2Function = std::is_same_v< typename ScalarFunctionType::Tag, P2FunctionTag >;
@@ -188,20 +193,21 @@ inline void interpolateRadialShellID( ScalarFunctionType& u, std::vector< real_t
 {
    using ShellIDType = typename ScalarFunctionType::valueType;
 
-   // WALBERLA_CHECK(
-   //     std::is_integral_v< ShellIDType >,
-   //     "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
+   WALBERLA_CHECK(
+       std::is_integral_v< ShellIDType >,
+       "You should write the shell IDs to a function that is typed with some kind of integer. For instance P1Function< int16_t >." )
 
    const bool isP1Function = std::is_same_v< typename ScalarFunctionType::Tag, P1FunctionTag >;
    const bool isP2Function = std::is_same_v< typename ScalarFunctionType::Tag, P2FunctionTag >;
 
    WALBERLA_CHECK( isP1Function || isP2Function, "interpolateRadialShellID() only supported for scalar P1 and P2 functions." );
 
+   auto shellRadii = computeShellRadii( layers, level, polynomialDegreeOfBasisFunctions< ScalarFunctionType >() );
+
    std::function< ShellIDType( const Point3D& ) > radialShellID = [&]( const Point3D& x ) {
       real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
 
-      ShellIDType shellID = static_cast< ShellIDType >(
-          nearestShellFromRadius( radius, layers, level, polynomialDegreeOfBasisFunctions< ScalarFunctionType >() ) );
+      ShellIDType shellID = static_cast< ShellIDType >( nearestShellFromRadius( radius, shellRadii ) );
 
       // Returning the value to ensure that the values are not altered.
       return shellID;
@@ -267,15 +273,14 @@ class RadialShellData
 
       std::vector< uint_t > numLocalPointsPerShell( numShells, 0 );
 
-      auto shellRadii = computeShellRadii(layers, level, polynomialDegreeOfBasisFunctions< FunctionType >());
+      auto shellRadii = computeShellRadii( layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
 
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > countNodes =
           [&]( const Point3D& x, const std::vector< real_t >& values ) {
              real_t radius      = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
              real_t scalarValue = values[0];
 
-             uint_t shell =
-                 nearestShellFromRadius( radius, shellRadii );
+             uint_t shell = nearestShellFromRadius( radius, shellRadii );
 
              // Manual bounds checking.
              WALBERLA_ASSERT_LESS( shell, numShells );
@@ -332,8 +337,7 @@ class RadialShellData
 
                 real_t scalarValue = values[0];
 
-                uint_t shell =
-                    nearestShellFromRadius( radius, shellRadii );
+                uint_t shell = nearestShellFromRadius( radius, shellRadii );
 
                 // Manual bounds checking.
                 WALBERLA_ASSERT_LESS( shell, numShells );
@@ -377,7 +381,7 @@ class RadialShellData
       std::vector< real_t > layers( nRad, 0.0 );
       for ( uint_t layer = 0; layer < nRad; layer++ )
       {
-         layers[layer] = rMin + ( ( rMax - rMin ) / real_c( nRad - 1 ) ) * real_c( layer );
+         layers[layer] = radiusOfMacroMeshLayer( layer, rMin, rMax, nRad );
       }
 
       addDataFromFunction( u, rMin, rMax, layers, level );
@@ -479,15 +483,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    profile.mean.resize( numShells );
    profile.numDoFsPerShell.resize( numShells );
 
-   // for ( uint_t shell = 0; shell < numShells; ++shell )
-   // {
-   //    profile.shellRadii[shell] =
-   //        radiusOfShell( shell, rMin, rMax, nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
-
-   //    // WALBERLA_LOG_INFO_ON_ROOT("Shell " << shell << " = " << profile.shellRadii[shell]);
-   // }
-
-   profile.shellRadii = computeShellRadii(layers, level, polynomialDegreeOfBasisFunctions< FunctionType >());
+   profile.shellRadii = computeShellRadii( layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
 
    // WALBERLA_LOG_INFO_ON_ROOT("Shell Layer " << numShells - 1 << " = " << profile.shellRadii[numShells - 1]);
 
@@ -568,7 +564,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    std::vector< real_t > layers( nRad, 0.0 );
    for ( uint_t layer = 0; layer < nRad; layer++ )
    {
-      layers[layer] = rMin + ( ( rMax - rMin ) / real_c( nRad - 1 ) ) * real_c( layer );
+      layers[layer] = radiusOfMacroMeshLayer( layer, rMin, rMax, nRad );
    }
 
    return computeRadialProfile( u, rMin, rMax, layers, level );
