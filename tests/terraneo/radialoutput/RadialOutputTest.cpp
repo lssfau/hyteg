@@ -27,6 +27,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 
 #include "terraneo/helpers/RadialProfiles.hpp"
 
@@ -38,6 +39,21 @@ std::shared_ptr< PrimitiveStorage >
     setupSphericalShellStorage( const uint_t& nTan, const uint_t& nRad, const real_t& rMin, const real_t& rMax )
 {
    auto meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax ) );
+
+   SetupPrimitiveStorage setupStorage( *meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+   IcosahedralShellMap::setMap( setupStorage );
+
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   return storage;
+}
+
+std::shared_ptr< PrimitiveStorage >
+    setupSphericalShellStorage( const uint_t& nTan, std::vector<real_t> layers )
+{
+   auto meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshSphericalShell( nTan, layers ) );
 
    SetupPrimitiveStorage setupStorage( *meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -79,7 +95,7 @@ void testRadialPointCloudOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t r
    for ( uint_t shell = 0; shell < numberOfShells( nRad, level, polynomialDegreeOfBasisFunctions< FunctionType >() ); shell++ )
    {
       auto numPointsOnShell = shellData.points( shell ).size();
-      walberla::mpi::reduceInplace( numPointsOnShell, walberla::mpi::Operation::SUM );
+      walberla::mpi::allReduceInplace( numPointsOnShell, walberla::mpi::Operation::SUM );
       WALBERLA_LOG_INFO_ON_ROOT( "shell " << shell << " | points: " << numPointsOnShell );
 
       numPointsOnAllShellsCombined += numPointsOnShell;
@@ -126,6 +142,20 @@ void testRadialIntegerIDOutput( uint_t nTan, uint_t nRad, real_t rMin, real_t rM
    vtkMesh.write( level );
 }
 
+template < typename FunctionType >
+void testRadialIntegerIDOutput( uint_t nTan, std::vector<real_t> layers, uint_t level )
+{
+   auto storage = setupSphericalShellStorage( nTan, layers );
+
+   FunctionType u( "u", storage, level, level );
+
+   interpolateRadialShellID( u, layers, level );
+
+   VTKOutput vtkMesh( ".", "variable_data_integer_id", storage );
+   vtkMesh.add( u );
+   vtkMesh.write( level );
+}
+
 } // namespace terraneo
 
 int main( int argc, char** argv )
@@ -153,6 +183,12 @@ int main( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "testRadialOutput< P2Function< real_t > >()" )
    terraneo::testRadialIntegerIDOutput< P2Function< int32_t > >( 5, 3, 0.5, 1.0, 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "testVariableRadialOutput< P1Function< real_t > >()" )
+   terraneo::testRadialIntegerIDOutput< P1Function< int32_t > >( 5, {0.5, 0.55, 1.0}, 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "testVariableRadialOutput< P2Function< real_t > >()" )
+   terraneo::testRadialIntegerIDOutput< P2Function< int32_t > >( 5, {0.5, 0.55, 1.0}, 2 );
 
    return 0;
 }
