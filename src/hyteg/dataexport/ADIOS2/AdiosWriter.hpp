@@ -29,9 +29,9 @@
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP2.hpp"
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
+#include "hyteg/functions/FEFunctionRegistry.hpp"
 
 namespace hyteg {
 

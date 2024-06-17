@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,7 +27,7 @@
 #include "hyteg/checkpointrestore/CheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
+#include "hyteg/functions/FEFunctionRegistry.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,8 +26,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
+#include "hyteg/functions/FEFunctionRegistry.hpp"
 
 // our friends and helpers
 
@@ -36,14 +36,13 @@
 #include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 // clang on
 
-#include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
-
 #include "hyteg/dataexport/VTKOutput/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKN1E1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
 
 // from walberla
 #include "vtk/Base64Writer.h"
@@ -76,6 +75,13 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    inline void add( const func_t< value_t >& function )
    {
       feFunctionRegistry_.add< func_t, value_t >( function );
+   }
+
+   /// Remove an FE Function so that it is no longer included in the next dataexport phase
+   template < template < typename > class func_t, typename value_t >
+   inline void remove( const func_t< value_t >& function )
+   {
+      feFunctionRegistry_.remove( function );
    }
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.

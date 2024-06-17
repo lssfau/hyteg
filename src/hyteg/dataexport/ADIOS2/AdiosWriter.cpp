@@ -21,8 +21,8 @@
 #include <adios2.h>
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
 
 namespace hyteg {
 

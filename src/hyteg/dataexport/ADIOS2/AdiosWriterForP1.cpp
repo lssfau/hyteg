@@ -22,8 +22,6 @@
 #include <adios2.h>
 
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
-#include "hyteg/dataexport/FEFunctionRegistry.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
 
