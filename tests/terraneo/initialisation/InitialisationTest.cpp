@@ -57,8 +57,7 @@ std::shared_ptr< PrimitiveStorage >
 }
 
 /// Setup storage for a spherical shell
-std::shared_ptr< PrimitiveStorage >
-    setupSphericalShellStorage( const uint_t& nTan, std::vector<real_t> layers )
+std::shared_ptr< PrimitiveStorage > setupSphericalShellStorage( const uint_t& nTan, std::vector< real_t > layers )
 {
    std::shared_ptr< hyteg::MeshInfo > meshInfo;
    meshInfo = std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::meshSphericalShell( nTan, layers ) );
@@ -216,7 +215,7 @@ void runTest( const uint_t nTan,
 }
 
 template < typename FunctionType, typename VectorFunctionType >
-void runTest( const uint_t& nTan, std::vector<real_t> layers, const uint_t& level )
+void runTest( const uint_t& nTan, std::vector< real_t > layers, const uint_t& level, real_t epsMeanTest )
 {
    walberla::math::seedRandomGenerator( 42 );
 
@@ -298,8 +297,8 @@ void runTest( const uint_t& nTan, std::vector<real_t> layers, const uint_t& leve
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFct =
        [&]( const Point3D& x, const std::vector< real_t >& T ) {
           auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-          auto shell = terraneo::nearestShellFromRadius(
-              radius, layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+          auto shell =
+              terraneo::nearestShellFromRadius( radius, layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
           return T[0] - profile.mean[shell];
        };
 
@@ -327,7 +326,7 @@ void runTest( const uint_t& nTan, std::vector<real_t> layers, const uint_t& leve
 }
 
 template < typename FunctionType, typename VectorFunctionType >
-void runTest( const uint_t& nTan, std::vector<real_t> layers, const uint_t& level )
+void runTest( const uint_t& nTan, std::vector< real_t > layers, const uint_t& level )
 {
    walberla::math::seedRandomGenerator( 42 );
 
@@ -409,8 +408,8 @@ void runTest( const uint_t& nTan, std::vector<real_t> layers, const uint_t& leve
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFct =
        [&]( const Point3D& x, const std::vector< real_t >& T ) {
           auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-          auto shell = terraneo::nearestShellFromRadius(
-              radius, layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
+          auto shell =
+              terraneo::nearestShellFromRadius( radius, layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
           return T[0] - profile.mean[shell];
        };
 
@@ -448,6 +447,7 @@ int main( int argc, char** argv )
    uint_t nTan  = 3;
    uint_t nRad  = 2;
 
+
    WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing with P1 type functions ***" );
    WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
@@ -464,8 +464,11 @@ int main( int argc, char** argv )
       runTest< P2Function< real_t >, P2VectorFunction< real_t > >( nTan, nRad, rMax, rMin, level, epsMeanTest );
    }
 
-   runTest< P1Function< real_t >, P1VectorFunction< real_t > >( nTan, {rMin, rMin + (rMax - rMin) / 5, rMax}, level );
-   runTest< P2Function< real_t >, P2VectorFunction< real_t > >( nTan, {rMin, rMin + (rMax - rMin) / 5, rMax}, level );
-   
+   real_t epsMeanTestVar = real_c( std::is_same_v< double, real_t > ? 1e-13 : 2e-4 );
+   runTest< P1Function< real_t >, P1VectorFunction< real_t > >(
+       nTan, { rMin, rMin + ( rMax - rMin ) / 5, rMax }, level, epsMeanTestVar );
+   runTest< P2Function< real_t >, P2VectorFunction< real_t > >(
+       nTan, { rMin, rMin + ( rMax - rMin ) / 5, rMax }, level, epsMeanTestVar );
+
    return 0;
 }

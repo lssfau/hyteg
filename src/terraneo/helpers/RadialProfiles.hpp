@@ -77,8 +77,8 @@ inline real_t
    return rMin + real_c( shell ) * ( rMax - rMin ) / real_c( numberOfLayers( nRad, level, polynomialOrderOfLagrangeDiscr ) );
 }
 
-/// Computes the radius of a specific layer of the macro mesh.
-inline real_t radiusOfMacroMeshLayer( uint_t layer, real_t rMin, real_t rMax, uint_t nRad )
+/// Computes the radius of a specific shell of the macro mesh.
+inline real_t radiusOfMacroMeshShell( uint_t layer, real_t rMin, real_t rMax, uint_t nRad )
 {
    return rMin + real_c( layer ) * ( rMax - rMin ) / real_c( nRad - 1 );
 }
@@ -128,24 +128,18 @@ inline uint_t nearestShellFromRadius( real_t radius,
 /// Computes the index of the nearest shell from a given radius.
 inline uint_t nearestShellFromRadius( real_t radius, const std::vector< real_t >& shellRadii )
 {
-   real_t eps = 1e-12;
-   for ( uint_t iShell = 0U; iShell < shellRadii.size() - 1; iShell++ )
+   uint_t nearestShell = 0u;
+   real_t nearestDistance = __DBL_MAX__;
+   for ( uint_t iShell = 0u; iShell < shellRadii.size(); iShell++ )
    {
-      if ( radius > shellRadii[iShell] - eps && radius < shellRadii[iShell + 1] + eps )
+      if(std::abs(radius - shellRadii[iShell]) < nearestDistance)
       {
-         if ( radius - shellRadii[iShell] > shellRadii[iShell + 1] - radius )
-         {
-            return iShell + 1;
-         }
-         else
-         {
-            return iShell;
-         }
+         nearestShell = iShell;
+         nearestDistance = std::abs(radius - shellRadii[iShell]);
       }
    }
 
-   // WALBERLA_LOG_INFO_ON_ROOT("radius = " << radius);
-   // WALBERLA_ABORT( "Shouldn't be here" );
+   return nearestShell;
 }
 
 /// Computes the index of the nearest shell from a given radius.
@@ -381,7 +375,7 @@ class RadialShellData
       std::vector< real_t > layers( nRad, 0.0 );
       for ( uint_t layer = 0; layer < nRad; layer++ )
       {
-         layers[layer] = radiusOfMacroMeshLayer( layer, rMin, rMax, nRad );
+         layers[layer] = radiusOfMacroMeshShell( layer, rMin, rMax, nRad );
       }
 
       addDataFromFunction( u, rMin, rMax, layers, level );
@@ -564,7 +558,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    std::vector< real_t > layers( nRad, 0.0 );
    for ( uint_t layer = 0; layer < nRad; layer++ )
    {
-      layers[layer] = radiusOfMacroMeshLayer( layer, rMin, rMax, nRad );
+      layers[layer] = radiusOfMacroMeshShell( layer, rMin, rMax, nRad );
    }
 
    return computeRadialProfile( u, rMin, rMax, layers, level );
