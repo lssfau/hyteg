@@ -51,8 +51,8 @@ void ConvectionSimulation::setupOutput()
 
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
-         checkpointImporter = std::make_shared< AdiosCheckpointImporter >( TN.outputParameters.ADIOS2CheckpointPath,
-                                                                           TN.outputParameters.ADIOS2CheckpointFilename,
+         checkpointImporter = std::make_shared< AdiosCheckpointImporter >( TN.outputParameters.ADIOS2StartCheckpointPath,
+                                                                           TN.outputParameters.ADIOS2StartCheckpointFilename,
                                                                            TN.outputParameters.ADIOS2OutputConfig );
       }
 
@@ -212,8 +212,8 @@ void ConvectionSimulation::dataOutput()
          WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
          checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
          checkpointExporter->registerFunction( *temperature, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2CheckpointPath,
-                                              TN.outputParameters.ADIOS2CheckpointFilename );
+         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+                                              TN.outputParameters.ADIOS2StoreCheckpointFilename );
       }
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified! " );

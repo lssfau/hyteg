@@ -117,6 +117,13 @@ struct OutputParameters
    std::string ADIOS2OutputConfig       = std::string( "ADIOS2config.xml" );
    std::string ADIOS2ParamKey           = std::string( "NumAggregators" );
    std::string ADIOS2Value              = std::string( "16" );
+   
+   std::string ADIOS2StoreCheckpointPath = std::string("output");
+   std::string ADIOS2StoreCheckpointFilename = std::string("conv_sim_store");
+
+   std::string ADIOS2StartCheckpointPath = std::string("output");
+   std::string ADIOS2StartCheckpointFilename = std::string("conv_sim_store");
+
    std::string ADIOS2CheckpointPath     = std::string( "output" );
    std::string ADIOS2CheckpointFilename = std::string( "conv_sim" );
 

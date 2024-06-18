@@ -256,10 +256,13 @@ Parameters
    outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
 
-   ADIOS2CheckpointPath ./output/checkpoint;
-   ADIOS2CheckpointFilename 3d_convection_checkpoint;
-   ADIOS2StartFromCheckpoint false;
+   ADIOS2StoreCheckpointPath ./output/checkpoint;
+   ADIOS2StoreCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StoreCheckpoint false;
+
+   ADIOS2StartCheckpointPath ./output/checkpoint;
+   ADIOS2StartCheckpointFilename 3d_convection_checkpoint;
+   ADIOS2StartFromCheckpoint false;
 
    // In steps
    ADIOS2StoreCheckpointFrequency 3;

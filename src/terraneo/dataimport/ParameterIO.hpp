@@ -257,8 +257,12 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.ADIOS2ParamKey           = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
    outputParam.ADIOS2Value              = mainConf.getParameter< std::string >( "ADIOS2Value" );
    outputParam.ADIOS2OutputConfig       = mainConf.getParameter< std::string >( "ADIOS2OutputConfig" );
-   outputParam.ADIOS2CheckpointPath     = mainConf.getParameter< std::string >( "ADIOS2CheckpointPath" );
-   outputParam.ADIOS2CheckpointFilename = mainConf.getParameter< std::string >( "ADIOS2CheckpointFilename" );
+
+   outputParam.ADIOS2StoreCheckpointPath     = mainConf.getParameter< std::string >( "ADIOS2StoreCheckpointPath" );
+   outputParam.ADIOS2StoreCheckpointFilename = mainConf.getParameter< std::string >( "ADIOS2StoreCheckpointFilename" );
+
+   outputParam.ADIOS2StartCheckpointPath     = mainConf.getParameter< std::string >( "ADIOS2StartCheckpointPath" );
+   outputParam.ADIOS2StartCheckpointFilename = mainConf.getParameter< std::string >( "ADIOS2StartCheckpointFilename" );
 
    outputParam.ADIOS2StartFromCheckpoint = mainConf.getParameter< bool >( "ADIOS2StartFromCheckpoint" );
    outputParam.ADIOS2StoreCheckpoint     = mainConf.getParameter< bool >( "ADIOS2StoreCheckpoint" );

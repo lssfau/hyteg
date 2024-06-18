@@ -166,5 +166,8 @@ of characteristics and the diffusive term with standard preconditioned Krylov so
 ### I/O
 
 > 🚧 ADIOS2/VTK
-> 🚧 checkpointing
 
+#### Checkpointing
+We currently have an implementation of `CheckpointExporter` and `CheckpointImporter` with ADIOS2 with which checkpoints can be written out and read in for the simulations. The checkpoint store can be trigerred by setting `ADIOS2StoreCheckpoint` to `true` in the parameter file, which would also need a path and filename to store the checkpoint, set through `ADIOS2StoreCheckpointPath` and `ADIOS2StoreCheckpointFilename`. The required checkpoints can then be used and loaded to start the simulation by setting `ADIOS2StartCheckpoint` to `true` and the corresponding path and filename parameters `ADIOS2StartCheckpointPath` and `ADIOS2StartCheckpointFilename`.
+
+Currently only the temperature field is stored and loaded, hence the initial Stokes solve will anyway happen to calculated the corresponding velocity field.
