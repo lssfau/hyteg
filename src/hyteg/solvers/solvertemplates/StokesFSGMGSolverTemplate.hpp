@@ -25,6 +25,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FGMRESSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
@@ -168,7 +169,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
    // auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< SubstAType > >( storage, minLevel );
 
    auto ABlockCoarseGridSolver =
-       std::make_shared< hyteg::CGSolver< SubstAType > >( storage, minLevel, maxLevel, ABlockCGCoarseIter, ABlockCGCoarseTol );
+       std::make_shared< hyteg::MinResSolver< SubstAType > >( storage, minLevel, maxLevel, ABlockCGCoarseIter, ABlockCGCoarseTol );
 
    // auto ABlockCoarseGridSolver =
    //     std::make_shared< hyteg::MinResSolver< SubstAType > >( storage, minLevel, maxLevel, 100, 1e-8 );

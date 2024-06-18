@@ -17,9 +17,8 @@ Parameters
 
    // Refinement level
 
-   maxLevel 5;
-   minLevel 0;
-    
+   maxLevel 4;
+   minLevel 2;
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -31,7 +30,7 @@ Parameters
    // tempInit = 1: keep anomalies near the surface
    // tempInit = 2: keep anomalies near both boundaries 
 
-   tempInit 1;
+   tempInit 0;
 
    // Steepness of temperature filtering
 
@@ -43,10 +42,10 @@ Parameters
    // false: generate spherical harmonics 
 
    temperatureNoise true;
-   temperatureSphericalHarmonic false;
+   temperatureSphericalHarmonic true;
 
    // the default value of noiseFactor is set to 0.05
-   noiseFactor 0.05; 
+   noiseFactor 0.02; 
    /************************************************************/
 
    // Spherical Harmonics parameters
@@ -60,21 +59,21 @@ Parameters
    // generate random superposition of spherical harmonics (lmin -> lmax)
    // false: generate a single spherical harmonic (degree and order defined above)
 
-   superposition true;
+   superposition false;
 
    // scaling temperature anomalies in the initial state
 
-   buoyancyFactor 0.05;
+   buoyancyFactor 0.01;
    ////////////////////////////
    //  Material parameters   //
    ////////////////////////////
 
    thermalExpansivity 2.238e-5;
-   thermalConductivity 3.0;
+   thermalConductivity 3;
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
-   viscosity       5e22;
+   viscosity       1e22;
 
    // Adiabatic reference state parameters
 
@@ -105,10 +104,10 @@ Parameters
 
    tempDependentViscosityType 0; 
 
-   activationEnergy 2;
-   depthViscosityFactor 2.5;
-   viscosityLowerBound 2e19;
-   viscosityUpperBound 1e24;
+   activationEnergy 0;
+   depthViscosityFactor 0;
+   viscosityLowerBound 5e19;
+   viscosityUpperBound 1e23;
 
    //setup solvers again due to changing spectral bounds of stokes operator
 
@@ -121,9 +120,9 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile ../../data/terraneo/viscosityProfiles/tests/ViscosityProfileTest.json;
+   //viscosityProfile ViscosityProfile_Lin_et_al_2022.json;
 
-   characteristicVelocity 1e-8;
+   characteristicVelocity 1e-6;
 
    // Input temperature
 
@@ -147,22 +146,22 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
-   shearHeating true;
-   adiabaticHeating true;
-   internalHeating true;
+   shearHeating false;
+   adiabaticHeating false;
+   internalHeating false;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
 
-   shearHeatingScaling 1e-5;
+   shearHeatingScaling 1;
    lithosphereThickness 100;
 
    // Time steps 
 
-   maxNumTimeSteps 10;
+   maxNumTimeSteps 5;
    fixedTimeStep false;
-   cflMax 0.75;
-   dtConstant 1e-4;
+   cflMax 0.1;
+   dtConstant 100;
 
    // Adaptive reference Temperature 
    // true: update to radial mean Temperature
@@ -193,29 +192,29 @@ Parameters
 
    // 0 - FMGRES
    // 1 - Uzawa
-   SolverFlag 0;
+   SolverFlag 1;
 
    // Uzawa solver parameters
 
    stokesMaxNumIterations 5;
    stokesRelativeResidualUTolerance 1e-6;
    stokesAbsoluteResidualUTolerance 1e-6;
-
    stokesUzawaCoarseGridIter 10;
    stokesUzawaCoarseGridTol 1e-6;
    stokesSmoothIncrementCoarseGrid 2;
-
-   // FGMRES solver parameters 
-
-   FGMRESOuterIterations 5;
-   FGMRESTolerance 1e-6;
+   
+   // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
    uzawaOmega 0.5;
+   ABlockMGPreSmooth 2;
+   ABlockMGPostSmooth 2;
+
+   // FGMRES solver parameters 
+   FGMRESOuterIterations 5;
+   FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
-   ABlockMGPreSmooth 2;
-   ABlockMGPostSmooth 2;
    ABlockCoarseGridIterations 10;
    ABlockCoarseGridTolerance 1e-6;
    SchurMGIterations 3;
@@ -239,7 +238,11 @@ Parameters
    //////////////////////////
 
    dataOutput true;
-   vtk true;
+   
+   // vtk or adios2
+   // if set to false then dataOutput is through adios2
+   vtk false;
+   
    OutputVelocity true;
    OutputTemperature true;
    OutputInterval 1;
@@ -252,7 +255,7 @@ Parameters
 
    outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
-   
+
    ADIOS2StoreCheckpointPath ./output/checkpoint;
    ADIOS2StoreCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StoreCheckpoint false;
@@ -269,13 +272,10 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory ../../output;
+   outputDirectory ./output;
    outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information
 
-   // Output of json file containing timing results of default Timing Tree results
-   // default: false
-
-   timingAnalysis false;
+   timingAnalysis true;
 }

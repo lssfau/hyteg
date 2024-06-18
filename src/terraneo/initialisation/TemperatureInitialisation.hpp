@@ -106,7 +106,7 @@ struct TemperatureInitializationParameters
 /// \param tempInitParams TemperatureInitializationParameters struct initialized with suitable parameters
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-std::function< real_t( const Point3D& ) >
+inline std::function< real_t( const Point3D& ) >
     temperatureReferenceExponential( const TemperatureInitializationParameters& tempInitParams )
 {
    return [=]( const Point3D& x ) {
@@ -114,7 +114,7 @@ std::function< real_t( const Point3D& ) >
       real_t temp =
           tempInitParams.TsurfaceAdb() * std::exp( ( tempInitParams.dissipationNumber() * ( tempInitParams.rMax() - radius ) ) );
 
-      real_t retVal = temp / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+      real_t retVal = (temp - tempInitParams.Tsurface()) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
 
       return retVal;
    };
@@ -144,7 +144,7 @@ std::function< real_t( const Point3D& ) >
 /// \param referenceTemp  a std::function that represents a some reference temperature profile
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
+inline std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
                                                                  const std::function< real_t( const Point3D& ) >& referenceTemp,
                                                                  real_t                                           noiseFactor )
 {
@@ -157,15 +157,15 @@ std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const Temperatu
 
       const auto Tcmb     = tempInitParams.Tcmb();
       const auto Tsurface = tempInitParams.Tsurface();
-
+      
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return Tcmb / ( Tcmb - Tsurface );
+         return real_c(1);
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return Tsurface / ( Tcmb - Tsurface );
+         return real_c(0);
       }
       else
       {
@@ -195,7 +195,7 @@ std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const Temperatu
 /// \param initialTemperatureSteepness  Factor for filtering anomalies.
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureInitializationParameters&       tempInitParams,
+inline std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureInitializationParameters&       tempInitParams,
                                                           const std::function< real_t( const Point3D& ) >& referenceTemp,
                                                           const uint_t                                     tempInit,
                                                           const uint_t                                     deg,
@@ -213,19 +213,19 @@ std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureIniti
       const auto Tsurface = tempInitParams.Tsurface();
 
       auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-      real_t retVal;
+
+      real_t retVal = referenceTemp( x );
 
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return Tcmb / ( Tcmb - Tsurface );
+         return real_c(1);
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return Tsurface / ( Tcmb - Tsurface );
+         return real_c(0);
       }
 
-      retVal = referenceTemp( x );
 
       std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
       real_t                                    filter;
@@ -287,7 +287,7 @@ std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureIniti
       else
       {
          // Single spherical harmonic for the initialisation.
-         retVal += ( buoyancyFactor * filter * sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) /
+         retVal += ( buoyancyFactor * filter * std::sin(walberla::math::pi * (radius - rMin)/(rMax - rMin))  * sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) /
                      std::sqrt( real_c( 4 ) * walberla::math::pi ) );
       }
       return retVal;

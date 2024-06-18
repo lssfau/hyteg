@@ -67,50 +67,77 @@ struct DomainParameters
 
 struct SolverParameters
 {
+   uint_t solverFlag = 0u;
    // Stokes solver parameters
-   uint_t stokesMaxNumIterations              = 10000;
-   real_t coarseGridAbsoluteResidualTolerance = real_c( 0 );
-   real_t coarseGridRelativeResidualTolerance = real_c( 0 );
-   uint_t uzawaInnerIterations                = 10;
-   uint_t uzawaPreSmooth                      = 6;
-   uint_t uzawaPostSmooth                     = 6;
-   real_t uzawaOmega                          = real_c( 0.3 );
-   uint_t numVCyclesPerLevel                  = 1;
-   bool   fullMultigrid                       = true;
-   bool   preComputeStokesElementMatrices     = true;
-   bool   estimateUzawaOmega                  = false;
-   uint_t chebyshevIterations                 = 50;
-   real_t stokesKillTolerance                 = real_c( 100 );
+   uint_t numPowerIterations         = 25;
+   uint_t FGMRESOuterIterations      = 5;
+   real_t FGMRESTolerance            = 1e-6;
+   uint_t uzawaIterations            = 5;
+   real_t uzawaOmega                 = real_c( 0.3 );
+   bool   estimateUzawaOmega         = false;
+   uint_t ABlockMGIterations         = 5;
+   real_t ABlockMGTolerance          = 1e-6;
+   uint_t ABlockMGPreSmooth          = 3;
+   uint_t ABlockMGPostSmooth         = 3;
+   uint_t ABlockCoarseGridIterations = 5;
+   real_t ABlockCoarseGridTolerance  = 1e-6;
+   uint_t SchurMGIterations          = 5;
+   real_t SchurMGTolerance           = 1e-6;
+   uint_t SchurMGPreSmooth           = 3;
+   uint_t SchurMGPostSmooth          = 3;
+   uint_t SchurCoarseGridIterations  = 5;
+   real_t SchurCoarseGridTolerance   = 1e-6;
+   real_t stokesKillTolerance        = real_c( 1000 );
 
-   //parameters needed for repeated V-cycles
-   real_t stokesAbsoluteResidualUTolerance = real_c( 0 );
-   real_t stokesRelativeResidualUTolerance = real_c( 0 );
+   // Uzawa type multigrid solver
    real_t initialResidualU                 = real_c( 0 );
    real_t vCycleResidualUPrev              = real_c( 0 );
    uint_t numVCycles                       = 0;
    real_t averageResidualReductionU        = real_c( 0 );
+   uint_t stokesMaxNumIterations           = 5;
+   real_t stokesRelativeResidualUTolerance = 1e-6;
+   real_t stokesAbsoluteResidualUTolerance = 1e-6;
+   uint_t stokesUzawaCoarseGridIter        = 10;
+   real_t stokesUzawaCoarseGridTol         = 1e-6;
+   uint_t stokesSmoothIncrementCoarseGrid  = 2;
+
    // Diffusion solver parameters
+
    uint_t diffusionMaxNumIterations           = 10000;
    real_t diffusionAbsoluteResidualUTolerance = real_c( 10000 );
-   // Solver types (MinRes / PETSc)
-   uint_t solverType = 0;
 
    real_t gmresApproximationToleranceTransport = real_c( 1e-5 );
 };
 // Output parameters
 struct OutputParameters
 {
-   std::string outputDirectory   = std::string( "output" );
-   std::string outputBaseName    = std::string( "conv_sim" );
-   std::string outputConfig      = std::string( "ADIOS2config.xml" );
-   std::string ADIOS2ParamKey    = std::string( "NumAggregators" );
-   std::string ADIOS2Value       = std::string( "16" );
-   bool        dataOutput        = true;
-   bool        vtk               = true;
-   bool        OutputVelocity    = true;
-   bool        OutputViscosity   = true;
-   bool        OutputTemperature = true;
-   uint_t      OutputInterval    = 1;
+   std::string outputDirectory = std::string( "output" );
+   std::string outputBaseName  = std::string( "conv_sim" );
+
+   std::string ADIOS2OutputConfig       = std::string( "ADIOS2config.xml" );
+   std::string ADIOS2ParamKey           = std::string( "NumAggregators" );
+   std::string ADIOS2Value              = std::string( "16" );
+   
+   std::string ADIOS2StoreCheckpointPath = std::string("output");
+   std::string ADIOS2StoreCheckpointFilename = std::string("conv_sim_store");
+
+   std::string ADIOS2StartCheckpointPath = std::string("output");
+   std::string ADIOS2StartCheckpointFilename = std::string("conv_sim_store");
+
+   std::string ADIOS2CheckpointPath     = std::string( "output" );
+   std::string ADIOS2CheckpointFilename = std::string( "conv_sim" );
+
+   bool ADIOS2StartFromCheckpoint = false;
+   bool ADIOS2StoreCheckpoint     = false;
+
+   uint_t ADIOS2StoreCheckpointFrequency = 100U;
+
+   bool   dataOutput        = true;
+   bool   vtk               = true;
+   bool   OutputVelocity    = true;
+   bool   OutputViscosity   = true;
+   bool   OutputTemperature = true;
+   uint_t OutputInterval    = 1;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
@@ -159,6 +186,8 @@ struct SimulationParameters
    real_t      plateSmoothingDistance = real_c( 110 );
    bool        compressible           = true; // default: Compressible foŕmulation
    bool        shearHeating           = true; //default: include shear heating
+   bool        adiabaticHeating       = true; //default: include adiabatic heating
+   bool        internalHeating        = true; //default: include internal heating
    uint_t      boundaryCond           = 1;    // default: No-Slip/No-Slip
    bool        boundaryCondFreeSlip   = false;
    bool        verbose                = false;
@@ -167,6 +196,11 @@ struct SimulationParameters
 
    //needed for conversions in the simulation
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
+
+   // Shear heating scaling for mantle ciruclation model with
+   // predifned Lithosphere thickness in km
+   real_t shearHeatingScaling  = 1e-5;
+   real_t lithosphereThickness = real_c( 100 );
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
