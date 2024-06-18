@@ -27,17 +27,26 @@ It's optional (but recommended) to install ADIOS2 for checkpointing and efficien
 HYTEG_BUILD_WITH_ADIOS2=ON
 ```
 
-Then build the `Convection` target, e.g., via:
+Then build the `TerraNeo` target, e.g., via:
 ```
-make Convection -j8
+make TerraNeo -j8
 ```
 (`-j` triggers a parallel build).
 
 ### Running the app
 
-The application parameters are set through a parameter file. 
+The application parameters are set through a parameter file. Running the app via
 
-> 🚧 usage and rough parameter file description
+```
+mpirun -np 8 ./TerraNeo
+```
+
+will default to using the default (`parameters.prm`) parameter file. You can create your own file and pass it via the 
+command line instead:
+
+```
+mpirun -np 8 ./TerraNeo my_parameter_file.prm
+```
 
 ---
 
@@ -103,6 +112,8 @@ mantle circulation model is to prescribe the surface velocity boundary condition
 to prescribe free-slip boundary conditions at the core-mantle boundary. However, for testing purposes, other boundary 
 conditions can be chosen.
 
+> 🚧 more details on plates
+
 ### Initial conditions
 
 Several options are available for the initial temperature field. They include random initialization and smooth spherical 
@@ -157,34 +168,3 @@ of characteristics and the diffusive term with standard preconditioned Krylov so
 > 🚧 ADIOS2/VTK
 > 🚧 checkpointing
 
----
-
-## FAQ
-
-> currently empty
-
----
-
-
-> 🚧 keeping everything below for reference - but will be removed as soon as the remaining bits are sorted
-
-For the benefit of the user the parameter files are split in the config folder. One can use the appropriate files to specify/control the model variable they need.
-
-Parameter file
-- The default parameter file `default.prm` just contains paths.
-- The user can either give the path to the config folder with the specific `prm` files or can choose to load the full parameter file from the `default.prm`.
-- Other parameters must be set in either `config` or the parameter file the user chooses to use.
-
-##### NOTE: Make sure to use proper file paths (maybe all absolute to be safe)
-
-Attributes of the app
-- ToDo
-
-How to compile/run the app?
-- ToDo
-
-How to run a plate model?
-- ToDo
-
-How to use checkpointing?
-- ToDo
