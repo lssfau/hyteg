@@ -97,6 +97,9 @@ struct SolverParameters
    uint_t stokesMaxNumIterations           = 5;
    real_t stokesRelativeResidualUTolerance = 1e-6;
    real_t stokesAbsoluteResidualUTolerance = 1e-6;
+   uint_t stokesUzawaCoarseGridIter        = 10;
+   real_t stokesUzawaCoarseGridTol         = 1e-6;
+   uint_t stokesSmoothIncrementCoarseGrid  = 2;
 
    // Diffusion solver parameters
 

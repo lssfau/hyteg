@@ -25,6 +25,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FGMRESSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"

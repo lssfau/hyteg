@@ -240,6 +240,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverParam.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
+   solverParam.stokesUzawaCoarseGridIter       = mainConf.getParameter< uint_t >( "stokesUzawaCoarseGridIter" );
+   solverParam.stokesUzawaCoarseGridTol        = mainConf.getParameter< real_t >( "stokesUzawaCoarseGridTol" );
+   solverParam.stokesSmoothIncrementCoarseGrid = mainConf.getParameter< uint_t >( "stokesSmoothIncrementCoarseGrid" );
+
    outputParam.outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
    outputParam.outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
    outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );

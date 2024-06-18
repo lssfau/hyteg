@@ -491,14 +491,19 @@ void ConvectionSimulation::setupSolversAndOperators()
           projectionOperator,
           bcVelocity,
           false,
-          { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 50 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 3 },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2 } } );
+          { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
+              real_c( TN.solverParameters.numPowerIterations ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS,
+              real_c( TN.solverParameters.stokesUzawaCoarseGridIter ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE,
+              real_c( TN.solverParameters.stokesUzawaCoarseGridTol ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, real_c( TN.solverParameters.uzawaOmega ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, real_c( TN.solverParameters.ABlockMGPreSmooth ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, real_c( TN.solverParameters.ABlockMGPostSmooth ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER,
+              real_c( TN.solverParameters.uzawaIterations ) },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID,
+              real_c( TN.solverParameters.stokesSmoothIncrementCoarseGrid ) } } );
 
       stokesSolverFS = std::make_shared< SolverLoop< StokesOperatorFS > >(
           multigridSolver, TN.solverParameters.stokesMaxNumIterations, stopIterationCallback );

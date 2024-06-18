@@ -201,6 +201,10 @@ Parameters
    stokesRelativeResidualUTolerance 1e-6;
    stokesAbsoluteResidualUTolerance 1e-6;
 
+   stokesUzawaCoarseGridIter 10;
+   stokesUzawaCoarseGridTol 1e-6;
+   stokesSmoothIncrementCoarseGrid 2;
+
    // FGMRES solver parameters 
 
    FGMRESOuterIterations 5;
