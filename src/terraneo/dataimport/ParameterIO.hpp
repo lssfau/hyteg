@@ -234,8 +234,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
 
    solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
-   solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< uint_t >( "stokesRelativeResidualUTolerance" );
-   solverParam.stokesAbsoluteResidualUTolerance = mainConf.getParameter< uint_t >( "stokesAbsoluteResidualUTolerance" );
+   solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
+   solverParam.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
 
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverParam.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
