@@ -290,21 +290,21 @@ void ConvectionSimulation::solveEnergy()
    constEnergyCoeff->interpolate( internalHeatingCoeffCalc, TN.domainParameters.maxLevel, All );
 
    // Assemble RHS
-   // transportOperatorTALA->applyRHS( *energyRHSWeak, TN.domainParameters.maxLevel, All );
-   transportOperatorRHS->setTALADict( { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, false } } );
-   transportOperatorRHS->apply( *temperature, *energyRHSWeak, TN.domainParameters.maxLevel, All );
+   transportOperatorTALA->applyRHS( *energyRHSWeak, TN.domainParameters.maxLevel, All );
+   // transportOperatorRHS->setTALADict( { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, false } } );
+   // transportOperatorRHS->apply( *temperature, *energyRHSWeak, TN.domainParameters.maxLevel, All );
 
    /* NOTE: This is because the adiabatic term on the 'RHS' should only act on surfTempCoeff */
-   transportOperatorRHS->setTALADict(
-       { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-         { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, false },
-         { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, false } } );
-   transportOperatorRHS->apply( *surfTempCoeff, *energyRHSWeak, TN.domainParameters.maxLevel, All );
+   // transportOperatorRHS->setTALADict(
+   //     { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+   //       { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, false },
+   //       { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, false } } );
+   // transportOperatorRHS->apply( *surfTempCoeff, *energyRHSWeak, TN.domainParameters.maxLevel, All );
 
-   transportOperatorRHS->setTALADict(
-       { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-         { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
-         { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
+   // transportOperatorRHS->setTALADict(
+   //     { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+   //       { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
+   //       { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
 
    // Solve
    transportSolverTALA->solve( *transportOperatorTALA, *temperature, *energyRHSWeak, TN.domainParameters.maxLevel );

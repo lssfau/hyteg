@@ -341,7 +341,7 @@ void ConvectionSimulation::initialiseFunctions()
          uint_t shell = static_cast< uint_t >(
              std::round( real_c( TN.simulationParameters.numLayers ) *
                          ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
-         WALBERLA_ASSERT( shell < T.size() );
+         WALBERLA_ASSERT( shell < temperatureProfiles->mean.size() );
          return temperatureProfiles->mean.at( shell );
       }
       else
