@@ -780,9 +780,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto cgs = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, 1e-30, cg_tol, cgIter );
 #else
-   auto precond = std::make_shared< WeightedJacobiSmoother< A_t > >( storage, l_min, l_min, 0.66 );
-   A->computeInverseDiagonalOperatorValues();
-   auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol, precond );
+   auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
 #endif
 
    // error indicator
@@ -1191,11 +1189,13 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             error_freq,
                             loadbalancing );
       }
+   }
 
-      if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-      {
-         std::cout << "\nTiming tree final iteration:\n" << *( u_old->getStorage()->getTimingTree() ) << "\n";
-      }
+   auto& timingTree = *( u_old->getStorage()->getTimingTree() );
+
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 && u_old )
+   {
+      std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
    }
 }
 
