@@ -20,15 +20,15 @@
 
 #pragma once
 
+#include <core/timing/TimingTree.h>
 #include <limits>
 
+#include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
-
-#include "mesh.hpp"
 
 namespace hyteg {
 namespace adaptiveRefinement {
@@ -66,6 +66,7 @@ class ErrorEstimator
    , _C2( j_max )
    , _fmg_called( false )
    , _estimate_called( false )
+   , _timing_tree( _storage->getTimingTree() )
    {
       // we require one more level than L-j to compute η_j
       if ( _l_max - _l_min < j_max + 1 )
@@ -120,6 +121,8 @@ class ErrorEstimator
    /// @brief trigger computation of error estimates. Call AFTER fmg solver.
    void estimate()
    {
+      _timingTree->start( "Error Estimate" );
+
       if ( !_fmg_called )
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "No data from FMG available. Maybe ErrorEstimator::fmg_callback() hasn't been used." )
@@ -137,18 +140,26 @@ class ErrorEstimator
       }
       for ( uint_t j = 1; j <= _j_max + 1; ++j )
       {
+         _timingTree->start( "j = " + std::to_string( j ) );
+
          auto lvl = _l_max - j; // we require all levels L-j_max-1, ..., L-1
 
          // prolongate u_lvl to finest level (the first prolongations happens within FMG)
+         _timingTree->start( "prolongate" );
          for ( uint_t k = lvl + 1; k < _l_max; ++k )
             _P->prolongate( *_w, k, All );
-         // substract fine grid solution to obtain estimate for e_lvl
+         _timingTree->stop( "prolongate" );
+         // subtract fine grid solution to obtain estimate for e_lvl
+         _timingTree->start( "compute estimate" );
          _w->add( { -1 }, { _u }, _l_max, All );
          _w->interpolate( 0, _l_max, DirichletBoundary );
+         _timingTree->stop( "compute estimate" );
          // (after M.apply() (ELEMENTWISE operator), volume-primitives only contain local contributions. Additive interface data only stored on interfaces)
+         _timingTree->start( "compute norm" );
          _M->apply( *_w, *_Mw, _l_max, Inner | NeumannBoundary, Replace );
 
          // compute squared global and local norms w*M*w
+         _timingTree->start( "local dot product" );
          if ( _storage->hasGlobalCells() ) // 3d
          {
             auto& e  = _w->getCellDataID();
@@ -183,6 +194,10 @@ class ErrorEstimator
                   _eta_T_sq.push_back( { eMe, id } );
             }
          }
+         _timingTree->stop( "local dot product" );
+         _timingTree->stop( "compute norm" );
+
+         _timingTree->stop( "j = " + std::to_string( j ) );
       }
 
       _fmg_called      = false;
@@ -192,6 +207,8 @@ class ErrorEstimator
       {
          compute_eta();
       }
+
+      _timingTree->stop( "Error Estimate" );
    }
 
    /// @brief get global estimate eta_j to ||u - u_h||
@@ -239,6 +256,8 @@ class ErrorEstimator
    /// @brief trigger computation of eta, theta, C1, C2
    void compute_eta()
    {
+      _timingTree->start( "compute_eta" );
+
       for ( auto& e : _eta )
       {
          walberla::mpi::allReduceInplace( e, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
@@ -264,6 +283,8 @@ class ErrorEstimator
          _C1[i] = std::pow( 1.0 - theta_p_j, i + 2 ) / std::pow( 1.0 + theta_p_j1, i + 1 );
          _C2[i] = std::pow( 1.0 + theta_p_j, i + 2 ) / std::pow( 1.0 - theta_p_j1, i + 1 );
       }
+
+      _timingTree->stop( "compute_eta" );
    }
 
    /// @brief Check whether values for level j have been computed
@@ -289,6 +310,7 @@ class ErrorEstimator
    adaptiveRefinement::ErrorVector                         _eta_T_sq;
    bool                                                    _fmg_called, _estimate_called;
    std::function< void( uint_t lvl ) >                     _fmg_callback;
+   std::shared_ptr< walberla::WcTimingTree >               _timingTree;
 };
 
 } // namespace adaptiveRefinement
