@@ -32,7 +32,7 @@
 namespace hyteg {
 
 /**
- * Utility function to copy boundary conditions from src to dst
+ * Utility function to copy boundary conditions from source (src) to destination (dst)
  * @tparam src: Take boundary conditions from src
  * @tparam dst: And copies it to destination
  * The behaviour depends on the function type, whose value types can be mixed (for ex. P1Function<real_t> to P1Function<idx_t>) 
@@ -41,9 +41,10 @@ namespace hyteg {
  *    P1VectorFunction<value_t1>, P2VectorFunction<value_t2>   : Iterates over dimensions and copies every 
  *                                                               boundary condition
  *    Stokes block functions like P2P1TaylorHoodFunction       : The above applies for each function in the block
+ *    For any other special functions                          : Does the default copy 
  */
 template < template < typename > class FunctionType, typename value_t1, typename value_t2 >
-void bccpy( const FunctionType< value_t1 >& src, FunctionType< value_t2 >& dst )
+void copyBCs( const FunctionType< value_t1 >& src, FunctionType< value_t2 >& dst )
 {
    if constexpr ( std::is_same_v< FunctionType< value_t1 >, P1VectorFunction< value_t1 > > ||
                   std::is_same_v< FunctionType< value_t2 >, P1VectorFunction< value_t2 > > ||
@@ -81,7 +82,8 @@ void bccpy( const FunctionType< value_t1 >& src, FunctionType< value_t2 >& dst )
    }
    else
    {
-      WALBERLA_ABORT( "bccpy() called with unsupported function type!" );
+      // Do default copy
+      dst.copyBoundaryConditionFromFunction(src);
    }
 }
 
