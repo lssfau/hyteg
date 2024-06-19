@@ -66,7 +66,7 @@ class ErrorEstimator
    , _C2( j_max )
    , _fmg_called( false )
    , _estimate_called( false )
-   , _timing_tree( _storage->getTimingTree() )
+   , _timingTree( _storage->getTimingTree() )
    {
       // we require one more level than L-j to compute η_j
       if ( _l_max - _l_min < j_max + 1 )
