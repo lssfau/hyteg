@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/functions/FunctionTools.hpp"
 
 #include "PETScSparseMatrix.hpp"
 #include "PETScVector.hpp"
@@ -221,7 +222,8 @@ class PETScLUSolver : public Solver< OperatorType >
       // if the numerator was constructed internally we should copy the Boundary Condition info
       // to it, because that is the only way to get it into hyteg::applyDirichletBC() where
       // the corresponding DoF indices will be computed
-      num_.copyBoundaryConditionFromFunction( x );
+      copyBCs(x, num_);
+      // num_.copyBoundaryConditionFromFunction( x );
 
 
       timer.start();
