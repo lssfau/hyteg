@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,6 +41,18 @@ using walberla::math::pi;
 
 using namespace hyteg;
 
+/// \file show_mesh.cpp
+///
+/// \brief App demonstrating the use of mesh-reader and inline mesh-generators
+///
+/// The app demonstrates the use of various inline mesh-generators available in
+/// HyTeG and can also be used to preview the resulting meshes or a GMSH file,
+/// obtain info on the resulting primitive distribution for a given load balancing
+/// scheme. Additionally one can query the number of degrees of freedom for a
+/// mesh on a specific refinement level.
+
+
+/// Print information on the app and available command-line parameters
 void showUsage()
 {
    std::cout
@@ -79,6 +91,8 @@ void showUsage()
        << std::endl;
 }
 
+
+/// The actual show_mesh app itself
 int main( int argc, char* argv[] )
 {
    std::string meshFileName;

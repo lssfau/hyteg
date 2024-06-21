@@ -42,13 +42,13 @@ namespace hyteg {
  * -# creating an adaptiveRefinement::Mesh from the SetupPrimitiveStorage object
  * -# creating a distributed PrimitiveStorage from the current state of the refined mesh
  *
- * \section T05-setupstorage Creating MeshInfo and SetupPrimitiveStorage
+ * \section BA05-setupstorage Creating MeshInfo and SetupPrimitiveStorage
  *
  * Creating the initial mesh requires a SetupPrimitiveStorage, that is created as introduced in \ref BA.01_PrimitiveStorage.
  *
  * \snippet{trimleft} this SetupPrimitiveStorage
  *
- * \section T05-adaptivemesh Creating an adaptive mesh
+ * \section BA05-adaptivemesh Creating an adaptive mesh
  *
  * We now use the SetupPrimitiveStorage to create the initial grid, instead of directly creating a PrimitiveStorage.
  *
@@ -65,7 +65,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this PrimitiveStorage
  *
- * \section T05-refine Refining the mesh
+ * \section BA05-refine Refining the mesh
  *
  * First, we need to select the elements that shall be refined.
  * Note that, since we apply red-green refinement, in general, more elements than the ones you selected will be refined.
@@ -80,7 +80,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this RefinedPrimitiveStorage
  *
- * \section code Complete Program
+ * \section BA05-Code Complete Program
  * \include tutorials/basics-for-apps/BA.05_AMR.cpp
  *
  *
