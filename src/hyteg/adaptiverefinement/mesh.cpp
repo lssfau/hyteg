@@ -41,7 +41,7 @@ template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 : _n_processes( setupStorage.getNumberOfProcesses() )
 {
-   // copy geometrymaps for each primitive in initial setupStorage
+   // copy geometry maps for each primitive in initial setupStorage
    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
    setupStorage.getSetupPrimitives( setupPrimitives );
    for ( auto& [id, primitive] : setupPrimitives )
@@ -69,7 +69,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       {
          // extract coordinates of vertex
          _vertices[idx] = vtx->getCoordinates();
-         // extract geometrymap, boundaryflag, primitiveid and targetrank
+         // extract geometry map, boundary flag, primitive id and target rank
          _V[idx] = VertexData( id, vtx->getMeshBoundaryFlag(), id, { { idx } }, setupStorage.getTargetRank( id ) );
 
          // prepare element setup
@@ -532,13 +532,13 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool 
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
       return std::vector< uint_t >( 0 );
 
-   // apply roundRobin to volume elments
+   // apply roundRobin to volume elements
    uint_t                targetRnk = 0;
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
    uint_t                n_vol_max = _n_elements / _n_processes;
    for ( auto el : _T )
    {
-      // already asigned
+      // already assigned
       if ( el->getTargetRank() < _n_processes )
       {
          continue;
@@ -549,7 +549,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool 
       {
          ++targetRnk;
 
-         // round robin complete but unasigned elements left
+         // round robin complete but unassigned elements left
          if ( targetRnk == _n_processes )
          {
             targetRnk = 0;
@@ -666,7 +666,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map<
          {
             if ( Q.empty() && n_assigned < _n_elements )
             {
-               // put a random elment (+siblings) into the queue
+               // put a random element (+siblings) into the queue
                if ( n_vol_on_rnk[targetRnk] < n_vol_max0 || fill_any )
                {
                   // find the next unassigned element
@@ -707,7 +707,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map<
             if ( next[0]->get_parent() )
                next[0]->get_parent()->setTargetRank( targetRnk );
 
-            // add nbrs to queue
+            // add neighbors to queue
             for ( auto el : next )
             {
                for ( auto nbrID : nbrHood.at( el->getPrimitiveID() )[K_Simplex::TYPE] )
@@ -1269,22 +1269,22 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          }
       }
 
-      // collect vertexdata
+      // collect vertex data
       for ( auto& vtx : _V )
       {
          vtxData[vtx.getPrimitiveID()] = vtx;
       }
-      // collect edgedata
+      // collect edge data
       for ( auto& edge : edges )
       {
          edgeData[edge->getPrimitiveID()] = EdgeData( edge.get() );
       }
-      // collect facedata
+      // collect face data
       for ( auto& face : faces )
       {
          faceData[face->getPrimitiveID()] = FaceData( face.get() );
       }
-      // collect celldata
+      // collect cell data
       for ( auto& cell : cells )
       {
          cellData[cell->getPrimitiveID()] = CellData( cell.get() );
