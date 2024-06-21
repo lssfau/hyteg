@@ -129,13 +129,15 @@ class K_Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param migrationInfo_required if set to false, the return value will be empty
       @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
       @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
-                                const bool           allow_split_siblings = false,
-                                const bool           verbose              = false );
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme               = ROUND_ROBIN,
+                                const bool           migrationInfo_required = false,
+                                const bool           allow_split_siblings   = true,
+                                const bool           verbose                = false );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }

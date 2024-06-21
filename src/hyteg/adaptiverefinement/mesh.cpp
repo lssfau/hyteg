@@ -371,7 +371,10 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 }
 
 template < class K_Simplex >
-MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const bool allow_split_siblings, const bool verbose )
+MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
+                                                  const bool           migrationInfo_required,
+                                                  const bool           allow_split_siblings,
+                                                  const bool           verbose )
 {
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::map< PrimitiveID, VertexData >   vtxs_old;
@@ -379,7 +382,11 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const
    std::map< PrimitiveID, FaceData >     faces_old;
    std::map< PrimitiveID, CellData >     cells_old;
    std::map< PrimitiveID, Neighborhood > nbrHood;
-   extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
+   if ( migrationInfo_required || lb == GREEDY )
+   {
+      // we don't need this for round robin
+      extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
+   }
 
    // reset target ranks
    for ( auto el : _T )
@@ -397,10 +404,18 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const
    // assign volume primitives
    if ( lb == ROUND_ROBIN )
    {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Load balancing strategy: Round Robin" );
+      }
       n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
    }
    else if ( lb == GREEDY )
    {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Load balancing strategy: Greedy" );
+      }
       n_vol_on_rnk = loadbalancing_greedy( nbrHood, allow_split_siblings );
    }
    else
@@ -435,66 +450,79 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const
    update_targetRank( vtxs, edges, faces, cells );
 
    // gather migration data
-   const uint_t   rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;
-   for ( auto& [id, vtx] : vtxs )
+   if ( migrationInfo_required )
    {
-      auto currentRnk = vtxs_old[id].getTargetRank();
-      auto targetRnk  = vtx.getTargetRank();
+      const uint_t rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+      // broadcast data to all processes
+      walberla::mpi::broadcastObject( vtxs_old );
+      walberla::mpi::broadcastObject( edges_old );
+      walberla::mpi::broadcastObject( faces_old );
+      walberla::mpi::broadcastObject( cells_old );
+      walberla::mpi::broadcastObject( vtxs );
+      walberla::mpi::broadcastObject( edges );
+      walberla::mpi::broadcastObject( faces );
+      walberla::mpi::broadcastObject( cells );
+      walberla::mpi::broadcastObject( nbrHood );
 
-      if ( rank == currentRnk )
+      for ( auto& [id, vtx] : vtxs )
       {
-         migrationMap[id] = targetRnk;
+         auto currentRnk = vtxs_old[id].getTargetRank();
+         auto targetRnk  = vtx.getTargetRank();
+
+         if ( rank == currentRnk )
+         {
+            migrationMap[id] = targetRnk;
+         }
+         if ( rank == targetRnk )
+         {
+            ++numReceivingPrimitives;
+         }
       }
-      if ( rank == targetRnk )
+      for ( auto& [id, edge] : edges )
       {
-         ++numReceivingPrimitives;
+         auto currentRnk = edges_old[id].getTargetRank();
+         auto targetRnk  = edge.getTargetRank();
+
+         if ( rank == currentRnk )
+         {
+            migrationMap[id] = targetRnk;
+         }
+         if ( rank == targetRnk )
+         {
+            ++numReceivingPrimitives;
+         }
+      }
+      for ( auto& [id, face] : faces )
+      {
+         auto currentRnk = faces_old[id].getTargetRank();
+         auto targetRnk  = face.getTargetRank();
+
+         if ( rank == currentRnk )
+         {
+            migrationMap[id] = targetRnk;
+         }
+         if ( rank == targetRnk )
+         {
+            ++numReceivingPrimitives;
+         }
+      }
+      for ( auto& [id, cell] : cells )
+      {
+         auto currentRnk = cells_old[id].getTargetRank();
+         auto targetRnk  = cell.getTargetRank();
+
+         if ( rank == currentRnk )
+         {
+            migrationMap[id] = targetRnk;
+         }
+         if ( rank == targetRnk )
+         {
+            ++numReceivingPrimitives;
+         }
       }
    }
-   for ( auto& [id, edge] : edges )
-   {
-      auto currentRnk = edges_old[id].getTargetRank();
-      auto targetRnk  = edge.getTargetRank();
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-   }
-   for ( auto& [id, face] : faces )
-   {
-      auto currentRnk = faces_old[id].getTargetRank();
-      auto targetRnk  = face.getTargetRank();
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-   }
-   for ( auto& [id, cell] : cells )
-   {
-      auto currentRnk = cells_old[id].getTargetRank();
-      auto targetRnk  = cell.getTargetRank();
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-   }
-
    return MigrationInfo( migrationMap, numReceivingPrimitives );
 }
 
@@ -1261,19 +1289,11 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
       {
          cellData[cell->getPrimitiveID()] = CellData( cell.get() );
       }
-   }
 
-   // broadcast data to all processes
-   walberla::mpi::broadcastObject( vtxData );
-   walberla::mpi::broadcastObject( edgeData );
-   walberla::mpi::broadcastObject( faceData );
-   walberla::mpi::broadcastObject( cellData );
-
-   // collect neighborhood data of volume primitives
-   if ( rank == 0 )
-   {
+      // collect neighborhood data of volume primitives
       for ( auto& el : _T )
       {
+         // neighbor faces (3d only)
          if constexpr ( K_Simplex::TYPE == CELL )
          {
             for ( auto& face : el->get_faces() )
@@ -1281,10 +1301,12 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
                nbrHood[el->getPrimitiveID()][FACE].push_back( face->getPrimitiveID() );
             }
          }
+         // neighbor edges
          for ( auto& edge : el->get_edges() )
          {
             nbrHood[el->getPrimitiveID()][EDGE].push_back( edge->getPrimitiveID() );
          }
+         // neighbor vertices
          for ( auto& idx : el->get_vertices() )
          {
             auto id = _V[idx].getPrimitiveID();
@@ -1292,14 +1314,9 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
             nbrHood[el->getPrimitiveID()][VTX].push_back( id );
          }
       }
-   }
 
-   walberla::mpi::broadcastObject( nbrHood );
-
-   uint_t i = 0;
-   for ( auto& [id1, nbrHood_1] : nbrHood )
-   {
-      if ( i % _n_processes == rank )
+      // neighbor cells (faces in 2d)
+      for ( auto& [id1, nbrHood_1] : nbrHood )
       {
          for ( const auto& [id2, _] : nbrHood )
          {
@@ -1319,15 +1336,6 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
             }
          }
       }
-      ++i;
-   }
-
-   i = 0;
-   for ( auto& [_, nbrHood_1] : nbrHood )
-   {
-      WALBERLA_UNUSED( _ );
-      walberla::mpi::broadcastObject( nbrHood_1[K_Simplex::TYPE], int( i % _n_processes ) );
-      ++i;
    }
 }
 
