@@ -11,7 +11,7 @@ Parameters
   // 6: wave shape induced by coefficient
   // 7: jump coefficient
   // 8: jump coefficient regularized
-  modelProblem 7;
+  modelProblem 3;
   // spacial dimension of domain
   dim 2;
 
@@ -21,7 +21,7 @@ Parameters
   k_low 1; // value of coefficient before jump (problem 7)
   k_high 10000;// value of coefficient after jump (problem 7)
 
-  initial_resolution 3; // initial number of elements in each direction
+  initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
   error_indicator 0; // else refine based on actual L2 error (using analytic solution)
@@ -42,19 +42,19 @@ Parameters
 
 
   // // linear solver (GMG)
-  presmooth 8; // number of gs iterations for smoothing
-  postsmooth 8;
+  presmooth 2; // number of gs iterations for smoothing
+  postsmooth 1;
   n_cycles 1; // number of V-cycles on each level in FMG+
-  n_iterations 10; // first iteration FMG, then V-cycles
+  n_iterations 3; // first iteration FMG, then V-cycles
   // n_iterations_final 5; // use different number of iterations for final solve step
   tolerance 1e-10;
   // tolerance_final 1e-10; // use different tolerance for final solve step
   cg_level 0; // defaults to 0
   cg_tolerance 1e-3;
-  // initial_guess 1; // 0: zero, 1: u_h from previous refinement
+  initial_guess 0; // 0: zero, 1: u_h from previous refinement
 
   // // misc
-  loadbalancing 1; // else, assign macros via round robin
+  loadbalancing 0; // else, assign macros via round robin
   l2error 0; // compute actual L2 error after every n-th iteration; default: 0 (never)
   // vtkName auto;
   // vtkName err_ex;
