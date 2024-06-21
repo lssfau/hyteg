@@ -200,12 +200,18 @@ class K_Mesh
    */
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
+   /* extract connectivity, geometrymap, boundaryFlags, etc. from all elements*/
    void extract_data( std::map< PrimitiveID, VertexData >&   vtxData,
                       std::map< PrimitiveID, EdgeData >&     edgeData,
                       std::map< PrimitiveID, FaceData >&     faceData,
                       std::map< PrimitiveID, CellData >&     cellData,
                       std::map< PrimitiveID, Neighborhood >& nbrHood ) const;
+
+   /* extract geometrymap, boundaryFlags, etc. from all elements*/
+   void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
+                      std::map< PrimitiveID, EdgeData >&   edgeData,
+                      std::map< PrimitiveID, FaceData >&   faceData,
+                      std::map< PrimitiveID, CellData >&   cellData ) const;
 
    /* update target rank for all primitives */
    void update_targetRank( const std::map< PrimitiveID, VertexData >& vtxData,
