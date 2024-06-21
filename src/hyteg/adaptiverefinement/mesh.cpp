@@ -1240,7 +1240,10 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
 
    extract_data( vtxData, edgeData, faceData, cellData );
 
-   // collect neighborhood data of volume primitives
+   // maps of neighborhoods of interfaces
+   std::array< std::map< PrimitiveID, std::set< PrimitiveID > >, 3 > interfaceNbrs;
+
+   // collect neighbor interfaces of volumes and vice versa
    for ( auto& el : _T )
    {
       // neighbor faces (3d only)
@@ -1249,12 +1252,14 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          for ( auto& face : el->get_faces() )
          {
             nbrHood[el->getPrimitiveID()][FACE].push_back( face->getPrimitiveID() );
+            interfaceNbrs[FACE][face->getPrimitiveID()].insert( el->getPrimitiveID() );
          }
       }
       // neighbor edges
       for ( auto& edge : el->get_edges() )
       {
          nbrHood[el->getPrimitiveID()][EDGE].push_back( edge->getPrimitiveID() );
+         interfaceNbrs[EDGE][edge->getPrimitiveID()].insert( el->getPrimitiveID() );
       }
       // neighbor vertices
       for ( auto& idx : el->get_vertices() )
@@ -1262,30 +1267,37 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          auto id = _V[idx].getPrimitiveID();
          WALBERLA_ASSERT( vtxData[id].get_vertices()[0] == idx );
          nbrHood[el->getPrimitiveID()][VTX].push_back( id );
+         interfaceNbrs[VTX][id].insert( el->getPrimitiveID() );
       }
    }
 
-   // neighbor cells (faces in 2d)
-   for ( auto& [id1, nbrHood_1] : nbrHood )
+   // collect indirect neighbors (volume primitives)
+   std::map< PrimitiveID, std::set< PrimitiveID > > indirectNbrs;
+
+   const auto VOL = ( cellData.size() == 0 ) ? FACE : CELL;
+   auto       pt  = VTX;
+   while ( pt != VOL )
    {
-      for ( const auto& [id2, _] : nbrHood )
+      // loop over all primitives of type pt
+      for ( auto& [interfaceId, nbrVolumes] : interfaceNbrs[pt] )
       {
-         WALBERLA_UNUSED( _ );
-         uint_t d = 0;
-         if constexpr ( K_Simplex::TYPE == CELL )
+         /// loop over the volume neighbors of this interface primitive and append
+         /// all of them to the list of indirect neighbors of each of them
+         for ( auto& volId : nbrVolumes )
          {
-            d = cellData[id1].diff( cellData[id2] );
-         }
-         if constexpr ( K_Simplex::TYPE == FACE )
-         {
-            d = faceData[id1].diff( faceData[id2] );
-         }
-         if ( d == 1 )
-         {
-            nbrHood_1[K_Simplex::TYPE].push_back( id2 );
+            indirectNbrs[volId].insert( nbrVolumes.begin(), nbrVolumes.end() );
          }
       }
+      pt = PrimitiveType( pt + 1 );
    }
+
+   // add indirect neighbors to volume neighborhood
+   for ( auto& [id, nbrs] : nbrHood )
+   {
+      nbrs[VOL] = std::vector< PrimitiveID >( indirectNbrs[id].begin(), indirectNbrs[id].end() );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "end: collect nbring volumes" )
 }
 
 template < class K_Simplex >
