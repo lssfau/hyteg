@@ -382,11 +382,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
    std::map< PrimitiveID, FaceData >     faces_old;
    std::map< PrimitiveID, CellData >     cells_old;
    std::map< PrimitiveID, Neighborhood > nbrHood;
-   if ( migrationInfo_required || lb == GREEDY )
-   {
-      // we don't need this for round robin
-      extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
-   }
+   extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
 
    // reset target ranks
    for ( auto el : _T )
@@ -443,7 +439,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
    std::map< PrimitiveID, EdgeData >   edges;
    std::map< PrimitiveID, FaceData >   faces;
    std::map< PrimitiveID, CellData >   cells;
-   extract_data( vtxs, edges, faces, cells );
+   extract_data( vtxs, edges, faces, cells ); // nbrHood didn't change
 
    // assign interface primitives to processes
    inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
