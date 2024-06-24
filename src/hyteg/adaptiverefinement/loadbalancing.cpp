@@ -31,124 +31,29 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-/* apply loadbalancing directly on our datastructures */
-MigrationInfo loadbalancing( std::map< PrimitiveID, VertexData >& vtxs,
-                             std::map< PrimitiveID, EdgeData >&   edges,
-                             std::map< PrimitiveID, FaceData >&   faces,
-                             std::map< PrimitiveID, CellData >&   cells,
-                             const uint_t&                        n_processes,
-                             const uint_t&                        rank )
-{
-   MigrationMap_T migrationMap;
-   uint_t         numReceivingPrimitives = 0;
-
-   // roundrobin
-   uint_t i = 0;
-
-   for ( auto& [id, vtx] : vtxs )
-   {
-      auto currentRnk = vtx.getTargetRank();
-      auto targetRnk  = i % n_processes;
-
-      vtx.setTargetRank( targetRnk );
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-
-      ++i;
-   }
-   for ( auto& [id, edge] : edges )
-   {
-      auto currentRnk = edge.getTargetRank();
-      auto targetRnk  = i % n_processes;
-
-      edge.setTargetRank( targetRnk );
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-
-      ++i;
-   }
-   for ( auto& [id, face] : faces )
-   {
-      auto currentRnk = face.getTargetRank();
-      auto targetRnk  = i % n_processes;
-
-      face.setTargetRank( targetRnk );
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-
-      ++i;
-   }
-   for ( auto& [id, cell] : cells )
-   {
-      auto currentRnk = cell.getTargetRank();
-      auto targetRnk  = i % n_processes;
-
-      cell.setTargetRank( targetRnk );
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-
-      ++i;
-   }
-
-   return MigrationInfo( migrationMap, numReceivingPrimitives );
-}
-
 void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >&         vtxs,
                                       std::map< PrimitiveID, EdgeData >&           edges,
                                       std::map< PrimitiveID, FaceData >&           faces,
                                       std::map< PrimitiveID, CellData >&           cells,
                                       const std::map< PrimitiveID, Neighborhood >& nbrHood )
 {
-   using PT     = PrimitiveType;
-   const PT VOL = ( cells.size() == 0 ) ? FACE : CELL;
+   const PrimitiveType VOL = ( cells.size() == 0 ) ? FACE : CELL;
 
    // compute neighboring volume primitives of all interface primitives
    std::array< std::map< PrimitiveID, std::vector< PrimitiveID > >, PrimitiveType::ALL > nbrVolumes;
    for ( auto& [volID, volNbrHood] : nbrHood )
    {
-      auto pt = VTX;
-      while ( pt != VOL )
+      for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
       {
          for ( auto& nbrID : volNbrHood[pt] )
          {
             nbrVolumes[pt][nbrID].push_back( volID );
          }
-
-         pt = PT( pt + 1 );
       }
    }
 
    // loop over all interface primitive types
-   auto pt = VTX;
-   while ( pt != VOL )
+   for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
    {
       // loop over all interfaces of type pt
       for ( auto& [interfaceID, myNbrVolumes] : nbrVolumes[pt] )
@@ -183,8 +88,6 @@ void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >&      
             break;
          }
       }
-
-      pt = PT( pt + 1 );
    }
 }
 
