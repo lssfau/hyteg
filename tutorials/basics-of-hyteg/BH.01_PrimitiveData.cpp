@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Bartuschat, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Bartuschat, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "core/mpi/Environment.h"
 #include "core/debug/CheckFunctions.h"
+#include "core/mpi/Environment.h"
 
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -94,137 +94,126 @@ namespace hyteg {
  *
  */
 
-
 /// [SimulationData]
 class SimulationData
 {
-public:
+ public:
+   SimulationData( const uint_t& size )
+   : size_( size )
+   , data_( new real_t[size] )
+   {}
 
-  SimulationData( const uint_t & size ) :
-    size_( size ), data_( new real_t[ size ] )
-  {}
-
-  // For convenience, let's have everything public
-  uint_t   size_;
-  real_t * data_;
-
+   // For convenience, let's have everything public
+   uint_t  size_;
+   real_t* data_;
 };
 /// [SimulationData]
-
 
 /// [SimulationDataHandling]
 class SimulationDataHandling : public PrimitiveDataHandling< SimulationData, Primitive >
 /// [SimulationDataHandling]
 {
-public:
+ public:
+   ~SimulationDataHandling() {}
 
-  ~SimulationDataHandling() {}
+   /// [SimulationDataHandlingInitialize]
+   std::shared_ptr< SimulationData > initialize( const Primitive* const primitive ) const
+   {
+      WALBERLA_UNUSED( primitive );
+      return std::make_shared< SimulationData >( 42 );
+   }
+   /// [SimulationDataHandlingInitialize]
 
-  /// [SimulationDataHandlingInitialize]
-  std::shared_ptr< SimulationData > initialize( const Primitive * const primitive ) const
-  {
-    WALBERLA_UNUSED( primitive );
-    return std::make_shared< SimulationData >( 42 );
-  }
-  /// [SimulationDataHandlingInitialize]
+   void serialize( const Primitive* const, const PrimitiveDataID< SimulationData, Primitive >&, SendBuffer& ) const
+   {
+      // write data to buffer
+   }
 
-  void serialize( const Primitive * const, const PrimitiveDataID< SimulationData, Primitive > &, SendBuffer & ) const
-  {
-    // write data to buffer
-  }
-
-  void deserialize( const Primitive * const, const PrimitiveDataID< SimulationData, Primitive > &, RecvBuffer & ) const
-  {
-    // read data from buffer
-  }
+   void deserialize( const Primitive* const, const PrimitiveDataID< SimulationData, Primitive >&, RecvBuffer& ) const
+   {
+      // read data from buffer
+   }
 };
-
 
 class VertexSimulationDataHandling : public OnlyInitializeDataHandling< SimulationData, Vertex >
 {
-public:
-
-  std::shared_ptr< SimulationData > initialize( const Vertex * const primitive ) const
-  {
-    WALBERLA_UNUSED( primitive );
-    return std::make_shared< SimulationData >( 4711 );
-  }
-
+ public:
+   std::shared_ptr< SimulationData > initialize( const Vertex* const primitive ) const
+   {
+      WALBERLA_UNUSED( primitive );
+      return std::make_shared< SimulationData >( 4711 );
+   }
 };
-
 
 void PrimitiveStorageTutorial()
 {
+   //------------------------------------//
+   // From the PrimtivieStorage tutorial //
+   //------------------------------------//
 
-  //------------------------------------//
-  // From the PrimtivieStorage tutorial //
-  //------------------------------------//
+   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   hyteg::MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
-  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
-  hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+   // Let's have a debug print
+   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-  // Let's have a debug print
-  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+   hyteg::PrimitiveStorage storage( setupStorage );
 
-  hyteg::PrimitiveStorage storage( setupStorage );
+   //-----------------//
+   // New stuff below //
+   //-----------------//
 
-  //-----------------//
-  // New stuff below //
-  //-----------------//
+   /// [AddingData]
+   // Adding some data to all primitives
+   auto                                         simulationDataHandling = std::make_shared< SimulationDataHandling >();
+   PrimitiveDataID< SimulationData, Primitive > simulationDataID;
+   storage.addPrimitiveData( simulationDataID, simulationDataHandling, "simulation data" );
+   /// [AddingData]
 
-  /// [AddingData]
-  // Adding some data to all primitives
-  auto simulationDataHandling = std::make_shared< SimulationDataHandling  >();
-  PrimitiveDataID< SimulationData, Primitive > simulationDataID;
-  storage.addPrimitiveData( simulationDataID, simulationDataHandling, "simulation data" );
-  /// [AddingData]
+   // Adding some data only to vertices
+   auto                                      vertexSimulationDataHandling = std::make_shared< VertexSimulationDataHandling >();
+   PrimitiveDataID< SimulationData, Vertex > vertexSimulationDataID;
+   storage.addVertexData( vertexSimulationDataID, vertexSimulationDataHandling, "simulation data (vertices)" );
 
-  // Adding some data only to vertices
-  auto vertexSimulationDataHandling = std::make_shared< VertexSimulationDataHandling  >();
-  PrimitiveDataID< SimulationData, Vertex > vertexSimulationDataID;
-  storage.addVertexData( vertexSimulationDataID, vertexSimulationDataHandling, "simulation data (vertices)" );
+   /// [DataRetrieval]
+   // Gather all the primitives
+   PrimitiveStorage::PrimitiveMap primitiveMap;
+   storage.getPrimitives( primitiveMap );
 
-  /// [DataRetrieval]
-  // Gather all the primitives
-  PrimitiveStorage::PrimitiveMap primitiveMap;
-  storage.getPrimitives( primitiveMap );
+   for ( const auto& primitive : primitiveMap )
+   {
+      WALBERLA_LOG_INFO( "Checking data from Primitive with ID: " << primitive.first );
 
-  for ( const auto & primitive : primitiveMap )
-  {
-    WALBERLA_LOG_INFO( "Checking data from Primitive with ID: " << primitive.first );
+      // Getting the data via the respective ID
+      SimulationData* data = primitive.second->getData( simulationDataID );
 
-    // Getting the data via the respective ID
-    SimulationData * data = primitive.second->getData( simulationDataID );
+      WALBERLA_CHECK_EQUAL( data->size_, 42 );
+   }
+   /// [DataRetrieval]
 
-    WALBERLA_CHECK_EQUAL( data->size_, 42 );
-  }
-  /// [DataRetrieval]
+   // For nicer output
+   WALBERLA_MPI_BARRIER();
 
-  // For nicer output
-  WALBERLA_MPI_BARRIER();
-
-  // Check data of the vertices
-  for ( const auto & it : storage.getVertices() )
-  {
+   // Check data of the vertices
+   for ( const auto& it : storage.getVertices() )
+   {
       WALBERLA_LOG_INFO( "Checking data from Vertex with ID: " << it.first );
 
       // Getting the data via the respective ID
-      SimulationData * data = it.second->getData( vertexSimulationDataID );
+      SimulationData* data = it.second->getData( vertexSimulationDataID );
 
       WALBERLA_CHECK_EQUAL( data->size_, 4711 );
-  }
-
+   }
 }
 
 } // namespace hyteg
 
 int main( int argc, char** argv )
 {
-  walberla::mpi::Environment env( argc, argv );
-  walberla::mpi::MPIManager::instance()->useWorldComm();
-  hyteg::PrimitiveStorageTutorial();
-  return 0;
+   walberla::mpi::Environment env( argc, argv );
+   walberla::mpi::MPIManager::instance()->useWorldComm();
+   hyteg::PrimitiveStorageTutorial();
+   return 0;
 }
-

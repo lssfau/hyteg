@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Benjamin Mann.
+ * Copyright (c) 2024 Benjamin Mann, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -155,7 +155,7 @@ namespace hyteg {
 void errorEstimatorTutorial()
 {
    /// [AdaptiveMesh]
-   auto                     meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
+   auto                     meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
    SetupPrimitiveStorage    setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    adaptiveRefinement::Mesh adaptive_mesh( setupStorage );
    adaptive_mesh.loadbalancing();
