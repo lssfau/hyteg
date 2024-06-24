@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,16 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/primitives/Primitive.hpp"
-#include "hyteg/communication/PackInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/communication/BufferedCommunication.hpp"
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/DataTypes.h"
+
+#include "hyteg/communication/BufferedCommunication.hpp"
+#include "hyteg/communication/PackInfo.hpp"
+#include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::uint_t;
 
@@ -133,158 +134,152 @@ namespace hyteg {
 /// [TestData]
 struct TestData
 {
-  PrimitiveID ownID;
-  std::vector< PrimitiveID > neighborIDs;
+   PrimitiveID                ownID;
+   std::vector< PrimitiveID > neighborIDs;
 };
 
 struct TestDataHandling : OnlyInitializeDataHandling< TestData, Primitive >
 {
-  virtual std::shared_ptr< TestData > initialize( const Primitive * const primitive ) const
-  {
-    auto data = std::make_shared< TestData >();
-    data->ownID = primitive->getID();
-    return data;
-  }
+   virtual std::shared_ptr< TestData > initialize( const Primitive* const primitive ) const
+   {
+      auto data   = std::make_shared< TestData >();
+      data->ownID = primitive->getID();
+      return data;
+   }
 };
 /// [TestData]
 
 /// [PackInfo]
 class TestPackInfo : public communication::PackInfo
 {
-public:
+ public:
+   TestPackInfo( PrimitiveDataID< TestData, Primitive >& dataID )
+   : dataID_( dataID )
+   {}
 
-  TestPackInfo( PrimitiveDataID< TestData, Primitive > & dataID ) : dataID_( dataID ) {}
+   virtual void
+       packVertexForEdge( const Vertex* sender, const PrimitiveID& /* receiver */, walberla::mpi::SendBuffer& buffer ) const
+   {
+      WALBERLA_LOG_INFO( "Packing data on vertex..." );
 
-  virtual void packVertexForEdge( const Vertex *sender, const PrimitiveID & /* receiver */, walberla::mpi::SendBuffer & buffer ) const
-  {
-    WALBERLA_LOG_INFO( "Packing data on vertex..." );
+      TestData* data = sender->getData( dataID_ );
 
-    TestData * data = sender->getData( dataID_ );
+      // The operator<< overload allows for easy buffer packing
+      // of standard data types (thanks to the waLBerla framework).
+      buffer << data->ownID;
+   }
 
-    // The operator<< overload allows for easy buffer packing
-    // of standard data types (thanks to the waLBerla framework).
-    buffer << data->ownID;
-  }
+   virtual void unpackEdgeFromVertex( Edge* receiver, const PrimitiveID& /* sender */, walberla::mpi::RecvBuffer& buffer ) const
+   {
+      WALBERLA_LOG_INFO( "Unpacking data on edge..." );
 
-  virtual void unpackEdgeFromVertex( Edge *receiver, const PrimitiveID & /* sender */, walberla::mpi::RecvBuffer & buffer ) const
-  {
-    WALBERLA_LOG_INFO( "Unpacking data on edge..." );
+      TestData*   data = receiver->getData( dataID_ );
+      PrimitiveID vertexData;
+      buffer >> vertexData;
 
-    TestData * data = receiver->getData( dataID_ );
-    PrimitiveID vertexData;
-    buffer >> vertexData;
+      // Adding the received ID to the neighbors..
+      data->neighborIDs.push_back( vertexData );
+   }
 
-    // Adding the received ID to the neighbors..
-    data->neighborIDs.push_back( vertexData );
-  }
+   virtual void communicateLocalVertexToEdge( const Vertex* sender, Edge* receiver ) const
+   {
+      WALBERLA_LOG_INFO( "Communicating data unbuffered from vertex to edge..." );
 
-  virtual void communicateLocalVertexToEdge( const Vertex *sender, Edge *receiver ) const
-  {
-    WALBERLA_LOG_INFO( "Communicating data unbuffered from vertex to edge..." );
+      TestData* vertexData = sender->getData( dataID_ );
+      TestData* edgeData   = receiver->getData( dataID_ );
+      edgeData->neighborIDs.push_back( vertexData->ownID );
+   }
 
-    TestData * vertexData = sender->getData( dataID_ );
-    TestData * edgeData   = receiver->getData( dataID_ );
-    edgeData->neighborIDs.push_back( vertexData->ownID );
-  }
+   // Left other methods empty for this tutorial.
 
-  // Left other methods empty for this tutorial.
+ private:
+   PrimitiveDataID< TestData, Primitive > dataID_;
 
-private:
+   /// [PackInfo]
 
-  PrimitiveDataID< TestData, Primitive > dataID_;
+ public:
+   virtual void packEdgeForVertex( const Edge*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const {}
 
-/// [PackInfo]
+   virtual void unpackVertexFromEdge( Vertex*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const {}
 
-public:
+   virtual void communicateLocalEdgeToVertex( const Edge*, Vertex* ) const {}
 
-  virtual void packEdgeForVertex( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) const {}
+   virtual void packEdgeForFace( const Edge*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const {}
 
-  virtual void unpackVertexFromEdge( Vertex *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) const {}
+   virtual void unpackFaceFromEdge( Face*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const {}
 
-  virtual void communicateLocalEdgeToVertex( const Edge *, Vertex * ) const {}
+   virtual void communicateLocalEdgeToFace( const Edge*, Face* ) const {}
 
-  virtual void packEdgeForFace( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) const {}
+   virtual void packFaceForEdge( const Face*, const PrimitiveID&, walberla::mpi::SendBuffer& ) const {}
 
-  virtual void unpackFaceFromEdge( Face *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) const {}
+   virtual void unpackEdgeFromFace( Edge*, const PrimitiveID&, walberla::mpi::RecvBuffer& ) const {}
 
-  virtual void communicateLocalEdgeToFace( const Edge *, Face * ) const {}
-
-  virtual void packFaceForEdge( const Face *, const PrimitiveID &, walberla::mpi::SendBuffer & ) const {}
-
-  virtual void unpackEdgeFromFace( Edge *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) const {}
-
-  virtual void communicateLocalFaceToEdge( const Face *, Edge * ) const {}
-
+   virtual void communicateLocalFaceToEdge( const Face*, Edge* ) const {}
 };
-
-
 
 void CommunicationTutorial()
 {
-  uint_t numProcesses = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   uint_t numProcesses = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
-  SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
-  loadbalancing::roundRobin( setupStorage );
+   loadbalancing::roundRobin( setupStorage );
 
-  /// [Setup]
-  // As seen in previous tutorials...
-  auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
+   /// [Setup]
+   // As seen in previous tutorials...
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-  PrimitiveDataID< TestData, Primitive > dataID;
-  auto testDataHandling = std::make_shared< TestDataHandling >();
-  storage->addPrimitiveData( dataID, testDataHandling, "test data" );
-  /// [Setup]
+   PrimitiveDataID< TestData, Primitive > dataID;
+   auto                                   testDataHandling = std::make_shared< TestDataHandling >();
+   storage->addPrimitiveData( dataID, testDataHandling, "test data" );
+   /// [Setup]
 
-  for ( const auto & it : storage->getEdges() )
-  {
-    auto edge = it.second;
-    WALBERLA_CHECK_EQUAL( edge->getData( dataID )->neighborIDs.size(), 0 );
-  }
+   for ( const auto& it : storage->getEdges() )
+   {
+      auto edge = it.second;
+      WALBERLA_CHECK_EQUAL( edge->getData( dataID )->neighborIDs.size(), 0 );
+   }
 
-  /// [Communicator]
-  std::shared_ptr< TestPackInfo > packInfo = std::make_shared< TestPackInfo >( dataID );
+   /// [Communicator]
+   std::shared_ptr< TestPackInfo > packInfo = std::make_shared< TestPackInfo >( dataID );
 
-  communication::BufferedCommunicator communicator( storage );
-  /// [Communicator]
+   communication::BufferedCommunicator communicator( storage );
+   /// [Communicator]
 
-  /// [AddPackInfo]
-  communicator.addPackInfo( packInfo );
-  /// [AddPackInfo]
+   /// [AddPackInfo]
+   communicator.addPackInfo( packInfo );
+   /// [AddPackInfo]
 
-  /// [LocalMode]
-  // communicator.setLocalCommunicationMode( communication::BufferedCommunicator::BUFFERED_MPI );
-  /// [LocalMode]
+   /// [LocalMode]
+   // communicator.setLocalCommunicationMode( communication::BufferedCommunicator::BUFFERED_MPI );
+   /// [LocalMode]
 
-  /// [Communication]
-  // Communicate data from all vertices to the neighboring edges:
+   /// [Communication]
+   // Communicate data from all vertices to the neighboring edges:
 
-  // Packing data from vertices into buffers and starting non-blocking MPI calls
-  communicator.startCommunication< Vertex, Edge >();
+   // Packing data from vertices into buffers and starting non-blocking MPI calls
+   communicator.startCommunication< Vertex, Edge >();
 
-  // Waiting for MPI sends and unpacking data to all receiving edges
-  communicator.endCommunication< Vertex, Edge >();
-  /// [Communication]
+   // Waiting for MPI sends and unpacking data to all receiving edges
+   communicator.endCommunication< Vertex, Edge >();
+   /// [Communication]
 
-  /// [Check]
-  for ( const auto & it : storage->getEdges() )
-  {
-    auto edge = it.second;
-    WALBERLA_CHECK_EQUAL( edge->getData( dataID )->neighborIDs.size(), 2 );
-  }
-  /// [Check]
-
+   /// [Check]
+   for ( const auto& it : storage->getEdges() )
+   {
+      auto edge = it.second;
+      WALBERLA_CHECK_EQUAL( edge->getData( dataID )->neighborIDs.size(), 2 );
+   }
+   /// [Check]
 }
 
-}
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
-  walberla::mpi::Environment env( argc, argv );
-  walberla::mpi::MPIManager::instance()->useWorldComm();
-  hyteg::CommunicationTutorial();
-  return 0;
+   walberla::mpi::Environment env( argc, argv );
+   walberla::mpi::MPIManager::instance()->useWorldComm();
+   hyteg::CommunicationTutorial();
+   return 0;
 }
-
-
