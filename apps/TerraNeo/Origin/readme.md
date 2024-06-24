@@ -1,6 +1,6 @@
 # TerraNeo
 
-(View this file via [HyTeG's documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html) (🚧 add correct link to this page) for proper math rendering.)
+(View [this file via HyTeG's documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/md_apps_2TerraNeo_2Origin_2readme.html) for proper math rendering.)
 
 A full mantle circulation modeling application.
 
@@ -15,6 +15,14 @@ Core features:
 
 ## Getting started
 
+The TerraNeo application is located under
+```
+hyteg/apps/TerraNeo/Origin/
+```
+which is where this `README.md` should be located.
+
+> 📝 Please also revisit the README.md in the base directory `hyteg/README.md` for general build instructions.
+
 ### Compiling
 
 Make sure you have enabled the TerraNeo module via CMake by setting
@@ -27,8 +35,12 @@ It's optional (but recommended) to install ADIOS2 for checkpointing and efficien
 HYTEG_BUILD_WITH_ADIOS2=ON
 ```
 
-Then build the `TerraNeo` target, e.g., via:
+After configuring with CMake (see [general build instructions](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html)) build the `TerraNeo` target, e.g., via:
 ```
+# If required change to the app's directory. 
+cd hyteg/apps/TerraNeo/Origin/
+
+# Build the app.
 make TerraNeo -j8
 ```
 (`-j` triggers a parallel build).
