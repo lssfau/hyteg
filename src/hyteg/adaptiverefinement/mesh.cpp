@@ -376,6 +376,8 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
                                                   const bool           allow_split_siblings,
                                                   const bool           verbose )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "loadbalancing: extract_data()" );
+
    // extract connectivity, geometry and boundary data and add PrimitiveIDs
    std::map< PrimitiveID, VertexData >   vtxs_old;
    std::map< PrimitiveID, EdgeData >     edges_old;
@@ -383,6 +385,8 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
    std::map< PrimitiveID, CellData >     cells_old;
    std::map< PrimitiveID, Neighborhood > nbrHood;
    extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------" );
 
    // reset target ranks
    for ( auto el : _T )
@@ -397,6 +401,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
 
    std::vector< uint_t > n_vol_on_rnk;
 
+   WALBERLA_LOG_INFO_ON_ROOT( "loadbalancing: loadbalancer" );
    // assign volume primitives
    if ( lb == ROUND_ROBIN )
    {
@@ -420,6 +425,7 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
       WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing scheme not implemented! Using Round Robin instead" );
       n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
    }
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------" );
 
    if ( verbose )
    {
@@ -434,16 +440,22 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
                                  << min_load << " / " << max_load << " / " << double( _n_elements ) / double( _n_processes ) );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "loadbalancing: extract_data()" );
    // extract data with new targetRank
    std::map< PrimitiveID, VertexData > vtxs;
    std::map< PrimitiveID, EdgeData >   edges;
    std::map< PrimitiveID, FaceData >   faces;
    std::map< PrimitiveID, CellData >   cells;
    extract_data( vtxs, edges, faces, cells ); // nbrHood didn't change
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------" );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "loadbalancing: inheritRankFromVolumePrimitives()" );
    // assign interface primitives to processes
    inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( "loadbalancing: update_targetRank()" );
    update_targetRank( vtxs, edges, faces, cells );
+   WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------" );
 
    // gather migration data
    MigrationMap_T migrationMap;
@@ -1234,12 +1246,15 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
       return;
 
+   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: vtx, edge, face, cell data" );
    extract_data( vtxData, edgeData, faceData, cellData );
+   WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
 
    // maps of neighborhoods of interfaces
-   std::array< std::map< PrimitiveID, std::set< PrimitiveID > >, 3 > interfaceNbrs;
+   std::array< std::map< PrimitiveID, std::vector< PrimitiveID > >, 3 > interfaceNbrs;
 
    // collect neighbor interfaces of volumes and vice versa
+   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect neighbor primitives" );
    for ( auto& el : _T )
    {
       // neighbor faces (3d only)
@@ -1248,14 +1263,14 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          for ( auto& face : el->get_faces() )
          {
             nbrHood[el->getPrimitiveID()][FACE].push_back( face->getPrimitiveID() );
-            interfaceNbrs[FACE][face->getPrimitiveID()].insert( el->getPrimitiveID() );
+            interfaceNbrs[FACE][face->getPrimitiveID()].push_back( el->getPrimitiveID() );
          }
       }
       // neighbor edges
       for ( auto& edge : el->get_edges() )
       {
          nbrHood[el->getPrimitiveID()][EDGE].push_back( edge->getPrimitiveID() );
-         interfaceNbrs[EDGE][edge->getPrimitiveID()].insert( el->getPrimitiveID() );
+         interfaceNbrs[EDGE][edge->getPrimitiveID()].push_back( el->getPrimitiveID() );
       }
       // neighbor vertices
       for ( auto& idx : el->get_vertices() )
@@ -1263,37 +1278,46 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
          auto id = _V[idx].getPrimitiveID();
          WALBERLA_ASSERT( vtxData[id].get_vertices()[0] == idx );
          nbrHood[el->getPrimitiveID()][VTX].push_back( id );
-         interfaceNbrs[VTX][id].insert( el->getPrimitiveID() );
+         interfaceNbrs[VTX][id].push_back( el->getPrimitiveID() );
       }
    }
+   WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
 
    // collect indirect neighbors (volume primitives)
-   std::map< PrimitiveID, std::set< PrimitiveID > > indirectNbrs;
+   // std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs;
 
-   const auto VOL = ( cellData.size() == 0 ) ? FACE : CELL;
-   auto       pt  = VTX;
-   while ( pt != VOL )
+   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors" );
+   constexpr auto VOL = K_Simplex::TYPE;
+   for (auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ))
    {
       // loop over all primitives of type pt
       for ( auto& [interfaceId, nbrVolumes] : interfaceNbrs[pt] )
       {
+         // remove duplicates
+         std::set<PrimitiveID> unique(nbrVolumes.begin(), nbrVolumes.end());
+         nbrVolumes.assign(unique.begin(), unique.end());
          /// loop over the volume neighbors of this interface primitive and append
          /// all of them to the list of indirect neighbors of each of them
          for ( auto& volId : nbrVolumes )
          {
-            indirectNbrs[volId].insert( nbrVolumes.begin(), nbrVolumes.end() );
+            // indirectNbrs[volId].insert( nbrVolumes.begin(), nbrVolumes.end() );
+            nbrHood[volId][VOL].insert( nbrHood[volId][VOL].end(), nbrVolumes.begin(), nbrVolumes.end() );
          }
       }
-      pt = PrimitiveType( pt + 1 );
    }
+   WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
 
    // add indirect neighbors to volume neighborhood
+   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: add indirect neighbors" );
    for ( auto& [id, nbrs] : nbrHood )
    {
-      nbrs[VOL] = std::vector< PrimitiveID >( indirectNbrs[id].begin(), indirectNbrs[id].end() );
+      // remove duplicates
+      std::set<PrimitiveID> unique(nbrs[VOL].begin(), nbrs[VOL].end());
+      nbrs[VOL].assign(unique.begin(), unique.end());
+      // insert into result vector
+      // nbrs[VOL] = std::vector< PrimitiveID >( indirectNbrs[id].begin(), indirectNbrs[id].end() );
    }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "end: collect nbring volumes" )
+   WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
 }
 
 template < class K_Simplex >
