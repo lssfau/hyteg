@@ -1288,8 +1288,8 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
    walberla::mpi::broadcastObject( interfaceNbrs );
 
    std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs; // local data
-   uint_t                                              n_procs_reduced =
-       std::min( _n_processes, _n_elements / 1000 ); // we don't want to use all processes here to minimize communication overhead
+   // Only use fraction of processes here to minimize communication overhead
+   uint_t n_procs_reduced = std::min( _n_processes, ( _n_elements / 1000 ) + 1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors (parallel)" );
    constexpr auto VOL = K_Simplex::TYPE;
@@ -1300,7 +1300,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
       for ( auto& [interfaceId, nbrVolumes] : interfaceNbrs[pt] )
       {
          // restrict work to i-th process
-         i = ( i + 1 % n_procs_reduced );
+         i = ( i + 1 ) % n_procs_reduced;
          if ( i != rank )
             continue;
 
