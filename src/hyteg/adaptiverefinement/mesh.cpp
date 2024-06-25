@@ -1243,8 +1243,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
                                         std::map< PrimitiveID, CellData >&     cellData,
                                         std::map< PrimitiveID, Neighborhood >& nbrHood ) const
 {
-   if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
-      return;
+   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
    WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: vtx, edge, face, cell data" );
    extract_data( vtxData, edgeData, faceData, cellData );
@@ -1286,25 +1285,56 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
    // collect indirect neighbors (volume primitives)
    // std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors" );
+   walberla::mpi::broadcastObject( interfaceNbrs );
+
+   std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs; // local data
+   uint_t                                              n_procs_reduced =
+       std::min( _n_processes, _n_elements / 1000 ); // we don't want to use all processes here to minimize communication overhead
+
+   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors (parallel)" );
    constexpr auto VOL = K_Simplex::TYPE;
-   for (auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ))
+   for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
    {
+      uint_t i = 0;
       // loop over all primitives of type pt
       for ( auto& [interfaceId, nbrVolumes] : interfaceNbrs[pt] )
       {
+         // restrict work to i-th process
+         i = ( i + 1 % n_procs_reduced );
+         if ( i != rank )
+            continue;
+
          // remove duplicates
-         std::set<PrimitiveID> unique(nbrVolumes.begin(), nbrVolumes.end());
-         nbrVolumes.assign(unique.begin(), unique.end());
+         std::set< PrimitiveID > unique( nbrVolumes.begin(), nbrVolumes.end() );
+         nbrVolumes.assign( unique.begin(), unique.end() );
          /// loop over the volume neighbors of this interface primitive and append
          /// all of them to the list of indirect neighbors of each of them
          for ( auto& volId : nbrVolumes )
          {
-            // indirectNbrs[volId].insert( nbrVolumes.begin(), nbrVolumes.end() );
-            nbrHood[volId][VOL].insert( nbrHood[volId][VOL].end(), nbrVolumes.begin(), nbrVolumes.end() );
+            indirectNbrs[volId].insert( indirectNbrs[volId].end(), nbrVolumes.begin(), nbrVolumes.end() );
+            // nbrHood[volId][VOL].insert( nbrHood[volId][VOL].end(), nbrVolumes.begin(), nbrVolumes.end() );
          }
       }
    }
+   // collect data from all workers
+   walberla::mpi::SendBuffer send;
+   walberla::mpi::RecvBuffer recv;
+   send << indirectNbrs;
+   walberla::mpi::gathervBuffer( send, recv );
+   for ( uint_t p = 0; p < n_procs_reduced; ++p )
+   {
+      std::map< PrimitiveID, std::vector< PrimitiveID > > dataRecv;
+      recv >> dataRecv;
+
+      if ( rank == 0 )
+      {
+         for ( auto& [id, nbrs] : dataRecv )
+         {
+            nbrHood[id][VOL].insert( nbrHood[id][VOL].end(), nbrs.begin(), nbrs.end() );
+         }
+      }
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
 
    // add indirect neighbors to volume neighborhood
@@ -1312,8 +1342,8 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
    for ( auto& [id, nbrs] : nbrHood )
    {
       // remove duplicates
-      std::set<PrimitiveID> unique(nbrs[VOL].begin(), nbrs[VOL].end());
-      nbrs[VOL].assign(unique.begin(), unique.end());
+      std::set< PrimitiveID > unique( nbrs[VOL].begin(), nbrs[VOL].end() );
+      nbrs[VOL].assign( unique.begin(), unique.end() );
       // insert into result vector
       // nbrs[VOL] = std::vector< PrimitiveID >( indirectNbrs[id].begin(), indirectNbrs[id].end() );
    }
