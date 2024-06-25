@@ -132,13 +132,15 @@ using CellData   = SimplexData< CELL >;
 
 // stores IDs of neighbor primitives
 using Neighborhood = std::array< std::vector< PrimitiveID >, PrimitiveType::ALL >;
+// stores neighborhood of all primitives
+using NeighborhoodMap = std::array< std::map< PrimitiveID, Neighborhood >, PrimitiveType::ALL >;
 
 /* assign interface primitives to the rank with the most neighboring volume primitives */
-void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >&         vtxs,
-                                      std::map< PrimitiveID, EdgeData >&           edges,
-                                      std::map< PrimitiveID, FaceData >&           faces,
-                                      std::map< PrimitiveID, CellData >&           cells,
-                                      const std::map< PrimitiveID, Neighborhood >& nbrHood );
+void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >& vtxs,
+                                      std::map< PrimitiveID, EdgeData >&   edges,
+                                      std::map< PrimitiveID, FaceData >&   faces,
+                                      std::map< PrimitiveID, CellData >&   cells,
+                                      const NeighborhoodMap&               nbrHood );
 
 } // namespace adaptiveRefinement
 } // namespace hyteg

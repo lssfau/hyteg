@@ -31,36 +31,23 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >&         vtxs,
-                                      std::map< PrimitiveID, EdgeData >&           edges,
-                                      std::map< PrimitiveID, FaceData >&           faces,
-                                      std::map< PrimitiveID, CellData >&           cells,
-                                      const std::map< PrimitiveID, Neighborhood >& nbrHood )
+void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >& vtxs,
+                                      std::map< PrimitiveID, EdgeData >&   edges,
+                                      std::map< PrimitiveID, FaceData >&   faces,
+                                      std::map< PrimitiveID, CellData >&   cells,
+                                      const NeighborhoodMap&               nbrHood )
 {
    const PrimitiveType VOL = ( cells.size() == 0 ) ? FACE : CELL;
-
-   // compute neighboring volume primitives of all interface primitives
-   std::array< std::map< PrimitiveID, std::vector< PrimitiveID > >, PrimitiveType::ALL > nbrVolumes;
-   for ( auto& [volID, volNbrHood] : nbrHood )
-   {
-      for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
-      {
-         for ( auto& nbrID : volNbrHood[pt] )
-         {
-            nbrVolumes[pt][nbrID].push_back( volID );
-         }
-      }
-   }
 
    // loop over all interface primitive types
    for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
    {
       // loop over all interfaces of type pt
-      for ( auto& [interfaceID, myNbrVolumes] : nbrVolumes[pt] )
+      for ( auto& [interfaceID, interfaceNbrs] : nbrHood[pt] )
       {
          // loop over all neighboring volume primitives and extract their target ranks
          std::map< uint_t, uint_t > nbrRnks;
-         for ( auto& nbrID : myNbrVolumes )
+         for ( auto& nbrID : interfaceNbrs[VOL] )
          {
             auto targetRank = ( VOL == CELL ) ? cells[nbrID].getTargetRank() : faces[nbrID].getTargetRank();
             nbrRnks[targetRank]++;

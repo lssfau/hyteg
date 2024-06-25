@@ -156,8 +156,7 @@ class K_Mesh
 
    /* apply greedy loadbalancing to volume elements
    */
-   std::vector< uint_t > loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
-                                               const bool                                   allow_split_siblings );
+   std::vector< uint_t > loadbalancing_greedy( const NeighborhoodMap& nbrHood, const bool allow_split_siblings );
 
    /* remove green edges from _T and replace them with their parents
    */
@@ -200,14 +199,10 @@ class K_Mesh
    */
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* extract connectivity, geometrymap, boundaryFlags, etc. from all elements*/
-   void extract_data( std::map< PrimitiveID, VertexData >&   vtxData,
-                      std::map< PrimitiveID, EdgeData >&     edgeData,
-                      std::map< PrimitiveID, FaceData >&     faceData,
-                      std::map< PrimitiveID, CellData >&     cellData,
-                      std::map< PrimitiveID, Neighborhood >& nbrHood ) const;
+   /* collect neighborhood of all primitives */
+   void get_neighborhood( NeighborhoodMap& nbrHood ) const;
 
-   /* extract geometrymap, boundaryFlags, etc. from all elements*/
+   /* extract geometryMap, boundaryFlags, etc. from all elements*/
    void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
                       std::map< PrimitiveID, EdgeData >&   edgeData,
                       std::map< PrimitiveID, FaceData >&   faceData,
@@ -218,6 +213,9 @@ class K_Mesh
                            const std::map< PrimitiveID, EdgeData >&   edgeData,
                            const std::map< PrimitiveID, FaceData >&   faceData,
                            const std::map< PrimitiveID, CellData >&   cellData );
+
+   /* assign interface primitives to processes based on adjacent volume primitives */
+   void inheritRankFromVolumePrimitives( const NeighborhoodMap& nbrHood );
 
    /* create PrimitiveStorage from SimplexData */
    std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
@@ -230,13 +228,15 @@ class K_Mesh
    /// @param err_glob_sorted container for output data
    void gatherGlobalError( const ErrorVector& err_loc, ErrorVector& err_glob_sorted ) const;
 
+   static constexpr auto VOL = PrimitiveType( K_Simplex::TYPE );
+
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
    uint_t                                                  _n_processes; // number of processes
    std::vector< Point3D >                                  _vertices;    // vertex coordinates
    std::vector< VertexData >                               _V;           // set of vertices of current refinement
    std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement level
-   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometrymaps of original mesh
+   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometryMaps of original mesh
 
    PrimitiveID _invalidID;
 };
