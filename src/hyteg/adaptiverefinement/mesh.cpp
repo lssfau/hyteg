@@ -1243,8 +1243,6 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
                                         std::map< PrimitiveID, CellData >&     cellData,
                                         std::map< PrimitiveID, Neighborhood >& nbrHood ) const
 {
-   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
-
    WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: vtx, edge, face, cell data" );
    extract_data( vtxData, edgeData, faceData, cellData );
    WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
@@ -1290,6 +1288,7 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
    std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs; // local data
    // Only use fraction of processes here to minimize communication overhead
    uint_t n_procs_reduced = std::min( _n_processes, ( _n_elements / 1000 ) + 1 );
+   auto   rank            = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
    WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors (parallel)" );
    constexpr auto VOL = K_Simplex::TYPE;
@@ -1317,17 +1316,18 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   v
       }
    }
    // collect data from all workers
+   WALBERLA_LOG_INFO( "*** communication" )
    walberla::mpi::SendBuffer send;
    walberla::mpi::RecvBuffer recv;
    send << indirectNbrs;
    walberla::mpi::gathervBuffer( send, recv );
-   for ( uint_t p = 0; p < n_procs_reduced; ++p )
+   if ( rank == 0 )
    {
-      std::map< PrimitiveID, std::vector< PrimitiveID > > dataRecv;
-      recv >> dataRecv;
-
-      if ( rank == 0 )
+      for ( uint_t p = 0; p < n_procs_reduced; ++p )
       {
+         std::map< PrimitiveID, std::vector< PrimitiveID > > dataRecv;
+         recv >> dataRecv;
+
          for ( auto& [id, nbrs] : dataRecv )
          {
             nbrHood[id][VOL].insert( nbrHood[id][VOL].end(), nbrs.begin(), nbrs.end() );
