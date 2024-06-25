@@ -1251,8 +1251,6 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::get_neighborhood( NeighborhoodMap& nbrHood ) const
 {
-   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
-
    // collect neighbor interfaces of volumes and vice versa
    WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect neighbor primitives" );
    for ( auto& el : _T )
