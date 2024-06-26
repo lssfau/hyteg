@@ -405,7 +405,7 @@ class Mesh
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
    MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
-                                const bool           allow_split_siblings = false,
+                                const bool           allow_split_siblings = true,
                                 const bool           verbose              = false )
    {
       if ( _DIM == 3 )
