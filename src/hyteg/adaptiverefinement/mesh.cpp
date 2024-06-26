@@ -1319,7 +1319,7 @@ void K_Mesh< K_Simplex >::get_neighborhood( NeighborhoodMap& nbrHood ) const
       }
    }
    // collect data from all workers
-   WALBERLA_LOG_INFO( "*** communication" )
+   WALBERLA_LOG_INFO_ON_ROOT( "*** communication" )
    walberla::mpi::SendBuffer send;
    walberla::mpi::RecvBuffer recv;
    send << indirectNbrs;
