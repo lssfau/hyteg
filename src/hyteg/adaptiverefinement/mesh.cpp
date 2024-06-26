@@ -1282,18 +1282,19 @@ void K_Mesh< K_Simplex >::get_neighborhood( NeighborhoodMap& nbrHood ) const
 
    // collect indirect neighbors (volume primitives)
    // std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs;
+   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors (parallel)" );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "*** communication" )
    for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
    {
       walberla::mpi::broadcastObject( nbrHood[pt] );
    }
+   WALBERLA_LOG_INFO_ON_ROOT( "*** -------------------------------" );
 
    std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs; // local data
    // Only use fraction of processes here to minimize communication overhead
    uint_t n_procs_reduced = std::min( _n_processes, ( _n_elements / 1000 ) + 1 );
    auto   rank            = uint_t( walberla::mpi::MPIManager::instance()->rank() );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors (parallel)" );
 
    for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
    {
