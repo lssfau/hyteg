@@ -184,7 +184,7 @@ void errorEstimatorTutorial()
       P1      u_h( "u_h", storage, l_min, L );
       P1      b( "b", storage, l_min, L );
       // Initialize dirichlet data
-      auto g = []( const hyteg::Point3D& x ) { return sin( 32 * pi * x[0] * x[0] ) * cos( 32 * pi * x[1] * x[1] ); };
+      auto g = []( const hyteg::Point3D& x ) { return std::sin( 32 * pi * x[0] * x[0] ) * std::cos( 32 * pi * x[1] * x[1] ); };
       for ( auto lvl = l_min; lvl <= L; ++lvl )
          u_h.interpolate( g, lvl, DirichletBoundary );
       /// [Problem]
