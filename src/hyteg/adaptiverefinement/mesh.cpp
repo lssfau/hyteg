@@ -1253,6 +1253,20 @@ void K_Mesh< K_Simplex >::get_neighborhood( NeighborhoodMap& nbrHood ) const
 {
    // collect neighbor interfaces of volumes and vice versa
    WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect neighbor primitives" );
+
+   auto addNeighbor = [&]( const PrimitiveID volId, const PrimitiveType& pt, const PrimitiveID& nbrId ) {
+      nbrHood[VOL][volId][pt].push_back( nbrId );
+      // we only want to collect direct volume neighbors, i.e. elements that share a face (edge in 2d)
+      if ( pt == (VOL - 1) && nbrHood[pt][nbrId][VOL].size() == 1 )
+      {
+         // add neighboring volume element to elId and vice versa
+         auto nbrVolId = nbrHood[pt][nbrId][VOL][0];
+         nbrHood[VOL][volId][VOL].push_back( nbrVolId );
+         nbrHood[VOL][nbrVolId][VOL].push_back( volId );
+      }
+      nbrHood[pt][nbrId][VOL].push_back( volId );
+   };
+
    for ( auto& el : _T )
    {
       auto elId = el->getPrimitiveID();
@@ -1261,95 +1275,37 @@ void K_Mesh< K_Simplex >::get_neighborhood( NeighborhoodMap& nbrHood ) const
       {
          for ( auto& face : el->get_faces() )
          {
-            nbrHood[VOL][elId][FACE].push_back( face->getPrimitiveID() );
-            nbrHood[FACE][face->getPrimitiveID()][VOL].push_back( elId );
+            addNeighbor( elId, FACE, face->getPrimitiveID() );
+            // nbrHood[VOL][elId][FACE].push_back( face->getPrimitiveID() );
+            // if ( nbrHood[FACE][face->getPrimitiveID()][VOL].size() == 1 )
+            // {
+            //    auto nbrVolId = nbrHood[FACE][face->getPrimitiveID()][VOL][0];
+            //    nbrHood[VOL][elId][VOL].push_back( nbrVolId );
+            //    nbrHood[VOL][nbrVolId][VOL].push_back( elId );
+            // }
+            // nbrHood[FACE][face->getPrimitiveID()][VOL].push_back( elId );
          }
       }
       // neighbor edges
       for ( auto& edge : el->get_edges() )
       {
-         nbrHood[VOL][elId][EDGE].push_back( edge->getPrimitiveID() );
-         nbrHood[EDGE][edge->getPrimitiveID()][VOL].push_back( elId );
+         addNeighbor( elId, EDGE, edge->getPrimitiveID() );
+         // nbrHood[VOL][elId][EDGE].push_back( edge->getPrimitiveID() );
+         // if ( VOL == FACE && nbrHood[EDGE][edge->getPrimitiveID()][VOL].size() == 1 )
+         // {
+         //    auto nbrVolId = nbrHood[EDGE][edge->getPrimitiveID()][VOL][0];
+         //    nbrHood[VOL][elId][VOL].push_back( nbrVolId );
+         //    nbrHood[VOL][nbrVolId][VOL].push_back( elId );
+         // }
+         // nbrHood[EDGE][edge->getPrimitiveID()][VOL].push_back( elId );
       }
       // neighbor vertices
       for ( auto& idx : el->get_vertices() )
       {
-         nbrHood[VOL][elId][VTX].push_back( _V[idx].getPrimitiveID() );
-         nbrHood[VTX][_V[idx].getPrimitiveID()][VOL].push_back( elId );
+         addNeighbor( elId, VTX, _V[idx].getPrimitiveID() );
+         // nbrHood[VOL][elId][VTX].push_back( _V[idx].getPrimitiveID() );
+         // nbrHood[VTX][_V[idx].getPrimitiveID()][VOL].push_back( elId );
       }
-   }
-   WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
-
-   // collect indirect neighbors (volume primitives)
-   // std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs;
-   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: collect indirect neighbors (parallel)" );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "*** communication" )
-   for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
-   {
-      walberla::mpi::broadcastObject( nbrHood[pt] );
-   }
-   WALBERLA_LOG_INFO_ON_ROOT( "*** -------------------------------" );
-
-   std::map< PrimitiveID, std::vector< PrimitiveID > > indirectNbrs; // local data
-   // Only use fraction of processes here to minimize communication overhead
-   uint_t n_procs_reduced = std::min( _n_processes, ( _n_elements / 1000 ) + 1 );
-   auto   rank            = uint_t( walberla::mpi::MPIManager::instance()->rank() );
-
-   for ( auto pt = VTX; pt != VOL; pt = PrimitiveType( pt + 1 ) )
-   {
-      uint_t i = 0;
-      // loop over all primitives of type pt
-      for ( auto& [interfaceId, interfaceNbrs] : nbrHood[pt] )
-      {
-         // restrict work to i-th process
-         i = ( i + 1 ) % n_procs_reduced;
-         if ( i != rank )
-            continue;
-
-         // remove duplicates
-         std::set< PrimitiveID > unique( interfaceNbrs[VOL].begin(), interfaceNbrs[VOL].end() );
-         interfaceNbrs[VOL].assign( unique.begin(), unique.end() );
-         /// loop over the volume neighbors of this interface primitive and append
-         /// all of them to the list of indirect neighbors of each of them
-         for ( auto& volId : interfaceNbrs[VOL] )
-         {
-            indirectNbrs[volId].insert( indirectNbrs[volId].end(), interfaceNbrs[VOL].begin(), interfaceNbrs[VOL].end() );
-            // nbrHood[volId][VOL].insert( nbrHood[volId][VOL].end(), nbrVolumes.begin(), nbrVolumes.end() );
-         }
-      }
-   }
-   // collect data from all workers
-   WALBERLA_LOG_INFO_ON_ROOT( "*** communication" )
-   walberla::mpi::SendBuffer send;
-   walberla::mpi::RecvBuffer recv;
-   send << indirectNbrs;
-   walberla::mpi::gathervBuffer( send, recv );
-   if ( rank == 0 )
-   {
-      for ( uint_t p = 0; p < n_procs_reduced; ++p )
-      {
-         std::map< PrimitiveID, std::vector< PrimitiveID > > dataRecv;
-         recv >> dataRecv;
-
-         for ( auto& [id, nbrs] : dataRecv )
-         {
-            nbrHood[VOL][id][VOL].insert( nbrHood[VOL][id][VOL].end(), nbrs.begin(), nbrs.end() );
-         }
-      }
-   }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
-
-   // add indirect neighbors to volume neighborhood
-   WALBERLA_LOG_INFO_ON_ROOT( "** extract_data: add indirect neighbors" );
-   for ( auto& [id, nbrs] : nbrHood[VOL] )
-   {
-      // remove duplicates
-      std::set< PrimitiveID > unique( nbrs[VOL].begin(), nbrs[VOL].end() );
-      nbrs[VOL].assign( unique.begin(), unique.end() );
-      // insert into result vector
-      // nbrs[VOL] = std::vector< PrimitiveID >( indirectNbrs[id].begin(), indirectNbrs[id].end() );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "**-------------------------------" );
 }
