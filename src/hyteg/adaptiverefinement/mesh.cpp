@@ -383,27 +383,28 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
 
    // neighborhood information
    NeighborhoodMap nbrHood;
-   // old and new targetrank
+   // old and new target rank
    std::map< PrimitiveID, std::pair< uint_t, uint_t > > targetRank;
 
    // collect neighbor interfaces of volumes and vice versa
    auto addNeighbor = [&]( const PrimitiveID volId, const PrimitiveType& pt, const PrimitiveID& nbrId ) {
+      // add nbrId as neighbor to volId and vice versa
       nbrHood[VOL][volId][pt].push_back( nbrId );
-      // we only want to collect direct volume neighbors, i.e. elements that share a face (edge in 2d)
-      if ( pt == ( VOL - 1 ) && nbrHood[pt][nbrId][VOL].size() == 1 )
+      nbrHood[pt][nbrId][VOL].push_back( volId );
+      // also add direct volume neighbors, i.e. elements that share a face (edge in 2d)
+      if ( pt == ( VOL - 1 ) && nbrHood[pt][nbrId][VOL].size() == 2 )
       {
-         // add neighboring volume element to elId and vice versa
          auto nbrVolId = nbrHood[pt][nbrId][VOL][0];
+         // add nbrVolId as neighbor to volId and vice versa
          nbrHood[VOL][volId][VOL].push_back( nbrVolId );
          nbrHood[VOL][nbrVolId][VOL].push_back( volId );
       }
-      nbrHood[pt][nbrId][VOL].push_back( volId );
    };
 
    // reset target ranks and gather required info
    for ( auto& el : _T )
    {
-      auto elId        = el->getPrimitiveID();
+      auto elId = el->getPrimitiveID();
 
       targetRank[elId].first = el->getTargetRank();
       el->setTargetRank( _n_processes );
@@ -492,7 +493,10 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
    for ( auto& el : _T )
    {
       targetRank[el->getPrimitiveID()].second = el->getTargetRank();
+   }
 
+   for ( auto& el : _T )
+   {
       // neighbor faces (3d only)
       if constexpr ( VOL == CELL )
       {
@@ -611,14 +615,6 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const Neighborh
    uint_t                n_vol_max1     = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
    uint_t                n_assigned     = 0;
    auto                  random_element = _T.begin();
-
-   // if ( n_vol_max0 < 4 )
-   // {
-   //    WALBERLA_LOG_WARNING(
-   //        "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
-
-   //    return loadbalancing_roundRobin();
-   // }
 
    std::map< PrimitiveID, K_Simplex* > id_to_el;
    for ( auto& el : _T )
