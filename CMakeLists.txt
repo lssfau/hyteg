@@ -28,6 +28,10 @@ option ( HYTEG_TERRANEO_MODULE           "Build TerraNeo module"                
 option ( HYTEG_DOWNLOAD_BOOST            "Download boost library; required for plates"    OFF )
 option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for ParaView" OFF )
 
+# Allow setting this value via CMake. Default should be 0, which is Doxygen's default, too.
+set ( DOXYGEN_LOOKUP_CACHE_SIZE 0 CACHE STRING "See Doxygen documentation LOOKUP_CACHE_SIZE" )
+mark_as_advanced( DOXYGEN_LOOKUP_CACHE_SIZE )
+
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
