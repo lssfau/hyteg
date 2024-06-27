@@ -322,10 +322,10 @@ endif ( )
 # Git commit hash and submodules
 ############################################################################################################################
 
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-   # Update submodules as needed
+find_package(Git QUIET REQUIRED)
+if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
 
+   # Update submodules as needed
    if(GIT_SUBMODULE)
       message(STATUS "Submodule update")
       execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
@@ -335,6 +335,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
          message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
       endif()
    endif()
+
    # Get the current working branch
    execute_process(
          COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
@@ -359,7 +360,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
          ${CMAKE_CURRENT_BINARY_DIR}/src/hyteg/Git.hpp
    )
 else()
-   message(FATAL_ERROR "git executalbe could not be found")
+   message(FATAL_ERROR "Project folder seems to be no Git repository? Missing ${PROJECT_SOURCE_DIR}/.git")
 endif()
 
 
