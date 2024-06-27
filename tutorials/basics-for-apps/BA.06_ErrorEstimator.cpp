@@ -19,6 +19,7 @@
  */
 
 #include <core/Environment.h>
+#include <core/math/Constants.h>
 
 #include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -30,6 +31,8 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+
+using walberla::math::pi;
 
 namespace hyteg {
 
@@ -155,8 +158,9 @@ namespace hyteg {
 void errorEstimatorTutorial()
 {
    /// [AdaptiveMesh]
-   auto                     meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
-   SetupPrimitiveStorage    setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto                  meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    adaptiveRefinement::Mesh adaptive_mesh( setupStorage );
    adaptive_mesh.loadbalancing();
    auto storage = adaptive_mesh.make_storage();
@@ -166,8 +170,11 @@ void errorEstimatorTutorial()
    uint_t l_min = 0;
    uint_t L     = 5;
 
-   while ( 1 )
+   for ( uint_t refinement_step = 0; refinement_step < 100; ++refinement_step )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "REFINEMENT STEP: " << refinement_step );
+      WALBERLA_LOG_INFO_ON_ROOT( "number of macro faces: " << adaptive_mesh.n_elements() );
+
       /// [Problem]
       // problem definition
       using Laplace = P1ConstantLaplaceOperator;
@@ -176,8 +183,10 @@ void errorEstimatorTutorial()
       Laplace A( storage, l_min, L );
       P1      u_h( "u_h", storage, l_min, L );
       P1      b( "b", storage, l_min, L );
-
-      // ... initialize boundary and rhs data
+      // Initialize dirichlet data
+      auto g = []( const hyteg::Point3D& x ) { return std::sin( 32 * pi * x[0] * x[0] ) * std::cos( 32 * pi * x[1] * x[1] ); };
+      for ( auto lvl = l_min; lvl <= L; ++lvl )
+         u_h.interpolate( g, lvl, DirichletBoundary );
       /// [Problem]
 
       /// [ErrorEstimator]
@@ -209,7 +218,7 @@ void errorEstimatorTutorial()
       real_t eta = errorEstimator.eta( j );
       WALBERLA_LOG_INFO_ON_ROOT( "||e||_L2 ≈ eta_j = " << eta );
       // stopping criterion
-      if ( eta < 1e-6 )
+      if ( eta < 1e-4 )
          break;
       /// [GlobalError]
 
@@ -222,11 +231,12 @@ void errorEstimatorTutorial()
       // choose a refinement strategy
       auto   strategy  = adaptiveRefinement::RefinementStrategy::WEIGHTED_MEAN;
       real_t weighting = 0;
+      bool   verbose   = true;
       /// [RefinementStrategy]
 
       /// [RefineRG]
       // refine those macros where the squared local errors are largest
-      adaptive_mesh.refineRG( local_sqared_err, strategy, weighting );
+      adaptive_mesh.refineRG( local_sqared_err, strategy, weighting, verbose );
       /// [RefineRG]
 
       /// [UpdateStorage]

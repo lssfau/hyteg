@@ -267,7 +267,10 @@ class ErrorEstimator
       for ( uint_t i = 0; i < _j_max; ++i )
       {
          // j=i+1 (zero indexed arrays)
-         _theta[i] = _eta[i] / _eta[i + 1];
+         if ( _eta[i] <= valueType( 1e-20 ) )
+            _theta[i] = valueType( 0.0 );
+         else
+            _theta[i] = _eta[i] / _eta[i + 1];
       }
       for ( uint_t i = 0; i < _j_max; ++i )
       {
