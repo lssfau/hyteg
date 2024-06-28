@@ -413,21 +413,30 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
       {
          for ( auto& face : el->get_faces() )
          {
-            targetRank[face->getPrimitiveID()].first = face->getTargetRank();
-            face->setTargetRank( _n_processes );
+            if ( face->getTargetRank() < _n_processes )
+            {
+               targetRank[face->getPrimitiveID()].first = face->getTargetRank();
+               face->setTargetRank( _n_processes );
+            }
             addNeighbor( elId, FACE, face->getPrimitiveID() );
          }
       }
       for ( auto& edge : el->get_edges() )
       {
-         targetRank[edge->getPrimitiveID()].first = edge->getTargetRank();
-         edge->setTargetRank( _n_processes );
+         if ( edge->getTargetRank() < _n_processes )
+         {
+            targetRank[edge->getPrimitiveID()].first = edge->getTargetRank();
+            edge->setTargetRank( _n_processes );
+         }
          addNeighbor( elId, EDGE, edge->getPrimitiveID() );
       }
       for ( auto& idx : el->get_vertices() )
       {
-         targetRank[_V[idx].getPrimitiveID()].first = _V[idx].getTargetRank();
-         _V[idx].setTargetRank( _n_processes );
+         if ( _V[idx].getTargetRank() < _n_processes )
+         {
+            targetRank[_V[idx].getPrimitiveID()].first = _V[idx].getTargetRank();
+            _V[idx].setTargetRank( _n_processes );
+         }
          addNeighbor( elId, VTX, _V[idx].getPrimitiveID() );
       }
    }
