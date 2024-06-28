@@ -55,7 +55,12 @@ enum RefinementStrategy
    PERCENTILE // refine the p*n elements where the error is largest
 };
 
+// local error for each macro-cell
 using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;
+// stores IDs of neighbor primitives
+using Neighborhood = std::array< std::vector< PrimitiveID >, PrimitiveType::ALL >;
+// stores neighborhood of all primitives
+using NeighborhoodMap = std::array< std::map< PrimitiveID, Neighborhood >, PrimitiveType::ALL >;
 
 // adaptively refinable mesh for K-dimensional domains
 template < class K_Simplex >
