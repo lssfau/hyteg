@@ -634,16 +634,14 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
 
    // load balancing
+   auto lb_scheme = ( loadbalancing ) ? adaptiveRefinement::GREEDY : adaptiveRefinement::ROUND_ROBIN;
    if ( u0 == 0 || u_old == nullptr )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "* apply load balancing ..." );
       // if u0 is initialized with zero, we apply load balancing before creating the storage.
       // else, we first interpolate u before applying load balancing
       t0 = walberla::timing::getWcTime();
-      if ( loadbalancing )
-         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::GREEDY, true, true );
-      else
-         mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN, true, true );
+      mesh.loadbalancing( lb_scheme, false, true, true );
       t1              = walberla::timing::getWcTime();
       t_loadbalancing = t1 - t0;
    }
@@ -759,7 +757,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       // apply load balancing
       WALBERLA_LOG_INFO_ON_ROOT( " -> apply load balancing" );
       t0                 = walberla::timing::getWcTime();
-      auto migrationInfo = mesh.loadbalancing( adaptiveRefinement::Loadbalancing::ROUND_ROBIN );
+      auto migrationInfo = mesh.loadbalancing( lb_scheme, true, false, true );
       storage->migratePrimitives( migrationInfo );
       t1 = walberla::timing::getWcTime();
       t_loadbalancing += t1 - t0;

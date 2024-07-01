@@ -9,6 +9,5 @@ target_sources( hyteg
     simplex.hpp
     mesh.hpp
     simplexFactory.cpp
-    loadbalancing.cpp
 )
 

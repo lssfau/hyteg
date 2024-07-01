@@ -55,7 +55,12 @@ enum RefinementStrategy
    PERCENTILE // refine the p*n elements where the error is largest
 };
 
+// local error for each macro-cell
 using ErrorVector = std::vector< std::pair< real_t, PrimitiveID > >;
+// stores IDs of neighbor primitives
+using Neighborhood = std::array< std::vector< PrimitiveID >, PrimitiveType::ALL >;
+// stores neighborhood of all primitives
+using NeighborhoodMap = std::array< std::map< PrimitiveID, Neighborhood >, PrimitiveType::ALL >;
 
 // adaptively refinable mesh for K-dimensional domains
 template < class K_Simplex >
@@ -129,13 +134,15 @@ class K_Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param migrationInfo_required if set to false, the return value will be empty
       @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
       @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
-                                const bool           allow_split_siblings = false,
-                                const bool           verbose              = false );
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme               = ROUND_ROBIN,
+                                const bool           migrationInfo_required = false,
+                                const bool           allow_split_siblings   = true,
+                                const bool           verbose                = false );
 
    inline uint_t n_elements() const { return _n_elements; }
    inline uint_t n_vtx() const { return _n_vertices; }
@@ -154,8 +161,7 @@ class K_Mesh
 
    /* apply greedy loadbalancing to volume elements
    */
-   std::vector< uint_t > loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
-                                               const bool                                   allow_split_siblings );
+   std::vector< uint_t > loadbalancing_greedy( const NeighborhoodMap& nbrHood, const bool allow_split_siblings );
 
    /* remove green edges from _T and replace them with their parents
    */
@@ -198,18 +204,11 @@ class K_Mesh
    */
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* extract connectivity, geometrymap and boundaryFlags from all elements and add PrimitiveIDs*/
-   void extract_data( std::map< PrimitiveID, VertexData >&   vtxData,
-                      std::map< PrimitiveID, EdgeData >&     edgeData,
-                      std::map< PrimitiveID, FaceData >&     faceData,
-                      std::map< PrimitiveID, CellData >&     cellData,
-                      std::map< PrimitiveID, Neighborhood >& nbrHood ) const;
-
-   /* update target rank for all primitives */
-   void update_targetRank( const std::map< PrimitiveID, VertexData >& vtxData,
-                           const std::map< PrimitiveID, EdgeData >&   edgeData,
-                           const std::map< PrimitiveID, FaceData >&   faceData,
-                           const std::map< PrimitiveID, CellData >&   cellData );
+   /* extract geometryMap, boundaryFlags, etc. from all elements*/
+   void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
+                      std::map< PrimitiveID, EdgeData >&   edgeData,
+                      std::map< PrimitiveID, FaceData >&   faceData,
+                      std::map< PrimitiveID, CellData >&   cellData ) const;
 
    /* create PrimitiveStorage from SimplexData */
    std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
@@ -222,13 +221,15 @@ class K_Mesh
    /// @param err_glob_sorted container for output data
    void gatherGlobalError( const ErrorVector& err_loc, ErrorVector& err_glob_sorted ) const;
 
+   static constexpr auto VOL = PrimitiveType( K_Simplex::TYPE );
+
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
    uint_t                                                  _n_processes; // number of processes
    std::vector< Point3D >                                  _vertices;    // vertex coordinates
    std::vector< VertexData >                               _V;           // set of vertices of current refinement
    std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement level
-   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometrymaps of original mesh
+   std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometryMaps of original mesh
 
    PrimitiveID _invalidID;
 };
@@ -400,21 +401,23 @@ class Mesh
 
    /* apply loadbalancing scheme to current refinement
       @param lbScheme scheme used for load balancing
+      @param migrationInfo_required if set to false, the return value will be empty
       @param allow_split_siblings if true, green siblings may be assigned to different processes (don't do this when interpolating between grids)
       @param verbose show information about distribution of volume elements over processes
       @return MigrationInfo to be used to migratePrimitives of the storage (in case loadbalancing is called after make_storage)
    */
-   MigrationInfo loadbalancing( const Loadbalancing& lbScheme             = ROUND_ROBIN,
-                                const bool           allow_split_siblings = true,
-                                const bool           verbose              = false )
+   MigrationInfo loadbalancing( const Loadbalancing& lbScheme               = ROUND_ROBIN,
+                                const bool           migrationInfo_required = false,
+                                const bool           allow_split_siblings   = true,
+                                const bool           verbose                = false )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->loadbalancing( lbScheme, allow_split_siblings, verbose );
+         return _mesh3D->loadbalancing( lbScheme, migrationInfo_required, allow_split_siblings, verbose );
       }
       else
       {
-         return _mesh2D->loadbalancing( lbScheme, allow_split_siblings, verbose );
+         return _mesh2D->loadbalancing( lbScheme, migrationInfo_required, allow_split_siblings, verbose );
       }
    }
 

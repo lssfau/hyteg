@@ -130,33 +130,6 @@ using EdgeData   = SimplexData< EDGE >;
 using FaceData   = SimplexData< FACE >;
 using CellData   = SimplexData< CELL >;
 
-// stores IDs of neighbor primitives
-using Neighborhood = std::array< std::vector< PrimitiveID >, PrimitiveType::ALL >;
-
-/* apply loadbalancing (round robin) directly on our datastructures */
-MigrationInfo loadbalancing( std::map< PrimitiveID, VertexData >& vtxs,
-                             std::map< PrimitiveID, EdgeData >&   edges,
-                             std::map< PrimitiveID, FaceData >&   faces,
-                             std::map< PrimitiveID, CellData >&   cells,
-                             const uint_t&                        n_processes,
-                             const uint_t&                        rank );
-
-/* apply neighborhood aware loadbalancing directly on our datastructures */
-// void loadbalancing( std::vector< VertexData >&         vtxs,
-//                     std::vector< EdgeData >&           edges,
-//                     std::vector< FaceData >&           faces,
-//                     std::vector< CellData >&           cells,
-//                     const std::vector< Neighborhood >& nbrHood,
-//                     const uint_t&                      n_processes,
-//                     const uint_t&                      rank );
-
-/* assign interface primitives to the rank with the most neighboring volume primitives */
-void inheritRankFromVolumePrimitives( std::map< PrimitiveID, VertexData >&         vtxs,
-                                      std::map< PrimitiveID, EdgeData >&           edges,
-                                      std::map< PrimitiveID, FaceData >&           faces,
-                                      std::map< PrimitiveID, CellData >&           cells,
-                                      const std::map< PrimitiveID, Neighborhood >& nbrHood );
-
 } // namespace adaptiveRefinement
 } // namespace hyteg
 

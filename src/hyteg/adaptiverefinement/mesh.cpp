@@ -41,7 +41,7 @@ template < class K_Simplex >
 K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 : _n_processes( setupStorage.getNumberOfProcesses() )
 {
-   // copy geometrymaps for each primitive in initial setupStorage
+   // copy geometry maps for each primitive in initial setupStorage
    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
    setupStorage.getSetupPrimitives( setupPrimitives );
    for ( auto& [id, primitive] : setupPrimitives )
@@ -69,7 +69,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       {
          // extract coordinates of vertex
          _vertices[idx] = vtx->getCoordinates();
-         // extract geometrymap, boundaryflag, primitiveid and targetrank
+         // extract geometry map, boundary flag, primitive id and target rank
          _V[idx] = VertexData( id, vtx->getMeshBoundaryFlag(), id, { { idx } }, setupStorage.getTargetRank( id ) );
 
          // prepare element setup
@@ -118,7 +118,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       }
 
       // insert volume elements into _T
-      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+      if constexpr ( VOL == FACE )
       {
          if ( !cells.empty() )
          {
@@ -129,7 +129,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
             _T.insert( p.second );
          }
       }
-      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      if constexpr ( VOL == CELL )
       {
          if ( cells.empty() )
          {
@@ -155,7 +155,7 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // pessimistic estimate! in most cases the actual growth will be significantly smaller
-      const uint_t est_growth_factor = ( K_Simplex::TYPE == FACE ) ? 18 : 138;
+      const uint_t est_growth_factor = ( VOL == FACE ) ? 18 : 138;
 
       uint_t predict = _T.size();
 
@@ -355,41 +355,90 @@ real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
-   // extract connectivity, geometry and boundary data and add PrimitiveIDs
-   std::map< PrimitiveID, VertexData >   vtxs;
-   std::map< PrimitiveID, EdgeData >     edges;
-   std::map< PrimitiveID, FaceData >     faces;
-   std::map< PrimitiveID, CellData >     cells;
-   std::map< PrimitiveID, Neighborhood > nbrHood;
-   extract_data( vtxs, edges, faces, cells, nbrHood );
+   std::map< PrimitiveID, VertexData > vtxs;
+   std::map< PrimitiveID, EdgeData >   edges;
+   std::map< PrimitiveID, FaceData >   faces;
+   std::map< PrimitiveID, CellData >   cells;
 
-   inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
-   update_targetRank( vtxs, edges, faces, cells );
+   extract_data( vtxs, edges, faces, cells );
 
-   // create storage
+   walberla::mpi::broadcastObject( vtxs );
+   walberla::mpi::broadcastObject( edges );
+   walberla::mpi::broadcastObject( faces );
+   walberla::mpi::broadcastObject( cells );
+
    return make_localPrimitives( vtxs, edges, faces, cells );
 }
 
 template < class K_Simplex >
-MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const bool allow_split_siblings, const bool verbose )
+MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb,
+                                                  const bool           migrationInfo_required,
+                                                  const bool           allow_split_siblings,
+                                                  const bool           verbose )
 {
-   // extract connectivity, geometry and boundary data and add PrimitiveIDs
-   std::map< PrimitiveID, VertexData >   vtxs_old;
-   std::map< PrimitiveID, EdgeData >     edges_old;
-   std::map< PrimitiveID, FaceData >     faces_old;
-   std::map< PrimitiveID, CellData >     cells_old;
-   std::map< PrimitiveID, Neighborhood > nbrHood;
-   extract_data( vtxs_old, edges_old, faces_old, cells_old, nbrHood );
-
-   // reset target ranks
-   for ( auto el : _T )
-   {
-      el->setTargetRank( _n_processes );
-   }
-
    if ( !allow_split_siblings )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "loadbalancing with allow_split_siblings disabled may result in bad load balance!" );
+   }
+
+   // neighborhood information
+   NeighborhoodMap nbrHood;
+   // old and new target rank
+   std::map< PrimitiveID, std::pair< uint_t, uint_t > > targetRank;
+
+   // collect neighbor interfaces of volumes and vice versa
+   auto addNeighbor = [&]( const PrimitiveID volId, const PrimitiveType& pt, const PrimitiveID& nbrId ) {
+      // add nbrId as neighbor to volId and vice versa
+      nbrHood[VOL][volId][pt].push_back( nbrId );
+      nbrHood[pt][nbrId][VOL].push_back( volId );
+      // also add direct volume neighbors, i.e. elements that share a face (edge in 2d)
+      if ( pt == ( VOL - 1 ) && nbrHood[pt][nbrId][VOL].size() == 2 )
+      {
+         auto nbrVolId = nbrHood[pt][nbrId][VOL][0];
+         // add nbrVolId as neighbor to volId and vice versa
+         nbrHood[VOL][volId][VOL].push_back( nbrVolId );
+         nbrHood[VOL][nbrVolId][VOL].push_back( volId );
+      }
+   };
+
+   // reset target ranks and gather required info
+   for ( auto& el : _T )
+   {
+      auto elId = el->getPrimitiveID();
+
+      targetRank[elId].first = el->getTargetRank();
+      el->setTargetRank( _n_processes );
+
+      if constexpr ( VOL == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            if ( face->getTargetRank() < _n_processes )
+            {
+               targetRank[face->getPrimitiveID()].first = face->getTargetRank();
+               face->setTargetRank( _n_processes );
+            }
+            addNeighbor( elId, FACE, face->getPrimitiveID() );
+         }
+      }
+      for ( auto& edge : el->get_edges() )
+      {
+         if ( edge->getTargetRank() < _n_processes )
+         {
+            targetRank[edge->getPrimitiveID()].first = edge->getTargetRank();
+            edge->setTargetRank( _n_processes );
+         }
+         addNeighbor( elId, EDGE, edge->getPrimitiveID() );
+      }
+      for ( auto& idx : el->get_vertices() )
+      {
+         if ( _V[idx].getTargetRank() < _n_processes )
+         {
+            targetRank[_V[idx].getPrimitiveID()].first = _V[idx].getTargetRank();
+            _V[idx].setTargetRank( _n_processes );
+         }
+         addNeighbor( elId, VTX, _V[idx].getPrimitiveID() );
+      }
    }
 
    std::vector< uint_t > n_vol_on_rnk;
@@ -397,10 +446,18 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const
    // assign volume primitives
    if ( lb == ROUND_ROBIN )
    {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Load balancing strategy: Round Robin" );
+      }
       n_vol_on_rnk = loadbalancing_roundRobin( allow_split_siblings );
    }
    else if ( lb == GREEDY )
    {
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Load balancing strategy: Greedy" );
+      }
       n_vol_on_rnk = loadbalancing_greedy( nbrHood, allow_split_siblings );
    }
    else
@@ -423,78 +480,82 @@ MigrationInfo K_Mesh< K_Simplex >::loadbalancing( const Loadbalancing& lb, const
                                  << min_load << " / " << max_load << " / " << double( _n_elements ) / double( _n_processes ) );
    }
 
-   // extract data with new targetRank
-   std::map< PrimitiveID, VertexData > vtxs;
-   std::map< PrimitiveID, EdgeData >   edges;
-   std::map< PrimitiveID, FaceData >   faces;
-   std::map< PrimitiveID, CellData >   cells;
-   extract_data( vtxs, edges, faces, cells, nbrHood );
+   // assign interface primitives to processes
+   auto computeTargetRank = [&]( uint_t curRank, const std::vector< hyteg::PrimitiveID >& myNbrVolumes ) -> uint_t {
+      if ( curRank < _n_processes )
+      {
+         return curRank; // already assigned
+      }
 
-   // assign interface primitives
-   inheritRankFromVolumePrimitives( vtxs, edges, faces, cells, nbrHood );
-   update_targetRank( vtxs, edges, faces, cells );
+      // loop over all neighboring volume primitives and extract their target ranks
+      std::map< uint_t, uint_t > nbrRnks;
+      for ( auto& nbrID : myNbrVolumes )
+      {
+         nbrRnks[targetRank[nbrID].second] += 1;
+      }
+
+      // find rank where the most neighboring volume primitives are located
+      auto cmp = []( const std::pair< uint_t, uint_t >& a, const std::pair< uint_t, uint_t >& b ) { return a.second < b.second; };
+      return std::max_element( nbrRnks.begin(), nbrRnks.end(), cmp )->first;
+   };
+
+   for ( auto& el : _T )
+   {
+      targetRank[el->getPrimitiveID()].second = el->getTargetRank();
+   }
+
+   for ( auto& el : _T )
+   {
+      // neighbor faces (3d only)
+      if constexpr ( VOL == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            auto id      = face->getPrimitiveID();
+            auto newRank = computeTargetRank( face->getTargetRank(), nbrHood[FACE].at( id )[VOL] );
+            face->setTargetRank( newRank );
+            targetRank[id].second = newRank;
+         }
+      }
+      // neighbor edges
+      for ( auto& edge : el->get_edges() )
+      {
+         auto id      = edge->getPrimitiveID();
+         auto newRank = computeTargetRank( edge->getTargetRank(), nbrHood[EDGE].at( id )[VOL] );
+         edge->setTargetRank( newRank );
+         targetRank[id].second = newRank;
+      }
+      // neighbor vertices
+      for ( auto& idx : el->get_vertices() )
+      {
+         auto id      = _V[idx].getPrimitiveID();
+         auto newRank = computeTargetRank( _V[idx].getTargetRank(), nbrHood[VTX].at( id )[VOL] );
+         _V[idx].setTargetRank( newRank );
+         targetRank[id].second = newRank;
+      }
+   }
 
    // gather migration data
-   const uint_t   rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
    MigrationMap_T migrationMap;
    uint_t         numReceivingPrimitives = 0;
-   for ( auto& [id, vtx] : vtxs )
+   if ( migrationInfo_required )
    {
-      auto currentRnk = vtxs_old[id].getTargetRank();
-      auto targetRnk  = vtx.getTargetRank();
+      const uint_t rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+      // broadcast data to all processes
+      walberla::mpi::broadcastObject( targetRank );
 
-      if ( rank == currentRnk )
+      for ( auto& [id, rnk] : targetRank )
       {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
+         if ( rank == rnk.first )
+         {
+            migrationMap[id] = rnk.second;
+         }
+         if ( rank == rnk.second )
+         {
+            ++numReceivingPrimitives;
+         }
       }
    }
-   for ( auto& [id, edge] : edges )
-   {
-      auto currentRnk = edges_old[id].getTargetRank();
-      auto targetRnk  = edge.getTargetRank();
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-   }
-   for ( auto& [id, face] : faces )
-   {
-      auto currentRnk = faces_old[id].getTargetRank();
-      auto targetRnk  = face.getTargetRank();
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-   }
-   for ( auto& [id, cell] : cells )
-   {
-      auto currentRnk = cells_old[id].getTargetRank();
-      auto targetRnk  = cell.getTargetRank();
-
-      if ( rank == currentRnk )
-      {
-         migrationMap[id] = targetRnk;
-      }
-      if ( rank == targetRnk )
-      {
-         ++numReceivingPrimitives;
-      }
-   }
-
    return MigrationInfo( migrationMap, numReceivingPrimitives );
 }
 
@@ -504,13 +565,13 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool 
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
       return std::vector< uint_t >( 0 );
 
-   // apply roundRobin to volume elments
+   // apply roundRobin to volume elements
    uint_t                targetRnk = 0;
    std::vector< uint_t > n_vol_on_rnk( _n_processes );
    uint_t                n_vol_max = _n_elements / _n_processes;
    for ( auto el : _T )
    {
-      // already asigned
+      // already assigned
       if ( el->getTargetRank() < _n_processes )
       {
          continue;
@@ -521,7 +582,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool 
       {
          ++targetRnk;
 
-         // round robin complete but unasigned elements left
+         // round robin complete but unassigned elements left
          if ( targetRnk == _n_processes )
          {
             targetRnk = 0;
@@ -553,8 +614,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_roundRobin( const bool 
 }
 
 template < class K_Simplex >
-std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map< PrimitiveID, Neighborhood >& nbrHood,
-                                                                 const bool allow_split_siblings )
+std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const NeighborhoodMap& nbrHood, const bool allow_split_siblings )
 {
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
       return std::vector< uint_t >( 0 );
@@ -564,14 +624,6 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map<
    uint_t                n_vol_max1     = n_vol_max0 + std::min( uint_t( 1 ), _n_elements % _n_processes );
    uint_t                n_assigned     = 0;
    auto                  random_element = _T.begin();
-
-   // if ( n_vol_max0 < 4 )
-   // {
-   //    WALBERLA_LOG_WARNING(
-   //        "Not enough elements to properly apply greedy algorithm for loadbalancing. Fallback to round robin." );
-
-   //    return loadbalancing_roundRobin();
-   // }
 
    std::map< PrimitiveID, K_Simplex* > id_to_el;
    for ( auto& el : _T )
@@ -638,7 +690,7 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map<
          {
             if ( Q.empty() && n_assigned < _n_elements )
             {
-               // put a random elment (+siblings) into the queue
+               // put a random element (+siblings) into the queue
                if ( n_vol_on_rnk[targetRnk] < n_vol_max0 || fill_any )
                {
                   // find the next unassigned element
@@ -679,10 +731,10 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const std::map<
             if ( next[0]->get_parent() )
                next[0]->get_parent()->setTargetRank( targetRnk );
 
-            // add nbrs to queue
+            // add neighbors to queue
             for ( auto el : next )
             {
-               for ( auto nbrID : nbrHood.at( el->getPrimitiveID() )[K_Simplex::TYPE] )
+               for ( auto nbrID : nbrHood[VOL].at( el->getPrimitiveID() )[VOL] )
                {
                   add_to_Q( id_to_el[nbrID] );
                }
@@ -1201,197 +1253,63 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >&   vtxData,
-                                        std::map< PrimitiveID, EdgeData >&     edgeData,
-                                        std::map< PrimitiveID, FaceData >&     faceData,
-                                        std::map< PrimitiveID, CellData >&     cellData,
-                                        std::map< PrimitiveID, Neighborhood >& nbrHood ) const
+void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtxData,
+                                        std::map< PrimitiveID, EdgeData >&   edgeData,
+                                        std::map< PrimitiveID, FaceData >&   faceData,
+                                        std::map< PrimitiveID, CellData >&   cellData ) const
 {
-   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
+   if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
+      return;
 
-   if ( rank == 0 )
+   std::set< std::shared_ptr< Simplex1 > > edges;
+   std::set< std::shared_ptr< Simplex2 > > faces;
+   std::set< std::shared_ptr< Simplex3 > > cells;
+
+   // collect cells
+   if constexpr ( VOL == CELL )
    {
-      std::set< std::shared_ptr< Simplex1 > > edges;
-      std::set< std::shared_ptr< Simplex2 > > faces;
-      std::set< std::shared_ptr< Simplex3 > > cells;
-
-      // collect cells
-      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      cells = _T;
+   }
+   // collect faces
+   if constexpr ( VOL == FACE )
+   {
+      faces = _T;
+   }
+   for ( auto& cell : cells )
+   {
+      for ( auto& face : cell->get_faces() )
       {
-         cells = _T;
+         faces.insert( face );
       }
-      // collect faces
-      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+   }
+   // collect edges
+   for ( auto& face : faces )
+   {
+      for ( auto& edge : face->get_edges() )
       {
-         faces = _T;
-      }
-      for ( auto& cell : cells )
-      {
-         for ( auto& face : cell->get_faces() )
-         {
-            faces.insert( face );
-         }
-      }
-      // collect edges
-      for ( auto& face : faces )
-      {
-         for ( auto& edge : face->get_edges() )
-         {
-            edges.insert( edge );
-         }
-      }
-
-      // collect vertexdata
-      for ( auto& vtx : _V )
-      {
-         vtxData[vtx.getPrimitiveID()] = vtx;
-      }
-      // collect edgedata
-      for ( auto& edge : edges )
-      {
-         edgeData[edge->getPrimitiveID()] = EdgeData( edge.get() );
-      }
-      // collect facedata
-      for ( auto& face : faces )
-      {
-         faceData[face->getPrimitiveID()] = FaceData( face.get() );
-      }
-      // collect celldata
-      for ( auto& cell : cells )
-      {
-         cellData[cell->getPrimitiveID()] = CellData( cell.get() );
+         edges.insert( edge );
       }
    }
 
-   // broadcast data to all processes
-   walberla::mpi::broadcastObject( vtxData );
-   walberla::mpi::broadcastObject( edgeData );
-   walberla::mpi::broadcastObject( faceData );
-   walberla::mpi::broadcastObject( cellData );
-
-   // collect neighborhood data of volume primitives
-   if ( rank == 0 )
+   // collect vertex data
+   for ( auto& vtx : _V )
    {
-      for ( auto& el : _T )
-      {
-         if constexpr ( K_Simplex::TYPE == CELL )
-         {
-            for ( auto& face : el->get_faces() )
-            {
-               nbrHood[el->getPrimitiveID()][FACE].push_back( face->getPrimitiveID() );
-            }
-         }
-         for ( auto& edge : el->get_edges() )
-         {
-            nbrHood[el->getPrimitiveID()][EDGE].push_back( edge->getPrimitiveID() );
-         }
-         for ( auto& idx : el->get_vertices() )
-         {
-            auto id = _V[idx].getPrimitiveID();
-            WALBERLA_ASSERT( vtxData[id].get_vertices()[0] == idx );
-            nbrHood[el->getPrimitiveID()][VTX].push_back( id );
-         }
-      }
+      vtxData[vtx.getPrimitiveID()] = vtx;
    }
-
-   walberla::mpi::broadcastObject( nbrHood );
-
-   uint_t i = 0;
-   for ( auto& [id1, nbrHood_1] : nbrHood )
+   // collect edge data
+   for ( auto& edge : edges )
    {
-      if ( i % _n_processes == rank )
-      {
-         for ( const auto& [id2, _] : nbrHood )
-         {
-            WALBERLA_UNUSED( _ );
-            uint_t d = 0;
-            if constexpr ( K_Simplex::TYPE == CELL )
-            {
-               d = cellData[id1].diff( cellData[id2] );
-            }
-            if constexpr ( K_Simplex::TYPE == FACE )
-            {
-               d = faceData[id1].diff( faceData[id2] );
-            }
-            if ( d == 1 )
-            {
-               nbrHood_1[K_Simplex::TYPE].push_back( id2 );
-            }
-         }
-      }
-      ++i;
+      edgeData[edge->getPrimitiveID()] = EdgeData( edge.get() );
    }
-
-   i = 0;
-   for ( auto& [_, nbrHood_1] : nbrHood )
+   // collect face data
+   for ( auto& face : faces )
    {
-      WALBERLA_UNUSED( _ );
-      walberla::mpi::broadcastObject( nbrHood_1[K_Simplex::TYPE], int( i % _n_processes ) );
-      ++i;
+      faceData[face->getPrimitiveID()] = FaceData( face.get() );
    }
-}
-
-template < class K_Simplex >
-void K_Mesh< K_Simplex >::update_targetRank( const std::map< PrimitiveID, VertexData >& vtxData,
-                                             const std::map< PrimitiveID, EdgeData >&   edgeData,
-                                             const std::map< PrimitiveID, FaceData >&   faceData,
-                                             const std::map< PrimitiveID, CellData >&   cellData )
-{
-   auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
-
-   if ( rank == 0 )
+   // collect cell data
+   for ( auto& cell : cells )
    {
-      std::set< std::shared_ptr< Simplex1 > > edges;
-      std::set< std::shared_ptr< Simplex2 > > faces;
-      std::set< std::shared_ptr< Simplex3 > > cells;
-
-      // collect cells
-      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
-      {
-         cells = _T;
-      }
-      // collect faces
-      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
-      {
-         faces = _T;
-      }
-      for ( auto& cell : cells )
-      {
-         for ( auto& face : cell->get_faces() )
-         {
-            faces.insert( face );
-         }
-      }
-      // collect edges
-      for ( auto& face : faces )
-      {
-         for ( auto& edge : face->get_edges() )
-         {
-            edges.insert( edge );
-         }
-      }
-
-      // add targetRank to vertices
-      for ( auto& [id, vtx] : vtxData )
-      {
-         WALBERLA_ASSERT( id == _V[vtx.get_vertices()[0]].getPrimitiveID() );
-         _V[vtx.get_vertices()[0]].setTargetRank( vtx.getTargetRank() );
-      }
-      // add targetRank to edges
-      for ( auto& edge : edges )
-      {
-         edge->setTargetRank( edgeData.at( edge->getPrimitiveID() ).getTargetRank() );
-      }
-      // add targetRank to faces
-      for ( auto& face : faces )
-      {
-         face->setTargetRank( faceData.at( face->getPrimitiveID() ).getTargetRank() );
-      }
-      // add targetRank to cells
-      for ( auto& cell : cells )
-      {
-         cell->setTargetRank( cellData.at( cell->getPrimitiveID() ).getTargetRank() );
-      }
+      cellData[cell->getPrimitiveID()] = CellData( cell.get() );
    }
 }
 
@@ -1456,11 +1374,11 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
 
       // apply regular refinement to el
       std::set< std::shared_ptr< K_Simplex > > subelements;
-      if constexpr ( std::is_same_v< K_Simplex, Simplex2 > )
+      if constexpr ( VOL == FACE )
       {
          subelements = refine_face_red( _vertices, _V, el );
       }
-      if constexpr ( std::is_same_v< K_Simplex, Simplex3 > )
+      if constexpr ( VOL == CELL )
       {
          subelements = refine_cell_red( _vertices, _V, el );
       }
@@ -1787,11 +1705,10 @@ void K_Mesh< K_Simplex >::exportMesh( const std::string& filename ) const
 {
    WALBERLA_ROOT_SECTION()
    {
-      const int K = K_Simplex::TYPE;
-      int       elType;
-      if ( K == 2 )
+      int elType;
+      if ( VOL == 2 )
          elType = 2;
-      else if ( K == 3 )
+      else if ( VOL == 3 )
          elType = 4;
       else
          WALBERLA_ABORT( "Only implementation of 3d and 2d meshes implemented." )
@@ -1816,7 +1733,7 @@ void K_Mesh< K_Simplex >::exportMesh( const std::string& filename ) const
          auto& v = el->get_vertices();
 
          file << ( i + 1 ) << " " << elType << " 2 0 0";
-         for ( uint_t j = 0; j <= K; ++j )
+         for ( uint_t j = 0; j <= VOL; ++j )
             file << " " << ( v[j] + 1 );
          file << "\n";
          ++i;
