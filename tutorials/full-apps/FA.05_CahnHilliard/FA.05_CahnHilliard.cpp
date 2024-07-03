@@ -457,7 +457,7 @@
  * We increment our current time `t_now` in every time step by `tau`, apply our CahnHilliardEvolutionOperator on `u_prev` to get
  * the updated state of our PDE-system in `u_now`.
  * This gets copied to u_prev with the hyteg::P1Function::assign method.
- * After `ouputInterval` steps, we add our current solution to the hyteg::VTKOutput and write the result to disk.
+ * After `outputInterval` steps, we write the result to disk.
  *
  * When our simulation finally reaches `t_end` and finishes we might want to get additional information about the runtime of the application to identify bottlenecks.
  * For instance, whether it is worth optimizing our inefficient right-hand-side assembly.
@@ -941,14 +941,13 @@ int main( int argc, char** argv )
       if ( t_now > t_end )
          break;
 
-      WALBERLA_LOG_INFO_ON_ROOT( "iter = " << k << " t = " << t_now );
+      WALBERLA_LOG_INFO_ON_ROOT( "iter = " << k << " t = " << std::fixed << std::setprecision(3) << t_now );
       chOperator.apply( u_prev, u_now, maxLevel );
 
       u_prev.assign( { 1. }, { u_now }, maxLevel, All );
 
       if ( k % outputInterval == 0 )
       {
-         vtkOutput.add( u_now );
          vtkOutput.write( maxLevel, k );
       }
    }

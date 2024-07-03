@@ -33,15 +33,15 @@ Create a build directory and invoke `cmake`:
     $ cd hyteg-build
     $ cmake ../hyteg
 
-CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a tutorial on isoviscous convection) invoke:
+CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a tutorial on solving the Cahn-Hilliard equation) invoke:
 
-    hyteg-build $ cd tutorials/07_IsoviscousConvectionAnnulus
-    hyteg-build/tutorials/07_IsoviscousConvectionAnnulus $ make
-    hyteg-build/tutorials/07_IsoviscousConvectionAnnulus $ ./IsoviscousConvectionAnnulus
+    hyteg-build $ cd tutorials/full-apps/FA.05_CahnHilliard
+    hyteg-build/tutorials/full-apps/FA.05_CahnHilliard $ make
+    hyteg-build/tutorials/full-apps/FA.05_CahnHilliard $ ./FA.05_CahnHilliard
 
 ... or for a parallel run:
 
-    hyteg-build/tutorials/07_IsoviscousConvectionAnnulus $ mpirun -np 4 ./IsoviscousConvectionAnnulus
+    hyteg-build/tutorials/full-apps/FA.05_CahnHilliard $ mpirun -np 4 ./FA.05_CahnHilliard
 
 ### Prerequisites
 

@@ -43,7 +43,7 @@ namespace hyteg {
  *
  * \brief In this tutorial we will go through all required steps to set up an ErrorEstimator and apply it for adaptive refinement.
  *
- * \section T06-intro Introduction
+ * \section BA06-intro Introduction
  *
  * When solving a problem, we might want to have an idea whether the resolution of our mesh is sufficiently fine.
  * Since, in practice, we don't have access to the actual error, we require an error estimator.
@@ -57,7 +57,7 @@ namespace hyteg {
  * We assume that the problem requires a heterogeneous resolution and therefore iteratively apply AMR.
  * In each iteration, we solve the problem with a more adapted macro grid.
  *
- * \section T06-adaptiveMesh Creating an adaptive mesh
+ * \section BA06-adaptiveMesh Creating an adaptive mesh
  *
  * First, we follow the steps introduced in \ref BA.05_AMR to create an adaptiveRefinement::Mesh.
  *
@@ -65,13 +65,13 @@ namespace hyteg {
  *
  * We then run a loop over the following steps.
  *
- * \section T06-problem Problem definition on the current grid
+ * \section BA06-problem Problem definition on the current grid
  *
  * We first define the problem as described in previous tutorials
  *
  * \snippet{trimleft} this Problem
  *
- * \section T06-errest Error estimate
+ * \section BA06-errest Error estimate
  * Our ErrorEstimator is defined as follows:
  *
  * Let \f$ \ell=(L-j) \f$ for some \f$ j \in \{1, ...,  (L-\ell_{min}-1) \} \f$. Then the discretization error on level \f$\ell\f$ can be estimated by
@@ -98,7 +98,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this ErrorEstimator
  *
- * \section T06-solver FMG Solver
+ * \section BA06-solver FMG Solver
  * Next, we define the solver.
  * Due to the above definition, we need solutions \f$ u_\ell \f$ from coarser levels for our estimate.
  * Therefore, a full multigrid solver must be used.
@@ -106,7 +106,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this Solver
  *
- * \section T06-solve Solving the problem and estimating the global error
+ * \section BA06-solve Solving the problem and estimating the global error
  *
  * After solving the problem using FMG, we call `ErrorEstimator::estimate` to compute the estimates for all \f$ j=1,...,j_{max}\f$.
  *
@@ -116,7 +116,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this GlobalError
  *
- * \section T06-refine Refining the mesh based on the local error indicator
+ * \section BA06-refine Refining the mesh based on the local error indicator
  *
  * For the adaptive refinement, we require an indication of the local errors.
  * The method `ErrorEstimator::eta_T_sq` returns a vector of estimated squared local errors \f$ \|\tilde{e}_{L-1}\|_{L^2(T)}^2 \f$ for all macro faces T (or cells in 3d), giving a good indication where to refine.
@@ -149,7 +149,7 @@ namespace hyteg {
  * This may lead to severe load imbalance during the interpolation step.
  * Therefore, it is currently not recommended to interpolate data between different PrimitiveStorages.
  *
- * \section code Complete Program
+ * \section BA06-Code Complete Program
  * \include tutorials/basics-for-apps/BA.05_AMR.cpp
  *
  *
