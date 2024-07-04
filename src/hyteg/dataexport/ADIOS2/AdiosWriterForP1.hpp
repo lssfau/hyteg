@@ -29,6 +29,8 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
+using adiosHelpers::adiostype_t;
+
 class AdiosWriter;
 
 class AdiosWriterForP1
@@ -60,7 +62,10 @@ class AdiosWriterForP1
    ///
    /// \note The caller needs to make sure that the functions have been synced before
    ///       invoking this method!
-   void write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters );
+   void write( const FEFunctionRegistry&            registry,
+               uint_t                               timestep,
+               adios2::Params&                      userProvidedParameters,
+               std::map< std::string, adiostype_t > additionalAttributes );
 
  private:
    /// Store the mesh on which our functions live in the output file

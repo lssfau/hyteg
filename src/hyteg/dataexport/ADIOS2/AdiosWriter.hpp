@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include <variant>
+
 #include "hyteg/HytegDefinitions.hpp"
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
@@ -37,6 +39,8 @@ namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;
+
+using adiosHelpers::adiostype_t;
 
 class AdiosWriterForP1;
 class AdiosWriterForP2;
@@ -131,7 +135,7 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 
 #endif
 
-   /// Add an FE Function to became part of the next dataexport phase
+   /// Add an FE Function to become part of the next dataexport phase
    template < template < typename > class func_t, typename value_t >
    inline void add( const func_t< value_t >& function )
    {
@@ -159,6 +163,29 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
       else
       {
          feFunctionRegistry_.add( function );
+      }
+   }
+
+   /**
+    * @brief  Collect in a map all attributes to be written to adios2 output
+    * @param key string for map
+    * @param attrValue scalar variable with adios compatible data type + bool
+    */
+   template < typename attribute_t >
+   inline void addAttribute( const std::string& key, attribute_t const& attrValue )
+   {
+      if ( firstWriteDidHappen_ )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "Adios attributes should only be added on first write()!\n"
+                                       << "--> Ignoring (key,value) = ('" << key << "','" << attrValue << "')" );
+      }
+      else if ( !adiosHelpers::isAdiosDataType< std::decay_t< decltype( attrValue ) >, adiostype_t >::value )
+      {
+         WALBERLA_ABORT( "The provided attribute " << key << " does not hold a valid datatype for adios2" );
+      }
+      else
+      {
+         additionalAttributes_[key] = attrValue;
       }
    }
 
@@ -261,6 +288,9 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 
    /// (key,value) pairs for IO parameters provided by user via setParameter() method
    std::map< std::string, std::string > userProvidedParameters_;
+
+   /// (key,value) pairs for adding attributes to adios2 output
+   std::map< std::string, adiostype_t > additionalAttributes_;
 
    /// remember if we already had a write() episode
    bool firstWriteDidHappen_ = false;

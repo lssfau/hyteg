@@ -18,10 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+
 #include <adios2.h>
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
 
 namespace hyteg {
@@ -49,7 +50,7 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
              std::make_unique< AdiosWriterForP1 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
       }
 
-      p1Writers_[level]->write( feFunctionRegistry_, timestep, userProvidedParameters_ );
+      p1Writers_[level]->write( feFunctionRegistry_, timestep, userProvidedParameters_, additionalAttributes_ );
    }
 
    // -------------------
@@ -65,7 +66,7 @@ void AdiosWriter::write( const uint_t level, const uint_t timestep )
              std::make_unique< AdiosWriterForP2 >( adios_, filePath_, fileBaseName_, engineType_, level, storage_ );
       }
 
-      p2Writers_[level]->write( feFunctionRegistry_, timestep, userProvidedParameters_ );
+      p2Writers_[level]->write( feFunctionRegistry_, timestep, userProvidedParameters_, additionalAttributes_ );
    }
 
    // remember that we had our first write() episode

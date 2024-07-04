@@ -71,7 +71,7 @@ int main( int argc, char** argv )
       //if we reach this point in a circulation model, the max number of steps has been reached before the desired age
       WALBERLA_LOG_INFO_ON_ROOT( "Max timestep reached at age " << simulation.getSimulationParams().ageMa << " Ma." )
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Circulatin model ran from " << simulation.getSimulationParams().initialAge << " - "
+      WALBERLA_LOG_INFO_ON_ROOT( "Circulation model ran from " << simulation.getSimulationParams().initialAge << " - "
                                                               << simulation.getSimulationParams().ageMa << " Ma." )
    }
    if ( simulation.getSimulationParams().timingAnalysis )

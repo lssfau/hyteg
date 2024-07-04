@@ -20,6 +20,7 @@
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
 
 #include <adios2.h>
+#include <variant>
 
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
@@ -30,6 +31,8 @@ namespace hyteg {
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
+
+using adiosHelpers::adiostype_t;
 
 AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             adios,
                                     const std::string&                         filePath,
@@ -54,9 +57,12 @@ AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             a
    io_.SetEngine( engineType );
 }
 
-void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters )
+void AdiosWriterForP1::write( const FEFunctionRegistry&            registry,
+                              uint_t                               timestep,
+                              adios2::Params&                      userProvidedParameters,
+                              std::map< std::string, adiostype_t > additionalAttributes )
 {
-   // on first invocation set user define parameter values
+   // on first invocation set user defined parameter values
    if ( !firstWriteCompleted_ )
    {
       io_.SetParameters( userProvidedParameters );
@@ -99,6 +105,9 @@ void AdiosWriterForP1::write( const FEFunctionRegistry& registry, uint_t timeste
       // export the mesh information
       engine_.BeginStep();
       writeMesh( p1FunctionList );
+
+      // export additional attributes
+      adiosHelpers::writeAllAttributes( io_, additionalAttributes );
 
       // add meta data on simulation software
       adiosHelpers::generateSoftwareMetaData( io_ );
