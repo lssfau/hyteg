@@ -58,7 +58,7 @@
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 /**
- * \page GB.02_KingCompressible Tutorial GB.02 - Compressible Benchmark (Case 1a)
+ * \page GB.02_KingCompressible Tutorial GB.02 - Compressible Benchmark
  *
  * \dontinclude tutorials/geo-benchmarks/GB.02_KingCompressible/GB.02_KingCompressible.cpp
  * 
@@ -76,7 +76,8 @@
  * \f{align*}{
  *  -\nabla\cdot\tau + \nabla p &= \text{Ra}T \\
  *  \nabla\cdot(\rho u) &= 0 \\
- *  \frac{\partial T}{\partial t} + u \cdot \nabla T - \nabla \cdot \frac{\kappa}{\bar{\rho}C_p} \nabla T &= \frac{\alpha \text{Di}}{C_p} (u\cdot g) T + \frac{\text{Di}}{\text{Ra}C_p}\tau:\epsilon
+ *  \frac{\partial T}{\partial t} + u \cdot \nabla T - \nabla \cdot \left(\frac{\kappa}{\bar{\rho}C_p} 
+ *  \nabla T\right) &= \frac{\alpha \text{Di}}{C_p} (u\cdot g) T + \frac{\text{Di}}{\text{Ra}C_p}\tau:\epsilon
  * \f}
  * 
  * The initial conditions for temperature is prescribed as,
@@ -89,8 +90,11 @@
  * For the temperature field, a Dirichlet of T = 0 and T = 1 is imposed 
  * at the top and bottom and zero flux on the sides. This induces a single convection cell 
  * in the square and eventually reaches a steady state. Once this state is reached, 
- * the Nusselt number values are calculated and verified. As mentioned in the article mentioned above, if we start the model at a higher Rayleigh number we may not converge to a single cell solution. Hence we start at lower Rayleigh numbers and store the checkpoints, which we use to initialise a model at a higher Rayleigh number.
- *
+ * the Nusselt number values are calculated and verified. 
+ * As mentioned in the article mentioned above, if we start the model at a higher Rayleigh number 
+ * we may not converge to a single cell solution. Hence we start at lower Rayleigh numbers 
+ * and store the checkpoints, which we then use to initialise the model at a higher Rayleigh number.
+ * 
  * \section GB02-KingCompressible-Domain Domain
  * 
  * Through the geometry module in HyTeG, a rectangle mesh can be created with the `meshRectangle`, 
@@ -102,60 +106,54 @@
  * 
  * \section GB02-KingCompressible-BCs Boundary Conditions
  * 
- * The boundary conditions for the Temperature and Velocity are defined appropriately. For temperature, a Dirichlet is defined
+ * The boundary conditions for the Temperature and Velocity are defined as follows. For temperature, a Dirichlet is defined
  * on the top and bottom and zero flux on the side walls.
  * 
  * \snippet{trimleft} this BoundaryConditionsTemperature
  * 
- * For the velocity freeslip boundary conditions must be imposed on all four walls. For this, the coordinates can be seperately
- * defined a Dirichlet and Neumann condition, but here we generally impose freeslip boundary condition.
+ * For the velocity freeslip boundary conditions must be imposed on all four walls. For this, 
+ * as we have straight boundaries here, the axis aligned coordinates can be seperately defined a Dirichlet 
+ * and Neumann condition which inturn will impose the freeslip condition (no-normal flow).
  * 
  * \snippet{trimleft} this BoundaryConditionsVelocity
  * 
  * \section GB02-KingCompressible-OpStokes Operators -- Stokes
  * 
- * The application of freeslip boundary condition is done with a project normal operator 
- * which needs the normals defined at the boundaries, with which the
- * velocity field is projected and the normal component is set to zero. Here the normals are defined through a lambda
- * function,
+ * The Stokes operator can be set up similar to previous tutorials, but here, to treat the compressibility constraint, 
+ * we expand the mass conservation with chain rule and treat some terms explicitly to 
+ * make sure, we have the same symmetric system matrix.
  * 
- * \snippet{trimleft} this NormalsFunctionForFS
- * 
- * And then passed on to the project normal operator
- * 
- * \snippet{trimleft} this ProjectNormalForFS
- * 
- * This is then inturn used in defining the freeslip wrapper which wraps the Stokes operator and uses the projection operator
- * to set the normal components to zero.
- * 
- * \snippet{trimleft} this StokesFreeslipOperator
+ * \snippet{trimleft} this StokesFrozenVelocity
  * 
  * \section GB02-KingCompressible-OpEnergy Operators -- Energy
  * 
- * For the solution of the energy equations, we use a particle approach based on the modified method of characteristics (MMOC).
- * Hence the advection operator can be defined with
+ * For treating the advection part of the energy equation, we use the method of modified characteristics (MMOC).
+ * Hence this advection operator can be defined with
  * 
  * \snippet{trimleft} this MMOCForTransport
  * 
  * As the operator splitting approach is used, this must be taken care in the time stepping algorithm. We use an implicit Euler
- * scheme for timestepping the diffusion and the MMOC is used to step for advection. The `apply` function of the 
- * `P2TransportTimesteppingOperator` applies the time discretized form of the weak form considering only the diffusion.
- * 
- * \snippet{trimleft} this TransportOperatorApply
+ * scheme for timestepping the diffusion and other terms of the energy equations, while the MMOC is used to step for advection. 
+ * The `apply` function of the `P2TransportTALAOperator` applies the time discretized form of the weak form considering only 
+ * the terms other than advection.
  * 
  * \section GB02-KingCompressible-SolverStokes Solver -- Stokes
+ *  
+ * The boundary conditions are set with the correct Dirichlet/Neumann flag to ensure that no-normal flow is applied on the walls. 
+ * This then helps in creating a single convection cell in the unit square. We start the model at a Rayleigh number of
+ * Ra \f$ = 10^4 \f$, then we store a checkpoint with this solution. This is then used to initialise the model at 
+ * Ra \f$ = 10^5 \f$, and then eventually to even higher values for testing. But here we use the values of Ra \f$ = 10^5 \f$
+ * and Di \f$ = 0.25 \f$ to calculate the Nusselt numbers for comparison.
  * 
- * Minres or PETSc direct solver can be used to compute the solution to the Stokes system. The RHS is calculated and the projection is applied 
- * before starting the iterative solve. As the Minres solver calls the wrapped Stokes operator, it is ensured that the 
- * projection is done at every step of the iterative solve, hence strongly applying the freeslip boundary condition.
+ * Minres or PETSc direct solver can be used to compute the solution to the Stokes system.
  * 
  * \snippet{trimleft} this StokesSolverLambdaFunction
  * 
  * \section GB02-KingCompressible-SolverEnergy Solver -- Energy
  * 
- * The timestep for the energy equation solver is calculated according to the CFL condition using the velocity from the most recent
- * Stokes solution. This is then used for the MMOC solver to step the advection, then also used for the diffusion solver.
- * Here we use CG solver for the timestepping solver as the system is nicely symmetric with only diffusion present.
+ * The timestep for the energy equation solver is calculated according to the CFL condition using the velocity from the 
+ * Stokes solution. This is then used for the MMOC solver to step the advection, then also used for the energy equation.
+ * Here we use GMRES for the energy solver as the system is nicely symmetric as advection is absent in the linear system.
  * 
  * \snippet{trimleft} this TransportSolverLambdaFunction
  * 
@@ -169,17 +167,14 @@
  * 
  * \snippet{trimleft} this InitialSolveOrCheckpoint
  * 
- * This is then used to step the transport solver, both advection and the diffusion parts, with 
+ * This is then used to step the transport solver, both advection and the remaining energy parts, with 
  * MMOC and implicit Euler respectively. With this we compute the temperature field at time \f$ t_1 \f$. Then the Stokes system is
  * solved again to obtain the corresponding velocity field at time \f$ t_1 \f$ and so on.
  * 
- * \snippet{trimleft} this TimeStepLoopStart
- * \snippet{trimleft} this SolveEnergy
- * \snippet{trimleft} this SolveStokes
- * \snippet{trimleft} this WriteDataOut
  * 
  * \section GB02-KingCompressible-Results Results
- *
+ * 
+ * <img src="GB.02_KingCompressibleSquare.png" width="50%" />
  * 
  */
 
@@ -413,20 +408,21 @@ class TALASimulation
          return 0.0;
       };
 
+      /// [TemperatureInitialization]
       tempIni = [=]( const Point3D& x ) {
-         // return 0.0;
-         // real_t tempDevMax = ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
-         // return ( 1 - x[1] ) * tempDevMax +
          return ( 1 - x[1] ) + params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
       };
+      /// [TemperatureInitialization]
 
       TRefFunc = [=]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
 
       BoundaryCondition bcTemp, bcVelocity, bcVelocityX, bcVelocityY;
 
+      /// [BoundaryConditionsTemperature]
       bcTemp.createDirichletBC( "DirichletBottomAndTop",
                                 { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Corners } );
       bcTemp.createNeumannBC( "NeumannLeftAndRight", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
+      /// [BoundaryConditionsTemperature]
 
       bcVelocity.createAllInnerBC();
       // bcVelocity.createDirichletBC(
@@ -436,6 +432,7 @@ class TALASimulation
       // bcVelocity.createFreeslipBC( "DirichletCorners", { BoundaryMarkers::Corners } );
       bcVelocity.createDirichletBC( "DirichletCorners", { BoundaryMarkers::Corners } );
 
+      /// [BoundaryConditionsVelocity]
       bcVelocityX.createAllInnerBC();
       bcVelocityX.createDirichletBC( "LRDirichlet", { BoundaryMarkers::Left, BoundaryMarkers::Right, BoundaryMarkers::Corners } );
       bcVelocityX.createNeumannBC( "TBNeumann", { BoundaryMarkers::Top, BoundaryMarkers::Bottom } );
@@ -443,6 +440,7 @@ class TALASimulation
       bcVelocityY.createAllInnerBC();
       bcVelocityY.createNeumannBC( "LRNeumann", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
       bcVelocityY.createDirichletBC( "TBDirichlet", { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Corners } );
+      /// [BoundaryConditionsVelocity]
 
       TDev     = std::make_shared< P2Function< real_t > >( "TDev", storage_, minLevel_, maxLevel_, bcTemp );
       TDevPrev = std::make_shared< P2Function< real_t > >( "TDevPrev", storage_, minLevel_, maxLevel_, bcTemp );
@@ -553,20 +551,23 @@ class TALASimulation
       projectionOperator = std::make_shared< P2ProjectNormalOperator >( storage_, minLevel_, maxLevel_, normalsFS );
 
       viscP2->interpolate( 1.0, maxLevel_, All );
+      /// [StokesOperator]
       stokesOperator = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscP2 );
+      /// [StokesOperator]
 
       stokesOperatorFS = std::make_shared< StokesOperatorFreeSlip >( stokesOperator, projectionOperator, FreeslipBoundary );
 
       params.cflMax = mainConf.getParameter< real_t >( "cflMax" );
 
       params.verbose     = mainConf.getParameter< bool >( "verbose" );
-      stokesMinresSolver = std::make_shared< MinResSolver< StokesOperatorFreeSlip > >(
+      stokesMinresSolver = std::make_shared< MinResSolver< P2P1StokesOperator > >(
           storage_, minLevel_, maxLevel_, params.minresIter, params.minresRelTol );
       stokesMinresSolver->setPrintInfo( params.verbose );
 
 #if defined( HYTEG_BUILD_WITH_PETSC )
       stokesDirectSolver = std::make_shared< PETScLUSolver< P2P1StokesOperator > >( storage_, maxLevel_ );
 #endif
+
       transportGmresSolver = std::make_shared< GMRESSolver< P2TransportTimesteppingOperator > >(
           storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
       transportGmresSolver->setPrintInfo( params.verbose );
@@ -666,7 +667,7 @@ class TALASimulation
 #if defined( HYTEG_BUILD_WITH_PETSC )
    std::shared_ptr< PETScLUSolver< P2P1StokesOperator > >             stokesDirectSolver;
 #endif
-   std::shared_ptr< MinResSolver< StokesOperatorFreeSlip > >          stokesMinresSolver;
+   std::shared_ptr< MinResSolver< P2P1StokesOperator > >          stokesMinresSolver;
    // std::shared_ptr< MinResSolver< P2TransportTimesteppingOperator > > transportMinresSolver;
 
    std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
@@ -698,13 +699,13 @@ class TALASimulation
    std::shared_ptr< AdiosCheckpointImporter > adios2CheckpointImporter;
 };
 
+
 void TALASimulation::solveU()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
 
    uRhsStrong->uvw().component( 0U ).interpolate( 0.0, maxLevel, All );
    uRhsStrong->uvw().component( 1U ).interpolate( params.Ra * params.alphabar, maxLevel, All );
-   // uRhsStrong->uvw().component( 1U ).multElementwise( { uRhsStrong->uvw().component( 1U ), *rhoP2 }, maxLevel, All );
 
    TRefDev->assign( { 1.0, -1.0 }, { *TDev, *TRef }, maxLevel, All );
    uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *TRefDev }, maxLevel, All );
@@ -712,103 +713,61 @@ void TALASimulation::solveU()
 
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
-   P2Function< real_t > alaCoeff("alaCoeff", storage, minLevel, maxLevel);
-
-   alaCoeff.interpolate(-params.Di, maxLevel, All);
-   alaCoeff.multElementwise({alaCoeff, *rhoP2}, maxLevel, All);
-
-   // P1ToP2ElementwiseKMass alaOp(storage, minLevel, maxLevel, alaCoeff);
-
-   // alaOp.apply(u->p(), uRhs->uvw().component(1U), maxLevel, All, Add);
-
+   /// [StokesFrozenVelocity]
    gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
    uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
-
-   // u->uvw().interpolate( { bcVelocityX, bcVelocityY }, maxLevel, DirichletBoundary );
+   /// [StokesFrozenVelocity]
 
    projectionOperator->project( *uRhs, maxLevel, FreeslipBoundary );
 
-   stokesOperatorFS->apply( *u, *uTemp, maxLevel, All ^ DirichletBoundary );
-   uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, All ^ DirichletBoundary );
-   real_t residualBefore = uTemp->dotGlobal( *uTemp, maxLevel, All ^ DirichletBoundary );
-
-   // for(uint_t iStokesPicard = 0U; iStokesPicard < 2U; iStokesPicard++)
-   // {
    u->uvw().interpolate( 0.0, maxLevel, DirichletBoundary );
 
-   stokesMinresSolver->solve( *stokesOperatorFS, *u, *uRhs, maxLevel );
-   // stokesDirectSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
+   bool directSolverFlag = mainConf.getParameter< bool >("directSolver");
+
+   /// [StokesSolverLambdaFunction]
+   if(directSolverFlag)
+   {
+#if defined( HYTEG_BUILD_WITH_PETSC )
+      stokesDirectSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
+#else
+      WALBERLA_ABORT("Direct solver requested but PETSc not compiled!");
+#endif
+   }
+   else
+   {
+      stokesMinresSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
+   } 
+   /// [StokesSolverLambdaFunction]
 
    vertexdof::projectMean(u->p(), maxLevel);
-   //    gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
-   //    uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
-   // }
-
-   stokesOperatorFS->apply( *u, *uTemp, maxLevel, All ^ DirichletBoundary );
-   uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, All ^ DirichletBoundary );
-   real_t residualAfter = uTemp->dotGlobal( *uTemp, maxLevel, All ^ DirichletBoundary );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Stokes Residual Before = " << residualBefore << std::endl
-                                                          << "Stokes Residual After = " << residualAfter << std::endl );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STOKES SOLVER DONE!" ) );
 }
 
+
+/// [TransportSolverLambdaFunction]
 void TALASimulation::solveT()
 {
    transportTALAOp->calculateTimestep( params.cflMax );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING TRANSPORT SOLVER with dt = %2.6e", transportTALAOp->timestep ) );
 
+   /// [MMOCForTransport]
    if ( params.MMOC )
       transportTALAOp->stepMMOC( maxLevel );
-
-   // transportTALAOp->setSUPG(false);
+   /// [MMOCForTransport]
 
    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
    transportTALAOp->applyRHS( *TRhs, maxLevel, All );
 
    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
 
-   DoFType residualCalcFlag = All;
-
-   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, residualCalcFlag );
-   Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
-   real_t residualBefore = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
-
    transportTALAGmresSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
-   // transportTALAMinresSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
-   // transportTALADirectSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
-
-   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, residualCalcFlag );
-   Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
-   real_t residualAfter = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
 
    transportTALAOp->incrementTimestep();
 
-   //    TDevInt->assign( { 1.0 }, { *TDevPrev }, maxLevel, All );
-
-   //    transport.step( *TDevInt, u->uvw(), uPrev->uvw(), maxLevel, All, dt, 1, true );
-
-   //    TDevInt->interpolate( tempDevBC, maxLevel, DirichletBoundary );
-
-   //    transportOp->setDt( dt );
-
-   //    //    transportOp->applyRhs( *zero, *TDevInt, *TRhs, maxLevel, Inner | NeumannBoundary );
-
-   //    TDevInt->interpolate( tempDevBC, maxLevel, DirichletBoundary );
-
-   //    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
-
-   //    massOperator.apply( *TDevInt, *TRhs, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
-
-   //    transportGmresSolver->solve( *transportOp, *TDev, *TRhs, maxLevel );
-
-   //    TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Transport Residual Before = " << residualBefore << std::endl
-                                                             << "Transport Residual After = " << residualAfter << std::endl );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
 }
+/// [TransportSolverLambdaFunction]
 
 void TALASimulation::step()
 {
@@ -819,7 +778,7 @@ void TALASimulation::step()
    real_t Pe = hMax * vMax / ( 4 * params.k_ );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Peclet number = %f", Pe ) );
-
+   
    solveT();
 
    solveU();
@@ -836,6 +795,7 @@ void TALASimulation::solve()
 
    TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
 
+   /// [InitialSolveOrCheckpoint]
    if ( startFromCheckpoint )
    {
       adios2CheckpointImporter = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
@@ -847,6 +807,7 @@ void TALASimulation::solve()
    {
       solveU();
    }
+   /// [InitialSolveOrCheckpoint]
 
    TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
 
@@ -948,6 +909,7 @@ int main( int argc, char* argv[] )
 
    auto meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), hyteg::MeshInfo::CRISS, nx, ny );
 
+   /// [SetupStorageAndMarkings]
    auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -958,7 +920,8 @@ int main( int argc, char* argv[] )
    setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Corners, cornersMarker );
 
    auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
-
+   /// [SetupStorageAndMarkings]
+   
    uint_t nMacroFaces      = storage->getNumberOfGlobalFaces();
    uint_t nMacroPrimitives = storage->getNumberOfGlobalPrimitives();
 

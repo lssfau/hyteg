@@ -25,7 +25,9 @@
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/memory/TempFunctionManager.hpp"
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
+#include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
 

@@ -46,7 +46,7 @@ Parameters
   adiabaticHeating true;
   shearHeating true;
 
-  Direct false;
+  directSolver true;
 
   maxTimeSteps 10001;
   dtStart 1e-6;
@@ -61,15 +61,15 @@ Parameters
   level 1;
 
   cpPath /import/freenas-m-03-geodynamics/pponkumar/output/nuAnalysis/checkpoint;
-  cpFilename KingSquare_TALA_Ra_1_6e6_Di_0_5_07072024_Checkpoint;
-  cpStartFilename KingSquare_TALA_Ra_1_5e6_Di_0_5_07072024_Checkpoint;
+  cpFilename KingSquare_FP64_Ra_1e4_Di_0_5_14072024_Checkpoint;
+  cpStartFilename KingSquare_FP64_Ra_1e4_Di_0_5_14072024_Checkpoint;
 
   outputPath /import/freenas-m-03-geodynamics/pponkumar/output/nuAnalysis;
-  outputFilename KingSquare_TALA_Ra_1e4_Di_0_5_07072024;
+  outputFilename KingSquare_FP64_Ra_1e4_Di_0_5_14072024;
   vtkWriteFrequency 25;
   adiosXmlConfig /home/pponkumar/hyteg/hyteg/tutorials/geo-benchmarks/GB.02_KingCompressible/ADIOS2demo.xml;
 
   storeCheckpointFreq 1000;
-  storeCheckpoint false;
+  storeCheckpoint true;
   startFromCheckpoint false;
 }
