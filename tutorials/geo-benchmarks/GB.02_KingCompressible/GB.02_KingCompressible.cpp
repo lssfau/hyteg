@@ -27,7 +27,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
-#include "hyteg/composites/StrongFreeSlipWrapper.hpp"
+// #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -47,15 +47,15 @@
 #include "hyteg/solvers/GMRESSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
-#include "terraneo/utils/NusseltNumberOperator.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
+#include "terraneo/utils/NusseltNumberOperator.hpp"
 // #include "SimpleCompStokesOperator.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMass.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 // #include "hyteg_operators/operators/k_mass/P1ToP2ElementwiseKMass.hpp"
 
-#include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+#include "terraneo/operators/P2TransportTALAOperator.hpp"
 
 /**
  * \page GB.02_KingCompressible Tutorial GB.02 - Compressible Benchmark
@@ -251,7 +251,7 @@ std::function< bool( const Point3D& ) > cornersMarker = []( const Point3D& x ) {
 };
 
 using P2P1StokesOperator = operatorgeneration::P2P1StokesFullOperator;
-typedef StrongFreeSlipWrapper< P2P1StokesOperator, P2ProjectNormalOperator, true > StokesOperatorFreeSlip;
+// typedef StrongFreeSlipWrapper< P2P1StokesOperator, P2ProjectNormalOperator, true > StokesOperatorFreeSlip;
 
 // std::function< real_t( const Point3D&, real_t ) > advectionSUPG = []( const Point3D& x, real_t v ) { return getDelta( v ); };
 
@@ -555,7 +555,7 @@ class TALASimulation
       stokesOperator = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscP2 );
       /// [StokesOperator]
 
-      stokesOperatorFS = std::make_shared< StokesOperatorFreeSlip >( stokesOperator, projectionOperator, FreeslipBoundary );
+      // stokesOperatorFS = std::make_shared< StokesOperatorFreeSlip >( stokesOperator, projectionOperator, FreeslipBoundary );
 
       params.cflMax = mainConf.getParameter< real_t >( "cflMax" );
 
@@ -619,7 +619,6 @@ class TALASimulation
       cpFilename = mainConf.getParameter< std::string >( "cpFilename" );
 
       cpStartFilename = mainConf.getParameter< std::string >( "cpStartFilename" );
-
    }
 
    void solveU();
@@ -646,7 +645,7 @@ class TALASimulation
    std::shared_ptr< P2P1StokesOperator > stokesOperator;
 
    std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
-   std::shared_ptr< StokesOperatorFreeSlip >  stokesOperatorFS;
+   // std::shared_ptr< StokesOperatorFreeSlip >  stokesOperatorFS;
 
    P2ElementwiseBlendingVectorMassOperator vecMassOperator;
    P2ElementwiseBlendingMassOperator       massOperator;
@@ -665,9 +664,9 @@ class TALASimulation
 
    // Solvers
 #if defined( HYTEG_BUILD_WITH_PETSC )
-   std::shared_ptr< PETScLUSolver< P2P1StokesOperator > >             stokesDirectSolver;
+   std::shared_ptr< PETScLUSolver< P2P1StokesOperator > > stokesDirectSolver;
 #endif
-   std::shared_ptr< MinResSolver< P2P1StokesOperator > >          stokesMinresSolver;
+   std::shared_ptr< MinResSolver< P2P1StokesOperator > > stokesMinresSolver;
    // std::shared_ptr< MinResSolver< P2TransportTimesteppingOperator > > transportMinresSolver;
 
    std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
@@ -699,7 +698,6 @@ class TALASimulation
    std::shared_ptr< AdiosCheckpointImporter > adios2CheckpointImporter;
 };
 
-
 void TALASimulation::solveU()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
@@ -722,27 +720,26 @@ void TALASimulation::solveU()
 
    u->uvw().interpolate( 0.0, maxLevel, DirichletBoundary );
 
-   bool directSolverFlag = mainConf.getParameter< bool >("directSolver");
+   bool directSolverFlag = mainConf.getParameter< bool >( "directSolver" );
 
    /// [StokesSolverLambdaFunction]
-   if(directSolverFlag)
+   if ( directSolverFlag )
    {
 #if defined( HYTEG_BUILD_WITH_PETSC )
       stokesDirectSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
 #else
-      WALBERLA_ABORT("Direct solver requested but PETSc not compiled!");
+      WALBERLA_ABORT( "Direct solver requested but PETSc not compiled!" );
 #endif
    }
    else
    {
       stokesMinresSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
-   } 
+   }
    /// [StokesSolverLambdaFunction]
 
-   vertexdof::projectMean(u->p(), maxLevel);
+   vertexdof::projectMean( u->p(), maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STOKES SOLVER DONE!" ) );
 }
-
 
 /// [TransportSolverLambdaFunction]
 void TALASimulation::solveT()
@@ -778,7 +775,7 @@ void TALASimulation::step()
    real_t Pe = hMax * vMax / ( 4 * params.k_ );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Peclet number = %f", Pe ) );
-   
+
    solveT();
 
    solveU();
@@ -843,10 +840,10 @@ void TALASimulation::solve()
 
       if ( iTimeStep % params.nsCalcFreq == 0 )
       {
-         real_t deltaT              = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
-         real_t nusseltNumberTop    = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
+         real_t deltaT           = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
+         real_t nusseltNumberTop = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
          // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
-         real_t velocityRMSValue    = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
+         real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
 
          uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
          uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
@@ -854,7 +851,7 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
              "nusseltNumberTop = %4.7e\nnusseltNumberBot = not_calculated\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
              nusseltNumberTop,
-            //  nusseltNumberBottom,
+             //  nusseltNumberBottom,
              deltaT,
              velocityRMSValue,
              nVelocityDoFs,
@@ -899,7 +896,10 @@ int main( int argc, char* argv[] )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   WALBERLA_ROOT_SECTION() { mainConf.listParameters(); }
+   WALBERLA_ROOT_SECTION()
+   {
+      mainConf.listParameters();
+   }
 
    const uint_t nx = mainConf.getParameter< uint_t >( "nx" );
    const uint_t ny = mainConf.getParameter< uint_t >( "ny" );
@@ -921,7 +921,7 @@ int main( int argc, char* argv[] )
 
    auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
    /// [SetupStorageAndMarkings]
-   
+
    uint_t nMacroFaces      = storage->getNumberOfGlobalFaces();
    uint_t nMacroPrimitives = storage->getNumberOfGlobalPrimitives();
 
