@@ -60,14 +60,14 @@ Parameters
 
   level 1;
 
-  cpPath /import/freenas-m-03-geodynamics/pponkumar/output/nuAnalysis/checkpoint;
-  cpFilename KingSquare_FP64_Ra_1e4_Di_0_5_14072024_Checkpoint;
-  cpStartFilename KingSquare_FP64_Ra_1e4_Di_0_5_14072024_Checkpoint;
+  cpPath ./checkpoint;
+  cpFilename KingSquare_Checkpoint;
+  cpStartFilename KingSquare_Checkpoint;
 
-  outputPath /import/freenas-m-03-geodynamics/pponkumar/output/nuAnalysis;
-  outputFilename KingSquare_FP64_Ra_1e4_Di_0_5_14072024;
+  outputPath ./output;
+  outputFilename KingSquare;
   vtkWriteFrequency 25;
-  adiosXmlConfig /home/pponkumar/hyteg/hyteg/tutorials/geo-benchmarks/GB.02_KingCompressible/ADIOS2demo.xml;
+  adiosXmlConfig ./ADIOS2demo.xml;
 
   storeCheckpointFreq 1000;
   storeCheckpoint true;
