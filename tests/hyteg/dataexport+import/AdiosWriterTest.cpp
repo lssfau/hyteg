@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -86,7 +86,22 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
    adiosWriter.add( p2VecFunc );
    adiosWriter.add( stokesFunc );
 
-   // perform some write steps
+   // add some user defined attributes
+   adiosWriter.addAttribute( "attributeFP", real_c( 2.3 ) );
+   real_t someFP = real_c( 16.0 );
+   adiosWriter.addAttribute( "attributeAnotherFP", std::sqrt( someFP ) );
+   adiosWriter.addAttribute( "attributeIntegerSigned", -42 );
+   adiosWriter.addAttribute( "attributeIntegerUnsigned", uint_c( 42 ) );
+   adiosWriter.addAttribute( "attributeLongInt", -256L );
+   std::string mesg{ "this is a user defined attribute" };
+   adiosWriter.addAttribute( "attributeString", mesg );
+   adiosWriter.addAttribute( "attributeC-String", "a 2nd string" );
+   adiosWriter.addAttribute( "attributeBool", true );
+   adiosWriter.addAttribute( "attributeBool", false );
+   adiosWriter.addAttribute( "attributeFloat", -4.567f );
+   adiosWriter.addAttribute( "attributeDouble", -4.567 );
+
+   // perform one write step
    adiosWriter.write( level, 0 );
 
    // should produce a warning
@@ -96,7 +111,11 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
    // should produce another warning
    adiosWriter.setParameter( "Profile", "On" );
 
+   // perform another write step
    adiosWriter.write( level, 1 );
+
+   // and another one
+   adiosWriter.write( level, 2 );
 }
 
 int main( int argc, char* argv[] )
