@@ -2,6 +2,10 @@ if (HYTEG_BUILD_WITH_ADIOS2)
   waLBerla_compile_test(FILES BasicADIOSTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME BasicADIOSTest)
 
+  if( NOT EXISTS ./AdiosWriterTest-Output )
+    file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-Output" )
+  endif()
+
   waLBerla_compile_test(FILES AdiosWriterTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME AdiosWriterTest)
 
