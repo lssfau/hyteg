@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,7 +20,6 @@
 #include "hyteg/dataexport/ADIOS2/AdiosWriterForP1.hpp"
 
 #include <adios2.h>
-#include <variant>
 
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/dataexport/FEFunctionWriter.hpp"
@@ -57,10 +56,10 @@ AdiosWriterForP1::AdiosWriterForP1( adios2::ADIOS&                             a
    io_.SetEngine( engineType );
 }
 
-void AdiosWriterForP1::write( const FEFunctionRegistry&            registry,
-                              uint_t                               timestep,
-                              adios2::Params&                      userProvidedParameters,
-                              std::map< std::string, adiostype_t > additionalAttributes )
+void AdiosWriterForP1::write( const FEFunctionRegistry&                   registry,
+                              uint_t                                      timestep,
+                              adios2::Params&                             userProvidedParameters,
+                              const std::map< std::string, adiostype_t >& userDefinedAttributes )
 {
    // on first invocation set user defined parameter values
    if ( !firstWriteCompleted_ )
@@ -106,8 +105,8 @@ void AdiosWriterForP1::write( const FEFunctionRegistry&            registry,
       engine_.BeginStep();
       writeMesh( p1FunctionList );
 
-      // export additional attributes
-      adiosHelpers::writeAllAttributes( io_, additionalAttributes );
+      // export additional, user-defined attributes
+      adiosHelpers::writeAllAttributes( io_, userDefinedAttributes );
 
       // add meta data on simulation software
       adiosHelpers::generateSoftwareMetaData( io_ );

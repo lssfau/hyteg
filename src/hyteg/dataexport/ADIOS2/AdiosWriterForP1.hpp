@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -62,10 +62,10 @@ class AdiosWriterForP1
    ///
    /// \note The caller needs to make sure that the functions have been synced before
    ///       invoking this method!
-   void write( const FEFunctionRegistry&            registry,
-               uint_t                               timestep,
-               adios2::Params&                      userProvidedParameters,
-               std::map< std::string, adiostype_t > additionalAttributes );
+   void write( const FEFunctionRegistry&                   registry,
+               uint_t                                      timestep,
+               adios2::Params&                             userProvidedParameters,
+               const std::map< std::string, adiostype_t >& userDefinedAttributes );
 
  private:
    /// Store the mesh on which our functions live in the output file

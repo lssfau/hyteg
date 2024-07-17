@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <variant>
 
 #include "hyteg/HytegDefinitions.hpp"
 
@@ -166,26 +164,39 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
       }
    }
 
-   /**
-    * @brief  Collect in a map all attributes to be written to adios2 output
-    * @param key string for map
-    * @param attrValue scalar variable with adios compatible data type + bool
-    */
+   /// Add a single-value attribute to ADIOS2 output
+   ///
+   /// Attributes are added to a map and will be written at the first
+   /// invocation of write() on the AdiosWriter object
+   /// \param key               string for map
+   /// \param attrValue         scalar variable with ADIOS2-compatible data type or bool
    template < typename attribute_t >
-   inline void addAttribute( const std::string& key, attribute_t const& attrValue )
+   inline void addAttribute( const std::string& key, attribute_t attrValue )
    {
+      // Check if attribute has been collected already
+      if ( userDefinedAttributes_.count( key ) > 0 )
+      {
+         WALBERLA_ABORT( "The attribute " << key << " has been defined multiple times" );
+      }
+
+      // Ensure that function was instantiated for a supported attribute type
+      if constexpr ( !(adiosHelpers::isAdiosDataType< attribute_t, adiostype_t >::value ||
+                       std::is_same_v< attribute_t, const char* >) )
+      {
+         WALBERLA_ABORT( "The provided attribute " << key << " does not hold a valid datatype for ADIOS2." );
+      }
+
       if ( firstWriteDidHappen_ )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "Adios attributes should only be added on first write()!\n"
+         WALBERLA_LOG_WARNING_ON_ROOT( "AdiosWriter class does not support adding attributes after the first write.\n"
                                        << "--> Ignoring (key,value) = ('" << key << "','" << attrValue << "')" );
-      }
-      else if ( !adiosHelpers::isAdiosDataType< std::decay_t< decltype( attrValue ) >, adiostype_t >::value )
-      {
-         WALBERLA_ABORT( "The provided attribute " << key << " does not hold a valid datatype for adios2" );
       }
       else
       {
-         additionalAttributes_[key] = attrValue;
+         if constexpr ( std::is_same_v< attribute_t, const char* > )
+            userDefinedAttributes_[key] = std::string{ attrValue };
+         else
+            userDefinedAttributes_[key] = attrValue;
       }
    }
 
@@ -289,8 +300,8 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
    /// (key,value) pairs for IO parameters provided by user via setParameter() method
    std::map< std::string, std::string > userProvidedParameters_;
 
-   /// (key,value) pairs for adding attributes to adios2 output
-   std::map< std::string, adiostype_t > additionalAttributes_;
+   /// (key,value) pairs for adding attributes to ADIOS2 output
+   std::map< std::string, adiostype_t > userDefinedAttributes_;
 
    /// remember if we already had a write() episode
    bool firstWriteDidHappen_ = false;

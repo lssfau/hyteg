@@ -24,8 +24,8 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 
@@ -112,7 +112,10 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// - string describing its data-type (aka value-type), such as e.g. "double"
    /// - the minimum refinement level for which data are present in the checkpoint
    /// - the maximum refinement level for which data are present in the checkpoint
-   const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
+   const std::vector< FunctionDescription >& getFunctionDetails() const
+   {
+      return funcDescr_;
+   }
 
    /// On the root process print information on the checkoint file (format, contents, ...) to standard output
    void printCheckpointInfo()
@@ -137,6 +140,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// the respective function name.
    ///
    /// \param function       FE Function to be written to
+   /// \param step           ADIOS2 step
    /// \param abortOnError   if false, the method will not abort on high-level errors (such as
    ///                       the name of the function cannot be found in the file, or minLevel is
    ///                       not present); in this case the method return false and not change
@@ -156,13 +160,18 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// \param function       FE Function to be written to
    /// \param minLevel       smallest refinement level to work on
    /// \param maxLevel       largest refinement level to work on
+   /// \param step           ADIOS2 step
    /// \param abortOnError   if false, the method will not abort on high-level errors (such as
    ///                       the name of the function cannot be found in the file, or minLevel is
    ///                       not present); in this case the method return false and not change
    ///                       the input function; note that low-level errors, will still lead to
    ///                       an abort
    template < template < typename > class func_t, typename value_t >
-   bool restoreFunction( func_t< value_t >& function, uint_t minLevel, uint_t maxLevel, uint_t step = 0U, bool abortOnError = true )
+   bool restoreFunction( func_t< value_t >& function,
+                         uint_t             minLevel,
+                         uint_t             maxLevel,
+                         uint_t             step         = 0U,
+                         bool               abortOnError = true )
    {
       // check that function is included in checkpoint and that levels make sense
       WALBERLA_ASSERT( minLevel <= maxLevel );
@@ -222,13 +231,12 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       {
          varTimestepInfo.SetStepSelection( { idx, 1u } );
          engine_.Get( varTimestepInfo, timestepInfo[idx] );
-      } 
+      }
 
       engine_.PerformGets();
 
       return timestepInfo;
    }
-
 
  private:
    /// central ADIOS2 interface objects
@@ -238,7 +246,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    adios2::Engine engine_;
    ///@}
 
-   std::vector<real_t> timestepInfo;
+   std::vector< real_t > timestepInfo;
 
    /// meta information on the FE functions stored in the checkpoint
    std::vector< FunctionDescription > funcDescr_;
