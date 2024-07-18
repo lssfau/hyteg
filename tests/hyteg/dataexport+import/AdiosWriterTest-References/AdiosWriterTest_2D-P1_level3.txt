@@ -1,7 +1,7 @@
-  int64_t   NumberOfElements          {1} = 3840 / 3840
-  int64_t   NumberOfVertices          {1} = 9900 / 9900
-  double    P2TestFunction            3*[1]*{9900} = -7.20524 / 7.20524
-  double    P2VectorTestFunction      3*[1]*{9900, 3} = -7.20524 / 7.20524
+  int64_t   NumberOfElements          {1} = 384 / 384
+  int64_t   NumberOfVertices          {1} = 270 / 270
+  double    P1TestFunction            3*[1]*{270} = -3 / 5
+  double    P1VectorTestFunction      3*[1]*{270, 2} = -3 / 5
   string    Software                  attr   = "Data generated with HyTeG (https://i10git.cs.fau.de/hyteg)
 git branch         : mohr/ctest+bpls_v2
 SHA1 of last commit: dceed1d99
@@ -10,7 +10,7 @@ compiler           : GNU 12.2.0
 compiler flags     : -g -O3 -fdiagnostics-color=always -Wall -Wconversion -Wshadow -march=native -Wfloat-equal -Wextra -pedantic -Wno-maybe-uninitialized -Wno-array-bounds -D_GLIBCXX_USE_CXX11_ABI=1 -pthread  -Wno-comment -Wno-stringop-overflow
 mpi version        : Open MPI v4.1.4, package: Debian OpenMPI, ident: 4.1.4, repo rev: v4.1.4, May 26, 2022
 "
-  double    StokesTestFunction_uvw    3*[1]*{9900, 3} = 0 / 0
+  double    StokesTestFunction_p      3*[1]*{270} = 0 / 0
   double    TIME                      3*scalar = 0 / 2
   double    attributeAnotherFP        attr   = 4
   string    attributeBool             attr   = "true"
@@ -22,9 +22,9 @@ mpi version        : Open MPI v4.1.4, package: Debian OpenMPI, ident: 4.1.4, rep
   int64_t   attributeIntegerUnsigned  attr   = 42
   int64_t   attributeLongInt          attr   = -256
   string    attributeString           attr   = "this is a user defined attribute"
-  int64_t   connectivity              [1]*{3840, 11} = 0 / 9899
-  uint32_t  types                     scalar = 24
-  double    vertices                  [1]*{9900, 3} = -2 / 2
+  int64_t   connectivity              [1]*{384, 4} = 0 / 269
+  uint32_t  types                     scalar = 5
+  double    vertices                  [1]*{270, 3} = -1 / 1
   string    vtk.xml                   attr   = 
 <VTKFile type="UnstructuredGrid" version="0.2" byte_order="LittleEndian">
   <UnstructuredGrid>
@@ -37,9 +37,9 @@ mpi version        : Open MPI v4.1.4, package: Debian OpenMPI, ident: 4.1.4, rep
         <DataArray Name="types" />
       </Cells>
       <PointData>
-        <DataArray Name="P2TestFunction" />
-        <DataArray Name="P2VectorTestFunction" />
-        <DataArray Name="StokesTestFunction_uvw" />
+        <DataArray Name="P1TestFunction" />
+        <DataArray Name="StokesTestFunction_p" />
+        <DataArray Name="P1VectorTestFunction" />
         <DataArray Name="TIME">TIME</DataArray>
       </PointData>
       <CellData />
