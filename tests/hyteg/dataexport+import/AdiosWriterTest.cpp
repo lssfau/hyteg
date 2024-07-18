@@ -97,7 +97,6 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
    adiosWriter.addAttribute( "attributeString", mesg );
    adiosWriter.addAttribute( "attributeC-String", "a 2nd string" );
    adiosWriter.addAttribute( "attributeBool", true );
-   adiosWriter.addAttribute( "attributeBool", false );
    adiosWriter.addAttribute( "attributeFloat", -4.567f );
    adiosWriter.addAttribute( "attributeDouble", -4.567 );
 
