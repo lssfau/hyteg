@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,6 +29,8 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
+using adiosHelpers::adiostype_t;
+
 class AdiosWriter;
 
 class AdiosWriterForP2
@@ -38,8 +40,8 @@ class AdiosWriterForP2
    /// \param filePath       Path to directory where the files are stored
    /// \param fileBaseName   Basename of the vtk files
    /// \param engineType     for file I/O should by a BP format like "BP4"
-   /// \param level          fixed refinement level associated with the writer object
    /// \param storage        PrimitiveStorage associated with functions to export
+   /// \param level          fixed refinement level associated with the writer object
    AdiosWriterForP2( adios2::ADIOS&                             adios,
                      const std::string&                         filePath,
                      const std::string&                         fileBaseName,
@@ -60,7 +62,10 @@ class AdiosWriterForP2
    ///
    /// \note The caller needs to make sure that the functions have been synced before
    ///       invoking this method!
-   void write( const FEFunctionRegistry& registry, uint_t timestep, adios2::Params& userProvidedParameters );
+   void write( const FEFunctionRegistry&                   registry,
+               uint_t                                      timestep,
+               adios2::Params&                             userProvidedParameters,
+               const std::map< std::string, adiostype_t >& userDefinedAttributes );
 
  private:
    /// Store the mesh on which our functions live in the output file

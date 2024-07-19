@@ -140,6 +140,52 @@ void ConvectionSimulation::setupOutput()
       _output->add( *diffusionFE );
       _output->add( *densityFE );
       _output->add( *viscosityFE );
+
+      // Add attributes to adios2 output
+      // There must be a nicer way to collect these attributes
+      _output->addAttribute( "rCMB", TN.domainParameters.rCMB );
+      _output->addAttribute( "rSurface", TN.domainParameters.rSurface );
+      _output->addAttribute( "nTan", TN.domainParameters.nTan );
+      _output->addAttribute( "nRad", TN.domainParameters.nRad );
+      _output->addAttribute( "minLevel", TN.domainParameters.minLevel );
+      _output->addAttribute( "maxLevel", TN.domainParameters.maxLevel );
+
+      _output->addAttribute( "simulationType", TN.simulationParameters.simulationType );
+      _output->addAttribute( "adaptiveRefTemp", TN.simulationParameters.adaptiveRefTemp );
+      _output->addAttribute( "tempDependentViscosity", TN.simulationParameters.tempDependentViscosity );
+      _output->addAttribute( "tempDependentViscosityType", TN.simulationParameters.tempDependentViscosityType );
+
+      _output->addAttribute( "fnameTopologies", TN.simulationParameters.fnameTopologies );
+      _output->addAttribute( "fnameReconstructions", TN.simulationParameters.fnameReconstructions );
+      _output->addAttribute( "plateVelocityScaling", TN.simulationParameters.plateVelocityScaling );
+      _output->addAttribute( "plateSmoothingDistance", TN.simulationParameters.plateSmoothingDistance );
+      _output->addAttribute( "compressible", TN.simulationParameters.compressible );
+      _output->addAttribute( "shearHeating", TN.simulationParameters.shearHeating );
+      _output->addAttribute( "adiabaticHeating", TN.simulationParameters.adiabaticHeating );
+      _output->addAttribute( "internalHeating", TN.simulationParameters.internalHeating );
+      _output->addAttribute( "boundaryCond", TN.simulationParameters.boundaryCond );
+      _output->addAttribute( "boundaryCondFreeSlip", TN.simulationParameters.boundaryCondFreeSlip );
+      _output->addAttribute( "haveViscosityProfile", TN.simulationParameters.haveViscosityProfile );
+      _output->addAttribute( "fileViscosityProfile", TN.simulationParameters.fileViscosityProfile );
+      _output->addAttribute( "shearHeatingScaling", TN.simulationParameters.shearHeatingScaling );
+      _output->addAttribute( "lithosphereThickness", TN.simulationParameters.lithosphereThickness );
+
+      _output->addAttribute( "surfaceTemp", TN.physicalParameters.surfaceTemp );
+      _output->addAttribute( "cmbTemp", TN.physicalParameters.cmbTemp );
+      _output->addAttribute( "thermalExpansivity", TN.physicalParameters.thermalExpansivity );
+      _output->addAttribute( "thermalConductivity", TN.physicalParameters.thermalConductivity );
+      _output->addAttribute( "specificHeatCapacity", TN.physicalParameters.specificHeatCapacity );
+      _output->addAttribute( "internalHeatingRate", TN.physicalParameters.internalHeatingRate );
+      _output->addAttribute( "referenceDensity", TN.physicalParameters.referenceDensity );
+      _output->addAttribute( "surfaceDensity", TN.physicalParameters.surfaceDensity );
+      _output->addAttribute( "referenceViscosity", TN.physicalParameters.referenceViscosity );
+      _output->addAttribute( "viscosity", TN.physicalParameters.viscosity );
+      _output->addAttribute( "grueneisenParameter", TN.physicalParameters.grueneisenParameter );
+      _output->addAttribute( "adiabatSurfaceTemp", TN.physicalParameters.adiabatSurfaceTemp );
+      _output->addAttribute( "activationEnergy", TN.physicalParameters.activationEnergy );
+      _output->addAttribute( "depthViscosityFactor", TN.physicalParameters.depthViscosityFactor );
+      _output->addAttribute( "viscosityLowerBound", TN.physicalParameters.viscosityLowerBound );
+      _output->addAttribute( "viscosityUpperBound", TN.physicalParameters.viscosityUpperBound );
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified!" );
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,12 +20,29 @@
 #pragma once
 
 #include <adios2.h>
+#include <variant>
 
 #include "hyteg/BuildInfo.hpp"
 #include "hyteg/Git.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 
+using walberla::uint_t;
+
 namespace hyteg::adiosHelpers {
+
+// Here define valid ADIOS2 data types
+typedef std::variant< int, long, float, double, uint_t, bool, std::string > adiostype_t;
+
+// Templated convenience wrapper for std::variant<>
+template < typename T, typename VARIANT_T >
+struct isAdiosDataType;
+
+/// Template specialization for type checking of variables intended as ADIOS2 attributes
+///
+/// We use this to check if a given std::variant is consistent with adiostype_t
+template < typename T, typename... ALL_T >
+struct isAdiosDataType< T, std::variant< ALL_T... > > : public std::disjunction< std::is_same< T, ALL_T >... >
+{};
 
 std::string generateVTKMetaInfo( const std::vector< std::string >& namesOfPointDataFunctions,
                                  const std::vector< std::string >& namesOfCellDataFunctions );
@@ -88,6 +105,60 @@ inline void generateSoftwareMetaData( adios2::IO& io )
       std::stringstream oStream;
       printSoftwareMetaData( oStream );
       infoSoftware = io.DefineAttribute( "Software", oStream.str(), "", "" );
+   }
+}
+
+/// Write a single value attribute to ADIOS2 ouptut
+template < typename T >
+inline void writeAttribute( adios2::IO& io, const std::string& key, const T& val )
+{
+   adios2::Attribute< T > infoAttribute = io.InquireAttribute< T >( key );
+   if ( !infoAttribute )
+   {
+      infoAttribute = io.DefineAttribute< T >( key, val );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 file: Attribute " << infoAttribute.Name() << "already written" );
+   }
+}
+
+/// Write all user-defined single-value attributes from a map to ADIOS2 ouptut
+inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adiostype_t >& userDefinedAttributes )
+{
+   // integer datatype for output
+   using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
+
+   if ( userDefinedAttributes.empty() )
+   {
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "No additional user-defined attributes/metadata written to ADIOS2 output" );
+      return;
+   }
+
+   for ( auto const& [key, val] : userDefinedAttributes )
+   {
+      std::visit(
+          [&io, key]( const auto& arg ) {
+             using T = std::decay_t< decltype( arg ) >;
+             if ( isAdiosDataType< T, adiostype_t >::value )
+             {
+                // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
+                if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
+                   writeAttribute( io, key, static_cast< intData_t >( arg ) );
+                else if constexpr ( std::is_same_v< T, bool > )
+                {
+                   std::string sflag = arg ? "true" : "false";
+                   writeAttribute( io, key, sflag );
+                }
+                else
+                   writeAttribute( io, key, arg );
+             }
+             else
+             {
+                WALBERLA_LOG_WARNING_ON_ROOT( "The user-defined ADIOS2 attribute " << key << " does not hold a valid datatype" );
+             }
+          },
+          val );
    }
 }
 
