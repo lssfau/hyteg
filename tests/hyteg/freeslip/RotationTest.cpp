@@ -175,15 +175,15 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P1-P1 in 2D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "rotation test P1-P1 in 2D" );
    testRotation< P1StokesFunction< real_t >, P1RotationOperator, false >();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P2-P1-TH in 2D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "rotation test P2-P1-TH in 2D" );
    testRotation< P2P1TaylorHoodFunction< real_t >, P2RotationOperator, false >();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P1-P1 in 3D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "rotation test P1-P1 in 3D" );
    testRotation< P1StokesFunction< real_t >, P1RotationOperator, true >();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P2-P1-TH in 3D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "rotation test P2-P1-TH in 3D" );
    testRotation< P2P1TaylorHoodFunction< real_t >, P2RotationOperator, true >();
 }
