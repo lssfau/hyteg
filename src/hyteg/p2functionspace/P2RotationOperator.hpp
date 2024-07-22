@@ -71,7 +71,6 @@ class P2RotationOperator : public Operator< P2VectorFunction< real_t >, P2Vector
 
    void rotate( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag, bool transpose = false ) const;
 
-
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2Function< idx_t >&                  numU,
                   const P2Function< idx_t >&                  numV,

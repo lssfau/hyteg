@@ -62,7 +62,8 @@ void P2RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
                                    DoFType                                     flag,
                                    bool                                        transpose ) const
 {
-   p1Operator.toMatrix( mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag, transpose );
+   p1Operator.toMatrix(
+       mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag, transpose );
    edgeDoFOperator.assembleLocalMatrix(
        mat, numU.getEdgeDoFFunction(), numV.getEdgeDoFFunction(), numW.getEdgeDoFFunction(), level, flag, transpose );
 }

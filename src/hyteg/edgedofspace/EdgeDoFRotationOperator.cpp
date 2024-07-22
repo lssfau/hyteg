@@ -85,18 +85,19 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
          {
             if ( storage_->hasGlobalCells() )
             {
-                  edgedof::macroedge::rotation3D< real_t >( level,
-                                                            edge,
-                                                            storage_,
-                                                            normalFunction_,
-                                                            dst_u.getEdgeDataID(),
-                                                            dst_v.getEdgeDataID(),
-                                                            dst_w.getEdgeDataID(), transpose );
+               edgedof::macroedge::rotation3D< real_t >( level,
+                                                         edge,
+                                                         storage_,
+                                                         normalFunction_,
+                                                         dst_u.getEdgeDataID(),
+                                                         dst_v.getEdgeDataID(),
+                                                         dst_w.getEdgeDataID(),
+                                                         transpose );
             }
             else
             {
-                  edgedof::macroedge::rotation2D< real_t >(
-                      level, edge, storage_, normalFunction_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
+               edgedof::macroedge::rotation2D< real_t >(
+                   level, edge, storage_, normalFunction_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
             }
          }
       }
@@ -117,13 +118,14 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
          {
             if ( storage_->hasGlobalCells() )
             {
-                  edgedof::macroface::rotation3D< real_t >( level,
-                                                            face,
-                                                            storage_,
-                                                            normalFunction_,
-                                                            dst_u.getFaceDataID(),
-                                                            dst_v.getFaceDataID(),
-                                                            dst_w.getFaceDataID(), transpose );
+               edgedof::macroface::rotation3D< real_t >( level,
+                                                         face,
+                                                         storage_,
+                                                         normalFunction_,
+                                                         dst_u.getFaceDataID(),
+                                                         dst_v.getFaceDataID(),
+                                                         dst_w.getFaceDataID(),
+                                                         transpose );
             }
          }
       }

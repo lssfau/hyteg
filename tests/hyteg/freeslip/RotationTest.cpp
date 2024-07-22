@@ -42,7 +42,7 @@ using namespace hyteg;
  *        Intermediately it also checks if the radial component of the rotated field is approximately correct
  */
 
-template < typename StokesFunctionType, typename ProjectNormalOperatorType, bool use3D >
+template < typename StokesFunctionType, typename RotationOperatorType, bool use3D >
 static void testRotation()
 {
    const int level = 2;
@@ -82,15 +82,114 @@ static void testRotation()
 
    auto normalFunction = [=]( const Point3D& p, Point3D& n ) -> void { n = normalInterpolant( p ); };
 
-   real_t ux = 1.23;
-   real_t uy = 2.31;
-   real_t uz = 3.12;
+   real_t ur     = 1.23;
+   real_t uTheta = 1.1;
+   real_t uPhi   = 0.85;
 
-   std::function< real_t( const Point3D& ) > uX = [&]( const Point3D& ) { return ux; };
-   std::function< real_t( const Point3D& ) > uY = [&]( const Point3D& ) { return uy; };
-   std::function< real_t( const Point3D& ) > uZ = [&]( const Point3D& ) { return uz; };
+   std::function< std::array< real_t, 3u >( const Point3D& ) > getRThetaPhi = [&]( const Point3D& x ) {
+      real_t r   = x.norm();
+      real_t phi = std::atan2( x[1], x[0] );
+      if ( storage->hasGlobalCells() )
+      {
+         real_t theta = std::acos( x[2] / r );
+         return std::array< real_t, 3u >( { r, theta, phi } );
+      }
+      else
+      {
+         return std::array< real_t, 3u >( { r, phi, 0.0 } );
+      }
+   };
 
-   ProjectNormalOperatorType rotationOperator( storage, level, level, normalFunction );
+   std::function< std::array< real_t, 5u >( const Point3D& ) > getRSinThetaCosThetaSinPhiCosPhi = [&]( const Point3D& x ) {
+      std::array< real_t, 3u > rThetaPhi = getRThetaPhi( x );
+      if ( storage->hasGlobalCells() )
+      {
+         real_t sinTheta = std::sin( rThetaPhi[1] );
+         real_t cosTheta = std::cos( rThetaPhi[1] );
+         real_t sinPhi   = std::sin( rThetaPhi[2] );
+         real_t cosPhi   = std::cos( rThetaPhi[2] );
+
+         return std::array< real_t, 5u >( { rThetaPhi[0], sinTheta, cosTheta, sinPhi, cosPhi } );
+      }
+      else
+      {
+         real_t sinPhi = std::sin( rThetaPhi[1] );
+         real_t cosPhi = std::cos( rThetaPhi[1] );
+
+         return std::array< real_t, 5u >( { rThetaPhi[0], sinPhi, cosPhi, 0.0, 0.0 } );
+      }
+   };
+
+   std::function< real_t( const Point3D& ) > uX = [&]( const Point3D& x ) {
+      std::array< real_t, 5u > vals = getRSinThetaCosThetaSinPhiCosPhi( x );
+
+      // real_t r = vals[0];
+
+      if ( storage->hasGlobalCells() )
+      {
+         real_t sTheta = vals[1];
+         real_t cTheta = vals[2];
+
+         real_t sPhi = vals[3];
+         real_t cPhi = vals[4];
+
+         return sTheta * cPhi * ur + cTheta * cPhi * uTheta - sPhi * uPhi;
+      }
+      else
+      {
+         real_t sPhi = vals[1];
+         real_t cPhi = vals[2];
+
+         return ur * cPhi - uPhi * sPhi;
+      }
+   };
+
+   std::function< real_t( const Point3D& ) > uY = [&]( const Point3D& x ) {
+      std::array< real_t, 5u > vals = getRSinThetaCosThetaSinPhiCosPhi( x );
+
+      // real_t r = vals[0];
+
+      if ( storage->hasGlobalCells() )
+      {
+         real_t sTheta = vals[1];
+         real_t cTheta = vals[2];
+
+         real_t sPhi = vals[3];
+         real_t cPhi = vals[4];
+
+         return sTheta * sPhi * ur + cTheta * sPhi * uTheta + cPhi * uPhi;
+      }
+      else
+      {
+         real_t sPhi = vals[1];
+         real_t cPhi = vals[2];
+
+         return ur * sPhi + uPhi * cPhi;
+      }
+   };
+
+   std::function< real_t( const Point3D& ) > uZ = [&]( const Point3D& x ) {
+      std::array< real_t, 5u > vals = getRSinThetaCosThetaSinPhiCosPhi( x );
+
+      // real_t r = vals[0];
+
+      if ( storage->hasGlobalCells() )
+      {
+         real_t sTheta = vals[1];
+         real_t cTheta = vals[2];
+
+         // real_t sPhi = vals[3];
+         // real_t cPhi = vals[4];
+
+         return cTheta * ur - sTheta * uTheta;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Shouldn't be here!" );
+      }
+   };
+
+   RotationOperatorType rotationOperator( storage, level, level, normalFunction );
 
    BoundaryCondition bcVelocity;
 
@@ -98,75 +197,57 @@ static void testRotation()
    bcVelocity.createFreeslipBC( "FSInnerAndOuter",
                                 { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
 
+   StokesFunctionType uRef( "uRef", storage, level, level, bcVelocity );
    StokesFunctionType u( "u", storage, level, level, bcVelocity );
+   StokesFunctionType error( "error", storage, level, level, bcVelocity );
 
-   u.uvw()[0].interpolate( uX, level );
-   u.uvw()[1].interpolate( uY, level );
    if ( storage->hasGlobalCells() )
-      u.uvw()[2].interpolate( uZ, level );
-
-   // Apply rotation
-   rotationOperator.rotate( u, level, FreeslipBoundary );
-
-   // we check if the rotation makes the ndim component ~ equal to the radial component
-   if ( use3D )
    {
-      real_t urTol = 1e-1;
-
-      real_t urMax = u.uvw().component( 2 ).getMaxValue( level, FreeslipBoundary );
-
-      real_t urVal = std::sqrt( ux * ux + uy * uy + uz * uz );
-
-      // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "urVal = %4.7e, urMax = %4.7e", urVal, urMax ) );
-
-      WALBERLA_CHECK_LESS( std::abs( urMax - urVal ), urTol );
+      u.uvw().interpolate( { uX, uY, uZ }, level );
+      uRef.uvw().interpolate( { uX, uY, uZ }, level );
    }
    else
    {
-      real_t urTol = 1e-2;
-
-      real_t urMax = u.uvw().component( 1 ).getMaxValue( level, FreeslipBoundary );
-
-      real_t urVal = std::sqrt( ux * ux + uy * uy );
-
-      // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "urVal = %4.7e, urMax = %4.7e", urVal, urMax ) );
-
-      WALBERLA_CHECK_LESS( std::abs( urMax - urVal ), urTol );
+      u.uvw().interpolate( { uX, uY }, level );
+      uRef.uvw().interpolate( { uX, uY }, level );
    }
 
-   // Apply rotation transpose
-   rotationOperator.rotate( u, level, FreeslipBoundary, true );
+   // VTKOutput vtkOutput( "../../output", "RotationTest", storage );
+
+   // vtkOutput.add( u );
+   // vtkOutput.add( uRef );
+   // vtkOutput.write( level, 0u );
+
+   // Apply rotation
+   rotationOperator.rotate( u, level, FreeslipBoundary );
+   // vtkOutput.write(level, 1u);
 
    auto dp = std::is_same< real_t, double >();
 
-   real_t uxMax = u.uvw().component( 0 ).getMaxValue( level, FreeslipBoundary );
-   real_t uxMin = u.uvw().component( 0 ).getMinValue( level, FreeslipBoundary );
-
-   real_t uyMax = u.uvw().component( 1 ).getMaxValue( level, FreeslipBoundary );
-   real_t uyMin = u.uvw().component( 1 ).getMinValue( level, FreeslipBoundary );
-
-   // WALBERLA_LOG_INFO_ON_ROOT(
-   //     walberla::format( "uxMax = %4.7e, uxMin = %4.7e, uyMax = %4.7e, uyMin = %4.7e", uxMax, uxMin, uyMax, uyMin ) );
-
    real_t dpTol = dp ? 1e-14 : 2e-6;
 
+   // we check if the rotation makes the ndim component ~ equal to the radial component
+   uint_t radialComponentIdx = use3D ? 2u : 1u;
+
+   real_t urMax = u.uvw().component( radialComponentIdx ).getMaxValue( level, FreeslipBoundary );
+   // real_t urMin = u.uvw().component( radialComponentIdx ).getMinValue( level, FreeslipBoundary );
+
+   // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "urVal = %4.7e, urMax = %4.7e, urMin = %4.7e", ur, urMax, urMin ) );
+
+   // WALBERLA_CHECK_LESS( std::abs( urMax - urMin ), dpTol );
+   WALBERLA_CHECK_LESS( std::abs( urMax - ur ), dpTol );
+
+   // Apply rotation transpose
+   rotationOperator.rotate( u, level, FreeslipBoundary, true );
+   // vtkOutput.write(level, 2u);
+
    // Check if we get back the original values after applying R^T R u
-   WALBERLA_CHECK_LESS( std::abs( uxMax - uxMin ), dpTol );
-   WALBERLA_CHECK_LESS( std::abs( uyMax - uyMin ), dpTol );
+   error.assign( { 1.0, -1.0 }, { u, uRef }, level, All );
+   real_t errorNorm = error.dotGlobal( error, level );
 
-   WALBERLA_CHECK_LESS( std::abs( uxMax - ux ), dpTol );
-   WALBERLA_CHECK_LESS( std::abs( uyMax - uy ), dpTol );
+   // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "errorNorm = %4.7e", errorNorm ) );
 
-   if ( use3D )
-   {
-      real_t uzMax = u.uvw().component( 2 ).getMaxValue( level, FreeslipBoundary );
-      real_t uzMin = u.uvw().component( 2 ).getMinValue( level, FreeslipBoundary );
-
-      // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "uzMax = %4.7e, uzMin = %4.7e", uzMax, uzMin ) );
-
-      WALBERLA_CHECK_LESS( std::abs( uzMax - uzMin ), dpTol );
-      WALBERLA_CHECK_LESS( std::abs( uzMax - uz ), dpTol );
-   }
+   WALBERLA_CHECK_LESS( errorNorm, dpTol );
 }
 
 int main( int argc, char* argv[] )

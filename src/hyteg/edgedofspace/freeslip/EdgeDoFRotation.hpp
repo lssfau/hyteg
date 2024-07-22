@@ -70,7 +70,7 @@ void rotationMatrix3D( const Point3D& n, Matrix3r& rotation, bool transpose )
    rotation( 2, 1 ) = n[1];
    rotation( 2, 2 ) = n[2];
 
-   if(transpose)
+   if ( transpose )
    {
       rotation.transposeInPlace();
    }
@@ -84,7 +84,7 @@ void addMatrix3D( const uint_t                                            idx,
                   const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstIdV,
                   const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstIdW,
                   Point3D                                                 normal,
-                  bool transpose )
+                  bool                                                    transpose )
 {
    auto dstU = face.getData( dstIdU )->getPointer( level );
    auto dstV = face.getData( dstIdV )->getPointer( level );
@@ -112,7 +112,8 @@ inline void rotation3D( uint_t                                                  
                         const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdV,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW, bool transpose )
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW,
+                        bool                                                        transpose )
 {
    auto dstU = face.getData( dstIdU )->getPointer( level );
    auto dstV = face.getData( dstIdV )->getPointer( level );
@@ -329,7 +330,8 @@ inline void rotation3D( uint_t                                                  
                         const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW, bool transpose )
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW,
+                        bool                                                        transpose )
 {
    auto dstU = edge.getData( dstIdU )->getPointer( level );
    auto dstV = edge.getData( dstIdV )->getPointer( level );

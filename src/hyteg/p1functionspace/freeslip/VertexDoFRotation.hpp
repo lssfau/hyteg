@@ -71,7 +71,7 @@ void rotationMatrix3D( const Point3D& n, Matrix3r& rotation, bool transpose )
    rotation( 2, 1 ) = n[1];
    rotation( 2, 2 ) = n[2];
 
-   if(transpose)
+   if ( transpose )
    {
       rotation.transposeInPlace();
    }
