@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Daniel Bauer.
+ * Copyright (c) 2022-2024 Daniel Bauer, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -260,12 +260,16 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
    {
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ), 1, "No communicator found for level = " << level
+                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
       communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void endCommunication( const uint_t& level ) const
    {
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ), 1, "No communicator found for level = " << level
+                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
@@ -291,6 +295,8 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
       {
          dofs_->template interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
       }
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
+                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
@@ -330,6 +336,8 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
          dofs_->template interpolateByPrimitiveType< ReceiverType >(
              real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
       }
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
+                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
    }
 
@@ -337,6 +345,8 @@ class N1E1VectorFunction final : public Function< N1E1VectorFunction< ValueType 
    template < typename SenderType, typename ReceiverType >
    inline void endAdditiveCommunication( const uint_t& level ) const
    {
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
+                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
       additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
