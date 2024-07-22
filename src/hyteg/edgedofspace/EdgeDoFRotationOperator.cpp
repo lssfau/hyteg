@@ -29,9 +29,9 @@ namespace hyteg {
 EdgeDoFRotationOperator::EdgeDoFRotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                                                   size_t                                                   minLevel,
                                                   size_t                                                   maxLevel,
-                                                  const std::function< void( const Point3D&, Point3D& ) >& normal_function )
+                                                  const std::function< void( const Point3D&, Point3D& ) >& normalFunction )
 : Operator( storage, minLevel, maxLevel )
-, normal_function_( normal_function )
+, normalFunction_( normalFunction )
 {}
 
 void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
@@ -88,7 +88,7 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
                   edgedof::macroedge::rotation3D< real_t >( level,
                                                             edge,
                                                             storage_,
-                                                            normal_function_,
+                                                            normalFunction_,
                                                             dst_u.getEdgeDataID(),
                                                             dst_v.getEdgeDataID(),
                                                             dst_w.getEdgeDataID(), transpose );
@@ -96,7 +96,7 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
             else
             {
                   edgedof::macroedge::rotation2D< real_t >(
-                      level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
+                      level, edge, storage_, normalFunction_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
             }
          }
       }
@@ -120,7 +120,7 @@ void EdgeDoFRotationOperator::rotate( const EdgeDoFFunction< real_t >& dst_u,
                   edgedof::macroface::rotation3D< real_t >( level,
                                                             face,
                                                             storage_,
-                                                            normal_function_,
+                                                            normalFunction_,
                                                             dst_u.getFaceDataID(),
                                                             dst_v.getFaceDataID(),
                                                             dst_w.getFaceDataID(), transpose );
@@ -165,7 +165,7 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
                edgedof::macroedge::saveRotationOperator3D( level,
                                                            edge,
                                                            storage_,
-                                                           normal_function_,
+                                                           normalFunction_,
                                                            numU.getEdgeDataID(),
                                                            numV.getEdgeDataID(),
                                                            numW.getEdgeDataID(),
@@ -175,7 +175,7 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
             else
             {
                edgedof::macroedge::saveRotationOperator2D(
-                   level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
+                   level, edge, storage_, normalFunction_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
             }
          }
          else
@@ -204,7 +204,7 @@ void EdgeDoFRotationOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
                edgedof::macroface::saveRotationOperator3D( level,
                                                            face,
                                                            storage_,
-                                                           normal_function_,
+                                                           normalFunction_,
                                                            numU.getFaceDataID(),
                                                            numV.getFaceDataID(),
                                                            numW.getFaceDataID(),

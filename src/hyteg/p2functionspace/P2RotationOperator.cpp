@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga.
+ * Copyright (c) 2024 Ponsuganth Ilangovan P
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,10 +25,10 @@ namespace hyteg {
 P2RotationOperator::P2RotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                                         size_t                                                   minLevel,
                                         size_t                                                   maxLevel,
-                                        const std::function< void( const Point3D&, Point3D& ) >& normal_function )
+                                        const std::function< void( const Point3D&, Point3D& ) >& normalFunction )
 : Operator( storage, minLevel, maxLevel )
-, p1Operator( storage, minLevel, maxLevel, normal_function )
-, edgeDoFOperator( storage, minLevel, maxLevel, normal_function )
+, p1Operator( storage, minLevel, maxLevel, normalFunction )
+, edgeDoFOperator( storage, minLevel, maxLevel, normalFunction )
 {}
 
 void P2RotationOperator::rotate( const P2Function< real_t >& dst_u,

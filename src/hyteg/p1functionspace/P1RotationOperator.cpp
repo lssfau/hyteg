@@ -31,9 +31,9 @@ namespace hyteg {
 P1RotationOperator::P1RotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                                         size_t                                                   minLevel,
                                         size_t                                                   maxLevel,
-                                        const std::function< void( const Point3D&, Point3D& ) >& normal_function )
+                                        const std::function< void( const Point3D&, Point3D& ) >& normalFunction )
 : Operator( storage, minLevel, maxLevel )
-, normal_function_( normal_function )
+, normalFunction_( normalFunction )
 {}
 
 void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
@@ -88,7 +88,7 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
             vertexdof::macrovertex::rotation3D< real_t >( level,
                                                           vertex,
                                                           storage_,
-                                                          normal_function_,
+                                                          normalFunction_,
                                                           dst_u.getVertexDataID(),
                                                           dst_v.getVertexDataID(),
                                                           dst_w.getVertexDataID(),
@@ -97,7 +97,7 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
          else
          {
             vertexdof::macrovertex::rotation2D< real_t >(
-                level, vertex, storage_, normal_function_, dst_u.getVertexDataID(), dst_v.getVertexDataID() );
+                level, vertex, storage_, normalFunction_, dst_u.getVertexDataID(), dst_v.getVertexDataID() );
          }
       }
    }
@@ -120,7 +120,7 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
                vertexdof::macroedge::rotation3D< real_t >( level,
                                                            edge,
                                                            storage_,
-                                                           normal_function_,
+                                                           normalFunction_,
                                                            dst_u.getEdgeDataID(),
                                                            dst_v.getEdgeDataID(),
                                                            dst_w.getEdgeDataID(),
@@ -129,7 +129,7 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
             else
             {
                vertexdof::macroedge::rotation2D< real_t >(
-                   level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
+                   level, edge, storage_, normalFunction_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
             }
          }
       }
@@ -153,7 +153,7 @@ void P1RotationOperator::rotate( const P1Function< real_t >& dst_u,
                vertexdof::macroface::rotation3D< real_t >( level,
                                                            face,
                                                            storage_,
-                                                           normal_function_,
+                                                           normalFunction_,
                                                            dst_u.getFaceDataID(),
                                                            dst_v.getFaceDataID(),
                                                            dst_w.getFaceDataID(),
@@ -203,7 +203,7 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
             vertexdof::macrovertex::rotation3D< real_t >( level,
                                                           vertex,
                                                           storage_,
-                                                          normal_function_,
+                                                          normalFunction_,
                                                           dst.uvw()[0].getVertexDataID(),
                                                           dst.uvw()[1].getVertexDataID(),
                                                           dst.uvw()[2].getVertexDataID(),
@@ -212,7 +212,7 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
          else
          {
             vertexdof::macrovertex::rotation2D< real_t >(
-                level, vertex, storage_, normal_function_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
+                level, vertex, storage_, normalFunction_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
          }
       }
    }
@@ -235,7 +235,7 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
                vertexdof::macroedge::rotation3D< real_t >( level,
                                                            edge,
                                                            storage_,
-                                                           normal_function_,
+                                                           normalFunction_,
                                                            dst.uvw()[0].getEdgeDataID(),
                                                            dst.uvw()[1].getEdgeDataID(),
                                                            dst.uvw()[2].getEdgeDataID(),
@@ -244,7 +244,7 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
             else
             {
                vertexdof::macroedge::rotation2D< real_t >(
-                   level, edge, storage_, normal_function_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
+                   level, edge, storage_, normalFunction_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
             }
          }
       }
@@ -268,7 +268,7 @@ void P1RotationOperator::rotate( const P1StokesFunction< real_t >& dst, size_t l
                vertexdof::macroface::rotation3D< real_t >( level,
                                                            face,
                                                            storage_,
-                                                           normal_function_,
+                                                           normalFunction_,
                                                            dst.uvw()[0].getFaceDataID(),
                                                            dst.uvw()[1].getFaceDataID(),
                                                            dst.uvw()[2].getFaceDataID(),
@@ -312,7 +312,7 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
             vertexdof::macrovertex::saveRotationOperator3D( level,
                                                             vertex,
                                                             storage_,
-                                                            normal_function_,
+                                                            normalFunction_,
                                                             numU.getVertexDataID(),
                                                             numV.getVertexDataID(),
                                                             numW.getVertexDataID(),
@@ -323,7 +323,7 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
          {
             // Transpose not used because rotation matrix in 2D is symmetric
             vertexdof::macrovertex::saveRotationOperator2D(
-                level, vertex, storage_, normal_function_, numU.getVertexDataID(), numV.getVertexDataID(), mat );
+                level, vertex, storage_, normalFunction_, numU.getVertexDataID(), numV.getVertexDataID(), mat );
          }
       }
       else
@@ -352,7 +352,7 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
                vertexdof::macroedge::saveRotationOperator3D( level,
                                                              edge,
                                                              storage_,
-                                                             normal_function_,
+                                                             normalFunction_,
                                                              numU.getEdgeDataID(),
                                                              numV.getEdgeDataID(),
                                                              numW.getEdgeDataID(),
@@ -362,7 +362,7 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
             else
             {
                vertexdof::macroedge::saveRotationOperator2D(
-                   level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
+                   level, edge, storage_, normalFunction_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
             }
          }
          else
@@ -392,7 +392,7 @@ void P1RotationOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& m
                vertexdof::macroface::saveRotationOperator3D( level,
                                                              face,
                                                              storage_,
-                                                             normal_function_,
+                                                             normalFunction_,
                                                              numU.getFaceDataID(),
                                                              numV.getFaceDataID(),
                                                              numW.getFaceDataID(),

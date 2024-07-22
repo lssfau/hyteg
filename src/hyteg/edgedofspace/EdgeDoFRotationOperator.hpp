@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Ponsuganth Ilangovan P
+ * Copyright (c) 2024 Ponsuganth Ilangovan P
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,13 +31,19 @@
 
 namespace hyteg {
 
+/**
+ * @brief Class that performs rotations on the finite element vector field with respect to the normal function
+ *        The rotation matrix is calculated as given in, Engelman 1982.
+ * @param storage, minLevel, maxLevel Must be trivial by now!
+ * @param normalFunction Lambda function evaluating the normal (vector normalized) on the boundary.
+ */
 class EdgeDoFRotationOperator final : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::EdgeDoFFunction< real_t > >
 {
  public:
    EdgeDoFRotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                             size_t                                                   minLevel,
                             size_t                                                   maxLevel,
-                            const std::function< void( const Point3D&, Point3D& ) >& normal_function );
+                            const std::function< void( const Point3D&, Point3D& ) >& normalFunction );
    ~EdgeDoFRotationOperator() = default;
 
    void rotate( const EdgeDoFFunction< real_t >& dst_u,
@@ -65,7 +71,7 @@ class EdgeDoFRotationOperator final : public Operator< hyteg::EdgeDoFFunction< r
                              bool                                        transpose = false ) const;
 
  private:
-   const std::function< void( const Point3D&, Point3D& ) > normal_function_;
+   const std::function< void( const Point3D&, Point3D& ) > normalFunction_;
 };
 
 } // namespace hyteg

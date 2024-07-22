@@ -109,7 +109,7 @@ template < typename ValueType >
 inline void rotation3D( uint_t                                                      level,
                         const Face&                                                 face,
                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdV,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW, bool transpose )
@@ -148,7 +148,7 @@ inline void rotation3D( uint_t                                                  
       if ( it.y() != 0 )
       {
          face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-         normal_function( xBlend, normal );
+         normalFunction( xBlend, normal );
          rotationMatrix3D( normal, rotation, transpose );
 
          const uint_t idx = edgedof::macroface::horizontalIndex( level, it.x(), it.y() );
@@ -168,7 +168,7 @@ inline void rotation3D( uint_t                                                  
       if ( it.x() != 0 )
       {
          face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-         normal_function( xBlend, normal );
+         normalFunction( xBlend, normal );
          rotationMatrix3D( normal, rotation, transpose );
 
          const uint_t idx = edgedof::macroface::verticalIndex( level, it.x(), it.y() );
@@ -188,7 +188,7 @@ inline void rotation3D( uint_t                                                  
       if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-         normal_function( xBlend, normal );
+         normalFunction( xBlend, normal );
          rotationMatrix3D( normal, rotation, transpose );
 
          const uint_t idx = edgedof::macroface::diagonalIndex( level, it.x(), it.y() );
@@ -209,7 +209,7 @@ inline void rotation3D( uint_t                                                  
 inline void saveRotationOperator3D( uint_t                                                   level,
                                     const Face&                                              face,
                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdV,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdW,
@@ -247,7 +247,7 @@ inline void saveRotationOperator3D( uint_t                                      
       if ( it.y() != 0 )
       {
          face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-         normal_function( xBlend, normal );
+         normalFunction( xBlend, normal );
 
          const uint_t idx = edgedof::macroface::horizontalIndex( level, it.x(), it.y() );
          addMatrix3D( idx, level, mat, face, dstIdU, dstIdV, dstIdW, normal, transpose );
@@ -257,7 +257,7 @@ inline void saveRotationOperator3D( uint_t                                      
       if ( it.x() != 0 )
       {
          face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-         normal_function( xBlend, normal );
+         normalFunction( xBlend, normal );
 
          const uint_t idx = edgedof::macroface::verticalIndex( level, it.x(), it.y() );
          addMatrix3D( idx, level, mat, face, dstIdU, dstIdV, dstIdW, normal, transpose );
@@ -267,7 +267,7 @@ inline void saveRotationOperator3D( uint_t                                      
       if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
       {
          face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-         normal_function( xBlend, normal );
+         normalFunction( xBlend, normal );
 
          const uint_t idx = edgedof::macroface::diagonalIndex( level, it.x(), it.y() );
          addMatrix3D( idx, level, mat, face, dstIdU, dstIdV, dstIdW, normal, transpose );
@@ -283,7 +283,7 @@ template < typename ValueType >
 inline void rotation2D( uint_t                                                      level,
                         const Edge&                                                 edge,
                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV )
 {
@@ -307,7 +307,7 @@ inline void rotation2D( uint_t                                                  
       const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
       rotationMatrix2D( normal, rotation );
 
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
@@ -326,7 +326,7 @@ template < typename ValueType >
 inline void rotation3D( uint_t                                                      level,
                         const Edge&                                                 edge,
                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW, bool transpose )
@@ -352,7 +352,7 @@ inline void rotation3D( uint_t                                                  
       const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
       rotationMatrix3D( normal, rotation, transpose );
 
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
@@ -372,7 +372,7 @@ inline void rotation3D( uint_t                                                  
 inline void saveRotationOperator2D( uint_t                                                   level,
                                     const Edge&                                              edge,
                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
                                     const std::shared_ptr< SparseMatrixProxy >&              mat )
@@ -397,7 +397,7 @@ inline void saveRotationOperator2D( uint_t                                      
       const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
       rotationMatrix2D( normal, rotation );
 
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
@@ -415,7 +415,7 @@ inline void saveRotationOperator2D( uint_t                                      
 inline void saveRotationOperator3D( uint_t                                                   level,
                                     const Edge&                                              edge,
                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdW,
@@ -443,7 +443,7 @@ inline void saveRotationOperator3D( uint_t                                      
 
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
       rotationMatrix3D( normal, rotation, transpose );
 
       const idx_t idxUVW[] = { dstU[idx], dstV[idx], dstW[idx] };

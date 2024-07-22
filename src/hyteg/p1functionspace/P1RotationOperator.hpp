@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga
+ * Copyright (c) 2024 Ponsuganth Ilangovan P
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,6 +31,8 @@ using walberla::real_t;
 /**
  * @brief Class that performs rotations on the finite element vector field with respect to the normal function
  *        The rotation matrix is calculated as given in, Engelman 1982.
+ * @param storage, minLevel, maxLevel Must be trivial by now!
+ * @param normalFunction Lambda function evaluating the normal (vector normalized) on the boundary.
  */
 class P1RotationOperator : public Operator< P1VectorFunction< real_t >, P1VectorFunction< real_t > >
 {
@@ -38,7 +40,7 @@ class P1RotationOperator : public Operator< P1VectorFunction< real_t >, P1Vector
    P1RotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                        size_t                                                   minLevel,
                        size_t                                                   maxLevel,
-                       const std::function< void( const Point3D&, Point3D& ) >& normal_function );
+                       const std::function< void( const Point3D&, Point3D& ) >& normalFunction );
 
    ~P1RotationOperator() override = default;
 
@@ -93,7 +95,7 @@ class P1RotationOperator : public Operator< P1VectorFunction< real_t >, P1Vector
    }
 
  private:
-   const std::function< void( const Point3D&, Point3D& ) > normal_function_;
+   const std::function< void( const Point3D&, Point3D& ) > normalFunction_;
 };
 
 } // namespace hyteg

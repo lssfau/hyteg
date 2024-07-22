@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Ponsuganth Ilangovan P
+ * Copyright (c) 2024 Ponsuganth Ilangovan P
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -38,12 +38,12 @@ class P2RotationOperator : public Operator< P2VectorFunction< real_t >, P2Vector
    /**
     * @brief Constructs a P2RotationOperator object.
     * @param storage, minLevel, maxLevel Must be trivial by now!
-    * @param normal_function Lambda function evaluating the normal on the boundary.
+    * @param normalFunction Lambda function evaluating the normal (vector normalized) on the boundary.
     */
    P2RotationOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
                        size_t                                                   minLevel,
                        size_t                                                   maxLevel,
-                       const std::function< void( const Point3D&, Point3D& ) >& normal_function );
+                       const std::function< void( const Point3D&, Point3D& ) >& normalFunction );
 
    ~P2RotationOperator() override = default;
 

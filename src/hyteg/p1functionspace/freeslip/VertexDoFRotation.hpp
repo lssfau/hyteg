@@ -83,7 +83,7 @@ template < typename ValueType >
 inline void rotation3D( uint_t                                                      level,
                         const Face&                                                 face,
                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdV,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW,
@@ -111,7 +111,7 @@ inline void rotation3D( uint_t                                                  
       x = coordinateFromIndex( level, face, it );
       face.getGeometryMap()->evalF( x, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
 
       rotationMatrix3D( normal, rotation, transpose );
 
@@ -132,7 +132,7 @@ inline void rotation3D( uint_t                                                  
 inline void saveRotationOperator3D( uint_t                                                   level,
                                     const Face&                                              face,
                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdV,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Face >&  dstIdW,
@@ -158,7 +158,7 @@ inline void saveRotationOperator3D( uint_t                                      
       x = coordinateFromIndex( level, face, it );
       face.getGeometryMap()->evalF( x, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
 
       Matrix3r rotation;
       rotationMatrix3D( normal, rotation, transpose );
@@ -185,7 +185,7 @@ template < typename ValueType >
 inline void rotation2D( uint_t                                                      level,
                         const Edge&                                                 edge,
                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV )
 {
@@ -215,7 +215,7 @@ inline void rotation2D( uint_t                                                  
    for ( size_t i = 1; i < rowsize - 1; ++i )
    {
       faceS->getGeometryMap()->evalF( x, xPhy );
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
 
       rotationMatrix2D( normal, rotation );
 
@@ -235,7 +235,7 @@ template < typename ValueType >
 inline void rotation3D( uint_t                                                      level,
                         const Edge&                                                 edge,
                         const std::shared_ptr< PrimitiveStorage >&                  storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&    normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&    normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdW,
@@ -258,7 +258,7 @@ inline void rotation3D( uint_t                                                  
       x = coordinateFromIndex( level, edge, it );
       edge.getGeometryMap()->evalF( x, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
 
       rotationMatrix3D( normal, rotation, transpose );
 
@@ -279,7 +279,7 @@ inline void rotation3D( uint_t                                                  
 inline void saveRotationOperator2D( uint_t                                                   level,
                                     const Edge&                                              edge,
                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
                                     const std::shared_ptr< SparseMatrixProxy >&              mat )
@@ -304,7 +304,7 @@ inline void saveRotationOperator2D( uint_t                                      
    for ( size_t i = 1; i < rowsize - 1; ++i )
    {
       faceS->getGeometryMap()->evalF( x, xPhy );
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
 
       const auto idxU = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       const auto idxV = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
@@ -325,7 +325,7 @@ inline void saveRotationOperator2D( uint_t                                      
 inline void saveRotationOperator3D( uint_t                                                   level,
                                     const Edge&                                              edge,
                                     const std::shared_ptr< PrimitiveStorage >&               storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >& normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdW,
@@ -347,7 +347,7 @@ inline void saveRotationOperator3D( uint_t                                      
       x = coordinateFromIndex( level, edge, it );
       edge.getGeometryMap()->evalF( x, xPhy );
 
-      normal_function( xPhy, normal );
+      normalFunction( xPhy, normal );
 
       rotationMatrix3D( normal, rotation, transpose );
 
@@ -373,7 +373,7 @@ template < typename ValueType >
 inline void rotation2D( uint_t                                                        level,
                         const Vertex&                                                 vertex,
                         const std::shared_ptr< PrimitiveStorage >&                    storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&      normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&      normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdV )
 {
@@ -388,7 +388,7 @@ inline void rotation2D( uint_t                                                  
    faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
 
    Point3D normal( Point3D::Zero() );
-   normal_function( xPhy, normal );
+   normalFunction( xPhy, normal );
 
    Matrix2r rotation;
 
@@ -407,7 +407,7 @@ template < typename ValueType >
 inline void rotation3D( uint_t                                                        level,
                         const Vertex&                                                 vertex,
                         const std::shared_ptr< PrimitiveStorage >&                    storage,
-                        const std::function< void( const Point3D&, Point3D& ) >&      normal_function,
+                        const std::function< void( const Point3D&, Point3D& ) >&      normalFunction,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdV,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdW,
@@ -426,7 +426,7 @@ inline void rotation3D( uint_t                                                  
    Point3D xPhy;
    vertex.getGeometryMap()->evalF( x, xPhy );
 
-   normal_function( xPhy, normal );
+   normalFunction( xPhy, normal );
 
    rotationMatrix3D( normal, rotation, transpose );
 
@@ -444,7 +444,7 @@ inline void rotation3D( uint_t                                                  
 inline void saveRotationOperator2D( uint_t                                                    level,
                                     const Vertex&                                             vertex,
                                     const std::shared_ptr< PrimitiveStorage >&                storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >&  normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >&  normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdV,
                                     const std::shared_ptr< SparseMatrixProxy >&               mat )
@@ -460,7 +460,7 @@ inline void saveRotationOperator2D( uint_t                                      
    faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
 
    Point3D normal;
-   normal_function( xPhy, normal );
+   normalFunction( xPhy, normal );
 
    Matrix2r rotation;
 
@@ -478,7 +478,7 @@ inline void saveRotationOperator2D( uint_t                                      
 inline void saveRotationOperator3D( uint_t                                                    level,
                                     const Vertex&                                             vertex,
                                     const std::shared_ptr< PrimitiveStorage >&                storage,
-                                    const std::function< void( const Point3D&, Point3D& ) >&  normal_function,
+                                    const std::function< void( const Point3D&, Point3D& ) >&  normalFunction,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdU,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdV,
                                     const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdW,
@@ -496,7 +496,7 @@ inline void saveRotationOperator3D( uint_t                                      
    vertex.getGeometryMap()->evalF( x, xPhy );
 
    Point3D normal;
-   normal_function( xPhy, normal );
+   normalFunction( xPhy, normal );
 
    Matrix3r rotation;
    rotationMatrix3D( normal, rotation, transpose );
