@@ -11,3 +11,6 @@ waLBerla_compile_test(FILES FreeslipRectangularChannelTest.cpp DEPENDS hyteg cor
 waLBerla_execute_test(NAME FreeslipRectangularChannelTest)
 waLBerla_execute_test(NAME FreeslipRectangularChannelTestMPI COMMAND $<TARGET_FILE:FreeslipRectangularChannelTest> PROCESSES 2)
 
+waLBerla_compile_test(FILES RotationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RotationTest)
+waLBerla_execute_test(NAME RotationTestMPI COMMAND $<TARGET_FILE:RotationTest> PROCESSES 2)

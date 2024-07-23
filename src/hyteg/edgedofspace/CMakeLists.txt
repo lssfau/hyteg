@@ -4,10 +4,12 @@ target_sources( hyteg
     EdgeDoFOrientation.hpp
     EdgeDoFAdditivePackInfo.hpp
     EdgeDoFProjectNormalOperator.cpp
+    EdgeDoFRotationOperator.cpp
     EdgeDoFPackInfo.hpp
     EdgeDoFFunction.hpp
     EdgeDoFAdditivePackInfo.cpp
     EdgeDoFProjectNormalOperator.hpp
+    EdgeDoFRotationOperator.hpp
     EdgeDoFPackInfo.cpp
     EdgeDoFFunction.cpp
     EdgeDoFIndexing.hpp
