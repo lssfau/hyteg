@@ -99,7 +99,7 @@ if( HYTEG_DOWNLOAD_BOOST )
 endif()
 
 if(HYTEG_BUILD_WITH_PYTHON3)
-   find_package (Python3 COMPONENTS Development)
+   find_package (Python3 COMPONENTS Interpreter Development)
 endif()
 
 # Add flags and libraries required to build terraneo submodule

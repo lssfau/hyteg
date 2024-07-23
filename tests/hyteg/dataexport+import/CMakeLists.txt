@@ -17,7 +17,8 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
       ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-verify.py )
 
     waLBerla_execute_test( NAME AdiosWriterVerifyTest
-      COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py )
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py )
+    set_tests_properties( AdiosWriterVerifyTest PROPERTIES FIXTURES_REQUIRED AdiosWriterTest)
   endif()
 
   waLBerla_compile_test(FILES CheckpointingTest.cpp DEPENDS hyteg core)
