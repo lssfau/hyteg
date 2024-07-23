@@ -94,9 +94,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          // non-dimensionalise radius
          physicalParam.radius[i] /= physicalParam.mantleThickness;
       }
-
-      // ¿Why is there a commented std::reverse?
-      // std::reverse( physicalParam.viscosityProfile.begin(), physicalParam.viscosityProfile.end() );
    }
 
    else

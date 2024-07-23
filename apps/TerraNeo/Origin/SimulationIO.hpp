@@ -275,6 +275,13 @@ void ConvectionSimulation::dataOutput()
 
       if ( TN.simulationParameters.tempDependentViscosity )
       {
+         // Redimensionalise viscosity for logging
+         for ( uint_t i = 0; i < viscosityProfiles->mean.size(); i++ )
+         {
+            viscosityProfiles->mean[i] *= TN.physicalParameters.referenceViscosity;
+            viscosityProfiles->max[i] *= TN.physicalParameters.referenceViscosity;
+            viscosityProfiles->min[i] *= TN.physicalParameters.referenceViscosity;
+         }
          viscosityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
                                            TN.outputParameters.outputBaseName + "_ViscProfile_" + std::to_string( outputTime ) +
                                            ".dat",
