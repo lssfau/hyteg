@@ -138,7 +138,7 @@ class ConvectionSimulation
    void setupOutput();
    void setupStokesRHS();
    void setupEnergyRHS();
-   void updateRefViscosity();
+   void updateViscosity();
    void updatePlateVelocities( StokesFunction& );
    void solveStokes();
    void solveEnergy();

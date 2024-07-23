@@ -326,6 +326,7 @@ void ConvectionSimulation::initialiseFunctions()
 
    if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
    {
+      updateViscosity();
       auto viscosityRadialProfile = computeRadialProfile( *viscosityFE,
                                                           TN.domainParameters.rMin,
                                                           TN.domainParameters.rMax,
@@ -368,7 +369,7 @@ void ConvectionSimulation::setupSolversAndOperators()
       return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
    };
    //non-dimensionalise viscosity such that minimum value = 1
-   updateRefViscosity();
+   updateViscosity();
 
    projectionOperator = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
@@ -473,13 +474,6 @@ void ConvectionSimulation::setupSolversAndOperators()
                 WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached absolute residual threshold" )
                 return true;
              }
-
-             if ( reductionRateU > 0.5 )
-             {
-                WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached convergence rate threshold" )
-                return true;
-             }
-
              return false;
           };
 

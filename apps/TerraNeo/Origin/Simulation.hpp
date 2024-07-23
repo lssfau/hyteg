@@ -291,20 +291,6 @@ void ConvectionSimulation::solveEnergy()
 
    // Assemble RHS
    transportOperatorTALA->applyRHS( *energyRHSWeak, TN.domainParameters.maxLevel, All );
-   // transportOperatorRHS->setTALADict( { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, false } } );
-   // transportOperatorRHS->apply( *temperature, *energyRHSWeak, TN.domainParameters.maxLevel, All );
-
-   /* NOTE: This is because the adiabatic term on the 'RHS' should only act on surfTempCoeff */
-   // transportOperatorRHS->setTALADict(
-   //     { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-   //       { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, false },
-   //       { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, false } } );
-   // transportOperatorRHS->apply( *surfTempCoeff, *energyRHSWeak, TN.domainParameters.maxLevel, All );
-
-   // transportOperatorRHS->setTALADict(
-   //     { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-   //       { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
-   //       { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
 
    // Solve
    transportSolverTALA->solve( *transportOperatorTALA, *temperature, *energyRHSWeak, TN.domainParameters.maxLevel );
@@ -326,9 +312,25 @@ void ConvectionSimulation::setupStokesRHS()
       ////////////////////
       //    Momentum    //
       ////////////////////
+      if ( TN.simulationParameters.adaptiveRefTemp )
+      {
+         std::function< real_t( const Point3D&, const std::vector< real_t >& ) > adaptiveTemperatureDev =
+             [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
+                auto radius = x.norm();
 
-      temperatureReference->interpolate( referenceTemperatureFct, l, All );
-      temperatureDev->assign( { 1.0, -1.0 }, { *temperature, *temperatureReference }, l, All );
+                size_t shell = static_cast< size_t >( std::round(
+                    real_c( TN.simulationParameters.numLayers ) *
+                    ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
+
+                return ( Temperature[0] - temperatureProfiles->mean.at( shell ) );
+             };
+         temperatureDev->interpolate( adaptiveTemperatureDev, { *temperature }, l, All );
+      }
+      else
+      {
+         temperatureReference->interpolate( referenceTemperatureFct, l, All );
+         temperatureDev->assign( { 1.0, -1.0 }, { *temperature, *temperatureReference }, l, All );
+      }
 
       // Multiply with mass matrix (of velocity space -- P2) to get the weak form
 
@@ -375,15 +377,7 @@ void ConvectionSimulation::solveStokes()
 {
    if ( TN.simulationParameters.tempDependentViscosity )
    {
-      updateRefViscosity();
-      // Update stokesOperator
-      stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
-                                                               TN.domainParameters.minLevel,
-                                                               TN.domainParameters.maxLevel,
-                                                               *viscosityFE,
-                                                               viscosityFEInv->getVertexDoFFunction(),
-                                                               *projectionOperator,
-                                                               bcVelocity );
+      updateViscosity();
    }
 
    if ( TN.simulationParameters.tempDependentViscosity && TN.simulationParameters.resetSolver &&
@@ -515,33 +509,31 @@ real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Tempera
       {
          WALBERLA_ABORT( "Viscosity and radius vector must be of the same size and contain at least two elements." );
       }
+
+      // Loop over radius vector and find a datapoint that lies in between two given values
+      // If true: perform interpolation to estimate the value
       // Check boundaries and set viscosity values accordingly
 
       if ( radius >= TN.physicalParameters.radius[0] )
       {
          retVal = TN.physicalParameters.viscosityProfile[0];
       }
-      if ( radius <= TN.physicalParameters.radius[TN.physicalParameters.radius.size()] )
+      else if ( radius <= TN.physicalParameters.radius[TN.physicalParameters.radius.size()] )
       {
          retVal = TN.physicalParameters.viscosityProfile[TN.physicalParameters.radius.size()];
       }
-      // Loop over radius vector and find a datapoint that lies in between two given values
-      // If true: perform interpolation to estimate the value
-
-      for ( uint_t i = 0; i < TN.physicalParameters.radius.size(); i++ )
+      else
       {
-         if ( radius < TN.physicalParameters.radius[i] && radius > TN.physicalParameters.radius[i + 1] )
+         uint_t count = 0;
+         while ( radius < TN.physicalParameters.radius[count] )
          {
-            real_t interpolFactor = ( radius - TN.physicalParameters.radius[i] ) /
-                                    ( TN.physicalParameters.radius[i + 1] - TN.physicalParameters.radius[i] );
-            retVal = ( interpolFactor *
-                       ( TN.physicalParameters.viscosityProfile[i + 1] - TN.physicalParameters.viscosityProfile[i] ) ) +
-                     TN.physicalParameters.viscosityProfile[i];
+            ++count;
          }
-         else if ( radius - TN.physicalParameters.radius[i] < 10e-4 )
-         {
-            retVal = TN.physicalParameters.viscosityProfile[i];
-         }
+         real_t interpolFactor = ( radius - TN.physicalParameters.radius[count] ) /
+                                 ( TN.physicalParameters.radius[count - 1] - TN.physicalParameters.radius[count] );
+         retVal = ( interpolFactor *
+                    ( TN.physicalParameters.viscosityProfile[count - 1] - TN.physicalParameters.viscosityProfile[count] ) ) +
+                  TN.physicalParameters.viscosityProfile[count];
       }
    }
    else
@@ -671,30 +663,27 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
    }
 }
 
-void ConvectionSimulation::updateRefViscosity()
+void ConvectionSimulation::updateViscosity()
 {
-   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInt =
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
        [&]( const Point3D& x, const std::vector< real_t >& Temperature ) { return viscosityFunction( x, Temperature[0] ); };
 
-   auto viscosityIntInv = [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
+   auto viscosityInitInv = [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
       return ( 1.0 / ( viscosityFunction( x, Temperature[0] ) ) );
    };
-   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   {
-      viscosityFE->interpolate( viscosityInt, { *temperature }, l, All );
-      viscosityFEInv->interpolate( viscosityIntInv, { *temperature }, l, All );
-   }
 
-   real_t minRefViscosity = viscosityFE->getMinValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
-
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( "New reference (min) viscosity: " << minRefViscosity );
+   // Before interpolation: Ensure the new reference viscosity is set to the min current viscosity if a viscosity profile
+   // or a temperature dependent viscosity is utilized.
+   // This is will ensure that that the minimum non-dimensionalised value for the viscosity = 1.
+   viscosityFE->interpolate( viscosityInit, { *temperature }, TN.domainParameters.maxLevel, All );
 
    real_t maxViscosity = viscosityFE->getMaxValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
-
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity: " << maxViscosity );
-   if ( TN.simulationParameters.tempDependentViscosity )
+   WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity [Pa s]: " << maxViscosity );
+   real_t minRefViscosity = viscosityFE->getMinValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
+   WALBERLA_LOG_INFO_ON_ROOT( "New update reference viscosity [Pa s]: " << minRefViscosity );
+
+   if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.haveViscosityProfile )
    {
       // Update reference viscosity with new min Viscosity value
       TN.physicalParameters.referenceViscosity = minRefViscosity;
@@ -705,7 +694,14 @@ void ConvectionSimulation::updateRefViscosity()
             ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
           ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
    }
+
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
+   {
+      viscosityFE->interpolate( viscosityInit, { *temperature }, l, All );
+      viscosityFEInv->interpolate( viscosityInitInv, { *temperature }, l, All );
+   }
 }
+
 void ConvectionSimulation::normalFunc( const Point3D& p, Point3D& n )
 {
    real_t radius = p.norm();
