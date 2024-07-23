@@ -6,14 +6,16 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
     file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-Output" )
   endif()
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-    ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-References
-    ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-References )
-
   waLBerla_compile_test(FILES AdiosWriterTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME AdiosWriterTest)
 
   if( HYTEG_BUILD_WITH_PYTHON3 )
+    add_subdirectory( AdiosWriterTest-References )
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py
+      ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-verify.py )
+
     waLBerla_execute_test( NAME AdiosWriterVerifyTest
       COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py )
   endif()
