@@ -47,13 +47,26 @@ def compareData( dataTest, dataRef ):
 
     everythingIsFine = True
 
-    for index, elemTest in enumerate( dataTest ):
-        elemRef = dataRef[ index ]
-        if elemTest != elemRef:
-            print( " ERROR: difference to reference detected:" )
-            print( " * reference value --> " + elemRef )
-            print( " * value from test --> " + elemTest )
-            everythingIsFine = False
+    if len( dataTest ) > len( dataRef ):
+        print( " ERROR: test data has more lines than reference!" )
+        print( "        test data follows:" )
+        for elem in dataTest:
+            print( elem )
+        everythingIsFine = False
+    elif len( dataTest ) < len( dataRef ):
+        print( " ERROR: test data has fewer lines than reference!" )
+        print( "        test data follows:" )
+        for elem in dataTest:
+            print( elem )
+        everythingIsFine = False
+    else:
+        for index, elemTest in enumerate( dataTest ):
+            elemRef = dataRef[ index ]
+            if elemTest != elemRef:
+                print( " ERROR: difference to reference detected:" )
+                print( " * reference value --> " + elemRef )
+                print( " * value from test --> " + elemTest )
+                everythingIsFine = False
 
     return everythingIsFine
 
@@ -72,14 +85,41 @@ def runBPLSonBPfilesFromJob( case ):
 def executeSingleTest( case ):
     """Compare single BP file to reference"""
 
-    print( "---------------------------------------------------------------" )
+    print( "===============================================================" )
     print( f" Comparing {case}.bp to reference" )
-    print( "---------------------------------------------------------------" )
+    print( " ---------" )
 
     dataJob = runBPLSonBPfilesFromJob( case )
     dataRef = importReferenceData( case )
     checkPassed = compareData( dataJob, dataRef )
+    if checkPassed:
+        print( " CHECK: okay" )
+    else:
+        print( " CHECK: failed" )
     return checkPassed
+
+def executeFailingTest( case ):
+    """Modify test-data so that check fails"""
+
+    print( "===============================================================" )
+    print( f" Comparing {case}.bp to reference" )
+    print( " ---------" )
+
+    # dataJob = runBPLSonBPfilesFromJob( case )
+    dataJob = importReferenceData( case )
+
+    replacementLine = "  int64_t   NumberOfElements          {1} = <error here!>"
+    for idx, line in enumerate( dataJob ):
+        if "int64_t   NumberOfElements" in line:
+            dataJob[idx] = replacementLine
+
+    dataRef = importReferenceData( case )
+    checkPassed = compareData( dataJob, dataRef )
+    if checkPassed:
+        print( " CHECK: okay --> ERROR not detected!!!!" )
+    else:
+        print( " CHECK: failed --> GOOD: error was detected!" )
+    return not checkPassed
 
 # -----------------------
 #  check all test cases
@@ -90,6 +130,11 @@ allChecksPassed = False
 
 for case in testCases:
     allChecksPassed = True if executeSingleTest( case ) else False
+
+executeFailingTest( "AdiosWriterTest_2D-P1_level3" )
+allChecksPassed = True if executeSingleTest( case ) else False
+
+print( "===============================================================" )
 
 if allChecksPassed:
     sys.exit(0)
