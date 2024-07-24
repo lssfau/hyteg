@@ -135,6 +135,8 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
       return;
    }
 
+// see issue #273
+#ifdef CPP2020
    for ( auto const& [key, val] : userDefinedAttributes )
    {
       std::visit(
@@ -160,6 +162,36 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
           },
           val );
    }
+#else
+   for ( auto const& entry : userDefinedAttributes )
+   {
+      std::visit(
+          [&io, &entry]( const auto& arg ) {
+             using T = std::decay_t< decltype( arg ) >;
+             const std::string& key = entry.first;
+
+             if ( isAdiosDataType< T, adiostype_t >::value )
+             {
+
+                // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
+                if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
+                   writeAttribute( io, key, static_cast< intData_t >( arg ) );
+                else if constexpr ( std::is_same_v< T, bool > )
+                {
+                   std::string sflag = arg ? "true" : "false";
+                   writeAttribute( io, key, sflag );
+                }
+                else
+                   writeAttribute( io, key, arg );
+             }
+             else
+             {
+                WALBERLA_LOG_WARNING_ON_ROOT( "The user-defined ADIOS2 attribute " << key << " does not hold a valid datatype" );
+             }
+          },
+          entry.second );
+   }
+#endif
 }
 
 } // namespace hyteg::adiosHelpers
