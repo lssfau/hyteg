@@ -37,6 +37,9 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
+// forward declare friend classes
+class GmshReaderForMSH22;
+
 /// \brief Contains information about a mesh
 /// \author Daniel Drzisga (drzisga@ma.tum.de) \n
 ///         Nils Kohl (nils.kohl@fau.de)
@@ -419,6 +422,12 @@ class MeshInfo
 
    /// Construct a MeshInfo object from a file in Gmsh format
    static MeshInfo fromGmshFile( const std::string& meshFileName );
+
+   /// The reader for MSH2.2 format needs access to our internals
+   // friend class hyteg::GmshReaderForMSH22;
+   friend class GmshReaderForMSH22;
+
+   // friend class IDoNotExist;
 
    /// Construct a MeshInfo object for a rectangular domain
 
