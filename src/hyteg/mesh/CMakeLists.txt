@@ -1,5 +1,6 @@
 target_sources( hyteg
     PRIVATE
+    GmshReaderForMSH41.cpp
     HyTeGMeshDir.cpp
     MeshGenRefineCoarseMesh.cpp
     MeshGenSphericalShell.cpp

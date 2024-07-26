@@ -162,53 +162,8 @@ class GmshReaderForMSH22
 
       WALBERLA_ASSERT_EQUAL( token, "$EndElements", "[Mesh] Misparsed: cannot find $EndElements tag." );
 
-      for ( const auto& it : parsedEdges )
-      {
-         const MeshInfo::Edge meshInfoEdge = it.second;
-         meshInfo.addEdge( meshInfoEdge );
-      }
-
-      for ( const auto& it : parsedFaces )
-      {
-         const std::vector< MeshInfo::IDType > faceCoordinates = it.first;
-         const MeshInfo::Face                  meshInfoFace    = it.second;
-
-         // If the corresponding edge was not already added, add an edge of type Inner
-         WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only triangle faces supported." );
-
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[0], faceCoordinates[1] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[1], faceCoordinates[2] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[2], faceCoordinates[0] } } ), 0 ) );
-
-         meshInfo.addFace( meshInfoFace );
-      }
-
-      for ( const auto& it : parsedCells )
-      {
-         const std::vector< MeshInfo::IDType > cellCoordinates = it.first;
-         const MeshInfo::Cell                  meshInfoCell    = it.second;
-
-         // If the corresponding edge was not already added, add an edge of type Inner
-         WALBERLA_ASSERT_EQUAL( cellCoordinates.size(), 4, "[Mesh] Only tetrahedron cells supported." );
-
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[1] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[2] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[3] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
-         meshInfo.addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-
-         meshInfo.addFace(
-             Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
-         meshInfo.addFace(
-             Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
-         meshInfo.addFace(
-             Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-         meshInfo.addFace(
-             Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-
-         meshInfo.cells_[cellCoordinates] = meshInfoCell;
-      }
+      // second pass: insert primitives into object
+      meshInfo.processPrimitivesFromGmshFile( parsedEdges, parsedFaces, parsedCells );
 
       meshFile.close();
 

@@ -39,11 +39,9 @@ using walberla::uint_t;
 
 // forward declare friend classes
 class GmshReaderForMSH22;
+class GmshReaderForMSH41;
 
 /// \brief Contains information about a mesh
-/// \author Daniel Drzisga (drzisga@ma.tum.de) \n
-///         Nils Kohl (nils.kohl@fau.de)
-///         Marcus Mohr (marcus.mohr@lmu.de)
 ///
 /// The \ref MeshInfo class is used to store information about meshes that are
 /// either constructed by reading mesh files or generated internally for some
@@ -423,11 +421,12 @@ class MeshInfo
    /// Construct a MeshInfo object from a file in Gmsh format
    static MeshInfo fromGmshFile( const std::string& meshFileName );
 
-   /// The reader for MSH2.2 format needs access to our internals
-   // friend class hyteg::GmshReaderForMSH22;
+   /// @name Friend classes
+   /// The readers for MSH format need access to the internals of MeshInfo
+   /// @{
    friend class GmshReaderForMSH22;
-
-   // friend class IDoNotExist;
+   friend class GmshReaderForMSH41;
+   /// @}
 
    /// Construct a MeshInfo object for a rectangular domain
 
@@ -648,6 +647,14 @@ class MeshInfo
    EdgeContainer   edges_;
    FaceContainer   faces_;
    CellContainer   cells_;
+
+   /// Function for second pass over primitives in the MSH-readers
+   ///
+   /// The function inserts the primitive information found in the file's Elements
+   /// section into MeshInfo object
+   void processPrimitivesFromGmshFile( const EdgeContainer& parsedEdges,
+                                       const FaceContainer& parsedFaces,
+                                       const CellContainer& parsedCells );
 };
 
 } // namespace hyteg
