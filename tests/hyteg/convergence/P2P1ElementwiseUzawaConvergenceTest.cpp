@@ -188,8 +188,7 @@ void runBenchmark( uint_t benchmark )
       M.apply( Au.uvw()[0], f.uvw()[0], maxLevel, All );
       M.apply( Au.uvw()[1], f.uvw()[1], maxLevel, All );
 
-      Au.uvw()[0].setToZero( maxLevel );
-      Au.uvw()[1].setToZero( maxLevel );
+      Au.uvw().setToZero( maxLevel );
       Au.p().setToZero( maxLevel );
 
       u_exact.uvw().interpolate( { exactU, exactV }, maxLevel, All );

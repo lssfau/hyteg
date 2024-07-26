@@ -189,12 +189,10 @@ void runTest( bool preCompute )
    M.apply( f_strong.uvw()[0], f.uvw()[0], maxLevel, All );
    M.apply( f_strong.uvw()[1], f.uvw()[1], maxLevel, All );
 
-   Au.uvw()[0].setToZero( maxLevel );
-   Au.uvw()[1].setToZero( maxLevel );
+   Au.uvw().setToZero( maxLevel );
    Au.p().setToZero( maxLevel );
 
-   u_exact.uvw()[0].interpolate( uSolution, maxLevel, All );
-   u_exact.uvw()[1].interpolate( vSolution, maxLevel, All );
+   u_exact.uvw().interpolate( { uSolution, vSolution }, maxLevel, All );
    u_exact.p().interpolate( pSolution, maxLevel, All );
 
    communication::syncFunctionBetweenPrimitives( u_exact.uvw()[0], maxLevel );
