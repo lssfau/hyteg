@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Marcus Mohr.
+ * Copyright (c) 2020-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -51,10 +51,11 @@ class CSFVectorFunction
    : functionName_( name )
    , compFunc_( compFunc )
    {
-     for( uint_t idx = 1; idx < compFunc.size(); ++idx ) {
-       WALBERLA_ASSERT( compFunc_[0]->getMinLevel() == compFunc_[idx]->getMinLevel() );
-       WALBERLA_ASSERT( compFunc_[0]->getMaxLevel() == compFunc_[idx]->getMaxLevel() );
-     }
+      for ( uint_t idx = 1; idx < compFunc.size(); ++idx )
+      {
+         WALBERLA_ASSERT( compFunc_[0]->getMinLevel() == compFunc_[idx]->getMinLevel() );
+         WALBERLA_ASSERT( compFunc_[0]->getMaxLevel() == compFunc_[idx]->getMaxLevel() );
+      }
    }
 
    /// @name Query Functions
@@ -193,6 +194,15 @@ class CSFVectorFunction
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
          compFunc_[k]->interpolate( expr[k], level, boundaryUID );
+      }
+   }
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const
+   {
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->setToZero( level );
       }
    }
 
