@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2023 Ponsuganth Ilangovan, Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2024 Ponsuganth Ilangovan, Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -54,20 +54,18 @@ class P0Function : public Function< P0Function< ValueType > >
    : P0Function( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-
    const std::shared_ptr< DGFunction< ValueType > > getDGFunction() const { return dgFunction_; }
 
    void setBoundaryCondition( BoundaryCondition bc ) { dgFunction_->setBoundaryCondition( bc ); }
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
-   uint_t getDimension() const { return dgFunction_->getDimension(); };
+   uint_t getDimension() const override final { return dgFunction_->getDimension(); };
 
    void setDoNotWarnOnInterpolateFlag() { doNotWarnOnInterpolate_ = true; }
 
    // template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
-
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { dgFunction_->add( scalar, level, flag ); };
 
@@ -92,7 +90,8 @@ class P0Function : public Function< P0Function< ValueType > >
 
    void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
    {
-      if( !doNotWarnOnInterpolate_ ) WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+      if ( !doNotWarnOnInterpolate_ )
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
          for ( auto& it : this->getStorage()->getCells() )
@@ -143,7 +142,8 @@ class P0Function : public Function< P0Function< ValueType > >
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const
    {
       WALBERLA_UNUSED( dofType );
-      if( !doNotWarnOnInterpolate_ ) WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+      if ( !doNotWarnOnInterpolate_ )
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
 
       if ( this->storage_->hasGlobalCells() )
       {
@@ -211,8 +211,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      elementVertices[i]( 1 )  = elementVertex[1];
                   }
 
-                  const Point2D centroid =
-                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / real_c( 3 );
+                  const Point2D centroid = ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / real_c( 3 );
 
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
 
@@ -283,8 +282,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      elementVertices[i]( 1 )  = elementVertex[1];
                   }
 
-                  const Point2D centroid =
-                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
+                  const Point2D centroid = ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
 
                   for ( size_t k = 0; k < srcFunctions.size(); ++k )
                   {
@@ -303,10 +301,13 @@ class P0Function : public Function< P0Function< ValueType > >
       }
    };
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const override final { dgFunction_->setToZero( level ); };
+
    void swap( const P0Function< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
-       WALBERLA_UNUSED(flag);
-       dgFunction_->swap(*other.getDGFunction(),level,flag);
+      WALBERLA_UNUSED( flag );
+      dgFunction_->swap( *other.getDGFunction(), level, flag );
    };
 
    void copyFrom( const P0Function< ValueType >&         other,
@@ -379,11 +380,11 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
 
-    template < typename OtherValueType >
-    void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
-    {
-        dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
-    }
+   template < typename OtherValueType >
+   void copyBoundaryConditionFromFunction( const P0Function< OtherValueType >& other )
+   {
+      dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
+   }
 
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
@@ -414,8 +415,7 @@ class P0Function : public Function< P0Function< ValueType > >
 
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
-   bool doNotWarnOnInterpolate_ = true;
-
+   bool                                       doNotWarnOnInterpolate_ = true;
 };
 
 namespace dg {

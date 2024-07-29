@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -92,7 +92,7 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// Copy assignment
    VolumeDoFFunction& operator=( const VolumeDoFFunction< ValueType >& other );
 
-   virtual uint_t getDimension() const { return 1; }
+   virtual uint_t getDimension() const override final { return 1; }
 
    /// \brief Updates ghost-layers.
    void communicate( uint_t level );
@@ -102,8 +102,8 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                 const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level );
 
-/// \brief swaps the content of one volumeDoFFunction with another.
-    void swap( VolumeDoFFunction< ValueType >& rhs, uint_t level );
+   /// \brief swaps the content of one volumeDoFFunction with another.
+   void swap( VolumeDoFFunction< ValueType >& rhs, uint_t level );
 
    /// \brief Adds a scalar to this VolumeDoFFunction.
    void add( const ValueType scalar, uint_t level, DoFType flag = All );
@@ -262,6 +262,9 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    }
 
    indexing::VolumeDoFMemoryLayout memoryLayout() const { return memoryLayout_; }
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const override final;
 
  private:
    using Function< VolumeDoFFunction< ValueType > >::communicators_;

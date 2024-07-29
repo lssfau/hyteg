@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -53,7 +53,7 @@ class P2Function final : public Function< P2Function< ValueType > >
                uint_t                                     maxLevel,
                BoundaryCondition                          boundaryCondition );
 
-   virtual uint_t getDimension() const { return 1; }
+   uint_t getDimension() const override final { return 1; }
 
    P2Function< ValueType >& operator[]( uint_t idx )
    {
@@ -163,7 +163,7 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///@}
 
    /// Set all function DoFs to zero including the ones in the halos
-   void setToZero( const uint_t level ) const;
+   void setToZero( const uint_t level ) const override final;
 
    void swap( const P2Function< ValueType >& other, const uint_t& level, const DoFType& dofType = All ) const;
 

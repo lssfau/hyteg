@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Nils Kohl.
+ * Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -59,7 +59,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                uint_t                                     initialPolyDegree,
                BoundaryCondition                          boundaryCondition = BoundaryCondition::create0123BC() );
 
-
    void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                          uint_t                                                                        level,
                          DoFType                                                                       flag = All ) const
@@ -89,6 +88,9 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_UNUSED( flag );
       WALBERLA_ABORT( "Not implemented." );
    };
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const override final { volumeDoFFunction_->setToZero( level ); };
 
    void add( const ValueType scalar, uint_t level, DoFType flag = All ) const { volumeDoFFunction_->add( scalar, level, flag ); };
 
@@ -293,7 +295,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                  const bool&     onRootOnly   = false ) const;
 
-   uint_t getDimension() const { return storage_->hasGlobalCells() ? 3 : 2; };
+   uint_t getDimension() const override final { return storage_->hasGlobalCells() ? 3 : 2; };
+
    /// \brief Updates ghost-layers.
    void communicate( uint_t level ) const { volumeDoFFunction_->communicate( level ); }
 
@@ -316,8 +319,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                     DoFType                               flag ) const;
    /// @}
 
-   void copyFrom( const DGFunction< ValueType >&                 other,
-                  const uint_t&                                  level,
+   void copyFrom( const DGFunction< ValueType >&         other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {
@@ -331,7 +334,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
       WALBERLA_UNUSED( flag );
-      volumeDoFFunction_->swap(*(other.volumeDoFFunction()), level);
+      volumeDoFFunction_->swap( *( other.volumeDoFFunction() ), level );
    }
 
    /// \brief Returns the max absolute DoF value.
@@ -384,7 +387,5 @@ void createFunctionFromVector( const dg::DGFunction< real_t >&       function,
                                DoFType                               flag );
 
 void applyDirichletBC( const dg::DGFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level );
-
-
 
 } // namespace hyteg
