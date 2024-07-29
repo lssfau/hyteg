@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -103,6 +103,13 @@ class EGFunction final : public Function< EGFunction< ValueType > >
    {
       u_conforming_->interpolate( expressions, level, flag );
       u_discontinuous_->interpolate( 0, level, flag );
+   };
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const override final
+   {
+      u_conforming_->setToZero( level );
+      u_discontinuous_->setToZero( level );
    };
 
    void swap( const EGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
@@ -451,7 +458,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       getDiscontinuousPart()->getDGFunction()->applyDirichletBoundaryConditions( dgForm, level );
    }
 
-   uint_t getDimension() const override
+   uint_t getDimension() const override final
    {
       if ( u_conforming_->getStorage()->hasGlobalCells() )
          return 3;
@@ -482,7 +489,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       Point2D affineCoordinates( coordinates[0], coordinates[1] );
 
       std::array< Point2D, 3 > affineElementVertices;
-      auto vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
+      auto                     vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( elementIndex, faceType );
       for ( uint_t i = 0; i < 3; i++ )
       {
          const auto coord              = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
@@ -553,7 +560,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       Point3D affineCoordinates( coordinates[0], coordinates[1], coordinates[2] );
 
       std::array< Point3D, 4 > affineElementVertices;
-      auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
+      auto                     vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( elementIndex, cellType );
 
       for ( uint_t i = 0; i < 4; i++ )
       {

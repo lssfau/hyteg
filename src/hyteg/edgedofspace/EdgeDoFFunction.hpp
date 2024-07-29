@@ -91,7 +91,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    /// Copy assignment
    EdgeDoFFunction& operator=( const EdgeDoFFunction< ValueType >& other );
 
-   virtual uint_t getDimension() const { return 1; }
+   uint_t getDimension() const override final { return 1; }
 
    bool hasMemoryAllocated( const uint_t& level, const Vertex& vertex ) const;
    bool hasMemoryAllocated( const uint_t& level, const Edge& edge ) const;
@@ -206,7 +206,7 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
    /// Set all function DoFs to zero including the ones in the halos
-   void setToZero( const uint_t level ) const;
+   void setToZero( const uint_t level ) const override final;
 
    void enumerate( uint_t level ) const;
 

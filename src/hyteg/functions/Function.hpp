@@ -89,6 +89,9 @@ class Function
    /// Query function object for maximal level on which it defined
    uint_t getMaxLevel() const { return maxLevel_; }
 
+   /// Set all function DoFs to zero including the ones in the halos
+   virtual void setToZero( const uint_t level ) const = 0;
+
    std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree )

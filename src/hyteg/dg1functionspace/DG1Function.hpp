@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -61,7 +61,7 @@ class DG1Function : public Function< DG1Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const { return dgFunction_->getBoundaryCondition(); }
 
-   uint_t getDimension() const { return dgFunction_->getDimension(); };
+   uint_t getDimension() const override final { return dgFunction_->getDimension(); };
 
    void communicate( const uint_t& level ) const { dgFunction_->communicate( level ); }
 
@@ -100,13 +100,16 @@ class DG1Function : public Function< DG1Function< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    };
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const override final { dgFunction_->setToZero( level ); };
+
    void swap( const DG1Function< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
       WALBERLA_ABORT( "Not implemented." );
    };
 
-   void copyFrom( const DG1Function< ValueType >&                other,
-                  const uint_t&                                  level,
+   void copyFrom( const DG1Function< ValueType >&        other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {

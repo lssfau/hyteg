@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -496,6 +496,58 @@ void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, 
                   mem[idx] += scalar;
                }
             }
+         }
+      }
+   }
+}
+
+/// \brief Zero all function DoFs including those in ghost-layers
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::setToZero( uint_t level ) const
+{
+   if ( this->storage_->hasGlobalCells() )
+   {
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellID = cellIt.first;
+         WALBERLA_CHECK( this->storage_->cellExistsLocally( cellID ),
+                         "Cannot read/write DoF since macro-cell does not exists (locally)." );
+         const Cell* cell = this->storage_->getCell( cellID );
+
+         // zero cell DoFs
+         FunctionMemory< ValueType >* fmem = cell->getData( cellInnerDataID_ );
+         WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
+         fmem->setToZero( level );
+
+         // zero DoFs in ghost-layers
+         for ( const auto& [localFaceID, npid] : cell->getIndirectNeighborCellIDsOverFaces() )
+         {
+            WALBERLA_UNUSED( npid );
+            FunctionMemory< ValueType >* fmemGL = cell->getData( cellGhostLayerDataIDs_.at( localFaceID ) );
+            fmemGL->setToZero( level );
+         }
+      }
+   }
+   else
+   {
+      for ( const auto& faceIt : this->getStorage()->getFaces() )
+      {
+         const auto faceID = faceIt.first;
+         WALBERLA_CHECK( this->storage_->faceExistsLocally( faceID ),
+                         "Cannot read/write DoF since macro-face does not exists (locally)." );
+         const Face* face = this->storage_->getFace( faceID );
+
+         // zero cell DoFs
+         FunctionMemory< ValueType >* fmem = face->getData( faceInnerDataID_ );
+         WALBERLA_CHECK( fmem->hasLevel( level ), "Memory was not allocated for level " << level << "." );
+         fmem->setToZero( level );
+
+         // zero DoFs in ghost-layers
+         for ( const auto& [localEdgeID, npid] : face->getIndirectTopLevelNeighborFaceIDsOverEdges() )
+         {
+            WALBERLA_UNUSED( npid );
+            FunctionMemory< ValueType >* fmemGL = face->getData( faceGhostLayerDataIDs_.at( localEdgeID ) );
+            fmemGL->setToZero( level );
          }
       }
    }

@@ -91,7 +91,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    /// Copy assignment
    VertexDoFFunction& operator=( const VertexDoFFunction< ValueType >& other );
 
-   virtual uint_t getDimension() const { return 1; }
+   virtual uint_t getDimension() const override final { return 1; }
 
    VertexDoFFunction< ValueType >& operator[]( uint_t idx )
    {
@@ -286,7 +286,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    void interpolate( const VertexDoFFunction< ValueType >& functionOnParentGrid, uint_t level, uint_t srcLevel );
 
    /// Set all function DoFs to zero including the ones in the halos
-   void setToZero( const uint_t level ) const;
+   void setToZero( const uint_t level ) const override final;
 
    /// assigns unique values to all data points
    /// this function is mainly used for petsc to get global identifier for all DoFs
