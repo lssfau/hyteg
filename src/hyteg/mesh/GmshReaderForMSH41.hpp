@@ -32,15 +32,12 @@ namespace hyteg {
 class GmshReaderForMSH41
 {
  public:
-   GmshReaderForMSH41( const std::string& meshFileName, bool beVerbose = true )
+   GmshReaderForMSH41( const std::string& meshFileName, bool importPhysicalTags )
    : meshFileName_( meshFileName )
-   , beVerbose_( beVerbose ){};
+   , importPhysicalTags_( importPhysicalTags ){};
 
    MeshInfo readMesh()
    {
-      // for testing purposes
-      // walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-
       std::ifstream meshFile = openFileAndCheckFormat();
 
       std::vector< std::string > sections = getSectionsPresentInFile( meshFile );
@@ -48,9 +45,21 @@ class GmshReaderForMSH41
 
       MeshInfo meshInfo;
 
-      readSectionPhysicalNames( meshFile );
-      readSectionNodes( meshFile, meshInfo );
-      readSectionElements( meshFile, meshInfo );
+      // We are currently not making use of the physical names, if they exist.
+      // But potentially this will change in the future.
+      if ( importPhysicalTags_ && std::find( sections.begin(), sections.end(), "PhysicalNames" ) != sections.end() )
+      {
+         readSectionPhysicalNames( meshFile );
+      }
+
+      std::map< marker, uint_t > entityToPhysicalTag;
+      if ( importPhysicalTags_ && std::find( sections.begin(), sections.end(), "Entities" ) != sections.end() )
+      {
+         entityToPhysicalTag = readSectionEntities( meshFile );
+      }
+
+      readSectionNodes( meshFile, meshInfo, entityToPhysicalTag );
+      readSectionElements( meshFile, meshInfo, entityToPhysicalTag );
 
       meshFile.close();
 
@@ -59,28 +68,32 @@ class GmshReaderForMSH41
       return meshInfo;
    }
 
- private:
-   /// if set to true the object generates verbose reports on its actions
-   const bool beVerbose_;
+   /// Gmsh marks stuff by using a pair of geometric dimension and tag
+   using marker = std::pair< uint_t, uint_t >;
 
+ private:
    /// name of input file
    const std::string& meshFileName_;
+
+   /// If this flag is false the reader will only import the node and connectivity information from the file
+   const bool importPhysicalTags_;
 
    /// the MSH can contain various kinds of sections, some of which we need, others we cannot work with
    typedef enum
    {
-      REQUIRED,           //< must be present for the reader to work
-      OPTIONAL,           //< if present, we can work with these data
-      IGNORABLE,          //< if present, we can simply ignore it
-      PROBABLY_IGNORABLE, //< if present, we assume we can ignore it
-      CRITICAL            //< when present indicates that the file is special
+      REQUIRED,                   //< must be present for the reader to work
+      REQUIRED_FOR_PHYSICAL_TAGS, //< required, if the user wants us to import physical tags
+      OPTIONAL,                   //< if present, we can work with these data
+      IGNORABLE,                  //< if present, we can simply ignore it
+      PROBABLY_IGNORABLE,         //< if present, we assume we can ignore it
+      CRITICAL                    //< when present indicates that the file is special
    } sectionClassification;
 
    /// classify sections that can be present in MSH 4.1 format
    static inline const std::map< std::string, sectionClassification > sectionType_ = {
        { "MeshFormat", REQUIRED },
        { "PhysicalNames", OPTIONAL },
-       { "Entities", OPTIONAL },
+       { "Entities", REQUIRED_FOR_PHYSICAL_TAGS },
        { "PartitionedEntities", PROBABLY_IGNORABLE },
        { "Nodes", REQUIRED },
        { "Elements", REQUIRED },
@@ -100,11 +113,7 @@ class GmshReaderForMSH41
       meshFile.open( meshFileName_.c_str() );
 
       WALBERLA_CHECK( !!meshFile, "[Mesh] Error opening file: " << meshFileName_ );
-
-      if ( beVerbose_ )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Reading data from file '" << meshFileName_ << "'" );
-      }
+      WALBERLA_LOG_INFO_ON_ROOT( "Reading data from file '" << meshFileName_ << "'" );
 
       std::string token;
       meshFile >> token; // $MeshFormat
@@ -144,16 +153,18 @@ class GmshReaderForMSH41
    }
 
    /// import information on physical names defined in the MSH file
-   void readSectionPhysicalNames( std::ifstream& file ) const;
+   std::map< marker, std::string > readSectionPhysicalNames( std::ifstream& file ) const;
 
    /// import information on entities defined in the MSH file
-   void readSectionEntities( std::ifstream& file ) const { WALBERLA_ABORT( "readSectionEntities() not implemented, yet!" ); };
+   [[nodiscard]] std::map< marker, uint_t > readSectionEntities( std::ifstream& file ) const;
 
    /// import information on the nodes defined in the MSH file
-   void readSectionNodes( std::ifstream& file, MeshInfo& meshInfo ) const;
+   void readSectionNodes( std::ifstream& file, MeshInfo& meshInfo, const std::map< marker, uint_t >& entityToPhysicalTag ) const;
 
    /// import information on the elements defined in the MSH file
-   void readSectionElements( std::ifstream& file, MeshInfo& meshInfo ) const;
+   void readSectionElements( std::ifstream&                    file,
+                             MeshInfo&                         meshInfo,
+                             const std::map< marker, uint_t >& entityToPhysicalTag ) const;
 };
 
 } // namespace hyteg

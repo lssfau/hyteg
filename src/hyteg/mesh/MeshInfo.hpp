@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
+ * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -419,7 +419,24 @@ class MeshInfo
    static MeshInfo emptyMeshInfo() { return MeshInfo(); }
 
    /// Construct a MeshInfo object from a file in Gmsh format
-   static MeshInfo fromGmshFile( const std::string& meshFileName );
+   ///
+   /// HyTeG supports reading Gmesh files in MSH2.2 and MSH4.1 format.
+   ///
+   /// \note If the mesh is in MSH4.1 format it is possible to have the reader set the primitives'
+   /// Primitive::meshBoundaryFlag_ from the Gmsh's physicalTags. However, for this to work, the
+   /// file needs to contain an Entities section giving physical tags for all entities, i.e. Nodes,
+   /// Curves, Surfaces and in 3D also Volumes, which are used in the mesh itself.
+   /// See Gmsh's documentation on `Physical Curve` etc.
+   ///
+   /// For importPhysicalTags = false, the reader will flag all primitives as 0, i.e. inner, and
+   /// marking primitives and degrees of freedom to be e.g. DirichletBoundary needs to be handled
+   /// inside of the application.
+   ///
+   /// \note The MSH2.2 reader always assumes that there are precisely two flags for each element
+   /// in the Element section, of which we take the first one to be the boundary flag, if the
+   /// element is an edge or a face. Vertices and tetrahedra, are always flagged as 0, i.e. inner.
+   /// Yeah, this seems not to be very consistent.
+   static MeshInfo fromGmshFile( const std::string& meshFileName, bool importPhysicalTags = true );
 
    /// @name Friend classes
    /// The readers for MSH format need access to the internals of MeshInfo
@@ -654,7 +671,8 @@ class MeshInfo
    /// section into MeshInfo object
    void processPrimitivesFromGmshFile( const EdgeContainer& parsedEdges,
                                        const FaceContainer& parsedFaces,
-                                       const CellContainer& parsedCells );
+                                       const CellContainer& parsedCells,
+                                       bool inheritParentBoundaryFlag = false );
 };
 
 } // namespace hyteg

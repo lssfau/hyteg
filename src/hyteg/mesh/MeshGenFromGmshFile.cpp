@@ -31,7 +31,7 @@
 
 namespace hyteg {
 
-MeshInfo MeshInfo::fromGmshFile( const std::string& meshFileName )
+MeshInfo MeshInfo::fromGmshFile( const std::string& meshFileName, bool importPhysicalTags )
 {
    MeshInfo meshInfo;
 
@@ -52,12 +52,18 @@ MeshInfo MeshInfo::fromGmshFile( const std::string& meshFileName )
    // delegate work to reader for specific MSH format
    if ( token == "2.2" )
    {
+      if ( !importPhysicalTags )
+      {
+         WALBERLA_ABORT(
+             "MeshReader for MSH 2.2 will always import physical tags (to some extent)!\n Please see documentation for details." );
+      }
+
       meshInfo = GmshReaderForMSH22::readMesh( meshFileName );
    }
    else if ( token == "4.1" )
    {
       WALBERLA_LOG_WARNING_ON_ROOT( "Support for MSH 4.1 currently under construction" );
-      GmshReaderForMSH41 mshReader( meshFileName );
+      GmshReaderForMSH41 mshReader( meshFileName, importPhysicalTags );
       meshInfo = mshReader.readMesh();
    }
    else
@@ -72,7 +78,8 @@ MeshInfo MeshInfo::fromGmshFile( const std::string& meshFileName )
 
 void MeshInfo::processPrimitivesFromGmshFile( const EdgeContainer& parsedEdges,
                                               const FaceContainer& parsedFaces,
-                                              const CellContainer& parsedCells )
+                                              const CellContainer& parsedCells,
+                                              bool                 inheritParentBoundaryFlag )
 {
    for ( const auto& it : parsedEdges )
    {
@@ -80,44 +87,50 @@ void MeshInfo::processPrimitivesFromGmshFile( const EdgeContainer& parsedEdges,
       this->addEdge( meshInfoEdge );
    }
 
+   // If the edges associated with the face were not already added, add them
    for ( const auto& it : parsedFaces )
    {
       const std::vector< MeshInfo::IDType > faceCoordinates = it.first;
       const MeshInfo::Face                  meshInfoFace    = it.second;
 
-      // If the corresponding edge was not already added, add an edge of type Inner
       WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only triangle faces supported." );
 
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[0], faceCoordinates[1] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[1], faceCoordinates[2] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[2], faceCoordinates[0] } } ), 0 ) );
+      // Determine type of new edge; by default it will be an Inner edge
+      uint_t boundaryFlag = inheritParentBoundaryFlag ? meshInfoFace.getBoundaryFlag() : 0u;
+
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[0], faceCoordinates[1] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[1], faceCoordinates[2] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { faceCoordinates[2], faceCoordinates[0] } } ), boundaryFlag ) );
 
       this->addFace( meshInfoFace );
    }
 
+   // If the edges and faces associated with the cell were not already added, add them
    for ( const auto& it : parsedCells )
    {
       const std::vector< MeshInfo::IDType > cellCoordinates = it.first;
       const MeshInfo::Cell                  meshInfoCell    = it.second;
 
-      // If the corresponding edge was not already added, add an edge of type Inner
       WALBERLA_ASSERT_EQUAL( cellCoordinates.size(), 4, "[Mesh] Only tetrahedron cells supported." );
 
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[1] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[2] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[3] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
-      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
+      // Determine type of new edge or face; by default it will be an Inner edge/face
+      uint_t boundaryFlag = inheritParentBoundaryFlag ? meshInfoCell.getBoundaryFlag() : 0u;
 
-      this->addFace(
-          Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] } } ), 0 ) );
-      this->addFace(
-          Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] } } ), 0 ) );
-      this->addFace(
-          Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
-      this->addFace(
-          Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] } } ), 0 ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[1] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[2] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[0], cellCoordinates[3] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[1], cellCoordinates[2] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[1], cellCoordinates[3] } } ), boundaryFlag ) );
+      this->addEdge( Edge( std::array< MeshInfo::IDType, 2 >( { { cellCoordinates[2], cellCoordinates[3] } } ), boundaryFlag ) );
+
+      this->addFace( Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] } } ),
+                           boundaryFlag ) );
+      this->addFace( Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] } } ),
+                           boundaryFlag ) );
+      this->addFace( Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] } } ),
+                           boundaryFlag ) );
+      this->addFace( Face( std::vector< MeshInfo::IDType >( { { cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] } } ),
+                           boundaryFlag ) );
 
       this->cells_[cellCoordinates] = meshInfoCell;
    }
