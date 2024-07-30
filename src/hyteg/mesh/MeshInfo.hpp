@@ -28,6 +28,7 @@
 #include "core/Abort.h"
 #include "core/debug/Debug.h"
 
+#include "hyteg/mesh/HyTeGMeshDir.hpp"
 #include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
