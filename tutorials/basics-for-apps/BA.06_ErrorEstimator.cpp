@@ -158,7 +158,7 @@ namespace hyteg {
 void errorEstimatorTutorial()
 {
    /// [AdaptiveMesh]
-   auto                  meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   auto                  meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_2el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    adaptiveRefinement::Mesh adaptive_mesh( setupStorage );
