@@ -31,7 +31,7 @@ static void testVertexDoFFunctionMemorySize()
 {
   using namespace edgedof;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/cube_24el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "3D/cube_24el.msh" ) );
 
   for ( const auto & it : storage->getEdges() )
   {

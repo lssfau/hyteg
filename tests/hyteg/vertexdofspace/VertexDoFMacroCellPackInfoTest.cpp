@@ -42,7 +42,7 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
 {
   const uint_t level = 4;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/tet_1el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
 
   auto x = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "x", storage, level, level );
 

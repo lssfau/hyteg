@@ -48,7 +48,7 @@ static void testVertexDoFStencilAssembly()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 12;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
 
   typedef P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1TestForm;
   P1TestForm form;

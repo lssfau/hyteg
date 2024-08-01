@@ -61,7 +61,7 @@ static void testPrimitiveStorageCopy( const MeshInfo& mesh )
       WALBERLA_CHECK_EQUAL( copiedStorage->getNumberOfLocalPrimitives(), 0 );
    }
 
-   WALBERLA_LOG_DEVEL("before copy dist")
+   WALBERLA_LOG_DEVEL( "before copy dist" )
    WALBERLA_MPI_BARRIER()
 
    WALBERLA_LOG_DEVEL( migrationInfo );
@@ -69,8 +69,6 @@ static void testPrimitiveStorageCopy( const MeshInfo& mesh )
    loadbalancing::distributed::reverseDistribution( migrationInfo, *copiedStorage );
 
    WALBERLA_CHECK( storage->getPrimitiveIDs() == copiedStorage->getPrimitiveIDs() );
-
-
 }
 
 } // namespace hyteg
@@ -81,7 +79,7 @@ int main( int argc, char* argv[] )
 
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-   hyteg::testPrimitiveStorageCopy( hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_24el.msh" ) );
+   hyteg::testPrimitiveStorageCopy( hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ) ) );
 
    return EXIT_SUCCESS;
 }

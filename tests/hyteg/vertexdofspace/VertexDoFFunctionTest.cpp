@@ -71,8 +71,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
    x->communicate< Edge, Face >( level );
    x->communicate< Face, Cell >( level );
 
-   y->assign( {7.0}, {*x}, level );
-   y->add( {6.0}, {*x}, level );
+   y->assign( { 7.0 }, { *x }, level );
+   y->add( { 6.0 }, { *x }, level );
 
    y->communicate< Vertex, Edge >( level );
    y->communicate< Edge, Face >( level );
@@ -182,7 +182,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
             auto       face         = it.second;
             auto       neighborCell = storage->getCell( face->neighborCells().at( neighborCellID ) );
             auto       vertexAssemblyIndexInCell =
-                vertexdof::macroface::getIndexInNeighboringMacroCell( {1, 1, 0}, *face, neighborCellID, *storage, level );
+                vertexdof::macroface::getIndexInNeighboringMacroCell( { 1, 1, 0 }, *face, neighborCellID, *storage, level );
             faceStencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
                 storage, *neighborCell, vertexAssemblyIndexInCell, level, zeroForm );
 
@@ -261,7 +261,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 
 void testInvertElementwise()
 {
-   auto   storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" );
+   auto   storage = PrimitiveStorage::createFromGmshFile( hyteg::prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) );
    uint_t level   = 3;
 
    vertexdof::VertexDoFFunction< real_t > vFunc( "testFunc", storage, level, level );
@@ -281,9 +281,9 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                 "../../meshes/3D/tet_1el.msh" );
+                                 hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                 "../../meshes/3D/tet_1el.msh" );
+                                 hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
 
    hyteg::testInvertElementwise();
 
