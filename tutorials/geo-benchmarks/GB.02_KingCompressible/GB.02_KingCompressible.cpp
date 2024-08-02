@@ -27,7 +27,6 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
-// #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -46,16 +45,13 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GMRESSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
-
-#include "mixed_operator/VectorMassOperator.hpp"
-#include "terraneo/utils/NusseltNumberOperator.hpp"
-// #include "SimpleCompStokesOperator.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMass.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
-// #include "hyteg_operators/operators/k_mass/P1ToP2ElementwiseKMass.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+#include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
+#include "terraneo/utils/NusseltNumberOperator.hpp"
 
 /**
  * \page GB.02_KingCompressible Tutorial GB.02 - Compressible Benchmark
@@ -63,10 +59,10 @@
  * \dontinclude tutorials/geo-benchmarks/GB.02_KingCompressible/GB.02_KingCompressible.cpp
  * 
  * \brief We have demonstrated the incompressible Stokes-Transport benchmark (Blankenbach) in the previous tutorial. 
- * In this one we will implement a compressible benchmark from Geophysical literature, specially the one from
+ * In this one we will implement a compressible benchmark from Geophysical literature, specifically the one from
  * <a href="https://doi.org/10.1111/j.1365-246X.2009.04413.x">A community benchmark for 2-D Cartesian compressible convection in the Earth's mantle,
  * King et al., 2010, GJI</a>.
- * It involves solving the respective compressible equations on an unit square and calculation of Nusselt numbers and 
+ * It involves solving the respective compressible equations on unit square and calculation of Nusselt numbers and 
  * velocity RMS values to verify the code.
  * 
  * \section GB02-KingCompressible-GoverningEquations Model and Equations
@@ -86,8 +82,9 @@
  *  T(x, y, t = 0) = (1-y) + A\cos{\pi x}\sin{\pi y}
  * \f}
  * 
- * while freeslip boundary conditions is imposed on all four walls of the square.
- * For the temperature field, a Dirichlet of T = 0 and T = 1 is imposed 
+ * where $x$ and $y$ are the coordinates of the unit square with origin at bottom-left. 
+ * Freeslip boundary conditions is imposed on all four walls of the square.
+ * For the temperature field, a Dirichlet boundary condition of T = 0 and T = 1 is imposed 
  * at the top and bottom and zero flux on the sides. This induces a single convection cell 
  * in the square and eventually reaches a steady state. Once this state is reached, 
  * the Nusselt number values are calculated and verified. 
@@ -251,9 +248,6 @@ std::function< bool( const Point3D& ) > cornersMarker = []( const Point3D& x ) {
 };
 
 using P2P1StokesOperator = operatorgeneration::P2P1StokesFullOperator;
-// typedef StrongFreeSlipWrapper< P2P1StokesOperator, P2ProjectNormalOperator, true > StokesOperatorFreeSlip;
-
-// std::function< real_t( const Point3D&, real_t ) > advectionSUPG = []( const Point3D& x, real_t v ) { return getDelta( v ); };
 
 enum BoundaryMarkers
 {
@@ -268,18 +262,40 @@ struct ParameterContainer
 {
    bool verbose = true;
 
-   real_t rMin = 1.22, rMax = 2.22;
+   real_t rMin = 1.22;
+   real_t rMax = 2.22;
 
-   uint_t maxTimeSteps = 1000, vtkWriteFrequency = 1U;
+   uint_t maxTimeSteps      = 1000;
+   uint_t vtkWriteFrequency = 1U;
 
-   bool MMOC = true, SUPG = false, compressible = true, adiabaticHeating = true, shearHeating = true;
+   bool MMOC             = true;
+   bool SUPG             = false;
+   bool compressible     = true;
+   bool adiabaticHeating = true;
+   bool shearHeating     = true;
 
-   real_t Ra = 1e5, Di = 0.5, T0 = 0.091, diffusivity = 1.0, cflMax = 0.75, AiniPerturb = 0.1;
+   real_t Ra          = 1e5;
+   real_t Di          = 0.5;
+   real_t T0          = 0.091;
+   real_t diffusivity = 1.0;
+   real_t cflMax      = 0.75;
+   real_t AiniPerturb = 0.1;
 
-   real_t rho0 = 1.0, alpha = 1.0, cpr = 1.0, cvr = 1.0, grueneisen = 1.0, alphabar = 1.0, cpbar = 1.0, chibar = 1.0, k_ = 1.0;
+   real_t rho0       = 1.0;
+   real_t alpha      = 1.0;
+   real_t cpr        = 1.0;
+   real_t cvr        = 1.0;
+   real_t grueneisen = 1.0;
+   real_t alphabar   = 1.0;
+   real_t cpbar      = 1.0;
+   real_t chibar     = 1.0;
+   real_t k_         = 1.0;
 
-   real_t minresRelTol = 1e-4, minresAbsTol = 1e-8, gmresTol = 1e-5;
-   uint_t minresIter = 1000U, gmresIter = 1000U;
+   real_t minresRelTol = 1e-4;
+   real_t minresAbsTol = 1e-8;
+   real_t gmresTol     = 1e-5;
+   uint_t minresIter   = 1000U;
+   uint_t gmresIter    = 1000U;
 
    uint_t nsCalcFreq = 10U;
 };
@@ -316,7 +332,8 @@ class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P
    P2ElementwiseBlendingLaplaceOperator diffusionOperator;
    P2ElementwiseBlendingMassOperator    massOperator;
 
-   real_t dt = 0.01, k_ = 1.0;
+   real_t dt = 0.01;
+   real_t k_ = 1.0;
 };
 
 class TALASimulation
@@ -383,12 +400,6 @@ class TALASimulation
             nx[0] = 0.0;
             nx[1] = -1.0;
          }
-         // else if(cornersMarker(x))
-         // {
-         //    Point3D center(0.5, 0.5, 0.0);
-         //    nx = x - center;
-         //    nx.normalize();
-         // }
          else
          {
             WALBERLA_LOG_INFO_ON_ROOT( "Probably shouldn't be here!" );
@@ -402,7 +413,6 @@ class TALASimulation
          }
          else if ( bottomMarker( x ) )
          {
-            // return ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
             return 1.0;
          }
          return 0.0;
@@ -555,8 +565,6 @@ class TALASimulation
       stokesOperator = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscP2 );
       /// [StokesOperator]
 
-      // stokesOperatorFS = std::make_shared< StokesOperatorFreeSlip >( stokesOperator, projectionOperator, FreeslipBoundary );
-
       params.cflMax = mainConf.getParameter< real_t >( "cflMax" );
 
       params.verbose     = mainConf.getParameter< bool >( "verbose" );
@@ -575,12 +583,6 @@ class TALASimulation
       transportTALAGmresSolver = std::make_shared< GMRESSolver< P2TransportTALAOperator > >(
           storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
       transportTALAGmresSolver->setPrintInfo( true );
-
-      // transportTALAMinresSolver = std::make_shared< MinResSolver< P2TransportTALAOperator > >(
-      //     storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresTol );
-      // transportTALAMinresSolver->setPrintInfo( params.verbose );
-
-      // transportTALADirectSolver = std::make_shared< PETScLUSolver< P2TransportTALAOperator > >( storage_, maxLevel_ );
 
       std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
       std::string outputPath     = mainConf.getParameter< std::string >( "outputPath" );
@@ -645,7 +647,6 @@ class TALASimulation
    std::shared_ptr< P2P1StokesOperator > stokesOperator;
 
    std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
-   // std::shared_ptr< StokesOperatorFreeSlip >  stokesOperatorFS;
 
    P2ElementwiseBlendingVectorMassOperator vecMassOperator;
    P2ElementwiseBlendingMassOperator       massOperator;
@@ -658,8 +659,6 @@ class TALASimulation
 
    std::shared_ptr< P2TransportTALAOperator > transportTALAOp;
 
-   //    std::shared_ptr< P2P1THCompStokesOperator > compStokesOp;
-
    MMOCTransport< P2Function< real_t > > transport;
 
    // Solvers
@@ -667,12 +666,9 @@ class TALASimulation
    std::shared_ptr< PETScLUSolver< P2P1StokesOperator > > stokesDirectSolver;
 #endif
    std::shared_ptr< MinResSolver< P2P1StokesOperator > > stokesMinresSolver;
-   // std::shared_ptr< MinResSolver< P2TransportTimesteppingOperator > > transportMinresSolver;
 
    std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
    std::shared_ptr< GMRESSolver< P2TransportTALAOperator > >         transportTALAGmresSolver;
-   // std::shared_ptr< MinResSolver< P2TransportTALAOperator > >        transportTALAMinresSolver;
-   // std::shared_ptr< PETScLUSolver< P2TransportTALAOperator > >       transportTALADirectSolver;
 
    ParameterContainer params;
 
@@ -750,7 +746,9 @@ void TALASimulation::solveT()
 
    /// [MMOCForTransport]
    if ( params.MMOC )
+   {
       transportTALAOp->stepMMOC( maxLevel );
+   }
    /// [MMOCForTransport]
 
    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
@@ -769,7 +767,6 @@ void TALASimulation::solveT()
 void TALASimulation::step()
 {
    real_t vMax = u->uvw().getMaxComponentMagnitude( maxLevel, All );
-   // real_t hMin = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
 
    real_t Pe = hMax * vMax / ( 4 * params.k_ );
@@ -833,16 +830,10 @@ void TALASimulation::solve()
          writeVTK( iTimeStep );
       }
 
-      // if ( residualTransport > residualExitTol )
-      // {
-      //    WALBERLA_ABORT( "Residual is blowing up, so exiting!" );
-      // }
-
       if ( iTimeStep % params.nsCalcFreq == 0 )
       {
          real_t deltaT           = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
          real_t nusseltNumberTop = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
-         // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
          real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
 
          uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
@@ -851,7 +842,6 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
              "nusseltNumberTop = %4.7e\nnusseltNumberBot = not_calculated\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
              nusseltNumberTop,
-             //  nusseltNumberBottom,
              deltaT,
              velocityRMSValue,
              nVelocityDoFs,
@@ -930,8 +920,6 @@ int main( int argc, char* argv[] )
    TALASimulation simulation( mainConf, storage, minLevel, maxLevel );
 
    simulation.solve();
-
-   // simulation.writeVTK();
 
    return 0;
 }
