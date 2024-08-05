@@ -114,7 +114,7 @@ inline std::function< real_t( const Point3D& ) >
       real_t temp =
           tempInitParams.TsurfaceAdb() * std::exp( ( tempInitParams.dissipationNumber() * ( tempInitParams.rMax() - radius ) ) );
 
-      real_t retVal = (temp - tempInitParams.Tsurface()) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+      real_t retVal = ( temp ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
 
       return retVal;
    };
@@ -144,9 +144,10 @@ inline std::function< real_t( const Point3D& ) >
 /// \param referenceTemp  a std::function that represents a some reference temperature profile
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-inline std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
-                                                                 const std::function< real_t( const Point3D& ) >& referenceTemp,
-                                                                 real_t                                           noiseFactor )
+inline std::function< real_t( const Point3D& ) >
+    temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
+                           const std::function< real_t( const Point3D& ) >& referenceTemp,
+                           real_t                                           noiseFactor )
 {
    return [=]( const hyteg::Point3D& x ) {
       auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
@@ -157,15 +158,15 @@ inline std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const Te
 
       const auto Tcmb     = tempInitParams.Tcmb();
       const auto Tsurface = tempInitParams.Tsurface();
-      
+
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return real_c(1);
+         return ( tempInitParams.Tcmb() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return real_c(0);
+         return ( tempInitParams.Tsurface() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
       }
       else
       {
@@ -196,15 +197,15 @@ inline std::function< real_t( const Point3D& ) > temperatureWhiteNoise( const Te
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
 inline std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureInitializationParameters&       tempInitParams,
-                                                          const std::function< real_t( const Point3D& ) >& referenceTemp,
-                                                          const uint_t                                     tempInit,
-                                                          const uint_t                                     deg,
-                                                          const int                                        ord,
-                                                          const uint_t                                     lmax,
-                                                          const uint_t                                     lmin,
-                                                          const bool                                       superposition,
-                                                          const real_t                                     buoyancyFactor,
-                                                          const real_t initialTemperatureSteepness )
+                                                                 const std::function< real_t( const Point3D& ) >& referenceTemp,
+                                                                 const uint_t                                     tempInit,
+                                                                 const uint_t                                     deg,
+                                                                 const int                                        ord,
+                                                                 const uint_t                                     lmax,
+                                                                 const uint_t                                     lmin,
+                                                                 const bool                                       superposition,
+                                                                 const real_t                                     buoyancyFactor,
+                                                                 const real_t initialTemperatureSteepness )
 {
    return [=]( const hyteg::Point3D& x ) {
       const auto rMin     = tempInitParams.rMin();
@@ -212,20 +213,19 @@ inline std::function< real_t( const Point3D& ) > temperatureSPH( const Temperatu
       const auto Tcmb     = tempInitParams.Tcmb();
       const auto Tsurface = tempInitParams.Tsurface();
 
-      auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+      auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
 
       real_t retVal = referenceTemp( x );
 
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return real_c(1);
+         return ( tempInitParams.Tcmb() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return real_c(0);
+         return ( tempInitParams.Tsurface() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
       }
-
 
       std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
       real_t                                    filter;
@@ -265,6 +265,7 @@ inline std::function< real_t( const Point3D& ) > temperatureSPH( const Temperatu
          uint_t                numHarmonics = ( ( lmax + 1 ) * ( lmax + 1 ) ) - ( lmin ) * ( lmin );
          std::vector< real_t > superpositionRand{};
          superpositionRand.reserve( numHarmonics );
+         walberla::math::seedRandomGenerator( 42 );
          for ( uint_t i = 0; i < numHarmonics; i++ )
          {
             superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
@@ -287,8 +288,8 @@ inline std::function< real_t( const Point3D& ) > temperatureSPH( const Temperatu
       else
       {
          // Single spherical harmonic for the initialisation.
-         retVal += ( buoyancyFactor * filter * std::sin(walberla::math::pi * (radius - rMin)/(rMax - rMin))  * sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) /
-                     std::sqrt( real_c( 4 ) * walberla::math::pi ) );
+         retVal += ( buoyancyFactor * filter * std::sin( walberla::math::pi * ( radius - rMin ) / ( rMax - rMin ) ) *
+                     sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) / std::sqrt( real_c( 4 ) * walberla::math::pi ) );
       }
       return retVal;
    };
