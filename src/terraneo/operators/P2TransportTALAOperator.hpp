@@ -267,7 +267,6 @@ class P2TransportOperatorTemplate : public hyteg::Operator< hyteg::P2Function< r
 
       if ( TALADict_.at( TransportOperatorTermKey::ADIABATIC_HEATING_TERM ) )
       {
-         WALBERLA_CHECK_NOT_NULLPTR( surfTempCoeff_ );
          // $\Delta t \int_\Omega C_{adiabatic} T_h^{n+1} s_h d\Omega$
          temp2_.uvw().multElementwise( { velocity_->uvw(), *invGravity_ }, level, hyteg::All );
          if ( dst.getStorage()->hasGlobalCells() )

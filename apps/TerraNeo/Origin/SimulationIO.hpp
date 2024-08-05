@@ -63,6 +63,25 @@ void ConvectionSimulation::setupOutput()
 #endif
    }
 
+   // Setup output of Temperature and viscosity in SI units [K] and [Pa s], respectively
+
+   auto temperatureSI = std::make_shared< ScalarFunction >(
+       "Temperature [K]", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   auto temperatureRefSI = std::make_shared< ScalarFunction >(
+       "Reference Temperature [K]", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   auto viscositySI = std::make_shared< ScalarFunction >(
+       "Viscosity [Pa s]", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+
+   temperatureSI->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
+                          { *temperature },
+                          TN.domainParameters.maxLevel,
+                          All );
+   temperatureRefSI->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
+                             { *temperatureReference },
+                             TN.domainParameters.maxLevel,
+                             All );
+   viscositySI->assign( { ( TN.physicalParameters.referenceViscosity ) }, { *viscosityFE }, TN.domainParameters.maxLevel, All );
+
    if ( TN.outputParameters.vtk )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " VTK is NOT recommended for speed and memory management " );
@@ -70,12 +89,12 @@ void ConvectionSimulation::setupOutput()
       {
          if ( TN.outputParameters.vtkOutputVertexDoFs )
          {
-            vtkOutput->add( temperature->getVertexDoFFunction() );
+            vtkOutput->add( temperatureSI->getVertexDoFFunction() );
             vtkOutput->add( temperatureDev->getVertexDoFFunction() );
          }
          else
          {
-            vtkOutput->add( *temperature );
+            vtkOutput->add( *temperatureSI );
             vtkOutput->add( *temperatureDev );
          }
       }
@@ -112,8 +131,9 @@ void ConvectionSimulation::setupOutput()
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       if ( TN.outputParameters.OutputTemperature )
       {
-         _output->add( *temperature );
+         _output->add( *temperatureSI );
          _output->add( *temperatureDev );
+         _output->add( *temperatureRefSI );
       }
 
       if ( TN.outputParameters.OutputVelocity )
@@ -136,10 +156,9 @@ void ConvectionSimulation::setupOutput()
          _output->add( *velocityMagnitudeSquared );
       }
 
-      _output->add( *temperatureReference );
       _output->add( *diffusionFE );
       _output->add( *densityFE );
-      _output->add( *viscosityFE );
+      _output->add( *viscositySI );
 
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
@@ -209,11 +228,11 @@ void ConvectionSimulation::dataOutput()
           [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
              auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
              real_t retVal;
-
              uint_t shell = static_cast< uint_t >( std::round(
                  real_c( TN.simulationParameters.numLayers ) *
                  ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
              retVal       = ( Temperature[0] - temperatureProfiles->mean.at( shell ) );
+             retVal *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ); // Redimensionalise Temperature [K]
              return retVal;
           };
 
@@ -225,16 +244,16 @@ void ConvectionSimulation::dataOutput()
 
    uint_t outputTime;
 
-   //with plates, output with plate age in filename
+   //For circulation model, output with plate age in filename
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       outputTime = uint_c( std::round( TN.simulationParameters.ageMa ) );
    }
 
-   //otherwise, output with time since beginning of simulation
+   //For convection model, output with number of timesteps
    else
    {
-      outputTime = uint_c( std::round( TN.simulationParameters.modelRunTimeMa ) );
+      outputTime = uint_c( std::round( TN.simulationParameters.timeStep ) );
    }
 
    if ( TN.outputParameters.dataOutput && TN.outputParameters.vtk )
@@ -268,6 +287,14 @@ void ConvectionSimulation::dataOutput()
 
    if ( TN.outputParameters.outputProfiles )
    {
+      // Redimensionalise tempeature to SI unit [K]
+      for ( uint_t i = 0; i < temperatureProfiles->mean.size(); i++ )
+      {
+         temperatureProfiles->mean[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         temperatureProfiles->max[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         temperatureProfiles->min[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+      }
+
       temperatureProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
                                           TN.outputParameters.outputBaseName + "_TempProfile_" + std::to_string( outputTime ) +
                                           ".dat",
@@ -275,7 +302,7 @@ void ConvectionSimulation::dataOutput()
 
       if ( TN.simulationParameters.tempDependentViscosity )
       {
-         // Redimensionalise viscosity for logging
+         // Redimensionalise viscosity to SI unit [Pa s]
          for ( uint_t i = 0; i < viscosityProfiles->mean.size(); i++ )
          {
             viscosityProfiles->mean[i] *= TN.physicalParameters.referenceViscosity;

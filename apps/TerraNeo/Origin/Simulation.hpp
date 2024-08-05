@@ -283,10 +283,7 @@ void ConvectionSimulation::solveEnergy()
 
    adiabaticTermCoeff->interpolate( TN.physicalParameters.dissipationNumber, TN.domainParameters.maxLevel, All );
    shearHeatingTermCoeff->interpolate( shearHeatingCoeffCalc, { *densityFE }, TN.domainParameters.maxLevel, All );
-   surfTempCoeff->interpolate( -TN.physicalParameters.surfaceTemp /
-                                   ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ),
-                               TN.domainParameters.maxLevel,
-                               All );
+   surfTempCoeff->interpolate( real_c( 0 ), TN.domainParameters.maxLevel, All );
    constEnergyCoeff->interpolate( internalHeatingCoeffCalc, TN.domainParameters.maxLevel, All );
 
    // Assemble RHS
@@ -544,6 +541,9 @@ real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Tempera
    //depth-dependent factor counteracts the decrease in viscosity due to increasing temperature with depth
    if ( TN.simulationParameters.tempDependentViscosity )
    {
+      // Account for non-dim temperature to be between 0-1
+      Temperature -= TN.physicalParameters.surfaceTemp / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+
       switch ( TN.simulationParameters.tempDependentViscosityType )
       {
       //Frank–Kamenetskii type 1
@@ -722,18 +722,17 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 
    if ( ( radius - TN.domainParameters.rMin ) < real_c( 1e-10 ) )
    {
-      return real_c( 1 );
+      return ( TN.physicalParameters.cmbTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
    else if ( ( TN.domainParameters.rMax - radius ) < real_c( 1e-10 ) )
    {
-      return real_c( 0 );
+      return ( TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
 
    real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
                  std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
 
-   real_t retVal =
-       ( temp - TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+   real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
 
    return retVal;
 }

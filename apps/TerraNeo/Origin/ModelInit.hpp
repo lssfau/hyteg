@@ -35,7 +35,6 @@ ConvectionSimulation::ConvectionSimulation( const walberla::Config::BlockHandle&
    viscosityFunc  = std::bind( &ConvectionSimulation::viscosityFunction, this, std::placeholders::_1, std::placeholders::_2 );
    densityFunc    = std::bind( &ConvectionSimulation::densityFunction, this, std::placeholders::_1 );
    diffFactorFunc = std::bind( &ConvectionSimulation::diffPreFactorFunction, this, std::placeholders::_1 );
-   // referenceTemperatureFct = std::bind( &ConvectionSimulation::referenceTemperatureFunction, this, std::placeholders::_1 );
 }
 
 void ConvectionSimulation::init()
