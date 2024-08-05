@@ -150,6 +150,7 @@ void VTKOutput::write( const uint_t level, const uint_t timestep )
 
    if ( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
    {
+      micromesh::communicate( storage_, level );
       bool excludeDG = true;
       communication::syncRegisteredFunctions( feFunctionRegistry_, level, excludeDG, communication::syncDirection_t::LOW2HIGH );
 

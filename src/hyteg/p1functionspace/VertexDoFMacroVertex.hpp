@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hyteg/Levelinfo.hpp"
+#include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
@@ -45,7 +46,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( Vertex&                                                                      vertex,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                   storage,
+                         Vertex&                                                                      vertex,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >&                vertexMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
                          const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr,
@@ -60,7 +62,8 @@ inline void interpolate( Vertex&                                                
    }
 
    Point3D xBlend;
-   vertex.getGeometryMap()->evalF( vertex.getCoordinates(), xBlend );
+   vertex.getGeometryMap()->evalF( micromesh::microVertexPosition( storage, vertex.getID(), level, indexing::Index( 0, 0, 0 ) ),
+                                   xBlend );
    vertexMemory->getPointer( level )[0] = expr( xBlend, srcVector );
 }
 

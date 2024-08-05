@@ -42,6 +42,10 @@ class Edge;
 class Face;
 class Cell;
 
+namespace micromesh {
+class MicroMesh;
+}
+
 typedef std::map< PrimitiveID, uint_t > MigrationMap_T;
 
 /// \brief Returns on each process the number of expected primitives after migration.
@@ -143,6 +147,15 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
+
+   /// \brief Attaches an explicit micro-mesh to the PrimitiveStorage.
+   ///
+   /// TODO: ===> description <===
+   ///
+   /// \param microMesh
+   void setMicroMesh( const std::shared_ptr< micromesh::MicroMesh >& microMesh ) { microMesh_ = microMesh; };
+
+   std::shared_ptr< micromesh::MicroMesh > getMicroMesh() const { return microMesh_; };
 
    /// \brief Creates a shallow copy of the PrimitiveStorage.
    ///
@@ -845,6 +858,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    MPI_Comm splitComm_;
 
    uint_t additionalHaloDepth_;
+
+   std::shared_ptr< micromesh::MicroMesh > microMesh_;
 };
 
 ////////////////////////////////////////////////
@@ -915,7 +930,10 @@ void PrimitiveStorage::addCellData( PrimitiveDataID< DataType, Cell >&         d
 template < typename DataType, typename PrimitiveType >
 PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 {
-   WALBERLA_DEBUG_SECTION() { checkConsistency(); }
+   WALBERLA_DEBUG_SECTION()
+   {
+      checkConsistency();
+   }
 
    return PrimitiveDataID< DataType, PrimitiveType >( primitiveDataHandlers_++ );
 }

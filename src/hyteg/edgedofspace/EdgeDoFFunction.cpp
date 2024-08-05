@@ -364,7 +364,7 @@ void EdgeDoFFunction< ValueType >::interpolate(
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+         edgedof::macroedge::interpolate< ValueType >( this->getStorage(), level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
@@ -378,7 +378,7 @@ void EdgeDoFFunction< ValueType >::interpolate(
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+         edgedof::macroface::interpolate< ValueType >( this->getStorage(), level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
@@ -394,7 +394,7 @@ void EdgeDoFFunction< ValueType >::interpolate(
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
-            edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+            edgedof::macrocell::interpolate< ValueType >( this->getStorage(), level, cell, cellDataID_, srcCellIDs, expr );
          }
       }
    }
@@ -431,7 +431,7 @@ void EdgeDoFFunction< ValueType >::interpolate(
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
-         edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+         edgedof::macroedge::interpolate< ValueType >( this->getStorage(), level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
@@ -445,7 +445,7 @@ void EdgeDoFFunction< ValueType >::interpolate(
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
-         edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+         edgedof::macroface::interpolate< ValueType >( this->getStorage(), level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
@@ -461,7 +461,7 @@ void EdgeDoFFunction< ValueType >::interpolate(
 
          if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
          {
-            edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+            edgedof::macrocell::interpolate< ValueType >( this->getStorage(), level, cell, cellDataID_, srcCellIDs, expr );
          }
       }
    }

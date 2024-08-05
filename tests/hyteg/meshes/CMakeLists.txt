@@ -20,3 +20,5 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     waLBerla_execute_test(NAME TokamakLaplaceTestLongrun COMMAND $<TARGET_FILE:TokamakLaplaceTest> --longrun LABELS longrun)
 endif ()
 
+waLBerla_compile_test(FILES MicroMeshSmokeTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroMeshSmokeTest)

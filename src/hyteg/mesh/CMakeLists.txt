@@ -20,3 +20,4 @@ target_sources( hyteg
     MeshInfo.hpp
 )
 
+add_subdirectory(micro)

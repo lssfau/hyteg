@@ -1,0 +1,2 @@
+waLBerla_compile_test(FILES IsoparametricPoissonConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME IsoparametricPoissonConvergenceTest)

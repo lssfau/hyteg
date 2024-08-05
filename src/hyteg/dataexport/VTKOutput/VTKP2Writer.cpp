@@ -61,7 +61,26 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    {
       VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
-      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level + 1 );
+
+      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level );
+
+      if ( mgr.write2D_ )
+      {
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_X );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XY );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_Y );
+      }
+
+      if ( !mgr.write2D_ )
+      {
+         WALBERLA_ABORT( "Not implemented." )
+
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_Z );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XZ );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_YZ );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XYZ );
+      }
+
       streamWriter.toStream( output );
    }
 
@@ -173,39 +192,48 @@ void VTKP2Writer::writeP2FunctionData( bool                                     
       {
          const Face& face = *itFaces.second;
 
-         for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macroface::Iterator( level, 0 ) )
          {
-            if ( it.y() % 2 == 0 )
-            {
-               if ( it.x() % 2 == 0 )
-               {
-                  dstStream << face.getData( function.getVertexDoFFunction().getFaceDataID() )
-                                   ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                       level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
-               }
-               else
-               {
-                  dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                                   ->getPointer(
-                                       level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
-               }
-            }
-            else
-            {
-               if ( it.x() % 2 == 0 )
-               {
-                  dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                                   ->getPointer(
-                                       level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
-               }
-               else
-               {
-                  dstStream
-                      << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+            dstStream
+                << face.getData( function.getVertexDoFFunction().getFaceDataID() )
+                       ->getPointer(
+                           level )[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C )];
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
-               }
-            }
+                                 level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X )];
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                             ->getPointer(
+                                 level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY )];
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                             ->getPointer(
+                                 level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y )];
          }
       }
    }
