@@ -78,16 +78,19 @@ void checkProfile( const terraneo::RadialProfile& profile )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.min.size() )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.max.size() )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.mean.size() )
+   WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.rms.size() )
    WALBERLA_CHECK_EQUAL( profile.shellRadii.size(), profile.numDoFsPerShell.size() )
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %8s | %8s | %8s | %8s ", "radius", "min", "mean", "max", "count" ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( " %8s | %8s | %8s | %8s | %8s ", "radius", "min", "mean", "rms", "max", "count" ) );
    WALBERLA_LOG_INFO_ON_ROOT( " ---------+----------+----------+----------+---------- " );
    for ( uint_t i = 0; i < profile.shellRadii.size(); i++ )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8f | %8f | %8f | %8f | %8u ",
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8f | %8f | %8f | %8f | %8f | %8u ",
                                                    profile.shellRadii[i],
                                                    profile.min[i],
                                                    profile.mean[i],
+                                                   profile.rms[i],
                                                    profile.max[i],
                                                    profile.numDoFsPerShell[i] ) )
 
@@ -446,7 +449,6 @@ int main( int argc, char** argv )
    uint_t level = 3;
    uint_t nTan  = 3;
    uint_t nRad  = 2;
-
 
    WALBERLA_LOG_INFO_ON_ROOT( "**************************************" );
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing with P1 type functions ***" );

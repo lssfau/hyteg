@@ -85,7 +85,6 @@ inline real_t radiusOfMacroMeshShell( uint_t layer, real_t rMin, real_t rMax, ui
 
 std::vector< real_t >
     computeShellRadii( const std::vector< real_t >& layers, uint_t level, uint_t polynomialOrderOfLagrangeDiscr )
-
 {
    uint_t effectiveLevel = level + polynomialOrderOfLagrangeDiscr - 1;
 
@@ -128,14 +127,14 @@ inline uint_t nearestShellFromRadius( real_t radius,
 /// Computes the index of the nearest shell from a given radius.
 inline uint_t nearestShellFromRadius( real_t radius, const std::vector< real_t >& shellRadii )
 {
-   uint_t nearestShell = 0u;
+   uint_t nearestShell    = 0u;
    real_t nearestDistance = __DBL_MAX__;
    for ( uint_t iShell = 0u; iShell < shellRadii.size(); iShell++ )
    {
-      if(std::abs(radius - shellRadii[iShell]) < nearestDistance)
+      if ( std::abs( radius - shellRadii[iShell] ) < nearestDistance )
       {
-         nearestShell = iShell;
-         nearestDistance = std::abs(radius - shellRadii[iShell]);
+         nearestShell    = iShell;
+         nearestDistance = std::abs( radius - shellRadii[iShell] );
       }
    }
 
@@ -406,6 +405,7 @@ struct RadialProfile
    std::vector< real_t > mean;
    std::vector< real_t > max;
    std::vector< real_t > min;
+   std::vector< real_t > rms;
    std::vector< uint_t > numDoFsPerShell;
 
    /// Simple logging of all vectors to file.
@@ -414,6 +414,7 @@ struct RadialProfile
       WALBERLA_CHECK_EQUAL( shellRadii.size(), mean.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), max.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), min.size() );
+      WALBERLA_CHECK_EQUAL( shellRadii.size(), rms.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), numDoFsPerShell.size() );
 
       WALBERLA_ROOT_SECTION()
@@ -441,8 +442,20 @@ struct RadialProfile
 ///
 /// Assumes that the underlying domain is the spherical shell.
 ///
-/// Iterating over the coefficients of the passed FE function, this function computes and returns the min, max, and mean of the
-/// coefficients (for scalar functions) or of the magnitude (for vector-valued functions) in radial layers.
+/// Iterating over the coefficients of the passed FE function, this function computes and returns the min, max, mean, and rms of
+/// the coefficients (for scalar functions) or of the magnitude (for vector-valued functions) in radial layers.
+///
+/// Difference of mean and rms (root mean square): let n be the number of coefficients per shell and x_j the jth data point
+/// (either a scalar value or the magnitude of a vector coefficient (i.e., x_j = sqrt( z[0]^2 + z[1]^2 + z[2]^2 ), if z is the
+/// vector at that point)).
+///
+/// We compute:
+///
+///   mean( x ) = (1/n) * sum_j x_j,
+///
+/// and
+///
+///   rms( x ) = sqrt( (1/n) * sum_j (x_j)^2 ).
 ///
 /// Involves global communication!
 ///
@@ -475,6 +488,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    profile.min.resize( numShells, std::numeric_limits< real_t >::max() );
    profile.max.resize( numShells, std::numeric_limits< real_t >::lowest() );
    profile.mean.resize( numShells );
+   profile.rms.resize( numShells );
    profile.numDoFsPerShell.resize( numShells );
 
    profile.shellRadii = computeShellRadii( layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
@@ -514,6 +528,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
           profile.min[shell] = std::min( profile.min[shell], scalarValue );
           profile.max[shell] = std::max( profile.max[shell], scalarValue );
           profile.mean[shell] += scalarValue;
+          profile.rms[shell] += scalarValue * scalarValue;
           profile.numDoFsPerShell[shell] += 1;
 
           // Returning the value of the first function to ensure that the values are not altered.
@@ -541,12 +556,14 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
    walberla::mpi::allReduceInplace( profile.min, walberla::mpi::MIN );
    walberla::mpi::allReduceInplace( profile.max, walberla::mpi::MAX );
    walberla::mpi::allReduceInplace( profile.mean, walberla::mpi::SUM );
+   walberla::mpi::allReduceInplace( profile.rms, walberla::mpi::SUM );
    walberla::mpi::allReduceInplace( profile.numDoFsPerShell, walberla::mpi::SUM );
 
    // Now compute mean with total / counter
    for ( uint_t shell = 0; shell < numShells; ++shell )
    {
       profile.mean[shell] /= real_c( profile.numDoFsPerShell[shell] );
+      profile.rms[shell] = std::sqrt( profile.rms[shell] / real_c( profile.numDoFsPerShell[shell] ) );
    }
 
    return profile;
