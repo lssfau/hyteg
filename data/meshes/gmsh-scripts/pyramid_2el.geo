@@ -34,8 +34,8 @@ Plane Surface(5) = {5};
 Plane Surface(6) = {6};
 Plane Surface(7) = {7};
 
-Surface Loop(1) = {1,2,3,4};
-Surface Loop(2) = {3,5,6,7};
+Surface Loop(1) = {-1,2,3,-4};
+Surface Loop(2) = {-3,-5,6,-7};
 Volume(1) = {1};
 Volume(2) = {2};
 

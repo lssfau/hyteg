@@ -24,7 +24,7 @@ Plane Surface(2) = {2};
 Plane Surface(3) = {3};
 Plane Surface(4) = {4};
 
-Surface Loop(1) = {1,2,3,4};
+Surface Loop(1) = {-1,2,3,-4};
 Volume(1) = {1};
 
 Physical Point(1) = {1,2,3,4};
