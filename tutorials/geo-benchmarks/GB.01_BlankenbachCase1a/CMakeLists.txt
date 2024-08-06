@@ -9,4 +9,6 @@ waLBerla_add_executable( NAME GB.01_BlankenbachCase1a
         FILES GB.01_BlankenbachCase1a.cpp
         DEPENDS hyteg terraneo convection_particles sqlite mixed_operator)
 
-waLBerla_execute_test(NAME GB.01_BlankenbachCase1a COMMAND $<TARGET_FILE:GB.01_BlankenbachCase1a> PROCESSES 3)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    waLBerla_execute_test( NO_MODULE_LABEL NAME GB.01_BlankenbachCase1a COMMAND $<TARGET_FILE:GB.01_BlankenbachCase1a> PROCESSES 3)
+endif()

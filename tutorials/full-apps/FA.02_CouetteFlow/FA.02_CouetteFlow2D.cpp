@@ -453,8 +453,8 @@ int main( int argc, char* argv[] )
 
    std::ofstream file( "error_analysis.txt", std::ofstream::app );
 
-   const uint minLevel = mainConf.getParameter< uint >( "minLevel" );
-   const uint maxLevel = mainConf.getParameter< uint >( "maxLevel" );
+   const uint_t minLevel = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
    for ( uint_t level = 1u; level <= maxLevel; level++ )
    {

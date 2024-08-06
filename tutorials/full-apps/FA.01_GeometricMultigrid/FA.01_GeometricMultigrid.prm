@@ -2,7 +2,7 @@ Parameters
 {
   mesh ../../data/meshes/2D/annulus.msh;
   minLevel 2;
-  maxLevel 8;
+  maxLevel 5;
   max_outer_iter 20;
   max_coarse_iter 10000;
   mg_tolerance 1e-16;

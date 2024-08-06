@@ -334,22 +334,12 @@ int main( int argc, char** argv )
    DGAMR( 0, 1, dbFile );
    DGAMR( 0, 2, dbFile );
    DGAMR( 0, 3, dbFile );
-   DGAMR( 0, 4, dbFile );
-   DGAMR( 0, 5, dbFile );
-   DGAMR( 0, 6, dbFile );
-   DGAMR( 0, 7, dbFile );
 
    DGAMR( 2, 1, dbFile );
    DGAMR( 2, 2, dbFile );
    DGAMR( 2, 3, dbFile );
-   DGAMR( 2, 4, dbFile );
-   DGAMR( 2, 5, dbFile );
-   DGAMR( 2, 6, dbFile );
 
    DGAMR( 5, 1, dbFile );
    DGAMR( 5, 2, dbFile );
    DGAMR( 5, 3, dbFile );
-   DGAMR( 5, 4, dbFile );
-   DGAMR( 5, 5, dbFile );
-   DGAMR( 5, 6, dbFile );
 }

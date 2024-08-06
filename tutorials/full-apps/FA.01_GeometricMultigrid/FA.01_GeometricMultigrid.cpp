@@ -195,7 +195,7 @@ int main( int argc, char** argv )
 
    /// [Get Parameters]
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   cfg->readParameterFile( "./FA.01_GeomericMultigrid.prm" );
+   cfg->readParameterFile( "./FA.01_GeometricMultigrid.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
    parameters.listParameters();
 

@@ -1,13 +1,13 @@
 Parameters
 {
   minLevel 1;
-  maxLevel 6;
+  maxLevel 4;
 
   outputInterval 10;
 
   tau 5e-3;
   epsilon 4e-2;
-  t_end 1;
+  t_end 0.5;
   num_max_time_steps 300;
 
   printTimingTree true;

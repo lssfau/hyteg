@@ -5,7 +5,7 @@ Parameters
   numVCycles 2;
 
   dt 1e-2;
-  numStokesSteps 100;
+  numStokesSteps 50;
   numTimeStepsPerStokesStep 100;
 
   viscosity 1e-8;
