@@ -40,10 +40,11 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = "../../meshes/quad_4el_neumann.msh";
+   std::string meshFileName = hyteg::prependHyTeGMeshDir( "quad_4el_neumann.msh" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 
@@ -60,10 +61,11 @@ int main( int argc, char* argv[] )
    hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > bc_x = []( const hyteg::Point3D& x ) {
-      if( x[0] < 1e-8 )
+      if ( x[0] < 1e-8 )
       {
          return 16.0 * ( x[1] - 0.5 ) * ( 1.0 - x[1] );
-      } else
+      }
+      else
       {
          return 0.0;
       }
@@ -72,7 +74,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw().interpolate( {bc_x, zero}, maxLevel, hyteg::DirichletBoundary );
+   u.uvw().interpolate( { bc_x, zero }, maxLevel, hyteg::DirichletBoundary );
 
    auto solver = hyteg::MinResSolver< hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel );
    solver.solve( L, u, f, maxLevel );

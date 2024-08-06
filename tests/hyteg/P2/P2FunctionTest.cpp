@@ -25,8 +25,8 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -37,8 +37,8 @@ static void testP2Function()
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
 
-   MeshInfo mesh  = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
-   MeshInfo mesh2 = MeshInfo::fromGmshFile( "../../meshes/annulus_coarse.msh" );
+   MeshInfo mesh  = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+   MeshInfo mesh2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "annulus_coarse.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    SetupPrimitiveStorage setupStorage2( mesh2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -70,70 +70,64 @@ static void testP2Function()
 
    hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
           vertexDoFFaceDataX[vertexdof::macroface::indexFromVertex( maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )],
           real_c( 2 ) );
    }
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 2 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataX[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 2 ) );
    }
 
    // Assign
 
    timer["Assign"].start();
-   y.assign( {3.0}, {x}, maxLevel, DoFType::All );
+   y.assign( { 3.0 }, { x }, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
           vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )],
           real_c( 6 ) );
    }
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 6 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 6 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 6 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 6 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 6 ) );
    }
 
    // Add
 
    timer["Add"].start();
-   y.add( {{4.0, 3.0}}, {{x, x}}, maxLevel, DoFType::All );
+   y.add( { { 4.0, 3.0 } }, { { x, x } }, maxLevel, DoFType::All );
    timer["Add"].end();
    hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
-   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
           vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel, it.x(), it.y(), stencilDirection::VERTEX_C )],
           real_c( 20 ) );
    }
 
-   for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
+   for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.x(), it.y() )],
                                   real_c( 20 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 20 ) );
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )],
-                                  real_c( 20 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.x(), it.y() )], real_c( 20 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFFaceDataY[edgedof::macroface::verticalIndex( maxLevel, it.x(), it.y() )], real_c( 20 ) );
    }
 
    // Dot
@@ -155,9 +149,9 @@ static void testP2Function()
    std::function< real_t( const hyteg::Point3D& ) > linearX = []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; };
    p2->interpolate( linearX, maxLevel, DoFType::All );
 
-//   VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
-//   vtkOutput.add( *p2 );
-//   vtkOutput.write( maxLevel );
+   //   VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
+   //   vtkOutput.add( *p2 );
+   //   vtkOutput.write( maxLevel );
 }
 
 } // namespace hyteg

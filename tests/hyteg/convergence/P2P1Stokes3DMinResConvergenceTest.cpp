@@ -47,7 +47,7 @@ using walberla::uint_t;
 template < typename P2P1P1StokesOperator >
 void stokesMinResConvergenceTest()
 {
-   const std::string meshFileName  = "../../meshes/3D/cube_24el.msh";
+   const std::string meshFileName  = hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" );
    const uint_t      minLevel      = 2;
    const uint_t      maxLevel      = 2;
    const uint_t      maxIterations = 20;
@@ -115,19 +115,19 @@ void stokesMinResConvergenceTest()
    hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
    hyteg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-//   hyteg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
-//   vtkOutput.add( u.u );
-//   vtkOutput.add( u.v );
-//   // vtkOutput.add( u.w );
-//   vtkOutput.add( u.p() );
-//   vtkOutput.add( uExact.u );
-//   vtkOutput.add( uExact.v );
-//   // vtkOutput.add( uExact.w );
-//   vtkOutput.add( uExact.p() );
-//   vtkOutput.add( err.u );
-//   vtkOutput.add( err.v );
-//   // vtkOutput.add( err.w );
-//   vtkOutput.add( err.p() );
+   //   hyteg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
+   //   vtkOutput.add( u.u );
+   //   vtkOutput.add( u.v );
+   //   // vtkOutput.add( u.w );
+   //   vtkOutput.add( u.p() );
+   //   vtkOutput.add( uExact.u );
+   //   vtkOutput.add( uExact.v );
+   //   // vtkOutput.add( uExact.w );
+   //   vtkOutput.add( uExact.p() );
+   //   vtkOutput.add( err.u );
+   //   vtkOutput.add( err.v );
+   //   // vtkOutput.add( err.w );
+   //   vtkOutput.add( err.p() );
 
    P2P1P1StokesOperator L( storage, minLevel, maxLevel );
 
@@ -165,8 +165,8 @@ void stokesMinResConvergenceTest()
 #if 0
    u.w.interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
+   u.uvw().interpolate( { collidingFlow_x, collidingFlow_y, zero }, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( { collidingFlow_x, collidingFlow_y, zero }, maxLevel );
    uExact.p().interpolate( collidingFlow_p, maxLevel );
 #endif
 
@@ -176,7 +176,8 @@ void stokesMinResConvergenceTest()
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
-   auto solver = hyteg::MinResSolver< P2P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
+   auto solver =
+       hyteg::MinResSolver< P2P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
 
    solver.solve( L, u, f, maxLevel );
 
@@ -185,7 +186,7 @@ void stokesMinResConvergenceTest()
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
-   err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
+   err.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel );
 
    uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
 
@@ -201,7 +202,7 @@ void stokesMinResConvergenceTest()
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-//   vtkOutput.write( maxLevel, 1 );
+   //   vtkOutput.write( maxLevel, 1 );
 
    auto tt        = storage->getTimingTree();
    auto ttreduced = tt->getReduced().getCopyWithRemainder();

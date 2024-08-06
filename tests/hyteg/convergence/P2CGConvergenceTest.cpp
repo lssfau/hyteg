@@ -69,20 +69,20 @@ void P2CGTest( const std::string& meshFile, const uint_t level, const real_t tar
    auto solver = hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator >( storage, level, level );
    solver.solve( L, u, f, level );
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, level );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, level );
    npoints_helper.interpolate( ones, level );
 
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
    const real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / npoints );
 
-//   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
-//   vtkOutput.add( u );
-//   vtkOutput.add( u_exact );
-//   vtkOutput.add( f );
-//   vtkOutput.add( r );
-//   vtkOutput.add( err );
-//   vtkOutput.add( npoints_helper );
-//   vtkOutput.write( level );
+   //   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+   //   vtkOutput.add( u );
+   //   vtkOutput.add( u_exact );
+   //   vtkOutput.add( f );
+   //   vtkOutput.add( r );
+   //   vtkOutput.add( err );
+   //   vtkOutput.add( npoints_helper );
+   //   vtkOutput.write( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err << " (level " << level << ", mesh: " << meshFile << ")" );
    WALBERLA_CHECK_LESS( discr_l2_err, targetError );
@@ -96,23 +96,23 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::P2CGTest( "../../meshes//tri_1el.msh", 0, 1, false );
-   hyteg::P2CGTest( "../../meshes//quad_4el.msh", 0, 1, false );
-   hyteg::P2CGTest( "../../meshes/3D/tet_1el.msh", 0, 1, false );
-   hyteg::P2CGTest( "../../meshes/3D/pyramid_2el.msh", 0, 1, false );
-   hyteg::P2CGTest( "../../meshes/3D/regular_octahedron_8el.msh", 0, 1, true );
-   hyteg::P2CGTest( "../../meshes/3D/cube_24el.msh", 0, 1, true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 0, 1, false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 0, 1, false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0, 1, false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0, 1, false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0, 1, true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), 0, 1, true );
 
-   hyteg::P2CGTest( "../../meshes//tri_1el.msh", 1, real_c( 1.5e-05 ), false );
-   hyteg::P2CGTest( "../../meshes//quad_4el.msh", 1, real_c( 2e-05 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/tet_1el.msh", 1, real_c( 3e-06 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/pyramid_2el.msh", 1, real_c( 2e-04 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/regular_octahedron_8el.msh", 1, real_c( 1.5e-04 ), true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 1, real_c( 1.5e-05 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 1, real_c( 2e-05 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1, real_c( 3e-06 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1, real_c( 2e-04 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1, real_c( 1.5e-04 ), true );
 
-   hyteg::P2CGTest( "../../meshes//tri_1el.msh", 3, real_c( 1e-7 ), false );
-   hyteg::P2CGTest( "../../meshes//quad_4el.msh", 3, real_c( 4e-7 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/tet_1el.msh", 2, real_c( 3e-6 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/tet_1el.msh", 3, real_c( 3e-7 ), true );
-   hyteg::P2CGTest( "../../meshes/3D/pyramid_2el.msh", 2, real_c( 3e-5 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/regular_octahedron_8el.msh", 2, real_c( 1.7e-5 ), true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 3, real_c( 1e-7 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 3, real_c( 4e-7 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, real_c( 3e-6 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, real_c( 3e-7 ), true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, real_c( 3e-5 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, real_c( 1.7e-5 ), true );
 }

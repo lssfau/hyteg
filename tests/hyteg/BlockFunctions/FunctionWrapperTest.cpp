@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -92,7 +92,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " Testing FunctionWrapper" );
    WALBERLA_LOG_INFO_ON_ROOT( "=========================" );
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -177,7 +177,7 @@ int main( int argc, char* argv[] )
 
    // check assign
    FunctionWrapper< P1Function< real_t > > p1WrapOther( "Another P1func", storage, minLevel, maxLevel );
-   p1Wrap.assign( {1.0, -2.0}, {p1Wrap, p1WrapOther}, maxLevel );
+   p1Wrap.assign( { 1.0, -2.0 }, { p1Wrap, p1WrapOther }, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "assign() -> check" );
 
    // check inner product
@@ -193,7 +193,7 @@ int main( int argc, char* argv[] )
    P2VectorFunction< real_t > p2vec = p2vecWrap.unwrap();
    WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxMagnitude( maxLevel ), real_c( 2 ) );
 
-   p2vecWrap.multElementwise( {p2vecWrap, p2vecWrap}, maxLevel, All );
+   p2vecWrap.multElementwise( { p2vecWrap, p2vecWrap }, maxLevel, All );
    WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxMagnitude( maxLevel ), real_c( 4 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "P2VecFunc.interpolate() -> check" );
 

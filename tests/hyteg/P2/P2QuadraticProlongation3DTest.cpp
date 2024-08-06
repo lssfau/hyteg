@@ -49,7 +49,7 @@ void testWeightsInCellVertexDoF()
 
    const uint_t lowerLevel = 2;
 
-   const auto            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
+   const auto            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -58,7 +58,7 @@ void testWeightsInCellVertexDoF()
 
    for ( auto it : FunctionIterator< P1Function< real_t > >( u.getVertexDoFFunction(), lowerLevel ) )
    {
-      if ( it.isOnMacroCell() && it.isVertexDoF() && it.index() == Index( {1, 1, 1} ) )
+      if ( it.isOnMacroCell() && it.isVertexDoF() && it.index() == Index( { 1, 1, 1 } ) )
       {
          it.value() = 1.0;
       }
@@ -68,13 +68,13 @@ void testWeightsInCellVertexDoF()
    prolongationOperator.prolongate( u, lowerLevel, Inner | NeumannBoundary );
 
    std::map< eo, uint_t > numNeighborElements = {
-       {eo::X, 6},
-       {eo::Y, 4},
-       {eo::Z, 6},
-       {eo::XY, 6},
-       {eo::XZ, 4},
-       {eo::YZ, 6},
-       {eo::XYZ, 4},
+       { eo::X, 6 },
+       { eo::Y, 4 },
+       { eo::Z, 6 },
+       { eo::XY, 6 },
+       { eo::XZ, 4 },
+       { eo::YZ, 6 },
+       { eo::XYZ, 4 },
    };
 
    uint_t numModifiedDoFs = 0;
@@ -105,7 +105,7 @@ void testWeightsInCellEdgeDoF()
 
    const uint_t lowerLevel = 2;
 
-   const auto            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
+   const auto            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -114,7 +114,7 @@ void testWeightsInCellEdgeDoF()
 
    for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( u.getEdgeDoFFunction(), lowerLevel ) )
    {
-      if ( it.isOnMacroCell() && it.isEdgeDoF() && it.edgeDoFOrientation() == eo::Z && it.index() == Index( {1, 1, 0} ) )
+      if ( it.isOnMacroCell() && it.isEdgeDoF() && it.edgeDoFOrientation() == eo::Z && it.index() == Index( { 1, 1, 0 } ) )
       {
          WALBERLA_LOG_INFO_ON_ROOT( it );
          it.value() = 1.0;
@@ -125,13 +125,13 @@ void testWeightsInCellEdgeDoF()
    prolongationOperator.prolongate( u, lowerLevel, Inner | NeumannBoundary );
 
    std::map< eo, uint_t > numNeighborElements = {
-       {eo::X, 6},
-       {eo::Y, 4},
-       {eo::Z, 6},
-       {eo::XY, 6},
-       {eo::XZ, 4},
-       {eo::YZ, 6},
-       {eo::XYZ, 4},
+       { eo::X, 6 },
+       { eo::Y, 4 },
+       { eo::Z, 6 },
+       { eo::XY, 6 },
+       { eo::XZ, 4 },
+       { eo::YZ, 6 },
+       { eo::XYZ, 4 },
    };
 
    uint_t numModifiedDoFs = 0;
@@ -206,7 +206,7 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
       P2toP2QuadraticProlongation prolongationOperator;
       prolongationOperator.prolongate( u, lowerLevel, Inner | NeumannBoundary );
 
-      err.assign( {1.0, -1.0}, {u, resultExact}, lowerLevel + 1, Inner | NeumannBoundary );
+      err.assign( { 1.0, -1.0 }, { u, resultExact }, lowerLevel + 1, Inner | NeumannBoundary );
       const real_t discrErr = err.dotGlobal( err, lowerLevel + 1, Inner | NeumannBoundary );
       return discrErr;
    };
@@ -307,9 +307,9 @@ void testProlongateAndAdd3D( const std::string& meshFile, const uint_t& lowerLev
    prolongationOperator.prolongate( uProlongate, lowerLevel, Inner | NeumannBoundary );
    prolongationOperator.prolongateAndAdd( uProlongateAndAdd, lowerLevel, Inner | NeumannBoundary );
 
-   uProlongate.add( {1.0}, {uAdd}, lowerLevel + 1, Inner | NeumannBoundary );
+   uProlongate.add( { 1.0 }, { uAdd }, lowerLevel + 1, Inner | NeumannBoundary );
 
-   err.assign( {1.0, -1.0}, {uProlongate, uProlongateAndAdd}, lowerLevel + 1, Inner | NeumannBoundary );
+   err.assign( { 1.0, -1.0 }, { uProlongate, uProlongateAndAdd }, lowerLevel + 1, Inner | NeumannBoundary );
    const real_t discrErr = err.dotGlobal( err, lowerLevel + 1, Inner | NeumannBoundary );
 
    if ( writeVTK )
@@ -331,49 +331,49 @@ int main( int argc, char* argv[] )
    testWeightsInCellVertexDoF();
    testWeightsInCellEdgeDoF();
 
-   testGridTransfer3D( "../../meshes/quad_8el.msh", 0 );
-   testGridTransfer3D( "../../meshes/bfs_126el.msh", 0 );
-   testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 0 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 0 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 0 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 0 );
-   testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "bfs_126el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0 );
 
-   testGridTransfer3D( "../../meshes/quad_8el.msh", 1 );
-   testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 1 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 1 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 1 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 1 );
-   testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1 );
 
-   testGridTransfer3D( "../../meshes/quad_8el.msh", 3 );
-   testGridTransfer3D( "../../meshes/3D/tet_1el.msh", 3 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_2el.msh", 3 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_4el.msh", 3 );
-   testGridTransfer3D( "../../meshes/3D/pyramid_tilted_4el.msh", 3 );
-   testGridTransfer3D( "../../meshes/3D/regular_octahedron_8el.msh", 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3 );
 
-   testProlongateAndAdd3D( "../../meshes/quad_8el.msh", 0 );
-   testProlongateAndAdd3D( "../../meshes/bfs_126el.msh", 0 );
-   testProlongateAndAdd3D( "../../meshes/3D/tet_1el.msh", 0 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_2el.msh", 0 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_4el.msh", 0 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_tilted_4el.msh", 0 );
-   testProlongateAndAdd3D( "../../meshes/3D/regular_octahedron_8el.msh", 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "quad_8el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "bfs_126el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0 );
 
-   testProlongateAndAdd3D( "../../meshes/quad_8el.msh", 1 );
-   testProlongateAndAdd3D( "../../meshes/3D/tet_1el.msh", 1 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_2el.msh", 1 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_4el.msh", 1 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_tilted_4el.msh", 1 );
-   testProlongateAndAdd3D( "../../meshes/3D/regular_octahedron_8el.msh", 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "quad_8el.msh" ), 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1 );
 
-   testProlongateAndAdd3D( "../../meshes/quad_8el.msh", 3 );
-   testProlongateAndAdd3D( "../../meshes/3D/tet_1el.msh", 3 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_2el.msh", 3 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_4el.msh", 3 );
-   testProlongateAndAdd3D( "../../meshes/3D/pyramid_tilted_4el.msh", 3 );
-   testProlongateAndAdd3D( "../../meshes/3D/regular_octahedron_8el.msh", 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "quad_8el.msh" ), 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3 );
 
    return 0;
 }

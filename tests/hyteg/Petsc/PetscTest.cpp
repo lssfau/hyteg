@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
 
    PETScManager petscManager( &argc, &argv );
 
-   std::string meshFileName = "../../meshes/quad_8el.msh";
+   std::string meshFileName = prependHyTeGMeshDir( "quad_8el.msh" );
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -89,7 +89,7 @@ int main( int argc, char* argv[] )
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   err.assign( {1.0, -1.0}, {x, x_exact}, level );
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
 
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs );
 

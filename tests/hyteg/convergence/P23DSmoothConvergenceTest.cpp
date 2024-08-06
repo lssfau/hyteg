@@ -36,62 +36,68 @@
 
 namespace hyteg {
 
-static void testP2SmoothConvergence( const uint_t & level, const std::string & meshFile, const uint_t & numIterations, const real_t & expectedL2Error )
+static void testP2SmoothConvergence( const uint_t&      level,
+                                     const std::string& meshFile,
+                                     const uint_t&      numIterations,
+                                     const real_t&      expectedL2Error )
 {
-  MeshInfo mesh  = MeshInfo::fromGmshFile( meshFile );
-  SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-  std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  P2Function< real_t > x  ( "x",   storage, level, level );
-  P2Function< real_t > rhs( "rhs", storage, level, level );
-  P2ConstantLaplaceOperator A( storage, level, level );
+   P2Function< real_t >      x( "x", storage, level, level );
+   P2Function< real_t >      rhs( "rhs", storage, level, level );
+   P2ConstantLaplaceOperator A( storage, level, level );
 
-  VTKOutput vtkOutput("../../output", "P23DSmoothConvergenceTest", storage);
-  vtkOutput.add( x );
+   VTKOutput vtkOutput( "../../output", "P23DSmoothConvergenceTest", storage );
+   vtkOutput.add( x );
 
-  std::function< real_t( const Point3D & )> zeros = []( const Point3D & ) { return 0; };
-  walberla::math::seedRandomGenerator( 0 );
-  std::function< real_t( const Point3D & )> rand  = []( const Point3D & ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
+   std::function< real_t( const Point3D& ) > zeros = []( const Point3D& ) { return 0; };
+   walberla::math::seedRandomGenerator( 0 );
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
 
-  rhs.interpolate( zeros, level, All );
-  x.interpolate( zeros, level, DirichletBoundary );
+   rhs.interpolate( zeros, level, All );
+   x.interpolate( zeros, level, DirichletBoundary );
 
-  hyteg::OpenMPManager::instance()->forceSerial();
-  x.interpolate( rand,  level, Inner );
-  hyteg::OpenMPManager::instance()->resetToParallel();
+   hyteg::OpenMPManager::instance()->forceSerial();
+   x.interpolate( rand, level, Inner );
+   hyteg::OpenMPManager::instance()->resetToParallel();
 
-  real_t discreteL2Norm;
+   real_t discreteL2Norm;
 
-  for ( uint_t step = 0; step < numIterations; step++ )
-  {
+   for ( uint_t step = 0; step < numIterations; step++ )
+   {
 #if 0
    // if'd out to speed up test
    discreteL2Norm = sqrt( x.dotGlobal( x, level, All ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Iteration " << std::setw(10) << step << " - Discrete L2 Norm: " << std::scientific << discreteL2Norm );
    vtkOutput.write( level, step );
 #endif
-   A.smooth_gs( x, rhs, level, Inner );
-  }
+      A.smooth_gs( x, rhs, level, Inner );
+   }
 
-  discreteL2Norm = sqrt( x.dotGlobal( x, level, All ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Discrete L2 norm after " << numIterations << " Gauss-Seidel iterations: " << std::scientific << discreteL2Norm );
-  WALBERLA_CHECK_LESS( discreteL2Norm, expectedL2Error );
+   discreteL2Norm = sqrt( x.dotGlobal( x, level, All ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Discrete L2 norm after " << numIterations << " Gauss-Seidel iterations: " << std::scientific
+                                                        << discreteL2Norm );
+   WALBERLA_CHECK_LESS( discreteL2Norm, expectedL2Error );
 }
 
 } // namespace hyteg
-
 
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
-   walberla::Environment walberlaEnv(argc, argv);
+   walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-   hyteg::testP2SmoothConvergence( 3, "../../meshes/3D/tet_1el.msh", 50, 1.2e-02 );
-   hyteg::testP2SmoothConvergence( 2, "../../meshes/3D/pyramid_2el.msh", 50, 9.3e-07 );
-   hyteg::testP2SmoothConvergence( 2, "../../meshes/3D/pyramid_4el.msh", 50, 1.65e-03 );
-   hyteg::testP2SmoothConvergence( 2, "../../meshes/3D/regular_octahedron_8el.msh", 50, 7.7e-02 );
+
+   hyteg::testP2SmoothConvergence( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 50, 1.2e-02 );
+   hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 50, 9.3e-07 );
+   hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 50, 1.65e-03 );
+   hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 50, 7.7e-02 );
 
    return EXIT_SUCCESS;
 }

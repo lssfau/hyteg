@@ -24,9 +24,9 @@
 
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 
+#include "constant_stencil_operator/P1EpsilonStokesOperator.hpp"
 #include "mixed_operator/P1BlendingStokesOperator.hpp"
 #include "mixed_operator/P1P1StokesOperator.hpp"
-#include "constant_stencil_operator/P1EpsilonStokesOperator.hpp"
 // #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp" < --see issue 159
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
@@ -271,7 +271,7 @@ int main( int argc, char* argv[] )
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------
-   std::string           meshFileName = "../../meshes/quad_16el.msh";
+   std::string           meshFileName = prependHyTeGMeshDir( "quad_16el.msh" );
    MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );

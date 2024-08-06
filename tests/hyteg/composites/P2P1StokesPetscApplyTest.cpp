@@ -57,12 +57,12 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
 
    writeDomainPartitioningVTK( storage, "../../output", "P2P1StokesPetscApplyTestDomain" );
 
-   P2P1TaylorHoodFunction< real_t >   src( "src", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   hhgDst( "hhgDst", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   petscDst( "petscDst", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   err( "error", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   ones( "ones", storage, level, level );
-   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > src( "src", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > hhgDst( "hhgDst", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > petscDst( "petscDst", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > err( "error", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > ones( "ones", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >  numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
@@ -147,13 +147,13 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../meshes/quad_4el.msh", hyteg::All, 8.7e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../meshes/annulus_coarse.msh", hyteg::All, 2.6e-13 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/pyramid_2el.msh", hyteg::All, 7.3e-16 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/pyramid_4el.msh", hyteg::All, 1.4e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::All, 4.0e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../meshes/3D/cube_24el.msh", hyteg::All, 3.5e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), hyteg::All, 8.7e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), hyteg::All, 2.6e-13 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), hyteg::All, 1.0e-16 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), hyteg::All, 7.3e-16 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), hyteg::All, 1.4e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), hyteg::All, 4.0e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), hyteg::All, 3.5e-15 );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 

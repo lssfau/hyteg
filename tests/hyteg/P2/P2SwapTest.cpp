@@ -42,7 +42,7 @@ static void testP2Swap()
    const uint_t maxLevel  = 4;
    const uint_t testLevel = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/quad_8el.msh" );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_8el.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

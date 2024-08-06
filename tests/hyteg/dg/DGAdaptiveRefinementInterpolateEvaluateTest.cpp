@@ -47,12 +47,12 @@ using walberla::math::pi;
 /// \param minLevel min micro-refinement level
 /// \param maxLevel max micro-refinement level
 /// \param degree   element poly degree
-void test( uint_t                                    dim,
-           uint_t                                    level,
-           uint_t                                    coarseRefinements,
-           uint_t                                    degree,
+void test( uint_t                                           dim,
+           uint_t                                           level,
+           uint_t                                           coarseRefinements,
+           uint_t                                           degree,
            const std::function< real_t( const Point3D& ) >& f,
-           real_t                                    maxPointwiseError )
+           real_t                                           maxPointwiseError )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running interpolate + evaluate test with AMR." );
    WALBERLA_LOG_INFO_ON_ROOT( " + dim:                     " << dim );
@@ -64,7 +64,7 @@ void test( uint_t                                    dim,
 
    const bool writeVTK = true;
 
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -123,7 +123,7 @@ void test( uint_t                                    dim,
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      Point3D coordinates(Point3D::Zero());
+      Point3D coordinates( Point3D::Zero() );
       coordinates[0] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
       coordinates[1] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );
       coordinates[2] = real_c( walberla::math::realRandom( 0.0, 1.0 ) );

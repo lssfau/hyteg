@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -35,7 +35,7 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -55,24 +55,28 @@ int main( int argc, char** argv )
 
    std::function< real_t( const Point3D& ) > ones = []( const Point3D& ) { return real_c( 1 ); };
 
-//   VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest", storage );
-//   vtkOutput.add( x1 );
-//   vtkOutput.add( x2 );
-//   vtkOutput.add( xSum );
-//
-//   vtkOutput.write( level, 0 );
+   bool exportToVTK = false;
+   if ( exportToVTK )
+   {
+      VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest", storage );
+      vtkOutput.add( x1 );
+      vtkOutput.add( x2 );
+      vtkOutput.add( xSum );
+
+      vtkOutput.write( level, 0 );
+   }
 
    x1.interpolate( fn1, level );
    xSum.interpolate( fn2, level );
-   x2.assign( {1.0}, {xSum}, level );
+   x2.assign( { 1.0 }, { xSum }, level );
    xSum.interpolate( zero, level );
-   xSum.add( {1.0, 1.0}, {x1, x2}, level );
+   xSum.add( { 1.0, 1.0 }, { x1, x2 }, level );
    x1.interpolate( fnSum, level );
 
    x2.interpolate( ones, level );
    const real_t dotProduct = x2.dotLocal( x2, level );
 
-//   vtkOutput.write( level, 1 );
+   //   vtkOutput.write( level, 1 );
 
    for ( const auto& itCell : storage->getCells() )
    {

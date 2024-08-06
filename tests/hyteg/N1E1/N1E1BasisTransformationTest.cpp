@@ -33,7 +33,7 @@ using namespace hyteg;
 
 void testPyramid()
 {
-   const MeshInfo              pyramid = MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" );
+   const MeshInfo              pyramid = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
    const SetupPrimitiveStorage setupStorage( pyramid, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const PrimitiveStorage      storage( setupStorage );
 

@@ -50,8 +50,8 @@ void runCheck( std::string opName, bool verbose = false )
    WALBERLA_LOG_INFO_ON_ROOT( " * " << opName );
 
    const uint_t level = 3;
-   // const std::string meshFile = "../../meshes/penta_5el.msh";
-   const std::string meshFile = "../../meshes/tri_2el.msh";
+   // const std::string meshFile = prependHyTeGMeshDir( "penta_5el.msh");
+   const std::string meshFile = prependHyTeGMeshDir( "tri_2el.msh" );
 
    auto meshInfo = MeshInfo::fromGmshFile( meshFile );
    auto setupStorage =
@@ -82,12 +82,12 @@ void runCheck( std::string opName, bool verbose = false )
       return ( 1.0 / 2.0 ) * sin( 2 * x[1] ) * sinh( x[2] );
    };
 
-   u.interpolate( {guessX, guessY}, level );
+   u.interpolate( { guessX, guessY }, level );
    u.interpolate( real_c( 0 ), level, DirichletBoundary );
    f.interpolate( real_c( 0 ), level );
 
    uint_t maxIter  = 150;
-   real_t tol      = real_c(std::is_same<real_t, double>() ? 1e-10 : 2e-7);
+   real_t tol      = real_c( std::is_same< real_t, double >() ? 1e-10 : 2e-7 );
    auto   cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, tol );
    cgSolver.setPrintInfo( verbose );
 

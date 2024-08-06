@@ -30,9 +30,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
+#include "constant_stencil_operator/P1ConstantOperator.cpp"
 #include "mixed_operator/EGConvTestUtils.hpp"
 #include "mixed_operator/EGOperators.hpp"
-#include "constant_stencil_operator/P1ConstantOperator.cpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -46,7 +46,6 @@ using hyteg::dg::eg::EGSIPGLaplaceOperator;
 namespace hyteg {
 namespace dg {
 namespace eg {
-
 
 void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage );
 
@@ -66,19 +65,17 @@ int main( int argc, char* argv[] )
    -ksp_monitor -ksp_rtol 1e-7 -ksp_type minres  -pc_type fieldsplit -pc_fieldsplit_type schur -pc_fieldsplit_schur_fact_type diag  -fieldsplit_0_ksp_type cg -fieldsplit_1_ksp_type cg -pc_fieldsplit_detect_saddle_point -fieldsplit_1_ksp_constant_null_space
    */
 
-
    if constexpr ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Testing varying viscosity Epsilon 2D ###" )
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ) );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, 1 );
 
-
-      hyteg::dg::eg::SmoothViscosityTest2D( 3,4, storage );
+      hyteg::dg::eg::SmoothViscosityTest2D( 3, 4, storage );
    }
 
    if constexpr ( true )
@@ -97,7 +94,6 @@ namespace eg {
 void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const std::shared_ptr< PrimitiveStorage >& storage )
 {
    auto dummyLambda = []( const Point3D& ) -> real_t { return 0; };
-
 
    // nitsche BCs
    if ( true )
@@ -161,7 +157,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
           storage,
           minLevel,
           maxLevel,
-          2);
+          2 );
    }
 
    // mixed BCs
@@ -226,7 +222,7 @@ void SmoothViscosityTest2D( const uint_t minLevel, const uint_t maxLevel, const 
           storage,
           minLevel,
           maxLevel,
-          6);
+          6 );
    }
 
    // Taylor-Hood
@@ -309,7 +305,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
    // cube_6el, inhom. solution, EGP0
    if ( false )
    {
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -379,13 +375,13 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
           storage,
           minLevel,
           maxLevel,
-          2);
+          2 );
    }
 
    // cube_6el, inhom. solution, EGP0 Nitsche BCs
    if ( true )
    {
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -460,8 +456,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
    // cube_6el, inhom. solution, P2P1
    if ( false )
    {
-
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -533,8 +528,7 @@ void SmoothViscosityTest3D( const uint_t minLevel, const uint_t maxLevel )
           maxLevel,
           2 );
    }
-
-  }
+}
 
 } // namespace eg
 } // namespace dg

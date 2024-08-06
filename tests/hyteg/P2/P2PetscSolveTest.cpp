@@ -69,7 +69,9 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
       return sin( xx[0] ) * sinh( xx[1] );
    };
    walberla::math::seedRandomGenerator( 0 );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
 
    x.interpolate( exact, level, hyteg::DirichletBoundary );
    x.interpolate( rand, level, hyteg::Inner );
@@ -90,7 +92,7 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
    A.apply( x, residuum, level, hyteg::Inner );
 
-   err.assign( {1.0, -1.0}, {x, x_exact}, level );
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
 
    real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
    real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
@@ -119,29 +121,29 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   petscSolveTest( 0, "../../meshes/quad_4el.msh", 3.0e-04 );
-   petscSolveTest( 0, "../../meshes/3D/tet_1el.msh", 1.0e-15 );
-   petscSolveTest( 0, "../../meshes/3D/pyramid_2el.msh", 1.0e-15 );
-   petscSolveTest( 0, "../../meshes/3D/pyramid_4el.msh", 2.0e-04 );
-   petscSolveTest( 0, "../../meshes/3D/pyramid_tilted_4el.msh", 2.0e-04 );
-   petscSolveTest( 0, "../../meshes/3D/regular_octahedron_8el.msh", 3.0e-04 );
-   petscSolveTest( 0, "../../meshes/3D/cube_24el.msh", 5.0e-04 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "quad_4el.msh" ), 3.0e-04 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1.0e-15 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1.0e-15 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 2.0e-04 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 2.0e-04 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3.0e-04 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "3D/cube_24el.msh" ), 5.0e-04 );
 
-   petscSolveTest( 1, "../../meshes/quad_4el.msh", 2.0e-05 );
-   petscSolveTest( 1, "../../meshes/3D/tet_1el.msh", 3.0e-06 );
-   petscSolveTest( 1, "../../meshes/3D/pyramid_2el.msh", 2.0e-04 );
-   petscSolveTest( 1, "../../meshes/3D/pyramid_4el.msh", 2.0e-05 );
-   petscSolveTest( 1, "../../meshes/3D/pyramid_tilted_4el.msh", 5.0e-05 );
-   petscSolveTest( 1, "../../meshes/3D/regular_octahedron_8el.msh", 3.0e-04 );
-   petscSolveTest( 1, "../../meshes/3D/cube_24el.msh", 5.0e-04 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "quad_4el.msh" ), 2.0e-05 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3.0e-06 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2.0e-04 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 2.0e-05 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 5.0e-05 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3.0e-04 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "3D/cube_24el.msh" ), 5.0e-04 );
 
-   petscSolveTest( 3, "../../meshes/quad_4el.msh", 3.0e-07 );
-   petscSolveTest( 3, "../../meshes/3D/tet_1el.msh", 3.0e-07 );
-   petscSolveTest( 3, "../../meshes/3D/pyramid_2el.msh", 2.7e-06 );
-   petscSolveTest( 3, "../../meshes/3D/pyramid_4el.msh", 3.2e-07 );
-   petscSolveTest( 2, "../../meshes/3D/pyramid_tilted_4el.msh", 7.3e-06 );
-   petscSolveTest( 3, "../../meshes/3D/regular_octahedron_8el.msh", 1.7e-06 );
-   petscSolveTest( 2, "../../meshes/3D/cube_24el.msh", 1.4e-05 );
+   petscSolveTest( 3, prependHyTeGMeshDir( "quad_4el.msh" ), 3.0e-07 );
+   petscSolveTest( 3, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3.0e-07 );
+   petscSolveTest( 3, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2.7e-06 );
+   petscSolveTest( 3, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3.2e-07 );
+   petscSolveTest( 2, prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 7.3e-06 );
+   petscSolveTest( 3, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1.7e-06 );
+   petscSolveTest( 2, prependHyTeGMeshDir( "3D/cube_24el.msh" ), 1.4e-05 );
 
    return EXIT_SUCCESS;
 }

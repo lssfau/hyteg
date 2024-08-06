@@ -44,7 +44,7 @@ static void testP2Smooth()
 {
    const uint_t level = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/quad_2el.msh" );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_2el.msh") );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -266,7 +266,7 @@ static void testP2JacobiSmooth()
 {
    const uint_t level = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/quad_2el.msh" );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_2el.msh") );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

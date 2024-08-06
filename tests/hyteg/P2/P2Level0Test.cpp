@@ -64,7 +64,7 @@ void P2Level0InterpolateTest()
 {
    const uint_t level = 0;
 
-   MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" );
+   MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
@@ -73,7 +73,7 @@ void P2Level0InterpolateTest()
 
    for ( const auto& itEdge : storage->getEdges() )
    {
-      auto edge   = itEdge.second;
+      auto edge = itEdge.second;
 
       auto macroEdgeEdgeDoFDataSize = edge->getData( f_interpolation.getEdgeDoFFunction().getEdgeDataID() )->getSize( level );
 
@@ -162,7 +162,7 @@ void P2Level0InterpolateTest()
 
       WALBERLA_CHECK_EQUAL( macroEdgeEdgeDoFDataSize, 1 + 2 * edge->getNumNeighborFaces() + 1 * edge->getNumNeighborCells() );
 
-      for ( const auto & faceID : edge->neighborFaces() )
+      for ( const auto& faceID : edge->neighborFaces() )
       {
          auto face = storage->getFace( faceID );
 
@@ -183,7 +183,7 @@ void P2Level0InterpolateTest()
          WALBERLA_CHECK_FLOAT_EQUAL( glValue1, realValue1 );
       }
 
-      for ( const auto & cellID : edge->neighborCells() )
+      for ( const auto& cellID : edge->neighborCells() )
       {
          // now check opposite edge
          auto cell         = storage->getCell( cellID );
@@ -207,177 +207,184 @@ void P2Level0InterpolateTest()
 
 void P2Level0EnumerateTet1elTest()
 {
-  auto numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-  auto rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   auto numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   auto rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-  const uint_t level = 0;
+   const uint_t level = 0;
 
-  MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
-  SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-  std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
+   MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
+   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-  P2Function< int > f_interpolation( "f_interpolation", storage, level, level );
-  f_interpolation.enumerate( level );
+   P2Function< int > f_interpolation( "f_interpolation", storage, level, level );
+   f_interpolation.enumerate( level );
 
-  communication::syncFunctionBetweenPrimitives( f_interpolation, level );
+   communication::syncFunctionBetweenPrimitives( f_interpolation, level );
 
-  std::map< PrimitiveID, int > realDataLocal;
-  std::map< PrimitiveID, int > realDataGlobal;
+   std::map< PrimitiveID, int > realDataLocal;
+   std::map< PrimitiveID, int > realDataGlobal;
 
-  // fill real data
-  for ( const auto& itVertex : storage->getVertices() )
-  {
-    auto vertexID = itVertex.first;
-    auto vertex = itVertex.second;
+   // fill real data
+   for ( const auto& itVertex : storage->getVertices() )
+   {
+      auto vertexID = itVertex.first;
+      auto vertex   = itVertex.second;
 
-    auto macroVertexVertexDoFData =
-    vertex->getData( f_interpolation.getVertexDoFFunction().getVertexDataID())->getPointer( level );
+      auto macroVertexVertexDoFData =
+          vertex->getData( f_interpolation.getVertexDoFFunction().getVertexDataID() )->getPointer( level );
 
-    realDataLocal[vertexID] = macroVertexVertexDoFData[0];
-  }
+      realDataLocal[vertexID] = macroVertexVertexDoFData[0];
+   }
 
-  for ( const auto& itEdge : storage->getEdges() )
-  {
-    auto edgeID = itEdge.first;
-    auto edge = itEdge.second;
+   for ( const auto& itEdge : storage->getEdges() )
+   {
+      auto edgeID = itEdge.first;
+      auto edge   = itEdge.second;
 
-    auto macroEdgeEdgeDoFData =
-    edge->getData( f_interpolation.getEdgeDoFFunction().getEdgeDataID())->getPointer( level );
+      auto macroEdgeEdgeDoFData = edge->getData( f_interpolation.getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
 
-    realDataLocal[edgeID] = macroEdgeEdgeDoFData[0];
-  }
+      realDataLocal[edgeID] = macroEdgeEdgeDoFData[0];
+   }
 
-  walberla::mpi::SendBuffer sendBuffer;
-  walberla::mpi::RecvBuffer recvBuffer;
+   walberla::mpi::SendBuffer sendBuffer;
+   walberla::mpi::RecvBuffer recvBuffer;
 
-  for ( uint_t p = 0; p < numProcesses; p++ )
-  {
-    if ( p == rank )
-    {
-      WALBERLA_LOG_INFO( "real data (local):" )
-      for ( auto d : realDataLocal )
+   for ( uint_t p = 0; p < numProcesses; p++ )
+   {
+      if ( p == rank )
       {
-        WALBERLA_LOG_INFO( "ID " << d.first << ": " << d.second );
-        sendBuffer << d.first;
-        sendBuffer << d.second;
+         WALBERLA_LOG_INFO( "real data (local):" )
+         for ( auto d : realDataLocal )
+         {
+            WALBERLA_LOG_INFO( "ID " << d.first << ": " << d.second );
+            sendBuffer << d.first;
+            sendBuffer << d.second;
+         }
       }
-    }
-    WALBERLA_MPI_BARRIER();
-  }
+      WALBERLA_MPI_BARRIER();
+   }
 
-  walberla::mpi::allGathervBuffer( sendBuffer, recvBuffer );
+   walberla::mpi::allGathervBuffer( sendBuffer, recvBuffer );
 
-  while ( !recvBuffer.isEmpty() )
-  {
-    PrimitiveID primitiveID;
-    int value;
+   while ( !recvBuffer.isEmpty() )
+   {
+      PrimitiveID primitiveID;
+      int         value;
 
-    recvBuffer >> primitiveID;
-    recvBuffer >> value;
+      recvBuffer >> primitiveID;
+      recvBuffer >> value;
 
-    realDataGlobal[primitiveID] = value;
-  }
+      realDataGlobal[primitiveID] = value;
+   }
 
-
-  for ( uint_t p = 0; p < numProcesses; p++ )
-  {
-    if ( p == rank )
-    {
-      WALBERLA_LOG_INFO( "real data (global):" )
-      for ( auto d : realDataGlobal )
+   for ( uint_t p = 0; p < numProcesses; p++ )
+   {
+      if ( p == rank )
       {
-        WALBERLA_LOG_INFO( "ID " << d.first << ": " << d.second );
+         WALBERLA_LOG_INFO( "real data (global):" )
+         for ( auto d : realDataGlobal )
+         {
+            WALBERLA_LOG_INFO( "ID " << d.first << ": " << d.second );
+         }
       }
-    }
-    WALBERLA_MPI_BARRIER();
-  }
+      WALBERLA_MPI_BARRIER();
+   }
 
-  WALBERLA_CHECK_EQUAL( realDataGlobal.size(), 10 );
+   WALBERLA_CHECK_EQUAL( realDataGlobal.size(), 10 );
 
-  // fill ghost data maps with all macro-vertex data
-  for ( const auto& itVertex : storage->getVertices() )
-  {
-    std::map< PrimitiveID, int > glData;
+   // fill ghost data maps with all macro-vertex data
+   for ( const auto& itVertex : storage->getVertices() )
+   {
+      std::map< PrimitiveID, int > glData;
 
-    auto vertexID = itVertex.first;
-    auto vertex   = itVertex.second;
+      auto vertexID = itVertex.first;
+      auto vertex   = itVertex.second;
 
-    WALBERLA_LOG_INFO( "macro-vertex (ID " << vertexID << ") ghost data check..." )
+      WALBERLA_LOG_INFO( "macro-vertex (ID " << vertexID << ") ghost data check..." )
 
-    auto macroVertexVertexDoFDataSize =
-    vertex->getData( f_interpolation.getVertexDoFFunction().getVertexDataID() )->getSize( level );
-    auto macroVertexVertexDoFData =
-    vertex->getData( f_interpolation.getVertexDoFFunction().getVertexDataID() )->getPointer( level );
+      auto macroVertexVertexDoFDataSize =
+          vertex->getData( f_interpolation.getVertexDoFFunction().getVertexDataID() )->getSize( level );
+      auto macroVertexVertexDoFData =
+          vertex->getData( f_interpolation.getVertexDoFFunction().getVertexDataID() )->getPointer( level );
 
-    auto macroVertexEdgeDoFData =
-    vertex->getData( f_interpolation.getEdgeDoFFunction().getVertexDataID() )->getPointer( level );
+      auto macroVertexEdgeDoFData =
+          vertex->getData( f_interpolation.getEdgeDoFFunction().getVertexDataID() )->getPointer( level );
 
-    WALBERLA_CHECK_EQUAL( macroVertexVertexDoFDataSize, vertex->getNumNeighborEdges() + 1 );
+      WALBERLA_CHECK_EQUAL( macroVertexVertexDoFDataSize, vertex->getNumNeighborEdges() + 1 );
 
-    // "neighboring" vertices and neighboring edges
-    for ( const auto& edgeID : vertex->neighborEdges() )
-    {
-      auto edge = storage->getEdge( edgeID );
-      WALBERLA_CHECK_EQUAL( realDataGlobal[edge->get_opposite_vertex( vertexID )], macroVertexVertexDoFData[1 + vertex->edge_index( edgeID )] );
-      WALBERLA_CHECK_EQUAL( realDataGlobal[edgeID], macroVertexEdgeDoFData[vertex->edge_index( edgeID )] );
-    }
+      // "neighboring" vertices and neighboring edges
+      for ( const auto& edgeID : vertex->neighborEdges() )
+      {
+         auto edge = storage->getEdge( edgeID );
+         WALBERLA_CHECK_EQUAL( realDataGlobal[edge->get_opposite_vertex( vertexID )],
+                               macroVertexVertexDoFData[1 + vertex->edge_index( edgeID )] );
+         WALBERLA_CHECK_EQUAL( realDataGlobal[edgeID], macroVertexEdgeDoFData[vertex->edge_index( edgeID )] );
+      }
 
-    // opposite edges
-    for ( const auto& faceID : vertex->neighborFaces() )
-    {
-      auto face         = storage->getFace( faceID );
-      auto oppositeEdge = storage->getEdge( face->getEdgeOppositeToVertex( vertexID ) );
+      // opposite edges
+      for ( const auto& faceID : vertex->neighborFaces() )
+      {
+         auto face         = storage->getFace( faceID );
+         auto oppositeEdge = storage->getEdge( face->getEdgeOppositeToVertex( vertexID ) );
 
-      WALBERLA_CHECK_NOT_NULLPTR( oppositeEdge, "This test cannot be executed with this number of processes." )
+         WALBERLA_CHECK_NOT_NULLPTR( oppositeEdge, "This test cannot be executed with this number of processes." )
 
-      auto checkLHS = realDataGlobal[oppositeEdge->getID()];
-      auto checkRHS = macroVertexEdgeDoFData[vertex->getNumNeighborEdges() + vertex->face_index( faceID )];
+         auto checkLHS = realDataGlobal[oppositeEdge->getID()];
+         auto checkRHS = macroVertexEdgeDoFData[vertex->getNumNeighborEdges() + vertex->face_index( faceID )];
 
-      WALBERLA_CHECK_EQUAL( checkLHS, checkRHS );
-    }
-  }
+         WALBERLA_CHECK_EQUAL( checkLHS, checkRHS );
+      }
+   }
 
-  WALBERLA_MPI_BARRIER();
+   WALBERLA_MPI_BARRIER();
 
-  // fill ghost data maps with all macro-edge data
-  for ( const auto& itEdge : storage->getEdges() )
-  {
-    std::map< PrimitiveID, int > glData;
+   // fill ghost data maps with all macro-edge data
+   for ( const auto& itEdge : storage->getEdges() )
+   {
+      std::map< PrimitiveID, int > glData;
 
-    auto edgeID = itEdge.first;
-    auto edge = itEdge.second;
+      auto edgeID = itEdge.first;
+      auto edge   = itEdge.second;
 
-    WALBERLA_LOG_INFO( "macro-edge (ID " << edgeID << ") ghost data check..." )
+      WALBERLA_LOG_INFO( "macro-edge (ID " << edgeID << ") ghost data check..." )
 
-    auto macroEdgeVertexDoFData =
-    edge->getData( f_interpolation.getVertexDoFFunction().getEdgeDataID())->getPointer( level );
+      auto macroEdgeVertexDoFData = edge->getData( f_interpolation.getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
 
-    // vertex dofs "on" edge
-    WALBERLA_CHECK_EQUAL( realDataGlobal[edge->neighborVertices().at(0)], macroEdgeVertexDoFData[0]);
-    WALBERLA_CHECK_EQUAL( realDataGlobal[edge->neighborVertices().at(1)], macroEdgeVertexDoFData[1]);
+      // vertex dofs "on" edge
+      WALBERLA_CHECK_EQUAL( realDataGlobal[edge->neighborVertices().at( 0 )], macroEdgeVertexDoFData[0] );
+      WALBERLA_CHECK_EQUAL( realDataGlobal[edge->neighborVertices().at( 1 )], macroEdgeVertexDoFData[1] );
 
-    // vertex dofs "on" faces
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at(0) )->get_vertex_opposite_to_edge(edgeID)], macroEdgeVertexDoFData[2] );
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at(1) )->get_vertex_opposite_to_edge(edgeID)], macroEdgeVertexDoFData[3] );
+      // vertex dofs "on" faces
+      WALBERLA_CHECK_EQUAL(
+          realDataGlobal[storage->getFace( edge->neighborFaces().at( 0 ) )->get_vertex_opposite_to_edge( edgeID )],
+          macroEdgeVertexDoFData[2] );
+      WALBERLA_CHECK_EQUAL(
+          realDataGlobal[storage->getFace( edge->neighborFaces().at( 1 ) )->get_vertex_opposite_to_edge( edgeID )],
+          macroEdgeVertexDoFData[3] );
 
-    auto macroEdgeEdgeDoFData =
-    edge->getData( f_interpolation.getEdgeDoFFunction().getEdgeDataID())->getPointer( level );
+      auto macroEdgeEdgeDoFData = edge->getData( f_interpolation.getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
 
-    // edge dofs "on" faces
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at(0) )->getEdgeOppositeToVertex(edge->neighborVertices().at(0))], macroEdgeEdgeDoFData[1] ); // XY first
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at(0) )->getEdgeOppositeToVertex(edge->neighborVertices().at(1))], macroEdgeEdgeDoFData[2] ); // Y second
+      // edge dofs "on" faces
+      WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at( 0 ) )
+                                               ->getEdgeOppositeToVertex( edge->neighborVertices().at( 0 ) )],
+                            macroEdgeEdgeDoFData[1] ); // XY first
+      WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at( 0 ) )
+                                               ->getEdgeOppositeToVertex( edge->neighborVertices().at( 1 ) )],
+                            macroEdgeEdgeDoFData[2] ); // Y second
 
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at(1) )->getEdgeOppositeToVertex(edge->neighborVertices().at(0))], macroEdgeEdgeDoFData[3] ); // XY first
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at(1) )->getEdgeOppositeToVertex(edge->neighborVertices().at(1))], macroEdgeEdgeDoFData[4] ); // Y second
+      WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at( 1 ) )
+                                               ->getEdgeOppositeToVertex( edge->neighborVertices().at( 0 ) )],
+                            macroEdgeEdgeDoFData[3] ); // XY first
+      WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getFace( edge->neighborFaces().at( 1 ) )
+                                               ->getEdgeOppositeToVertex( edge->neighborVertices().at( 1 ) )],
+                            macroEdgeEdgeDoFData[4] ); // Y second
 
-    // edge dofs "in" cells
-    WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getCell( edge->neighborCells().at(0) )->getOppositeEdgeID(edgeID)], macroEdgeEdgeDoFData[5] );
-  }
-
-
+      // edge dofs "in" cells
+      WALBERLA_CHECK_EQUAL( realDataGlobal[storage->getCell( edge->neighborCells().at( 0 ) )->getOppositeEdgeID( edgeID )],
+                            macroEdgeEdgeDoFData[5] );
+   }
 }
-
 
 } // namespace hyteg
 
@@ -388,11 +395,10 @@ int main( int argc, char* argv[] )
 
    if ( walberla::mpi::MPIManager::instance()->numProcesses() == 1 )
    {
-     hyteg::P2Level0IndexingTest();
-     hyteg::P2Level0InterpolateTest();
+      hyteg::P2Level0IndexingTest();
+      hyteg::P2Level0InterpolateTest();
    }
    hyteg::P2Level0EnumerateTet1elTest();
-
 
    return EXIT_SUCCESS;
 }

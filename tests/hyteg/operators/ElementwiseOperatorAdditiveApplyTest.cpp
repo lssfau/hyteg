@@ -49,7 +49,7 @@ void additiveApplyTest( std::shared_ptr< PrimitiveStorage > storage, const uint_
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Additive apply test" )
 
-   const real_t epsilon = real_c( std::is_same<real_t, double>() ? 1e-12 : 1e-5 );
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-12 : 1e-5 );
 
    // functions
    FuncType srcA( "srcA", storage, level, level );
@@ -70,9 +70,13 @@ void additiveApplyTest( std::shared_ptr< PrimitiveStorage > storage, const uint_
    OpTypeElem  elemWiseOp( storage, level, level );
    OpTypeConst constantOp( storage, level, level );
 
-   auto functionA = []( const Point3D& x ) { return std::sin( x[0] ) + 6.0 * std::sin( x[1] * x[1] * x[1] ) + x[2] * x[2] * x[2]; };
+   auto functionA = []( const Point3D& x ) {
+      return std::sin( x[0] ) + 6.0 * std::sin( x[1] * x[1] * x[1] ) + x[2] * x[2] * x[2];
+   };
 
-   auto functionB = []( const Point3D& x ) { return 2 * std::sin( 2.0 * x[0] ) + 7.0 * std::cos( x[1] ) + std::cosh( x[2] * x[2] ); };
+   auto functionB = []( const Point3D& x ) {
+      return 2 * std::sin( 2.0 * x[0] ) + 7.0 * std::cos( x[1] ) + std::cosh( x[2] * x[2] );
+   };
 
    srcA.interpolate( functionA, level );
    srcB.interpolate( functionB, level );
@@ -80,12 +84,12 @@ void additiveApplyTest( std::shared_ptr< PrimitiveStorage > storage, const uint_
    // manual add const
    constantOp.apply( srcA, tmpA, level, All, Replace );
    constantOp.apply( srcB, tmpB, level, All, Replace );
-   dstManualConst.assign( {1.0, 1.0}, {tmpA, tmpB}, level, All );
+   dstManualConst.assign( { 1.0, 1.0 }, { tmpA, tmpB }, level, All );
 
    // manual add elementwise
    elemWiseOp.apply( srcA, tmpA, level, All, Replace );
    elemWiseOp.apply( srcB, tmpB, level, All, Replace );
-   dstManualElementwise.assign( {1.0, 1.0}, {tmpA, tmpB}, level, All );
+   dstManualElementwise.assign( { 1.0, 1.0 }, { tmpA, tmpB }, level, All );
 
    // const replace, const add
    constantOp.apply( srcA, dstAdditiveConst, level, All, Replace );
@@ -109,19 +113,19 @@ void additiveApplyTest( std::shared_ptr< PrimitiveStorage > storage, const uint_
    constantOp.apply( srcA, dstConstReplaceElementwiseAdd, level, All, Replace );
    elemWiseOp.apply( srcB, dstConstReplaceElementwiseAdd, level, All, Add );
 
-   error.assign( {1.0, -1.0}, {dstManualConst, dstManualElementwise}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstManualConst, dstManualElementwise }, level, All );
    auto errorMax = error.getMaxMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "manual elementwise" );
 
-   error.assign( {1.0, -1.0}, {dstManualConst, dstAdditiveConst}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstManualConst, dstAdditiveConst }, level, All );
    errorMax = error.getMaxMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "const replace, const add" );
 
-   error.assign( {1.0, -1.0}, {dstManualConst, dstAdditiveElementwise}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstManualConst, dstAdditiveElementwise }, level, All );
    errorMax = error.getMaxMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "elementwise replace, elementwise add" );
 
-   error.assign( {1.0, -1.0}, {dstManualConst, dstConstReplaceElementwiseAdd}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstManualConst, dstConstReplaceElementwiseAdd }, level, All );
    errorMax = error.getMaxMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "const replace, elementwise add" );
 }
@@ -135,7 +139,7 @@ int main( int argc, char* argv[] )
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------
-   std::string           meshFileName = "../../meshes/quad_16el.msh";
+   std::string           meshFileName = prependHyTeGMeshDir( "quad_16el.msh" );
    MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
@@ -162,7 +166,7 @@ int main( int argc, char* argv[] )
    // ----------------------------
    //  Prepare setup for 3D tests
    // ----------------------------
-   meshFileName                     = "../../meshes/3D/pyramid_tilted_4el.msh";
+   meshFileName                     = prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" );
    MeshInfo              meshInfo3D = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage3D( meshInfo3D, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage3D );

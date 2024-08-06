@@ -478,7 +478,7 @@ int main( int argc, char** argv )
    // ----------
    {
       logSectionHeader( "Testing 2D with BFS" );
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/bfs_12el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "bfs_12el.msh" ) );
       setStore =
           std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
@@ -504,7 +504,7 @@ int main( int argc, char** argv )
    // ----------
    {
       logSectionHeader( "Testing 3D with pyramid_2el" );
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
       setStore =
           std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );

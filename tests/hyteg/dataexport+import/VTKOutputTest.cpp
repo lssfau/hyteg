@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -54,8 +54,7 @@ static void exportFunctions2D( uint_t level )
    uint_t minLevel = level;
    uint_t maxLevel = level;
 
-   // MeshInfo                         mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../meshes/penta_5el.msh" );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "penta_5el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -153,7 +152,7 @@ static void exportFunctions3D( uint_t level )
    uint_t minLevel = level;
    uint_t maxLevel = level;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -277,7 +276,7 @@ static void exportNumericFunctions()
    const uint_t minLevel = 2;
    const uint_t maxLevel = 2;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../meshes/penta_5el.msh" );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "penta_5el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
@@ -323,16 +322,16 @@ static void testVTKQuadraticTriangle( uint_t meshType, uint_t level )
    switch ( meshType )
    {
    case 1:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" ) );
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) ) );
       break;
    case 2:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/tri_2el.msh" ) );
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_2el.msh" ) ) );
       break;
    case 3:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/penta_5el.msh" ) );
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "penta_5el.msh" ) ) );
       break;
    case 4:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ) );
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) ) );
       break;
    case 5:
       mesh = std::make_shared< MeshInfo >(
@@ -378,13 +377,14 @@ static void testVTKQuadraticTetra( uint_t meshType, uint_t level )
    switch ( meshType )
    {
    case 1:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" ) );
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) ) );
       break;
    case 2:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" ) );
+      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) ) );
       break;
    case 3:
-      mesh = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( "../../meshes/3D/three_tets_with_two_joint_faces.msh" ) );
+      mesh = std::make_shared< MeshInfo >(
+          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/three_tets_with_two_joint_faces.msh" ) ) );
       break;
    default:
       WALBERLA_ABORT( "meshType = " << meshType << " is not supported!" );

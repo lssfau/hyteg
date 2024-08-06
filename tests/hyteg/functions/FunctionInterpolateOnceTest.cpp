@@ -83,10 +83,10 @@ int main( int argc, char** argv )
 
    std::vector< MeshInfo > meshInfos;
 
-   meshInfos.push_back( MeshInfo::fromGmshFile( "../../../data/meshes/tri_1el.msh" ) );
-   meshInfos.push_back( MeshInfo::fromGmshFile( "../../../data/meshes/bfs_126el.msh" ) );
-   meshInfos.push_back( MeshInfo::fromGmshFile( "../../../data/meshes/3D/tet_1el.msh" ) );
-   meshInfos.push_back( MeshInfo::fromGmshFile( "../../../data/meshes/3D/cube_24el.msh" ) );
+   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) ) );
+   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "bfs_126el.msh" ) ) );
+   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) ) );
+   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/cube_24el.msh" ) ) );
 
    uint_t minLevel = 0;
    uint_t maxLevel = 3;

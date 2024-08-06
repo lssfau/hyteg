@@ -73,7 +73,9 @@ void petscSolveTest( int solverType, const uint_t& level, const std::string& mes
       return sin( xx[0] ) * sinh( xx[1] );
    };
    walberla::math::seedRandomGenerator( 0 );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
 
    x.interpolate( exact, level, hyteg::DirichletBoundary );
    x.interpolate( rand, level, hyteg::Inner );
@@ -88,21 +90,20 @@ void petscSolveTest( int solverType, const uint_t& level, const std::string& mes
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Solving with LU (MUMPS)" );
       auto actualSolver = std::make_shared< PETScLUSolver< hyteg::P1ConstantLaplaceOperator > >( storage, level );
-      solver = actualSolver;
+      solver            = actualSolver;
    }
    else if ( solverType == 1 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Solving with CG" );
       auto actualSolver = std::make_shared< PETScCGSolver< hyteg::P1ConstantLaplaceOperator > >( storage, level );
-      solver = actualSolver;
+      solver            = actualSolver;
    }
    else if ( solverType == 2 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Solving with MINRES" );
       auto actualSolver = std::make_shared< PETScMinResSolver< hyteg::P1ConstantLaplaceOperator > >( storage, level );
-      solver = actualSolver;
+      solver            = actualSolver;
    }
-
 
    walberla::WcTimer timer;
    solver->solve( A, x, b, level );
@@ -136,12 +137,12 @@ int main( int argc, char* argv[] )
 
    for ( int solver = 1; solver < 3; solver++ )
    {
-      petscSolveTest( solver, 3, "../../meshes/quad_2el.msh", 2.5e-05 );
-      petscSolveTest( solver, 3, "../../meshes/quad_4el.msh", 1.4e-05 );
-      petscSolveTest( solver, 3, "../../meshes/3D/tet_1el.msh", 4.9e-07 );
-      petscSolveTest( solver, 3, "../../meshes/3D/pyramid_2el.msh", 4.9e-05 );
-      petscSolveTest( solver, 3, "../../meshes/3D/pyramid_4el.msh", 1.5e-05 );
-      petscSolveTest( solver, 3, "../../meshes/3D/regular_octahedron_8el.msh", 2.3e-04 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "quad_2el.msh" ), 2.5e-05 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "quad_4el.msh" ), 1.4e-05 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4.9e-07 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 4.9e-05 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 1.5e-05 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2.3e-04 );
    }
 
    return EXIT_SUCCESS;

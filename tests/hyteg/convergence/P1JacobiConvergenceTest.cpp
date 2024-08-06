@@ -86,14 +86,16 @@ static void test( const std::string& meshFile, const uint_t& level, const uint_t
 
    real_t begin_res, abs_res_old, rel_res = 0, abs_res = 0;
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%10s|%10s|%10s|%10s", "iter", "Jacobi diff", "abs_res", "rel_res", "conv" ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( "%6s|%10s|%10s|%10s|%10s", "iter", "Jacobi diff", "abs_res", "rel_res", "conv" ) );
 
    Lconst.apply( p2functionConst, Lu, level, Inner );
-   residuum.assign( {1.0, -1.0}, {rhs, Lu}, level, Inner );
+   residuum.assign( { 1.0, -1.0 }, { rhs, Lu }, level, Inner );
    begin_res   = std::sqrt( residuum.dotGlobal( residuum, level, Inner ) );
    abs_res_old = begin_res;
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", 0, 0, begin_res, rel_res, begin_res / abs_res_old ) )
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", 0, 0, begin_res, rel_res, begin_res / abs_res_old ) )
    walberla::WcTimer timer;
 
    for ( uint_t i = 0; i < maxiter; ++i )
@@ -126,7 +128,7 @@ static void test( const std::string& meshFile, const uint_t& level, const uint_t
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   error.assign( {1.0, -1.0}, {p2functionConst, p2Exact}, level );
+   error.assign( { 1.0, -1.0 }, { p2functionConst, p2Exact }, level );
 
    helperFun.interpolate( ones, level );
    real_t npoints = helperFun.dotGlobal( helperFun, level );
@@ -147,9 +149,9 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test( "../../meshes/quad_8el.msh", 4, 20 );
-   test( "../../meshes/3D/tet_1el.msh", 4, 20);
-   test( "../../meshes/3D/regular_octahedron_8el.msh", 4, 20);
+   test( hyteg::prependHyTeGMeshDir( "quad_8el.msh" ), 4, 20 );
+   test( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 20 );
+   test( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 4, 20 );
 
    return 0;
 }

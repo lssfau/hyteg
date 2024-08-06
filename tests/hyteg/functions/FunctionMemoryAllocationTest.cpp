@@ -33,8 +33,8 @@
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 
-using walberla::real_t;
 using walberla::real_c;
+using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
@@ -42,13 +42,13 @@ using namespace hyteg;
 
 void TestFunctionMemoryAllocation()
 {
-   auto meshInfo = MeshInfo::fromGmshFile("../../meshes/3D/cube_24el.msh");
+   auto                  meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/cube_24el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   const auto            storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    P1Function< real_t > x( "x", storage, 3, 3 );
 
-   auto globalMemoryBeforeDeletion =  FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+   auto globalMemoryBeforeDeletion = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
    WALBERLA_LOG_INFO_ON_ROOT( "Initial memory on level 3: " << globalMemoryBeforeDeletion );
 
    // now delete cell memory on level 3
@@ -57,7 +57,8 @@ void TestFunctionMemoryAllocation()
    x.deleteMemory( 3, *cell );
 
    // calculate memory deleted
-   auto memoryDeleted = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) * levelinfo::num_microvertices_per_cell( 3 ) * sizeof( real_t );
+   auto memoryDeleted = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) *
+                        levelinfo::num_microvertices_per_cell( 3 ) * sizeof( real_t );
    auto globalMemoryAfterDeletion = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
    WALBERLA_LOG_INFO_ON_ROOT( "Memory after deletion of 1 cell per process on level 3: " << globalMemoryAfterDeletion );
    WALBERLA_CHECK_EQUAL( globalMemoryAfterDeletion, globalMemoryBeforeDeletion - memoryDeleted );
@@ -66,7 +67,8 @@ void TestFunctionMemoryAllocation()
    x.allocateMemory( 4, *cell );
 
    // calculate memory allocated
-   auto memoryAllocated = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) * levelinfo::num_microvertices_per_cell( 4 ) * sizeof( real_t );
+   auto memoryAllocated = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) *
+                          levelinfo::num_microvertices_per_cell( 4 ) * sizeof( real_t );
    auto globalMemoryAfterReallocation = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
    WALBERLA_LOG_INFO_ON_ROOT( "Memory after re-allocation of 1 cell per process on level 4: " << globalMemoryAfterReallocation );
    WALBERLA_CHECK_EQUAL( globalMemoryAfterReallocation, globalMemoryAfterDeletion + memoryAllocated );

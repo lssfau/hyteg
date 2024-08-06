@@ -42,10 +42,11 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    const uint_t      level    = 4;
-   const std::string meshFile = "../../meshes/quad_8el.msh";
+   const std::string meshFile = prependHyTeGMeshDir( "quad_8el.msh" );
 
    auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto setupStorage =
+       std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
@@ -76,7 +77,7 @@ int main( int argc, char* argv[] )
 
    solver.solve( L, u, f, level );
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, level );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, level );
    npoints_helper.interpolate( ones, level );
 
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
@@ -85,9 +86,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_CHECK_LESS( discr_l2_err, 1.2e-5 );
 
-//   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
-//   vtkOutput.add( u );
-//   vtkOutput.write( level );
+   //   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+   //   vtkOutput.add( u );
+   //   vtkOutput.write( level );
 
    walberla::WcTimingTree tt = storage->getTimingTree()->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );

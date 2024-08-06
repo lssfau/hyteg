@@ -133,6 +133,8 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
 
 } // namespace hyteg
 
+using namespace hyteg;
+
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -141,23 +143,23 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
-   succeeded &= hyteg::p2PetscApplyTest( 0, "../../meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
-   succeeded &= hyteg::p2PetscApplyTest( 0, "../../meshes/3D/pyramid_4el.msh", hyteg::Inner, 3.2e-15 );
-   succeeded &= hyteg::p2PetscApplyTest( 0, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 3.2e-15 );
-   succeeded &= hyteg::p2PetscApplyTest( 0, "../../meshes/3D/cube_24el.msh", hyteg::Inner, 3.2e-15 );
+   succeeded &= p2PetscApplyTest( 0, prependHyTeGMeshDir( "3D/tet_1el.msh" ), All, 1.0e-16 );
+   succeeded &= p2PetscApplyTest( 0, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), Inner, 3.2e-15 );
+   succeeded &= p2PetscApplyTest( 0, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), Inner, 3.2e-15 );
+   succeeded &= p2PetscApplyTest( 0, prependHyTeGMeshDir( "3D/cube_24el.msh" ), Inner, 3.2e-15 );
 
-   succeeded &= hyteg::p2PetscApplyTest( 1, "../../meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
-   succeeded &= hyteg::p2PetscApplyTest( 1, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 3.2e-15 );
-   succeeded &= hyteg::p2PetscApplyTest( 1, "../../meshes/3D/cube_24el.msh", hyteg::Inner, 3.2e-15 );
+   succeeded &= p2PetscApplyTest( 1, prependHyTeGMeshDir( "3D/tet_1el.msh" ), All, 1.0e-16 );
+   succeeded &= p2PetscApplyTest( 1, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), Inner, 3.2e-15 );
+   succeeded &= p2PetscApplyTest( 1, prependHyTeGMeshDir( "3D/cube_24el.msh" ), Inner, 3.2e-15 );
 
-   succeeded &= hyteg::p2PetscApplyTest( 2, "../../meshes/3D/cube_24el.msh", hyteg::All, 3.1e-15 );
+   succeeded &= p2PetscApplyTest( 2, prependHyTeGMeshDir( "3D/cube_24el.msh" ), All, 3.1e-15 );
 
-   succeeded &= hyteg::p2PetscApplyTest( 3, "../../meshes/quad_4el.msh", hyteg::All, 5.0e-15 );
-   succeeded &= hyteg::p2PetscApplyTest( 3, "../../meshes/annulus_coarse.msh", hyteg::All, 1.7e-13 );
-   succeeded &= hyteg::p2PetscApplyTest( 3, "../../meshes/3D/tet_1el.msh", hyteg::Inner, 1.0e-16 );
-   succeeded &= hyteg::p2PetscApplyTest( 3, "../../meshes/3D/pyramid_2el.msh", hyteg::Inner, 9.6e-16 );
-   succeeded &= hyteg::p2PetscApplyTest( 3, "../../meshes/3D/pyramid_4el.msh", hyteg::Inner, 1.5e-15 );
-   succeeded &= hyteg::p2PetscApplyTest( 3, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 3.2e-15 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "quad_4el.msh" ), All, 5.0e-15 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "annulus_coarse.msh" ), All, 1.7e-13 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/tet_1el.msh" ), Inner, 1.0e-16 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), Inner, 9.6e-16 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), Inner, 1.5e-15 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), Inner, 3.2e-15 );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 

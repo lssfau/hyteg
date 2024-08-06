@@ -128,7 +128,7 @@ int main( int argc, char* argv[] )
    // Execute test with a 2D mesh
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing AdiosWriter for 2D Mesh ***" );
    {
-      MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/LShape_6el.msh" );
+      MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "LShape_6el.msh" ) );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );

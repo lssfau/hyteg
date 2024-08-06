@@ -40,7 +40,6 @@ template < typename value_t >
 class TestBlockFunction : public BlockFunction< value_t >
 {
  public:
-
    template < typename VType >
    using FunctionType = TestBlockFunction< VType >;
 
@@ -167,7 +166,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " Testing BlockGSSmootable " );
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );

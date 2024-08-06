@@ -164,36 +164,36 @@ int main( int argc, char* argv[] )
    // -- old elementwise op
 
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" ), 3, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) ), 3, false );
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" ), 4, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) ), 4, false );
 
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" ), 3, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) ), 3, false );
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" ), 4, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) ), 4, false );
 
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" ), 3, true );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) ), 3, true );
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" ), 4, true );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) ), 4, true );
 
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" ), 3, true );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) ), 3, true );
    compareApplyCC< P2P1ElementwiseConstantCoefficientStokesOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" ), 4, true );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) ), 4, true );
 
    // -- new generated op
 
    compareApplyCC< operatorgeneration::P2P1StokesConstantOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" ), 3, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) ), 3, false );
    compareApplyCC< operatorgeneration::P2P1StokesConstantOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" ), 4, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) ), 4, false );
 
    compareApplyCC< operatorgeneration::P2P1StokesConstantOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" ), 3, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) ), 3, false );
    compareApplyCC< operatorgeneration::P2P1StokesConstantOperator >(
-       MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_tilted_4el.msh" ), 4, false );
+       MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ) ), 4, false );
 
    // -- blending tests
 

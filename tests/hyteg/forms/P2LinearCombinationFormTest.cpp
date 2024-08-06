@@ -136,23 +136,23 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
-   succeeded &= hyteg::P2LinearCombinationFormTest( 0, "../../meshes/3D/tet_1el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 0, "../../meshes/3D/pyramid_4el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 0, "../../meshes/3D/regular_octahedron_8el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 0, "../../meshes/3D/cube_24el.msh" );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 0, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 0, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 0, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 0, hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh") );
 
-   succeeded &= hyteg::P2LinearCombinationFormTest( 1, "../../meshes/3D/tet_1el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 1, "../../meshes/3D/regular_octahedron_8el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 1, "../../meshes/3D/cube_24el.msh" );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 1, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 1, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 1, hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh") );
 
-   succeeded &= hyteg::P2LinearCombinationFormTest( 2, "../../meshes/3D/cube_24el.msh" );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 2, hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh") );
 
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, "../../meshes/quad_4el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, "../../meshes/annulus_coarse.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, "../../meshes/3D/tet_1el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, "../../meshes/3D/pyramid_2el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, "../../meshes/3D/pyramid_4el.msh" );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, "../../meshes/3D/regular_octahedron_8el.msh" );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "quad_4el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "annulus_coarse.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 

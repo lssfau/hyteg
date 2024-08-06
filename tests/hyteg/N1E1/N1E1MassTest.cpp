@@ -59,7 +59,7 @@ void testLevel0( std::function< Point3D( const Point3D& ) > func, const std::arr
 {
    const size_t level = 0;
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

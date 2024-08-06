@@ -80,7 +80,7 @@ void P1ElementwiseCGTest( const std::string& meshFile,
    auto solver = hyteg::CGSolver< hyteg::P1ElementwiseLaplaceOperator >( storage, level, level );
    solver.solve( L, u, f, level );
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, level );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, level );
    npoints_helper.interpolate( ones, level );
 
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
@@ -107,43 +107,43 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::P1ElementwiseCGTest( "../../meshes//tri_1el.msh", 0, 1, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes//quad_4el.msh", 0, 1, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 0, 1, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/pyramid_2el.msh", 0, 1, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/regular_octahedron_8el.msh", 0, 1, true, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/cube_24el.msh", 0, 1, true, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 0, 1, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 0, 1, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0, 1, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0, 1, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0, 1, true, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), 0, 1, true, false );
 
-   hyteg::P1ElementwiseCGTest( "../../meshes//tri_1el.msh", 1, 1e-12, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes//quad_4el.msh", 1, 2.1e-04, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 1, 1e-12, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/pyramid_2el.msh", 1, 1e-12, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/regular_octahedron_8el.msh", 1, 3.2e-03, true, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 1, 1e-12, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 1, 2.1e-04, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1, 1e-12, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1, 1e-12, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1, 3.2e-03, true, false );
 
-   hyteg::P1ElementwiseCGTest( "../../meshes//tri_1el.msh", 3, 3.3e-6, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes//quad_4el.msh", 3, 1.4e-5, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 2, 1.1e-6, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 3, 5e-7, true, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/pyramid_2el.msh", 2, 1.5e-4, false, false );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/regular_octahedron_8el.msh", 2, 9.1e-4, true, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 3, 3.3e-6, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 3, 1.4e-5, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 1.1e-6, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 5e-7, true, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, 1.5e-4, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, 9.1e-4, true, false );
 
-   hyteg::P1ElementwiseCGTest( "../../meshes//tri_1el.msh", 0, 1, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes//quad_4el.msh", 0, 1, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 0, 1, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/pyramid_2el.msh", 0, 1, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/regular_octahedron_8el.msh", 0, 1, true, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/cube_24el.msh", 0, 1, true, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 0, 1, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 0, 1, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0, 1, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0, 1, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0, 1, true, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), 0, 1, true, true );
 
-   hyteg::P1ElementwiseCGTest( "../../meshes//tri_1el.msh", 1, 1e-12, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes//quad_4el.msh", 1, 2.1e-04, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 1, 1e-12, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/pyramid_2el.msh", 1, 1e-12, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/regular_octahedron_8el.msh", 1, 3.2e-03, true, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 1, 1e-12, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 1, 2.1e-04, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1, 1e-12, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1, 1e-12, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1, 3.2e-03, true, true );
 
-   hyteg::P1ElementwiseCGTest( "../../meshes//tri_1el.msh", 3, 3.3e-6, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes//quad_4el.msh", 3, 1.4e-5, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 2, 1.1e-6, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/tet_1el.msh", 3, 5e-7, true, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/pyramid_2el.msh", 2, 1.5e-4, false, true );
-   hyteg::P1ElementwiseCGTest( "../../meshes/3D/regular_octahedron_8el.msh", 2, 9.1e-4, true, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/tri_1el.msh" ), 3, 3.3e-6, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/quad_4el.msh" ), 3, 1.4e-5, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 1.1e-6, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 5e-7, true, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, 1.5e-4, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, 9.1e-4, true, true );
 }

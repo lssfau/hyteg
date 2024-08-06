@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
    /// read mesh file and create storage
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
@@ -73,25 +73,37 @@ int main( int argc, char* argv[] )
 
    uint_t iterations;
    /// use different checks for debug and release since the runtime in debug would be to high otherwise
-   WALBERLA_DEBUG_SECTION() { iterations = 100; }
-   else { iterations = 5000; }
+   WALBERLA_DEBUG_SECTION()
+   {
+      iterations = 100;
+   }
+   else
+   {
+      iterations = 5000;
+   }
 
    /// apply Gauss Seidl smoother i times
-   for( uint_t i = 0; i < iterations; ++i )
+   for ( uint_t i = 0; i < iterations; ++i )
    {
       L.smooth_gs( u, rightHandSide, level, hyteg::Inner );
    }
 
    /// calculate residuum and check
    L.apply( u, residuumFunction, level, hyteg::Inner );
-   residuumFunction.add( {-1}, {rightHandSide}, level, hyteg::Inner );
+   residuumFunction.add( { -1 }, { rightHandSide }, level, hyteg::Inner );
    residuum = std::sqrt( residuumFunction.dotGlobal( residuumFunction, level, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "residual: = " << residuum );
-   WALBERLA_DEBUG_SECTION() { WALBERLA_CHECK_GREATER( 0.2, residuum ); }
-   else { WALBERLA_CHECK_GREATER( 1e-14, residuum ); }
+   WALBERLA_DEBUG_SECTION()
+   {
+      WALBERLA_CHECK_GREATER( 0.2, residuum );
+   }
+   else
+   {
+      WALBERLA_CHECK_GREATER( 1e-14, residuum );
+   }
 
    /// calculate and print error
-   error.assign( {1.0, -1.0}, {u, u_exact}, level );
+   error.assign( { 1.0, -1.0 }, { u, u_exact }, level );
    npoints_helper.interpolate( ones, level );
    real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
    real_t discr_l2_err = std::sqrt( error.dotGlobal( error, level ) / npoints );

@@ -75,7 +75,7 @@ int main( int argc, char** argv )
 
    uint_t level = 3;
    {
-      SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( "../../meshes/3D/cube_6el.msh" ),
+      SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) ),
                                           uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -83,7 +83,7 @@ int main( int argc, char** argv )
       dg::eg::checkAll( storage, level );
    }
    {
-      SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" ),
+      SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ) ),
                                           uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
