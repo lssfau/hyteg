@@ -301,50 +301,59 @@ void VTKP2Writer::writeP2VectorFunctionData( bool                               
       {
          const Face& face = *itFaces.second;
 
-         for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macroface::Iterator( level, 0 ) )
          {
-            if ( it.y() % 2 == 0 )
+            for ( uint_t idx = 0; idx < dim; ++idx )
             {
-               if ( it.x() % 2 == 0 )
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream << face.getData( function[idx].getVertexDoFFunction().getFaceDataID() )
-                                      ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
-                  }
-               }
-               else
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
-                  }
-               }
+               dstStream
+                   << face.getData( function.component( idx ).getVertexDoFFunction().getFaceDataID() )
+                          ->getPointer(
+                              level )[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C )];
             }
-            else
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            for ( uint_t idx = 0; idx < dim; ++idx )
             {
-               if ( it.x() % 2 == 0 )
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
-                  }
-               }
-               else
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream
-                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+               dstStream << face.getData( function.component( idx ).getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
-                  }
-               }
+                                    level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X )];
+            }
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            for ( uint_t idx = 0; idx < dim; ++idx )
+            {
+               dstStream << face.getData( function.component( idx ).getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY )];
+            }
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            for ( uint_t idx = 0; idx < dim; ++idx )
+            {
+               dstStream << face.getData( function.component( idx ).getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y )];
             }
          }
       }
