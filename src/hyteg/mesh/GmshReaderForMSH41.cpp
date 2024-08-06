@@ -73,11 +73,11 @@ void GmshReaderForMSH41::analyseSectionList( const std::vector< std::string >& s
 
       switch ( sectionType_.at( section ) )
       {
-      case REQUIRED:
+      case sectionClassification::REQUIRED:
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Required section '" << section << "' is present" );
          numRequiredSections++;
          break;
-      case REQUIRED_FOR_PHYSICAL_TAGS:
+      case sectionClassification::REQUIRED_FOR_PHYSICAL_TAGS:
          if ( importPhysicalTags_ )
          {
             WALBERLA_LOG_PROGRESS_ON_ROOT( "Required section '" << section << "' is present" );
@@ -88,17 +88,17 @@ void GmshReaderForMSH41::analyseSectionList( const std::vector< std::string >& s
             WALBERLA_LOG_PROGRESS_ON_ROOT( "Optional section '" << section << "' is present" );
          }
          break;
-      case OPTIONAL:
+      case sectionClassification::OPTIONAL:
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Optional section '" << section << "' is present" );
          break;
-      case IGNORABLE:
+      case sectionClassification::IGNORABLE:
          WALBERLA_LOG_WARNING_ON_ROOT( "Going to ignore section '" << section << "'" );
          break;
-      case PROBABLY_IGNORABLE:
+      case sectionClassification::PROBABLY_IGNORABLE:
          WALBERLA_LOG_WARNING_ON_ROOT( "Don't know how to handle section '"
                                        << section << "'. Assuming that it can be ignored. Keep your fingers crossed" );
          break;
-      case CRITICAL:
+      case sectionClassification::CRITICAL:
          WALBERLA_LOG_WARNING_ON_ROOT( "Detected section '" << section << "'. Processing this mesh is outside my capabilities!" );
          weNeedToAbort = true;
       }

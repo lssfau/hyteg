@@ -426,7 +426,9 @@ class MeshInfo
    /// Primitive::meshBoundaryFlag_ from the Gmsh's physicalTags. However, for this to work, the
    /// file needs to contain an Entities section giving physical tags for all entities, i.e. Nodes,
    /// Curves, Surfaces and in 3D also Volumes, which are used in the mesh itself.
-   /// See Gmsh's documentation on `Physical Curve` etc.
+   /// See Gmsh's documentation on `Physical Curve` etc. If there is not 'Entities' section in the
+   /// file or not every entity has at least one physical tag associated with it, the reader
+   /// will abort.
    ///
    /// For importPhysicalTags = false, the reader will flag all primitives as 0, i.e. inner, and
    /// marking primitives and degrees of freedom to be e.g. DirichletBoundary needs to be handled

@@ -79,7 +79,7 @@ class GmshReaderForMSH41
    const bool importPhysicalTags_;
 
    /// the MSH can contain various kinds of sections, some of which we need, others we cannot work with
-   typedef enum
+   enum class sectionClassification
    {
       REQUIRED,                   //< must be present for the reader to work
       REQUIRED_FOR_PHYSICAL_TAGS, //< required, if the user wants us to import physical tags
@@ -87,24 +87,24 @@ class GmshReaderForMSH41
       IGNORABLE,                  //< if present, we can simply ignore it
       PROBABLY_IGNORABLE,         //< if present, we assume we can ignore it
       CRITICAL                    //< when present indicates that the file is special
-   } sectionClassification;
+   };
 
    /// classify sections that can be present in MSH 4.1 format
    static inline const std::map< std::string, sectionClassification > sectionType_ = {
-       { "MeshFormat", REQUIRED },
-       { "PhysicalNames", OPTIONAL },
-       { "Entities", REQUIRED_FOR_PHYSICAL_TAGS },
-       { "PartitionedEntities", PROBABLY_IGNORABLE },
-       { "Nodes", REQUIRED },
-       { "Elements", REQUIRED },
-       { "Periodic", CRITICAL },
-       { "GhostElements", PROBABLY_IGNORABLE },
-       { "Parametrizations", CRITICAL },
-       { "NodeData", IGNORABLE },
-       { "ElementData", IGNORABLE },
-       { "ElementNodeData", IGNORABLE },
-       { "InterpolationScheme", CRITICAL },
-       { "Comments", IGNORABLE } };
+       { "MeshFormat", sectionClassification::REQUIRED },
+       { "PhysicalNames", sectionClassification::OPTIONAL },
+       { "Entities", sectionClassification::REQUIRED_FOR_PHYSICAL_TAGS },
+       { "PartitionedEntities", sectionClassification::PROBABLY_IGNORABLE },
+       { "Nodes", sectionClassification::REQUIRED },
+       { "Elements", sectionClassification::REQUIRED },
+       { "Periodic", sectionClassification::CRITICAL },
+       { "GhostElements", sectionClassification::PROBABLY_IGNORABLE },
+       { "Parametrizations", sectionClassification::CRITICAL },
+       { "NodeData", sectionClassification::IGNORABLE },
+       { "ElementData", sectionClassification::IGNORABLE },
+       { "ElementNodeData", sectionClassification::IGNORABLE },
+       { "InterpolationScheme", sectionClassification::CRITICAL },
+       { "Comments", sectionClassification::IGNORABLE } };
 
    /// Open the mesh-file and verify that its format is MSH4.1
    std::ifstream openFileAndCheckFormat() const

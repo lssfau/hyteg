@@ -54,23 +54,23 @@ MeshInfo MeshInfo::fromGmshFile( const std::string& meshFileName, bool importPhy
    {
       if ( !importPhysicalTags )
       {
-         WALBERLA_ABORT(
-             "MeshReader for MSH 2.2 will always import physical tags (to some extent)!\n Please see documentation for details." );
+         WALBERLA_ABORT( "MeshReader for MSH 2.2 does not support 'importPhysicalTags=true'.\n"
+                         << "It is will always import physical tags (to some extent)!\n Please see documentation for details." );
       }
 
       meshInfo = GmshReaderForMSH22::readMesh( meshFileName );
    }
    else if ( token == "4.1" )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "Support for MSH 4.1 currently under construction" );
       GmshReaderForMSH41 mshReader( meshFileName, importPhysicalTags );
       meshInfo = mshReader.readMesh();
    }
    else
    {
-      WALBERLA_ABORT( "MSH format " << token << " is not supported.\n"
-                                    << "If you definitely need it, please open an issue on "
-                                    << "https://i10git.cs.fau.de/hyteg/hyteg" );
+      WALBERLA_ABORT( "MSH format " << token << " is not supported.\n\n"
+                                    << "If you definitely need it, please open an issue on:\n"
+                                    << "https://i10git.cs.fau.de/hyteg/hyteg\n\n"
+                                    << "Currently supported formats are 2.2 and 4.1." );
    }
 
    return meshInfo;
