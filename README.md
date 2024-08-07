@@ -109,6 +109,10 @@ The most relevant options are listed below, with defaults in parentheses:
 * `WALBERLA_OPTIMIZE_FOR_LOCALHOST` (`yes`)
 
   Optimizes the build for the present architecture (for instance to enable vector intrinsics if the instruction set is available).
+ 
+* `WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT` (`no`)
+
+  Builds the float16 functionalities of HyTeG. Not all compiles and libraries support the use of float16, thus, this option is disabled by default, as it might restrict the user environment.
 
 ### TerraNeo module
 

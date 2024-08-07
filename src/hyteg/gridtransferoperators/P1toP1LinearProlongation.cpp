@@ -154,7 +154,6 @@ void P1toP1LinearProlongation< ValueType >::prolongate2DAdditively( const P1Func
    function.template communicateAdditively< Face, Vertex >( destinationLevel, excludeFlag, *storage, updateType == Replace );
 }
 
-
 template < typename ValueType >
 static ValueType calculateInverseFactorToScaleNeighborhoodContribution( const std::array< ValueType, 4 >& invNumNeighborsOfVertex,
                                                                         const std::array< ValueType, 6 >& invNumNeighborsOfEdge,
@@ -347,7 +346,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                for ( const auto& dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment.cast<idx_t>();
+                  const auto dirIdxDst                    = dstIdx + increment.cast< idx_t >();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
 
@@ -364,7 +363,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                for ( const auto& dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx.cast<idx_t>() + increment.cast<idx_t>();
+                  const auto dirIdxDst                    = dstIdx.cast< idx_t >() + increment.cast< idx_t >();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
@@ -380,7 +379,7 @@ void P1toP1LinearProlongation< ValueType >::prolongate3DAdditively( const P1Func
                for ( const auto& dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
                {
                   const auto increment                    = vertexdof::logicalIndexOffsetFromVertex( dir );
-                  const auto dirIdxDst                    = dstIdx + increment.cast<idx_t>();
+                  const auto dirIdxDst                    = dstIdx + increment.cast< idx_t >();
                   const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution(
                       invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace, dirIdxDst, destinationLevel );
                   const auto arrayIdxDst =
@@ -484,8 +483,10 @@ void P1toP1LinearProlongation< ValueType >::prolongateMacroFace2D( const ValueTy
    }
 }
 
-
 template class P1toP1LinearProlongation< double >;
 template class P1toP1LinearProlongation< float >;
+#ifdef WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
+template class P1toP1LinearProlongation< walberla::float16 >;
+#endif // WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
 
 } // namespace hyteg

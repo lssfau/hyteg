@@ -23,6 +23,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "core/DataTypes.h"
 #include "core/Macros.h"
 #define RESTRICT WALBERLA_RESTRICT
 
@@ -31,8 +32,16 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void prolongate_2D_macroface_P1_push_additive(double const * RESTRICT const _data_vertexCoarseSrc, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2, double num_neighbor_faces_vertex0, double num_neighbor_faces_vertex1, double num_neighbor_faces_vertex2);
-void prolongate_2D_macroface_P1_push_additive(float const * RESTRICT const _data_vertexCoarseSrc, float * RESTRICT _data_vertexFineDst, int coarse_level, float num_neighbor_faces_edge0, float num_neighbor_faces_edge1, float num_neighbor_faces_edge2, float num_neighbor_faces_vertex0, float num_neighbor_faces_vertex1, float num_neighbor_faces_vertex2);
+template < typename ValueType >
+void prolongate_2D_macroface_P1_push_additive( ValueType const* RESTRICT const _data_vertexCoarseSrc,
+                                               ValueType* RESTRICT             _data_vertexFineDst,
+                                               int                             coarse_level,
+                                               ValueType                       num_neighbor_faces_edge0,
+                                               ValueType                       num_neighbor_faces_edge1,
+                                               ValueType                       num_neighbor_faces_edge2,
+                                               ValueType                       num_neighbor_faces_vertex0,
+                                               ValueType                       num_neighbor_faces_vertex1,
+                                               ValueType                       num_neighbor_faces_vertex2 );
 
 } // namespace generated
 } // namespace macroface

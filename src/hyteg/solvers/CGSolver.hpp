@@ -34,7 +34,8 @@ template < class OperatorType >
 class CGSolver : public Solver< OperatorType >
 {
  public:
-   typedef typename OperatorType::srcType FunctionType;
+   using FunctionType = typename OperatorType::srcType;
+   using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
 
    /// The algorithm is copied from the book: "Finite Elements and Fast Iterative Solvers"
    /// Therefore the variables are named like the ones in the book
@@ -114,12 +115,12 @@ class CGSolver : public Solver< OperatorType >
             break;
          }
 
-         z_.interpolate( 0, level, All );
+         z_.interpolate( walberla::numeric_cast< ValueType >( 0 ), level, All );
          preconditioner_->solve( A, z_, r_, level );
          prsnew = r_.dotGlobal( z_, level, flag_ );
          beta   = prsnew / prsold;
 
-         p_.assign( { 1.0, beta }, { z_, p_ }, level, flag_ );
+         p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ), beta }, { z_, p_ }, level, flag_ );
          prsold = prsnew;
 
          if ( i > 0 && i % restartFrequency_ == 0 )
@@ -190,8 +191,9 @@ class CGSolver : public Solver< OperatorType >
 
       // init CG
       A.apply( x, p_, level, flag_, Replace );
-      r_.assign( { 1.0, -1.0 }, { b, p_ }, level, flag_ );
-      p_.assign( { 1.0 }, { r_ }, level, flag_ );
+      r_.assign(
+          { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) }, { b, p_ }, level, flag_ );
+      p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { r_ }, level, flag_ );
       prsold = r_.dotGlobal( r_, level, flag_ );
 
       // required for diagonal entries, set values
@@ -217,7 +219,7 @@ class CGSolver : public Solver< OperatorType >
          beta   = prsnew / prsold;
          subDiag.push_back( std::sqrt( beta ) / alpha );
 
-         p_.assign( { 1.0, beta }, { r_, p_ }, level, flag_ );
+         p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ), beta }, { r_, p_ }, level, flag_ );
          prsold = prsnew;
 
          alpha_old = alpha;
@@ -242,10 +244,11 @@ class CGSolver : public Solver< OperatorType >
               typename FunctionType::valueType& prsold ) const
    {
       A.apply( x, p_, level, flag_, Replace );
-      r_.assign( { 1.0, -1.0 }, { b, p_ }, level, flag_ );
-      z_.interpolate( 0, level, All );
+      r_.assign(
+          { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) }, { b, p_ }, level, flag_ );
+      z_.interpolate( walberla::numeric_cast< ValueType >( 0 ), level, All );
       preconditioner_->solve( A, z_, r_, level );
-      p_.assign( { 1.0 }, { z_ }, level, flag_ );
+      p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { z_ }, level, flag_ );
       prsold = r_.dotGlobal( z_, level, flag_ );
    }
 

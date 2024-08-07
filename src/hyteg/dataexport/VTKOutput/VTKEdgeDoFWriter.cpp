@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -86,6 +86,10 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
    output << "<PointData>\n";
 
    for ( const auto& function : mgr.feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< double >() )
+   {
+      writeScalarFunction( mgr, output, function, storage, level, dofType );
+   }
+   for ( const auto& function : mgr.feFunctionRegistry_.getEdgeDoFFunctions().getFunctions< float >() )
    {
       writeScalarFunction( mgr, output, function, storage, level, dofType );
    }

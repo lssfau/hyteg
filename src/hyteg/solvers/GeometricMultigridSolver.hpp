@@ -37,7 +37,8 @@ template < class OperatorType >
 class GeometricMultigridSolver : public Solver< OperatorType >
 {
  public:
-   typedef typename OperatorType::srcType FunctionType;
+   using FunctionType = typename OperatorType::srcType;
+   using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
 
    GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
                              std::shared_ptr< Solver< OperatorType > >               smoother,
@@ -124,6 +125,14 @@ class GeometricMultigridSolver : public Solver< OperatorType >
       smoothIncrement_ = smoothIncrement;
    }
 
+   /// \brief applies the generic geometric multigrid solver to the LSE Ax=b.
+   ///     Even though, the solution is computed for the finest level 'level', all parameters must be allocated between the levels {'minLevel_', ..., 'maxLevel'}.
+   ///
+   /// \param A        Operator matrix A.
+   /// \param x        Solution vector x.
+   /// \param b        Right-hand-side vector b. After execution of solve, only the finest level 'level' still contains the passed values, all courser values are overwritten with intermediate values.
+   /// \param level    Finest level for which 'x' is approximated.
+   ///
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       timingTree_->start( "Geometric Multigrid Solver" );
@@ -172,26 +181,24 @@ class GeometricMultigridSolver : public Solver< OperatorType >
          if ( constantRHS_ && level == invokedLevel_ )
          {
             A.apply( x, tmp_, level, flag_ );
-            tmp_.assign( {-1.0}, {tmp_}, level, flag_ );
+            tmp_.assign( { walberla::numeric_cast< ValueType >( -1.0 ) }, { tmp_ }, level, flag_ );
             tmp_.add( constantRHSScalar_, level, flag_ );
-
-            // restrict
-            timingTree_->start( "Restriction" );
-            restrictionOperator_->restrict( tmp_, level, flag_ );
-            timingTree_->stop( "Restriction" );
          }
          else
          {
             A.apply( x, tmp_, level, flag_ );
-            tmp_.assign( {1.0, -1.0}, {b, tmp_}, level, flag_ );
-
-            // restrict
-            timingTree_->start( "Restriction" );
-            restrictionOperator_->restrict( tmp_, level, flag_ );
-            timingTree_->stop( "Restriction" );
+            tmp_.assign( { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) },
+                         { b, tmp_ },
+                         level,
+                         flag_ );
          }
 
-         b.assign( {1.0}, {tmp_}, level - 1, flag_ );
+         // restrict
+         timingTree_->start( "Restriction" );
+         restrictionOperator_->restrict( tmp_, level, flag_ );
+         timingTree_->stop( "Restriction" );
+
+         b.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { tmp_ }, level - 1, flag_ );
 
          x.interpolate( 0, level - 1 );
 

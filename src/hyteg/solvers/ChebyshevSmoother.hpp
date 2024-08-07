@@ -26,7 +26,6 @@
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
-#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 
 #include "Solver.hpp"
 
@@ -37,13 +36,14 @@ class ChebyshevSmoother : public Solver< OperatorType >
 {
  public:
    using FunctionType = typename OperatorType::srcType;
-   // using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
+   using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
 
    ChebyshevSmoother( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : coefficients{}
    , tmp1_( "cheb_tmp1", storage, minLevel, maxLevel )
    , tmp2_( "cheb_tmp2", storage, minLevel, maxLevel )
    , flag_( Inner | NeumannBoundary | FreeslipBoundary )
+   , timingTree_( storage->getTimingTree() )
    {}
 
    ChebyshevSmoother( const FunctionType& tmp1, const FunctionType& tmp2 )
@@ -51,6 +51,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
    , tmp1_( tmp1 )
    , tmp2_( tmp2 )
    , flag_( Inner | NeumannBoundary | FreeslipBoundary )
+   , timingTree_( tmp1.getStorage()->getTimingTree() )
    {}
 
    /// Executes an iteration step of the smoother.
@@ -80,15 +81,20 @@ class ChebyshevSmoother : public Solver< OperatorType >
          WALBERLA_UNUSED( localNormSqr );
          WALBERLA_ASSERT_GREATER( localNormSqr, 0.0, "diagonal not set" );
       }
+      timingTree_->start( "Chebyshev Smoother" );
 
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
       // tmp1_ := b-Ax
-      tmp1_.assign( { real_t( 1. ), real_t( -1. ) }, { b, tmp1_ }, level, flag_ );
+      tmp1_.assign(
+          { walberla::numeric_cast< ValueType >( 1. ), walberla::numeric_cast< ValueType >( -1. ) }, { b, tmp1_ }, level, flag_ );
       // tmp1_ := D^{-1} (b-Ax)
       tmp1_.multElementwise( { *inverseDiagonalValues, tmp1_ }, level, flag_ );
       // x := x + omega_0 D^{-1} (b-Ax)
-      x.assign( { 1., coefficients[0] }, { x, tmp1_ }, level, flag_ );
+      x.assign( { walberla::numeric_cast< ValueType >( 1. ), walberla::numeric_cast< ValueType >( coefficients[0] ) },
+                { x, tmp1_ },
+                level,
+                flag_ );
 
       // Loop preconditions before the kth iteration:
       // 1.)  x := x + sum_{i<k} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
@@ -101,8 +107,13 @@ class ChebyshevSmoother : public Solver< OperatorType >
          tmp1_.multElementwise( { *inverseDiagonalValues, tmp2_ }, level, flag_ );
 
          // x := x + sum_{i<k+1} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
-         x.assign( { 1, coefficients[k] }, { x, tmp1_ }, level, flag_ );
+         x.assign( { walberla::numeric_cast< ValueType >( 1 ), walberla::numeric_cast< ValueType >( coefficients[k] ) },
+                   { x, tmp1_ },
+                   level,
+                   flag_ );
       }
+
+      timingTree_->stop( "Chebyshev Smoother" );
    }
 
    /// Calculates the coefficients for our Chebyshev-Smoother.
@@ -115,7 +126,10 @@ class ChebyshevSmoother : public Solver< OperatorType >
    ///
    /// \param order The order of our polynomial smoother. Only 0 to 4 are supported.
    /// \param spectralRadius An estimate for our spectral radius.
-   void setupCoefficients( const uint_t order, const real_t spectralRadius, real_t upperFactor = real_c(1.2), real_t lowerFactor = real_c(0.3) )
+   void setupCoefficients( const uint_t order,
+                           const real_t spectralRadius,
+                           real_t       upperFactor = real_c( 1.2 ),
+                           real_t       lowerFactor = real_c( 0.3 ) )
    {
       const real_t upperBound = upperFactor * spectralRadius;
       const real_t lowerBound = lowerFactor * spectralRadius;
@@ -199,15 +213,16 @@ class ChebyshevSmoother : public Solver< OperatorType >
    }
 
  protected:
-   std::vector< real_t > coefficients;
-   FunctionType          tmp1_;
-   FunctionType          tmp2_;
-   DoFType               flag_;
+   std::vector< real_t >                     coefficients;
+   FunctionType                              tmp1_;
+   FunctionType                              tmp2_;
+   DoFType                                   flag_;
+   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
 /***************************************************************************
-NOTE: This is similar to the Chebyshev smoother except that projection is 
-      applied to set normal components to zero at the FreeslipBoundary at 
+NOTE: This is similar to the Chebyshev smoother except that projection is
+      applied to set normal components to zero at the FreeslipBoundary at
       every step of working
 ***************************************************************************/
 template < typename OperatorType >
@@ -221,9 +236,9 @@ class ChebyshevSmootherWithFreeSlipProjection : public ChebyshevSmoother< Operat
    using ChebyshevSmoother< OperatorType >::coefficients;
 
    ChebyshevSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >& storage,
-                                    size_t                                     minLevel,
-                                    size_t                                     maxLevel,
-                                    std::shared_ptr< P2ProjectNormalOperator > projection )
+                                            size_t                                     minLevel,
+                                            size_t                                     maxLevel,
+                                            std::shared_ptr< P2ProjectNormalOperator > projection )
    : ChebyshevSmoother< OperatorType >( storage, minLevel, maxLevel )
    , projection_( projection )
    {}
@@ -234,7 +249,7 @@ class ChebyshevSmootherWithFreeSlipProjection : public ChebyshevSmoother< Operat
       std::shared_ptr< typename OperatorType::srcType > inverseDiagonalValues = nullptr;
 
       if ( const auto* A_with_inv_diag =
-               dynamic_cast< const OperatorWithInverseDiagonal< typename OperatorType::srcType >* >( &(A.viscousOperator) ) )
+               dynamic_cast< const OperatorWithInverseDiagonal< typename OperatorType::srcType >* >( &( A.viscousOperator ) ) )
       {
          inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
       }
@@ -397,7 +412,8 @@ inline real_t determineScalingInternal( uint_t k, real_t alpha, real_t beta )
    return chebyshevEval / ( real_c( 1.0 ) + chebyshevEval );
 }
 
-inline real_t determineScaling( uint_t k, real_t spectralRadius, real_t upperFactor = real_c(1.2), real_t lowerFactor = real_c(0.3)  )
+inline real_t
+    determineScaling( uint_t k, real_t spectralRadius, real_t upperFactor = real_c( 1.2 ), real_t lowerFactor = real_c( 0.3 ) )
 {
    return determineScalingInternal( k, lowerFactor * spectralRadius, upperFactor * spectralRadius );
 }

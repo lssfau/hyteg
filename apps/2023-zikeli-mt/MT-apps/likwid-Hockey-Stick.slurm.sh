@@ -1,0 +1,34 @@
+#!/bin/bash -l
+#
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=24
+#SBATCH --time=3:00:00
+#SBATCH --export=NONE
+#SBATCH --partition spr1tb
+#SBATCH --job-name=Hockey-Sticks
+#SBATCH --mail-user=michael.zikeli@fau.de
+#SBATCH --mail-type=END
+#SBATCH --constraint=hwperf
+
+unset SLURM_EXPORT_ENV
+
+cd $HOME/hyteg
+rm -fr build-hockey-sticks-likwid
+
+module load 000-all-spack-pkgs/0.19.1 gcc/13.2.0-gcc8.5.0-r5aeqqr cmake openmpi/4.1.3-gcc8.5.0
+
+mkdir build-hockey-sticks-likwid
+cd ./build-hockey-sticks-likwid
+
+cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DWALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT:BOOL=ON -DHYTEG_BUILD_DOC=OFF -DWALBERLA_BUILD_WITH_LIKWID_MARKERS=ON ..
+make -j 32 benchmarkHockeySticks
+
+cd ./apps/2023-zikeli-mt/MT-apps
+
+echo -e "Begin Program\n"
+
+# likwid-mpirun
+# likwid-perfctr -C 0 -g MEM_DP -m
+srun ./benchmarkHockeySticks
+
+echo -e "\nFinish Program"

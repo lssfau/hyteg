@@ -257,11 +257,11 @@ struct ModelProblem
 
       if ( constant_coefficient() )
       {
-         k = [=]( const Point3D& ) { return 1.0; };
+         k = []( const Point3D& ) { return 1.0; };
       }
       if ( type == JUMP_COEFF )
       {
-         k = [=]( const hyteg::Point3D& x ) {
+         k = [*this]( const hyteg::Point3D& x ) {
             // jump at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
             real_t x_jump_y = x_jump_0 * ( real_c( 1.0 ) - x[1] ) + x_jump_1 * x[1];
             return ( x[0] < x_jump_y ) ? k_lo : k_hi;
@@ -269,13 +269,13 @@ struct ModelProblem
       }
       if ( type == JUMP_COEFF_REGULARIZED )
       {
-         k = [=]( const hyteg::Point3D& x ) {
+         k = [*this]( const hyteg::Point3D& x ) {
             return ( 2 * exp( sigma * ( x[0] - 0.5 ) ) + 1 ) / ( exp( sigma * ( x[0] - 0.5 ) ) + 1 );
          };
       }
       if ( type == WAVES_K )
       {
-         auto v = [=]( const real_t& t ) {
+         auto v = [*this]( const real_t& t ) {
             const auto c1 = n_w * p_w * 2 * pi;
             const auto c2 = log( c1 );
             const auto c3 = c1 * c2 / p_w;
@@ -328,7 +328,7 @@ struct ModelProblem
                return std::exp( -0.5 * x.squaredNorm() / sig2 ) / ( sqrt_2pi_pow_3 * sig3 );
             };
 
-            _u = [this, sqrt_2pi_pow_3]( const Point3D& x ) -> real_t {
+            _u = [*this, sqrt_2pi_pow_3]( const Point3D& x ) -> real_t {
                real_t r = x.norm();
                if ( r <= 0.0 )
                   return 1.0 / ( sqrt_2pi_pow_3 * sigma );
@@ -340,17 +340,15 @@ struct ModelProblem
 
       if ( type == DIRAC )
       {
-         _f = [=]( const Point3D& x ) -> real_t {
-            return ( x.norm() < 1e-10 ) ? std::numeric_limits< real_t >::infinity() : 0.0;
-         };
+         _f = []( const Point3D& x ) -> real_t { return ( x.norm() < 1e-10 ) ? std::numeric_limits< real_t >::infinity() : 0.0; };
 
          if ( dim == 2 )
          {
-            _u = [=]( const Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
+            _u = []( const Point3D& x ) -> real_t { return -std::log( x.norm() ) / ( 2.0 * pi ); };
          }
          else
          {
-            _u = [=]( const Point3D& x ) -> real_t { return 1.0 / ( 4.0 * pi * x.norm() ); };
+            _u = []( const Point3D& x ) -> real_t { return 1.0 / ( 4.0 * pi * x.norm() ); };
          }
       }
 
@@ -377,12 +375,12 @@ struct ModelProblem
       if ( type == WAVES )
       {
          // v(t) = t * (1 - cos(1/squeeze * (2π * n_waves * squeeze)^t))
-         auto v = [=]( const real_t& t ) {
+         auto v = [*this]( const real_t& t ) {
             auto x0 = 1.0 / p_w;
             auto x1 = 2 * n_w * p_w * pi;
             return t * ( 1 - cos( x0 * pow( x1, t ) ) );
          };
-         auto d2v = [=]( const real_t& t ) {
+         auto d2v = [*this]( const real_t& t ) {
             auto x0 = 1.0 / p_w;
             auto x1 = 2 * n_w * p_w * pi;
             auto x2 = x0 * pow( x1, t );
@@ -418,7 +416,7 @@ struct ModelProblem
 
       if ( type == WAVES_K )
       {
-         auto v = [=]( const real_t& t ) {
+         auto v = [*this]( const real_t& t ) {
             const auto c1 = n_w * p_w * 2 * pi;
             const auto c2 = log( c1 );
             const auto c3 = c1 * c2 / p_w;
@@ -450,7 +448,7 @@ struct ModelProblem
          real_t du_dy_max = ( x_jump_0 - x_jump_1 ) / k_hi;
          real_t u_jump    = du_dx_min * x_jump_0;
 
-         _u = [=]( const hyteg::Point3D& x ) {
+         _u = [=, *this]( const hyteg::Point3D& x ) {
             // kink at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
             real_t x_jump_y = x_jump_0 * ( real_c( 1.0 ) - x[1] ) + x_jump_1 * x[1];
             if ( x[0] < x_jump_y )
@@ -471,7 +469,7 @@ struct ModelProblem
          {
             WALBERLA_ABORT( "" << name() << " not implemented for 3d" );
          }
-         _u = [=]( const hyteg::Point3D& x ) {
+         _u = [*this]( const hyteg::Point3D& x ) {
             return ( -2 * sigma * x[0] + log( 2 * exp( sigma * ( x[0] - 0.5 ) ) + 1 ) ) / sigma;
          };
 
@@ -801,7 +799,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          real_t my_t1 = walberla::timing::getWcTime();
          t_error_indicator += my_t1 - my_t0;
       };
-      fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
+      fmg = std::make_shared< FullMultigridSolver< A_t > >(
+          storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
    };
 
    t1 = walberla::timing::getWcTime();
@@ -977,7 +976,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       {
          std::ofstream file( "output/" + vtkname + "_mesh_" + std::to_string( refinement_step ) + ".dat" );
 
-         file << std::setw( 13 ) << "#||centroid||" << std::setw( 13 ) << "R" << std::setw( 13 ) << "V" << "\n";
+         file << std::setw( 13 ) << "#||centroid||" << std::setw( 13 ) << "R" << std::setw( 13 ) << "V"
+              << "\n";
 
          if ( mesh.dim() == 2 )
          {

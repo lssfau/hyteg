@@ -21,8 +21,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
 
@@ -30,6 +30,9 @@ template < class OperatorType >
 class WeightedJacobiSmoother : public Solver< OperatorType >
 {
  public:
+   using FunctionType = typename OperatorType::srcType;
+   using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
+
    WeightedJacobiSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
                            uint_t                                     minLevel,
                            uint_t                                     maxLevel,
@@ -46,7 +49,7 @@ class WeightedJacobiSmoother : public Solver< OperatorType >
    {
       x.getStorage()->getTimingTree()->start( "Weighted Jacobi" );
       tmp_.copyBoundaryConditionFromFunction( x );
-      tmp_.assign( {1.0}, {x}, level, All );
+      tmp_.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { x }, level, All );
       if ( const auto* A_jac = dynamic_cast< const WeightedJacobiSmoothable< typename OperatorType::srcType >* >( &A ) )
       {
          A_jac->smooth_jac( x, b, tmp_, relax_, level, flag_ );
