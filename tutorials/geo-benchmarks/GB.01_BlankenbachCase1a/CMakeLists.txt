@@ -8,3 +8,5 @@ waLBerla_link_files_to_builddir( *.xml )
 waLBerla_add_executable( NAME GB.01_BlankenbachCase1a
         FILES GB.01_BlankenbachCase1a.cpp
         DEPENDS hyteg terraneo convection_particles sqlite mixed_operator)
+
+waLBerla_execute_test(NAME GB.01_BlankenbachCase1a COMMAND $<TARGET_FILE:GB.01_BlankenbachCase1a> PROCESSES 3)
