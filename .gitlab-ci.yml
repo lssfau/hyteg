@@ -422,6 +422,7 @@ gcc_13_serial_dbg_sp:
     CMAKE_BUILD_TYPE: "DebugOptimized"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 
@@ -447,6 +448,7 @@ gcc_13_mpionly_petsc_trilinos:
     HYTEG_BUILD_WITH_ADIOS2: "OFF"
     HYTEG_TERRANEO_MODULE: "OFF"
     PETSC_DIR: "/opt/view"
+    WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT: "ON"
   tags:
     - docker
 

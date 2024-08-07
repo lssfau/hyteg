@@ -334,7 +334,7 @@ void ConvectionSimulation::initialiseFunctions()
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
 
-   referenceTemperatureFct = [=]( const Point3D& x ) {
+   referenceTemperatureFct = [this]( const Point3D& x ) {
       real_t radius = x.norm();
       if ( TN.simulationParameters.adaptiveRefTemp )
       {

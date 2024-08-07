@@ -351,16 +351,20 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
    {
-      WALBERLA_CHECK_EQUAL( communicators_.count( level ), 1, "No communicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
       communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void endCommunication( const uint_t& level ) const
    {
-      WALBERLA_CHECK_EQUAL( communicators_.count( level ), 1, "No communicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
@@ -381,8 +385,10 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
       {
          interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
       }
-      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
@@ -422,8 +428,10 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
          interpolateByPrimitiveType< ReceiverType >(
              real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
       }
-      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
    }
 
@@ -431,8 +439,10 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    template < typename SenderType, typename ReceiverType >
    inline void endAdditiveCommunication( const uint_t& level ) const
    {
-      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
       additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
@@ -504,6 +514,15 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                                  const bool&     onRootOnly   = false ) const
    {
       return numberOfGlobalDoFs< P1FunctionTag >( *this->storage_, level, communicator, onRootOnly );
+   }
+
+   /// \brief Returns the number of DoFs that are not on the domain boundary. Performs global reduction, must be called collectively.
+   ///
+   /// \param level        refinement level
+   /// \return
+   uint_t getNumberOfGlobalInnerDoFs( uint_t level ) const
+   {
+      return numberOfGlobalInnerDoFs< P1FunctionTag >( *this->storage_, level );
    }
 
    bool hasVolumeGhostLayer() const

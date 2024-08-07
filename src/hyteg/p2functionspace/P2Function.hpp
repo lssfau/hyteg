@@ -278,6 +278,19 @@ class P2Function final : public Function< P2Function< ValueType > >
    };
    ///@}
 
+   /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
+   ///
+   /// \param level        refinement level
+   /// \param communicator if required, a custom communicator can be passed
+   /// \param onRootOnly   if true, the result is only returned on the root process
+   /// \return
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      return numberOfGlobalDoFs< P2FunctionTag >( *this->storage_, level, communicator, onRootOnly );
+   }
+
  private:
    using Function< P2Function< ValueType > >::communicators_;
 

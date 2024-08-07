@@ -46,7 +46,7 @@ template < typename ValueType >
 class FunctionMemory
 {
    static_assert( std::is_arithmetic< ValueType >::value, "Wrong ValueType template" );
-   template<typename otherValueType>
+   template < typename otherValueType >
    friend class FunctionMemory;
 
  public:
@@ -113,8 +113,18 @@ class FunctionMemory
    }
 
    /// Copies the data of one leve from the other FunctionMemory.
-   template< typename otherValueType >
-   inline void copyFrom( const FunctionMemory< otherValueType >& other, const uint_t& level ) { data_[level]->assign(other.data_.at( level )->begin(),other.data_.at( level )->end()); }
+   template < typename otherValueType >
+   inline void copyFrom( const FunctionMemory< otherValueType >& other, const uint_t& level )
+   {
+      auto tIt = data_.at( level )->begin();
+      auto oIt = other.data_.at( level )->begin();
+      for ( ; tIt != data_.at( level )->end() && oIt != other.data_.at( level )->end(); ++tIt, ++oIt )
+      {
+         ( *tIt ) = walberla::numeric_cast< ValueType >( *oIt );
+      }
+      WALBERLA_ASSERT_EQUAL( data_.at( level )->end(), tIt );
+      WALBERLA_ASSERT_EQUAL( other.data_.at( level )->end(), oIt );
+   }
 
    inline void swap( const FunctionMemory< ValueType >& other, const uint_t& level ) const
    {

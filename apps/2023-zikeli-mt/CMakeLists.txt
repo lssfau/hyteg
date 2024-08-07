@@ -5,6 +5,10 @@ endif()
 
 waLBerla_link_files_to_builddir("*.prm")
 
-waLBerla_add_executable( NAME mpfr_print_version
-        FILES mpfr_print_version.cpp
-        DEPENDS MPFR::MPFR)
+if( HYTEG_BUILD_WITH_MPFR )
+    waLBerla_add_executable( NAME mpfr_print_version
+            FILES mpfr_print_version.cpp
+            DEPENDS MPFR::MPFR)
+endif()
+
+add_subdirectory(MT-apps)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -272,7 +272,7 @@ static void exportFunctions3D( uint_t level )
 }
 
 template < typename value_t >
-static void exportIntegerFunctions()
+static void exportNumericFunctions()
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = 2;
@@ -300,7 +300,7 @@ static void exportIntegerFunctions()
    if ( beVerbose )
    {
       std::string fPath = "../../output";
-      std::string fName = "VTKOutputTestIntFuncs" + walberla::vtk::typeToString< value_t >();
+      std::string fName = "VTKOutputTestNumericFuncs" + walberla::vtk::typeToString< value_t >();
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
       vtkOutput.add( p0Enumerator );
@@ -436,10 +436,16 @@ int main( int argc, char* argv[] )
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = int32_t:" );
-   hyteg::exportIntegerFunctions< int32_t >();
+   hyteg::exportNumericFunctions< int32_t >();
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = int64_t:" );
-   hyteg::exportIntegerFunctions< int64_t >();
+   hyteg::exportNumericFunctions< int64_t >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = float32:" );
+   hyteg::exportNumericFunctions< walberla::float32 >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = float64:" );
+   hyteg::exportNumericFunctions< walberla::float64 >();
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export with VTK_QUADRATIC_TRIANGLE:" );
    for ( uint_t level = 0; level <= 2; ++level )

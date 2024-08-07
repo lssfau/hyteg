@@ -22,6 +22,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/types/types.hpp"
 
@@ -31,6 +32,9 @@ template < class OperatorType >
 class IdentityPreconditioner : public Solver< OperatorType >
 {
  public:
+   using FunctionType = typename OperatorType::srcType;
+   using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
+
    IdentityPreconditioner()
    : updateType_( Replace )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
@@ -41,7 +45,7 @@ class IdentityPreconditioner : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const walberla::uint_t                level ) override
    {
-      x.assign( { 1.0 }, { b }, level, flag_ );
+      x.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { b }, level, flag_ );
    }
 
  private:

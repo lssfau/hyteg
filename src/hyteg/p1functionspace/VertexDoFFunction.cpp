@@ -1561,7 +1561,7 @@ void VertexDoFFunction< ValueType >::multElementwise(
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
-   if constexpr ( !std::is_same< ValueType, real_t >::value )
+   if constexpr ( !std::is_floating_point< ValueType >::value )
    {
       WALBERLA_UNUSED( level );
       WALBERLA_UNUSED( flag );
@@ -1580,12 +1580,12 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-               uint_t  size = vertex.getData( vertexDataID_ )->getSize( level );
+               ValueType* data = vertex.getData( vertexDataID_ )->getPointer( level );
+               uint_t     size = vertex.getData( vertexDataID_ )->getSize( level );
                for ( uint_t k = 0; k < size; ++k )
                {
-                  data[k] = real_c( 1.0 ) / data[k];
-                  // data[0]      = real_c( 1.0 ) / data[0];
+                  data[k] = walberla::numeric_cast< ValueType >( 1.0 ) / data[k];
+                  // data[0]      = walberla::numeric_cast<ValueType>( 1.0 ) / data[0];
                }
             }
          }
@@ -1596,11 +1596,11 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-               uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
+               ValueType* data = edge.getData( edgeDataID_ )->getPointer( level );
+               uint_t     size = edge.getData( edgeDataID_ )->getSize( level );
                for ( uint_t k = 0; k < size; ++k )
                {
-                  data[k] = real_c( 1.0 ) / data[k];
+                  data[k] = walberla::numeric_cast< ValueType >( 1.0 ) / data[k];
                }
             }
          }
@@ -1611,11 +1611,11 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = face.getData( faceDataID_ )->getPointer( level );
-               uint_t  size = face.getData( faceDataID_ )->getSize( level );
+               ValueType* data = face.getData( faceDataID_ )->getPointer( level );
+               uint_t     size = face.getData( faceDataID_ )->getSize( level );
                for ( uint_t k = 0; k < size; ++k )
                {
-                  data[k] = real_c( 1.0 ) / data[k];
+                  data[k] = walberla::numeric_cast< ValueType >( 1.0 ) / data[k];
                }
             }
          }
@@ -1626,11 +1626,11 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-               uint_t  size = cell.getData( cellDataID_ )->getSize( level );
+               ValueType* data = cell.getData( cellDataID_ )->getPointer( level );
+               uint_t     size = cell.getData( cellDataID_ )->getSize( level );
                for ( uint_t k = 0; k < size; ++k )
                {
-                  data[k] = real_c( 1.0 ) / data[k];
+                  data[k] = walberla::numeric_cast< ValueType >( 1.0 ) / data[k];
                }
             }
          }
@@ -1645,8 +1645,8 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-               data[0]      = real_c( 1.0 ) / data[0];
+               ValueType* data = vertex.getData( vertexDataID_ )->getPointer( level );
+               data[0]         = walberla::numeric_cast< ValueType >( 1.0 ) / data[0];
             }
          }
 
@@ -1656,11 +1656,11 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+               ValueType* data = edge.getData( edgeDataID_ )->getPointer( level );
                for ( const auto& iter : vertexdof::macroedge::Iterator( level, 1 ) )
                {
                   const uint_t idx = vertexdof::macroedge::indexFromVertex( level, iter.x(), stencilDirection::VERTEX_C );
-                  data[idx]        = real_c( 1.0 ) / data[idx];
+                  data[idx]        = walberla::numeric_cast< ValueType >( 1.0 ) / data[idx];
                }
             }
          }
@@ -1671,12 +1671,12 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = face.getData( faceDataID_ )->getPointer( level );
+               ValueType* data = face.getData( faceDataID_ )->getPointer( level );
                for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
                {
                   const uint_t idx =
                       vertexdof::macroface::indexFromVertex( level, iter.x(), iter.y(), stencilDirection::VERTEX_C );
-                  data[idx] = real_c( 1.0 ) / data[idx];
+                  data[idx] = walberla::numeric_cast< ValueType >( 1.0 ) / data[idx];
                }
             }
          }
@@ -1687,12 +1687,12 @@ void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType fl
 
             if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
             {
-               real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+               ValueType* data = cell.getData( cellDataID_ )->getPointer( level );
                for ( const auto& iter : vertexdof::macrocell::Iterator( level, 1 ) )
                {
                   const uint_t idx =
                       vertexdof::macrocell::indexFromVertex( level, iter.x(), iter.y(), iter.z(), stencilDirection::VERTEX_C );
-                  data[idx] = real_c( 1.0 ) / data[idx];
+                  data[idx] = walberla::numeric_cast< ValueType >( 1.0 ) / data[idx];
                }
             }
          }
@@ -2057,9 +2057,9 @@ ValueType VertexDoFFunction< ValueType >::reduceGlobal( uint_t                  
                                                         std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
                                                         ValueType                                           initialValue,
                                                         walberla::mpi::Operation                            mpiReduceOperation,
-                                                        DoFType                                             flag) const
+                                                        DoFType                                             flag ) const
 {
-   initialValue = reduceLocal(level, reduceOperation, initialValue, flag);
+   initialValue = reduceLocal( level, reduceOperation, initialValue, flag );
    walberla::mpi::allReduceInplace( initialValue, mpiReduceOperation );
    return initialValue;
 }
@@ -2068,10 +2068,10 @@ template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::reduceGlobal( uint_t                                              level,
                                                         std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
                                                         ValueType                                           initialValue,
-                                                        DoFType                                             flag) const
+                                                        DoFType                                             flag ) const
 {
-   ValueType localReduce = reduceLocal(level, reduceOperation, initialValue, flag);
-   auto gatherVector = walberla::mpi::allGather( localReduce );
+   ValueType localReduce  = reduceLocal( level, reduceOperation, initialValue, flag );
+   auto      gatherVector = walberla::mpi::allGather( localReduce );
    for ( auto localValue : gatherVector )
    {
       localReduce = reduceOperation( initialValue, localValue );
@@ -2083,7 +2083,7 @@ template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::reduceLocal( uint_t                                              level,
                                                        std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
                                                        ValueType                                           initialValue,
-                                                       DoFType                                             flag) const
+                                                       DoFType                                             flag ) const
 {
    for ( auto& it : this->getStorage()->getCells() )
    {

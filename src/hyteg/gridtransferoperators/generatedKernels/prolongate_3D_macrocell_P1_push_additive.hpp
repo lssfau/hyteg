@@ -34,8 +34,24 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-void prolongate_3D_macrocell_P1_push_additive(double const * RESTRICT const _data_vertexCoarseSrc, double * RESTRICT _data_vertexFineDst, int coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3, double num_neighbor_cells_vertex0, double num_neighbor_cells_vertex1, double num_neighbor_cells_vertex2, double num_neighbor_cells_vertex3);
-void prolongate_3D_macrocell_P1_push_additive(float const * RESTRICT const _data_vertexCoarseSrc, float * RESTRICT _data_vertexFineDst, int coarse_level, float num_neighbor_cells_edge0, float num_neighbor_cells_edge1, float num_neighbor_cells_edge2, float num_neighbor_cells_edge3, float num_neighbor_cells_edge4, float num_neighbor_cells_edge5, float num_neighbor_cells_face0, float num_neighbor_cells_face1, float num_neighbor_cells_face2, float num_neighbor_cells_face3, float num_neighbor_cells_vertex0, float num_neighbor_cells_vertex1, float num_neighbor_cells_vertex2, float num_neighbor_cells_vertex3);
+template < typename ValueType >
+void prolongate_3D_macrocell_P1_push_additive( ValueType const* RESTRICT const _data_vertexCoarseSrc,
+                                               ValueType* RESTRICT             _data_vertexFineDst,
+                                               int                             coarse_level,
+                                               ValueType                       num_neighbor_cells_edge0,
+                                               ValueType                       num_neighbor_cells_edge1,
+                                               ValueType                       num_neighbor_cells_edge2,
+                                               ValueType                       num_neighbor_cells_edge3,
+                                               ValueType                       num_neighbor_cells_edge4,
+                                               ValueType                       num_neighbor_cells_edge5,
+                                               ValueType                       num_neighbor_cells_face0,
+                                               ValueType                       num_neighbor_cells_face1,
+                                               ValueType                       num_neighbor_cells_face2,
+                                               ValueType                       num_neighbor_cells_face3,
+                                               ValueType                       num_neighbor_cells_vertex0,
+                                               ValueType                       num_neighbor_cells_vertex1,
+                                               ValueType                       num_neighbor_cells_vertex2,
+                                               ValueType                       num_neighbor_cells_vertex3 );
 
 } // namespace generated
 } // namespace macrocell
