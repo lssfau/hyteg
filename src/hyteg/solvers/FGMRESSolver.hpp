@@ -25,6 +25,7 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -125,9 +126,9 @@ class FGMRESSolver : public Solver< OperatorType >
    {
       timingTree_->start( "FGMRES Solver" );
 
-      r0_.copyBoundaryConditionFromFunction( x );
-      wPrec_.copyBoundaryConditionFromFunction( x );
-      orthoDiff_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, r0_ );
+      copyBCs( x, wPrec_ );
+      copyBCs( x, orthoDiff_ );
 
       real_t residual = approxTOL_ + 1;
       bool   callback = false;
@@ -150,14 +151,14 @@ class FGMRESSolver : public Solver< OperatorType >
          if ( vecZ_.size() <= currentIndex - 1 )
          {
             FunctionType z( "z", storage_, minLevel_, maxLevel_ );
-            z.copyBoundaryConditionFromFunction( x );
+            copyBCs( x, z );
             vecZ_.push_back( z );
          }
 
          if ( vecV_.size() <= currentIndex )
          {
             FunctionType w( "w", storage_, minLevel_, maxLevel_ );
-            w.copyBoundaryConditionFromFunction( x );
+            copyBCs( x, w );
             vecV_.push_back( w );
          }
 
@@ -268,7 +269,7 @@ class FGMRESSolver : public Solver< OperatorType >
       if ( vecV_.empty() )
       {
          FunctionType v0( "v0", storage_, minLevel_, maxLevel_ );
-         v0.copyBoundaryConditionFromFunction( x );
+         copyBCs( x, v0 );
          v0.assign( { real_c( 1.0 ) / beta_ }, { r0_ }, level, flag_ );
          vecV_.push_back( v0 );
       }
@@ -280,7 +281,7 @@ class FGMRESSolver : public Solver< OperatorType >
       if ( vecZ_.empty() )
       {
          FunctionType z0( "z0", storage_, minLevel_, maxLevel_ );
-         z0.copyBoundaryConditionFromFunction( x );
+         copyBCs( x, z0 );
          vecZ_.push_back( z0 );
       }
    }

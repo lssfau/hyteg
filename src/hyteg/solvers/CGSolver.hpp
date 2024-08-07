@@ -22,6 +22,7 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -70,10 +71,10 @@ class CGSolver : public Solver< OperatorType >
          return;
 
       timingTree_->start( "CG Solver" );
-      p_.copyBoundaryConditionFromFunction( x );
-      z_.copyBoundaryConditionFromFunction( x );
-      ap_.copyBoundaryConditionFromFunction( x );
-      r_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, p_ );
+      copyBCs( x, z_ );
+      copyBCs( x, ap_ );
+      copyBCs( x, r_ );
 
       typename FunctionType::valueType prsold = 0;
       init( A, x, b, level, prsold );

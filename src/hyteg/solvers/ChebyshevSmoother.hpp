@@ -21,6 +21,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
@@ -69,8 +70,8 @@ class ChebyshevSmoother : public Solver< OperatorType >
          throw std::runtime_error( "The Chebyshev-Smoother requires the OperatorWithInverseDiagonal interface." );
       }
 
-      tmp1_.copyBoundaryConditionFromFunction( x );
-      tmp2_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, tmp1_ );
+      copyBCs( x, tmp2_ );
 
       WALBERLA_DEBUG_SECTION()
       {
@@ -258,8 +259,8 @@ class ChebyshevSmootherWithFreeSlipProjection : public ChebyshevSmoother< Operat
          throw std::runtime_error( "The Chebyshev-Smoother requires the OperatorWithInverseDiagonal interface." );
       }
 
-      tmp1_.copyBoundaryConditionFromFunction( x );
-      tmp2_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, tmp1_ );
+      copyBCs( x, tmp2_ );
 
       WALBERLA_DEBUG_SECTION()
       {

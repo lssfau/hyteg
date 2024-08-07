@@ -22,6 +22,7 @@
 #include "core/DataTypes.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -136,7 +137,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       timingTree_->start( "Geometric Multigrid Solver" );
-      tmp_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, tmp_ );
       invokedLevel_ = level;
       solveRecursively( A, x, b, level );
       timingTree_->stop( "Geometric Multigrid Solver" );

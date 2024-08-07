@@ -22,6 +22,7 @@
 #include "core/DataTypes.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -112,7 +113,7 @@ class FlexibleMultigridSolver : public Solver< OperatorType >
       uint_t level_;
 
       timingTree_->start( "Flexible Multigrid Solver" );
-      tmp_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, tmp_ );
       invokedLevel_ = level;
       level_        = maxLevel_;
 

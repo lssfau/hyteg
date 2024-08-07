@@ -23,6 +23,7 @@
 #include "core/DataTypes.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -75,9 +76,9 @@ class FASSolver : public Solver< OperatorType >
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       timingTree_->start( "FAS Multigrid Solver" );
-      tmp_.copyBoundaryConditionFromFunction( x );
-      d_.copyBoundaryConditionFromFunction( x );
-      w_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, tmp_ );
+      copyBCs( x, d_ );
+      copyBCs( x, w_ );
       invokedLevel_ = level;
       solveRecursively( A, x, b, level );
       timingTree_->stop( "FAS Multigrid Solver" );
