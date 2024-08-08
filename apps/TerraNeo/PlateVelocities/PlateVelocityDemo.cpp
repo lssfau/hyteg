@@ -34,6 +34,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+#include "terraneo/helpers/RadialProfiles.hpp"
 #include "terraneo/plates/PlateVelocityProvider.hpp"
 
 using walberla::int_c;
@@ -130,6 +131,11 @@ void performComputations( uint_t                                     level,
       {
          ( *surfaceVelocity )[coordIdx].interpolate( computeVelocityComponent, level, All );
       }
+
+      RadialProfile profileRad = computeRadialProfile( ( *surfaceVelocity ), 1.0, 1.0, 1.0, level );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Velocity Max Magnitude is: " << profileRad.max[0]*3600*24*365*100 << " cm yr^-1" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Velocity RMS is: " << profileRad.rms[0]*3600*24*365*100 << " cm yr^-1" );
    }
 
    // export results
@@ -236,9 +242,9 @@ int main( int argc, char* argv[] )
    //  Oracle
    // --------
    WALBERLA_LOG_INFO_ON_ROOT( "*** STEP 3: Generating an Oracle" );
-   std::string                             dataDir{ "../../../data/terraneo/plates/" };
-   std::string                             fnameTopologies      = dataDir + "topologies0-100Ma.geojson";
-   std::string                             fnameReconstructions = dataDir + "Global_EarthByte_230-0Ma_GK07_AREPS.rot";
+   std::string                             dataDir{ "../../../data/terraneo/plates/Muller2022/" };
+   std::string                             fnameTopologies      = dataDir + "topologies_0-1000Ma.geojson";
+   std::string                             fnameReconstructions = dataDir + "EB_1000_0_rotfile_Merdith_et_al_optimised_modifiedbyYW.rot";
    terraneo::plates::PlateVelocityProvider oracle( fnameTopologies, fnameReconstructions );
 
    WALBERLA_LOG_INFO_ON_ROOT( "*** STEP 4: Checking plate stages to work with" );
