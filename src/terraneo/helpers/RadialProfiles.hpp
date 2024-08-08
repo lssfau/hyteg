@@ -442,6 +442,10 @@ struct RadialProfile
 ///
 /// Assumes that the underlying domain is the spherical shell.
 ///
+/// It is also possible to use on a thin spherical shell with rMin == rMax == layers[0].
+/// For example to calcualte these parameters on the surface of the Earth (from Plates):
+/// rMin = rMax = nRad = 1.0. 
+///
 /// Iterating over the coefficients of the passed FE function, this function computes and returns the min, max, mean, and rms of
 /// the coefficients (for scalar functions) or of the magnitude (for vector-valued functions) in radial layers.
 ///
@@ -474,8 +478,6 @@ template < typename FunctionType >
 RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, std::vector< real_t > layers, uint_t level )
 {
    WALBERLA_CHECK_LESS_EQUAL( rMin, rMax );
-
-   WALBERLA_CHECK( u.getStorage()->hasGlobalCells(), "The radial profile can only be computed in 3D on the spherical shell." )
 
    RadialProfile profile;
 

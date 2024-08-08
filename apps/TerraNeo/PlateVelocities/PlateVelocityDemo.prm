@@ -9,7 +9,7 @@ Parameters
   // The topology file 'topologies0-100Ma.geojson' the demo is using
   // stores plates for 1001 age stages. You can specify a range of
   // ages here for which you want to compute plate IDs and/or velocities.
-  // The range must be ints with 0 = 0 Ma and 1000 = 100 Ma
+  // The range must be ints with 0 = 0 Ma and 100 = 100 Ma
   // (whitespace around - does not matter)
   ageRange 27-30;
 
