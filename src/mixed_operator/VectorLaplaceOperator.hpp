@@ -128,6 +128,7 @@ typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperat
 //  elementwise versions
 // ----------------------
 typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator > P1ElementwiseVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseAffineDivKGradOperator > P1ElementwiseVectorAffineDivKGradOperator;
 typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >
     P1ElementwiseBlendingVectorLaplaceOperator;
 

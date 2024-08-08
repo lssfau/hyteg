@@ -140,6 +140,8 @@ template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplac
 // P1ElementwiseVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator >;
 
+template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseAffineDivKGradOperator >;
+
 // P1ElementwiseBlendingVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >;
 

@@ -33,10 +33,10 @@
 
 namespace hyteg::micromesh {
 
-static Point3D microVertexPositionNoMesh( std::shared_ptr< PrimitiveStorage > storage,
-                                          PrimitiveID                         primitiveId,
-                                          uint_t                              level,
-                                          indexing::Index                     microVertexIndex )
+static Point3D microVertexPositionNoMesh( const std::shared_ptr< PrimitiveStorage >& storage,
+                                          PrimitiveID                                primitiveId,
+                                          uint_t                                     level,
+                                          const indexing::Index&                     microVertexIndex )
 {
    if ( storage->cellExistsLocally( primitiveId ) )
    {
@@ -60,11 +60,11 @@ static Point3D microVertexPositionNoMesh( std::shared_ptr< PrimitiveStorage > st
    }
 }
 
-static Point3D microEdgePositionNoMesh( std::shared_ptr< PrimitiveStorage > storage,
-                                        PrimitiveID                         primitiveId,
-                                        uint_t                              level,
-                                        indexing::Index                     microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation         microEdgeOrientation )
+static Point3D microEdgePositionNoMesh( const std::shared_ptr< PrimitiveStorage >& storage,
+                                        PrimitiveID                                primitiveId,
+                                        uint_t                                     level,
+                                        const indexing::Index&                     microEdgeIndex,
+                                        edgedof::EdgeDoFOrientation                microEdgeOrientation )
 {
    if ( storage->cellExistsLocally( primitiveId ) )
    {
@@ -88,11 +88,12 @@ static Point3D microEdgePositionNoMesh( std::shared_ptr< PrimitiveStorage > stor
 
 static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint_t level )
 {
-   auto storage = p1Mesh.getStorage();
+   auto         storage   = p1Mesh.getStorage();
+   const uint_t dimension = p1Mesh.getDimension();
 
    for ( const auto& [pid, vertex] : storage->getVertices() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          vertex->getData( p1Mesh.component( i ).getVertexDataID() )->getPointer( level )[0] =
              microVertexPositionNoMesh( storage, pid, level, indexing::Index( 0, 0, 0 ) )( Eigen::Index( i ) );
@@ -101,7 +102,7 @@ static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint
 
    for ( const auto& [pid, edge] : storage->getEdges() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          auto data = edge->getData( p1Mesh.component( i ).getEdgeDataID() )->getPointer( level );
          for ( auto idx : vertexdof::macroedge::Iterator( level ) )
@@ -114,7 +115,7 @@ static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint
 
    for ( const auto& [pid, face] : storage->getFaces() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          auto data = face->getData( p1Mesh.component( i ).getFaceDataID() )->getPointer( level );
          for ( auto idx : vertexdof::macroface::Iterator( level ) )
@@ -127,7 +128,7 @@ static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint
 
    for ( const auto& [pid, cell] : storage->getCells() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          auto data = cell->getData( p1Mesh.component( i ).getCellDataID() )->getPointer( level );
          for ( auto idx : vertexdof::macrocell::Iterator( level ) )
@@ -141,11 +142,12 @@ static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint
 
 static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint_t level )
 {
-   auto storage = p2Mesh.getStorage();
+   auto         storage   = p2Mesh.getStorage();
+   const uint_t dimension = p2Mesh.getDimension();
 
    for ( const auto& [pid, vertex] : storage->getVertices() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          vertex->getData( p2Mesh.component( i ).getVertexDoFFunction().getVertexDataID() )->getPointer( level )[0] =
              microVertexPositionNoMesh( storage, pid, level, indexing::Index( 0, 0, 0 ) )( Eigen::Index( i ) );
@@ -154,7 +156,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
    for ( const auto& [pid, edge] : storage->getEdges() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          auto vdata = edge->getData( p2Mesh.component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
          for ( auto idx : vertexdof::macroedge::Iterator( level ) )
@@ -174,7 +176,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
    for ( const auto& [pid, face] : storage->getFaces() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          auto vdata = face->getData( p2Mesh.component( i ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
          for ( auto idx : vertexdof::macroface::Iterator( level ) )
@@ -197,7 +199,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
    for ( const auto& [pid, cell] : storage->getCells() )
    {
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dimension; i++ )
       {
          auto vdata = cell->getData( p2Mesh.component( i ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
          for ( auto idx : vertexdof::macrocell::Iterator( level ) )
@@ -225,13 +227,20 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
    }
 }
 
-MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, int polynomialDegree )
+MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
+                      uint_t                                     minLevel,
+                      uint_t                                     maxLevel,
+                      uint_t                                     polynomialDegree,
+                      uint_t                                     dimension )
 {
+   WALBERLA_CHECK_GREATER_EQUAL( dimension, 2, "The only supported mesh dimensions are 2 and 3." )
+   WALBERLA_CHECK_LESS_EQUAL( dimension, 3, "The only supported mesh dimensions are 2 and 3." )
+
    WALBERLA_CHECK_LESS_EQUAL( minLevel, maxLevel, "The MicroMesh's min level should be less or equal to its max level." )
 
    if ( polynomialDegree == 1 )
    {
-      p1_ = std::make_shared< P1VectorFunction< real_t > >( "microMeshP1", storage, minLevel, maxLevel, 3 );
+      p1_ = std::make_shared< P1VectorFunction< real_t > >( "microMeshP1", storage, minLevel, maxLevel, dimension );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          initMicroMeshFromMacroMesh( *p1_, level );
@@ -239,7 +248,7 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t
    }
    else if ( polynomialDegree == 2 )
    {
-      p2_ = std::make_shared< P2VectorFunction< real_t > >( "microMeshP2", storage, minLevel, maxLevel, 3 );
+      p2_ = std::make_shared< P2VectorFunction< real_t > >( "microMeshP2", storage, minLevel, maxLevel, dimension );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          initMicroMeshFromMacroMesh( *p2_, level );
@@ -251,7 +260,7 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t
    }
 }
 
-int MicroMesh::polynomialDegree() const
+uint_t MicroMesh::polynomialDegree() const
 {
    if ( p1Mesh() )
    {
@@ -263,7 +272,22 @@ int MicroMesh::polynomialDegree() const
       return 2;
    }
 
-   WALBERLA_ABORT( "MicroMesh has no function allocated :/" )
+   WALBERLA_ABORT( "MicroMesh has no function allocated (this should never happen) :/" )
+}
+
+uint_t MicroMesh::dimension() const
+{
+   if ( p1Mesh() )
+   {
+      return p1Mesh()->getDimension();
+   }
+
+   if ( p2Mesh() )
+   {
+      return p2Mesh()->getDimension();
+   }
+
+   WALBERLA_ABORT( "MicroMesh has no function allocated (this should never happen) :/" )
 }
 
 std::shared_ptr< P1VectorFunction< real_t > > MicroMesh::p1Mesh() const
@@ -304,8 +328,10 @@ void interpolate( MicroMesh&                                                    
                   const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
                   walberla::uint_t                                                level )
 {
-   WALBERLA_CHECK_EQUAL(
-       blendingFunction.size(), 3, "MicroMesh: all micro meshes have dim 3 - therefore you need to pass 3 blending functions." )
+   WALBERLA_CHECK_GREATER_EQUAL(
+       blendingFunction.size(),
+       microMesh.dimension(),
+       "MicroMesh: blending function is dimension is smaller than the dimension of the space the mesh is embedded in." )
 
    if ( microMesh.p1Mesh() )
    {
@@ -386,13 +412,15 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
    WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
                    "Invalid polynomial degree of MicroMesh." )
 
+   const uint_t dim = microMesh->dimension();
+
    Point3D p;
    p.setZero();
 
    if ( storage->vertexExistsLocally( primitiveId ) )
    {
       auto vertex = storage->getVertex( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          real_t* vdata;
          if ( microMesh->polynomialDegree() == 1 )
@@ -404,6 +432,10 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
             vdata = vertex->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getVertexDataID() )
                         ->getPointer( level );
          }
+         else
+         {
+            WALBERLA_ABORT( "MicroMesh: polynomial degree not supported." )
+         }
          WALBERLA_CHECK_EQUAL( microVertexIndex, indexing::Index( 0, 0, 0 ) );
          p( Eigen::Index( i ) ) = vdata[0];
       }
@@ -411,7 +443,7 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
    else if ( storage->edgeExistsLocally( primitiveId ) )
    {
       auto edge = storage->getEdge( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          real_t* vdata;
          if ( microMesh->polynomialDegree() == 1 )
@@ -423,13 +455,17 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
             vdata =
                 edge->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
          }
+         else
+         {
+            WALBERLA_ABORT( "MicroMesh: polynomial degree not supported." )
+         }
          p( Eigen::Index( i ) ) = vdata[vertexdof::macroedge::index( level, microVertexIndex.x() )];
       }
    }
    else if ( storage->faceExistsLocally( primitiveId ) )
    {
       auto face = storage->getFace( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          real_t* vdata;
          if ( microMesh->polynomialDegree() == 1 )
@@ -452,7 +488,7 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
    else if ( storage->cellExistsLocally( primitiveId ) )
    {
       auto cell = storage->getCell( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          real_t* vdata;
          if ( microMesh->polynomialDegree() == 1 )
@@ -512,6 +548,8 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
                    "Invalid polynomial degree of MicroMesh." )
 
+   const uint_t dim = microMesh->dimension();
+
    Point3D p;
    p.setZero();
 
@@ -522,7 +560,7 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    if ( storage->edgeExistsLocally( primitiveId ) )
    {
       auto edge = storage->getEdge( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          if ( microMesh->polynomialDegree() == 1 )
          {
@@ -541,7 +579,7 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    else if ( storage->faceExistsLocally( primitiveId ) )
    {
       auto face = storage->getFace( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          if ( microMesh->polynomialDegree() == 1 )
          {
@@ -566,7 +604,7 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    else if ( storage->cellExistsLocally( primitiveId ) )
    {
       auto cell = storage->getCell( primitiveId );
-      for ( uint_t i = 0; i < 3; i++ )
+      for ( uint_t i = 0; i < dim; i++ )
       {
          if ( microMesh->polynomialDegree() == 1 )
          {

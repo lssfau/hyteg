@@ -95,8 +95,8 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
                   auto vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
                   for ( auto vIdx : vertexIndices )
                   {
-                     const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, vIdx );
-                     Point3D       xBlend;
+                     const auto vtkPoint = micromesh::microVertexPosition( storage, cell.getID(), level, vIdx );
+                     Point3D    xBlend;
                      cell.getGeometryMap()->evalF( vtkPoint, xBlend );
                      dstStream << xBlend[0] << xBlend[1] << xBlend[2];
                   }
@@ -112,8 +112,8 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
 
             for ( const auto& idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
             {
-               const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, idxIt );
-               Point3D       xBlend;
+               const auto vtkPoint = micromesh::microVertexPosition( storage, cell.getID(), level, idxIt );
+               Point3D    xBlend;
                cell.getGeometryMap()->evalF( vtkPoint, xBlend );
                dstStream << xBlend[0] << xBlend[1] << xBlend[2];
             }
@@ -192,10 +192,8 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
          {
             for ( const auto& itIdx : edgedof::macrocell::IteratorXYZ( level, 0 ) )
             {
-               microEdgePosition = vertexdof::macrocell::coordinateFromIndex( level, cell, itIdx ) +
-                                   edgedof::macrocell::xShiftFromVertex( level, cell ) +
-                                   edgedof::macrocell::yShiftFromVertex( level, cell ) +
-                                   edgedof::macrocell::zShiftFromVertex( level, cell );
+               microEdgePosition =
+                   micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::XYZ );
                dstStream << microEdgePosition[0] << microEdgePosition[1] << microEdgePosition[2];
             }
          }
@@ -203,29 +201,32 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
          {
             for ( const auto& itIdx : edgedof::macrocell::Iterator( level, 0 ) )
             {
-               microEdgePosition = vertexdof::macrocell::coordinateFromIndex( level, cell, itIdx );
                switch ( dofType )
                {
                case vtk::DoFType::EDGE_X:
-                  microEdgePosition += edgedof::macrocell::xShiftFromVertex( level, cell );
+                  microEdgePosition =
+                      micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::X );
                   break;
                case vtk::DoFType::EDGE_Y:
-                  microEdgePosition += edgedof::macrocell::yShiftFromVertex( level, cell );
+                  microEdgePosition =
+                      micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::Y );
                   break;
                case vtk::DoFType::EDGE_Z:
-                  microEdgePosition += edgedof::macrocell::zShiftFromVertex( level, cell );
+                  microEdgePosition =
+                      micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::Z );
                   break;
                case vtk::DoFType::EDGE_XY:
-                  microEdgePosition +=
-                      edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::yShiftFromVertex( level, cell );
+                  microEdgePosition =
+                      micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::XY );
                   break;
                case vtk::DoFType::EDGE_XZ:
-                  microEdgePosition +=
-                      edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
+                  microEdgePosition =
+                      micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::XZ );
                   break;
                case vtk::DoFType::EDGE_YZ:
-                  microEdgePosition +=
-                      edgedof::macrocell::yShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
+                  microEdgePosition =
+                      micromesh::microEdgeCenterPosition( storage, cell.getID(), level, itIdx, edgedof::EdgeDoFOrientation::YZ );
+
                   break;
                default:
                   WALBERLA_ABORT( "[VTK] Invalid vtk::DoFType" );
@@ -480,11 +481,9 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                              edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
 
                uint_t idx4 = offsets[vtk::DoFType::EDGE_XY] +
-                             // edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::XY );
                              edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
 
                uint_t idx5 = offsets[vtk::DoFType::EDGE_Y] +
-                             // edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::Y );
                              edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
 
                dstStream << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
@@ -497,14 +496,12 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                uint_t idx2 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x(), idxIt.y() + 1 );
 
                uint_t idx3 = offsets[vtk::DoFType::EDGE_Y] +
-                             // edgedof::macroface::index( level, idxIt.x() + 1, idxIt.y(), edgedof::EdgeDoFOrientation::Y );
                              edgedof::macroface::index( level, idxIt.x() + 1, idxIt.y(), edgedof::EdgeDoFOrientation::X );
 
                uint_t idx4 = offsets[vtk::DoFType::EDGE_X] +
                              edgedof::macroface::index( level, idxIt.x(), idxIt.y() + 1, edgedof::EdgeDoFOrientation::X );
 
                uint_t idx5 = offsets[vtk::DoFType::EDGE_XY] +
-                             // edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::XY );
                              edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
 
                dstStream << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
@@ -770,8 +767,11 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
    // and point ids 4-9 are the midedge nodes between (0,1), (1,2), (2,0), (0,3), (1,3), and (2,3).
    const std::array< std::array< uint_t, 2 >, 6 > edgeByVertexIndices{ 0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3 };
 
+   const auto macroCells = storage->getNumberOfLocalCells();
+
    // calculates the position of the point in the VTK list of points from a logical vertex index
-   auto calcVTKPointArrayPosition = [level]( const indexing::Index& vertexIndex ) -> uint_t {
+   auto calcVTKPointArrayPosition = [level, macroCells]( const indexing::Index& vertexIndex, uint_t macroCellIndex ) -> uint_t {
+#if 0
       const uint_t width{ levelinfo::num_microvertices_per_edge( level + 1 ) };
       const uint_t zOffset = levelinfo::num_microvertices_per_cell_from_width( width ) -
                              levelinfo::num_microvertices_per_cell_from_width( width - uint_c( vertexIndex.z() ) );
@@ -780,10 +780,105 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
           levelinfo::num_microvertices_per_face_from_width( width - uint_c( vertexIndex.z() ) - uint_c( vertexIndex.y() ) );
       const uint_t xOffset = uint_c( vertexIndex.x() );
       return xOffset + yOffset + zOffset;
+#endif
+      const auto x = vertexIndex.x();
+      const auto y = vertexIndex.y();
+      const auto z = vertexIndex.z();
+
+      const auto xeven = x % 2 == 0;
+      const auto yeven = y % 2 == 0;
+      const auto zeven = z % 2 == 0;
+
+      const auto xodd = !xeven;
+      const auto yodd = !yeven;
+      const auto zodd = !zeven;
+
+      const auto numVertices    = levelinfo::num_microvertices_per_cell( level );
+      const auto numEdgesButXYZ = levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) );
+      const auto numEdgesXYZ =
+          levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+
+      std::map< vtk::DoFType, uint_t > offsets;
+      offsets[vtk::DoFType::VERTEX]  = macroCellIndex * numVertices;
+      offsets[vtk::DoFType::EDGE_X]  = macroCells * ( numVertices + 0 * numEdgesButXYZ ) + macroCellIndex * numEdgesButXYZ;
+      offsets[vtk::DoFType::EDGE_Y]  = macroCells * ( numVertices + 1 * numEdgesButXYZ ) + macroCellIndex * numEdgesButXYZ;
+      offsets[vtk::DoFType::EDGE_Z]  = macroCells * ( numVertices + 2 * numEdgesButXYZ ) + macroCellIndex * numEdgesButXYZ;
+      offsets[vtk::DoFType::EDGE_XY] = macroCells * ( numVertices + 3 * numEdgesButXYZ ) + macroCellIndex * numEdgesButXYZ;
+      offsets[vtk::DoFType::EDGE_XZ] = macroCells * ( numVertices + 4 * numEdgesButXYZ ) + macroCellIndex * numEdgesButXYZ;
+      offsets[vtk::DoFType::EDGE_YZ] = macroCells * ( numVertices + 5 * numEdgesButXYZ ) + macroCellIndex * numEdgesButXYZ;
+
+      // Since we have no better indexing function, I am subtracting the offset of the xyz indexing function here.
+      offsets[vtk::DoFType::EDGE_XYZ] = macroCells * ( numVertices + 6 * numEdgesButXYZ ) + macroCellIndex * numEdgesXYZ -
+                                        edgedof::macrocell::index( level, 0, 0, 0, edgedof::EdgeDoFOrientation::XYZ );
+
+      if ( xeven && yeven && zeven )
+      {
+         // vertexodof
+         const auto idx = offsets[vtk::DoFType::VERTEX] + vertexdof::macrocell::index( level, x / 2, y / 2, z / 2 );
+         return idx;
+      }
+      else
+      {
+         // edgedof
+
+         // Looks odd (pun not intended), but we need the index of the x-edge for all types due to the ordering of the points.
+         // The index offsets are included in the offsets map.
+
+         if ( xodd && yeven && zeven )
+         {
+            const auto idx = offsets[vtk::DoFType::EDGE_X] +
+                             edgedof::macrocell::index( level, ( x - 1 ) / 2, y / 2, z / 2, edgedof::EdgeDoFOrientation::X );
+            return idx;
+         }
+         else if ( xeven && yodd && zeven )
+         {
+            const auto idx = offsets[vtk::DoFType::EDGE_Y] +
+                             edgedof::macrocell::index( level, x / 2, ( y - 1 ) / 2, z / 2, edgedof::EdgeDoFOrientation::X );
+            return idx;
+         }
+         else if ( xeven && yeven && zodd )
+         {
+            const auto idx = offsets[vtk::DoFType::EDGE_Z] +
+                             edgedof::macrocell::index( level, x / 2, y / 2, ( z - 1 ) / 2, edgedof::EdgeDoFOrientation::X );
+            return idx;
+         }
+         else if ( xodd && yodd && zeven )
+         {
+            const auto idx =
+                offsets[vtk::DoFType::EDGE_XY] +
+                edgedof::macrocell::index( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2, edgedof::EdgeDoFOrientation::X );
+            return idx;
+         }
+         else if ( xodd && yeven && zodd )
+         {
+            const auto idx =
+                offsets[vtk::DoFType::EDGE_XZ] +
+                edgedof::macrocell::index( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2, edgedof::EdgeDoFOrientation::X );
+            return idx;
+         }
+         else if ( xeven && yodd && zodd )
+         {
+            const auto idx =
+                offsets[vtk::DoFType::EDGE_YZ] +
+                edgedof::macrocell::index( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2, edgedof::EdgeDoFOrientation::X );
+            return idx;
+         }
+         else if ( xodd && yodd && zodd )
+         {
+            const auto idx =
+                offsets[vtk::DoFType::EDGE_XYZ] +
+                edgedof::macrocell::index( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2, edgedof::EdgeDoFOrientation::XYZ );
+            return idx;
+         }
+         else
+         {
+            WALBERLA_ABORT( "This should not happen." )
+         }
+      }
    };
 
    auto writeConnectivityForAllCellsOfType = [&dstStream, &edgeByVertexIndices, calcVTKPointArrayPosition](
-                                                 const uint_t length, const uint_t baseIdx, celldof::CellType cellType ) {
+                                                 const uint_t length, const uint_t macroCellIdx, celldof::CellType cellType ) {
       for ( const auto& it : indexing::CellIterator( length ) )
       {
          const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, cellType );
@@ -791,7 +886,7 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
          // write indices for the tetrahedrons vertices
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            dstStream << baseIdx + calcVTKPointArrayPosition( 2 * spanningVertexIndex );
+            dstStream << calcVTKPointArrayPosition( 2 * spanningVertexIndex, macroCellIdx );
          }
 
          // write indices for the tetrahedrons edge midpoints
@@ -800,7 +895,7 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
             celldof::Index vtxOne  = spanningVertexIndices[edgeByVertexIndices[k][0]];
             celldof::Index vtxTwo  = spanningVertexIndices[edgeByVertexIndices[k][1]];
             celldof::Index edgeIdx = ( vtxOne + vtxTwo );
-            dstStream << baseIdx + calcVTKPointArrayPosition( edgeIdx );
+            dstStream << calcVTKPointArrayPosition( edgeIdx, macroCellIdx );
          }
       }
    };
@@ -813,13 +908,12 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
 
    for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
    {
-      uint_t baseIdx{ macroCellIdx * numberOfVertices };
-      writeConnectivityForAllCellsOfType( width - 1u, baseIdx, celldof::CellType::WHITE_UP );
-      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::BLUE_UP );
-      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::GREEN_UP );
-      writeConnectivityForAllCellsOfType( width - 3u, baseIdx, celldof::CellType::WHITE_DOWN );
-      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::BLUE_DOWN );
-      writeConnectivityForAllCellsOfType( width - 2u, baseIdx, celldof::CellType::GREEN_DOWN );
+      writeConnectivityForAllCellsOfType( width - 1u, macroCellIdx, celldof::CellType::WHITE_UP );
+      writeConnectivityForAllCellsOfType( width - 2u, macroCellIdx, celldof::CellType::BLUE_UP );
+      writeConnectivityForAllCellsOfType( width - 2u, macroCellIdx, celldof::CellType::GREEN_UP );
+      writeConnectivityForAllCellsOfType( width - 3u, macroCellIdx, celldof::CellType::WHITE_DOWN );
+      writeConnectivityForAllCellsOfType( width - 2u, macroCellIdx, celldof::CellType::BLUE_DOWN );
+      writeConnectivityForAllCellsOfType( width - 2u, macroCellIdx, celldof::CellType::GREEN_DOWN );
    }
 }
 

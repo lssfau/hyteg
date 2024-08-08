@@ -87,10 +87,19 @@ class MicroMesh
    /// \param minLevel minimum refinement level
    /// \param maxLevel maximum refinement level
    /// \param polynomialDegree polynomial degree of the piecewise mesh approximation - currently only 1 and 2 are supported
-   MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, int polynomialDegree );
+   /// \param dimension dimension of the space the mesh is embedded in - this is independent of the PrimitiveStorage, e.g., useful
+   ///                  for 2D manifolds in 3D space
+   MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
+              uint_t                                     minLevel,
+              uint_t                                     maxLevel,
+              uint_t                                     polynomialDegree,
+              uint_t                                     dimension );
 
    /// Returns the polynomial degree of the mesh approximation.
-   [[nodiscard]] int polynomialDegree() const;
+   [[nodiscard]] uint_t polynomialDegree() const;
+
+   /// Returns the dimension of the space the mesh is embedded in.
+   [[nodiscard]] uint_t dimension() const;
 
    /// Returns the P1 mesh. Could be a nullptr if not allocated.
    [[nodiscard]] std::shared_ptr< P1VectorFunction< real_t > > p1Mesh() const;
@@ -165,7 +174,6 @@ void interpolate( MicroMesh&                                                    
 void interpolate( const std::shared_ptr< PrimitiveStorage >&                      storage,
                   const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
                   uint_t                                                          level );
-
 
 /// Combines interpolate() and communicate() for convenience.
 void interpolateAndCommunicate( MicroMesh&                                                      microMesh,
