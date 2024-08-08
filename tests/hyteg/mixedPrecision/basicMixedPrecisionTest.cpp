@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2023 Dominik Thoennes.
+* Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,13 +17,18 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+
+// See issue #277
+// clang-format off
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
 #include "core/Environment.h"
 #include "core/debug/Debug.h"
-#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
+#include "core/math/Random.h"
 
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+// clang-format on
 
 namespace hyteg {
 

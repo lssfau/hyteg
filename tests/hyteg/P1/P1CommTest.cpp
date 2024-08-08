@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,14 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "core/debug/all.h"
-#include "core/mpi/all.h"
 
-#include "hyteg/communication/Syncing.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
+// See issue #277
+// clang-format off
 #include "hyteg/p1functionspace/VertexDoFPackInfo.hpp"
-#include "hyteg/primitives/all.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitives/all.hpp"
+#include "hyteg/communication/Syncing.hpp"
+#include "core/mpi/all.h"
+#include "core/debug/all.h"
+// clang-format on
 
 using namespace hyteg;
 using walberla::real_t;
