@@ -49,7 +49,7 @@ void runTest1( std::string tag )
    WALBERLA_LOG_INFO_ON_ROOT( "Running Test #1 for '" << tag << "'" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName = "annulusTriangle" + tag + ".msh";
+   std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
    MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare (setup) storage and initialise annulus map
@@ -104,7 +104,7 @@ void runTest0( std::string tag )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName = "annulusTriangle" + tag + ".msh";
+   std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
    MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare (setup) storage and initialise annulus map
@@ -117,7 +117,6 @@ void runTest0( std::string tag )
    for ( auto& it : storage->getFaces() )
    {
       Face& face = *it.second;
-      // WALBERLA_LOG_INFO_ON_ROOT( "Single face has ID = " << face.getID() );
       faceID = face.getID();
    }
 
@@ -215,7 +214,7 @@ void runTest2( std::string tag, uint_t level )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName = "annulusTriangle" + tag + ".msh";
+   std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
    MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare unmapped storage
