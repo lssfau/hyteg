@@ -195,7 +195,7 @@ class FEFunctionRegistry
       // P1Functions
       if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > )
       {
-        p1Functions_.remove( function );
+         p1Functions_.remove( function );
       }
 
       // P1VectorFunctions
@@ -325,6 +325,27 @@ class FEFunctionRegistry
    const FunctionMultiStore< dg::DGVectorFunction >&     getDGVectorFunctions() const { return dgVecFunctions_; }
    const FunctionMultiStore< n1e1::N1E1VectorFunction >& getN1E1VectorFunctions() const { return n1e1Functions_; }
    const FunctionMultiStore< EGFunction >&               getEGFunctions() const { return p1dgeVecFunctions_; }
+
+   /// return the total number of registered functions
+   ///
+   /// \note The returned number is the number of functions stored inside the object.
+   /// This number can be different than the sum of functions which were registered,
+   /// since e.g. composite functions are disassembled into components when placed into
+   /// the object's internal FunctionMultiStore objects.
+   uint_t getNumberOfFunctionsInRegistry() const
+   {
+      uint_t num{ 0u };
+      num += p1Functions_.size();
+      num += p2Functions_.size();
+      num += p1VecFunctions_.size();
+      num += p2VecFunctions_.size();
+      num += edgeDoFFunctions_.size();
+      num += dgFunctions_.size();
+      num += dgVecFunctions_.size();
+      num += n1e1Functions_.size();
+      num += p1dgeVecFunctions_.size();
+      return num;
+   }
 
    template < template < class > class func_t >
    const FunctionMultiStore< func_t >& getFunctions()
