@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
 #include "PETScSparseMatrix.hpp"
@@ -105,7 +106,7 @@ class PETScMinResSolver : public Solver< OperatorType >
 
       x.getStorage()->getTimingTree()->start( "PETSc MinRes Solver" );
 
-      num.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, num );
 
       xVec.createVectorFromFunction( x, num, level );
       bVec.createVectorFromFunction( b, num, level, All );

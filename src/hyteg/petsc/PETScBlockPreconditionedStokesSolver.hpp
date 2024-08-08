@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "hyteg/functions/FunctionIterator.hpp"
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
@@ -132,7 +133,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "Setup" );
       timer.start();
 
-      num.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, num );
 
       x.getStorage()->getTimingTree()->start( "Index set setup" );
 

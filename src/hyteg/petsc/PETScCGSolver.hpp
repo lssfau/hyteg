@@ -22,6 +22,7 @@
 
 #include <memory>
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
 #include "PETScSparseMatrix.hpp"
@@ -102,7 +103,7 @@ class PETScCGSolver : public Solver< OperatorType >
 
       x.getStorage()->getTimingTree()->start( "PETSc CG Solver" );
 
-      num.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, num );
 
       xVec.createVectorFromFunction( x, num, level );
       bVec.createVectorFromFunction( b, num, level, All );

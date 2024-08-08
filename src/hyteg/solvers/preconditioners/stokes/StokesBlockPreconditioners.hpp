@@ -21,6 +21,7 @@
 
 #include "core/math/Random.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/operators/ZeroOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
@@ -129,8 +130,8 @@ class InexactUzawaPreconditioner : public Solver< OperatorType >
                        const typename OperatorType::dstType& b,
                        const uint_t                          level ) override
    {
-      residual_.copyBoundaryConditionFromFunction( x );
-      tmp_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, residual_ );
+      copyBCs( x, tmp_ );
 
       if ( projectPressure_ )
       {
@@ -260,8 +261,8 @@ class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
                        const typename OperatorType::dstType& b,
                        const uint_t                          level ) override
    {
-      residual_.copyBoundaryConditionFromFunction( x );
-      tmp_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, residual_ );
+      copyBCs( x, tmp_ );
 
       if ( projectPressure_ )
       {
@@ -397,8 +398,8 @@ class BlockApproximateFactorisationPreconditioner : public Solver< OperatorType 
                        const typename OperatorType::dstType& b,
                        const uint_t                          level ) override
    {
-      residual_.copyBoundaryConditionFromFunction( x );
-      tmp_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, residual_ );
+      copyBCs( x, tmp_ );
 
       if ( projectPressure_ )
       {
@@ -582,8 +583,8 @@ class SymmetricUzawaPreconditioner : public Solver< OperatorType >
                        const typename OperatorType::dstType& b,
                        const uint_t                          level ) override
    {
-      residual_.copyBoundaryConditionFromFunction( x );
-      tmp_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, residual_ );
+      copyBCs( x, tmp_ );
 
       if ( projectPressure_ )
       {

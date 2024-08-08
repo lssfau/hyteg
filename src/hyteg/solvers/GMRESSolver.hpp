@@ -25,6 +25,7 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -126,10 +127,10 @@ class GMRESSolver : public Solver< OperatorType >
    {
       timingTree_->start( "GMRES Solver" );
 
-      r0_.copyBoundaryConditionFromFunction( x );
-      rPrec_.copyBoundaryConditionFromFunction( x );
-      wPrec_.copyBoundaryConditionFromFunction( x );
-      orthoDiff_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, r0_ );
+      copyBCs( x, rPrec_ );
+      copyBCs( x, wPrec_ );
+      copyBCs( x, orthoDiff_ );
 
       real_t approxERR = approxTOL_ + 1;
       bool   callback  = false;
@@ -152,7 +153,7 @@ class GMRESSolver : public Solver< OperatorType >
          if ( vecV_.size() <= currentIndex )
          {
             FunctionType w( "w", storage_, minLevel_, maxLevel_ );
-            w.copyBoundaryConditionFromFunction( x );
+            copyBCs( x, w );
             vecV_.push_back( w );
          }
          else
@@ -267,7 +268,7 @@ class GMRESSolver : public Solver< OperatorType >
       if ( vecV_.empty() )
       {
          FunctionType v0( "v0", storage_, minLevel_, maxLevel_ );
-         v0.copyBoundaryConditionFromFunction( x );
+         copyBCs( x, v0 );
          v0.assign( { real_c( 1.0 ) / beta_ }, { r0_ }, level, flag_ );
          vecV_.push_back( v0 );
       }

@@ -22,6 +22,7 @@
 #include "core/Format.hpp"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 
@@ -63,16 +64,16 @@ class MinResSolver : public Solver< OperatorType >
    {
       timingTree_->start( "MinRes Solver" );
 
-      p_vm.copyBoundaryConditionFromFunction( x );
-      p_v.copyBoundaryConditionFromFunction( x );
-      p_vp.copyBoundaryConditionFromFunction( x );
-      p_z.copyBoundaryConditionFromFunction( x );
-      p_zp.copyBoundaryConditionFromFunction( x );
-      p_wm.copyBoundaryConditionFromFunction( x );
-      p_w.copyBoundaryConditionFromFunction( x );
-      p_wp.copyBoundaryConditionFromFunction( x );
-      p_tmp.copyBoundaryConditionFromFunction( x );
-      r_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, p_vm );
+      copyBCs( x, p_v );
+      copyBCs( x, p_vp );
+      copyBCs( x, p_z );
+      copyBCs( x, p_zp );
+      copyBCs( x, p_wm );
+      copyBCs( x, p_w );
+      copyBCs( x, p_wp );
+      copyBCs( x, p_tmp );
+      copyBCs( x, r_ );
 
       std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
 

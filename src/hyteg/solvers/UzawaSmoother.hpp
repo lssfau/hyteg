@@ -25,6 +25,7 @@
 
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
@@ -129,7 +130,7 @@ class UzawaSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const uint_t                          level ) override
    {
-      r_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, r_ );
 
       uzawaSmooth( A,
                    x,
@@ -499,7 +500,7 @@ class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
                const typename OperatorType::dstType& b,
                const uint_t                          level ) override
    {
-      r_.copyBoundaryConditionFromFunction( x );
+      copyBCs( x, r_ );
 
       uzawaSmoothWithProjection( A, x, b, level );
    }
