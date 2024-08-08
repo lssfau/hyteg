@@ -154,8 +154,8 @@ int main( int argc, char* argv[] )
 
    succeeded &= p2PetscApplyTest( 2, prependHyTeGMeshDir( "3D/cube_24el.msh" ), All, 3.1e-15 );
 
-   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "quad_4el.msh" ), All, 5.0e-15 );
-   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "annulus_coarse.msh" ), All, 1.7e-13 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "2D/quad_4el.msh" ), All, 5.0e-15 );
+   succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), All, 1.7e-13 );
    succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/tet_1el.msh" ), Inner, 1.0e-16 );
    succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), Inner, 9.6e-16 );
    succeeded &= p2PetscApplyTest( 3, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), Inner, 1.5e-15 );

@@ -41,7 +41,7 @@ void adaptiveRefinementBoundaryTest( uint_t n_refinements )
 
    if ( K == 2 )
    {
-      meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+      meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    }
    else
    {

@@ -2,7 +2,7 @@ Parameters
 {
   level 8;
   minLevel 2;
-  mesh  ../../../data/meshes/quad_16el.msh;
+  mesh  ../../../data/meshes/2D/quad_16el.msh;
 
   cgIterations 20;
   minresIterations 10;

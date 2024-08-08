@@ -121,7 +121,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   petscSolveTest( 0, prependHyTeGMeshDir( "quad_4el.msh" ), 3.0e-04 );
+   petscSolveTest( 0, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3.0e-04 );
    petscSolveTest( 0, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1.0e-15 );
    petscSolveTest( 0, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1.0e-15 );
    petscSolveTest( 0, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 2.0e-04 );
@@ -129,7 +129,7 @@ int main( int argc, char* argv[] )
    petscSolveTest( 0, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3.0e-04 );
    petscSolveTest( 0, prependHyTeGMeshDir( "3D/cube_24el.msh" ), 5.0e-04 );
 
-   petscSolveTest( 1, prependHyTeGMeshDir( "quad_4el.msh" ), 2.0e-05 );
+   petscSolveTest( 1, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 2.0e-05 );
    petscSolveTest( 1, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3.0e-06 );
    petscSolveTest( 1, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2.0e-04 );
    petscSolveTest( 1, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 2.0e-05 );
@@ -137,7 +137,7 @@ int main( int argc, char* argv[] )
    petscSolveTest( 1, prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3.0e-04 );
    petscSolveTest( 1, prependHyTeGMeshDir( "3D/cube_24el.msh" ), 5.0e-04 );
 
-   petscSolveTest( 3, prependHyTeGMeshDir( "quad_4el.msh" ), 3.0e-07 );
+   petscSolveTest( 3, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3.0e-07 );
    petscSolveTest( 3, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3.0e-07 );
    petscSolveTest( 3, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2.7e-06 );
    petscSolveTest( 3, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3.2e-07 );

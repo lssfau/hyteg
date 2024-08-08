@@ -59,7 +59,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
    timingTree->start( "Global" );
-   std::string meshFileName = "../data/meshes/flow_around_cylinder.msh";
+   std::string meshFileName = "../data/meshes/2D/flow_around_cylinder.msh";
 
    real_t viscosity = 1e-4;
 

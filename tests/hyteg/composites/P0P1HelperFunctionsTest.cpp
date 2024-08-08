@@ -44,7 +44,7 @@ using namespace hyteg;
 void runProjectionTestIn2D()
 {
    // Set mesh and primitives
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );

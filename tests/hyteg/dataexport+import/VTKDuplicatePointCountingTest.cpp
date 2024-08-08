@@ -65,11 +65,11 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), 3, 1 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), 3, 1 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, 1 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, 1 );
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "bfs_126el.msh" ), 3, 8 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "bfs_126el.msh" ), 3, 8 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/bfs_126el.msh" ), 3, 8 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/bfs_126el.msh" ), 3, 8 );
 
    hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1 );
    hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1 );

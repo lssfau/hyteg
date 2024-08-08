@@ -147,8 +147,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    std::vector< std::string > meshes;
-   meshes.push_back( prependHyTeGMeshDir( "quad_4el.msh" ) );
-   meshes.push_back( prependHyTeGMeshDir( "annulus_coarse.msh" ) );
+   meshes.push_back( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
+   meshes.push_back( prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
    meshes.push_back( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
    meshes.push_back( prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
 

@@ -180,14 +180,14 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 
    petscSolveTest( 4,
-                   hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_center_at_origin_4el.msh" ) ),
+                   hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_center_at_origin_4el.msh" ) ),
                    0,
                    0,
                    2.2e-09,
                    0.00033,
                    0.0184 );
    petscSolveTest( 4,
-                   hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_center_at_origin_4el.msh" ) ),
+                   hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_center_at_origin_4el.msh" ) ),
                    1,
                    0,
                    2.2e-09,
@@ -195,7 +195,7 @@ int main( int argc, char* argv[] )
                    0.0184 );
    //TODO AL with nu = 100 converges faster for velocity, but still has a problem for the pressure
    petscSolveTest( 4,
-                   hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_center_at_origin_4el.msh" ) ),
+                   hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_center_at_origin_4el.msh" ) ),
                    0,
                    100,
                    10,

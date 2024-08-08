@@ -127,8 +127,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), hyteg::All, 1.0e-15 );
-   hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), hyteg::All, 1.7e-13 );
+   hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), hyteg::All, 1.0e-15 );
+   hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), hyteg::All, 1.7e-13 );
    hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), hyteg::Inner, 7.6e-18 );
    hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), hyteg::Inner, 2.0e-16 );
    hyteg::p1PetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), hyteg::Inner, 1.0e-15 );

@@ -253,13 +253,13 @@ void testCopyAssignment()
 
    uint_t level = 2;
 
-   auto                  meshInfo1 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+   auto                  meshInfo1 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    SetupPrimitiveStorage setupStorage1( meshInfo1, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto            storage1 = std::make_shared< PrimitiveStorage >( setupStorage1, 1 );
 
    func_t orig( "original", storage1, level, level );
 
-   auto                  meshInfo2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_2el.msh" ) );
+   auto                  meshInfo2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto            storage2 = std::make_shared< PrimitiveStorage >( setupStorage2, 1 );
 

@@ -57,7 +57,7 @@ static void runTest( bool beVerbose, std::string tag, std::string opName )
    const uint_t minLevel = 3;
    const uint_t maxLevel = 3;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

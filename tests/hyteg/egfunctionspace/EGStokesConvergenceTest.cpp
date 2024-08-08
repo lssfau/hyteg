@@ -91,7 +91,7 @@ void Stokes2D( const uint_t minLevel, const uint_t maxLevel )
    auto dummyLambda = []( const Point3D& ) -> real_t { return 0; };
    if constexpr ( false )
    {
-      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ) );
+      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -101,7 +101,7 @@ void Stokes2D( const uint_t minLevel, const uint_t maxLevel )
    // quad_4el, inhom
    if constexpr ( true )
    {
-      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ) );
+      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -193,7 +193,7 @@ void Stokes2D( const uint_t minLevel, const uint_t maxLevel )
    // IIPG: quad_4el, inhom
    if constexpr ( false )
    {
-      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ) );
+      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -241,7 +241,7 @@ void Stokes2D( const uint_t minLevel, const uint_t maxLevel )
    // quad_16el, inhom
    if constexpr ( false )
    {
-      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_16el.msh" ) );
+      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -287,7 +287,7 @@ void Stokes2D( const uint_t minLevel, const uint_t maxLevel )
    // IIPG: quad_16el, inhom
    if constexpr ( false )
    {
-      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_16el.msh" ) );
+      auto                         meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

@@ -1,6 +1,6 @@
 Parameters
 {
-  mesh ../data/meshes/quad_16el.msh;
+  mesh ../data/meshes/2D/quad_16el.msh;
   level 3;
   maxiter 10000;
   tolerance 1e-10;

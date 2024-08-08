@@ -282,7 +282,7 @@ void runTests2D()
    // ----------------------
    //  Flow Around Cylinder
    // ----------------------
-   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "flow_around_cylinder.msh" ) );
+   MeshInfo              meshInfo2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/flow_around_cylinder.msh" ) );
    SetupPrimitiveStorage setupStorage2( meshInfo2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    storage = std::make_shared< PrimitiveStorage >( setupStorage2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Running 2D test with Flow-Around-Cylinder mesh" );

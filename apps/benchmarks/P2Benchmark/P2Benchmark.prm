@@ -5,8 +5,8 @@ Parameters_for_2D
   timeMass True;    // with AnnulusMap
   level 10;
   numIterations 10;
-  // mesh ../../../data/meshes/annulus_coarse.msh;
-  mesh ../../../data/meshes/tri_1el.msh;
+  // mesh ../../../data/meshes/2D/annulus_coarse.msh;
+  mesh ../../../data/meshes/2D/tri_1el.msh;
   printDetails False;
   jsonFile P2Benchmark_2D.json;
 }

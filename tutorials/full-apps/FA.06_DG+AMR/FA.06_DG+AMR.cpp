@@ -191,7 +191,7 @@ using namespace hyteg;
 std::shared_ptr< PrimitiveStorage > buildPrimitiveStorage( uint_t refinementsAtOrigin )
 {
    // Reading in a Gmsh file of an L-shaped domain.
-   auto meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "lshaped.msh" ) );
+   auto meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/lshaped.msh" ) );
 
    // Building a primitive structure from the mesh file.
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(

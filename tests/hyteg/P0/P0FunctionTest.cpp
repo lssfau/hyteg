@@ -99,7 +99,7 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test_dotLocalGlobal( prependHyTeGMeshDir( "tri_4el.msh" ) );        // 2D
+   test_dotLocalGlobal( prependHyTeGMeshDir( "2D/tri_4el.msh" ) );        // 2D
    test_dotLocalGlobal( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) ); // 3D
 
    return EXIT_SUCCESS;

@@ -149,7 +149,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test( hyteg::prependHyTeGMeshDir( "quad_8el.msh" ), 4, 20 );
+   test( hyteg::prependHyTeGMeshDir( "2D/quad_8el.msh" ), 4, 20 );
    test( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 20 );
    test( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 4, 20 );
 

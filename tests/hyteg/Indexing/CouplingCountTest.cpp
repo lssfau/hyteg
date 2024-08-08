@@ -111,9 +111,9 @@ int main( int argc, char* argv[] )
    // ----------------------------
    if ( run2DTests )
    {
-      // std::string           meshFileName = prependHyTegMeshDir( "quad_16el.msh" );
-      // std::string           meshFileName = prependHyTegMeshDir( "tri_1el.msh" );
-      std::string           meshFileName = prependHyTeGMeshDir( "annulus_coarse.msh" );
+      // std::string           meshFileName = prependHyTegMeshDir( "2D/quad_16el.msh" );
+      // std::string           meshFileName = prependHyTegMeshDir( "2D/tri_1el.msh" );
+      std::string           meshFileName = prependHyTeGMeshDir( "2D/annulus_coarse.msh" );
       MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
       SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       loadbalancing::roundRobin( setupStorage );

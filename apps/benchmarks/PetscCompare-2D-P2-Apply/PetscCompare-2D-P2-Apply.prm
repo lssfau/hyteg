@@ -7,7 +7,7 @@ Parameters
   printTiming false;
 
   useMeshFile false;
-  mesh ../../../data/meshes/quad_8el.msh;
+  mesh ../../../data/meshes/2D/quad_8el.msh;
 
   /// only relevant if useMeshFile == false
   /// if set true the total number of faces is mpi.numProcesses * numberOfFaces

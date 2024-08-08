@@ -438,7 +438,7 @@ int main( int argc, char* argv[] )
 
    std::string filePath{ "." };
    std::string fileName{ "CheckpointRestoreTest.bp" };
-   std::string meshFile2D{ prependHyTeGMeshDir( "LShape_6el.msh" ) };
+   std::string meshFile2D{ prependHyTeGMeshDir( "2D/LShape_6el.msh" ) };
 
    // Some issue with AdiosWriter, so cannot visualise with this mesh!
    std::string meshFile{ prependHyTeGMeshDir( "3D/cube_6el.msh" ) };

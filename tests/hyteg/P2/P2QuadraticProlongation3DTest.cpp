@@ -331,44 +331,44 @@ int main( int argc, char* argv[] )
    testWeightsInCellVertexDoF();
    testWeightsInCellEdgeDoF();
 
-   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 0 );
-   testGridTransfer3D( prependHyTeGMeshDir( "bfs_126el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 0 );
+   testGridTransfer3D( prependHyTeGMeshDir( "2D/bfs_126el.msh" ), 0 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 0 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 0 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0 );
 
-   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 1 );
+   testGridTransfer3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 1 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 1 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 1 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1 );
 
-   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 3 );
 
-   testProlongateAndAdd3D( prependHyTeGMeshDir( "quad_8el.msh" ), 0 );
-   testProlongateAndAdd3D( prependHyTeGMeshDir( "bfs_126el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 0 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "2D/bfs_126el.msh" ), 0 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 0 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 0 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0 );
 
-   testProlongateAndAdd3D( prependHyTeGMeshDir( "quad_8el.msh" ), 1 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 1 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 1 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" ), 1 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1 );
 
-   testProlongateAndAdd3D( prependHyTeGMeshDir( "quad_8el.msh" ), 3 );
+   testProlongateAndAdd3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 3 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3 );
    testProlongateAndAdd3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3 );

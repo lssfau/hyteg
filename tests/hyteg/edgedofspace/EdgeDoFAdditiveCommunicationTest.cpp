@@ -199,21 +199,21 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                              hyteg::prependHyTeGMeshDir( "tri_1el.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                              hyteg::prependHyTeGMeshDir( "tri_1el.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                              hyteg::prependHyTeGMeshDir( "tri_2el.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                              hyteg::prependHyTeGMeshDir( "tri_2el.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                              hyteg::prependHyTeGMeshDir( "quad_8el.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/quad_8el.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                              hyteg::prependHyTeGMeshDir( "quad_8el.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/quad_8el.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                              hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
    hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                              hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ) );
+                                              hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
 
    hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
                                               hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );

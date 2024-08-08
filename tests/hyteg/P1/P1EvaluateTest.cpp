@@ -38,7 +38,7 @@ using namespace hyteg;
 
 void test2D()
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "bfs_12el.msh" ) );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -206,7 +206,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
    else
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Testing with AffineMap2D" );
-      MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) );
+      MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
       Point2D  shift( real_c( 4 ), real_c( -1.0 / 3.0 ) );

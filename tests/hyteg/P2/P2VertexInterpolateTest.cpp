@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = prependHyTeGMeshDir( "tri_1el_neumann.msh" );
+   std::string meshFileName = prependHyTeGMeshDir( "2D/tri_1el_neumann.msh" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

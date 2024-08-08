@@ -156,10 +156,10 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   //  testGridTransfer3D( prependHyTeGMeshDir( "tri_1el.msh", 2 );
-   //  testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh", 2 );
-   testGridTransfer3D( prependHyTeGMeshDir( "tri_1el.msh" ), 3 );
-   testGridTransfer3D( prependHyTeGMeshDir( "quad_8el.msh" ), 3 );
+   //  testGridTransfer3D( prependHyTeGMeshDir( "2D/tri_1el.msh", 2 );
+   //  testGridTransfer3D( prependHyTeGMeshDir( "2D/quad_8el.msh", 2 );
+   testGridTransfer3D( prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3 );
+   testGridTransfer3D( prependHyTeGMeshDir( "2D/quad_8el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3 );
    testGridTransfer3D( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 3 );

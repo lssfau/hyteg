@@ -137,8 +137,8 @@ int main( int argc, char* argv[] )
 
    for ( int solver = 1; solver < 3; solver++ )
    {
-      petscSolveTest( solver, 3, prependHyTeGMeshDir( "quad_2el.msh" ), 2.5e-05 );
-      petscSolveTest( solver, 3, prependHyTeGMeshDir( "quad_4el.msh" ), 1.4e-05 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "2D/quad_2el.msh" ), 2.5e-05 );
+      petscSolveTest( solver, 3, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 1.4e-05 );
       petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4.9e-07 );
       petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 4.9e-05 );
       petscSolveTest( solver, 3, prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 1.5e-05 );

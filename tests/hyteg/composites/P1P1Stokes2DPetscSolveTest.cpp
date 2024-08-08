@@ -154,7 +154,7 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 
    petscSolveTest(
-       5, hyteg::MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_center_at_origin_4el.msh" ) ), 1.7e-13, 0.025, 0.366 );
+       5, hyteg::MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_center_at_origin_4el.msh" ) ), 1.7e-13, 0.025, 0.366 );
 
    return EXIT_SUCCESS;
 }

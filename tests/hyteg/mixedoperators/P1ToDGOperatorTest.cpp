@@ -40,7 +40,7 @@ void checkP1ToDG1ByIntegral( const uint_t dim )
    std::string mesh_file;
    if ( dim == 2 )
    {
-      mesh_file = hyteg::prependHyTeGMeshDir( "quad_4el.msh" );
+      mesh_file = hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" );
    }
    else
    {
@@ -83,7 +83,7 @@ void checkP1ToDG1ByIntegral( const uint_t dim )
 
 void enumerateTest()
 {
-   std::string mesh_file = hyteg::prependHyTeGMeshDir( "quad_4el.msh" );
+   std::string mesh_file = hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" );
 
    MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
 
@@ -111,7 +111,7 @@ void enumerateTest()
 
 void checkTranspose()
 {
-   std::string mesh_file = hyteg::prependHyTeGMeshDir( "quad_4el.msh" );
+   std::string mesh_file = hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" );
 
    MeshInfo meshInfo = MeshInfo::fromGmshFile( mesh_file );
 

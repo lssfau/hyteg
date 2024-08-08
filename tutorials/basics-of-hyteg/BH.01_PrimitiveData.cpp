@@ -153,7 +153,7 @@ void PrimitiveStorageTutorial()
 
    uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   hyteg::MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_2el.msh" ) );
+   hyteg::MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
    // Let's have a debug print

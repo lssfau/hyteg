@@ -108,7 +108,7 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( stringLine );
 
    // +++ Set Parameters +++
-   const std::string meshFile = prependHyTeGMeshDir( "quad_2el.msh" );
+   const std::string meshFile = prependHyTeGMeshDir( "2D/quad_2el.msh" );
 
    // +++Primitive Storage+++
    const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );

@@ -116,7 +116,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this Statistics
  *
- * Running the example with the tri_4el.msh and three MPI processes will give us something like the
+ * Running the example with the 2D/tri_4el.msh and three MPI processes will give us something like the
  * following:
  *
  * \verbatim
@@ -180,7 +180,7 @@ void PrimitiveStorageTutorial()
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   /// [MeshInfo]
-  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_4el.msh" ) );
+  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_4el.msh" ) );
   /// [MeshInfo]
 
   /// [SetupPrimitiveStorage]

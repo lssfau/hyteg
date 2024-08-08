@@ -706,27 +706,27 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
    walberla::debug::enterTestMode();
 
-   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), true );
+   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), true );
 
-   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), false );
+   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), false );
 
-   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), true );
+   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), true );
 
-   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), false );
+   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), false );
 
-   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), true );
+   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), true );
 
-   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), true );
+   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), true );
 
-   checkComm< 5 >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), true );
+   checkComm< 5 >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), true );
 
-   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), false );
+   checkComm< 4 >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), false );
 
-   checkComm< 5 >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), false );
+   checkComm< 5 >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), false );
 
-   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "bfs_12el.msh" ), true );
+   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "2D/bfs_12el.msh" ), true );
 
-   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "bfs_12el.msh" ), false );
+   checkComm< 3 >( hyteg::prependHyTeGMeshDir( "2D/bfs_12el.msh" ), false );
 
    check1tet();
 

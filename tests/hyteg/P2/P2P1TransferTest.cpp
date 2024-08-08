@@ -35,7 +35,7 @@ static void testP2P1Transfer()
 {
    const uint_t level = 4;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

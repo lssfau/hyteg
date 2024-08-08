@@ -651,7 +651,7 @@ int main( int argc, char** argv )
 {
 
        WALBERLA_LOG_INFO_ON_ROOT("Running 2D quad_4el")
-       auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../meshes/quad_4el.msh");
+       auto meshInfo = hyteg::MeshInfo::fromGmshFile("../../meshes/2D/quad_4el.msh");
 
 
       auto solFuncX = []( const Point3D& p ) -> real_t {
@@ -734,7 +734,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/2D/quad_16el.msh" );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] );
@@ -752,7 +752,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, inhom. BC, rhs = 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/2D/tri_1el.msh" );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
       std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };

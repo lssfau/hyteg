@@ -147,8 +147,8 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), hyteg::All, 8.7e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), hyteg::All, 2.6e-13 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), hyteg::All, 8.7e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), hyteg::All, 2.6e-13 );
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), hyteg::All, 1.0e-16 );
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), hyteg::All, 7.3e-16 );
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), hyteg::All, 1.4e-15 );

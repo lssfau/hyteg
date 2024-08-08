@@ -1,6 +1,6 @@
 Parameters
 {
-  mesh ../data/meshes/quad_4el.msh;
+  mesh ../data/meshes/2D/quad_4el.msh;
   minlevel 2;
   maxlevel 3;
   maxiter 10000;

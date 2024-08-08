@@ -37,8 +37,8 @@ static void testP2Function()
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
 
-   MeshInfo mesh  = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
-   MeshInfo mesh2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "annulus_coarse.msh" ) );
+   MeshInfo mesh  = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   MeshInfo mesh2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    SetupPrimitiveStorage setupStorage2( mesh2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

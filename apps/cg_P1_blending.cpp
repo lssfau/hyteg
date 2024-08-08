@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    const uint_t maxiter = 10000;
 
    /// read mesh file and create storage
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../data/meshes/unitsquare_with_circular_hole.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../data/meshes/2D/unitsquare_with_circular_hole.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    Point3D circleCenter{{0.5, 0.5, 0}};

@@ -64,7 +64,7 @@ void test( uint_t                                           dim,
 
    const bool writeVTK = true;
 
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );

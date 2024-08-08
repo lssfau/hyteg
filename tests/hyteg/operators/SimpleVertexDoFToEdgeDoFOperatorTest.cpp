@@ -36,7 +36,7 @@ static void testOperator()
 {
    const uint_t level = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

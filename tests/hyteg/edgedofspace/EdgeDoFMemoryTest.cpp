@@ -30,7 +30,7 @@ static void testEdgeDoFFunctionMemorySize()
 {
    using namespace edgedof;
 
-   auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "quad_8el.msh" ) );
+   auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "2D/quad_8el.msh" ) );
 
    for ( const auto& it : storage->getEdges() )
    {

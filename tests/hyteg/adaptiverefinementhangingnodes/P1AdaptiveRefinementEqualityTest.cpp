@@ -135,7 +135,7 @@ int main( int argc, char** argv )
 
    const uint_t sum = 5;
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
 
    for ( uint_t a = 1; a <= sum / 2; a++ )
    {

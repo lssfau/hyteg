@@ -39,7 +39,7 @@ static void testEdgeDoFToEdgeDoFOperator()
 {
    const uint_t maxLevel = 4;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

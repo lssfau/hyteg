@@ -140,25 +140,25 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), 0, false );
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), 0, false );
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 0, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 0, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), 0, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 0, false );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 0, true );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 0, false );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0, true );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), 0, true );
 
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), 1, false );
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), 1, false );
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 1, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 1, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), 1, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 1, false );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 1, true );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 1, false );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1, true );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), 1, true );
 
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), 3, false );
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), 3, false );
-  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 2, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3, false );
+  hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 2, false );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, true );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, false );
   hyteg::AgglomerationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, true );

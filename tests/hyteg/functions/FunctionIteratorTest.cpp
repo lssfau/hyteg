@@ -94,10 +94,10 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 0 );
-   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 1 );
-   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 2 );
-   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 3 );
+   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 0 );
+   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 1 );
+   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 2 );
+   hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 3 );
 
    hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 0 );
    hyteg::testFunctionIterator( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 1 );

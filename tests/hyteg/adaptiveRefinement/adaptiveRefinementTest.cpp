@@ -44,7 +44,7 @@ void adaptiveRefinementTest()
 
    if ( K == 2 )
    {
-      meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+      meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
       barycenter_0 = ( 1. / 3. ) * hyteg::Point3D(  1, 1, 0  );
       volume       = 1. / 2.;
       n_el_1       = 4;

@@ -478,7 +478,7 @@ int main( int argc, char** argv )
    // ----------
    {
       logSectionHeader( "Testing 2D with BFS" );
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "bfs_12el.msh" ) );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
       setStore =
           std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );

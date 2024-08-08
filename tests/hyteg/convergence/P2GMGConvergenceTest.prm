@@ -1,6 +1,6 @@
 Parameters
 {
-  mesh ../../meshes/tri_1el.msh;
+  mesh ../../meshes/2D/tri_1el.msh;
   minLevel 2;
   maxLevel 3;
   max_outer_iter 7;

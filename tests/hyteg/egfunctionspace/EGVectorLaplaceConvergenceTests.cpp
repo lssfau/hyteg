@@ -233,7 +233,7 @@ void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, u
       hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el",
                           minLevel,
                           maxLevel,
-                          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) ),
+                          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) ),
                           std::make_tuple( solFunc, solFunc, solFunc ),
                           std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
                           solverType,
@@ -248,7 +248,7 @@ void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, u
       hyteg::runTestcase( "EGVectorLaplaceConvergence_tri_1el",
                           minLevel,
                           maxLevel,
-                          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) ),
+                          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) ),
                           std::make_tuple( solFunc, solFunc, solFunc ),
                           std::make_tuple( rhsFunc, rhsFunc, rhsFunc ),
                           solverType,
@@ -257,7 +257,7 @@ void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, u
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on 2 triangles, inhom. BC, rhs = 0 ###" );
    {
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_2el.msh" ) );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( pi * x[0] ) * sin( pi * x[1] ); };
 
@@ -276,7 +276,7 @@ void testEGVectorLaplace2D( uint_t solverType, bool writeVTK, uint_t minLevel, u
 
    WALBERLA_LOG_INFO_ON_ROOT( "### Test on quad 2D, inhom. BC, rhs = 0 ###" );
    {
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( pi * x[0] ) * sin( pi * x[1] ); };
 

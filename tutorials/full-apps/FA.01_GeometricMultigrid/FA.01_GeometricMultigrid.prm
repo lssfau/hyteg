@@ -1,6 +1,6 @@
 Parameters
 {
-  mesh ../../data/meshes/annulus.msh;
+  mesh ../../data/meshes/2D/annulus.msh;
   minLevel 2;
   maxLevel 8;
   max_outer_iter 20;

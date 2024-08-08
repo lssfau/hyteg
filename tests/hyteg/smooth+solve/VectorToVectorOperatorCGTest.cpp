@@ -50,8 +50,8 @@ void runCheck( std::string opName, bool verbose = false )
    WALBERLA_LOG_INFO_ON_ROOT( " * " << opName );
 
    const uint_t level = 3;
-   // const std::string meshFile = prependHyTeGMeshDir( "penta_5el.msh");
-   const std::string meshFile = prependHyTeGMeshDir( "tri_2el.msh" );
+   // const std::string meshFile = prependHyTeGMeshDir( "2D/penta_5el.msh");
+   const std::string meshFile = prependHyTeGMeshDir( "2D/tri_2el.msh" );
 
    auto meshInfo = MeshInfo::fromGmshFile( meshFile );
    auto setupStorage =

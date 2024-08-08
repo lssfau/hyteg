@@ -125,9 +125,9 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), 3, false );
-   hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), 3, false );
-   hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), 2, false );
+   hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, false );
+   hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3, false );
+   hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 2, false );
    hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, true );
    hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, false );
    hyteg::PrimitiveMigrationMatMulTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, true );

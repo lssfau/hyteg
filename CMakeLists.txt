@@ -184,8 +184,8 @@ configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
 include_directories( ${hyteg_BINARY_DIR}/src )
 
 
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/meshes")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes/2D)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/meshes/2D")
 endif()
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes/3D)
@@ -224,7 +224,7 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles/tests)
    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles/tests")
 endif()
 
-waLBerla_link_files_to_builddir(data/meshes/*.msh)
+waLBerla_link_files_to_builddir(data/meshes/2D/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
 waLBerla_link_files_to_builddir(data/kerncraftMachineFiles/*.yml)

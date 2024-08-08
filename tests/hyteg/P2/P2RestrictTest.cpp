@@ -38,7 +38,7 @@ static void testP2Restrict()
 {
    const uint_t sourceLevel = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -146,7 +146,7 @@ static void testP2Restrict2()
 {
    const uint_t sourceLevel = 4;
 
-   MeshInfo                                 mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) );
+   MeshInfo                                 mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    std::shared_ptr< SetupPrimitiveStorage > setupStorage =
        std::make_shared< SetupPrimitiveStorage >( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
@@ -266,7 +266,7 @@ static void testP2Restrict2()
 static void testP2InterpolateAndRestrict()
 {
    const uint_t                             sourceLevel = 5;
-   MeshInfo                                 mesh        = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
+   MeshInfo                                 mesh        = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
    std::shared_ptr< SetupPrimitiveStorage > setupStorage =
        std::make_shared< SetupPrimitiveStorage >( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );

@@ -162,15 +162,15 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
    walberla::debug::enterTestMode();
 
-   checkComm< 2 >( prependHyTeGMeshDir( "quad_2el.msh" ) );
-   checkComm< 2 >( prependHyTeGMeshDir( "quad_2el.msh" ) );
-   checkComm< 2 >( prependHyTeGMeshDir( "bfs_12el.msh" ) );
+   checkComm< 2 >( prependHyTeGMeshDir( "2D/quad_2el.msh" ) );
+   checkComm< 2 >( prependHyTeGMeshDir( "2D/quad_2el.msh" ) );
+   checkComm< 2 >( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
 
-   checkComm< 3 >( prependHyTeGMeshDir( "tri_1el.msh" ) );
-   checkComm< 3 >( prependHyTeGMeshDir( "quad_2el.msh" ) );
-   checkComm< 3 >( prependHyTeGMeshDir( "bfs_12el.msh" ) );
+   checkComm< 3 >( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   checkComm< 3 >( prependHyTeGMeshDir( "2D/quad_2el.msh" ) );
+   checkComm< 3 >( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
 
-   checkComm< 4 >( prependHyTeGMeshDir( "tri_1el.msh" ) );
-   checkComm< 4 >( prependHyTeGMeshDir( "quad_2el.msh" ) );
-   checkComm< 4 >( prependHyTeGMeshDir( "bfs_12el.msh" ) );
+   checkComm< 4 >( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   checkComm< 4 >( prependHyTeGMeshDir( "2D/quad_2el.msh" ) );
+   checkComm< 4 >( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
 }

@@ -147,8 +147,8 @@ int main( int argc, char* argv[] )
 
    succeeded &= hyteg::P2LinearCombinationFormTest( 2, hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh") );
 
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "quad_4el.msh") );
-   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "annulus_coarse.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh") );
+   succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh") );
    succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh") );
    succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh") );
    succeeded &= hyteg::P2LinearCombinationFormTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh") );

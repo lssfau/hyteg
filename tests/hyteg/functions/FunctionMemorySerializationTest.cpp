@@ -44,7 +44,7 @@ static void testFunctionMemorySerialization()
    const uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
    const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   const std::string meshFileName = prependHyTeGMeshDir( "bfs_126el.msh" );
+   const std::string meshFileName = prependHyTeGMeshDir( "2D/bfs_126el.msh" );
 
    const uint_t minLevel = 2;
    const uint_t maxLevel = 3;

@@ -1,6 +1,6 @@
 Parameters
 {
-  meshFileName ../../data/meshes/tri_1el.msh;
+  meshFileName ../../data/meshes/2D/tri_1el.msh;
   minLevel 2;
   maxLevel 4;
   polyDegree 5;

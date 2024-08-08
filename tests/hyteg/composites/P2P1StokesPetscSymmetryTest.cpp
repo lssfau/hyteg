@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::test( hyteg::prependHyTeGMeshDir( "annulus_coarse.msh" ), level );
+      hyteg::test( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), level );
 
       hyteg::test( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
       hyteg::test( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), level );

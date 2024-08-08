@@ -36,7 +36,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    WALBERLA_LOG_INFO_ON_ROOT( "HyTeG CG Test\n" );
 
-   std::string meshFileName = hyteg::prependHyTeGMeshDir( "quad_4el.msh" );
+   std::string meshFileName = hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

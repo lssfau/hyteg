@@ -35,9 +35,9 @@ static void testPrimitiveStorage()
 {
    uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-   const std::string meshFileName = prependHyTeGMeshDir( "porous_fine.msh" );
-   // const std::string meshFileName = prependHyTeGMeshDir( "bfs_126el.msh");
-   // const std::string meshFileName = prependHyTeGMeshDir( "tri_2el.msh");
+   const std::string meshFileName = prependHyTeGMeshDir( "2D/porous_fine.msh" );
+   // const std::string meshFileName = prependHyTeGMeshDir( "2D/bfs_126el.msh");
+   // const std::string meshFileName = prependHyTeGMeshDir( "2D/tri_2el.msh");
    const std::string distributionFile = "../../output/PrimitiveStorageTestDistribution.csv";
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );

@@ -535,7 +535,7 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::
             WALBERLA_ABORT( "Initial resolution for reentrant corner must be an even number with 2 <= N <= 10!" );
          }
          uint_t n_el     = N * N * 3 / 2;
-         auto   filename = "../hyteg/data/meshes/LShape_" + std::to_string( n_el ) + "el.msh";
+         auto   filename = "../hyteg/data/meshes/2D/LShape_" + std::to_string( n_el ) + "el.msh";
          meshInfo        = MeshInfo::fromGmshFile( filename );
       }
       else if ( problem.type == ModelProblem::WAVES || problem.type == ModelProblem::WAVES_K ||

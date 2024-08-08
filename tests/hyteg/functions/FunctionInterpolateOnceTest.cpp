@@ -83,8 +83,8 @@ int main( int argc, char** argv )
 
    std::vector< MeshInfo > meshInfos;
 
-   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_1el.msh" ) ) );
-   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "bfs_126el.msh" ) ) );
+   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) ) );
+   meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_126el.msh" ) ) );
    meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) ) );
    meshInfos.push_back( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/cube_24el.msh" ) ) );
 

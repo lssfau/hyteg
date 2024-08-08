@@ -40,7 +40,7 @@ static void testP1DataHandling()
    uint_t minLevel = 1;
    uint_t maxLevel = 10;
 
-   std::string meshFileName = prependHyTeGMeshDir( "tri_2el.msh" );
+   std::string meshFileName = prependHyTeGMeshDir( "2D/tri_2el.msh" );
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );

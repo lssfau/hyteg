@@ -84,18 +84,18 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
-      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), level );
-      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), level );
       hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
       hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), level );
 
-      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), level );
-      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), level );
       hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
       hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), level );
 
-      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "tri_1el.msh" ), level );
-      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), level );
       hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
       hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), level );
    }

@@ -45,7 +45,7 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    // Set mesh and primitives
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_4el.msh" ) );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    Point3D     circleCenter{ { -0.5, 0.5, 0 } };

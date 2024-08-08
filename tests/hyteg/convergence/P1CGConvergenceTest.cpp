@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    const uint_t      level    = 4;
-   const std::string meshFile = prependHyTeGMeshDir( "quad_8el.msh" );
+   const std::string meshFile = prependHyTeGMeshDir( "2D/quad_8el.msh" );
 
    auto meshInfo = MeshInfo::fromGmshFile( meshFile );
    auto setupStorage =

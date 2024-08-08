@@ -40,7 +40,7 @@ void smokeTest()
    const bool writeVTK = false;
 
    WALBERLA_LOG_INFO_ON_ROOT( "+ smokeTest: checking _really_ basic functionality" );
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_184el.msh" ) );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_184el.msh" ) );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -173,7 +173,7 @@ void indirectNeighborhoodTest()
    WALBERLA_CHECK_EQUAL(
        walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Test currently only written for serial runs." );
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "quad_16el.msh" ) );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 

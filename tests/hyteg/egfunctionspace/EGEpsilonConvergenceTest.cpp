@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
    if constexpr ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Testing varying viscosity Epsilon 2D ###" )
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "quad_4el.msh" ) );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

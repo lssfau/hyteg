@@ -89,7 +89,7 @@ namespace hyteg {
 void amrTutorial()
 {
    /// [SetupPrimitiveStorage]
-   auto                  meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "tri_2el.msh" ) );
+   auto                  meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    /// [SetupPrimitiveStorage]
 

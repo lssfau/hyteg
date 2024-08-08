@@ -86,14 +86,14 @@ int main( int argc, char* argv[] )
    const auto numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
    hyteg::primitiveStorageParallelSetupWrite(
-       hyteg::prependHyTeGMeshDir( "bfs_126el.msh" ), numProcesses, "test_00_" + std::to_string( numProcesses ) + "_procs.data" );
+       hyteg::prependHyTeGMeshDir( "2D/bfs_126el.msh" ), numProcesses, "test_00_" + std::to_string( numProcesses ) + "_procs.data" );
 
    hyteg::primitiveStorageParallelSetupWrite( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ),
                                               numProcesses,
                                               "test_01_" + std::to_string( numProcesses ) + "_procs.data" );
 
    hyteg::primitiveStorageParallelSetupRead(
-       hyteg::prependHyTeGMeshDir( "bfs_126el.msh" ), numProcesses, "test_00_" + std::to_string( numProcesses ) + "_procs.data" );
+       hyteg::prependHyTeGMeshDir( "2D/bfs_126el.msh" ), numProcesses, "test_00_" + std::to_string( numProcesses ) + "_procs.data" );
 
    hyteg::primitiveStorageParallelSetupRead( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ),
                                              numProcesses,
