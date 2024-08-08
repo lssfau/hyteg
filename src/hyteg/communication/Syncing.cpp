@@ -198,7 +198,10 @@ template void
 template void
     syncVectorFunctionBetweenPrimitives( const EGFunction< int64_t >& function, const uint_t& level, syncDirection_t direction );
 
-void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint_t level, syncDirection_t direction )
+void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
+                              uint_t                    level,
+                              bool                      excludeDGTypeFunctions,
+                              syncDirection_t           direction )
 {
    uint_t controlCount{ 0u };
 
@@ -298,11 +301,23 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint
       controlCount++;
    }
 
-   // ----------------------------------------------
-   //  DGVectorFunctions [double, int32_t, int64_t]
-   // ----------------------------------------------
+   // ---------------------------------------------
+   //  DGFunctions [double, foat,int32_t, int64_t]
+   // ---------------------------------------------
+   if ( !excludeDGTypeFunctions && feFunctionRegistry.getDGFunctions().size() > 0 )
+   {
+      WALBERLA_ABORT( "Sorry implementation missing in syncRegisteredFunctions() for DGFunction objects!" );
+   }
+   controlCount += feFunctionRegistry.getDGFunctions().size();
 
-   // no communication necessary
+   // ---------------------------------------------------
+   //  DGVectorFunctions [double, foat,int32_t, int64_t]
+   // ---------------------------------------------------
+   if ( !excludeDGTypeFunctions )
+   {
+      WALBERLA_ABORT( "Sorry implementation missing in syncRegisteredFunctions() for DGVectorFunction objects!" );
+   }
+   controlCount += feFunctionRegistry.getDGVectorFunctions().size();
 
    // ----------------------------------------------------
    //  EdgeDoFFunctions [double, float, int32_t, int64_t]
@@ -327,13 +342,6 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry, uint
       hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
       controlCount++;
    }
-
-   // -------------
-   //  DGFunctions
-   // -------------
-
-   // no communication necessary
-   controlCount += feFunctionRegistry.getDGFunctions().size() + feFunctionRegistry.getDGVectorFunctions().size();
 
    // ------------------------------------------------------
    //  N1E1VectorFunction [double, float, int32_t, int64_t]

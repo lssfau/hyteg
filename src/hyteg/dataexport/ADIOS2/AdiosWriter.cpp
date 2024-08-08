@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr, Roman Freissler.
+ * Copyright (c) 2023-2024 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -32,7 +32,8 @@ using walberla::uint_t;
 
 void AdiosWriter::write( const uint_t level, const uint_t timestep )
 {
-   communication::syncRegisteredFunctions( feFunctionRegistry_, level, communication::syncDirection_t::LOW2HIGH );
+   bool excludeDG = true;
+   communication::syncRegisteredFunctions( feFunctionRegistry_, level, excludeDG, communication::syncDirection_t::LOW2HIGH );
 
    // for each registered function type check whether a writer for the given level
    // already exists

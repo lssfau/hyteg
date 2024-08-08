@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -68,11 +68,23 @@ void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& function,
 /// Sync all functions registered with the passed FEFunctionRegistry object
 ///
 /// \note The function currently only syncs registered functions with the following value types:
+/// - float
 /// - double
 /// - int32_t
 /// - int64_t
+///
+/// It will count the number of functions it syncs and compare this to the number of functions in
+/// the registry to detect, if other types are present. In case of an inconsistency it will abort.
+///
+/// \param feFunctionRegistry      an FEFunctionRegistry object
+/// \param level                   provides the level on which halo synchronisation shall be performed
+/// \param excludeDGTypeFunctions  if true, functions of DG-type will be excluded from the synching (this
+///                                can e.g. be done for data-export with VTKOutput to avoid unneccessary
+///                                communication)
+/// \param direction               specifies direction of communication (LOW2HIGH or BIDIRECTIONAL)
 void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
                               uint_t                    level,
+                              bool                      excludeDGTypeFunctions,
                               syncDirection_t           direction = syncDirection_t::BIDIRECTIONAL );
 
 } // namespace communication

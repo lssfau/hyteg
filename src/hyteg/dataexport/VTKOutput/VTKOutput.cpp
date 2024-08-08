@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -150,7 +150,8 @@ void VTKOutput::write( const uint_t level, const uint_t timestep )
 
    if ( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
    {
-      communication::syncRegisteredFunctions( feFunctionRegistry_, level, communication::syncDirection_t::LOW2HIGH );
+      bool excludeDG = true;
+      communication::syncRegisteredFunctions( feFunctionRegistry_, level, excludeDG, communication::syncDirection_t::LOW2HIGH );
 
       const std::vector< vtk::DoFType > dofTypes2D = { vtk::DoFType::VERTEX,
                                                        vtk::DoFType::EDGE_X,
