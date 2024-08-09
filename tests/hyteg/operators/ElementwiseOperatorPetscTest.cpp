@@ -148,7 +148,7 @@ int main( int argc, char* argv[] )
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------
-   std::string           meshFileName = "../../meshes/quad_16el.msh";
+   std::string           meshFileName = prependHyTeGMeshDir( "2D/quad_16el.msh" );
    MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
@@ -179,7 +179,7 @@ int main( int argc, char* argv[] )
    // ----------------------------
    //  Prepare setup for 3D tests
    // ----------------------------
-   meshFileName                     = "../../meshes/3D/pyramid_tilted_4el.msh";
+   meshFileName                     = prependHyTeGMeshDir( "3D/pyramid_tilted_4el.msh" );
    MeshInfo              meshInfo3D = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage3D( meshInfo3D, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage3D );

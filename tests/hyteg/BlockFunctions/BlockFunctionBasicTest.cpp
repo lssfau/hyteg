@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -72,7 +72,7 @@ void runTest( const std::string& kind )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "RUNNING WITH '" << kind << "'" );
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -114,26 +114,26 @@ void runTest( const std::string& kind )
    stokes1.interpolate( expr, maxLevel );
    logCall( "interpolate[expression]" );
 
-   stokes1.interpolate( {expr}, maxLevel );
+   stokes1.interpolate( { expr }, maxLevel );
    logCall( "interpolate[vector]" );
 
    stokes1.add( real_c( 5 ), maxLevel );
    logCall( "add[scalar]" );
 
-   stokes1.add( {real_c( 2 )}, {stokes2}, maxLevel );
+   stokes1.add( { real_c( 2 ) }, { stokes2 }, maxLevel );
    logCall( "add[functions]" );
 
    stokes1.swap( stokes2, maxLevel );
    logCall( "swap" );
 
-   stokes1.assign( {2.0, -3.0}, {stokes1, stokes2}, maxLevel );
+   stokes1.assign( { 2.0, -3.0 }, { stokes1, stokes2 }, maxLevel );
    logCall( "assign" );
 
    real_t aux = stokes1.dotGlobal( stokes2, maxLevel );
    WALBERLA_UNUSED( aux );
    logCall( "dotGlobal" );
 
-   stokes1.multElementwise( {stokes1, stokes2}, maxLevel );
+   stokes1.multElementwise( { stokes1, stokes2 }, maxLevel );
    logCall( "multElementwise" );
 
    uint_t nDoFs = stokes1.getNumberOfLocalDoFs( maxLevel );
@@ -166,7 +166,7 @@ void testEnumerate()
    const uint_t minLevel = 2;
    const uint_t maxLevel = 3;
 
-   MeshInfo mesh = MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
@@ -199,9 +199,8 @@ template < template < typename > class FunctionKind >
 void testPETScConversion( const std::string& kind, bool exportVTU = false )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "RUNNING WITH '" << kind << "'" );
-   // WALBERLA_LOG_INFO_ON_ROOT( "-> Running test for " << FunctionTrait< FunctionKind< real_t > >::getTypeName() );
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );

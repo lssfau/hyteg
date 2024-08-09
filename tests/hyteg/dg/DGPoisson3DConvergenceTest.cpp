@@ -153,7 +153,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, hom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) * sin( 2 * pi * ( x[0] + x[1] + x[2] - 1 ) );

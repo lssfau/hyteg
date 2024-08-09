@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -34,186 +34,204 @@
 
 namespace hyteg {
 
-using walberla::uint_t;
-using walberla::uint_c;
 using walberla::real_t;
+using walberla::uint_c;
+using walberla::uint_t;
 
-
-static void testEdgeDoFAdditiveCommunication2D( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode,
-                                                const std::string & meshFile )
+static void
+    testEdgeDoFAdditiveCommunication2D( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode,
+                                        const std::string&                                                 meshFile )
 {
-  const uint_t level = 3;
-  const real_t testValue = 1.0;
-  const real_t someConstant = 6.345;
+   const uint_t level        = 3;
+   const real_t testValue    = 1.0;
+   const real_t someConstant = 6.345;
 
-  auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-  SetupPrimitiveStorage setupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  setupPrimitiveStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-  auto storage = std::make_shared< PrimitiveStorage >( setupPrimitiveStorage );
+   auto                  meshInfo = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupPrimitiveStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupPrimitiveStorage );
 
-  EdgeDoFFunction< real_t > x( "x", storage, level, level );
-  x.setLocalCommunicationMode( localCommunicationMode );
+   EdgeDoFFunction< real_t > x( "x", storage, level, level );
+   x.setLocalCommunicationMode( localCommunicationMode );
 
-  // 1. To avoid masking, interpolate any scalar != 0 everywhere
-  x.interpolate( real_c( someConstant ), level, All );
+   // 1. To avoid masking, interpolate any scalar != 0 everywhere
+   x.interpolate( real_c( someConstant ), level, All );
 
-  // 2. Set all entries (incl. ghost layers) on all cells to a test value.
-  for ( const auto & it : storage->getFaces() )
-  {
-    auto facePtr = it.second->getData( x.getFaceDataID() )->getPointer( level );
-    for ( const auto & idxIt : edgedof::macroface::Iterator( level, 0 ) )
-    {
-      for ( auto orientation : edgedof::faceLocalEdgeDoFOrientations )
+   // 2. Set all entries (incl. ghost layers) on all cells to a test value.
+   for ( const auto& it : storage->getFaces() )
+   {
+      auto facePtr = it.second->getData( x.getFaceDataID() )->getPointer( level );
+      for ( const auto& idxIt : edgedof::macroface::Iterator( level, 0 ) )
       {
-        const auto idx = edgedof::macroface::index( level, idxIt.x(), idxIt.y(), orientation );
-        facePtr[ idx ] = testValue;
-      }
-    }
-  }
-
-  // 3. Communicate additively. Each unknown on each primitive should now be equal to the number of neighbor faces times the test value.
-  x.communicateAdditively< Face, Edge >( level, hyteg::DirichletBoundary, *storage );
-
-  for ( const auto & it : storage->getEdges() )
-  {
-    auto edgePtr = it.second->getData( x.getEdgeDataID() )->getPointer( level );
-    for ( const auto & idxIt : edgedof::macroedge::Iterator( level, 0 ) )
-    {
-      const auto idx = edgedof::macroedge::index( level, idxIt.x() );
-      if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() ) == DoFType::DirichletBoundary )
-      {
-//       this is always false but intel 2018 update 4 fails without
-         if ( idx > 8 ){
-            WALBERLA_LOG_DEVEL_VAR( idx );
+         for ( auto orientation : edgedof::faceLocalEdgeDoFOrientations )
+         {
+            const auto idx = edgedof::macroface::index( level, idxIt.x(), idxIt.y(), orientation );
+            facePtr[idx]   = testValue;
          }
-         WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], someConstant, "Face -> Edge additive comm failed (on Dirichlet boundary)" );
       }
-      else
+   }
+
+   // 3. Communicate additively. Each unknown on each primitive should now be equal to the number of neighbor faces times the test value.
+   x.communicateAdditively< Face, Edge >( level, hyteg::DirichletBoundary, *storage );
+
+   for ( const auto& it : storage->getEdges() )
+   {
+      auto edgePtr = it.second->getData( x.getEdgeDataID() )->getPointer( level );
+      for ( const auto& idxIt : edgedof::macroedge::Iterator( level, 0 ) )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], testValue * real_c( it.second->getNumNeighborFaces() ), "Face -> Edge additive comm failed (inner or Neumann)" );
+         const auto idx = edgedof::macroedge::index( level, idxIt.x() );
+         if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() ) == DoFType::DirichletBoundary )
+         {
+            //       this is always false but intel 2018 update 4 fails without
+            if ( idx > 8 )
+            {
+               WALBERLA_LOG_DEVEL_VAR( idx );
+            }
+            WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], someConstant, "Face -> Edge additive comm failed (on Dirichlet boundary)" );
+         }
+         else
+         {
+            WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx],
+                                        testValue * real_c( it.second->getNumNeighborFaces() ),
+                                        "Face -> Edge additive comm failed (inner or Neumann)" );
+         }
       }
-    }
-  }
+   }
 }
 
-
-static void testEdgeDoFAdditiveCommunication3D( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode,
-                                                const std::string & meshFile )
+static void
+    testEdgeDoFAdditiveCommunication3D( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode,
+                                        const std::string&                                                 meshFile )
 {
-  const uint_t level = 3;
-  const real_t testValue = 1.0;
-  const real_t someConstant = 6.345;
+   const uint_t level        = 3;
+   const real_t testValue    = 1.0;
+   const real_t someConstant = 6.345;
 
-  auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-  SetupPrimitiveStorage setupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  setupPrimitiveStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-  auto storage = std::make_shared< PrimitiveStorage >( setupPrimitiveStorage );
+   auto                  meshInfo = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupPrimitiveStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupPrimitiveStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupPrimitiveStorage );
 
-  EdgeDoFFunction< real_t > x( "x", storage, level, level );
-  x.setLocalCommunicationMode( localCommunicationMode );
+   EdgeDoFFunction< real_t > x( "x", storage, level, level );
+   x.setLocalCommunicationMode( localCommunicationMode );
 
-  // 1. To avoid masking, interpolate any scalar != 0 everywhere
-  x.interpolate( real_c( someConstant ), level, All );
+   // 1. To avoid masking, interpolate any scalar != 0 everywhere
+   x.interpolate( real_c( someConstant ), level, All );
 
-  // 2. Set all entries (incl. ghost layers) on all cells to a test value.
-  for ( const auto & it : storage->getCells() )
-  {
-    auto cellPtr = it.second->getData( x.getCellDataID() )->getPointer( level );
-    for ( const auto & idxIt : edgedof::macrocell::Iterator( level, 0 ) )
-    {
-      for ( auto orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+   // 2. Set all entries (incl. ghost layers) on all cells to a test value.
+   for ( const auto& it : storage->getCells() )
+   {
+      auto cellPtr = it.second->getData( x.getCellDataID() )->getPointer( level );
+      for ( const auto& idxIt : edgedof::macrocell::Iterator( level, 0 ) )
       {
-        const auto idx = edgedof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z(), orientation );
-        cellPtr[ idx ] = testValue;
+         for ( auto orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+         {
+            const auto idx = edgedof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z(), orientation );
+            cellPtr[idx]   = testValue;
+         }
       }
-    }
-    for ( const auto & idxIt : edgedof::macrocell::IteratorXYZ( level, 0 ) )
-    {
-      const auto idx = edgedof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z(), edgedof::EdgeDoFOrientation::XYZ );
-      cellPtr[ idx ] = testValue;
-    }
-  }
-
-  // 3. Communicate additively. Each unknown on each primitive should now be equal to the number of neighbor faces times the test value.
-  x.communicateAdditively< Cell, Face >( level, hyteg::DirichletBoundary, *storage );
-
-  for ( const auto & it : storage->getFaces() )
-  {
-    auto facePtr = it.second->getData( x.getFaceDataID() )->getPointer( level );
-    for ( const auto & orientation : edgedof::faceLocalEdgeDoFOrientations )
-    {
-      for ( const auto & idxIt : edgedof::macroface::Iterator( level, 0 ))
+      for ( const auto& idxIt : edgedof::macrocell::IteratorXYZ( level, 0 ) )
       {
-        if ( edgedof::macroface::isInnerEdgeDoF( level, idxIt, orientation ) )
-        {
-          const auto idx = edgedof::macroface::index( level, idxIt.x(), idxIt.y(), orientation );
-          if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag()) == DoFType::DirichletBoundary )
-          {
-            WALBERLA_CHECK_FLOAT_EQUAL( facePtr[idx], someConstant, "Cell -> Face additive comm failed (on Dirichlet boundary)" );
-          } else
-          {
-            WALBERLA_CHECK_FLOAT_EQUAL( facePtr[idx], testValue * real_c( it.second->getNumNeighborCells()), "Cell -> Face additive comm failed (inner or Neumann)" );
-          }
-        }
-
+         const auto idx = edgedof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z(), edgedof::EdgeDoFOrientation::XYZ );
+         cellPtr[idx]   = testValue;
       }
-    }
-  }
+   }
 
-  x.communicateAdditively< Cell, Edge >( level, hyteg::DirichletBoundary, *storage );
+   // 3. Communicate additively. Each unknown on each primitive should now be equal to the number of neighbor faces times the test value.
+   x.communicateAdditively< Cell, Face >( level, hyteg::DirichletBoundary, *storage );
 
-  for ( const auto & it : storage->getEdges() )
-  {
-    auto edgePtr = it.second->getData( x.getEdgeDataID() )->getPointer( level );
-    for ( const auto & idxIt : edgedof::macroedge::Iterator( level, 0 ) )
-    {
-      const auto idx = edgedof::macroedge::index( level, idxIt.x() );
-      if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() ) == DoFType::DirichletBoundary )
+   for ( const auto& it : storage->getFaces() )
+   {
+      auto facePtr = it.second->getData( x.getFaceDataID() )->getPointer( level );
+      for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], someConstant, "Cell -> Edge additive comm failed (on Dirichlet boundary)" );
+         for ( const auto& idxIt : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            if ( edgedof::macroface::isInnerEdgeDoF( level, idxIt, orientation ) )
+            {
+               const auto idx = edgedof::macroface::index( level, idxIt.x(), idxIt.y(), orientation );
+               if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() ) == DoFType::DirichletBoundary )
+               {
+                  WALBERLA_CHECK_FLOAT_EQUAL(
+                      facePtr[idx], someConstant, "Cell -> Face additive comm failed (on Dirichlet boundary)" );
+               }
+               else
+               {
+                  WALBERLA_CHECK_FLOAT_EQUAL( facePtr[idx],
+                                              testValue * real_c( it.second->getNumNeighborCells() ),
+                                              "Cell -> Face additive comm failed (inner or Neumann)" );
+               }
+            }
+         }
       }
-      else
-      {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], testValue * real_c( it.second->getNumNeighborCells() ), "Cell -> Edge additive comm failed (inner or Neumann)" );
-      }
-    }
-  }
+   }
 
+   x.communicateAdditively< Cell, Edge >( level, hyteg::DirichletBoundary, *storage );
+
+   for ( const auto& it : storage->getEdges() )
+   {
+      auto edgePtr = it.second->getData( x.getEdgeDataID() )->getPointer( level );
+      for ( const auto& idxIt : edgedof::macroedge::Iterator( level, 0 ) )
+      {
+         const auto idx = edgedof::macroedge::index( level, idxIt.x() );
+         if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() ) == DoFType::DirichletBoundary )
+         {
+            WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], someConstant, "Cell -> Edge additive comm failed (on Dirichlet boundary)" );
+         }
+         else
+         {
+            WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx],
+                                        testValue * real_c( it.second->getNumNeighborCells() ),
+                                        "Cell -> Edge additive comm failed (inner or Neumann)" );
+         }
+      }
+   }
 }
-
-
-
 
 } // namespace hyteg
 
-
 int main( int argc, char* argv[] )
 {
-  walberla::debug::enterTestMode();
+   walberla::debug::enterTestMode();
 
-  walberla::Environment walberlaEnv(argc, argv);
-  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-  walberla::MPIManager::instance()->useWorldComm();
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
 
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/tri_1el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/tri_1el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/tri_2el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/tri_2el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/quad_8el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/quad_8el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/annulus_coarse.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/annulus_coarse.msh" );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "2D/quad_8el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "2D/quad_8el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
 
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/3D/tet_1el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/3D/tet_1el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/3D/pyramid_2el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/3D/pyramid_2el.msh" );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
 
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/3D/pyramid_4el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/3D/pyramid_4el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../meshes/3D/regular_octahedron_8el.msh" );
-  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../meshes/3D/regular_octahedron_8el.msh" );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
+                                              hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
+   hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
+                                              hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
 
-
-  return EXIT_SUCCESS;
+   return EXIT_SUCCESS;
 }

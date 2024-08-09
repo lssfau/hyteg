@@ -128,10 +128,10 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::P2CGTest( "../../meshes/tri_1el.msh", 3, real_c( 1e-7 ), false );
-   hyteg::P2CGTest( "../../meshes/quad_4el.msh", 3, real_c( 4e-7 ), false );
-   hyteg::P2CGTest( "../../meshes/annulus_coarse.msh", 2, real_c( 4e-6 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/tet_1el.msh", 2, real_c( 4e-6 ), true );
-   hyteg::P2CGTest( "../../meshes/3D/pyramid_2el.msh", 2, real_c( 3e-5 ), false );
-   hyteg::P2CGTest( "../../meshes/3D/regular_octahedron_8el.msh", 2, real_c( 1.7e-5 ), true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, real_c( 1e-7 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3, real_c( 4e-7 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), 2, real_c( 4e-6 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, real_c( 4e-6 ), true );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, real_c( 3e-5 ), false );
+   hyteg::P2CGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, real_c( 1.7e-5 ), true );
 }

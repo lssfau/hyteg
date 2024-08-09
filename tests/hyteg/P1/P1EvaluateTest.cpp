@@ -38,7 +38,7 @@ using namespace hyteg;
 
 void test2D()
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/bfs_12el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -58,7 +58,7 @@ void test2D()
    // IMPORTANT
    communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
-   Point3D coordinates(  0.0, 0.5, 0.0  );
+   Point3D coordinates( 0.0, 0.5, 0.0 );
    real_t  eval;
    auto    success = x.evaluate( coordinates, maxLevel, eval );
    WALBERLA_CHECK( success );
@@ -125,7 +125,7 @@ void test2D()
 
 void test3D()
 {
-   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -187,7 +187,7 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
       {
          real_t radius = walberla::math::realRandom( rMin, rMax );
          real_t angle  = walberla::math::realRandom( real_c( 0 ), real_c( 2 ) * pi );
-         samples.push_back( Point3D(  radius * std::cos( angle ), radius * std::sin( angle ), real_c( 0 )  ) );
+         samples.push_back( Point3D( radius * std::cos( angle ), radius * std::sin( angle ), real_c( 0 ) ) );
       }
 
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -206,10 +206,10 @@ void testEvaluateWithBlending( uint_t numSamples, uint_t mapType )
    else
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Testing with AffineMap2D" );
-      MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" );
+      MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-      Point2D  shift(  real_c( 4 ), real_c( -1.0 / 3.0 )  );
+      Point2D  shift( real_c( 4 ), real_c( -1.0 / 3.0 ) );
       real_t   angle = pi / real_c( 180.0 * 25.0 );
       Matrix2r mat;
       mat( 0, 0 ) = +std::cos( angle );

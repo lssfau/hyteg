@@ -34,7 +34,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = "../../meshes/quad_4el.msh";
+   std::string meshFileName = hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

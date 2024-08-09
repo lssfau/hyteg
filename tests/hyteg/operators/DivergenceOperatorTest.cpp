@@ -115,7 +115,7 @@ void run_P2_P1_Test_in_3D()
 template < typename divOp_t >
 void run_P2_P1_Test_in_2D()
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../meshes/bfs_12el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
    SetupPrimitiveStorage               setStore( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setStore );
 

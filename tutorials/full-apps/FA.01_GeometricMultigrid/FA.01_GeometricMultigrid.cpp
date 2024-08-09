@@ -208,7 +208,7 @@ int main( int argc, char** argv )
    /// [Get Parameters]
 
    /// [Primitive Storage]
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = hyteg::PrimitiveStorage::createFromGmshFile( meshFile );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = hyteg::PrimitiveStorage::createFromGmshFile( hyteg::prependHyTeGMeshDir( meshFile ) );
    /// [Primitive Storage]
 
    /// [Function Spaces]

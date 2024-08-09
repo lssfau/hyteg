@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Nils Kohl.
+ * Copyright (c) 2024 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -65,20 +65,23 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( "../../../data/meshes/tri_1el.msh", 3, 1 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( "../../../data/meshes/tri_1el.msh", 3, 1 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, 1 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, 1 );
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( "../../../data/meshes/bfs_126el.msh", 3, 8 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( "../../../data/meshes/bfs_126el.msh", 3, 8 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/bfs_126el.msh" ), 3, 8 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "2D/bfs_126el.msh" ), 3, 8 );
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( "../../../data/meshes/3D/tet_1el.msh", 3, 1 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( "../../../data/meshes/3D/tet_1el.msh", 3, 1 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1 );
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( "../../../data/meshes/3D/pyramid_2el.msh", 3, 2 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( "../../../data/meshes/3D/pyramid_2el.msh", 3, 2 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >(
+       hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3, 2 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >(
+       hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 3, 2 );
 
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( "../../../data/meshes/3D/cube_6el.msh", 3, 6 );
-   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >( "../../../data/meshes/3D/cube_6el.msh", 3, 6 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P1Function< int32_t > >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), 3, 6 );
+   hyteg::testDuplicatePointCountingForOutput< hyteg::P2Function< int32_t > >(
+       hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), 3, 6 );
 
    return 0;
 }

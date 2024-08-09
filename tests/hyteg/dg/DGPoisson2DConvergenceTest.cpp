@@ -164,7 +164,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] );
@@ -182,7 +182,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on single macro, inhom. BC, rhs = 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+      MeshInfo meshInfo = MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
       std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };
@@ -195,8 +195,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo =
-          hyteg::MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1, 1  ), hyteg::MeshInfo::CRISS, 2, 2 );
+      MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1, 1 ), hyteg::MeshInfo::CRISS, 2, 2 );
 
       std::function< real_t( const hyteg::Point3D& ) > solFunc = []( const hyteg::Point3D& x ) {
          return std::exp( -x[0] - ( x[1] * x[1] ) );

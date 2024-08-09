@@ -82,7 +82,8 @@ static void testPrimitiveID()
 
 static void testPrimitiveTypes()
 {
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" );
+
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    WALBERLA_LOG_INFO_ON_ROOT( setupStorage );

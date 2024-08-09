@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -156,7 +156,7 @@ auto importCheckpoint( const std::string&                         filePath,
 
    // if ( verbose )
    // {
-      restorer.printCheckpointInfo();
+   restorer.printCheckpointInfo();
    // }
 
    auto& funcDescr = restorer.getFunctionDetails();
@@ -438,10 +438,10 @@ int main( int argc, char* argv[] )
 
    std::string filePath{ "." };
    std::string fileName{ "CheckpointRestoreTest.bp" };
-   std::string meshFile2D{ "../../meshes/LShape_6el.msh" };
+   std::string meshFile2D{ prependHyTeGMeshDir( "2D/LShape_6el.msh" ) };
 
    // Some issue with AdiosWriter, so cannot visualise with this mesh!
-   std::string meshFile{ "../../meshes/3D/cube_6el.msh" };
+   std::string meshFile{ prependHyTeGMeshDir( "3D/cube_6el.msh" ) };
 
    bool onlyImport = false;
    if ( argc > 1 )

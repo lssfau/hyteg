@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "hyteg/p0functionspace/P0Function.hpp"
+
+#include <cstdio>
 #include <hyteg/communication/Syncing.hpp>
 
 #include "core/Environment.h"
@@ -25,17 +28,14 @@
 
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
-#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
-#include <cstdio>
 
 using walberla::real_c;
 using walberla::real_t;
 
 using namespace hyteg;
 
-void test_dotLocalGlobal(std::string meshFileName)
+void test_dotLocalGlobal( std::string meshFileName )
 {
    MeshInfo                            meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -52,9 +52,9 @@ void test_dotLocalGlobal(std::string meshFileName)
 
    P0Function< real_t > y( "x", storage, minLevel, maxLevel );
 
-   const uint_t numGlobalDoFs = x.getNumberOfGlobalDoFs(maxLevel);
+   const uint_t numGlobalDoFs = x.getNumberOfGlobalDoFs( maxLevel );
 
-   const uint_t numLocalDoFs = x.getNumberOfLocalDoFs(maxLevel);
+   const uint_t numLocalDoFs = x.getNumberOfLocalDoFs( maxLevel );
 
    real_t testFuncValX = 12.0;
    real_t testFuncValY = 27.0;
@@ -67,31 +67,30 @@ void test_dotLocalGlobal(std::string meshFileName)
       x.interpolate( testFuncValX, maxLevel );
       y.interpolate( testFuncValY, maxLevel );
 
-      real_t dotValueLocal = x.dotLocal(y, maxLevel);
-      real_t dotValueGlobal = x.dotGlobal(y, maxLevel);
+      real_t dotValueLocal  = x.dotLocal( y, maxLevel );
+      real_t dotValueGlobal = x.dotGlobal( y, maxLevel );
 
       /* For P0 function, the dot value must be direct multiplication of function values and the corresponding number of dofs */
-      WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ((real_t)numLocalDoFs) * testFuncValX * testFuncValY );
-      WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ((real_t)numGlobalDoFs) * testFuncValX * testFuncValY );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ( (real_t) numLocalDoFs ) * testFuncValX * testFuncValY );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ( (real_t) numGlobalDoFs ) * testFuncValX * testFuncValY );
    }
 
    /* This tests using the expression interpolate function (in turn tests the 2D and 3D expr interpolate functions also) */
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
-      auto testFuncX            = [&testFuncValX]( const Point3D& ) { return real_c( testFuncValX ); };
-      auto testFuncY            = [&testFuncValY]( const Point3D& ) { return real_c( testFuncValY ); };
+      auto testFuncX = [&testFuncValX]( const Point3D& ) { return real_c( testFuncValX ); };
+      auto testFuncY = [&testFuncValY]( const Point3D& ) { return real_c( testFuncValY ); };
 
       x.interpolate( testFuncX, maxLevel );
       y.interpolate( testFuncY, maxLevel );
 
-      real_t dotValueLocal = x.dotLocal(y, maxLevel);
-      real_t dotValueGlobal = x.dotGlobal(y, maxLevel);
+      real_t dotValueLocal  = x.dotLocal( y, maxLevel );
+      real_t dotValueGlobal = x.dotGlobal( y, maxLevel );
 
       /* For P0 function, the dot value must be direct multiplication of function values and the corresponding number of dofs */
-      WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ((real_t)numLocalDoFs) * testFuncValX * testFuncValY );
-      WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ((real_t)numGlobalDoFs) * testFuncValX * testFuncValY );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueLocal, ( (real_t) numLocalDoFs ) * testFuncValX * testFuncValY );
+      WALBERLA_CHECK_FLOAT_EQUAL( dotValueGlobal, ( (real_t) numGlobalDoFs ) * testFuncValX * testFuncValY );
    }
-   
 }
 
 int main( int argc, char** argv )
@@ -100,8 +99,8 @@ int main( int argc, char** argv )
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test_dotLocalGlobal("../../meshes/tri_4el.msh"); // 2D
-   test_dotLocalGlobal("../../meshes/3D/pyramid_4el.msh"); // 3D
+   test_dotLocalGlobal( prependHyTeGMeshDir( "2D/tri_4el.msh" ) );        // 2D
+   test_dotLocalGlobal( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) ); // 3D
 
    return EXIT_SUCCESS;
 }

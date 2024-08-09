@@ -33,7 +33,7 @@ namespace hyteg {
 
 static void testMeshInfo()
 {
-  const std::string meshFileDir = "../../meshes/";
+  const std::string meshFileDir = HYTEG_MESH_DIR;
 
   std::vector< std::string > gmshFiles;
 

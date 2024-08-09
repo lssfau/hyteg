@@ -54,14 +54,15 @@ int main( int argc, char* argv[] )
 
    hyteg::PETScManager manager;
 
-   const std::string meshFileName  = "../../meshes/3D/cube_24el.msh";
+   const std::string meshFileName  = hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" );
    const uint_t      minLevel      = 2;
    const uint_t      maxLevel      = 3;
    const uint_t      maxIterations = 3;
    const bool        writeVTK      = false;
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -114,8 +115,8 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw().interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
+   u.uvw().interpolate( { collidingFlow_x, collidingFlow_y, zero }, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw().interpolate( { collidingFlow_x, collidingFlow_y, zero }, maxLevel );
    uExact.p().interpolate( collidingFlow_p, maxLevel );
 
    if ( writeVTK )
@@ -126,9 +127,11 @@ int main( int argc, char* argv[] )
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
    auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
-   auto smoother =
-       std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.4 );
+   auto uzawaVelocityPreconditioner =
+       std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P2P1TaylorHoodStokesOperator > >(
+           storage, gaussSeidel );
+   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >(
+       storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.4 );
    auto restriction      = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction >( true );
    auto prolongation     = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();
    auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel );
@@ -139,7 +142,7 @@ int main( int argc, char* argv[] )
    const uint_t globalDoFsPressure = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, maxLevel );
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-   err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
+   err.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel );
    real_t lastResidual =
        std::sqrt( r.dotGlobal( r, maxLevel ) / ( 3 * (real_t) globalDoFsVelocity + real_c( globalDoFsPressure ) ) );
 
@@ -158,7 +161,7 @@ int main( int argc, char* argv[] )
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
-      err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
+      err.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel );
 
       if ( writeVTK )
       {
@@ -187,14 +190,14 @@ int main( int argc, char* argv[] )
                                           << " | Error L2 p: " << discr_l2_err_1_p );
    }
 
-//   auto tt        = storage->getTimingTree();
-//   auto ttreduced = tt->getReduced().getCopyWithRemainder();
-//   WALBERLA_LOG_INFO_ON_ROOT( ttreduced );
-//
-//   nlohmann::json ttjson = nlohmann::json( ttreduced );
-//   std::ofstream  o( "/tmp/uzawa.json" );
-//   o << ttjson;
-//   o.close();
+   //   auto tt        = storage->getTimingTree();
+   //   auto ttreduced = tt->getReduced().getCopyWithRemainder();
+   //   WALBERLA_LOG_INFO_ON_ROOT( ttreduced );
+   //
+   //   nlohmann::json ttjson = nlohmann::json( ttreduced );
+   //   std::ofstream  o( "/tmp/uzawa.json" );
+   //   o << ttjson;
+   //   o.close();
 
    WALBERLA_LOG_INFO_ON_ROOT( discr_l2_err_1_u + discr_l2_err_1_v + discr_l2_err_1_w )
    WALBERLA_LOG_INFO_ON_ROOT( discr_l2_err_1_p )

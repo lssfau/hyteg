@@ -74,7 +74,7 @@ int main( int argc, char** argv )
 
    LIKWID_MARKER_THREADINIT;
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/2D/tri_1el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
    globalStorage                               = storage;

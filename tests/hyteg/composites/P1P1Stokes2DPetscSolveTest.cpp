@@ -34,8 +34,8 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-#include "mixed_operator/P1P1StokesOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "mixed_operator/P1P1StokesOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
@@ -47,101 +47,114 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
+void petscSolveTest( const uint_t&   level,
+                     const MeshInfo& meshInfo,
+                     const real_t&   resEps,
+                     const real_t&   errEpsUSum,
+                     const real_t&   errEpsP )
 {
-  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-  hyteg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
-  std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-  writeDomainPartitioningVTK( storage, "../../output", "P1P1Stokes2DPetscSolve_Domain" );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   writeDomainPartitioningVTK( storage, "../../output", "P1P1Stokes2DPetscSolve_Domain" );
 
-  hyteg::P1StokesFunction< real_t >                      x( "x", storage, level, level );
-  hyteg::P1StokesFunction< real_t >                      x_exact( "x_exact", storage, level, level );
-  hyteg::P1StokesFunction< real_t >                      b( "b", storage, level, level );
-  hyteg::P1StokesFunction< real_t >                      err( "err", storage, level, level );
-  hyteg::P1StokesFunction< real_t >                      residuum( "res", storage, level, level );
+   hyteg::P1StokesFunction< real_t > x( "x", storage, level, level );
+   hyteg::P1StokesFunction< real_t > x_exact( "x_exact", storage, level, level );
+   hyteg::P1StokesFunction< real_t > b( "b", storage, level, level );
+   hyteg::P1StokesFunction< real_t > err( "err", storage, level, level );
+   hyteg::P1StokesFunction< real_t > residuum( "res", storage, level, level );
 
-  hyteg::P1P1StokesOperator A( storage, level, level );
+   hyteg::P1P1StokesOperator A( storage, level, level );
 
-  std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return real_c(20) * xx[0] * std::pow( xx[1], 3.0 ); };
-  std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return real_c(5) * std::pow( xx[0], 4.0 ) - real_c(5) * std::pow( xx[1], 4.0 ); };
-  std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
-  std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
-  std::function< real_t( const hyteg::Point3D& ) > ones =   []( const hyteg::Point3D&    ) { return real_c(1); };
+   std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) {
+      return real_c( 20 ) * xx[0] * std::pow( xx[1], 3.0 );
+   };
+   std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) {
+      return real_c( 5 ) * std::pow( xx[0], 4.0 ) - real_c( 5 ) * std::pow( xx[1], 4.0 );
+   };
+   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) {
+      return real_c( 60 ) * std::pow( xx[0], 2.0 ) * xx[1] - real_c( 20 ) * std::pow( xx[1], 3.0 );
+   };
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return real_c( 1 ); };
 
-  walberla::math::seedRandomGenerator( 0 );
-  std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 1.0 ) ); };
+   walberla::math::seedRandomGenerator( 0 );
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
 
-  b.uvw().interpolate( {exactU, exactV}, level, hyteg::DirichletBoundary );
-  x.uvw().interpolate( {exactU, exactV}, level, DirichletBoundary );
-  x_exact.uvw().interpolate( {exactU, exactV}, level );
-  x_exact.p().interpolate( exactP, level );
+   b.uvw().interpolate( { exactU, exactV }, level, hyteg::DirichletBoundary );
+   x.uvw().interpolate( { exactU, exactV }, level, DirichletBoundary );
+   x_exact.uvw().interpolate( { exactU, exactV }, level );
+   x_exact.p().interpolate( exactP, level );
 
-  //  VTKOutput vtkOutput("../../output", "P1P1Stokes2DPetscSolve", storage);
-  //  vtkOutput.add( x.u );
-  //  vtkOutput.add( x.v );
-  //  vtkOutput.add( x.p );
-  //  vtkOutput.add( x_exact.u );
-  //  vtkOutput.add( x_exact.v );
-  //  vtkOutput.add( x_exact.p );
-  //  vtkOutput.add( err.u );
-  //  vtkOutput.add( err.v );
-  //  vtkOutput.add( err.p );
-  //  vtkOutput.add( b.u );
-  //  vtkOutput.add( b.v );
-  //  vtkOutput.add( b.p );
-  //  vtkOutput.write( level, 0 );
+   //  VTKOutput vtkOutput("../../output", "P1P1Stokes2DPetscSolve", storage);
+   //  vtkOutput.add( x.u );
+   //  vtkOutput.add( x.v );
+   //  vtkOutput.add( x.p );
+   //  vtkOutput.add( x_exact.u );
+   //  vtkOutput.add( x_exact.v );
+   //  vtkOutput.add( x_exact.p );
+   //  vtkOutput.add( err.u );
+   //  vtkOutput.add( err.v );
+   //  vtkOutput.add( err.p );
+   //  vtkOutput.add( b.u );
+   //  vtkOutput.add( b.v );
+   //  vtkOutput.add( b.p );
+   //  vtkOutput.write( level, 0 );
 
-  uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P1StokesFunctionTag >( *storage, level );
-  uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
+   uint_t localDoFs1  = hyteg::numberOfLocalDoFs< P1StokesFunctionTag >( *storage, level );
+   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
 
-  WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
+   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< P1P1StokesOperator > solver_1( storage, level );
+   PETScLUSolver< P1P1StokesOperator > solver_1( storage, level );
 
-  walberla::WcTimer timer;
-  solver_1.solve( A, x, b, level );
-  timer.end();
+   walberla::WcTimer timer;
+   solver_1.solve( A, x, b, level );
+   timer.end();
 
-  hyteg::vertexdof::projectMean( x.p(), level );
-  hyteg::vertexdof::projectMean( x_exact.p(), level );
+   hyteg::vertexdof::projectMean( x.p(), level );
+   hyteg::vertexdof::projectMean( x_exact.p(), level );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-  A.apply( x, residuum, level, hyteg::Inner );
+   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
+   A.apply( x, residuum, level, hyteg::Inner );
 
-  err.assign( {1.0, -1.0}, {x, x_exact}, level );
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
-  real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_v = std::sqrt( err.uvw()[1].dotGlobal( err.uvw()[1], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_p = std::sqrt( err.p().dotGlobal( err.p(), level ) / (real_t) globalDoFs1 );
+   real_t residuum_l2_1    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
-  WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
+   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-//  vtkOutput.write( level, 1 );
+   //  vtkOutput.write( level, 1 );
 
-  WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
-  WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
-  WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP);
+   WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
+   WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
+   WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP );
 }
 
-}
+} // namespace hyteg
 
 using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
-  walberla::Environment walberlaEnv( argc, argv );
-  walberla::MPIManager::instance()->useWorldComm();
-  PETScManager petscManager( &argc, &argv );
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+   PETScManager petscManager( &argc, &argv );
 
-  petscSolveTest( 5, hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_center_at_origin_4el.msh" ), 1.7e-13, 0.025, 0.366 );
+   petscSolveTest(
+       5, hyteg::MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_center_at_origin_4el.msh" ) ), 1.7e-13, 0.025, 0.366 );
 
-  return EXIT_SUCCESS;
+   return EXIT_SUCCESS;
 }

@@ -699,19 +699,19 @@ int main( int argc, char* argv[] )
     }
     else if ( meshType == "porous_coarse" )
     {
-      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/porous_coarse.msh" );
+      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/2D/porous_coarse.msh" );
     }
     else if ( meshType == "porous_fine" )
     {
-      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/porous_fine.msh" );
+      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/2D/porous_fine.msh" );
     }
     else if ( meshType == "bfs_coarse" )
     {
-      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/bfs_12el.msh" );
+      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/2D/bfs_12el.msh" );
     }
     else if ( meshType == "bfs_fine" )
     {
-      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/bfs_126el.msh" );
+      return hyteg::MeshInfo::fromGmshFile( "../data/meshes/2D/bfs_126el.msh" );
     }
     else
     {

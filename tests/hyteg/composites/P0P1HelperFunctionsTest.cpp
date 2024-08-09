@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2023 Marcus Mohr.
+* Copyright (c) 2023-2024 Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,7 +44,7 @@ using namespace hyteg;
 void runProjectionTestIn2D()
 {
    // Set mesh and primitives
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -95,11 +95,11 @@ void runProjectionTestIn2D()
 
 int main( int argc, char* argv[] )
 {
-#if defined (WALBERLA_DOUBLE_ACCURACY) || !defined(__INTEL_LLVM_COMPILER)
+#if defined( WALBERLA_DOUBLE_ACCURACY ) || !defined( __INTEL_LLVM_COMPILER )
 #ifndef __APPLE__
 // should work with Intel, GCC, Clang and even MSVC compiler /nope not MSVC
 #ifndef _MSC_VER
-#if (defined(__clang__) && !defined(WALBERLA_DOUBLE_ACCURACY))
+#if ( defined( __clang__ ) && !defined( WALBERLA_DOUBLE_ACCURACY ) )
    // disable floating point exceptions for clang with single precision
 #else
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );

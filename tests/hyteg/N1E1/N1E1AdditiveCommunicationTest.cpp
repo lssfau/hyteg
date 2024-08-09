@@ -127,22 +127,22 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../meshes/3D/tet_1el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../meshes/3D/tet_1el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../meshes/3D/pyramid_2el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../meshes/3D/pyramid_2el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
 
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../meshes/3D/pyramid_4el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../meshes/3D/pyramid_4el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI,
-                                    "../../meshes/3D/regular_octahedron_8el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
    testN1E1AdditiveCommunication3D( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,
-                                    "../../meshes/3D/regular_octahedron_8el.msh" );
+                                    hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
 
    return EXIT_SUCCESS;
 }

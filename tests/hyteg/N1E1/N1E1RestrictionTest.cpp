@@ -176,12 +176,12 @@ int main( int argc, char** argv )
 
    PETScManager petscManager( &argc, &argv );
 
-   test( 1, MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" ), true );
-   test( 4, MeshInfo::fromGmshFile( "../../meshes/3D/tet_1el.msh" ) );
-   test( 3, MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_2el.msh" ) );
-   test( 3, MeshInfo::fromGmshFile( "../../meshes/3D/pyramid_4el.msh" ) );
-   test( 3, MeshInfo::fromGmshFile( "../../meshes/3D/regular_octahedron_8el.msh" ) );
-   test( 3, MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 ) );
+   test( 1, MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) ), true );
+   test( 4, MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) ) );
+   test( 3, MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) ) );
+   test( 3, MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_4el.msh" ) ) );
+   test( 3, MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) ) );
+   test( 3, MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ) );
 
    return EXIT_SUCCESS;
 }

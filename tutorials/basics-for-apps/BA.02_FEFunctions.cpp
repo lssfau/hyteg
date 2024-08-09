@@ -176,7 +176,7 @@ int main( int argc, char** argv )
    walberla::mpi::MPIManager::instance()->useWorldComm();
 
    /// [FlaggingDoFs]
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    // new step

@@ -21,164 +21,164 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 namespace hyteg {
 
 static void testPrimitiveStorage()
 {
-  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-  const std::string meshFileName = "../../meshes/porous_fine.msh";
-  // const std::string meshFileName = "../../meshes/bfs_126el.msh";
-  // const std::string meshFileName = "../../meshes/tri_2el.msh";
-  const std::string distributionFile = "../../output/PrimitiveStorageTestDistribution.csv";
+   const std::string meshFileName = prependHyTeGMeshDir( "2D/porous_fine.msh" );
+   // const std::string meshFileName = prependHyTeGMeshDir( "2D/bfs_126el.msh");
+   // const std::string meshFileName = prependHyTeGMeshDir( "2D/tri_2el.msh");
+   const std::string distributionFile = "../../output/PrimitiveStorageTestDistribution.csv";
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
-  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "LB start" );
-  loadbalancing::greedy( setupStorage );
-  WALBERLA_LOG_INFO_ON_ROOT( "LB end" );
+   WALBERLA_LOG_INFO_ON_ROOT( "LB start" );
+   loadbalancing::greedy( setupStorage );
+   WALBERLA_LOG_INFO_ON_ROOT( "LB end" );
 
-  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
 
-  std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
+   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
-  WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking that all primitives have been loadbalanced as expected, checking neighborhood on SetupStorage" );
+   WALBERLA_LOG_PROGRESS_ON_ROOT(
+       "Checking that all primitives have been loadbalanced as expected, checking neighborhood on SetupStorage" );
 
-  for ( auto it : setupStorage.getVertices() )
-  {
-    if ( setupStorage.getTargetRank( it.first ) == rank )
-    {
-      WALBERLA_CHECK( storage->vertexExistsLocally( it.first ) );
-    }
-    else
-    {
-      WALBERLA_CHECK( !storage->vertexExistsLocally( it.first ) );
-    }
+   for ( auto it : setupStorage.getVertices() )
+   {
+      if ( setupStorage.getTargetRank( it.first ) == rank )
+      {
+         WALBERLA_CHECK( storage->vertexExistsLocally( it.first ) );
+      }
+      else
+      {
+         WALBERLA_CHECK( !storage->vertexExistsLocally( it.first ) );
+      }
 
-    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
-    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
-  }
+      WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
+      WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
+   }
 
-  for ( auto it : setupStorage.getEdges() )
-  {
-    if ( setupStorage.getTargetRank( it.first ) == rank )
-    {
-      WALBERLA_CHECK( storage->edgeExistsLocally( it.first ) );
-    }
-    else
-    {
-      WALBERLA_CHECK( !storage->edgeExistsLocally( it.first ) );
-    }
+   for ( auto it : setupStorage.getEdges() )
+   {
+      if ( setupStorage.getTargetRank( it.first ) == rank )
+      {
+         WALBERLA_CHECK( storage->edgeExistsLocally( it.first ) );
+      }
+      else
+      {
+         WALBERLA_CHECK( !storage->edgeExistsLocally( it.first ) );
+      }
 
-    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
-    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
-  }
+      WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
+      WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
+   }
 
-  for ( auto it : setupStorage.getFaces() )
-  {
-    if ( setupStorage.getTargetRank( it.first ) == rank )
-    {
-      WALBERLA_CHECK( storage->faceExistsLocally( it.first ) );
-    }
-    else
-    {
-      WALBERLA_CHECK( !storage->faceExistsLocally( it.first ) );
-    }
+   for ( auto it : setupStorage.getFaces() )
+   {
+      if ( setupStorage.getTargetRank( it.first ) == rank )
+      {
+         WALBERLA_CHECK( storage->faceExistsLocally( it.first ) );
+      }
+      else
+      {
+         WALBERLA_CHECK( !storage->faceExistsLocally( it.first ) );
+      }
 
-    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
-    WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
-  }
+      WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
+      WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
+   }
 
-  WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking neighborhood on distributed storage" );
-  for ( const auto & it : storage->getVertices() )
-  {
-	WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
-	WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
-  }
-  for ( const auto & it : storage->getEdges() )
-  {
-    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
-    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
-  }
-  for ( const auto & it : storage->getFaces() )
-  {
-    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
-    WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
-  }
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking neighborhood on distributed storage" );
+   for ( const auto& it : storage->getVertices() )
+   {
+      WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
+      WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
+   }
+   for ( const auto& it : storage->getEdges() )
+   {
+      WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
+      WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
+   }
+   for ( const auto& it : storage->getFaces() )
+   {
+      WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
+      WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
+   }
 
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Testing generic getters" );
 
-  WALBERLA_LOG_PROGRESS_ON_ROOT( "Testing generic getters" );
+   std::vector< PrimitiveID > vertexIDs;
+   std::vector< PrimitiveID > vertexIDsGeneric;
+   storage->getVertexIDs( vertexIDs );
+   storage->getPrimitiveIDsGenerically< Vertex >( vertexIDsGeneric );
+   WALBERLA_CHECK_EQUAL( vertexIDs.size(), vertexIDsGeneric.size() );
 
-  std::vector< PrimitiveID > vertexIDs;
-  std::vector< PrimitiveID > vertexIDsGeneric;
-  storage->getVertexIDs( vertexIDs );
-  storage->getPrimitiveIDsGenerically< Vertex >( vertexIDsGeneric );
-  WALBERLA_CHECK_EQUAL( vertexIDs.size(), vertexIDsGeneric.size() );
+   std::vector< PrimitiveID > edgeIDs;
+   std::vector< PrimitiveID > edgeIDsGeneric;
+   storage->getEdgeIDs( edgeIDs );
+   storage->getPrimitiveIDsGenerically< Edge >( edgeIDsGeneric );
+   WALBERLA_CHECK_EQUAL( edgeIDs.size(), edgeIDsGeneric.size() );
 
-  std::vector< PrimitiveID > edgeIDs;
-  std::vector< PrimitiveID > edgeIDsGeneric;
-  storage->getEdgeIDs( edgeIDs );
-  storage->getPrimitiveIDsGenerically< Edge >( edgeIDsGeneric );
-  WALBERLA_CHECK_EQUAL( edgeIDs.size(), edgeIDsGeneric.size() );
+   std::vector< PrimitiveID > faceIDs;
+   std::vector< PrimitiveID > faceIDsGeneric;
+   storage->getFaceIDs( faceIDs );
+   storage->getPrimitiveIDsGenerically< Face >( faceIDsGeneric );
+   WALBERLA_CHECK_EQUAL( faceIDs.size(), faceIDsGeneric.size() );
 
-  std::vector< PrimitiveID > faceIDs;
-  std::vector< PrimitiveID > faceIDsGeneric;
-  storage->getFaceIDs( faceIDs );
-  storage->getPrimitiveIDsGenerically< Face >( faceIDsGeneric );
-  WALBERLA_CHECK_EQUAL( faceIDs.size(), faceIDsGeneric.size() );
+   for ( const PrimitiveID& vertexID : vertexIDs )
+   {
+      WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Primitive >( vertexID ) );
+      WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Vertex >( vertexID ) );
+      WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( vertexID ) );
+      WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( vertexID ) );
+      Vertex* vertex = storage->getPrimitiveGenerically< Vertex >( vertexID );
+      WALBERLA_LOG_INFO( "" << vertex->getID() );
+   }
 
-  for ( const PrimitiveID & vertexID : vertexIDs )
-  {
-    WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Primitive >( vertexID ) );
-    WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Vertex >( vertexID ) );
-    WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( vertexID ) );
-    WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( vertexID ) );
-    Vertex * vertex = storage->getPrimitiveGenerically< Vertex >( vertexID );
-    WALBERLA_LOG_INFO( "" << vertex->getID() );
-  }
+   for ( const PrimitiveID& edgeID : edgeIDs )
+   {
+      WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Primitive >( edgeID ) );
+      WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Vertex >( edgeID ) );
+      WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Edge >( edgeID ) );
+      WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( edgeID ) );
+      Edge* edge = storage->getPrimitiveGenerically< Edge >( edgeID );
+      WALBERLA_LOG_INFO( "" << edge->getID() );
+   }
 
-  for ( const PrimitiveID & edgeID : edgeIDs )
-  {
-    WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Primitive >( edgeID ) );
-    WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Vertex >( edgeID ) );
-    WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Edge >( edgeID ) );
-    WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( edgeID ) );
-    Edge * edge = storage->getPrimitiveGenerically< Edge >( edgeID );
-    WALBERLA_LOG_INFO( "" << edge->getID() );
-  }
+   for ( const PrimitiveID& faceID : faceIDs )
+   {
+      WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Primitive >( faceID ) );
+      WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Vertex >( faceID ) );
+      WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( faceID ) );
+      WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Face >( faceID ) );
+      Face* face = storage->getPrimitiveGenerically< Face >( faceID );
+      WALBERLA_LOG_INFO( "" << face->getID() );
+   }
 
-  for ( const PrimitiveID & faceID : faceIDs )
-  {
-    WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Primitive >( faceID ) );
-    WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Vertex >( faceID ) );
-    WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( faceID ) );
-    WALBERLA_CHECK(  storage->primitiveExistsLocallyGenerically< Face >( faceID ) );
-    Face * face = storage->getPrimitiveGenerically< Face >( faceID );
-    WALBERLA_LOG_INFO( "" << face->getID() );
-  }
-
-  writePrimitiveStorageDistributionCSV( storage, distributionFile );
-  writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition" );
+   writePrimitiveStorageDistributionCSV( storage, distributionFile );
+   writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition" );
 }
 
 } // namespace hyteg
-
 
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
-   walberla::Environment walberlaEnv(argc, argv);
+   walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::testPrimitiveStorage();

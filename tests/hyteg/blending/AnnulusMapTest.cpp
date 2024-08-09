@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr.
+ * Copyright (c) 2017-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -49,9 +49,8 @@ void runTest1( std::string tag )
    WALBERLA_LOG_INFO_ON_ROOT( "Running Test #1 for '" << tag << "'" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName( "../../meshes/annulusTriangle" );
-   meshFileName += tag + ".msh";
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
+   std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare (setup) storage and initialise annulus map
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -105,9 +104,8 @@ void runTest0( std::string tag )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName( "../../meshes/annulusTriangle" );
-   meshFileName += tag + ".msh";
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
+   std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare (setup) storage and initialise annulus map
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -119,7 +117,6 @@ void runTest0( std::string tag )
    for ( auto& it : storage->getFaces() )
    {
       Face& face = *it.second;
-      // WALBERLA_LOG_INFO_ON_ROOT( "Single face has ID = " << face.getID() );
       faceID = face.getID();
    }
 
@@ -217,9 +214,8 @@ void runTest2( std::string tag, uint_t level )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------" );
 
    // generate a mesh with one triangle only
-   std::string meshFileName( "../../meshes/annulusTriangle" );
-   meshFileName += tag + ".msh";
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
+   std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare unmapped storage
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

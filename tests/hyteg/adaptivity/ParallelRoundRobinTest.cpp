@@ -36,60 +36,58 @@
 
 namespace hyteg {
 
-static void testParallelRoundRobin( const MeshInfo & mesh )
+static void testParallelRoundRobin( const MeshInfo& mesh )
 {
-  const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-  const uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   const uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-  SetupPrimitiveStorage setupStorage( mesh, numProcesses );
-  const auto numGlobalPrimitives = setupStorage.getNumberOfPrimitives();
+   SetupPrimitiveStorage setupStorage( mesh, numProcesses );
+   const auto            numGlobalPrimitives = setupStorage.getNumberOfPrimitives();
 
-  // balance with round robin to test if both algorithms produce same results
-  loadbalancing::roundRobin( setupStorage );  
+   // balance with round robin to test if both algorithms produce same results
+   loadbalancing::roundRobin( setupStorage );
 
-  auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  // get current distribution
-  std::vector< PrimitiveID > distributionBefore, distributionAfter;
-  storage->getPrimitiveIDs( distributionBefore );
-  // balance
-  loadbalancing::distributed::roundRobin( *storage );
-  // compare distribution
-  storage->getPrimitiveIDs( distributionAfter );
-  WALBERLA_CHECK( distributionBefore == distributionAfter );
-  // redistribute twice and double check
-  if ( numProcesses > 1 )
-  {
-    loadbalancing::distributed::roundRobin( *storage, 1 );
-    storage->getPrimitiveIDs( distributionAfter );
-    WALBERLA_CHECK( distributionBefore != distributionAfter );
-    if ( rank == 0 )
-    {
-      WALBERLA_CHECK( distributionAfter.size() == numGlobalPrimitives );
-    }
-    else
-    {
-      WALBERLA_CHECK( distributionAfter.empty() )
-    }
-  }
-  // balance
-  loadbalancing::distributed::roundRobin( *storage );
-  // compare distribution
-  storage->getPrimitiveIDs( distributionAfter );
-  WALBERLA_CHECK( distributionBefore == distributionAfter );
+   // get current distribution
+   std::vector< PrimitiveID > distributionBefore, distributionAfter;
+   storage->getPrimitiveIDs( distributionBefore );
+   // balance
+   loadbalancing::distributed::roundRobin( *storage );
+   // compare distribution
+   storage->getPrimitiveIDs( distributionAfter );
+   WALBERLA_CHECK( distributionBefore == distributionAfter );
+   // redistribute twice and double check
+   if ( numProcesses > 1 )
+   {
+      loadbalancing::distributed::roundRobin( *storage, 1 );
+      storage->getPrimitiveIDs( distributionAfter );
+      WALBERLA_CHECK( distributionBefore != distributionAfter );
+      if ( rank == 0 )
+      {
+         WALBERLA_CHECK( distributionAfter.size() == numGlobalPrimitives );
+      }
+      else
+      {
+         WALBERLA_CHECK( distributionAfter.empty() )
+      }
+   }
+   // balance
+   loadbalancing::distributed::roundRobin( *storage );
+   // compare distribution
+   storage->getPrimitiveIDs( distributionAfter );
+   WALBERLA_CHECK( distributionBefore == distributionAfter );
 }
 
 } // namespace hyteg
-
 
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
-   walberla::Environment walberlaEnv(argc, argv);
+   walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-   hyteg::testParallelRoundRobin( hyteg::MeshInfo::fromGmshFile( "../../meshes/3D/cube_24el.msh" ) );
+   hyteg::testParallelRoundRobin( hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ) ) );
 
    return EXIT_SUCCESS;
 }
-

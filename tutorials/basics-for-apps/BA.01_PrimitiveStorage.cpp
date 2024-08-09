@@ -75,6 +75,10 @@ namespace hyteg {
  * file in GMSH format, run:
  * \snippet{trimleft} this MeshInfo
  *
+ * Note: The function hyteg::prependHyTeGMeshDir() is an auxilliary function that prepends
+ * the absolute path to the directory containing the meshes shipped with HyTeG to the filename.
+ * If you are using your own meshes, you obviously do not need to use it.
+ *
  * Alternatively you can use one of the inline mesh generators available in HyTeG. The
  * code below e.g. will generate a regular criss-cross mesh composed of (3 x 2) sub-cells
  * (each split into four triangles) on the 2D rectangle \f$(-2,1) \times (0,3)\f$:
@@ -112,7 +116,7 @@ namespace hyteg {
  *
  * \snippet{trimleft} this Statistics
  *
- * Running the example with the tri_4el.msh and three MPI processes will give us something like the
+ * Running the example with the 2D/tri_4el.msh and three MPI processes will give us something like the
  * following:
  *
  * \verbatim
@@ -176,7 +180,7 @@ void PrimitiveStorageTutorial()
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   /// [MeshInfo]
-  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_4el.msh" );
+  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_4el.msh" ) );
   /// [MeshInfo]
 
   /// [SetupPrimitiveStorage]

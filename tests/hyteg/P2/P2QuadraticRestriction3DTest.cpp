@@ -46,7 +46,7 @@ void testWeightsInCell( const uint_t& lowerLevel )
 {
    typedef edgedof::EdgeDoFOrientation eo;
 
-   const auto storage = PrimitiveStorage::createFromGmshFile( "../../meshes/3D/tet_1el.msh" );
+   const auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
 
    P2Function< real_t > u( "u", storage, lowerLevel, lowerLevel + 1 );
    u.interpolate( 1.0, lowerLevel + 1 );
@@ -74,13 +74,13 @@ void testWeightsInCell( const uint_t& lowerLevel )
    }
 
    std::map< eo, uint_t > numNeighborElements = {
-       {eo::X, 6},
-       {eo::Y, 4},
-       {eo::Z, 6},
-       {eo::XY, 6},
-       {eo::XZ, 4},
-       {eo::YZ, 6},
-       {eo::XYZ, 4},
+       { eo::X, 6 },
+       { eo::Y, 4 },
+       { eo::Z, 6 },
+       { eo::XY, 6 },
+       { eo::XZ, 4 },
+       { eo::YZ, 6 },
+       { eo::XYZ, 4 },
 
    };
    for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( u.getEdgeDoFFunction(), lowerLevel ) )

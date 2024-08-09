@@ -36,6 +36,7 @@ constexpr bool useGeneratedKernels = true;
 #else
 constexpr bool useGeneratedKernels = false;
 #endif
+
 } // namespace globalDefines
 } // namespace hyteg
 
@@ -54,5 +55,9 @@ constexpr bool useGeneratedKernels = false;
 #endif
 
 #endif
+
+/// Absolute path to the mesh-files shipped with HyTeG
+/// in the built-out directory
+#define HYTEG_MESH_DIR "${hyteg_BINARY_DIR}/data/meshes"
 
 #define RESTRICT WALBERLA_RESTRICT

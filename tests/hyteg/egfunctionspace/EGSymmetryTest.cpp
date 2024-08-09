@@ -1,6 +1,6 @@
-
 /*
-* Copyright (c) 2017-2023 Nils Kohl, Andreas Wagner, Fabian Böhm.
+* Copyright (c) 2017-2024 Nils Kohl, Andreas Wagner, Fabian Böhm,
+* Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -42,7 +42,7 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-template< typename OperatorType>
+template < typename OperatorType >
 static void testOperatorSymmetry( const std::string& meshFile, const uint_t& level )
 {
    using namespace dg::eg;
@@ -50,16 +50,19 @@ static void testOperatorSymmetry( const std::string& meshFile, const uint_t& lev
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+   auto                storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
    EGFunction< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    PETScSparseMatrix< OperatorType > Lpetsc;
-   if constexpr (isEpsilonOp<OperatorType>()) {
-      OperatorType                      L( storage, level, level, [](const Point3D &) -> real_t { return 1; } );
+   if constexpr ( isEpsilonOp< OperatorType >() )
+   {
+      OperatorType L( storage, level, level, []( const Point3D& ) -> real_t { return 1; } );
       Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
-   } else {
-      OperatorType                      L( storage, level, level );
+   }
+   else
+   {
+      OperatorType L( storage, level, level );
       Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
    }
    //Lpetsc.print( "../P1DGE_Mass.m", false, PETSC_VIEWER_ASCII_MATLAB );
@@ -68,7 +71,6 @@ static void testOperatorSymmetry( const std::string& meshFile, const uint_t& lev
                    "P1DGE vector operator _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
    WALBERLA_LOG_INFO_ON_ROOT( "P1DGE vector operator symmetric for: level = " << level << ", mesh: " << meshFile );
 }
-
 
 } // namespace hyteg
 
@@ -82,21 +84,20 @@ int main( int argc, char* argv[] )
 
    for ( uint_t level = 2; level <= 3; level++ )
    {
+      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGMassOperator >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), level );
 
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/tri_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/quad_4el.msh", level );
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/3D/tet_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGMassOperator>( "../../meshes/3D/cube_6el.msh", level );
+      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGLaplaceOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), level );
 
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/tri_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/quad_4el.msh", level );
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/3D/tet_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGLaplaceOperatorNitscheBC>( "../../meshes/3D/cube_6el.msh", level );
-
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/tri_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/quad_4el.msh", level );
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/3D/tet_1el.msh", level );
-      hyteg::testOperatorSymmetry<EGEpsilonOperatorNitscheBC>( "../../meshes/3D/cube_6el.msh", level );
+      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), level );
+      hyteg::testOperatorSymmetry< EGEpsilonOperatorNitscheBC >( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ), level );
    }
 
    return 0;

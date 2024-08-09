@@ -51,11 +51,14 @@ bool sortVertices( Point3D& iCoord, Point3D& nCoord )
 
 bool sortVerticesArray( std::array< Point3D, 4 >& first, std::array< Point3D, 4 >& second )
 {
-   if ( realIsEqual(first[0][0],second[0][0]) && realIsEqual(first[0][1],second[0][1]) && realIsEqual(first[0][2],second[0][2]))
+   if ( realIsEqual( first[0][0], second[0][0] ) && realIsEqual( first[0][1], second[0][1] ) &&
+        realIsEqual( first[0][2], second[0][2] ) )
    {
-      if ( realIsEqual(first[1][0],second[1][0]) && realIsEqual(first[1][1],second[1][1]) && realIsEqual(first[1][2],second[1][2]))
+      if ( realIsEqual( first[1][0], second[1][0] ) && realIsEqual( first[1][1], second[1][1] ) &&
+           realIsEqual( first[1][2], second[1][2] ) )
       {
-         if ( realIsEqual(first[2][0],second[2][0]) && realIsEqual(first[2][1],second[2][1]) && realIsEqual(first[2][2],second[2][2]))
+         if ( realIsEqual( first[2][0], second[2][0] ) && realIsEqual( first[2][1], second[2][1] ) &&
+              realIsEqual( first[2][2], second[2][2] ) )
          {
             if ( sortVertices( first[3], second[3] ) )
             {
@@ -135,7 +138,7 @@ void runtest( uint_t coarseRefinements, uint_t level, const std::string& meshFil
    auto originalMeshInfo =
        meshFile == "TORUS" ?
            hyteg::MeshInfo::meshTorus(
-               4, 3, real_c( 6.2 ), { 3 }, real_c(0.0), real_c( 2.0 * walberla::math::pi / walberla::real_c( 2 * 6 ) ) ) :
+               4, 3, real_c( 6.2 ), { 3 }, real_c( 0.0 ), real_c( 2.0 * walberla::math::pi / walberla::real_c( 2 * 6 ) ) ) :
            hyteg::MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage6el( originalMeshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage6el = std::make_shared< PrimitiveStorage >( setupStorage6el );
@@ -154,11 +157,12 @@ void runtest( uint_t coarseRefinements, uint_t level, const std::string& meshFil
       for ( uint_t n = 0; n < 4; n++ )
       {
          WALBERLA_CHECK_FLOAT_EQUAL( toVec3( normalVertexVector[i][n] ),
-                               toVec3( refinedVertexVector[i][n] ),
-                               normalVertexVector[i][0] << " " << normalVertexVector[i][1] << " " << normalVertexVector[i][2]
-                                                        << " " << normalVertexVector[i][3] << "\n"
-                                                        << refinedVertexVector[i][0] << " " << refinedVertexVector[i][1] << " "
-                                                        << refinedVertexVector[i][2] << " " << refinedVertexVector[i][3] )
+                                     toVec3( refinedVertexVector[i][n] ),
+                                     normalVertexVector[i][0]
+                                         << " " << normalVertexVector[i][1] << " " << normalVertexVector[i][2] << " "
+                                         << normalVertexVector[i][3] << "\n"
+                                         << refinedVertexVector[i][0] << " " << refinedVertexVector[i][1] << " "
+                                         << refinedVertexVector[i][2] << " " << refinedVertexVector[i][3] )
       }
    }
 }
@@ -169,9 +173,9 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::runtest( 1, 1, "../../meshes/3D/cube_6el.msh" );
-   hyteg::runtest( 1, 2, "../../meshes/3D/cube_6el.msh" );
-   hyteg::runtest( 1, 3, "../../meshes/3D/cube_6el.msh" );
-   hyteg::runtest( 2, 2, "../../meshes/3D/cube_6el.msh" );
+   hyteg::runtest( 1, 1, hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
+   hyteg::runtest( 1, 2, hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
+   hyteg::runtest( 1, 3, hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
+   hyteg::runtest( 2, 2, hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
    hyteg::runtest( 1, 2, "TORUS" );
 }

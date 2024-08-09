@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,7 +17,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-//
-// Created by cy81vegi on 04.10.18.
-//
+#include <string>
 
+#include "hyteg/mesh/HyTeGMeshDir.hpp"
+
+#include "hyteg/HytegDefinitions.hpp"
+
+namespace hyteg {
+
+std::string prependHyTeGMeshDir( const std::string& partialFilePath )
+{
+   std::string fullPath{ HYTEG_MESH_DIR };
+   fullPath += "/" + partialFilePath;
+   return fullPath;
+}
+
+std::string prependHyTeGMeshDir( const char* partialFilePath )
+{
+   std::string fullPath{ HYTEG_MESH_DIR };
+   fullPath += "/" + std::string{ partialFilePath };
+   return fullPath;
+}
+
+} // namespace hyteg

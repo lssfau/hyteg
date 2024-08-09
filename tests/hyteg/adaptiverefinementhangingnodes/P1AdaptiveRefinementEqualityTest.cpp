@@ -128,13 +128,14 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 
    using hyteg::MeshInfo;
+   using hyteg::prependHyTeGMeshDir;
    using hyteg::Point2D;
    using hyteg::Point3D;
    using walberla::real_t;
 
    const uint_t sum = 5;
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../meshes/quad_16el.msh" );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/quad_16el.msh" ) );
 
    for ( uint_t a = 1; a <= sum / 2; a++ )
    {

@@ -29,16 +29,17 @@
 
 #include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
-using walberla::real_t;
 using walberla::real_c;
+using walberla::real_t;
 
-template< typename P2P1P1StokesOperator >
+template < typename P2P1P1StokesOperator >
 void stokesMinResConvergenceTest()
 {
-   std::string meshFileName = "../../meshes/quad_4el_neumann.msh";
+   std::string meshFileName = hyteg::prependHyTeGMeshDir( "2D/quad_4el_neumann.msh" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 

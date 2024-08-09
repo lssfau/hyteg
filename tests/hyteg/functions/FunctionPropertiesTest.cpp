@@ -23,6 +23,7 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 
+#include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 using walberla::uint_t;
@@ -68,29 +69,33 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    // P1Function
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/tri_1el.msh", 2, 15, 3 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/tri_1el.msh", 3, 45, 21 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/tri_1el.msh", 20, 549757386753, 549754241025 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/tri_2el.msh", 2, 25, 9 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/tri_2el.msh", 3, 81, 49 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/3D/tet_1el.msh", 2, 35, 1 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/3D/tet_1el.msh", 3, 165, 35 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 2, 15, 3 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, 45, 21 );
    hyteg::testFunctionProperties< hyteg::P1FunctionTag >(
-       "../../meshes/3D/tet_1el.msh", 17, 375317149057025, 375282789318655 );
-   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../meshes/3D/pyramid_2el.msh", 7, 723905, 674751 );
+       hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 20, 549757386753, 549754241025 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "2D/tri_2el.msh" ), 2, 25, 9 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "2D/tri_2el.msh" ), 3, 81, 49 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 35, 1 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 165, 35 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >(
+       hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 17, 375317149057025, 375282789318655 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 7, 723905, 674751 );
 
    // EdgeDofFunction
-   hyteg::testFunctionProperties< hyteg::EdgeDoFFunctionTag >( "../../meshes/tri_1el.msh", 2, 12 + 6 * 3, 6 * 3 );
-   hyteg::testFunctionProperties< hyteg::EdgeDoFFunctionTag >( "../../meshes/tri_1el.msh", 3, 24 + 28 * 3, 28 * 3 );
+   hyteg::testFunctionProperties< hyteg::EdgeDoFFunctionTag >(
+       hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 2, 12 + 6 * 3, 6 * 3 );
+   hyteg::testFunctionProperties< hyteg::EdgeDoFFunctionTag >(
+       hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 3, 24 + 28 * 3, 28 * 3 );
 
    // P2Function
-   hyteg::testFunctionProperties< hyteg::P2FunctionTag >( "../../meshes/tri_1el.msh", 19, 549757386753, 549754241025 );
-   hyteg::testFunctionProperties< hyteg::P2FunctionTag >( "../../meshes/3D/tet_1el.msh", 2, 165, 35 );
-   hyteg::testFunctionProperties< hyteg::P2FunctionTag >( "../../meshes/3D/pyramid_2el.msh", 6, 723905, 674751 );
+   hyteg::testFunctionProperties< hyteg::P2FunctionTag >(
+       hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 19, 549757386753, 549754241025 );
+   hyteg::testFunctionProperties< hyteg::P2FunctionTag >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 165, 35 );
+   hyteg::testFunctionProperties< hyteg::P2FunctionTag >( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 6, 723905, 674751 );
 
    // P0Function
-   hyteg::testFunctionProperties< hyteg::P0FunctionTag >( "../../meshes/tri_1el.msh", 2, 16, 16 );
-   hyteg::testFunctionProperties< hyteg::P0FunctionTag >( "../../meshes/3D/tet_1el.msh", 2, 64, 64 );
+   hyteg::testFunctionProperties< hyteg::P0FunctionTag >( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ), 2, 16, 16 );
+   hyteg::testFunctionProperties< hyteg::P0FunctionTag >( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 64, 64 );
 
    return EXIT_SUCCESS;
 }

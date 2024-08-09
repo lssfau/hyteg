@@ -221,7 +221,7 @@ void CommunicationTutorial()
 {
    uint_t numProcesses = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_2el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
    loadbalancing::roundRobin( setupStorage );

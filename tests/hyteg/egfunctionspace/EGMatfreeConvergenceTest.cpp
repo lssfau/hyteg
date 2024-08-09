@@ -30,9 +30,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
+#include "constant_stencil_operator/P1ConstantOperator.cpp"
 #include "mixed_operator/EGConvTestUtils.hpp"
 #include "mixed_operator/EGOperators.hpp"
-#include "constant_stencil_operator/P1ConstantOperator.cpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
    if constexpr ( true )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Testing matfree Laplace solver convergence 2D ###" )
-      auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../meshes/quad_4el.msh" );
+      auto meshInfo = hyteg::MeshInfo::fromGmshFile( hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ) );
 
       hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                                  walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,44 +28,42 @@ namespace hyteg {
 
 static void testEdgeDoFFunctionMemorySize()
 {
-  using namespace edgedof;
+   using namespace edgedof;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../meshes/quad_8el.msh" );
+   auto storage = PrimitiveStorage::createFromGmshFile( prependHyTeGMeshDir( "2D/quad_8el.msh" ) );
 
-  for ( const auto & it : storage->getEdges() )
-  {
-    const Edge & edge = *it.second;
+   for ( const auto& it : storage->getEdges() )
+   {
+      const Edge& edge = *it.second;
 
-    if ( edge.getNumNeighborFaces() == 1 )
-    {
-      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, edge ), 15 );
-      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, edge ), 31 );
-    }
-    else if ( edge.getNumNeighborFaces() == 2 )
-    {
-      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, edge ), 26 );
-      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, edge ), 54 );
-    }
-  }
+      if ( edge.getNumNeighborFaces() == 1 )
+      {
+         WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, edge ), 15 );
+         WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, edge ), 31 );
+      }
+      else if ( edge.getNumNeighborFaces() == 2 )
+      {
+         WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, edge ), 26 );
+         WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, edge ), 54 );
+      }
+   }
 
-  for ( const auto & it : storage->getFaces() )
-  {
-    const Face & face = *it.second;
+   for ( const auto& it : storage->getFaces() )
+   {
+      const Face& face = *it.second;
 
-    WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 2, face ),  30 );
-    WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 3, face ), 108 );
-  }
-
+      WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 2, face ), 30 );
+      WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 3, face ), 108 );
+   }
 }
 
 } // namespace hyteg
-
 
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
-   walberla::Environment walberlaEnv(argc, argv);
+   walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::testEdgeDoFFunctionMemorySize();

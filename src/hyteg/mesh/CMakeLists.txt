@@ -1,5 +1,6 @@
 target_sources( hyteg
     PRIVATE
+    HyTeGMeshDir.cpp
     MeshGenRefineCoarseMesh.cpp
     MeshGenSphericalShell.cpp
     MeshGenFaceChain.cpp

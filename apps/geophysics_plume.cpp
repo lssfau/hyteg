@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
 
    timingTree->start( "Global" );
 
-   std::string meshFileName = "../data/meshes/annulus_fine.msh";
+   std::string meshFileName = "../data/meshes/2D/annulus_fine.msh";
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

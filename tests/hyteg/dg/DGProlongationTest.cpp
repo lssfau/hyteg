@@ -98,7 +98,7 @@ void testDG0Prolongation()
    const uint_t minLevel = 2;
    const uint_t maxLevel = minLevel + 1;
 
-   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
+   MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -225,30 +225,30 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    PETScManager petscManager( &argc, &argv );
 
-   testDG1Prolongation( "../../meshes/tri_1el.msh" );
-   testDG1Prolongation( "../../meshes/circle.msh" );
+   testDG1Prolongation( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   testDG1Prolongation( hyteg::prependHyTeGMeshDir( "2D/circle.msh" ) );
 
-   testDG1Prolongation( "../../meshes/3D/tet_1el.msh" );
-   testDG1Prolongation( "../../meshes/3D/cube_6el.msh" );
+   testDG1Prolongation( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
+   testDG1Prolongation( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
 
    testDG0Prolongation();
 
-   testDG1Prolongation( "../../meshes/circle.msh" );
+   testDG1Prolongation( hyteg::prependHyTeGMeshDir( "2D/circle.msh" ) );
 
    // 2d comparisons
-   compareProlongationWithRestrictionDG1( "../../meshes/tri_1el.msh" );
-   compareProlongationWithRestrictionDG1( "../../meshes/circle.msh" );
+   compareProlongationWithRestrictionDG1( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   compareProlongationWithRestrictionDG1( hyteg::prependHyTeGMeshDir( "2D/circle.msh" ) );
 
-   compareProlongationWithRestrictionDG0( "../../meshes/tri_1el.msh" );
-   compareProlongationWithRestrictionDG0( "../../meshes/circle.msh" );
+   compareProlongationWithRestrictionDG0( hyteg::prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   compareProlongationWithRestrictionDG0( hyteg::prependHyTeGMeshDir( "2D/circle.msh" ) );
 
    // 3d comparisons
-   compareProlongationWithRestrictionDG1( "../../meshes/3D/tet_1el.msh" );
-   compareProlongationWithRestrictionDG1( "../../meshes/3D/cube_6el.msh" );
+   compareProlongationWithRestrictionDG1( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
+   compareProlongationWithRestrictionDG1( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ) );
 
    // uncommented, when DG0 interpolation in 3D is implemented
-   // compareProlongationWithRestrictionDG0( "../../meshes/3D/tet_1el.msh" );
-   // compareProlongationWithRestrictionDG0( "../../meshes/3D/cube_6el.msh" );
+   // compareProlongationWithRestrictionDG0( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ));
+   // compareProlongationWithRestrictionDG0( hyteg::prependHyTeGMeshDir( "3D/cube_6el.msh" ));
 
    return 0;
 }

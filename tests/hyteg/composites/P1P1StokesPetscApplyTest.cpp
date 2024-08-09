@@ -90,7 +90,7 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    // PETSc apply
    PETScVector< real_t, P1StokesFunction > srcPetscVec;
    PETScVector< real_t, P1StokesFunction > dstPetscVec;
-   PETScSparseMatrix< P1P1StokesOperator >   petscMatrix;
+   PETScSparseMatrix< P1P1StokesOperator > petscMatrix;
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
@@ -103,7 +103,7 @@ void p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, c
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
    // compare
-   err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
+   err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
    const auto absScalarProd = std::abs( err.dotGlobal( ones, level, location ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );
@@ -146,12 +146,12 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::p1StokesPetscApplyTest( 3, "../../meshes/quad_4el.msh", hyteg::All, 1.9e-15 );
-   hyteg::p1StokesPetscApplyTest( 3, "../../meshes/annulus_coarse.msh", hyteg::All, 9.0e-14 );
-   hyteg::p1StokesPetscApplyTest( 3, "../../meshes/3D/tet_1el.msh", hyteg::Inner, 1.0e-16 );
-   hyteg::p1StokesPetscApplyTest( 3, "../../meshes/3D/pyramid_2el.msh", hyteg::Inner, 4.5e-16 );
-   hyteg::p1StokesPetscApplyTest( 3, "../../meshes/3D/pyramid_4el.msh", hyteg::Inner, 5.0e-14 );
-   hyteg::p1StokesPetscApplyTest( 3, "../../meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 5.0e-14 );
+   hyteg::p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" ), hyteg::All, 1.9e-15 );
+   hyteg::p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "2D/annulus_coarse.msh" ), hyteg::All, 9.0e-14 );
+   hyteg::p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), hyteg::Inner, 1.0e-16 );
+   hyteg::p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), hyteg::Inner, 4.5e-16 );
+   hyteg::p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), hyteg::Inner, 5.0e-14 );
+   hyteg::p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), hyteg::Inner, 5.0e-14 );
 
    return EXIT_SUCCESS;
 }

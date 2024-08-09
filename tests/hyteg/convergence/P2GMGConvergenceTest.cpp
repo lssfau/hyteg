@@ -48,14 +48,15 @@ int main( int argc, char* argv[] )
 
    const uint_t      minLevel                  = 0;
    const uint_t      maxLevel                  = 5;
-   const std::string meshFile                  = "../../meshes/quad_8el.msh";
+   const std::string meshFile                  = hyteg::prependHyTeGMeshDir( "2D/quad_8el.msh" );
    const real_t      coarseGridSolverTolerance = real_c( 1e-16 );
    const uint_t      maxCoarseGridSolverIter   = 10000;
    const uint_t      numVCycles                = 10;
    const bool        writeVTK                  = false;
 
    auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto setupStorage =
+       std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
@@ -97,7 +98,7 @@ int main( int argc, char* argv[] )
 
    // init residual once
    L.apply( u, Au, maxLevel, hyteg::Inner );
-   r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hyteg::Inner );
+   r.assign( { 1.0, -1.0 }, { f, Au }, maxLevel, hyteg::Inner );
 
    real_t discr_l2_err;
    real_t discr_l2_res           = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );
@@ -107,10 +108,10 @@ int main( int argc, char* argv[] )
    {
       gmgSolver.solve( L, u, f, maxLevel );
 
-      err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+      err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
 
       L.apply( u, Au, maxLevel, hyteg::Inner );
-      r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hyteg::Inner );
+      r.assign( { 1.0, -1.0 }, { f, Au }, maxLevel, hyteg::Inner );
 
       discr_l2_err           = std::sqrt( err.dotGlobal( err, maxLevel, DoFType::All ) / npoints );
       discr_l2_res_last_step = discr_l2_res;

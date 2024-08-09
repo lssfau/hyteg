@@ -48,66 +48,62 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   const std::string meshFileName = "../../meshes/3D/cube_24el.msh";
-   const uint_t minLevel         =  2;
-   const uint_t maxLevel         =  3;
-   const uint_t maxIterations    =  5;
-   const real_t tolerance = 1e-16;
+   const std::string meshFileName  = hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" );
+   const uint_t      minLevel      = 2;
+   const uint_t      maxLevel      = 3;
+   const uint_t      maxIterations = 5;
+   const real_t      tolerance     = 1e-16;
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
 #if 1
    // Get all primitive IDs of primitives at the outflow boundary (z == 1)
-   const real_t eps = 1e-8;
+   const real_t eps       = 1e-8;
    const real_t zBoundary = 1.0;
-   for ( const auto & it : setupStorage.getVertices() )
+   for ( const auto& it : setupStorage.getVertices() )
    {
-     if ( std::fabs( it.second->getCoordinates()[2] - zBoundary ) < eps &&
-          std::fabs( it.second->getCoordinates()[0] ) > eps &&
-          std::fabs( it.second->getCoordinates()[1] ) > eps &&
-          std::fabs( it.second->getCoordinates()[0] - 1.0 ) > eps &&
-          std::fabs( it.second->getCoordinates()[1] - 1.0 ) > eps )
-       setupStorage.setMeshBoundaryFlag( it.first, 2 );
+      if ( std::fabs( it.second->getCoordinates()[2] - zBoundary ) < eps && std::fabs( it.second->getCoordinates()[0] ) > eps &&
+           std::fabs( it.second->getCoordinates()[1] ) > eps && std::fabs( it.second->getCoordinates()[0] - 1.0 ) > eps &&
+           std::fabs( it.second->getCoordinates()[1] - 1.0 ) > eps )
+         setupStorage.setMeshBoundaryFlag( it.first, 2 );
    }
-  for ( const auto & it : setupStorage.getEdges() )
-  {
-    if ( std::fabs( it.second->getCoordinates()[0][2] - zBoundary ) < eps &&
-         std::fabs( it.second->getCoordinates()[1][2] - zBoundary ) < eps )
+   for ( const auto& it : setupStorage.getEdges() )
+   {
+      if ( std::fabs( it.second->getCoordinates()[0][2] - zBoundary ) < eps &&
+           std::fabs( it.second->getCoordinates()[1][2] - zBoundary ) < eps )
 
-      setupStorage.setMeshBoundaryFlag( it.first, 2 );
+         setupStorage.setMeshBoundaryFlag( it.first, 2 );
 
-    if ( std::fabs( it.second->getCoordinates()[0][0] ) < eps &&
-         std::fabs( it.second->getCoordinates()[1][0] ) < eps )
-      setupStorage.setMeshBoundaryFlag( it.first, 1 );
+      if ( std::fabs( it.second->getCoordinates()[0][0] ) < eps && std::fabs( it.second->getCoordinates()[1][0] ) < eps )
+         setupStorage.setMeshBoundaryFlag( it.first, 1 );
 
-    if ( std::fabs( it.second->getCoordinates()[0][0] - 1.0 ) < eps &&
-         std::fabs( it.second->getCoordinates()[1][0] - 1.0 ) < eps )
-      setupStorage.setMeshBoundaryFlag( it.first, 1 );
+      if ( std::fabs( it.second->getCoordinates()[0][0] - 1.0 ) < eps &&
+           std::fabs( it.second->getCoordinates()[1][0] - 1.0 ) < eps )
+         setupStorage.setMeshBoundaryFlag( it.first, 1 );
 
-    if ( std::fabs( it.second->getCoordinates()[0][1] ) < eps &&
-         std::fabs( it.second->getCoordinates()[1][1] ) < eps )
-      setupStorage.setMeshBoundaryFlag( it.first, 1 );
+      if ( std::fabs( it.second->getCoordinates()[0][1] ) < eps && std::fabs( it.second->getCoordinates()[1][1] ) < eps )
+         setupStorage.setMeshBoundaryFlag( it.first, 1 );
 
-    if ( std::fabs( it.second->getCoordinates()[0][1] -1.0 ) < eps &&
-         std::fabs( it.second->getCoordinates()[1][1] -1.0 ) < eps )
-      setupStorage.setMeshBoundaryFlag( it.first, 1 );
-  }
-  for ( const auto & it : setupStorage.getFaces() )
-  {
-    if ( std::fabs( it.second->getCoordinates()[0][2] - zBoundary ) < eps &&
-         std::fabs( it.second->getCoordinates()[1][2] - zBoundary ) < eps &&
-         std::fabs( it.second->getCoordinates()[2][2] - zBoundary ) < eps )
-      setupStorage.setMeshBoundaryFlag( it.first, 2 );
-  }
+      if ( std::fabs( it.second->getCoordinates()[0][1] - 1.0 ) < eps &&
+           std::fabs( it.second->getCoordinates()[1][1] - 1.0 ) < eps )
+         setupStorage.setMeshBoundaryFlag( it.first, 1 );
+   }
+   for ( const auto& it : setupStorage.getFaces() )
+   {
+      if ( std::fabs( it.second->getCoordinates()[0][2] - zBoundary ) < eps &&
+           std::fabs( it.second->getCoordinates()[1][2] - zBoundary ) < eps &&
+           std::fabs( it.second->getCoordinates()[2][2] - zBoundary ) < eps )
+         setupStorage.setMeshBoundaryFlag( it.first, 2 );
+   }
 #endif
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
@@ -120,23 +116,22 @@ int main( int argc, char* argv[] )
    hyteg::P1StokesFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
    hyteg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-//   hyteg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
-//   vtkOutput.add( u.u );
-//   vtkOutput.add( u.v );
-//   vtkOutput.add( u.w );
-//   vtkOutput.add( u.p );
-//   vtkOutput.add( uExact.u );
-//   vtkOutput.add( uExact.v );
-//   vtkOutput.add( uExact.w );
-//   vtkOutput.add( uExact.p );
+   //   hyteg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
+   //   vtkOutput.add( u.u );
+   //   vtkOutput.add( u.v );
+   //   vtkOutput.add( u.w );
+   //   vtkOutput.add( u.p );
+   //   vtkOutput.add( uExact.u );
+   //   vtkOutput.add( uExact.v );
+   //   vtkOutput.add( uExact.w );
+   //   vtkOutput.add( uExact.p );
 
    hyteg::P1P1StokesOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x )
-   {
-      if( x[2] < 1e-8 )
+   std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x ) {
+      if ( x[2] < 1e-8 )
       {
-        return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
+         return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
       }
       else
       {
@@ -144,21 +139,17 @@ int main( int argc, char* argv[] )
       }
    };
 
-
-  std::function< real_t( const hyteg::Point3D& ) > solutionPoiseuille = []( const hyteg::Point3D& x )
-  {
+   std::function< real_t( const hyteg::Point3D& ) > solutionPoiseuille = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
-  };
+   };
 
-  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_x = []( const hyteg::Point3D& x )
-  {
-    return real_c(20) * x[0] * x[1] * x[1] * x[1];
-  };
+   std::function< real_t( const hyteg::Point3D& ) > collidingFlow_x = []( const hyteg::Point3D& x ) {
+      return real_c( 20 ) * x[0] * x[1] * x[1] * x[1];
+   };
 
-  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_y = []( const hyteg::Point3D& x )
-  {
-      return real_c(5) * x[0] * x[0] * x[0] * x[0] - real_c(5) * x[1] * x[1] * x[1] * x[1];
-  };
+   std::function< real_t( const hyteg::Point3D& ) > collidingFlow_y = []( const hyteg::Point3D& x ) {
+      return real_c( 5 ) * x[0] * x[0] * x[0] * x[0] - real_c( 5 ) * x[1] * x[1] * x[1] * x[1];
+   };
 
    std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
@@ -167,7 +158,7 @@ int main( int argc, char* argv[] )
 #if 1
    u.uvw()[2].interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.uvw().u.interpolate( { collidingFlow_x, collidingFlow_y}, maxLevel, hyteg::DirichletBoundary );
+   u.uvw().u.interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel, hyteg::DirichletBoundary );
    uExact.uvw().interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
 #endif
 
@@ -195,19 +186,20 @@ int main( int argc, char* argv[] )
    solver.solve( L, u, f, maxLevel );
 #else
    auto         numerator  = std::make_shared< hyteg::P1StokesFunction< idx_t > >( "numerator", storage, level, level );
-   uint_t globalSize = 0;
-   const uint_t localSize = numerator->enumerate(level, globalSize);
+   uint_t       globalSize = 0;
+   const uint_t localSize  = numerator->enumerate( level, globalSize );
    PETScManager petscManager( &argc, &argv );
    PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
-   f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
-   f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
-   f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
+   f.u.assign( { 1.0 }, { u.u }, level, DirichletBoundary );
+   f.v.assign( { 1.0 }, { u.v }, level, DirichletBoundary );
+   f.w.assign( { 1.0 }, { u.w }, level, DirichletBoundary );
    petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
 #endif
-//   vtkOutput.write( maxLevel, 1 );
+   //   vtkOutput.write( maxLevel, 1 );
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
-   real_t final_residual = r.dotGlobal( r, maxLevel, hyteg::Inner ) / real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
+   real_t final_residual = r.dotGlobal( r, maxLevel, hyteg::Inner ) /
+                           real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual )
    WALBERLA_CHECK_LESS( final_residual, 3.1e-12 );

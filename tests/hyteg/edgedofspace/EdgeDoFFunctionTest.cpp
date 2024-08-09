@@ -43,8 +43,8 @@ static void testEdgeDoFFunction()
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
 
-   MeshInfo mesh  = MeshInfo::fromGmshFile( "../../meshes/tri_1el.msh" );
-   MeshInfo mesh2 = MeshInfo::fromGmshFile( "../../meshes/annulus_coarse.msh" );
+   MeshInfo mesh  = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   MeshInfo mesh2 = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/annulus_coarse.msh" ) );
 
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    SetupPrimitiveStorage setupStorage2( mesh2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -90,7 +90,7 @@ static void testEdgeDoFFunction()
    // Assign
 
    timer["Assign"].start();
-   y->assign( {3.0, 2.0}, {*x, *y}, maxLevel, DoFType::All );
+   y->assign( { 3.0, 2.0 }, { *x, *y }, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hyteg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
@@ -106,7 +106,7 @@ static void testEdgeDoFFunction()
    // Add
 
    timer["Add"].start();
-   y->add( {{4.0, 3.0}}, {{*x, *y}}, maxLevel, DoFType::All );
+   y->add( { { 4.0, 3.0 } }, { { *x, *y } }, maxLevel, DoFType::All );
    timer["Add"].end();
 
    hyteg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
