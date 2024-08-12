@@ -26,7 +26,7 @@ option ( HYTEG_USE_GENERATED_KERNELS     "Use generated pystencils kernels if av
 option ( HYTEG_GIT_SUBMODULE_AUTO        "Check submodules during build"                   ON )
 option ( HYTEG_TERRANEO_MODULE           "Build TerraNeo module"                          OFF )
 option ( HYTEG_DOWNLOAD_BOOST            "Download boost library; required for plates"    OFF )
-option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for ParaView" OFF )
+option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for ParaView"  ON )
 
 # Allow setting this value via CMake. Default should be 0, which is Doxygen's default, too.
 set ( DOXYGEN_LOOKUP_CACHE_SIZE 0 CACHE STRING "See Doxygen documentation LOOKUP_CACHE_SIZE" )
@@ -123,9 +123,9 @@ if( HYTEG_TERRANEO_MODULE )
    endif()
 
    # For using signed int in ADIOS2 output for post-processing with Fortran codes
-   if( HYTEG_BUILD_WITH_ADIOS2 )
+   if( HYTEG_BUILD_WITH_ADIOS2 AND NOT HYTEG_USE_SIGNED_INT_FOR_ADIOS2 )
      set( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 ON CACHE BOOL "Use int64_t when writing BP files for ParaView" FORCE )
-     message( STATUS "HYTEG_USE_SIGNED_INT_FOR_ADIOS2 was forced ON as HYTEG_TERRANEO_MODULE=ON" )
+     message( WARNING "HYTEG_USE_SIGNED_INT_FOR_ADIOS2 was forced ON as HYTEG_TERRANEO_MODULE=ON" )
    endif()
 
 endif()
