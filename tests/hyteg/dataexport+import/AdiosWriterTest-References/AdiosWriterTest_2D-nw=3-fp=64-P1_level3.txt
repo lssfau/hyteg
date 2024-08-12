@@ -1,0 +1,48 @@
+  int64_t   NumberOfElements          {3} = 128 / 128
+  int64_t   NumberOfVertices          {3} = 90 / 90
+  double    P1TestFunction            3*[3]*{90} = -3 / 5
+  double    P1VectorTestFunction      3*[3]*{90, 2} = -3 / 5
+  string    Software                  attr   = "Data generated with HyTeG (https://i10git.cs.fau.de/hyteg)
+git branch         : mohr/ctest+bpls-mc3
+SHA1 of last commit: f951ba3b1
+build type         : Debug
+compiler           : Clang 16.0.6
+compiler flags     : -g -fdiagnostics-color=always -march=native -Wall -Wconversion -Wshadow -Wno-c++11-extensions -Qunused-arguments -pthread  -Wno-missing-braces -Wno-parentheses-equality
+mpi version        : Open MPI v5.0.3, package: Open MPI bsofh@spacko Distribution, ident: 5.0.3, repo rev: v5.0.3, Apr 08, 2024
+"
+  double    StokesTestFunction_p      3*[3]*{90} = 0 / 0
+  double    TIME                      3*scalar = 0 / 2
+  double    attributeAnotherFP        attr   = 4
+  string    attributeBool             attr   = "true"
+  string    attributeC-String         attr   = "a 2nd string"
+  double    attributeDouble           attr   = -4.567
+  double    attributeFP               attr   = 2.3
+  float     attributeFloat            attr   = -4.567
+  int32_t   attributeIntegerSigned    attr   = -42
+  int64_t   attributeIntegerUnsigned  attr   = 42
+  int64_t   attributeLongInt          attr   = -256
+  string    attributeString           attr   = "this is a user defined attribute"
+  int64_t   connectivity              [3]*{128, 4} = 0 / 89
+  uint32_t  types                     scalar = 5
+  double    vertices                  [3]*{90, 3} = -1 / 1
+  string    vtk.xml                   attr   = 
+<VTKFile type="UnstructuredGrid" version="0.2" byte_order="LittleEndian">
+  <UnstructuredGrid>
+    <Piece NumberOfPoints="NumberOfVertices" NumberOfCells="NumberOfElements">
+      <Points>
+        <DataArray Name="vertices" />
+      </Points>
+      <Cells>
+        <DataArray Name="connectivity" />
+        <DataArray Name="types" />
+      </Cells>
+      <PointData>
+        <DataArray Name="P1TestFunction" />
+        <DataArray Name="StokesTestFunction_p" />
+        <DataArray Name="P1VectorTestFunction" />
+        <DataArray Name="TIME">TIME</DataArray>
+      </PointData>
+      <CellData />
+    </Piece>
+  </UnstructuredGrid>
+</VTKFile>
