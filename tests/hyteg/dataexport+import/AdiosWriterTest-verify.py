@@ -2,19 +2,45 @@
 
 import sys
 import subprocess as sproc
+import argparse
 
 # Where to find output files to compare with each other
 dataDir = "AdiosWriterTest-Output"
 refsDir = "AdiosWriterTest-References"
 
-# Base names of output files
+# Base names of output files (TAG will be replaced by adaptTestCaseNames())
 testCases = [
-    "AdiosWriterTest_2D-P1_level3",
-    "AdiosWriterTest_2D-P2_level3",
-    "AdiosWriterTest_3D-P1_level2",
-    "AdiosWriterTest_3D-P2_level2",
-    "AdiosWriterTest_3DSurface-P1_level3",
-    "AdiosWriterTest_3DSurface-P2_level3" ]
+    "AdiosWriterTest_2D-TAG-P1_level3",
+    "AdiosWriterTest_2D-TAG-P2_level3",
+    "AdiosWriterTest_3D-TAG-P1_level2",
+    "AdiosWriterTest_3D-TAG-P2_level2",
+    "AdiosWriterTest_3DSurface-TAG-P1_level3",
+    "AdiosWriterTest_3DSurface-TAG-P2_level3" ]
+
+
+def initArgparse() -> argparse.ArgumentParser:
+
+    parser = argparse.ArgumentParser(
+        usage="%(prog)s -nw NUM_WRITERS -fp FP_BITS",
+        description="Compare BP-files created with AdiosWriterTest to reference files."
+    )
+
+    parser.add_argument( "-nw", "--num-writers", required=True, help="number of writers used to create files" )
+    parser.add_argument( "-fp", "--fp-bits", required=True, help="number of bits in FP-type of files" )
+
+    return parser
+
+
+def adaptTestCaseNames( testCases, args ):
+    """Generate tags from CLI input and insert it into test-case names"""
+
+    tag = f"nw={args.num_writers}-fp={args.fp_bits}"
+
+    realTestCases = []
+    for case in testCases:
+        realTestCases.append( case.replace( "TAG", tag ) )
+
+    return realTestCases
 
 
 def filterOutVolatileAttribute( bplsOutput ):
@@ -128,10 +154,18 @@ def executeFailingTest( case ):
 # be pessimistic
 allChecksPassed = False
 
+# we need the number of processes and the fp-type
+# to be handed to the script as input
+parser = initArgparse()
+args = parser.parse_args()
+print( f"num_writers = {args.num_writers},  fp_bits = {args.fp_bits}" );
+
+testCases = adaptTestCaseNames( testCases, args )
+
 for case in testCases:
     allChecksPassed = True if executeSingleTest( case ) else False
 
-executeFailingTest( "AdiosWriterTest_2D-P1_level3" )
+executeFailingTest( testCases[0] )
 allChecksPassed = True if executeSingleTest( case ) else False
 
 print( "===============================================================" )

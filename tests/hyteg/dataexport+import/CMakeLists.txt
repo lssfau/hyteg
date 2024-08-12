@@ -7,20 +7,26 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
   endif()
 
   waLBerla_compile_test(FILES AdiosWriterTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME AdiosWriterTest)
+  waLBerla_execute_test(NAME AdiosWriterTest-Sequential COMMAND $<TARGET_FILE:AdiosWriterTest> PROCESSES 1)
 
   if( HYTEG_BUILD_WITH_PYTHON3 )
     add_subdirectory( AdiosWriterTest-References )
+
+    if( WALBERLA_DOUBLE_ACCURACY )
+      set ( WALBERLA_FP_BITS 64 )
+    else ()
+      set ( WALBERLA_FP_BITS 32 )
+    endif ()
 
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
       ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py
       ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-verify.py )
 
     waLBerla_execute_test( NAME AdiosWriterVerifyTest
-      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py )
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py --num-writers 1 --fp-bits ${WALBERLA_FP_BITS} )
 
-    set_tests_properties( AdiosWriterTest PROPERTIES FIXTURES_SETUP AdiosOutput )
-    set_tests_properties( AdiosWriterVerifyTest PROPERTIES FIXTURES_REQUIRED AdiosOutput )
+    set_tests_properties( AdiosWriterTest-Sequential PROPERTIES FIXTURES_SETUP AdiosOutput-Sequential )
+    set_tests_properties( AdiosWriterVerifyTest PROPERTIES FIXTURES_REQUIRED AdiosOutput-Sequential )
   endif()
 
   waLBerla_compile_test(FILES CheckpointingTest.cpp DEPENDS hyteg core)
