@@ -40,6 +40,22 @@
 
 using namespace hyteg;
 
+std::string outputDirectory{ "./AdiosWriterTest-Output" };
+
+std::string decorateBaseFileName( const std::string stringIn ) {
+
+  std::stringstream stringStreamOut;
+  stringStreamOut << stringIn;
+
+  // append number of writers
+  stringStreamOut << "-nw=" << walberla::mpi::MPIManager::instance()->numProcesses();
+
+  // append FP-type
+  stringStreamOut << "-fp=" << sizeof( real_t ) * 8u;
+
+  return stringStreamOut.str();
+}
+
 template < typename func_t >
 void initScalarFunction( const func_t& function, const uint_t level )
 {
@@ -79,7 +95,7 @@ void runTest( std::shared_ptr< PrimitiveStorage > storage, std::string baseFileN
 
    P2P1TaylorHoodFunction< real_t > stokesFunc( "StokesTestFunction", storage, level, level );
 
-   AdiosWriter adiosWriter( "../../output", baseFileName, storage );
+   AdiosWriter adiosWriter( outputDirectory, decorateBaseFileName( baseFileName ), storage );
    adiosWriter.add( p1Func );
    adiosWriter.add( p2Func );
    adiosWriter.add( p1VecFunc );

@@ -1,9 +1,41 @@
-if (HYTEG_BUILD_WITH_ADIOS2)
+if( HYTEG_BUILD_WITH_ADIOS2 )
   waLBerla_compile_test(FILES BasicADIOSTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME BasicADIOSTest)
 
+  if( NOT EXISTS ./AdiosWriterTest-Output )
+    file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-Output" )
+  endif()
+
   waLBerla_compile_test(FILES AdiosWriterTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME AdiosWriterTest)
+  waLBerla_execute_test(NAME AdiosWriterTest-Sequential COMMAND $<TARGET_FILE:AdiosWriterTest> PROCESSES 1)
+
+  if( HYTEG_BUILD_WITH_PYTHON3 )
+    add_subdirectory( AdiosWriterTest-References )
+
+    if( WALBERLA_DOUBLE_ACCURACY )
+      set ( WALBERLA_FP_BITS 64 )
+    else ()
+      set ( WALBERLA_FP_BITS 32 )
+    endif ()
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py
+      ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-verify.py )
+
+    waLBerla_execute_test( NAME AdiosWriterVerifyTest-Sequential
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py --num-writers 1 --fp-bits ${WALBERLA_FP_BITS} )
+    set_tests_properties( AdiosWriterTest-Sequential PROPERTIES FIXTURES_SETUP AdiosOutput-Sequential )
+    set_tests_properties( AdiosWriterVerifyTest-Sequential PROPERTIES FIXTURES_REQUIRED AdiosOutput-Sequential )
+
+    if( WALBERLA_BUILD_WITH_MPI )
+      waLBerla_execute_test(NAME AdiosWriterTest-Parallel COMMAND $<TARGET_FILE:AdiosWriterTest> PROCESSES 3)
+      waLBerla_execute_test( NAME AdiosWriterVerifyTest-Parallel
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py --num-writers 3 --fp-bits ${WALBERLA_FP_BITS} )
+      set_tests_properties( AdiosWriterTest-Parallel PROPERTIES FIXTURES_SETUP AdiosOutput-Parallel )
+      set_tests_properties( AdiosWriterVerifyTest-Parallel PROPERTIES FIXTURES_REQUIRED AdiosOutput-Parallel )
+    endif()
+
+  endif()
 
   waLBerla_compile_test(FILES CheckpointingTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME CheckpointingTest)
