@@ -1,0 +1,86 @@
+\documentclass[12pt]{article}
+%
+%
+\usepackage[a4paper,margin=2cm,landscape]{geometry}
+\pagestyle{empty}
+%
+%
+\usepackage{bytefield}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{graphicx}
+% \usepackage[german]{babel}
+%
+% -----------------------------------------------------------------------------
+% Font settings
+% -----------------------------------------------------------------------------
+%
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+%
+% -----------------------------------------------------------------------------
+% Pick some colours from the Viridis colourmap
+% -----------------------------------------------------------------------------
+%
+\definecolor{myCol0}{rgb}{0.9787,0.9042,0.1333}
+\definecolor{myCol1}{rgb}{0.7690,0.8773,0.1333}
+\definecolor{myCol2}{rgb}{0.3191,0.7706,0.4116}
+\definecolor{myCol3}{rgb}{0.2199,0.3437,0.5495}
+%
+% -----------------------------------------------------------------------------
+% Macros for use with the bytefield package
+% -----------------------------------------------------------------------------
+\newcommand{\colorbitbox}[3]{%
+\rlap{\bitbox{#2}{\color{#1}\rule{\width}{\height}}}%
+\bitbox{#2}{#3}}
+\newcommand{\colorbitboxes}[4]{%
+*\rlap{\bitbox{#3}{\color{#1}\rule{\width}{\height}}}%
+\bitboxes{#2}{#4}}
+%
+% -----------------------------------------------------------------------------
+\begin{document}
+% -----------------------------------------------------------------------------
+%
+\begin{center}
+\LARGE
+%
+%
+\quad\\[1cm]
+\begin{bytefield}[endianness=big,bitwidth=3mm,bitheight=\widthof{sign\quad}]{64}
+  \bitheader[lsb=1]{1,32,33,34,64}\\
+  \colorbitbox{myCol3}{31}{\scriptsize \color{white}leading zeros} &
+  \colorbitbox{myCol2}{1}{\rotatebox{90}{\tiny control bit}} &
+  \colorbitbox{myCol1}{32}{\scriptsize ID of coarsest primitive}
+\end{bytefield}
+%
+%
+\quad\\[2cm]
+\begin{bytefield}[endianness=big,bitwidth=3mm,bitheight=\widthof{sign\quad}]{64}
+  \bitheader[lsb=1]{1,5,6,37,38,39,64}\\
+  \colorbitbox{myCol3}{26}{\scriptsize \color{white}leading zeros} &
+  \colorbitbox{myCol2}{1}{\rotatebox{90}{\tiny control bit}} &
+  \colorbitbox{myCol1}{32}{\scriptsize ID of coarsest primitive}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 1}
+\end{bytefield}
+%
+%
+\quad\\[2cm]
+\begin{bytefield}[endianness=big,bitwidth=3mm,bitheight=\widthof{sign\quad}]{64}
+  \bitheader[lsb=1]{1,5,6,10,11,15,16,20,21,25,26,30,31,62,63,64}\\
+  \colorbitbox{myCol3}{1}{\scriptsize } &
+  \colorbitbox{myCol2}{1}{\rotatebox{90}{\color{black}\tiny control bit}} &
+  \colorbitbox{myCol1}{32}{\scriptsize ID of coarsest primitive}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 1}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 2}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 3}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 4}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 5}
+  \colorbitbox{myCol0}{5}{\scriptsize refinement step 6}
+\end{bytefield}
+%
+%
+\end{center}
+%
+%
+% -----------------------------------------------------------------------------
+\end{document}
+% -----------------------------------------------------------------------------

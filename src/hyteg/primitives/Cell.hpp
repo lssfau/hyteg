@@ -126,10 +126,16 @@ class Cell : public Primitive
       return indirectNeighborCellIDsOverVertices_;
    }
 
+   /// Convert the global PrimitiveID of a vertex to its cell local value in \f$\{0,1,2,3\}\f$
    uint_t getLocalVertexID( const PrimitiveID& vertexID ) const;
+
+   /// Convert the global PrimitiveID of an edge to its cell local value in \f$\{0,1,\ldots,5\}\f$
    uint_t getLocalEdgeID( const PrimitiveID& edgeID ) const;
+
+   /// Convert the global PrimitiveID of a face to its cell local value in \f$\{0,1,2,3\}\f$
    uint_t getLocalFaceID( const PrimitiveID& faceID ) const;
 
+   /// Returns the PrimitiveID of the vertex opposite to the input face
    const PrimitiveID& getOppositeVertexID( const PrimitiveID& faceID ) const
    {
       auto   otherLocalVertexIDs   = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( getLocalFaceID( faceID ) );
@@ -141,6 +147,13 @@ class Cell : public Primitive
       return neighborVertices().at( localOppositeVertexID );
    }
 
+   /// Returns the PrimitiveID of the edge opposite to the input edge
+   ///
+   /// <img src="Cell_getOppositeEdgeID.png" width="400" height="400"/>
+   ///
+   /// In a tetrahedron each edge has exactly one edge with which it does not share any vertex.
+   /// We denote this edge as the opposite edge. In the example picture the edges
+   /// \f$e_0\f$ and \f$e_5\f$ are opposite to each other.
    const PrimitiveID& getOppositeEdgeID( const PrimitiveID& edgeID ) const
    {
       return neighborEdges().at( indexing::getCellLocalOppositeEdgeID( getLocalEdgeID( edgeID ) ) );
