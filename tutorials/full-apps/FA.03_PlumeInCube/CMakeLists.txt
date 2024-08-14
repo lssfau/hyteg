@@ -9,5 +9,6 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/vtk)
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-    waLBerla_execute_test( NO_MODULE_LABEL NAME FA.03_PlumeInCube )
+    waLBerla_execute_test( NO_MODULE_LABEL NAME FA.03_PlumeInCube COMMAND $<TARGET_FILE:FA.03_PlumeInCube>
+            "${CMAKE_BINARY_DIR}//data/param/FA.03_PlumeInCube_CI.prm" )
 endif()

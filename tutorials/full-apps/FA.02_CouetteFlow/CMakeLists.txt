@@ -13,5 +13,6 @@ waLBerla_add_executable( NAME FA.02_CouetteFlow2D
         DEPENDS hyteg mixed_operator)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-    waLBerla_execute_test( NO_MODULE_LABEL NAME FA.02_CouetteFlow2D )
+    waLBerla_execute_test( NO_MODULE_LABEL NAME FA.02_CouetteFlow2D COMMAND $<TARGET_FILE:FA.02_CouetteFlow2D>
+            "${CMAKE_BINARY_DIR}//data/param/FA.02_CouetteFlow2D_CI.prm"  )
 endif()

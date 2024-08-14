@@ -1,30 +1,30 @@
 Parameters
 {
-    level 4;
+    level 2;
     minLevel 0;
 
     rMin 0.5;
     rMax 1.0;
 
-    nTan 12;
-    nRad 2;
+    nTan 3;
+    nRad 1;
 
-    stokesMaxNumIterations 10;
-    uzawaPreSmooth 6;
-    uzawaPostSmooth 6;
+    stokesMaxNumIterations 5;
+    uzawaPreSmooth 2;
+    uzawaPostSmooth 2;
     uzawaInnerIterations 10;
     uzawaOmega 0.2;
 
     diffusionMaxNumIterations 10000;
     diffusionAbsoluteResidualUTolerance 1e-12;
 
-    maxNumTimeSteps 100;
+    maxNumTimeSteps 5;
     simulationTime 10;
     cflMax 1;
 
     rayleighNumber 1e8;
 
-    vtk true;
+    vtk false;
 
     outputDirectory vtk;
     outputBasename IsoviscousMantleConvection;

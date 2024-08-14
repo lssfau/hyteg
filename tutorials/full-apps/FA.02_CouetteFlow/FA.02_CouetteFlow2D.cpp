@@ -434,7 +434,7 @@ int main( int argc, char* argv[] )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      cfg->readParameterFile( "./CouetteFlow.prm" );
+      cfg->readParameterFile( "./FA.02_CouetteFlow2D.prm" );
    }
    else
    {

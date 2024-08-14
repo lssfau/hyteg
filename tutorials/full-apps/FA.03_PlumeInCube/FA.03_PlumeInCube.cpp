@@ -219,7 +219,14 @@ int main( int argc, char* argv[] )
    // Parameters
 
    auto config = std::make_shared< walberla::config::Config >();
-   config->readParameterFile( "./FA.03_PlumeInCube.prm" );
+   if ( env.config() == nullptr )
+   {
+      config->readParameterFile( "./FA.03_PlumeInCube.prm" );
+   }
+   else
+   {
+      config = env.config();
+   }
 
    const walberla::Config::BlockHandle mainConf = config->getBlock( "Parameters" );
 

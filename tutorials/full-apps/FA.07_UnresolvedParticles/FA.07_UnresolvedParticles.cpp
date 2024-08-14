@@ -228,7 +228,14 @@ int main( int argc, char** argv )
    Parameters parameters;
 
    auto cfg = std::make_shared< walberla::config::Config >();
-   cfg->readParameterFile( "./FA.07_UnresolvedParticles.prm" );
+   if ( env.config() == nullptr )
+   {
+      cfg->readParameterFile( "./FA.07_UnresolvedParticles.prm" );
+   }
+   else
+   {
+      cfg = env.config();
+   }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    WALBERLA_ROOT_SECTION()

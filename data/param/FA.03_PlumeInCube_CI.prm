@@ -1,11 +1,11 @@
 Parameters
 {
-  minLevel 2;
-  maxLevel 4;
+  minLevel 0;
+  maxLevel 2;
   numVCycles 2;
 
   dt 1e-2;
-  numStokesSteps 100;
+  numStokesSteps 10;
   numTimeStepsPerStokesStep 100;
 
   viscosity 1e-8;

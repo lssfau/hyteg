@@ -1,0 +1,5 @@
+Parameters
+{
+  maxGlobalMicroRefinementsFor0Local 3;
+  maxGlobalMicroRefinements 2;
+}
