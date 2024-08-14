@@ -1,0 +1,37 @@
+\documentclass[tikz]{standalone}
+%
+%
+\usetikzlibrary{calc,quotes,positioning}
+\pgfmathsetmacro\rows{4}
+%
+%
+\begin{document}
+\begin{tikzpicture}[scale=1.5,
+txNode/.style={
+rectangle, % shape
+% minimum size=6mm, % size
+blue, % text in this colour
+font=\sffamily}, % font
+]
+%
+% the vertices
+%
+\node at (  0  ,  0  ,   0  ) (V0) [fill,blue,circle] {};
+\node at (\rows,  0  ,   0  ) (V1) [fill,blue,circle] {};
+\node at (  0  ,  0  ,-\rows) (V2) [fill,blue,circle] {};
+\node at (  0  ,\rows,   0  ) (V3) [fill,blue,circle] {};
+\node[txNode,below=1mm of V0] {$v_0$};
+\node[txNode,below=1mm of V1] {$v_1$};
+\node[txNode,below=1mm of V2] {$v_2$};
+\node[txNode,above=1mm of V3] {$v_3$};
+%
+% the edges
+%
+\path (V0) edge[thick,red,"$e_0$"'] (V1);
+\path (V2) edge[dashed,"$e_1$"'] (V0);
+\path (V1) edge[dashed,"$e_2$" ] (V2);
+\path (V0) edge["$e_3$"'] (V3);
+\path (V1) edge[solid,"$e_4$"'] (V3);
+\path (V2) edge[thick,red,dashed,"$e_5$" ] (V3);
+\end{tikzpicture}
+\end{document}
