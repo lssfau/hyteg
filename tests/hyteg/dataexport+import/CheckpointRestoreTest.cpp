@@ -42,9 +42,10 @@
 //     in again. The original and restored functions are compared
 //     against each other.
 //
-// (2) Run with cli options "CheckpointRestoreTest.prm -Parameters.onlyImport=true"
+// (2) Run with cli options
+//     "CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=<name of BP file>"
 //     In this case the program tries to import a function from a previous run of
-//     of type (1). We can do this to see that we are not bound to have the same
+//     type (1). We can do this to see that we are not bound to have the same
 //     number of MPI processes, or primitive distribution for the export and
 //     import phases.
 
@@ -400,7 +401,7 @@ void runTestWithOtherCommunicator( const std::string& filePath,
    //  Import Checkpoint
    if ( verbose )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint" );
+      WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint from '" << filePath << "/" << fileName << "'" );
    }
    func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
 
@@ -422,7 +423,8 @@ int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
-   if ( argc > 3 )
+   // either no args, only parameter file, or parameter file + 2 overrides
+   if ( argc != 1 && argc != 2 && argc != 4 )
    {
       WALBERLA_ABORT( "Wrong number of command-line arguments!" );
    }
@@ -436,18 +438,23 @@ int main( int argc, char* argv[] )
    const uint_t minLevel = 0;
    const uint_t maxLevel = 3;
 
-   std::string filePath{ "." };
-   std::string fileName{ "CheckpointRestoreTest.bp" };
+   std::string       filePath{ "." };
+   std::string       fileName{ "CheckpointRestoreTest" };
+   std::stringstream sStr;
+   sStr << "-np" << walberla::mpi::MPIManager::instance()->numProcesses() << ".bp";
+   fileName += sStr.str();
    std::string meshFile2D{ prependHyTeGMeshDir( "2D/LShape_6el.msh" ) };
 
    // Some issue with AdiosWriter, so cannot visualise with this mesh!
    std::string meshFile{ prependHyTeGMeshDir( "3D/cube_6el.msh" ) };
 
-   bool onlyImport = false;
+   bool        onlyImport = false;
+   std::string fileNameForRestore{ "non-existant-file" };
    if ( argc > 1 )
    {
       walberla::Config::BlockHandle parameters = walberlaEnv.config()->getOneBlock( "Parameters" );
       onlyImport                               = parameters.getParameter< bool >( "onlyImport" );
+      fileNameForRestore                       = parameters.getParameter< std::string >( "restoreFromFileWithName" );
    }
 
    // ===========
@@ -468,7 +475,6 @@ int main( int argc, char* argv[] )
           filePath, fileName, meshFile2D, minLevel, maxLevel, true, true, 4U );
 
       // we are going to reuse this checkpoint in the next part of this pipeline job
-      fileName = "CheckpointRestoreTest+reuse.bp";
       runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
 
       // We currently would need to import the two component functions separately; Better than having specialised code here,
@@ -481,8 +487,11 @@ int main( int argc, char* argv[] )
    // =====================
    else
    {
-      fileName = "CheckpointRestoreTest+reuse.bp";
-      runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      if ( fileNameForRestore == "non-existant-file" )
+      {
+         WALBERLA_ABORT( "You need to specify 'restoreFromFileWithName' either in the *.prm file or as CLI override" );
+      }
+      runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile, minLevel, maxLevel, true );
       return EXIT_SUCCESS;
    }
 }
