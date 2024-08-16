@@ -60,7 +60,7 @@ static inline std::shared_ptr< SolverLoop< Operator_t > > makeRepetitive( const 
                                                                           const uint_t iterations,
                                                                           const real_t tolerance )
 {
-   using Function_t = Operator_t::srcType;
+   using Function_t = typename Operator_t::srcType;
    auto stopIterationCallback =
        [&storage, tolerance]( const Operator_t& A, const Function_t& x, const Function_t& b, const uint_t level ) -> bool {
       Function_t res( "res", storage, level, level );
@@ -86,8 +86,8 @@ struct SolverTrait< SolverRegister::ChebyshevSmoother, Operator_t, SetupType >
 {
    typedef ChebyshevSmoother< Operator_t > Solver_t;
    static constexpr auto                   toString = "ChebyshevSmoother";
-   using Function_t                                 = Operator_t::srcType;
-   using ValueType                                  = Function_t::valueType;
+   using Function_t                                 = typename Operator_t::srcType;
+   using ValueType                                  = typename Function_t::valueType;
 
    static std::shared_ptr< Solver_t > getInitializedSolver( Operator_t&      A,
                                                             const SetupType& config,
@@ -187,7 +187,7 @@ struct SolverTrait< SolverRegister::GMG, Operator_t, SetupType >
       {
          auto CoarseSmoother =
              SolverTrait< solver_, Operator_t, SetupType >::getInitializedSolver( A, config, storage, coarseLevel, coarseLevel );
-         using SmootherType = SolverTrait< solver_, Operator_t, SetupType >::Solver_t;
+         using SmootherType = typename SolverTrait< solver_, Operator_t, SetupType >::Solver_t;
          coarseSolver       = makeRepetitive< SmootherType, Operator_t, SetupType >(
              smoother, config, storage, uint_c( 1000 ), config.residualThreshold );
       }

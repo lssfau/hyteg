@@ -74,6 +74,14 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    template < template < typename > class func_t, typename value_t >
    inline void add( const func_t< value_t >& function )
    {
+      // Allowed types for vtk printing
+      static_assert(
+          std::is_same_v< value_t, double  > ||
+          std::is_same_v< value_t, float   > ||
+          std::is_same_v< value_t, int32_t > ||
+          std::is_same_v< value_t, int64_t > ,
+          "The VTK printer is able to print only functions of the types double, float, int32 and int64.");
+
       feFunctionRegistry_.add< func_t, value_t >( function );
    }
 

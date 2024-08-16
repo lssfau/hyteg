@@ -90,6 +90,10 @@ void VTKDGWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGFunctions().getFunctions< float >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
    for ( const auto& function : mgr.feFunctionRegistry_.getDGFunctions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -101,6 +105,10 @@ void VTKDGWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    // write all P2VectorFunctions of supported value type
    for ( const auto& function : mgr.feFunctionRegistry_.getDGVectorFunctions().getFunctions< double >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.feFunctionRegistry_.getDGVectorFunctions().getFunctions< float >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

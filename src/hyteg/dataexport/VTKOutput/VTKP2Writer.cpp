@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,7 +41,6 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
       return;
    }
 
-   // auto storage = p2Functions_[0].getStorage();
    auto storage = mgr.storage_;
 
    const uint_t numberOfPoints = mgr.write2D_ ?
@@ -85,6 +84,10 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< float >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
    for ( const auto& function : mgr.feFunctionRegistry_.getP2Functions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -96,6 +99,10 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    // write all P2VectorFunctions of supported value type
    for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< double >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.feFunctionRegistry_.getP2VectorFunctions().getFunctions< float >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

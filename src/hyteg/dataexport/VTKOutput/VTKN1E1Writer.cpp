@@ -70,6 +70,10 @@ void VTKN1E1Writer::write( const VTKOutput& mgr, std::ostream& output, const uin
    {
       writeVectorFunction( output, function, storage, level, mgr.vtkDataFormat_ );
    }
+   for ( const auto& function : mgr.feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< float >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.vtkDataFormat_ );
+   }
    for ( const auto& function : mgr.feFunctionRegistry_.getN1E1VectorFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.vtkDataFormat_ );

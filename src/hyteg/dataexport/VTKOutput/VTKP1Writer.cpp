@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -83,6 +83,10 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1Functions().getFunctions< float >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
    for ( const auto& function : mgr.feFunctionRegistry_.getP1Functions().getFunctions< int32_t >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -93,6 +97,10 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    }
 
    for ( const auto& function : mgr.feFunctionRegistry_.getP1VectorFunctions().getFunctions< double >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.feFunctionRegistry_.getP1VectorFunctions().getFunctions< float >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }

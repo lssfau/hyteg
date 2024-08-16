@@ -11,4 +11,6 @@ if( HYTEG_BUILD_WITH_MPFR )
             DEPENDS MPFR::MPFR)
 endif()
 
-add_subdirectory(MT-apps)
+if ( WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT )
+    add_subdirectory(MT-apps)
+endif ()
