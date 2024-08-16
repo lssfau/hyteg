@@ -74,7 +74,8 @@ void printEdgeData( uint_t level, int* edgeData, uint_t funcSize )
 
 void check1tet( bool bufferComm = false )
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
+   MeshInfo meshInfo =
+       MeshInfo::singleTetrahedron( { Point3D( 0, 0, 0 ), Point3D( 1, 0, 0 ), Point3D( 0, 1, 0 ), Point3D( 0, 0, 1 ) } );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
