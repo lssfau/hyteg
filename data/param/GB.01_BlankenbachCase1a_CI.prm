@@ -1,10 +1,10 @@
 Parameters
 {
-    nx 4;
-    ny 4;
+    nx 2;
+    ny 2;
 
-    minLevel 4;
-    maxLevel 4;
+    minLevel 2;
+    maxLevel 3;
 
     verbose false;
 
@@ -13,7 +13,7 @@ Parameters
 
     RayleighNumber 1e4;
 
-    NTimesteps 50000;
+    NTimesteps 5;
     endTime 4;
 
     stokesIter 10000;

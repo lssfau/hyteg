@@ -886,7 +886,14 @@ int main( int argc, char** argv )
 
    /// [main config-file]
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   cfg->readParameterFile( "./FA.05_CahnHilliard.prm" );
+   if ( env.config() == nullptr )
+   {
+      cfg->readParameterFile( "./FA.05_CahnHilliard.prm" );
+   }
+   else
+   {
+      cfg = env.config();
+   }
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
    parameters.listParameters();
 

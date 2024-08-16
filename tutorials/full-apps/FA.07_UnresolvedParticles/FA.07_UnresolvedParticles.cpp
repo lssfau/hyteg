@@ -117,13 +117,14 @@ void UnresolvedSpheres( Parameters parameters )
    /// [velocity]
    auto fx = []( const hyteg::Point3D& x ) { return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] ); };
    auto fy = []( const hyteg::Point3D& x ) { return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] ); };
+   auto fz = []( const hyteg::Point3D& x ) { return x[2]; };
    /// [velocity]
 
    /// [fields]
    P1VectorFunction< real_t > convcell( "convcell", storage, parameters.level, parameters.level );
    P1VectorFunction< real_t > vel( "vel", storage, parameters.level, parameters.level );
 
-   convcell.interpolate( { fx, fy }, parameters.level );
+   convcell.interpolate( { fx, fy, fz }, parameters.level );
 
    VTKOutput vtkOutput( "vtk", "fields", storage );
    vtkOutput.add( convcell );
@@ -227,8 +228,15 @@ int main( int argc, char** argv )
    Parameters parameters;
 
    auto cfg = std::make_shared< walberla::config::Config >();
-   WALBERLA_CHECK_NOT_NULLPTR( env.config(), "No parameter file given. Bye." );
-   const walberla::Config::BlockHandle mainConf = env.config()->getBlock( "FA.07_UnresolvedParticles.prm" );
+   if ( env.config() == nullptr )
+   {
+      cfg->readParameterFile( "./FA.07_UnresolvedParticles.prm" );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    WALBERLA_ROOT_SECTION()
    {

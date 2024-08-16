@@ -1,0 +1,17 @@
+Parameters
+{
+  minLevel 0;
+  maxLevel 2;
+
+  outputInterval 10;
+
+  tau 5e-3;
+  epsilon 4e-2;
+  t_end 0.05;
+  num_max_time_steps 300;
+
+  printTimingTree false;
+  printMinresConvergence false;
+
+  use3D false;
+}

@@ -1,0 +1,16 @@
+Parameters
+{
+  minLevel 0;
+  maxLevel 2;
+  numVCycles 2;
+
+  dt 1e-2;
+  numStokesSteps 10;
+  numTimeStepsPerStokesStep 100;
+
+  viscosity 1e-8;
+  convectivity 100.0;
+
+  plotDt 1;
+  vtkEnabled true;
+}

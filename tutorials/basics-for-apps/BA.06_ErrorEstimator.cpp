@@ -150,7 +150,7 @@ namespace hyteg {
  * Therefore, it is currently not recommended to interpolate data between different PrimitiveStorages.
  *
  * \section BA06-Code Complete Program
- * \include tutorials/basics-for-apps/BA.05_AMR.cpp
+ * \include tutorials/basics-for-apps/BA.06_ErrorEstimator.cpp
  *
  *
  */

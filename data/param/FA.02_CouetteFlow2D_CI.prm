@@ -1,0 +1,12 @@
+Parameters
+{
+  annulusNTan 3;
+  annulusNRad 1;
+
+  // domain
+  minLevel 0;
+  maxLevel 2;
+
+  // Multigrid
+  coarseIter 1000;
+}
