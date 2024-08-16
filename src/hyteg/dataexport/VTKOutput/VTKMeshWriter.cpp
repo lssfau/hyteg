@@ -900,10 +900,6 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
       }
    };
 
-   // This is the number of (virtual) vertices in the mesh, i.e. the number of DoF locations
-   const uint_t numberOfVertices =
-       levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level + 1 ) );
-
    const uint_t width{ levelinfo::num_microvertices_per_edge( level ) };
 
    for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
