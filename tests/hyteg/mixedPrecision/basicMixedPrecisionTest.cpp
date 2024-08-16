@@ -18,17 +18,13 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// See issue #277
-// clang-format off
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
 #include "core/Environment.h"
 #include "core/debug/Debug.h"
-#include "core/mpi/MPIManager.h"
 #include "core/math/Random.h"
+#include "core/mpi/MPIManager.h"
 
 #include "hyteg/p1functionspace/P1Function.hpp"
-// clang-format on
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hyteg {
 
@@ -53,14 +49,14 @@ void testMixedPrecision()
    p1Float.copyFrom( p1Double, minLevel );
 
    auto doubleFaceData  = storage->getFace( storage->getFaceIDs()[0] )->getData( p1Double.getFaceDataID() );
-   auto p1DobuleFacePtr = doubleFaceData->getPointer( minLevel );
+   auto p1DoubleFacePtr = doubleFaceData->getPointer( minLevel );
    auto floatFaceData   = storage->getFace( storage->getFaceIDs()[0] )->getData( p1Float.getFaceDataID() );
    auto p1FloatFacePtr  = floatFaceData->getPointer( minLevel );
 
    for ( uint_t i = 0; i < doubleFaceData->getSize( minLevel ); ++i )
    {
       // The difference between float and double should not be bigger than 1e-7
-      WALBERLA_CHECK_LESS( p1DobuleFacePtr[i] - static_cast< double >( p1FloatFacePtr[i] ), 1e-7 )
+      WALBERLA_CHECK_LESS( p1DoubleFacePtr[i] - static_cast< double >( p1FloatFacePtr[i] ), 1e-7 )
    }
 
    p1Float.interpolate( floatRand, minLevel );
@@ -68,7 +64,7 @@ void testMixedPrecision()
 
    for ( uint_t i = 0; i < doubleFaceData->getSize( minLevel ); ++i )
    {
-      WALBERLA_CHECK_EQUAL( p1DobuleFacePtr[i] - static_cast< double >( p1FloatFacePtr[i] ), real_t( 0 ) )
+      WALBERLA_CHECK_LESS_EQUAL( std::abs( p1DoubleFacePtr[i] - static_cast< double >( p1FloatFacePtr[i] ) ), real_t( 0 ) )
    }
 }
 
