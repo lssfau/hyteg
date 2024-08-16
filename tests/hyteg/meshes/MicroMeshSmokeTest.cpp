@@ -70,7 +70,7 @@ void improveMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t lev
    WALBERLA_LOG_INFO_ON_ROOT( "Improving mesh ... done." )
 }
 
-void test( MeshInfo meshInfo, uint_t level, uint_t mappingDegree, std::vector< Func_T > blendingFunc )
+void test( const MeshInfo& meshInfo, uint_t level, uint_t mappingDegree, const std::vector< Func_T >& blendingFunc )
 {
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

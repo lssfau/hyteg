@@ -18,6 +18,8 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 #include "core/math/Random.h"
@@ -25,9 +27,12 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/mesh/micro/Diffusion/P1ElementwiseDiffusion_ParametricMapP1_const_fused_quadloops_float64.hpp"
-#include "hyteg/mesh/micro/DiffusionMicroMeshP1/P1ElementwiseDiffusionMicroMeshP1_const_fused_quadloops_float64.hpp"
-#include "hyteg/mesh/micro/DiffusionMicroMeshP2/P2ElementwiseDiffusionMicroMeshP2_const_fused_quadloops_float64.hpp"
+#include "hyteg/mesh/micro/Diffusion/P2ElementwiseDiffusion_ParametricMapP2_const_fused_quadloops_float64.hpp"
 #include "hyteg/mesh/micro/MassMicroMeshP1/P1ElementwiseMassMicroMeshP1_const_fused_quadloops_float64.hpp"
 #include "hyteg/mesh/micro/MassMicroMeshP2/P2ElementwiseMassMicroMeshP2_const_fused_quadloops_float64.hpp"
 #include "hyteg/mesh/micro/MicroMesh.hpp"
@@ -36,6 +41,10 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/ChebyshevSmoother.hpp"
+#include "hyteg/solvers/FullMultigridSolver.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 
@@ -51,98 +60,132 @@ using namespace hyteg;
 
 using Func_T = std::function< real_t( const hyteg::Point3D& ) >;
 
-void improveMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
+template < typename ConstantLaplace_T, typename Mesh_T >
+void improveMesh( const Mesh_T& mesh, uint_t level )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "Improving mesh ..." )
-   using Lap_T      = operatorgeneration::P2ElementwiseDivKGrad;
-   using MeshFunc_T = P2VectorFunction< real_t >;
+   auto storage = mesh.getStorage();
 
-   P2Function< real_t > k( "k", storage, level, level );
-   // Can be used to steer blending of inner nodes.
-   // Not sure yet if that's really useful.
-   auto kfunc = []( const Point3D& x ) { return 1; };
-   k.interpolate( kfunc, level );
+   ConstantLaplace_T B( storage, level, level );
+   Mesh_T            rhs( "rhs", storage, level, level );
 
-   Lap_T      B( storage, level, level, k );
-   MeshFunc_T sol( "sol", storage, level, level );
-   MeshFunc_T rhs( "rhs", storage, level, level );
-
-   sol.assign( { 1.0 }, { *storage->getMicroMesh()->p2Mesh() }, level, DirichletBoundary );
-   rhs.interpolate( 0, level );
-
-   CGSolver< Lap_T > meshSolver( storage, level, level, 500 );
-   // meshSolver.setPrintInfo( true );
+   CGSolver< ConstantLaplace_T > meshSolver( storage, level, level, 500 );
 
    const uint_t dim = storage->hasGlobalCells() ? 3 : 2;
    for ( uint_t i = 0; i < dim; i++ )
    {
-      meshSolver.solve( B, sol.component( i ), rhs.component( i ), level );
+      meshSolver.solve( B, mesh.component( i ), rhs.component( i ), level );
    }
-   storage->getMicroMesh()->p2Mesh()->assign( { 1.0 }, { sol }, level );
-   WALBERLA_LOG_INFO_ON_ROOT( "Improving mesh ... done." )
 }
 
-template < typename Function_T, typename Operator_T, typename Mass_T >
-real_t test( MeshInfo              meshInfo,
-             uint_t                level,
-             uint_t                mappingDegree,
-             Func_T                solFunc,
-             Func_T                rhsFunc,
-             std::vector< Func_T > blendingFunc )
+template < typename Function_T,
+           typename Operator_T,
+           typename ConstantLaplace_T,
+           typename Mass_T,
+           typename Mesh_T,
+           typename Restriction_T,
+           typename Prolongation_T >
+void test( const MeshInfo&              meshInfo,
+           uint_t                       minLevel,
+           uint_t                       maxLevel,
+           uint_t                       mappingDegree,
+           Func_T                       solFunc,
+           Func_T                       rhsFunc,
+           const std::vector< Func_T >& blendingFunc )
 {
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   const auto microMesh =
-       std::make_shared< micromesh::MicroMesh >( storage, level, level, mappingDegree, storage->hasGlobalCells() ? 3 : 2 );
+   // Let's solve Laplace's equation for the mesh node displacement on the affine/computational mesh to improve the mesh quality.
+   // That means we solve the vector Laplace equation
+   //
+   //   - Δ u = 0
+   //
+   // where u is a vector that represents the mesh displacement. The Dirichlet boundary conditions are imposed via the position at
+   // the boundary. The domain is the computational (non-deformed) refined mesh. So we can use the constant Laplace operator.
+   //
+   // This is somewhat heuristic, and we need to make sure that this converges. But works quite nice here and just show how you
+   // can work on the micro-mesh. There are more sophisticated ways to get a better mesh.
 
-   micromesh::interpolateAndCommunicate( *microMesh, blendingFunc, level );
+   auto mesh = std::make_shared< Mesh_T >( "mesh", storage, minLevel, maxLevel );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Improving mesh ..." )
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      mesh->interpolate( blendingFunc, level );
+      improveMesh< ConstantLaplace_T, Mesh_T >( *mesh, level );
+      communication::syncVectorFunctionBetweenPrimitives( *mesh, level );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "Improving mesh ... done." )
+
+   // From this point on we actually add the mesh to the storage.
+   // After that we simply solve Poisson with a full multigrid solver on a domain with curved boundaries.
+
+   auto microMesh = std::make_shared< micromesh::MicroMesh >( mesh );
    storage->setMicroMesh( microMesh );
 
-   Function_T u( "u", storage, level, level );
-   Function_T f( "f", storage, level, level );
-   Function_T error( "error", storage, level, level );
-   Function_T exact( "exact", storage, level, level );
+   Function_T u( "u", storage, minLevel, maxLevel );
+   Function_T f( "f", storage, minLevel, maxLevel );
+   Function_T error( "error", storage, minLevel, maxLevel );
+   Function_T exact( "exact", storage, minLevel, maxLevel );
 
-   auto meshFunc = microMesh->p2Mesh();
+   Operator_T A( storage, minLevel, maxLevel, *mesh );
+   A.computeInverseDiagonalOperatorValues();
+
+   auto prolongation = std::make_shared< Prolongation_T >();
+   auto restriction  = std::make_shared< Restriction_T >();
+
+   auto smoother = std::make_shared< ChebyshevSmoother< Operator_T > >( storage, minLevel, maxLevel );
+   error.interpolate( []( const Point3D& ) { return walberla::math::realRandom(); }, maxLevel );
+   smoother->setupCoefficients( 3, chebyshev::estimateRadius( A, maxLevel, 20, storage, error, exact ) );
+
+   auto coarseGridSolver = std::make_shared< CGSolver< Operator_T > >( storage, minLevel, minLevel, 1000, 1e-10 );
+   coarseGridSolver->setPrintInfo( false );
+
+   auto gmgSolver = std::make_shared< GeometricMultigridSolver< Operator_T > >(
+       storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 2, 2 );
+
+   FullMultigridSolver< Operator_T > fmgSolver( storage, gmgSolver, prolongation, minLevel, maxLevel, 20 );
+
+   Mass_T M( storage, minLevel, maxLevel, *mesh );
+
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      exact.interpolate( rhsFunc, level );
+      M.apply( exact, f, level, All );
+
+      exact.interpolate( solFunc, level );
+
+      u.interpolate( solFunc, level, DirichletBoundary );
+   }
+
+   real_t errorL2Prev = 0;
+   real_t errorL2     = 0;
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      fmgSolver.solve( A, u, f, level );
+      error.assign( { 1.0, -1.0 }, { u, exact }, level );
+      errorL2Prev = errorL2;
+      errorL2     = std::sqrt( error.dotGlobal( error, level ) / real_c( numberOfGlobalDoFs( error, level ) ) );
+      auto rate   = errorL2Prev / errorL2;
+      WALBERLA_LOG_INFO_ON_ROOT( "level " << level << " | error " << errorL2 << " | rate " << rate );
+      if ( level > minLevel )
+      {
+         WALBERLA_CHECK_GREATER( rate, 3.4 * real_c( polynomialDegreeOfBasisFunctions< Function_T >() ) );
+      }
+   }
+
+   writeDomainPartitioningVTK(
+       storage, "../../output", "IsoparametricPoissonConvergenceTest_mesh" + std::to_string( mappingDegree ) );
 
    VTKOutput vtkOutput( "../../output", "IsoparametricPoissonConvergenceTest_mesh" + std::to_string( mappingDegree ), storage );
    vtkOutput.add( u );
    vtkOutput.add( f );
    vtkOutput.add( error );
    vtkOutput.add( exact );
-   vtkOutput.add( *meshFunc );
-   vtkOutput.write( level, 0 );
-
-   improveMesh( storage, level );
-
-   vtkOutput.write( level, 1 );
-
-   Mass_T M( storage, level, level, *meshFunc );
-   exact.interpolate( rhsFunc, level );
-   M.apply( exact, f, level, All );
-
-   exact.interpolate( solFunc, level );
-   u.interpolate( solFunc, level, DirichletBoundary );
-
-   Operator_T A( storage, level, level, *meshFunc );
-
-   CGSolver< Operator_T > solver( storage, level, level, 500 );
-   // solver.setPrintInfo( true );
-
-   solver.solve( A, u, f, level );
-
-   error.assign( { 1.0, -1.0 }, { u, exact }, level );
-
-   auto errorL2 = std::sqrt( error.dotGlobal( error, level ) / real_c( numberOfGlobalDoFs( error, level ) ) );
-
-   writeDomainPartitioningVTK(
-       storage, "../../output", "IsoparametricPoissonConvergenceTest_mesh" + std::to_string( mappingDegree ) );
-
-   vtkOutput.write( level, 2 );
-
-   return errorL2;
+   vtkOutput.add( *mesh );
+   vtkOutput.add( *A.getInverseDiagonalValues() );
+   vtkOutput.write( maxLevel );
 }
 
 int main( int argc, char* argv[] )
@@ -150,72 +193,38 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-#if 0
    std::function< real_t( const hyteg::Point3D& ) > solFunc = []( const hyteg::Point3D& x ) {
       return std::exp( -x[0] - ( x[1] * x[1] ) );
    };
    std::function< real_t( const hyteg::Point3D& ) > rhsFunc = []( const hyteg::Point3D& x ) {
       return -( 4 * x[1] * x[1] - 1 ) * std::exp( -x[0] - ( x[1] * x[1] ) );
    };
-#endif
-
-   std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
-      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
-   };
-
-   std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& x ) {
-      return 12 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] ) );
-   };
 
    std::vector< Func_T > blendingFunc = {
        [&]( const Point3D& x ) { return x[0] + 0.1 * sin( 2 * pi * 1.5 * x[1] ); },
-       [&]( const Point3D& x ) { return x[1] + 0.1 * sin( 2 * pi * x[2] ); },
-       [&]( const Point3D& x ) { return x[2] + 0.1 * sin( 2 * pi * 1.1 * x[0] ); },
+       [&]( const Point3D& x ) { return x[1] + 0.1 * sin( 2 * pi * x[0] ); },
+       [&]( const Point3D& x ) { return 0; },
    };
-#if 0
-   blendingFunc = {
-       [&]( const Point3D& x ) { return x[0]; },
-       [&]( const Point3D& x ) { return x[1]; },
-       [&]( const Point3D& x ) { return x[2]; },
-   };
-#endif
 
-#if 0
    WALBERLA_LOG_INFO_ON_ROOT( "P1 sol, P1 mesh" )
 
-   for ( uint_t level = 2; level <= 4; level++ )
-   {
-      auto error = test< P1Function< real_t >,
-                         operatorgeneration::P1ElementwiseDiffusion_ParametricMapP1_const_fused_quadloops_float64,
-                         operatorgeneration::P1ElementwiseMassMicroMeshP1_const_fused_quadloops_float64 >(
-          // MeshInfo::meshUnitSquare( 1 ), level, 1, solFunc, rhsFunc, blendingFunc );
-          MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ),
-          level,
-          1,
-          solFunc,
-          rhsFunc,
-          blendingFunc );
-      WALBERLA_LOG_DEVEL_ON_ROOT( error );
-   }
-#else
+   test< P1Function< real_t >,
+         operatorgeneration::P1ElementwiseDiffusion_ParametricMapP1_const_fused_quadloops_float64,
+         P1ConstantLaplaceOperator,
+         operatorgeneration::P1ElementwiseMassMicroMeshP1_const_fused_quadloops_float64,
+         P1VectorFunction< real_t >,
+         P1toP1LinearRestriction< real_t >,
+         P1toP1LinearProlongation< real_t > >( MeshInfo::meshUnitSquare( 1 ), 2, 5, 1, solFunc, rhsFunc, blendingFunc );
+
    WALBERLA_LOG_INFO_ON_ROOT( "P2 sol, P2 mesh" )
 
-   for ( uint_t level = 2; level <= 4; level++ )
-   {
-      auto error = test< P2Function< real_t >,
-                         operatorgeneration::P2ElementwiseDiffusionMicroMeshP2_const_fused_quadloops_float64,
-                         operatorgeneration::P2ElementwiseMassMicroMeshP2_const_fused_quadloops_float64 >(
-          // MeshInfo::meshUnitSquare( 0 ),
-          MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ),
-          // MeshInfo::singleTetrahedron( { Point3D( 0, 0, 0 ), Point3D( 1, 0, 0 ), Point3D( 0, 1, 0 ), Point3D( 0, 0, 1 ) } ),
-          level,
-          2,
-          solFunc,
-          rhsFunc,
-          blendingFunc );
-      WALBERLA_LOG_DEVEL_ON_ROOT( error );
-   }
-#endif
+   test< P2Function< real_t >,
+         operatorgeneration::P2ElementwiseDiffusion_ParametricMapP2_const_fused_quadloops_float64,
+         P2ConstantLaplaceOperator,
+         operatorgeneration::P2ElementwiseMassMicroMeshP2_const_fused_quadloops_float64,
+         P2VectorFunction< real_t >,
+         P2toP2QuadraticRestriction,
+         P2toP2QuadraticProlongation >( MeshInfo::meshUnitSquare( 0 ), 2, 5, 2, solFunc, rhsFunc, blendingFunc );
 
    return 0;
 }
