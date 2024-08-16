@@ -65,9 +65,7 @@ namespace hyteg::micromesh {
 ///
 /// \note You need to use this feature with appropriate operators. See tests and examples.
 ///
-/// \note You can technically combine steps 2. and 3., but it is not tested and likely not efficient nor relevant.
-///       Intended order of operation (for those who wonder): parametric (this mapping) is applied first, then the blending map
-///       (first step 3, then step 2).
+/// \note Combining step 2 and 3 is not implemented. If a MicroMesh is added to the storage, blending functions are ignored.
 ///
 /// \note Moving meshes (aka interpolating new values into the mesh repeatedly) are technically available through this
 ///       implementation but need to be handled carefully since the _reference_ frame changes with the mesh.
@@ -95,6 +93,9 @@ class MicroMesh
               uint_t                                     polynomialDegree,
               uint_t                                     dimension );
 
+   MicroMesh( const std::shared_ptr< P1VectorFunction< real_t > >& mesh );
+   MicroMesh( const std::shared_ptr< P2VectorFunction< real_t > >& mesh );
+
    /// Returns the polynomial degree of the mesh approximation.
    [[nodiscard]] uint_t polynomialDegree() const;
 
@@ -107,18 +108,22 @@ class MicroMesh
    /// Returns the P2 mesh. Could be a nullptr if not allocated.
    [[nodiscard]] std::shared_ptr< P2VectorFunction< real_t > > p2Mesh() const;
 
+   /// Returns the mesh. Could be a nullptr if not allocated.
+   [[nodiscard]] std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2VectorFunction< real_t > > >
+       mesh() const;
+
  private:
    std::shared_ptr< P1VectorFunction< real_t > > p1_;
    std::shared_ptr< P2VectorFunction< real_t > > p2_;
 };
+
+Point3D microVertexPosition( const Cell& cell, uint_t level, const indexing::Index& microVertexIndex );
 
 /// \brief Returns the position of any micro-vertex of the MicroMesh.
 ///
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
 /// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of a micro-vertex is
 /// requested.
-///
-/// TODO: This function does NOT apply any blending functions as of now.
 ///
 Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                              PrimitiveID                                primitiveId,
@@ -131,8 +136,6 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
 /// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of a micro-vertex is
 /// requested.
 ///
-/// TODO: This function does NOT apply any blending functions as of now.
-///
 Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                  PrimitiveID                                primitiveId,
                                  uint_t                                     level,
@@ -144,8 +147,6 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
 /// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of a micro-vertex is
 /// requested.
-///
-/// TODO: This function does NOT apply any blending functions as of now.
 ///
 Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                  PrimitiveID                                primitiveId,
