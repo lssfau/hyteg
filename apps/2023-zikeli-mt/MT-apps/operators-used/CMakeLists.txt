@@ -25,6 +25,8 @@ if (WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT)
 
         PROPERTIES COMPILE_OPTIONS ${HYTEG_COMPILER_NATIVE_FLAGS}
     )
+
+    target_compile_features(opgen-mt-diffusion PUBLIC cxx_std_23) # probably not necessary since this is inherited by module core.
 else ()
     add_library( opgen-mt-diffusion
 
@@ -49,5 +51,3 @@ else ()
         PROPERTIES COMPILE_OPTIONS ${HYTEG_COMPILER_NATIVE_FLAGS}
     )
 endif ()
-
-target_compile_features(opgen-mt-diffusion PUBLIC cxx_std_23)

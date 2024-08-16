@@ -143,10 +143,10 @@ static inline void solveLSE( const SetupType& config )
 #endif
 
    // +++ Define Names +++
-   using Function_bar_t  = ResidualOperator_t::srcType;
-   using Function_real_t = Function_bar_t::template FunctionType< real_t >;
-   using Value_bar_t     = Function_bar_t::valueType;
-   using Value_dot_t     = SmootherOperator_t::srcType::valueType;
+   using Function_bar_t  = typename ResidualOperator_t::srcType;
+   using Function_real_t = typename Function_bar_t::template FunctionType< real_t >;
+   using Value_bar_t     = typename Function_bar_t::valueType;
+   using Value_dot_t     = typename SmootherOperator_t::srcType::valueType;
 
    SetupPrimitiveStorage setupStorage( MeshInfo::fromGmshFile( config.problemSetup.meshFile ),
                                        uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

@@ -89,6 +89,10 @@ void VTKP1DGEWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
+   for ( const auto& function : mgr.feFunctionRegistry_.getEGFunctions().getFunctions< float >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
    for ( const auto& function : mgr.feFunctionRegistry_.getEGFunctions().getFunctions< int32_t >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );

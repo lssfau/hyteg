@@ -76,22 +76,36 @@ static void exportFunctions2D( uint_t level )
    P2VectorFunction< real_t > p2VectorFunc( "P2 vector function", storage, minLevel, maxLevel );
    EGFunction< real_t >       egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
 
+   // Some tests for float
+   P0Function < float > p0ScalarFloat ( "P0  float scalar function", storageDG, minLevel, maxLevel );
+   P1Function < float > p1ScalarFloat ( "P1  float scalar function", storage, minLevel, maxLevel );
+   P2Function < float > p2ScalarFloat ( "P2  float scalar function", storage, minLevel, maxLevel );
+   EGFunction < float > egVectorFloat ( "EG  float vector function", storageDG, minLevel, maxLevel );
+
+
    // Interpolate
-   p0ScalarFunc1.interpolate( 1.0, maxLevel, DoFType::All );
-   p0ScalarFunc2.interpolate( 2.0, maxLevel, DoFType::All );
-
-   p1ScalarFunc1.interpolate( 1.0, maxLevel, DoFType::All );
-   p1ScalarFunc2.interpolate( 2.0, maxLevel, DoFType::All );
-
    std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
    std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0] + p[1]; };
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc };
+
+   p0ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
+   p0ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+
+   p1ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
+   p1ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+
+   p2ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
+   p2ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    egVectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
-   p2ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
-   p2ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+   auto floatVecFunc = []( const Point3D& p ) -> float { return static_cast<float>( static_cast<float>(p[0]) + static_cast<float>(p[1]) ); };
+   p0ScalarFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
+   p1ScalarFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
+   p2ScalarFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
+   egVectorFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
 
    // Output VTK
    bool beVerbose = true;
@@ -144,6 +158,20 @@ static void exportFunctions2D( uint_t level )
       FEFunctionWriter< VTKOutput >* vtkOutputEG = new VTKOutput( fPath, fName, storageDG );
       vtkOutputEG->add( egVectorFunc );
       vtkOutputEG->write( maxLevel );
+
+      // float functions
+      fName = "VTKOutputTest-Float";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputFloat( fPath, fName, storage );
+      vtkOutputFloat.add( p1ScalarFloat );
+      vtkOutputFloat.add( p2ScalarFloat );
+      vtkOutputFloat.write( maxLevel );
+      fName = "VTKOutputTest-FloatEG";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputFloatEG( fPath, fName, storageDG );
+      vtkOutputFloatEG.add( p0ScalarFloat );
+      vtkOutputFloatEG.add( egVectorFloat );
+      vtkOutputFloatEG.write( maxLevel );
    }
 }
 
@@ -158,15 +186,12 @@ static void exportFunctions3D( uint_t level )
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Expressions for interpolation
-   // std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0*p[0]; };
-   // std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0]+p[1]+p[2]; };
-   // std::function< real_t( const hyteg::Point3D& ) > zFunc = []( const Point3D& p ) -> real_t { return 3.0*p[0]+p[2]; };
-   std::function< real_t( const hyteg::Point3D& ) >                xFunc   = []( const Point3D& p ) -> real_t { return p[0]; };
-   std::function< real_t( const hyteg::Point3D& ) >                yFunc   = []( const Point3D& p ) -> real_t { return p[1]; };
-   std::function< real_t( const hyteg::Point3D& ) >                zFunc   = []( const Point3D& p ) -> real_t { return p[2]; };
+   std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0*p[0]; };
+   std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0]+p[1]+p[2]; };
+   std::function< real_t( const hyteg::Point3D& ) > zFunc = []( const Point3D& p ) -> real_t { return 3.0*p[0]+p[2]; };
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc, zFunc };
-   std::function< Point3D( const Point3D& ) >                      vecFunc = []( const Point3D& p ) {
-      Point3D result{ p[0], p[1], p[2] };
+   std::function< Point3D( const Point3D& ) >                      vecFunc = [xFunc, yFunc, zFunc]( const Point3D& p ) {
+      Point3D result{ xFunc(p), yFunc(p), zFunc(p) }; // or rather p[0], p[1], p[2]
       return result;
    };
 
@@ -181,7 +206,7 @@ static void exportFunctions3D( uint_t level )
 
    P2Function< real_t > p2ScalarFunc1( "P2 scalar function 1", storage, minLevel, maxLevel );
    P2Function< real_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
-   P1Function< real_t > p2ScalarFunc3( "P2 scalar function 3", storage, minLevel, maxLevel );
+   P2Function< real_t > p2ScalarFunc3( "P2 scalar function 3", storage, minLevel, maxLevel );
 
    DG1Function< real_t > dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
    DG1Function< real_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
@@ -212,6 +237,22 @@ static void exportFunctions3D( uint_t level )
    egVectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
    n1e1VectorFunc.interpolate( vecFunc, maxLevel, DoFType::All );
+
+   // float
+
+   // Test for float
+   P0Function< float > p0FuncFloat( "P0 float scalar function", storageDG, minLevel, maxLevel );
+   P1VectorFunction< float > p1FuncFloat( "P1 float vector function", storage, minLevel, maxLevel );
+   P2VectorFunction< float > p2FuncFloat( "P2 float vector function", storage, minLevel, maxLevel );
+   EGFunction< float > egFuncFloat( "EG float vector function", storageDG, minLevel, maxLevel );
+   auto xFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast<float>(-2.0f * p[0]); };
+   auto yFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast<float>(p[0]+p[1]+p[2]); };
+   auto zFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast<float>(3.0f*p[0]+p[2]); };
+   std::vector< std::function< float( const hyteg::Point3D& ) > > vecExprFloat = { xFuncFloat, yFuncFloat, zFuncFloat };
+   p0FuncFloat.interpolate( xFuncFloat, maxLevel, DoFType::All );
+   p1FuncFloat.interpolate( vecExprFloat, maxLevel, DoFType::All );
+   p2FuncFloat.interpolate( vecExprFloat, maxLevel, DoFType::All );
+   egFuncFloat.interpolate( vecExprFloat, maxLevel, DoFType::All );
 
    // Output VTK
    bool beVerbose = true;
@@ -267,6 +308,33 @@ static void exportFunctions3D( uint_t level )
       vtkOutputEG.add( egVectorFunc );
       // would currently fail as 3D export of EGFunction is not fully implemented, yet
       vtkOutputEG.write( maxLevel );
+
+      fName = "VTKOutputTest3D-P0-Float";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputP0Float( fPath, fName, storageDG );
+      vtkOutputP0Float.add( p0FuncFloat );
+      vtkOutputP0Float.write( maxLevel );
+
+      fName = "VTKOutputTest3D-P1-Float";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputP1Float( fPath, fName, storage );
+      vtkOutputP1Float.setVTKDataFormat( vtk::DataFormat::BINARY );
+      vtkOutputP1Float.add( p1FuncFloat );
+      vtkOutputP1Float.write( maxLevel );
+
+      fName = "VTKOutputTest3D-P2-Float";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputP2Float( fPath, fName, storage );
+      vtkOutputP2Float.setVTKDataFormat( vtk::DataFormat::BINARY );
+      vtkOutputP2Float.add( p2FuncFloat );
+      vtkOutputP2Float.write( maxLevel );
+
+      fName = "VTKOutputTest3D-EG-Float";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutputEGFloat( fPath, fName, storageDG );
+      vtkOutputEGFloat.add( egFuncFloat );
+      // would currently fail as 3D export of EGFunction is not fully implemented, yet
+      vtkOutputEGFloat.write( maxLevel );
    }
 }
 
