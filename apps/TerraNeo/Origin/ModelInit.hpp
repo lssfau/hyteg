@@ -392,7 +392,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
                                                             TN.domainParameters.minLevel,
                                                             TN.domainParameters.maxLevel,
-                                                            *( p2ScalarFunctionContainer["ViscosityFE"] ),
+                                                            p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
                                                             p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
                                                             *projectionOperator,
                                                             bcVelocity );

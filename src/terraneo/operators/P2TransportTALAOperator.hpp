@@ -32,9 +32,9 @@
 #include "hyteg_operators/operators/mass/P2ElementwiseMass.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/shear_heating/P2ElementwiseShearHeating.hpp"
-#include "hyteg_operators/operators/shear_heating/P2ElementwiseShearHeatingAnnulusMap.hpp"
-#include "hyteg_operators/operators/shear_heating/P2ElementwiseShearHeatingIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeating.hpp"
+#include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingAnnulusMap.hpp"
+#include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingIcosahedralShellMap.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
