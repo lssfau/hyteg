@@ -87,7 +87,7 @@ class System
       using walberla::real_c;
 
       return System{
-          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) ),
+          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el_variant.msh" ) ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];
@@ -124,7 +124,7 @@ class System
       using walberla::real_c;
 
       return System{
-          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) ),
+          MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el_variant.msh" ) ),
 
           []( const Point3D& p ) {
              const real_t x = p[0];

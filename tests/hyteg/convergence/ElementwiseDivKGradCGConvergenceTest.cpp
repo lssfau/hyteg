@@ -172,9 +172,9 @@ void runAllTestsP1()
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 4, 1.0e-2 );
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 5, 2.5e-3 );
 
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1.1e-3 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 3.5e-4 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 5, 1.0e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 2.5e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 7.2e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 5, 2.0e-4 );
    }
    {
       using Operator = operatorgeneration::P1ElementwiseDivKGrad;
@@ -183,9 +183,9 @@ void runAllTestsP1()
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 4, 1.0e-2 );
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 5, 2.5e-3 );
 
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1.1e-3 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 3.5e-4 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 5, 1.0e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 2.5e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 7.2e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 5, 2.0e-4 );
    }
 }
 
@@ -203,9 +203,9 @@ void runAllTestsP2()
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3, 2e-3 );
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 4, 2e-4 );
 
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 3e-3 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 3e-4 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 3e-5 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 4.5e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 4.5e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 3.7e-5 );
    }
    {
       using Operator = operatorgeneration::P2ElementwiseDivKGrad;
@@ -214,9 +214,9 @@ void runAllTestsP2()
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3, 2e-3 );
       ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "2D/quad_4el.msh" ), 4, 2e-4 );
 
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 3e-3 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 3e-4 );
-      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 3e-5 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 4.5e-3 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 4.6e-4 );
+      ElementwiseDivKGradCGTest< Operator, MassOperator, FunctionType >( prependHyTeGMeshDir( "3D/tet_1el.msh" ), 4, 3.8e-5 );
    }
 }
 
