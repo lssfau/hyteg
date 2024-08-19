@@ -380,6 +380,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    std::function< real_t( const Point3D& ) > randFunc = []( const Point3D& ) {
       return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
    };
+
    //non-dimensionalise viscosity such that minimum value = 1
    updateViscosity();
 
@@ -399,49 +400,54 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      stokesSolverFS = hyteg::solvertemplates::stokesGMGFSSolver(
+      auto solverContainer = hyteg::solvertemplates::stokesGMGFSSolver(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
           stokesOperatorFS,
           projectionOperator,
-          bcVelocity,
+          p2p1StokesFunctionContainer["StokesTmpProlongation"],
+          p2p1StokesFunctionContainer["StokesTmp1"],
+          p2p1StokesFunctionContainer["StokesTmp2"],
           TN.solverParameters.estimateUzawaOmega,
           false,
           {
               { solvertemplates::StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
-                real_c( TN.solverParameters.numPowerIterations ) },
+                TN.solverParameters.numPowerIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
-                real_c( TN.solverParameters.FGMRESOuterIterations ) },
+                 TN.solverParameters.FGMRESOuterIterations  },
               { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,
-                real_c( TN.solverParameters.FGMRESTolerance ) },
+                 TN.solverParameters.FGMRESTolerance  },
               { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER,
-                real_c( TN.solverParameters.uzawaIterations ) },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, real_c( TN.solverParameters.uzawaOmega ) },
+                 TN.solverParameters.uzawaIterations  },
+              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA,  TN.solverParameters.uzawaOmega  },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                real_c( TN.solverParameters.ABlockMGIterations ) },
+                 TN.solverParameters.ABlockMGIterations  },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                real_c( TN.solverParameters.ABlockMGTolerance ) },
+                 TN.solverParameters.ABlockMGTolerance  },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH,
-                real_c( TN.solverParameters.ABlockMGPreSmooth ) },
+                 TN.solverParameters.ABlockMGPreSmooth  },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH,
-                real_c( TN.solverParameters.ABlockMGPostSmooth ) },
+                 TN.solverParameters.ABlockMGPostSmooth  },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER,
-                real_c( TN.solverParameters.ABlockCoarseGridIterations ) },
+                 TN.solverParameters.ABlockCoarseGridIterations  },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE,
-                real_c( TN.solverParameters.ABlockCoarseGridTolerance ) },
+                 TN.solverParameters.ABlockCoarseGridTolerance  },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                real_c( TN.solverParameters.SchurMGIterations ) },
+                 TN.solverParameters.SchurMGIterations  },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                real_c( TN.solverParameters.SchurMGTolerance ) },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, real_c( TN.solverParameters.SchurMGPreSmooth ) },
+                 TN.solverParameters.SchurMGTolerance  },
+              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH,  TN.solverParameters.SchurMGPreSmooth  },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH,
-                real_c( TN.solverParameters.SchurMGPostSmooth ) },
+                 TN.solverParameters.SchurMGPostSmooth  },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER,
-                real_c( TN.solverParameters.SchurCoarseGridIterations ) },
+                 TN.solverParameters.SchurCoarseGridIterations  },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE,
-                real_c( TN.solverParameters.SchurCoarseGridTolerance ) },
+                 TN.solverParameters.SchurCoarseGridTolerance  },
           } );
+
+      stokesSolverFS       = std::get< 0 >( solverContainer );
+      stokesABlockSmoother = std::get< 1 >( solverContainer );
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
@@ -489,30 +495,31 @@ void ConvectionSimulation::setupSolversAndOperators()
              return false;
           };
 
-      auto multigridSolver = solvertemplates::stokesGMGUzawaFSSolver< StokesOperatorFS, P2ProjectNormalOperator >(
+      auto solverContainer = solvertemplates::stokesGMGUzawaFSSolver< StokesOperatorFS, P2ProjectNormalOperator >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
           stokesOperatorFS,
           projectionOperator,
-          bcVelocity,
+          p2p1StokesFunctionContainer["StokesTmp"],
+          p2p1StokesFunctionContainer["StokesTmpProlongation"],
           false,
           { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
-              real_c( TN.solverParameters.numPowerIterations ) },
+              TN.solverParameters.numPowerIterations },
             { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS,
-              real_c( TN.solverParameters.stokesUzawaCoarseGridIter ) },
+              TN.solverParameters.stokesUzawaCoarseGridIter },
             { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE,
-              real_c( TN.solverParameters.stokesUzawaCoarseGridTol ) },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, real_c( TN.solverParameters.uzawaOmega ) },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, real_c( TN.solverParameters.ABlockMGPreSmooth ) },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, real_c( TN.solverParameters.ABlockMGPostSmooth ) },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER,
-              real_c( TN.solverParameters.uzawaIterations ) },
+              TN.solverParameters.stokesUzawaCoarseGridTol },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, TN.solverParameters.uzawaOmega },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, TN.solverParameters.ABlockMGPreSmooth },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, TN.solverParameters.ABlockMGPostSmooth },
+            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, TN.solverParameters.uzawaIterations },
             { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID,
-              real_c( TN.solverParameters.stokesSmoothIncrementCoarseGrid ) } } );
+              TN.solverParameters.stokesSmoothIncrementCoarseGrid } } );
 
       stokesSolverFS = std::make_shared< SolverLoop< StokesOperatorFS > >(
-          multigridSolver, TN.solverParameters.stokesMaxNumIterations, stopIterationCallback );
+          std::get< 0 >( solverContainer ), TN.solverParameters.stokesMaxNumIterations, stopIterationCallback );
+      stokesABlockSmoother = std::get< 1 >( solverContainer );
    }
    else
    {

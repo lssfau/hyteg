@@ -57,25 +57,27 @@ enum class StokesGMGUzawaFSSolverParamKey
 
 // Things are still restricted to P2-P1 space
 template < typename StokesOperatorType, typename ProjectionType >
-inline std::shared_ptr< Solver< StokesOperatorType > >
-    stokesGMGUzawaFSSolver( const std::shared_ptr< PrimitiveStorage >&         storage,
-                            const uint_t&                                      minLevel,
-                            const uint_t&                                      maxLevel,
-                            const std::shared_ptr< StokesOperatorType >&       stokesOperatorFSSelf,
-                            const std::shared_ptr< ProjectionType >&           projectionOperator,
-                            BoundaryCondition                                  bcVelocity,
-                            bool                                               verbose     = false,
-                            std::map< StokesGMGUzawaFSSolverParamKey, real_t > extraParams = {} )
+inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
+                   std::shared_ptr< Solver< typename StokesOperatorType::ViscousOperatorFS_T > > >
+    stokesGMGUzawaFSSolver( const std::shared_ptr< PrimitiveStorage >&                                 storage,
+                            const uint_t&                                                              minLevel,
+                            const uint_t&                                                              maxLevel,
+                            const std::shared_ptr< StokesOperatorType >&                               stokesOperatorFSSelf,
+                            const std::shared_ptr< ProjectionType >&                                   projectionOperator,
+                            const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >&                 tmp1,
+                            const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >&                 tmpProlongation,
+                            bool                                                                       verbose     = false,
+                            std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > extraParams = {} )
 {
-   std::map< StokesGMGUzawaFSSolverParamKey, real_t > defaultParams = {
-       { StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25.0 },
-       { StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10 },
+   std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > defaultParams = {
+       { StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25u },
+       { StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10u },
        { StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
        { StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
-       { StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3 },
-       { StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3 },
-       { StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 1 },
-       { StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2 } };
+       { StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3u },
+       { StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3u },
+       { StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 1u },
+       { StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2u } };
 
    for ( auto const& param : extraParams )
    {
@@ -85,33 +87,28 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
       }
       else
       {
-         defaultParams[param.first] = real_c( param.second );
+         defaultParams[param.first] = param.second;
       }
    }
 
-   uint_t numPowerIteration = uint_c( defaultParams[StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM] );
+   uint_t numPowerIteration = std::get< uint_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM] );
 
-   uint_t coarseGridIter = uint_c( defaultParams[StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS] );
-   real_t coarseGridTol  = real_c( defaultParams[StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE] );
+   uint_t coarseGridIter = std::get< uint_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS] );
+   real_t coarseGridTol  = std::get< real_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE] );
 
-   real_t uzawaSmootherOmega = real_c( defaultParams[StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA] );
+   real_t uzawaSmootherOmega = std::get< real_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA] );
 
-   uint_t MGPreSmooth  = uint_c( defaultParams[StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH] );
-   uint_t MGPostSmooth = uint_c( defaultParams[StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH] );
+   uint_t MGPreSmooth  = std::get< uint_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH] );
+   uint_t MGPostSmooth = std::get< uint_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH] );
 
-   uint_t uzawaVelocityIter         = uint_c( defaultParams[StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER] );
-   uint_t smoothIncrementCoarseGrid = uint_c( defaultParams[StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID] );
+   uint_t uzawaVelocityIter = std::get< uint_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER] );
+   uint_t smoothIncrementCoarseGrid =
+       std::get< uint_t >( defaultParams[StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID] );
 
    uint_t powerIterations = numPowerIteration;
 
    auto smoother = std::make_shared< ChebyshevSmootherWithFreeSlipProjection< typename StokesOperatorType::VelocityOperator_T > >(
        storage, minLevel, maxLevel, projectionOperator );
-
-   auto uSpec = std::make_shared< P2P1TaylorHoodFunction< real_t > >(
-       "uSpec_stokesGMGUzawaFSSolver_solvertemplate", storage, minLevel, maxLevel, bcVelocity );
-
-   auto uTmpSpec = std::make_shared< P2P1TaylorHoodFunction< real_t > >(
-       "uTmpSpec_stokesGMGUzawaFSSolver_solvertemplate", storage, minLevel, maxLevel, bcVelocity );
 
    std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
       return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
@@ -119,36 +116,33 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
 
    WALBERLA_LOG_INFO_ON_ROOT( "Estimate spectral radius!" );
    // avoid that the startpoint of our poweriteration is in the kernel of the operator
-   uSpec->uvw().interpolate( { randFuncA, randFuncA, randFuncA }, maxLevel, Inner );
+   tmp1->uvw().interpolate( { randFuncA, randFuncA, randFuncA }, maxLevel, Inner );
 
    real_t spectralRadius = chebyshev::estimateRadius(
-       stokesOperatorFSSelf->getA().viscousOperator, maxLevel, powerIterations, storage, uSpec->uvw(), uTmpSpec->uvw() );
+       stokesOperatorFSSelf->getA().viscousOperator, maxLevel, powerIterations, storage, tmp1->uvw(), tmpProlongation->uvw() );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated spectral radius: " << spectralRadius );
 
    smoother->setupCoefficients( 3, spectralRadius );
 
-   auto _coarseGridSolver = solvertemplates::stokesMinResSolver< StokesOperatorType >( storage,
-                                                                                   minLevel,
-                                                                                   coarseGridTol,
-                                                                                   coarseGridIter,
-                                                                                   true );
+   auto _coarseGridSolver =
+       solvertemplates::stokesMinResSolver< StokesOperatorType >( storage, minLevel, coarseGridTol, coarseGridIter, true );
 
    auto uzawaVelocityPreconditioner =
        std::make_shared< FullStokesVelocityBlockBlockDiagonalPreconditioner< StokesOperatorType > >( storage, smoother );
 
    auto _UzawaSmoother =
        std::make_shared< UzawaSmootherWithFreeSlipProjection< StokesOperatorType > >( storage,
-                                                                              uzawaVelocityPreconditioner,
-                                                                              minLevel,
-                                                                              maxLevel,
-                                                                              uzawaSmootherOmega,
-                                                                              Inner | NeumannBoundary | FreeslipBoundary,
-                                                                              projectionOperator,
-                                                                              uzawaVelocityIter );
+                                                                                      uzawaVelocityPreconditioner,
+                                                                                      minLevel,
+                                                                                      maxLevel,
+                                                                                      uzawaSmootherOmega,
+                                                                                      Inner | NeumannBoundary | FreeslipBoundary,
+                                                                                      projectionOperator,
+                                                                                      uzawaVelocityIter );
 
    auto prolongationOperator =
-       std::make_shared< P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection >( uTmpSpec, projectionOperator );
+       std::make_shared< P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection >( tmpProlongation, projectionOperator );
    auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection >( projectionOperator );
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperatorType > >( storage,
@@ -163,7 +157,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > >
                                                                                               smoothIncrementCoarseGrid,
                                                                                               CycleType::VCYCLE );
 
-   return multigridSolver;
+   return { multigridSolver, smoother };
 }
 
 } // namespace solvertemplates

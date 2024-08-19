@@ -183,6 +183,9 @@ class ConvectionSimulation
        { "StokesLHSPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesRHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "VelocityOutput", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< StokesFunctionP2P1 > > p2p1StokesFunctionContainer;
 
@@ -225,6 +228,8 @@ class ConvectionSimulation
    std::shared_ptr< FGMRESSolver< StokesOperator > >                     stokesSolver;
    std::shared_ptr< Solver< StokesOperatorFS > >                         stokesSolverFS;
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
+
+   std::shared_ptr< Solver< StokesOperatorFS::ViscousOperatorFS_T > >  stokesABlockSmoother;
 
    // Operators
    std::shared_ptr< StokesOperator >                            stokesOperator;
