@@ -1,4 +1,5 @@
 Parameters
 {
   onlyImport false;
+  restoreFromFileWithName non-existant-file;
 }
