@@ -94,7 +94,8 @@
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2TransportRHSOperator.hpp"
-#include "terraneo/operators/P2TransportTALAOperator.hpp"
+// #include "terraneo/operators/P2TransportTALAOperator.hpp"
+#include "terraneo/operators/P2TransportTALAOperatorStd.hpp"
 
 namespace terraneo {
 
@@ -154,6 +155,11 @@ class ConvectionSimulation
 
    void dataOutput();
    void normalFunc( const Point3D& p, Point3D& n );
+   void oppositeGravity( const Point3D& p, Point3D& n );
+
+   real_t adiabaticCoefficientFunction( const Point3D& x );
+   real_t constantEnergyCoefficientFunction( const Point3D& x );
+   real_t surfaceTempCoefficientFunction( const Point3D& x );
 
    // Declare boundary condition objects for unknown functions for temperature and velocity
 
@@ -237,7 +243,7 @@ class ConvectionSimulation
    std::shared_ptr< SchurOperator >                             schurOperator;
    std::shared_ptr< MMOCTransport< ScalarFunction > >           transportOperator;
    std::shared_ptr< P2TransportIcosahedralShellMapOperator >    transportOperatorTALA;
-   std::shared_ptr< P2TransportRHSIcosahedralShellMapOperator > transportOperatorRHS;
+   // std::shared_ptr< P2TransportRHSIcosahedralShellMapOperator > transportOperatorRHS;
    std::shared_ptr< DiffusionOperator >                         diffusionOperator;
    std::shared_ptr< P2ElementwiseBlendingMassOperator >         P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >                   projectionOperator;
@@ -264,8 +270,14 @@ class ConvectionSimulation
    // std::functions for various functionalities
    std::function< real_t( const Point3D& ) >         densityFunc;
    std::function< real_t( const Point3D& ) >         diffFactorFunc;
+   std::function< real_t( const Point3D& ) >         adiabaticCoeffFunc;
+   std::function< real_t( const Point3D& ) >         constEnergyCoeffFunc;
+   std::function< real_t( const Point3D& ) >         surfTempCoeffFunc;
    std::function< real_t( const Point3D&, real_t ) > viscosityFunc;
    std::function< real_t( const Point3D& ) >         referenceTemperatureFct;
+   std::function< real_t( const Point3D& ) >         oppositeGravityX;
+   std::function< real_t( const Point3D& ) >         oppositeGravityY;
+   std::function< real_t( const Point3D& ) >         oppositeGravityZ;
 
    std::function< real_t( const Point3D& ) > normalX = []( const Point3D& x ) { return -x[0] / x.norm(); };
    std::function< real_t( const Point3D& ) > normalY = []( const Point3D& x ) { return -x[1] / x.norm(); };

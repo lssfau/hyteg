@@ -170,6 +170,22 @@ real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
    return ( real_c( 1.0 ) ) / ( densityFunction( x ) * TN.physicalParameters.pecletNumber );
 }
 
+real_t ConvectionSimulation::adiabaticCoefficientFunction( const Point3D& )
+{
+   return TN.physicalParameters.dissipationNumber;
+}
+
+real_t ConvectionSimulation::constantEnergyCoefficientFunction( const Point3D& )
+{
+   real_t intHeatingFactor = 1.0;
+   return TN.physicalParameters.hNumber * intHeatingFactor;
+}
+
+real_t ConvectionSimulation::surfaceTempCoefficientFunction( const Point3D& )
+{
+   return 0.0;
+}
+
 void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
 {
    uint_t coordIdx = 0;
@@ -255,6 +271,12 @@ void ConvectionSimulation::normalFunc( const Point3D& p, Point3D& n )
    {
       n = Point3D( { -p[0] / radius, -p[1] / radius, -p[2] / radius } );
    }
+}
+
+void ConvectionSimulation::oppositeGravity( const Point3D& p, Point3D& n )
+{
+   real_t radius = p.norm();
+   n = Point3D( { p[0] / radius, p[1] / radius, p[2] / radius } );
 }
 
 //returns a reference adiabat relevant for the Earth, commonly implemented in TALA

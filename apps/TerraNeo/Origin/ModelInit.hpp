@@ -415,35 +415,30 @@ void ConvectionSimulation::setupSolversAndOperators()
               { solvertemplates::StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
                 TN.solverParameters.numPowerIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
-                 TN.solverParameters.FGMRESOuterIterations  },
+                TN.solverParameters.FGMRESOuterIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,
-                 TN.solverParameters.FGMRESTolerance  },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER,
-                 TN.solverParameters.uzawaIterations  },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA,  TN.solverParameters.uzawaOmega  },
+                TN.solverParameters.FGMRESTolerance },
+              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, TN.solverParameters.uzawaIterations },
+              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, TN.solverParameters.uzawaOmega },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                 TN.solverParameters.ABlockMGIterations  },
+                TN.solverParameters.ABlockMGIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                 TN.solverParameters.ABlockMGTolerance  },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH,
-                 TN.solverParameters.ABlockMGPreSmooth  },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH,
-                 TN.solverParameters.ABlockMGPostSmooth  },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER,
-                 TN.solverParameters.ABlockCoarseGridIterations  },
+                TN.solverParameters.ABlockMGTolerance },
+              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, TN.solverParameters.ABlockMGPreSmooth },
+              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, TN.solverParameters.ABlockMGPostSmooth },
+              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, TN.solverParameters.ABlockCoarseGridIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE,
-                 TN.solverParameters.ABlockCoarseGridTolerance  },
+                TN.solverParameters.ABlockCoarseGridTolerance },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                 TN.solverParameters.SchurMGIterations  },
+                TN.solverParameters.SchurMGIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                 TN.solverParameters.SchurMGTolerance  },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH,  TN.solverParameters.SchurMGPreSmooth  },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH,
-                 TN.solverParameters.SchurMGPostSmooth  },
+                TN.solverParameters.SchurMGTolerance },
+              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, TN.solverParameters.SchurMGPreSmooth },
+              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, TN.solverParameters.SchurMGPostSmooth },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER,
-                 TN.solverParameters.SchurCoarseGridIterations  },
+                TN.solverParameters.SchurCoarseGridIterations },
               { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE,
-                 TN.solverParameters.SchurCoarseGridTolerance  },
+                TN.solverParameters.SchurCoarseGridTolerance },
           } );
 
       stokesSolverFS       = std::get< 0 >( solverContainer );
@@ -501,7 +496,7 @@ void ConvectionSimulation::setupSolversAndOperators()
           TN.domainParameters.maxLevel,
           stokesOperatorFS,
           projectionOperator,
-          p2p1StokesFunctionContainer["StokesTmp"],
+          p2p1StokesFunctionContainer["StokesTmp1"],
           p2p1StokesFunctionContainer["StokesTmpProlongation"],
           false,
           { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
@@ -559,15 +554,47 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorTALA->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
    transportOperatorTALA->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
 
-   transportOperatorTALA->setInvGravity( p2VectorFunctionContainer["OppositeGravityField"] );
+   transportOperatorTALA->setReferenceTemperature(
+       std::make_shared< std::function< real_t( const Point3D& ) > >( referenceTemperatureFct ) );
 
-   transportOperatorTALA->setDiffusivityCoeff( p2ScalarFunctionContainer["DiffusionFE"] );
-   transportOperatorTALA->setAdiabaticCoeff( p2ScalarFunctionContainer["AdiabaticTermCoeff"] );
+   oppositeGravityX = [this]( const Point3D& x ) {
+      Point3D n;
+      oppositeGravity( x, n );
+
+      return n[0];
+   };
+
+   oppositeGravityY = [this]( const Point3D& x ) {
+      Point3D n;
+      oppositeGravity( x, n );
+
+      return n[1];
+   };
+
+   oppositeGravityZ = [this]( const Point3D& x ) {
+      Point3D n;
+      oppositeGravity( x, n );
+
+      return n[2];
+   };
+
+   adiabaticCoeffFunc = [this]( const Point3D& x ) { return adiabaticCoefficientFunction( x ); };
+
+   constEnergyCoeffFunc = [this]( const Point3D& x ) { return constantEnergyCoefficientFunction( x ); };
+
+   surfTempCoeffFunc = [this]( const Point3D& x ) { return surfaceTempCoefficientFunction( x ); };
+
+   transportOperatorTALA->setInvGravity( { std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityX ),
+                                           std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityY ),
+                                           std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityZ ) } );
+
+   transportOperatorTALA->setDiffusivityCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( diffFactorFunc ) );
+   transportOperatorTALA->setAdiabaticCoeff(
+       std::make_shared< std::function< real_t( const Point3D& ) > >( adiabaticCoeffFunc ) );
+   transportOperatorTALA->setConstEnergyCoeff(
+       std::make_shared< std::function< real_t( const Point3D& ) > >( constEnergyCoeffFunc ) );
+   transportOperatorTALA->setSurfTempCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
    transportOperatorTALA->setShearHeatingCoeff( p2ScalarFunctionContainer["ShearHeatingTermCoeff"] );
-   transportOperatorTALA->setConstEnergyCoeff( p2ScalarFunctionContainer["ConstEnergyCoeff"] );
-   transportOperatorTALA->setSurfTempCoeff( p2ScalarFunctionContainer["SurfaceTempCoeff"] );
-
-   transportOperatorTALA->setReferenceTemperature( p2ScalarFunctionContainer["TemperatureReference"] );
 
    transportOperatorTALA->setTALADict(
        { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
@@ -576,28 +603,28 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    transportOperatorTALA->initializeOperators();
 
-   transportOperatorRHS = std::make_shared< P2TransportRHSIcosahedralShellMapOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   // transportOperatorRHS = std::make_shared< P2TransportRHSIcosahedralShellMapOperator >(
+   //     storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   transportOperatorRHS->setVelocity( p2p1StokesFunctionContainer["StokesLHS"] );
-   transportOperatorRHS->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
-   transportOperatorRHS->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
+   // transportOperatorRHS->setVelocity( p2p1StokesFunctionContainer["StokesLHS"] );
+   // transportOperatorRHS->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
+   // transportOperatorRHS->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
 
-   transportOperatorRHS->setInvGravity( p2VectorFunctionContainer["OppositeGravityField"] );
+   // transportOperatorRHS->setInvGravity( p2VectorFunctionContainer["OppositeGravityField"] );
 
-   transportOperatorRHS->setDiffusivityCoeff( p2ScalarFunctionContainer["DiffusionFE"] );
-   transportOperatorRHS->setAdiabaticCoeff( p2ScalarFunctionContainer["AdiabaticTermCoeff"] );
-   transportOperatorRHS->setShearHeatingCoeff( p2ScalarFunctionContainer["ShearHeatingTermCoeff"] );
-   transportOperatorRHS->setConstEnergyCoeff( p2ScalarFunctionContainer["ConstEnergyCoeff"] );
+   // transportOperatorRHS->setDiffusivityCoeff( p2ScalarFunctionContainer["DiffusionFE"] );
+   // transportOperatorRHS->setAdiabaticCoeff( p2ScalarFunctionContainer["AdiabaticTermCoeff"] );
+   // transportOperatorRHS->setShearHeatingCoeff( p2ScalarFunctionContainer["ShearHeatingTermCoeff"] );
+   // transportOperatorRHS->setConstEnergyCoeff( p2ScalarFunctionContainer["ConstEnergyCoeff"] );
 
-   transportOperatorRHS->setReferenceTemperature( p2ScalarFunctionContainer["TemperatureReference"] );
+   // transportOperatorRHS->setReferenceTemperature( p2ScalarFunctionContainer["TemperatureReference"] );
 
-   transportOperatorRHS->setTALADict(
-       { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-         { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
-         { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
+   // transportOperatorRHS->setTALADict(
+   //     { { TransportRHSOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+   //       { TransportRHSOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
+   //       { TransportRHSOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
 
-   transportOperatorRHS->initializeOperators();
+   // transportOperatorRHS->initializeOperators();
 
    diffusionOperator = std::make_shared< DiffusionOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["DiffusionFE"] ) );

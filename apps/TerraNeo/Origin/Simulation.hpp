@@ -251,7 +251,7 @@ void ConvectionSimulation::solveEnergy()
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    transportOperatorTALA->setTimestep( TN.simulationParameters.dt );
-   transportOperatorRHS->setTimestep( TN.simulationParameters.dt );
+   // transportOperatorRHS->setTimestep( TN.simulationParameters.dt );
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc =
        [=]( const Point3D& x, const std::vector< real_t >& density ) {
