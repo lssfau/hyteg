@@ -185,14 +185,12 @@ class ConvectionSimulation
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2p1StokesFunctionDict = {
        { "VelocityFE", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesLHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesLHSPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "VelocityFEPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesRHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmp", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "VelocityOutput", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
+       { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION }
+   };
    std::map< std::string, std::shared_ptr< StokesFunctionP2P1 > > p2p1StokesFunctionContainer;
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2ScalarFunctionDict = {
@@ -206,9 +204,9 @@ class ConvectionSimulation
        { "ViscosityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "ViscosityFEInv", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "Viscosity[Pas]", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "EnergyRHS", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+      //  { "EnergyRHS", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "EnergyRHSWeak", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "OnesFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+      //  { "OnesFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "DensityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "DiffusionFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "AdiabaticTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
@@ -220,9 +218,10 @@ class ConvectionSimulation
    std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {
-       { "InwardNormal", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "OppositeGravityField", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
+      //  { "InwardNormal", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
+      //  { "OppositeGravityField", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } 
+      };
    std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
 
    // Storage for primitives (includes functionality for distributed computing)

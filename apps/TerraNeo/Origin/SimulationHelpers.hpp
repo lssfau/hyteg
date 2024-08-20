@@ -212,10 +212,10 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
          //interpolate current plate velocities at the surface
          U.uvw()[coordIdx].interpolate( Velocity, l, idSurface );
 
-         //just used for setting up p2p1StokesFunctionContainer["StokesLHSPrev"] in the initialisation
+         //just used for setting up p2p1StokesFunctionContainer["VelocityFEPrev"] in the initialisation
          if ( TN.simulationParameters.timeStep == 0 )
          {
-            p2p1StokesFunctionContainer["StokesLHSPrev"]->uvw()[coordIdx].interpolate( Velocity, l, idSurface );
+            p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw()[coordIdx].interpolate( Velocity, l, idSurface );
          }
       }
    }

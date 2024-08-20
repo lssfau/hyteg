@@ -91,13 +91,13 @@ void ConvectionSimulation::setupOutput()
       {
          if ( TN.outputParameters.vtkOutputVertexDoFs )
          {
-            vtkOutput->add( p2p1StokesFunctionContainer["StokesLHS"]->uvw()[0].getVertexDoFFunction() );
-            vtkOutput->add( p2p1StokesFunctionContainer["StokesLHS"]->uvw()[1].getVertexDoFFunction() );
-            vtkOutput->add( p2p1StokesFunctionContainer["StokesLHS"]->uvw()[2].getVertexDoFFunction() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
          }
          else
          {
-            vtkOutput->add( p2p1StokesFunctionContainer["StokesLHS"]->uvw() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
          }
       }
       else
@@ -124,7 +124,7 @@ void ConvectionSimulation::setupOutput()
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         _output->add( p2p1StokesFunctionContainer["StokesLHS"]->uvw() );
+         _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
 
          // stokes RHS velocity
 

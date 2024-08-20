@@ -299,26 +299,26 @@ void ConvectionSimulation::initialiseFunctions()
       //set plate velocities for timestep 0 / initialAge
       if ( TN.simulationParameters.simulationType == "CirculationModel" )
       {
-         updatePlateVelocities( *( p2p1StokesFunctionContainer["StokesLHS"] ) );
+         updatePlateVelocities( *( p2p1StokesFunctionContainer["VelocityFE"] ) );
       }
       else
       {
          //currently initialising CMB and surface to zeros for NoSlipNoSlip case
-         p2p1StokesFunctionContainer["StokesLHS"]->uvw().interpolate( { zeros, zeros, zeros }, level, idSurface );
-         p2p1StokesFunctionContainer["StokesLHSPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, idSurface );
+         p2p1StokesFunctionContainer["VelocityFE"]->uvw().interpolate( { zeros, zeros, zeros }, level, idSurface );
+         p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, idSurface );
       }
 
-      p2p1StokesFunctionContainer["StokesLHS"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
-      p2p1StokesFunctionContainer["StokesLHSPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
+      p2p1StokesFunctionContainer["VelocityFE"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
+      p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
       p2p1StokesFunctionContainer["StokesRHS"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
-      p2p1StokesFunctionContainer["StokesTmp"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
+      p2p1StokesFunctionContainer["StokesTmp1"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
 
-      p2VectorFunctionContainer["InwardNormal"]->interpolate( { normalX, normalY, normalZ }, level, All );
+      // p2VectorFunctionContainer["InwardNormal"]->interpolate( { normalX, normalY, normalZ }, level, All );
 
-      p2VectorFunctionContainer["OppositeGravityField"]->assign(
-          { -1.0 }, { *( p2VectorFunctionContainer["InwardNormal"] ) }, level, All );
+      // p2VectorFunctionContainer["OppositeGravityField"]->assign(
+      //     { -1.0 }, { *( p2VectorFunctionContainer["InwardNormal"] ) }, level, All );
 
-      p2ScalarFunctionContainer["OnesFE"]->interpolate( real_c( 1 ), level, All );
+      // p2ScalarFunctionContainer["OnesFE"]->interpolate( real_c( 1 ), level, All );
       p2VectorFunctionContainer["GradRhoOverRho"]->interpolate( { normalX, normalY, normalZ }, level, All );
 
       //grad(rho)/rho = - ( Di / gamma ) * r_hat
@@ -550,7 +550,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorP1Coefficients = std::make_shared< P2TransportP1CoefficientsIcosahedralShellMapOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   transportOperatorTALA->setVelocity( p2p1StokesFunctionContainer["StokesLHS"] );
+   transportOperatorTALA->setVelocity( p2p1StokesFunctionContainer["VelocityFE"] );
    transportOperatorTALA->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
    transportOperatorTALA->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
 
@@ -606,7 +606,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    // transportOperatorRHS = std::make_shared< P2TransportRHSIcosahedralShellMapOperator >(
    //     storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   // transportOperatorRHS->setVelocity( p2p1StokesFunctionContainer["StokesLHS"] );
+   // transportOperatorRHS->setVelocity( p2p1StokesFunctionContainer["VelocityFE"] );
    // transportOperatorRHS->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
    // transportOperatorRHS->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
 
