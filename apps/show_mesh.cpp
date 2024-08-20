@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <sstream>
+#include <filesystem>
 
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
@@ -50,7 +51,6 @@ using namespace hyteg;
 /// obtain info on the resulting primitive distribution for a given load balancing
 /// scheme. Additionally one can query the number of degrees of freedom for a
 /// mesh on a specific refinement level.
-
 
 /// Print information on the app and available command-line parameters
 void showUsage()
@@ -90,7 +90,6 @@ void showUsage()
        << " Use  --dofs <lvl>  to print number of DoFs on refinement level lvl.\n\n"
        << std::endl;
 }
-
 
 /// The actual show_mesh app itself
 int main( int argc, char* argv[] )
@@ -144,9 +143,8 @@ int main( int argc, char* argv[] )
    {
       meshDomain   = FROM_FILE;
       meshFileName = std::string( argv[2] );
-      auto pos     = meshFileName.find_last_of( '/' );
-      pos == meshFileName.npos ? pos = 0 : ++pos;
-      vtkFileName = meshFileName.substr( pos, meshFileName.length() - 4 );
+      std::filesystem::path fullPath( meshFileName ); 
+      vtkFileName = fullPath.stem();
    }
    else if ( strcmp( argv[1], "--rect" ) == 0 )
    {
@@ -400,8 +398,8 @@ int main( int argc, char* argv[] )
       msg << "VERTEX INFO:\n";
       for ( const auto& it : verts )
       {
-         msg << "node " << it.first << ": mesh boundary flag = " << it.second.getBoundaryFlag()
-             << " | pos = " << it.second.getCoordinates() << "\n";
+         msg << "node " << it.first << ":\n* mesh boundary flag = " << it.second.getBoundaryFlag() << "\n* coordinates =\n"
+             << it.second.getCoordinates() << "\n";
       }
       WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
       msg.str( "" );
@@ -426,6 +424,20 @@ int main( int argc, char* argv[] )
       }
       WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
       msg.str( "" );
+
+      msg << "CELL INFO (vertex indices):\n";
+      MeshInfo::CellContainer cells = meshInfo->getCells();
+      if ( cells.size() > 0 )
+      {
+         for ( const auto& it : cells )
+         {
+            std::vector< MeshInfo::IDType > node = it.second.getVertices();
+            WALBERLA_CHECK_EQUAL( node.size(), 4, "Cell seems to have " << node.size() << " vertices instead of 4!" );
+            msg << node[0] << " <--> " << node[1] << " <--> " << node[2] << " <--> " << node[3]
+                << " : mesh boundary flag = " << it.second.getBoundaryFlag() << std::endl;
+         }
+         WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
+      }
    }
 
    SetupPrimitiveStorage* setupStorage = nullptr;

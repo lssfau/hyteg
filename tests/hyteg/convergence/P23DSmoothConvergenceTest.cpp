@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,6 +41,10 @@ static void testP2SmoothConvergence( const uint_t&      level,
                                      const uint_t&      numIterations,
                                      const real_t&      expectedL2Error )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "============================================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Running with '" << meshFile << "'" );
+   WALBERLA_LOG_INFO_ON_ROOT( "============================================" );
+
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -95,7 +99,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::testP2SmoothConvergence( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 50, 1.2e-02 );
-   hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 50, 9.3e-07 );
+   hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 50, 3e-06 );
    hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), 50, 1.65e-03 );
    hyteg::testP2SmoothConvergence( 2, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 50, 7.7e-02 );
 

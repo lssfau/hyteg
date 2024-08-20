@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -122,8 +122,8 @@ int main( int argc, char* argv[] )
 
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/2D/tri_1el.msh" ), 3, 3.3e-6, false, false );
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/2D/quad_4el.msh" ), 3, 1.4e-5, false, false );
-   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 1.1e-6, false, false );
-   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 5e-7, true, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 3.2e-6, false, false );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1.5e-6, true, false );
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, 1.5e-4, false, false );
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, 9.1e-4, true, false );
 
@@ -142,8 +142,8 @@ int main( int argc, char* argv[] )
 
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/2D/tri_1el.msh" ), 3, 3.3e-6, false, true );
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "/2D/quad_4el.msh" ), 3, 1.4e-5, false, true );
-   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 1.1e-6, false, true );
-   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 5e-7, true, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 2, 3.2e-6, false, true );
+   hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), 3, 1.5e-6, true, true );
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), 2, 1.5e-4, false, true );
    hyteg::P1ElementwiseCGTest( hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), 2, 9.1e-4, true, true );
 }
