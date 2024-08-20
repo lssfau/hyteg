@@ -410,21 +410,24 @@ void ConvectionSimulation::setupStokesRHS()
       // Provide the option to run incompressible simulations for test or educational purposes
       if ( TN.simulationParameters.compressible )
       {
-         frozenVelocityRHSX->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 0U ),
-                                    p2p1StokesFunctionContainer["StokesRHS"]->p(),
-                                    l,
-                                    All,
-                                    Replace );
-         frozenVelocityRHSY->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 1U ),
-                                    p2p1StokesFunctionContainer["StokesRHS"]->p(),
-                                    l,
-                                    All,
-                                    Add );
-         frozenVelocityRHSZ->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 2U ),
-                                    p2p1StokesFunctionContainer["StokesRHS"]->p(),
-                                    l,
-                                    All,
-                                    Add );
+         // frozenVelocityRHSX->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 0U ),
+         //                            p2p1StokesFunctionContainer["StokesRHS"]->p(),
+         //                            l,
+         //                            All,
+         //                            Replace );
+         // frozenVelocityRHSY->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 1U ),
+         //                            p2p1StokesFunctionContainer["StokesRHS"]->p(),
+         //                            l,
+         //                            All,
+         //                            Add );
+         // frozenVelocityRHSZ->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 2U ),
+         //                            p2p1StokesFunctionContainer["StokesRHS"]->p(),
+         //                            l,
+         //                            All,
+         //                            Add );
+
+         frozenVelocityRHS->apply(
+             p2p1StokesFunctionContainer["VelocityFE"]->uvw(), p2p1StokesFunctionContainer["StokesRHS"]->p(), l, All );
 
          p2p1StokesFunctionContainer["StokesRHS"]->p().assign(
              { -1.0 }, { p2p1StokesFunctionContainer["StokesRHS"]->p() }, l, All );

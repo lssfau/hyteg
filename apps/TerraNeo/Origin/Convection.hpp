@@ -80,6 +80,7 @@
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/terraneo/P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockLaplaceOperator.hpp"
@@ -136,6 +137,8 @@ class ConvectionSimulation
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap            SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap         DiffusionOperator;
    typedef hyteg::operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap        FrozenVelocityOperator;
+   
+   typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
 
    // typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS StokesOperatorP1Visc;
 
@@ -219,7 +222,7 @@ class ConvectionSimulation
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {
       //  { "InwardNormal", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
+      //  { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
       //  { "OppositeGravityField", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } 
       };
    std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
@@ -252,6 +255,8 @@ class ConvectionSimulation
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSX;
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSY;
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSZ;
+
+   std::shared_ptr< FrozenVelocityFullOperator > frozenVelocityRHS;
 
    std::shared_ptr< InexactUzawaPreconditioner< StokesOperator, StokesOperator::ViscousOperator_T, SchurOperator > >
                                                uzawaSmoother;

@@ -319,14 +319,14 @@ void ConvectionSimulation::initialiseFunctions()
       //     { -1.0 }, { *( p2VectorFunctionContainer["InwardNormal"] ) }, level, All );
 
       // p2ScalarFunctionContainer["OnesFE"]->interpolate( real_c( 1 ), level, All );
-      p2VectorFunctionContainer["GradRhoOverRho"]->interpolate( { normalX, normalY, normalZ }, level, All );
+      // p2VectorFunctionContainer["GradRhoOverRho"]->interpolate( { normalX, normalY, normalZ }, level, All );
 
-      //grad(rho)/rho = - ( Di / gamma ) * r_hat
-      p2VectorFunctionContainer["GradRhoOverRho"]->assign(
-          { TN.physicalParameters.dissipationNumber / TN.physicalParameters.grueneisenParameter },
-          { *( p2VectorFunctionContainer["GradRhoOverRho"] ) },
-          level,
-          All );
+      // //grad(rho)/rho = - ( Di / gamma ) * r_hat
+      // p2VectorFunctionContainer["GradRhoOverRho"]->assign(
+      //     { TN.physicalParameters.dissipationNumber / TN.physicalParameters.grueneisenParameter },
+      //     { *( p2VectorFunctionContainer["GradRhoOverRho"] ) },
+      //     level,
+      //     All );
    }
 
    auto temperatureRadialProfile = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
@@ -524,21 +524,24 @@ void ConvectionSimulation::setupSolversAndOperators()
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   frozenVelocityRHSX =
-       std::make_shared< FrozenVelocityOperator >( storage,
-                                                   TN.domainParameters.minLevel,
-                                                   TN.domainParameters.maxLevel,
-                                                   p2VectorFunctionContainer["GradRhoOverRho"]->component( 0U ) );
-   frozenVelocityRHSY =
-       std::make_shared< FrozenVelocityOperator >( storage,
-                                                   TN.domainParameters.minLevel,
-                                                   TN.domainParameters.maxLevel,
-                                                   p2VectorFunctionContainer["GradRhoOverRho"]->component( 1U ) );
-   frozenVelocityRHSZ =
-       std::make_shared< FrozenVelocityOperator >( storage,
-                                                   TN.domainParameters.minLevel,
-                                                   TN.domainParameters.maxLevel,
-                                                   p2VectorFunctionContainer["GradRhoOverRho"]->component( 2U ) );
+   // frozenVelocityRHSX =
+   //     std::make_shared< FrozenVelocityOperator >( storage,
+   //                                                 TN.domainParameters.minLevel,
+   //                                                 TN.domainParameters.maxLevel,
+   //                                                 p2VectorFunctionContainer["GradRhoOverRho"]->component( 0U ) );
+   // frozenVelocityRHSY =
+   //     std::make_shared< FrozenVelocityOperator >( storage,
+   //                                                 TN.domainParameters.minLevel,
+   //                                                 TN.domainParameters.maxLevel,
+   //                                                 p2VectorFunctionContainer["GradRhoOverRho"]->component( 1U ) );
+   // frozenVelocityRHSZ =
+   //     std::make_shared< FrozenVelocityOperator >( storage,
+   //                                                 TN.domainParameters.minLevel,
+   //                                                 TN.domainParameters.maxLevel,
+   //                                                 p2VectorFunctionContainer["GradRhoOverRho"]->component( 2U ) );
+
+   frozenVelocityRHS = std::make_shared< FrozenVelocityFullOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *(p2ScalarFunctionContainer["DensityFE"]) );
 
    /////////////////////////
    // Diffusion Operator //
