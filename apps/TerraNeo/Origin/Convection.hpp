@@ -242,6 +242,8 @@ class ConvectionSimulation
    std::shared_ptr< P2ElementwiseBlendingMassOperator >         P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >                   projectionOperator;
 
+   std::shared_ptr< P2TransportP1CoefficientsIcosahedralShellMapOperator > transportOperatorP1Coefficients;
+
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSX;
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSY;
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSZ;

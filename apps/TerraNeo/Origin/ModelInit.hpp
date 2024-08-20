@@ -552,6 +552,9 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorTALA = std::make_shared< P2TransportIcosahedralShellMapOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
+   transportOperatorP1Coefficients = std::make_shared< P2TransportP1CoefficientsIcosahedralShellMapOperator >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+
    transportOperatorTALA->setVelocity( p2p1StokesFunctionContainer["StokesLHS"] );
    transportOperatorTALA->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
    transportOperatorTALA->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );

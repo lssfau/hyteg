@@ -26,15 +26,18 @@
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradAnnulusMap.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/k_mass/P2ElementwiseKMassP1CoefficientIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMass.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeating.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingP1ViscosityIcosahedralShellMap.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
@@ -147,6 +150,7 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
       {
          // $\Delta t \int_\Omega C_{adiabatic} T_h^{n+1} s_h d\Omega$
          temp2_.uvw().multElementwise( { velocity_->uvw(), *invGravity_ }, level, hyteg::All );
+
          if ( dst.getStorage()->hasGlobalCells() )
          {
             temp1_.assign( { 1.0, 1.0, 1.0 },
@@ -158,7 +162,22 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
          {
             temp1_.assign( { 1.0, 1.0 }, { temp2_.uvw().component( 0U ), temp2_.uvw().component( 1U ) }, level, hyteg::All );
          }
-         temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, hyteg::All );
+
+         // temp1_ is the adiabatic coefficient that will be used by the adiabaticOperator_
+         if constexpr ( std::is_same_v< CoefficientFunctionType, P2Function< real_t > > )
+         {
+            temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, hyteg::All );
+         }
+         else if constexpr ( std::is_same_v< CoefficientFunctionType, P1Function< real_t > > )
+         {
+            temp1_.getVertexDoFFunction().multElementwise(
+                { temp1_.getVertexDoFFunction(), *adiabaticCoeff_ }, level, hyteg::All );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Something's wrong" );
+         }
+
          adiabaticOperator_->apply( src, temp2_.uvw().component( 0U ), level, flag );
          dst.assign( { 1.0, timestep }, { dst, temp2_.uvw().component( 0U ) }, level, flag );
       }
@@ -282,7 +301,22 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
          {
             temp1_.assign( { 1.0, 1.0 }, { temp2_.uvw().component( 0U ), temp2_.uvw().component( 1U ) }, level, hyteg::All );
          }
-         temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, hyteg::All );
+
+         // temp1_ is the adiabatic coefficient that will be used by the adiabaticOperator_
+         if constexpr ( std::is_same_v< CoefficientFunctionType, P2Function< real_t > > )
+         {
+            temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, hyteg::All );
+         }
+         else if constexpr ( std::is_same_v< CoefficientFunctionType, P1Function< real_t > > )
+         {
+            temp1_.getVertexDoFFunction().multElementwise(
+                { temp1_.getVertexDoFFunction(), *adiabaticCoeff_ }, level, hyteg::All );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Something's wrong" );
+         }
+
          adiabaticOperator_->apply( *surfTempCoeff_, temp2_.uvw().component( 0U ), level, flag );
          dst.assign( { 1.0, timestep }, { dst, temp2_.uvw().component( 0U ) }, level, flag );
       }
@@ -315,28 +349,51 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
           storage_, minLevel_, maxLevel_, hyteg::TimeSteppingScheme::RK4 );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing MMOC Done" );
 
-      WALBERLA_CHECK_NOT_NULLPTR( viscosity_ );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator" );
-      // shearHeatingOperator_ = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscosity_ );
-      shearHeatingOperator_ = std::make_shared< P2ShearHeatingOperatorTALA >( storage_,
-                                                                              minLevel_,
-                                                                              maxLevel_,
-                                                                              *viscosity_,
-                                                                              velocity_->uvw().component( 0U ),
-                                                                              velocity_->uvw().component( 1U ),
-                                                                              velocity_->uvw().component( zComp ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator Done" );
+      if ( TALADict_.at( TransportOperatorTermKey::SHEAR_HEATING_TERM ) )
+      {
+         WALBERLA_CHECK_NOT_NULLPTR( viscosity_ );
+         WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator" );
+         // shearHeatingOperator_ = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscosity_ );
+         shearHeatingOperator_ = std::make_shared< P2ShearHeatingOperatorTALA >( storage_,
+                                                                                 minLevel_,
+                                                                                 maxLevel_,
+                                                                                 *viscosity_,
+                                                                                 velocity_->uvw().component( 0U ),
+                                                                                 velocity_->uvw().component( 1U ),
+                                                                                 velocity_->uvw().component( zComp ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator Done" );
+      }
 
-      WALBERLA_CHECK_NOT_NULLPTR( adiabaticCoeff_ );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator" );
-      adiabaticOperator_ = std::make_shared< P2KMassOperatorTALA >(
-          storage_, minLevel_, maxLevel_, temp1_ ); // Yes this is not adiabaticCoeff_, it will be used in apply directly
-      WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator Done" );
+      if ( TALADict_.at( TransportOperatorTermKey::ADIABATIC_HEATING_TERM ) )
+      {
+         WALBERLA_CHECK_NOT_NULLPTR( adiabaticCoeff_ );
+         WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator" );
 
-      WALBERLA_CHECK_NOT_NULLPTR( diffusivityCoeff_ );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initializing Diffusion Operator" );
-      diffusionOperator_ = std::make_shared< P2DivKGradOperatorTALA >( storage_, minLevel_, maxLevel_, *diffusivityCoeff_ );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initializing Diffusion Operator Done" );
+         // temp1_ is the adiabatic coefficient that will be used by the adiabaticOperator_
+         if constexpr ( std::is_same_v< CoefficientFunctionType, P2Function< real_t > > )
+         {
+            adiabaticOperator_ = std::make_shared< P2KMassOperatorTALA >( storage_, minLevel_, maxLevel_, temp1_ );
+         }
+         else if constexpr ( std::is_same_v< CoefficientFunctionType, P1Function< real_t > > )
+         {
+            adiabaticOperator_ =
+                std::make_shared< P2KMassOperatorTALA >( storage_, minLevel_, maxLevel_, temp1_.getVertexDoFFunction() );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Something's wrong" );
+         }
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator Done" );
+      }
+
+      if ( TALADict_.at( TransportOperatorTermKey::DIFFUSION_TERM ) )
+      {
+         WALBERLA_CHECK_NOT_NULLPTR( diffusivityCoeff_ );
+         WALBERLA_LOG_INFO_ON_ROOT( "Initializing Diffusion Operator" );
+         diffusionOperator_ = std::make_shared< P2DivKGradOperatorTALA >( storage_, minLevel_, maxLevel_, *diffusivityCoeff_ );
+         WALBERLA_LOG_INFO_ON_ROOT( "Initializing Diffusion Operator Done" );
+      }
 
       // WALBERLA_CHECK_NOT_NULLPTR( velocity_ );
       // WALBERLA_LOG_INFO_ON_ROOT( "Initializing Advection Operator" );
@@ -531,7 +588,7 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
    hyteg::P2P1TaylorHoodFunction< real_t > velocityPrev_;
    TemperatureFunctionType                 temperaturePrev_;
 
-   CoefficientFunctionType                 temp1_;
+   TemperatureFunctionType                 temp1_;
    hyteg::P2P1TaylorHoodFunction< real_t > temp2_;
 
    std::shared_ptr< hyteg::P2VectorFunction< real_t > > invGravity_;
@@ -570,5 +627,13 @@ using P2TransportIcosahedralShellMapOperator =
                                  hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap,
                                  P2Function< real_t >,
                                  P2Function< real_t > >;
+
+using P2TransportP1CoefficientsIcosahedralShellMapOperator =
+    P2TransportOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
+                                 hyteg::operatorgeneration::P2ElementwiseKMassP1CoefficientIcosahedralShellMap,
+                                 hyteg::operatorgeneration::P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap,
+                                 hyteg::operatorgeneration::P2ElementwiseShearHeatingP1ViscosityIcosahedralShellMap,
+                                 P2Function< real_t >,
+                                 P1Function< real_t > >;
 
 } // namespace terraneo
