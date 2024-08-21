@@ -32,7 +32,6 @@ ConvectionSimulation::ConvectionSimulation( const walberla::Config::BlockHandle&
 {
    TN = terraneo::parseConfig( mainConf );
 
-   viscosityFunc  = std::bind( &ConvectionSimulation::viscosityFunction, this, std::placeholders::_1, std::placeholders::_2 );
    densityFunc    = std::bind( &ConvectionSimulation::densityFunction, this, std::placeholders::_1 );
    diffFactorFunc = std::bind( &ConvectionSimulation::diffPreFactorFunction, this, std::placeholders::_1 );
 }

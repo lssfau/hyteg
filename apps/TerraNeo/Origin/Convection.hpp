@@ -90,8 +90,10 @@
 #include "mixed_operator/ScalarToVectorOperator.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 // TerraNeo helpers for initialisation and data structures
+#include "terraneo/helpers/InterpolateProfile.hpp"
 #include "terraneo/helpers/RadialProfiles.hpp"
 #include "terraneo/helpers/TerraNeoParameters.hpp"
+#include "terraneo/helpers/Viscosity.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2TransportRHSOperator.hpp"
@@ -116,7 +118,6 @@ class ConvectionSimulation
    void step();
 
    void                        outputTimingTree();
-   real_t                      viscosityFunction( const Point3D& x, real_t Temperature );
    real_t                      densityFunction( const Point3D& x );
    real_t                      diffPreFactorFunction( const Point3D& x );
    real_t                      calculateStokesResidual( uint_t level );
@@ -124,8 +125,7 @@ class ConvectionSimulation
    real_t                      referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
-   void   updateNonDimParameters( const Point3D& x );
-   real_t interpolateDataValues( const Point3D& x, const std::vector< real_t >& radius, const std::vector< real_t >& values );
+   void updateNonDimParameters( const Point3D& x );
 
  private:
    typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunction;
@@ -271,16 +271,15 @@ class ConvectionSimulation
 #endif
 
    // std::functions for various functionalities
-   std::function< real_t( const Point3D& ) >         densityFunc;
-   std::function< real_t( const Point3D& ) >         diffFactorFunc;
-   std::function< real_t( const Point3D& ) >         adiabaticCoeffFunc;
-   std::function< real_t( const Point3D& ) >         constEnergyCoeffFunc;
-   std::function< real_t( const Point3D& ) >         surfTempCoeffFunc;
-   std::function< real_t( const Point3D&, real_t ) > viscosityFunc;
-   std::function< real_t( const Point3D& ) >         referenceTemperatureFct;
-   std::function< real_t( const Point3D& ) >         oppositeGravityX;
-   std::function< real_t( const Point3D& ) >         oppositeGravityY;
-   std::function< real_t( const Point3D& ) >         oppositeGravityZ;
+   std::function< real_t( const Point3D& ) > densityFunc;
+   std::function< real_t( const Point3D& ) > diffFactorFunc;
+   std::function< real_t( const Point3D& ) > adiabaticCoeffFunc;
+   std::function< real_t( const Point3D& ) > constEnergyCoeffFunc;
+   std::function< real_t( const Point3D& ) > surfTempCoeffFunc;
+   std::function< real_t( const Point3D& ) > referenceTemperatureFct;
+   std::function< real_t( const Point3D& ) > oppositeGravityX;
+   std::function< real_t( const Point3D& ) > oppositeGravityY;
+   std::function< real_t( const Point3D& ) > oppositeGravityZ;
 
    std::function< real_t( const Point3D& ) > normalX = []( const Point3D& x ) { return -x[0] / x.norm(); };
    std::function< real_t( const Point3D& ) > normalY = []( const Point3D& x ) { return -x[1] / x.norm(); };

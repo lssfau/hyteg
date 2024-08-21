@@ -33,92 +33,6 @@ const SimulationParameters& ConvectionSimulation::getSimulationParams()
    return TN.simulationParameters;
 }
 
-real_t ConvectionSimulation::viscosityFunction( const Point3D& x, real_t Temperature )
-{
-   real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-   real_t retVal = 1.0;
-
-   // If a viscosity profile is provided, use it, otherwise use a constant background viscosity
-   updateNonDimParameters( x );
-   if ( TN.simulationParameters.haveViscosityProfile )
-   {
-      retVal = interpolateDataValues( x, TN.physicalParameters.radius, TN.physicalParameters.viscosityProfile );
-   }
-   else
-   {
-      retVal = TN.physicalParameters.viscosity;
-   }
-   //scale background viscosity by temperature- and depth-dependent factors
-   //depth-dependent factor counteracts the decrease in viscosity due to increasing temperature with depth
-   if ( TN.simulationParameters.tempDependentViscosity )
-   {
-      // Account for non-dim temperature to be between 0-1
-      Temperature -= TN.physicalParameters.surfaceTemp / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
-
-      switch ( TN.simulationParameters.tempDependentViscosityType )
-      {
-      //Frank–Kamenetskii type 1
-      case 0: {
-         retVal *= std::exp( -TN.physicalParameters.activationEnergy * ( Temperature ) +
-                             TN.physicalParameters.depthViscosityFactor * ( TN.domainParameters.rMax - radius ) /
-                                 ( TN.domainParameters.rMax - TN.domainParameters.rMin ) );
-         break;
-      }
-      //Frank–Kamenetskii type 2
-      case 1: {
-         retVal *= std::exp( TN.physicalParameters.activationEnergy * ( real_c( 0.5 ) - Temperature ) +
-                             TN.physicalParameters.depthViscosityFactor * ( TN.domainParameters.rMax - radius ) /
-                                 ( TN.domainParameters.rMax - TN.domainParameters.rMin ) );
-         break;
-      }
-
-      //with respect to mean
-      case 2: {
-         uint_t shell = static_cast< uint_t >(
-             std::round( real_c( TN.simulationParameters.numLayers ) *
-                         ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
-
-         retVal *= std::exp( -TN.physicalParameters.activationEnergy *
-                             ( Temperature - TN.physicalParameters.temperatureProfile.at( shell ) ) );
-
-         break;
-      }
-      //Arrhenius type
-      case 3: {
-         retVal *= std::exp( TN.physicalParameters.activationEnergy *
-                                 ( ( real_c( 1 ) / ( Temperature + real_c( 0.25 ) ) ) - real_c( 1.45 ) ) +
-                             TN.physicalParameters.depthViscosityFactor * ( TN.domainParameters.rMax - radius ) /
-                                 ( TN.domainParameters.rMax - TN.domainParameters.rMin ) );
-
-         break;
-      }
-      //Frank–Kamenetskii type 1
-      default: {
-         retVal *= std::exp( -TN.physicalParameters.activationEnergy * ( Temperature ) +
-                             TN.physicalParameters.depthViscosityFactor * ( TN.domainParameters.rMax - radius ) /
-                                 ( TN.domainParameters.rMax - TN.domainParameters.rMin ) );
-         break;
-      }
-      }
-
-      //impose min viscosity
-      if ( retVal < TN.physicalParameters.viscosityLowerBound )
-      {
-         retVal = TN.physicalParameters.viscosityLowerBound;
-      }
-
-      //impose max viscosity
-      if ( retVal > TN.physicalParameters.viscosityUpperBound )
-      {
-         retVal = TN.physicalParameters.viscosityUpperBound;
-      }
-   }
-
-   retVal /= TN.physicalParameters.referenceViscosity;
-
-   return retVal;
-}
-
 real_t ConvectionSimulation::densityFunction( const Point3D& x )
 {
    auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
@@ -209,11 +123,16 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
 
 void ConvectionSimulation::updateViscosity()
 {
+   
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
-       [&]( const Point3D& x, const std::vector< real_t >& Temperature ) { return viscosityFunction( x, Temperature[0] ); };
+       [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
+         updateNonDimParameters( x );
+          return terraneo::viscosityFunction( x, Temperature[0], TN );
+       };
 
    auto viscosityInitInv = [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
-      return ( 1.0 / ( viscosityFunction( x, Temperature[0] ) ) );
+      updateNonDimParameters( x );
+      return ( 1.0 / ( terraneo::viscosityFunction( x, Temperature[0], TN ) ) );
    };
 
    // Before interpolation: Ensure the new reference viscosity is set to the min current viscosity if a viscosity profile
@@ -300,22 +219,32 @@ void ConvectionSimulation::updateNonDimParameters( const Point3D& x )
    if ( TN.simulationParameters.haveThermalExpProfile )
    {
       // update Thermal Expansivity parameter
-      TN.physicalParameters.thermalExpansivity =
-          interpolateDataValues( x, TN.physicalParameters.radiusAlpha, TN.physicalParameters.thermalExpansivityProfile );
+      TN.physicalParameters.thermalExpansivity = terraneo::interpolateDataValues( x,
+                                                                                  TN.physicalParameters.radiusAlpha,
+                                                                                  TN.physicalParameters.thermalExpansivityProfile,
+                                                                                  TN.domainParameters.rMin,
+                                                                                  TN.domainParameters.rMax );
    }
 
    if ( TN.simulationParameters.haveSpecificHeatCapProfile )
    {
       // update Specific Heat Capacity (at const. pressure)
       TN.physicalParameters.specificHeatCapacity =
-          interpolateDataValues( x, TN.physicalParameters.radiusCp, TN.physicalParameters.specificHeatCapacityProfile );
+          terraneo::interpolateDataValues( x,
+                                           TN.physicalParameters.radiusCp,
+                                           TN.physicalParameters.specificHeatCapacityProfile,
+                                           TN.domainParameters.rMin,
+                                           TN.domainParameters.rMax );
    }
 
    if ( TN.simulationParameters.haveGrueneisenProfile )
    {
       // update Grueneisen parameter
-      TN.physicalParameters.grueneisenParameter =
-          interpolateDataValues( x, TN.physicalParameters.radiusGamma, TN.physicalParameters.grueneisenProfile );
+      TN.physicalParameters.grueneisenParameter = terraneo::interpolateDataValues( x,
+                                                                                   TN.physicalParameters.radiusGamma,
+                                                                                   TN.physicalParameters.grueneisenProfile,
+                                                                                   TN.domainParameters.rMin,
+                                                                                   TN.domainParameters.rMax );
    }
 
    TN.physicalParameters.thermalDiffusivity =
@@ -337,53 +266,6 @@ void ConvectionSimulation::updateNonDimParameters( const Point3D& x )
    TN.physicalParameters.hNumber = ( TN.physicalParameters.internalHeatingRate * TN.physicalParameters.mantleThickness ) /
                                    ( TN.physicalParameters.specificHeatCapacity * TN.physicalParameters.characteristicVelocity *
                                      ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) );
-}
-
-real_t ConvectionSimulation::interpolateDataValues( const Point3D&               x,
-                                                    const std::vector< real_t >& radius,
-                                                    const std::vector< real_t >& values )
-{
-   real_t pointRadius = x.norm();
-   real_t retVal      = 1.0;
-
-   // Check if radius and viscosity std::vector are filled and at least 2 entries for radius are present
-   if ( radius.size() != values.size() || radius.size() < 2 )
-   {
-      WALBERLA_ABORT( "Value- and radius vector must be of the same size and contain at least two elements." );
-   }
-   // Check if the min and max radius of the input profile are reasonable
-
-   if ( radius[radius.size() - 1] < TN.domainParameters.rMin || radius[0] > TN.domainParameters.rMax )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "Inconsistent radial profile loaded!" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Min radius of radial profile: " << radius[radius.size() - 1] );
-      WALBERLA_LOG_INFO_ON_ROOT( "Max radius of radial profile: " << radius[0] );
-      WALBERLA_ABORT( "Cancel simulation run" );
-   }
-
-   // Loop over radius vector and find a datapoint that lies in between two given values
-   // If true: perform interpolation to estimate the value
-   // Check boundaries and set values accordingly
-
-   if ( pointRadius >= radius[0] )
-   {
-      retVal = values[0];
-   }
-   else if ( pointRadius <= radius[radius.size() - 1] )
-   {
-      retVal = values[radius.size() - 1];
-   }
-   else
-   {
-      uint_t count = 0;
-      while ( pointRadius < radius[count] )
-      {
-         ++count;
-      }
-      real_t interpolFactor = ( pointRadius - radius[count] ) / ( radius[count - 1] - radius[count] );
-      retVal                = ( interpolFactor * ( values[count - 1] - values[count] ) ) + values[count];
-   }
-   return retVal;
 }
 
 void ConvectionSimulation::outputTimingTree()
