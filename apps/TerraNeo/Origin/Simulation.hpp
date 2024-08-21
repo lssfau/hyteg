@@ -346,7 +346,7 @@ void ConvectionSimulation::setupStokesRHS()
             real_t refTemp = referenceTemperatureFct(x);
             return vals[0] - refTemp;
          };
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate(calculateTDev, {*(p2ScalarFunctionContainer["TemperatureFE"])}, l, All);
+         p2ScalarFunctionContainer["TemperatureDev"]->interpolate(calculateTDev, {*(p2ScalarFunctionContainer["TemperatureFE"])}, l, All);
          
          // p2ScalarFunctionContainer["TemperatureReference"]->interpolate( referenceTemperatureFct, l, All );
          // p2ScalarFunctionContainer["TemperatureDev"]->assign(
