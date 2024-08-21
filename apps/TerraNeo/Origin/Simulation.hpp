@@ -72,7 +72,7 @@ void ConvectionSimulation::step()
    WALBERLA_LOG_INFO_ON_ROOT( "-------- Time step: " << TN.simulationParameters.timeStep << " --------" );
 
    real_t vMax = velocityMaxMagnitude( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
-                                       *( p2ScalarFunctionContainer["ScalarTmp"] ),
+                                       p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component(0u),
                                        *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ),
                                        TN.domainParameters.maxLevel,
                                        All );
@@ -263,6 +263,10 @@ void ConvectionSimulation::solveEnergy()
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc =
        [=]( const Point3D& x, const std::vector< real_t >& density ) {
           real_t radius = x.norm();
+          if ( TN.simulationParameters.radialProfile )
+          {
+             updateNonDimParameters( x );
+          }
           if ( TN.simulationParameters.shearHeatingScaling > 1 )
           {
              WALBERLA_ABORT( "Shear heating scaling factor > 1 not allowed! --- Abort simulation ---" );
@@ -287,12 +291,12 @@ void ConvectionSimulation::solveEnergy()
       return TN.physicalParameters.hNumber * intHeatingFactor;
    };
 
-   p2ScalarFunctionContainer["AdiabaticTermCoeff"]->interpolate(
-       TN.physicalParameters.dissipationNumber, TN.domainParameters.maxLevel, All );
+   // p2ScalarFunctionContainer["AdiabaticTermCoeff"]->interpolate(
+   //  TN.physicalParameters.dissipationNumber, TN.domainParameters.maxLevel, All );
    p2ScalarFunctionContainer["ShearHeatingTermCoeff"]->interpolate(
        shearHeatingCoeffCalc, { *( p2ScalarFunctionContainer["DensityFE"] ) }, TN.domainParameters.maxLevel, All );
-   p2ScalarFunctionContainer["SurfaceTempCoeff"]->interpolate( real_c( 0 ), TN.domainParameters.maxLevel, All );
-   p2ScalarFunctionContainer["ConstEnergyCoeff"]->interpolate( internalHeatingCoeffCalc, TN.domainParameters.maxLevel, All );
+   // p2ScalarFunctionContainer["SurfaceTempCoeff"]->interpolate( real_c( 0 ), TN.domainParameters.maxLevel, All );
+   // p2ScalarFunctionContainer["ConstEnergyCoeff"]->interpolate( internalHeatingCoeffCalc, TN.domainParameters.maxLevel, All );
 
    // Assemble RHS
    transportOperatorTALA->applyRHS( *( p2ScalarFunctionContainer["EnergyRHSWeak"] ), TN.domainParameters.maxLevel, All );
@@ -337,12 +341,19 @@ void ConvectionSimulation::setupStokesRHS()
       }
       else
       {
-         p2ScalarFunctionContainer["TemperatureReference"]->interpolate( referenceTemperatureFct, l, All );
-         p2ScalarFunctionContainer["TemperatureDev"]->assign(
-             { 1.0, -1.0 },
-             { *( p2ScalarFunctionContainer["TemperatureFE"] ), *( p2ScalarFunctionContainer["TemperatureReference"] ) },
-             l,
-             All );
+         std::function< real_t(const Point3D&, const std::vector< real_t >&) > calculateTDev = [this](const Point3D& x, const std::vector< real_t >& vals)
+         {
+            real_t refTemp = referenceTemperatureFct(x);
+            return vals[0] - refTemp;
+         };
+         p2ScalarFunctionContainer["TemperatureFE"]->interpolate(calculateTDev, {*(p2ScalarFunctionContainer["TemperatureFE"])}, l, All);
+         
+         // p2ScalarFunctionContainer["TemperatureReference"]->interpolate( referenceTemperatureFct, l, All );
+         // p2ScalarFunctionContainer["TemperatureDev"]->assign(
+         //     { 1.0, -1.0 },
+         //     { *( p2ScalarFunctionContainer["TemperatureFE"] ), *( p2ScalarFunctionContainer["TemperatureReference"] ) },
+         //     l,
+         //     All );
       }
 
       // Multiply with mass matrix (of velocity space -- P2) to get the weak form
@@ -357,6 +368,10 @@ void ConvectionSimulation::setupStokesRHS()
       // Multiply current RHS with rho and non-dimensionalised numbers
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > momentumFactors =
           [&]( const Point3D& x, const std::vector< real_t >& deltaT ) {
+             if ( TN.simulationParameters.radialProfile )
+             {
+                updateNonDimParameters( x );
+             }
              return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) * densityFunction( x ) *
                       deltaT[0] );
           };
@@ -410,21 +425,13 @@ void ConvectionSimulation::setupStokesRHS()
       // Provide the option to run incompressible simulations for test or educational purposes
       if ( TN.simulationParameters.compressible )
       {
-         // frozenVelocityRHSX->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 0U ),
-         //                            p2p1StokesFunctionContainer["StokesRHS"]->p(),
-         //                            l,
-         //                            All,
-         //                            Replace );
-         // frozenVelocityRHSY->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 1U ),
-         //                            p2p1StokesFunctionContainer["StokesRHS"]->p(),
-         //                            l,
-         //                            All,
-         //                            Add );
-         // frozenVelocityRHSZ->apply( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( 2U ),
-         //                            p2p1StokesFunctionContainer["StokesRHS"]->p(),
-         //                            l,
-         //                            All,
-         //                            Add );
+         if ( TN.simulationParameters.haveThermalExpProfile || TN.simulationParameters.haveSpecificHeatCapProfile )
+         {
+            // Update gradRho/Rho with new non-Dim paramters Di and alpha.
+            // grad(rho)/rho = - ( Di / gamma ) * r_hat
+            std::function< real_t( const Point3D& ) > updateDensity = [&]( const Point3D& x ) { return densityFunc( x ); };
+            p2ScalarFunctionContainer["densityFE"]->interpolate( updateDensity, l, All );
+         }
 
          frozenVelocityRHS->apply(
              p2p1StokesFunctionContainer["VelocityFE"]->uvw(), p2p1StokesFunctionContainer["StokesRHS"]->p(), l, All );
@@ -557,17 +564,15 @@ real_t ConvectionSimulation::calculateStokesResidual( uint_t level )
 
 real_t ConvectionSimulation::calculateEnergyResidual( uint_t level )
 {
-   transportOperatorTALA->apply( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                 *( p2ScalarFunctionContainer["TemperatureTmp"] ),
-                                 level,
-                                 Inner | NeumannBoundary | FreeslipBoundary );
-   p2ScalarFunctionContainer["TemperatureTmp"]->assign(
-       { real_c( 1 ), real_c( -1 ) },
-       { *( p2ScalarFunctionContainer["TemperatureTmp"] ), *( p2ScalarFunctionContainer["EnergyRHSWeak"] ) },
-       level,
-       Inner | NeumannBoundary | FreeslipBoundary );
-   return std::sqrt( p2ScalarFunctionContainer["TemperatureTmp"]->dotGlobal(
-       *( p2ScalarFunctionContainer["TemperatureTmp"] ), level, Inner | NeumannBoundary | FreeslipBoundary ) );
+   P2Function< real_t >& tempFunc = p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 0u );
+
+   transportOperatorTALA->apply(
+       *( p2ScalarFunctionContainer["TemperatureFE"] ), tempFunc, level, Inner | NeumannBoundary | FreeslipBoundary );
+   tempFunc.assign( { real_c( 1 ), real_c( -1 ) },
+                    { tempFunc, *( p2ScalarFunctionContainer["EnergyRHSWeak"] ) },
+                    level,
+                    Inner | NeumannBoundary | FreeslipBoundary );
+   return std::sqrt( tempFunc.dotGlobal( tempFunc, level, Inner | NeumannBoundary | FreeslipBoundary ) );
 }
 
 } // namespace terraneo

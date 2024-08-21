@@ -291,10 +291,10 @@ void ConvectionSimulation::initialiseFunctions()
    {
       p2ScalarFunctionContainer["TemperaturePrev"]->assign(
           { real_c( 1 ) }, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, level, All );
-      p2ScalarFunctionContainer["TemperatureTmp"]->assign(
-          { real_c( 1 ) }, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, level, All );
+      // p2ScalarFunctionContainer["TemperatureTmp"]->assign(
+      //     { real_c( 1 ) }, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, level, All );
       p2ScalarFunctionContainer["DensityFE"]->interpolate( densityFunc, level, All );
-      p2ScalarFunctionContainer["DiffusionFE"]->interpolate( diffFactorFunc, level, All );
+      // p2ScalarFunctionContainer["DiffusionFE"]->interpolate( diffFactorFunc, level, All );
 
       //set plate velocities for timestep 0 / initialAge
       if ( TN.simulationParameters.simulationType == "CirculationModel" )
@@ -363,7 +363,7 @@ void ConvectionSimulation::initialiseFunctions()
       }
    };
 
-   p2ScalarFunctionContainer["TemperatureReference"]->interpolate( referenceTemperatureFct, TN.domainParameters.maxLevel, All );
+   // p2ScalarFunctionContainer["TemperatureReference"]->interpolate( referenceTemperatureFct, TN.domainParameters.maxLevel, All );
 }
 
 void ConvectionSimulation::setupSolversAndOperators()
@@ -541,7 +541,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    //                                                 p2VectorFunctionContainer["GradRhoOverRho"]->component( 2U ) );
 
    frozenVelocityRHS = std::make_shared< FrozenVelocityFullOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *(p2ScalarFunctionContainer["DensityFE"]) );
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["DensityFE"] ) );
 
    /////////////////////////
    // Diffusion Operator //
@@ -629,8 +629,8 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    // transportOperatorRHS->initializeOperators();
 
-   diffusionOperator = std::make_shared< DiffusionOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["DiffusionFE"] ) );
+   // diffusionOperator = std::make_shared< DiffusionOperator >(
+   //     storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["DiffusionFE"] ) );
 
    transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
@@ -644,11 +644,11 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    transportSolverTALA->setPrintInfo( true );
 
-   diffusionSolver = std::make_shared< CGSolver< DiffusionOperator > >( storage,
-                                                                        TN.domainParameters.minLevel,
-                                                                        TN.domainParameters.maxLevel,
-                                                                        TN.solverParameters.diffusionMaxNumIterations,
-                                                                        TN.solverParameters.diffusionAbsoluteResidualUTolerance );
+   // diffusionSolver = std::make_shared< CGSolver< DiffusionOperator > >( storage,
+   //                                                                      TN.domainParameters.minLevel,
+   //                                                                      TN.domainParameters.maxLevel,
+   //                                                                      TN.solverParameters.diffusionMaxNumIterations,
+   //                                                                      TN.solverParameters.diffusionAbsoluteResidualUTolerance );
 
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup solvers & operators: Finished -------" );

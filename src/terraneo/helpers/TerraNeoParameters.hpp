@@ -114,15 +114,15 @@ struct OutputParameters
    std::string outputDirectory = std::string( "output" );
    std::string outputBaseName  = std::string( "conv_sim" );
 
-   std::string ADIOS2OutputConfig       = std::string( "ADIOS2config.xml" );
-   std::string ADIOS2ParamKey           = std::string( "NumAggregators" );
-   std::string ADIOS2Value              = std::string( "16" );
-   
-   std::string ADIOS2StoreCheckpointPath = std::string("output");
-   std::string ADIOS2StoreCheckpointFilename = std::string("conv_sim_store");
+   std::string ADIOS2OutputConfig = std::string( "ADIOS2config.xml" );
+   std::string ADIOS2ParamKey     = std::string( "NumAggregators" );
+   std::string ADIOS2Value        = std::string( "16" );
 
-   std::string ADIOS2StartCheckpointPath = std::string("output");
-   std::string ADIOS2StartCheckpointFilename = std::string("conv_sim_store");
+   std::string ADIOS2StoreCheckpointPath     = std::string( "output" );
+   std::string ADIOS2StoreCheckpointFilename = std::string( "conv_sim_store" );
+
+   std::string ADIOS2StartCheckpointPath     = std::string( "output" );
+   std::string ADIOS2StartCheckpointFilename = std::string( "conv_sim_store" );
 
    std::string ADIOS2CheckpointPath     = std::string( "output" );
    std::string ADIOS2CheckpointFilename = std::string( "conv_sim" );
@@ -149,6 +149,28 @@ struct OutputParameters
 // Simulation parameters
 struct SimulationParameters
 {
+   std::string getKeyValue( nlohmann::json& jsonData )
+   {
+      const auto  keyRadius = "Radius (m)";
+      std::string keyValue  = "Value";
+
+      // Iterate over the keys in the JSON object
+      for ( auto& [key, value] : jsonData.items() )
+      {
+         if ( key != keyRadius )
+         {
+            keyValue = key;
+            break;
+         }
+      }
+
+      // Check that both radius and value data are available within the provided profile
+      WALBERLA_CHECK_GREATER( jsonData.count( keyRadius ), 0, "No key '" << keyRadius << "' in profile file." );
+      WALBERLA_CHECK_GREATER( jsonData.count( keyValue ), 0, "No key '" << keyValue << "' in profile file." );
+
+      return keyValue;
+   }
+
    //Parameters derived from other parameters
    uint_t unknownsTemperature = 0;
    uint_t unknownsStokes      = 0;
@@ -182,17 +204,24 @@ struct SimulationParameters
    real_t      modelRunTimeMa = real_c( 0 );
    std::string fnameTopologies;
    std::string fnameReconstructions;
-   real_t      plateVelocityScaling   = real_c( 1 );
-   real_t      plateSmoothingDistance = real_c( 110 );
-   bool        compressible           = true; // default: Compressible foŕmulation
-   bool        shearHeating           = true; //default: include shear heating
-   bool        adiabaticHeating       = true; //default: include adiabatic heating
-   bool        internalHeating        = true; //default: include internal heating
-   uint_t      boundaryCond           = 1;    // default: No-Slip/No-Slip
-   bool        boundaryCondFreeSlip   = false;
-   bool        verbose                = false;
-   bool        haveViscosityProfile   = false;
-   std::string fileViscosityProfile   = std::string( "ViscosityProfile.txt" );
+   real_t      plateVelocityScaling       = real_c( 1 );
+   real_t      plateSmoothingDistance     = real_c( 110 );
+   bool        compressible               = true; // default: Compressible foŕmulation
+   bool        shearHeating               = true; //default: include shear heating
+   bool        adiabaticHeating           = true; //default: include adiabatic heating
+   bool        internalHeating            = true; //default: include internal heating
+   uint_t      boundaryCond               = 1;    // default: No-Slip/No-Slip
+   bool        boundaryCondFreeSlip       = false;
+   bool        verbose                    = false;
+   bool        haveViscosityProfile       = false;
+   bool        haveThermalExpProfile      = false;
+   bool        haveSpecificHeatCapProfile = false;
+   bool        haveGrueneisenProfile      = false;
+   bool        radialProfile              = false;
+   std::string fileViscosityProfile       = std::string( "ViscosityProfile.txt" );
+   std::string fileThermalExpProfile      = std::string( "ThermalExpProfile.json" );
+   std::string fileSpecificHeatCap        = std::string( "SpecificHeatCapProfile.json" );
+   std::string fileGrueneisenProfile      = std::string( "GrueneisenProfile.json" );
 
    //needed for conversions in the simulation
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
@@ -226,8 +255,14 @@ struct PhysicalParameters
    // Either use profiles or constant values (decision for each individually, e.g. temp profile + constant density + viscosity profile is possible)
    // profiles
    std::vector< real_t > radius;
+   std::vector< real_t > radiusCp;
+   std::vector< real_t > radiusAlpha;
+   std::vector< real_t > radiusGamma;
    std::vector< real_t > temperatureProfile;
    std::vector< real_t > viscosityProfile;
+   std::vector< real_t > thermalExpansivityProfile;
+   std::vector< real_t > specificHeatCapacityProfile;
+   std::vector< real_t > grueneisenProfile;
    real_t                initialTemperatureSteepness = real_c( 10 );
 
    //temperature

@@ -72,7 +72,7 @@ int main( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( "Max timestep reached at age " << simulation.getSimulationParams().ageMa << " Ma." )
 
       WALBERLA_LOG_INFO_ON_ROOT( "Circulation model ran from " << simulation.getSimulationParams().initialAge << " - "
-                                                              << simulation.getSimulationParams().ageMa << " Ma." )
+                                                               << simulation.getSimulationParams().ageMa << " Ma." )
    }
    if ( simulation.getSimulationParams().timingAnalysis )
    {

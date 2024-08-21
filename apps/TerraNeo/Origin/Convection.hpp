@@ -124,6 +124,9 @@ class ConvectionSimulation
    real_t                      referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
+   void   updateNonDimParameters( const Point3D& x );
+   real_t interpolateDataValues( const Point3D& x, const std::vector< real_t >& radius, const std::vector< real_t >& values );
+
  private:
    typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunction;
    typedef P2Function< real_t >                                                        ScalarFunction;
@@ -137,7 +140,7 @@ class ConvectionSimulation
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap            SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap         DiffusionOperator;
    typedef hyteg::operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap        FrozenVelocityOperator;
-   
+
    typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
 
    // typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS StokesOperatorP1Visc;
@@ -192,39 +195,39 @@ class ConvectionSimulation
        { "StokesRHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION }
-   };
+       { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< StokesFunctionP2P1 > > p2p1StokesFunctionContainer;
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2ScalarFunctionDict = {
        { "TemperatureFE", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "TemperaturePrev", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "TemperatureDev", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "TemperatureTmp", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "TemperatureReference", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "Temperature[K]", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "ReferenceTemperature[K]", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "ViscosityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "ViscosityFEInv", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "Viscosity[Pas]", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-      //  { "EnergyRHS", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "EnergyRHSWeak", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-      //  { "OnesFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "DensityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "DiffusionFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "AdiabaticTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ConstEnergyCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "SurfaceTempCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ScalarTmp", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } };
+       { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }, 
+       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
+       //  { "OnesFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       //  { "TemperatureTmp", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       //  { "TemperatureReference", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       //  { "EnergyRHS", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       //  { "ConstEnergyCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       //  { "SurfaceTempCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       //  { "DiffusionFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       //  { "AdiabaticTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       //  { "ScalarTmp", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } 
+   };
    std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {
-      //  { "InwardNormal", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-      //  { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
-      //  { "OppositeGravityField", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } 
-      };
+       //  { "InwardNormal", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       //  { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
+       //  { "OppositeGravityField", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
+   };
    std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
 
    // Storage for primitives (includes functionality for distributed computing)
@@ -237,18 +240,18 @@ class ConvectionSimulation
    std::shared_ptr< Solver< StokesOperatorFS > >                         stokesSolverFS;
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
 
-   std::shared_ptr< Solver< StokesOperatorFS::ViscousOperatorFS_T > >  stokesABlockSmoother;
+   std::shared_ptr< Solver< StokesOperatorFS::ViscousOperatorFS_T > > stokesABlockSmoother;
 
    // Operators
-   std::shared_ptr< StokesOperator >                            stokesOperator;
-   std::shared_ptr< StokesOperatorFS >                          stokesOperatorFS;
-   std::shared_ptr< SchurOperator >                             schurOperator;
-   std::shared_ptr< MMOCTransport< ScalarFunction > >           transportOperator;
-   std::shared_ptr< P2TransportIcosahedralShellMapOperator >    transportOperatorTALA;
+   std::shared_ptr< StokesOperator >                         stokesOperator;
+   std::shared_ptr< StokesOperatorFS >                       stokesOperatorFS;
+   std::shared_ptr< SchurOperator >                          schurOperator;
+   std::shared_ptr< MMOCTransport< ScalarFunction > >        transportOperator;
+   std::shared_ptr< P2TransportIcosahedralShellMapOperator > transportOperatorTALA;
    // std::shared_ptr< P2TransportRHSIcosahedralShellMapOperator > transportOperatorRHS;
-   std::shared_ptr< DiffusionOperator >                         diffusionOperator;
-   std::shared_ptr< P2ElementwiseBlendingMassOperator >         P2MassOperator;
-   std::shared_ptr< P2ProjectNormalOperator >                   projectionOperator;
+   std::shared_ptr< DiffusionOperator >                 diffusionOperator;
+   std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
+   std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
 
    std::shared_ptr< P2TransportP1CoefficientsIcosahedralShellMapOperator > transportOperatorP1Coefficients;
 
