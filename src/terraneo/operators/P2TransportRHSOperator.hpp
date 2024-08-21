@@ -116,9 +116,9 @@ class P2TransportRHSOperatorTemplate : public hyteg::Operator< hyteg::P2Function
                hyteg::DoFType                     flag,
                hyteg::UpdateType                  updateType = hyteg::Replace ) const override
    {
-      if(updateType == hyteg::Replace)
+      if ( updateType == hyteg::Replace )
       {
-         dst.interpolate(0.0, level, flag);
+         dst.interpolate( 0.0, level, flag );
       }
 
       if ( TALADict_.at( TransportRHSOperatorTermKey::DIFFUSION_TERM ) )
@@ -207,12 +207,11 @@ class P2TransportRHSOperatorTemplate : public hyteg::Operator< hyteg::P2Function
                   size_t                                             level,
                   hyteg::DoFType                                     flag ) const override
    {
-      WALBERLA_ABORT("Not implemented for RHS operator");
+      WALBERLA_ABORT( "Not implemented for RHS operator" );
    }
 
    void initializeOperators()
    {
-
       WALBERLA_CHECK_NOT_NULLPTR( viscosity_ );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator" );
       // shearHeatingOperator_ = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscosity_ );
@@ -346,10 +345,10 @@ class P2TransportRHSOperatorTemplate : public hyteg::Operator< hyteg::P2Function
 
    bool useMMOC = true, useSUPG = false;
 
-   P2MassOperatorTALA                                                     massOperator_;
-   std::shared_ptr< P2ShearHeatingOperatorTALA >                          shearHeatingOperator_;
-   std::shared_ptr< P2DivKGradOperatorTALA >                              diffusionOperator_;
-   std::shared_ptr< P2KMassOperatorTALA >                                 adiabaticOperator_;
+   P2MassOperatorTALA                            massOperator_;
+   std::shared_ptr< P2ShearHeatingOperatorTALA > shearHeatingOperator_;
+   std::shared_ptr< P2DivKGradOperatorTALA >     diffusionOperator_;
+   std::shared_ptr< P2KMassOperatorTALA >        adiabaticOperator_;
 
    /*
    std::shared_ptr< P2AdvectionOperator >        advectionOperator_;
@@ -387,20 +386,20 @@ class P2TransportRHSOperatorTemplate : public hyteg::Operator< hyteg::P2Function
 };
 
 using P2TransportRHSOperator = P2TransportRHSOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMass,
-                                                         hyteg::operatorgeneration::P2ElementwiseKMass,
-                                                         hyteg::operatorgeneration::P2ElementwiseDivKGrad,
-                                                         hyteg::operatorgeneration::P2ElementwiseShearHeating >;
+                                                               hyteg::operatorgeneration::P2ElementwiseKMass,
+                                                               hyteg::operatorgeneration::P2ElementwiseDivKGrad,
+                                                               hyteg::operatorgeneration::P2ElementwiseShearHeating >;
 
 using P2TransportRHSAnnulusMapOperator =
     P2TransportRHSOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMassAnnulusMap,
-                                 hyteg::operatorgeneration::P2ElementwiseKMassAnnulusMap,
-                                 hyteg::operatorgeneration::P2ElementwiseDivKGradAnnulusMap,
-                                 hyteg::operatorgeneration::P2ElementwiseShearHeatingAnnulusMap >;
+                                    hyteg::operatorgeneration::P2ElementwiseKMassAnnulusMap,
+                                    hyteg::operatorgeneration::P2ElementwiseDivKGradAnnulusMap,
+                                    hyteg::operatorgeneration::P2ElementwiseShearHeatingAnnulusMap >;
 
 using P2TransportRHSIcosahedralShellMapOperator =
     P2TransportRHSOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
-                                 hyteg::operatorgeneration::P2ElementwiseKMassIcosahedralShellMap,
-                                 hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap,
-                                 hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap >;
+                                    hyteg::operatorgeneration::P2ElementwiseKMassIcosahedralShellMap,
+                                    hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap,
+                                    hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap >;
 
 } // namespace terraneo

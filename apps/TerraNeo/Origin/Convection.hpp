@@ -189,6 +189,16 @@ class ConvectionSimulation
       NO_BOUNDARY_CONDITION
    };
 
+   /** Initialise functions
+    * 
+    * To create a new function, just add into the correct dict and it can be used from the container anywhere in the app
+    * The tuple denotes < 
+    * std::string           = (Name of the function),
+    * uint_t                = (Minimum level),
+    * uint_t                = (Maximum level),
+    * BoundaryConditionType = (Velocity or Temperature or No Boundary condition)
+    * >
+    */
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2p1StokesFunctionDict = {
        { "VelocityFE", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "VelocityFEPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
@@ -209,26 +219,12 @@ class ConvectionSimulation
        { "Viscosity[Pas]", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "EnergyRHSWeak", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "DensityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }, 
-       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
-       //  { "OnesFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       //  { "TemperatureTmp", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       //  { "TemperatureReference", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       //  { "EnergyRHS", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       //  { "ConstEnergyCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       //  { "SurfaceTempCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       //  { "DiffusionFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       //  { "AdiabaticTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       //  { "ScalarTmp", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } 
-   };
+       { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {
-       //  { "InwardNormal", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       //  { "GradRhoOverRho", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
-       //  { "OppositeGravityField", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION }
-   };
-   std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
+   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {};
+   std::map< std::string, std::shared_ptr< VectorFunctionP2 > >                    p2VectorFunctionContainer;
 
    // Storage for primitives (includes functionality for distributed computing)
    std::shared_ptr< PrimitiveStorage > storage;

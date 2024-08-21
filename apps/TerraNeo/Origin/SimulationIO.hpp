@@ -63,17 +63,13 @@ void ConvectionSimulation::setupOutput()
 #endif
    }
 
-   std::function< real_t(const Point3D&) > scaleTRef = [this](const Point3D& x)
-   {
-      real_t refTemp = referenceTemperatureFct(x);
+   std::function< real_t( const Point3D& ) > scaleTRef = [this]( const Point3D& x ) {
+      real_t refTemp = referenceTemperatureFct( x );
       return ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) * refTemp;
    };
 
    // Setup output of Temperature and viscosity in SI units [K] and [Pa s], respectively
-   p2ScalarFunctionContainer["ReferenceTemperature[K]"]->interpolate(
-       scaleTRef,
-       TN.domainParameters.maxLevel,
-       All );
+   p2ScalarFunctionContainer["ReferenceTemperature[K]"]->interpolate( scaleTRef, TN.domainParameters.maxLevel, All );
    p2ScalarFunctionContainer["Viscosity[Pas]"]->assign( { ( TN.physicalParameters.referenceViscosity ) },
                                                         { *( p2ScalarFunctionContainer["ViscosityFE"] ) },
                                                         TN.domainParameters.maxLevel,

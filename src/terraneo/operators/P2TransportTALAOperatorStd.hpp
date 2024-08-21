@@ -443,7 +443,7 @@ class P2TransportOperatorStdTemplate : public hyteg::Operator< TemperatureFuncti
    TemperatureFunctionType                 tempCoeff_;
    hyteg::P2P1TaylorHoodFunction< real_t > temp2_;
 
-   std::shared_ptr< CoefficientFunctionType >           shearHeatingCoeff_;
+   std::shared_ptr< CoefficientFunctionType > shearHeatingCoeff_;
 
    std::vector< std::shared_ptr< InterpolateFunctionType > > invGravityFunc_;
 

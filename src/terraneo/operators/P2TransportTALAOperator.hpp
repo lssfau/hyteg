@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
@@ -164,11 +165,11 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
          }
 
          // temp1_ is the adiabatic coefficient that will be used by the adiabaticOperator_
-         if constexpr ( std::is_same_v< CoefficientFunctionType, P2Function< real_t > > )
+         if constexpr ( std::is_same_v< CoefficientFunctionType, hyteg::P2Function< real_t > > )
          {
             temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, hyteg::All );
          }
-         else if constexpr ( std::is_same_v< CoefficientFunctionType, P1Function< real_t > > )
+         else if constexpr ( std::is_same_v< CoefficientFunctionType, hyteg::P1Function< real_t > > )
          {
             temp1_.getVertexDoFFunction().multElementwise(
                 { temp1_.getVertexDoFFunction(), *adiabaticCoeff_ }, level, hyteg::All );
@@ -303,11 +304,11 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
          }
 
          // temp1_ is the adiabatic coefficient that will be used by the adiabaticOperator_
-         if constexpr ( std::is_same_v< CoefficientFunctionType, P2Function< real_t > > )
+         if constexpr ( std::is_same_v< CoefficientFunctionType, hyteg::P2Function< real_t > > )
          {
             temp1_.multElementwise( { temp1_, *adiabaticCoeff_ }, level, hyteg::All );
          }
-         else if constexpr ( std::is_same_v< CoefficientFunctionType, P1Function< real_t > > )
+         else if constexpr ( std::is_same_v< CoefficientFunctionType, hyteg::P1Function< real_t > > )
          {
             temp1_.getVertexDoFFunction().multElementwise(
                 { temp1_.getVertexDoFFunction(), *adiabaticCoeff_ }, level, hyteg::All );
@@ -370,11 +371,11 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
          WALBERLA_LOG_INFO_ON_ROOT( "Initializing Adiabatic Heating Operator" );
 
          // temp1_ is the adiabatic coefficient that will be used by the adiabaticOperator_
-         if constexpr ( std::is_same_v< CoefficientFunctionType, P2Function< real_t > > )
+         if constexpr ( std::is_same_v< CoefficientFunctionType, hyteg::P2Function< real_t > > )
          {
             adiabaticOperator_ = std::make_shared< P2KMassOperatorTALA >( storage_, minLevel_, maxLevel_, temp1_ );
          }
-         else if constexpr ( std::is_same_v< CoefficientFunctionType, P1Function< real_t > > )
+         else if constexpr ( std::is_same_v< CoefficientFunctionType, hyteg::P1Function< real_t > > )
          {
             adiabaticOperator_ =
                 std::make_shared< P2KMassOperatorTALA >( storage_, minLevel_, maxLevel_, temp1_.getVertexDoFFunction() );
@@ -575,11 +576,11 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
    std::shared_ptr< P2SUPGKMassOperator >        supgAdiabaticOperator_;
    
 
-   std::shared_ptr< P2Function< real_t > > supgShearHeatingCoeff_;
-   std::shared_ptr< P2Function< real_t > > supgDiffusionCoeff_;
-   std::shared_ptr< P2Function< real_t > > supgAdvectionCoeff_;
-   std::shared_ptr< P2Function< real_t > > supgAdiabaticCoeff_;
-   std::shared_ptr< P2Function< real_t > > supgDelta_;
+   std::shared_ptr< hyteg::P2Function< real_t > > supgShearHeatingCoeff_;
+   std::shared_ptr< hyteg::P2Function< real_t > > supgDiffusionCoeff_;
+   std::shared_ptr< hyteg::P2Function< real_t > > supgAdvectionCoeff_;
+   std::shared_ptr< hyteg::P2Function< real_t > > supgAdiabaticCoeff_;
+   std::shared_ptr< hyteg::P2Function< real_t > > supgDelta_;
    */
 
    std::shared_ptr< hyteg::P2P1TaylorHoodFunction< real_t > > velocity_;
@@ -610,30 +611,30 @@ using P2TransportOperator = P2TransportOperatorTemplate< hyteg::operatorgenerati
                                                          hyteg::operatorgeneration::P2ElementwiseKMass,
                                                          hyteg::operatorgeneration::P2ElementwiseDivKGrad,
                                                          hyteg::operatorgeneration::P2ElementwiseShearHeating,
-                                                         P2Function< real_t >,
-                                                         P2Function< real_t > >;
+                                                         hyteg::P2Function< real_t >,
+                                                         hyteg::P2Function< real_t > >;
 
 using P2TransportAnnulusMapOperator = P2TransportOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMassAnnulusMap,
                                                                    hyteg::operatorgeneration::P2ElementwiseKMassAnnulusMap,
                                                                    hyteg::operatorgeneration::P2ElementwiseDivKGradAnnulusMap,
                                                                    hyteg::operatorgeneration::P2ElementwiseShearHeatingAnnulusMap,
-                                                                   P2Function< real_t >,
-                                                                   P2Function< real_t > >;
+                                                                   hyteg::P2Function< real_t >,
+                                                                   hyteg::P2Function< real_t > >;
 
 using P2TransportIcosahedralShellMapOperator =
     P2TransportOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseKMassIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap,
-                                 P2Function< real_t >,
-                                 P2Function< real_t > >;
+                                 hyteg::P2Function< real_t >,
+                                 hyteg::P2Function< real_t > >;
 
 using P2TransportP1CoefficientsIcosahedralShellMapOperator =
     P2TransportOperatorTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseKMassP1CoefficientIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseShearHeatingP1ViscosityIcosahedralShellMap,
-                                 P2Function< real_t >,
-                                 P1Function< real_t > >;
+                                 hyteg::P2Function< real_t >,
+                                 hyteg::P1Function< real_t > >;
 
 } // namespace terraneo

@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
@@ -75,11 +76,11 @@ class P2ABlockP1ViscousIcosahedralShellMapOperatorFS : public Operator< P2Vector
    typedef operatorgeneration::P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap ViscousOperator_T;
 
    P2ABlockP1ViscousIcosahedralShellMapOperatorFS( const std::shared_ptr< PrimitiveStorage >& storage,
-                                           uint_t                                     minLevel,
-                                           uint_t                                     maxLevel,
-                                           const P1Function< real_t >&                mu,
-                                           P2ProjectNormalOperator&                   projectNormal,
-                                           BoundaryCondition                          bcVelocity )
+                                                   uint_t                                     minLevel,
+                                                   uint_t                                     maxLevel,
+                                                   const P1Function< real_t >&                mu,
+                                                   P2ProjectNormalOperator&                   projectNormal,
+                                                   BoundaryCondition                          bcVelocity )
    : Operator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
    , tmp_( "tmp__P2ViscousIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel, bcVelocity )
    , viscousOperator( storage, minLevel, maxLevel, mu )
