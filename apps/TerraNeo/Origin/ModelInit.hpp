@@ -517,6 +517,7 @@ void ConvectionSimulation::setupSolversAndOperators()
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
    transportOperatorTALA->setVelocity( p2p1StokesFunctionContainer["VelocityFE"] );
+   transportOperatorTALA->setVelocityPrev( p2p1StokesFunctionContainer["VelocityFEPrev"] );
    transportOperatorTALA->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
    transportOperatorTALA->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
 

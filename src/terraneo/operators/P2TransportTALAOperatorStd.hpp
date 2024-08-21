@@ -102,8 +102,6 @@ class P2TransportOperatorStdTemplate : public hyteg::Operator< TemperatureFuncti
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
    , massOperator_( storage_, minLevel_, maxLevel_ )
-   , velocityPrev_( "velocityPrev__P2TransportOperatorTALA", storage_, minLevel_, maxLevel_ )
-   , temperaturePrev_( "temperaturePrev__P2TransportOperatorTALA", storage_, minLevel_, maxLevel_ )
    , tempCoeff_( "tempCoeff__P2TransportOperatorTALA", storage_, minLevel_, maxLevel_ )
    , temp2_( "temp2__P2TransportOperatorTALA", storage_, minLevel_, maxLevel_ )
    {
@@ -352,7 +350,7 @@ class P2TransportOperatorStdTemplate : public hyteg::Operator< TemperatureFuncti
          {
             mmocTransport_->step( *temperature_,
                                   velocity_->uvw(),
-                                  velocityPrev_.uvw(),
+                                  velocityPrev_->uvw(),
                                   level,
                                   hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
                                   timestep,
@@ -365,17 +363,13 @@ class P2TransportOperatorStdTemplate : public hyteg::Operator< TemperatureFuncti
       }
    }
 
-   void incrementTimestep()
-   {
-      iTimestep++;
-      for ( uint l = minLevel_; l <= maxLevel_; l++ )
-         velocityPrev_.assign( { 1.0 }, { *velocity_ }, l, hyteg::All );
-
-      for ( uint l = minLevel_; l <= maxLevel_; l++ )
-         temperaturePrev_.assign( { 1.0 }, { *temperature_ }, l, hyteg::All );
-   }
+   void incrementTimestep() { iTimestep++; }
 
    void setVelocity( std::shared_ptr< hyteg::P2P1TaylorHoodFunction< real_t > > velocity ) { velocity_ = velocity; }
+   void setVelocityPrev( std::shared_ptr< hyteg::P2P1TaylorHoodFunction< real_t > > velocityPrev )
+   {
+      velocityPrev_ = velocityPrev;
+   }
    // This is -g, NOT 1/g
    void setInvGravity( std::vector< std::shared_ptr< InterpolateFunctionType > > invGravityFunc )
    {
@@ -435,10 +429,8 @@ class P2TransportOperatorStdTemplate : public hyteg::Operator< TemperatureFuncti
    std::shared_ptr< P2KMassOperatorTALA >                             adiabaticOperator_;
 
    std::shared_ptr< hyteg::P2P1TaylorHoodFunction< real_t > > velocity_;
+   std::shared_ptr< hyteg::P2P1TaylorHoodFunction< real_t > > velocityPrev_;
    std::shared_ptr< TemperatureFunctionType >                 temperature_;
-
-   hyteg::P2P1TaylorHoodFunction< real_t > velocityPrev_;
-   TemperatureFunctionType                 temperaturePrev_;
 
    TemperatureFunctionType                 tempCoeff_;
    hyteg::P2P1TaylorHoodFunction< real_t > temp2_;
