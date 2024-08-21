@@ -107,23 +107,27 @@ int main( int argc, char* argv[] )
 
    vecMassOperator.apply( fStrong.uvw(), f.uvw(), maxLevel, All );
 
+   auto tmp1 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp1", storage, minLevel, maxLevel);
+   auto tmp2 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp2", storage, minLevel, maxLevel);
+   auto tmp3 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp3", storage, minLevel, maxLevel);
+
    auto stokesSolverTest = solvertemplates::stokesGMGUzawaFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-       storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, bcVelocity, false, {
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 50 },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10 },
+       storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, tmp1, tmp2, false, {
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 50u },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10u },
        { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
        { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3 },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3 },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 3 },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2 } } );
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3u },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3u },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 3u },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2u } } );
 
    // auto stokesMinresSolver = std::make_shared< MinResSolver< P2P1StokesFullIcosahedralShellMapOperatorFS > >(storage, minLevel, maxLevel, 10U, 1e-6);
    // stokesMinresSolver->setPrintInfo(true);
 
    // auto stokesGMGUzawa = solvertemplates::stokesGMGUzawaSolver< P2P1StokesFullIcosahedralShellMapOperatorFS >(storage, minLevel, maxLevel, 3U, 3U, 0.3);
 
-   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorFS > >(stokesSolverTest, 3U);
+   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorFS > >(std::get< 0 >(stokesSolverTest), 3U);
 
    //  solvertemplates::stokesGMGFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
    //      storage,

@@ -107,11 +107,14 @@ int main( int argc, char* argv[] )
 
    vecMassOperator.apply( fStrong.uvw(), f.uvw(), maxLevel, All );
 
+   auto tmp1 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp1", storage, minLevel, maxLevel);
+   auto tmp2 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp2", storage, minLevel, maxLevel);
+
    auto stokesSolverTest =
        solvertemplates::stokesGMGUzawaFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-           storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, bcVelocity, false );
+           storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, tmp1, tmp2, false );
 
-   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorFS > >( stokesSolverTest, 3u );
+   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorFS > >( std::get< 0 >(stokesSolverTest), 3u );
 
    projectionOperator->project( f, maxLevel, FreeslipBoundary );
    stokesSolverLoop->solve( *stokesOperatorFS, u, f, maxLevel );
