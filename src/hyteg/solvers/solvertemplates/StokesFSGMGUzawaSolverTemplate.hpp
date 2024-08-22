@@ -69,15 +69,15 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                             bool                                                                       verbose     = false,
                             std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > extraParams = {} )
 {
-   std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > defaultParams = {
-       { StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25u },
-       { StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10u },
-       { StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
-       { StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
-       { StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3u },
-       { StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3u },
-       { StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 1u },
-       { StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2u } };
+   auto defaultParams = std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > >(
+       { { StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25u },
+         { StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, 10u },
+         { StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, 1e-6 },
+         { StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, 0.3 },
+         { StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, 3u },
+         { StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, 3u },
+         { StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, 1u },
+         { StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, 2u } } );
 
    for ( auto const& param : extraParams )
    {
