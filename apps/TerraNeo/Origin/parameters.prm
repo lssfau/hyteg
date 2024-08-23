@@ -120,7 +120,7 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile /home/pponkumar/hyteg/hyteg/data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   // viscosityProfile ViscosityProfile_Lin_et_al_2022.json;
 
    characteristicVelocity 1e-6;
 
@@ -256,11 +256,11 @@ Parameters
    outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
 
-   ADIOS2StoreCheckpointPath /import/freenas-m-03-geodynamics/pponkumar/output/checkpoint;
+   ADIOS2StoreCheckpointPath ./output/checkpoint;
    ADIOS2StoreCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StoreCheckpoint false;
 
-   ADIOS2StartCheckpointPath /import/freenas-m-03-geodynamics/pponkumar/output/checkpoint;
+   ADIOS2StartCheckpointPath ./output/checkpoint;
    ADIOS2StartCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StartFromCheckpoint false;
 
@@ -272,7 +272,7 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory /import/freenas-m-03-geodynamics/pponkumar/output;
+   outputDirectory ./output;
    outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information
