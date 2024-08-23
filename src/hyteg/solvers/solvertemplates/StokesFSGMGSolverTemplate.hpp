@@ -79,24 +79,24 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                        bool                                                                  verbose                 = false,
                        std::map< StokesGMGFSSolverParamKey, std::variant< real_t, uint_t > > extraParams             = {} )
 {
-   auto defaultParams = std::map< StokesGMGFSSolverParamKey, std::variant< real_t, uint_t > >(
-       { { StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, 25u },
-         { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, 5u },
-         { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE, 1e-6 },
-         { StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, 1u },
-         { StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, 1.0 },
-         { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER, 3u },
-         { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, 1e-6 },
-         { StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, 3u },
-         { StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, 3u },
-         { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, 10u },
-         { StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE, 1e-8 },
-         { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, 1u },
-         { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, 1e-6 },
-         { StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, 3u },
-         { StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, 3u },
-         { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER, 1u },
-         { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE, 1e-6 } } );
+   std::map< StokesGMGFSSolverParamKey, std::variant< real_t, uint_t > > defaultParams = {
+       { StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, uint_c( 25u ) },
+       { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, uint_c( 5u ) },
+       { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE, real_c( 1e-6 ) },
+       { StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, uint_c( 1u ) },
+       { StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, real_c( 1.0 ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER, uint_c( 3u ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, real_c( 1e-6 ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, uint_c( 3u ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, uint_c( 3u ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, uint_c( 10u ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE, real_c( 1e-8 ) },
+       { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, uint_c( 1u ) },
+       { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, real_c( 1e-6 ) },
+       { StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, uint_c( 3u ) },
+       { StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, uint_c( 3u ) },
+       { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER, uint_c( 1u ) },
+       { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE, real_c( 1e-6 ) } };
 
    for ( auto const& param : extraParams )
    {
