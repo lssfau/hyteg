@@ -25,16 +25,11 @@
 #include "core/math/Random.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
-#include "hyteg/mesh/micro/Diffusion/P1ElementwiseDiffusion_ParametricMapP1_const_fused_quadloops_float64.hpp"
-#include "hyteg/mesh/micro/Diffusion/P2ElementwiseDiffusion_ParametricMapP2_const_fused_quadloops_float64.hpp"
-#include "hyteg/mesh/micro/MassMicroMeshP1/P1ElementwiseMassMicroMeshP1_const_fused_quadloops_float64.hpp"
-#include "hyteg/mesh/micro/MassMicroMeshP2/P2ElementwiseMassMicroMeshP2_const_fused_quadloops_float64.hpp"
 #include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/numerictools/L2Space.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -45,8 +40,10 @@
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
-#include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
-#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
+#include "hyteg_operators/operators/diffusion/P1ElementwiseDiffusionParametricP1Map.hpp"
+#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionParametricP2Map.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMassParametricP1Map.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMassParametricP2Map.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "mixed_operator/VectorLaplaceOperator.hpp"
@@ -209,9 +206,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "P1 sol, P1 mesh" )
 
    test< P1Function< real_t >,
-         operatorgeneration::P1ElementwiseDiffusion_ParametricMapP1_const_fused_quadloops_float64,
+         operatorgeneration::P1ElementwiseDiffusionParametricP1Map,
          P1ConstantLaplaceOperator,
-         operatorgeneration::P1ElementwiseMassMicroMeshP1_const_fused_quadloops_float64,
+         operatorgeneration::P1ElementwiseMassParametricP1Map,
          P1VectorFunction< real_t >,
          P1toP1LinearRestriction< real_t >,
          P1toP1LinearProlongation< real_t > >( MeshInfo::meshUnitSquare( 1 ), 2, 5, 1, solFunc, rhsFunc, blendingFunc );
@@ -219,9 +216,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "P2 sol, P2 mesh" )
 
    test< P2Function< real_t >,
-         operatorgeneration::P2ElementwiseDiffusion_ParametricMapP2_const_fused_quadloops_float64,
+         operatorgeneration::P2ElementwiseDiffusionParametricP2Map,
          P2ConstantLaplaceOperator,
-         operatorgeneration::P2ElementwiseMassMicroMeshP2_const_fused_quadloops_float64,
+         operatorgeneration::P2ElementwiseMassParametricP2Map,
          P2VectorFunction< real_t >,
          P2toP2QuadraticRestriction,
          P2toP2QuadraticProlongation >( MeshInfo::meshUnitSquare( 0 ), 2, 5, 2, solFunc, rhsFunc, blendingFunc );
