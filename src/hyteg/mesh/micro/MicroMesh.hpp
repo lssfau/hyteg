@@ -62,12 +62,14 @@ namespace hyteg::micromesh {
 ///
 /// The MicroMesh class is a container that stores the mesh to implement the third approach outlines above.
 ///
-/// After construction, all vertices are mapped to the positions they have in the refined coarse mesh. In other words, if no
-/// blending map is applied after construction, then the result is what is described in step 1, but much more expensive.
+/// After construction of a MicroMesh instance, all vertices are mapped to the positions they have in the standard, refined coarse
+/// mesh. In other words, if no map is applied to the MicroMesh after construction, then the result is what is described in
+/// approach 1, but more expensive.
 ///
 /// \note You need to use this feature with appropriate operators. See tests and examples.
 ///
 /// \note Combining step 2 and 3 is not implemented. If a MicroMesh is added to the storage, blending functions are ignored.
+///       However, be careful and just use only approach 2 OR approach 3 in the first place to avoid unexpected issues.
 ///
 /// \note Moving meshes (aka interpolating new values into the mesh repeatedly) are technically available through this
 ///       implementation but need to be handled carefully since the _reference_ frame changes with the mesh.
@@ -95,8 +97,11 @@ class MicroMesh
               uint_t                                     polynomialDegree,
               uint_t                                     dimension );
 
-   MicroMesh( const std::shared_ptr< P1VectorFunction< real_t > >& mesh );
-   MicroMesh( const std::shared_ptr< P2VectorFunction< real_t > >& mesh );
+   /// Construct a MicroMesh directly from some already allocated vector function.
+   explicit MicroMesh( const std::shared_ptr< P1VectorFunction< real_t > >& mesh );
+
+   /// Construct a MicroMesh directly from some already allocated vector function.
+   explicit MicroMesh( const std::shared_ptr< P2VectorFunction< real_t > >& mesh );
 
    /// Returns the polynomial degree of the mesh approximation.
    [[nodiscard]] uint_t polynomialDegree() const;
@@ -118,8 +123,6 @@ class MicroMesh
    std::shared_ptr< P1VectorFunction< real_t > > p1_;
    std::shared_ptr< P2VectorFunction< real_t > > p2_;
 };
-
-Point3D microVertexPosition( const Cell& cell, uint_t level, const indexing::Index& microVertexIndex );
 
 /// \brief Returns the position of any micro-vertex of the MicroMesh.
 ///
