@@ -140,6 +140,8 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
                                         edgedof::EdgeDoFOrientation microEdgeOrientation,
                                         bool                        withBlending )
 {
+   WALBERLA_UNUSED( microEdgeOrientation );
+
    Point3D pos = edgedof::macroedge::coordinateFromIndex( level, edge, microEdgeIndex );
 
    if ( !withBlending )
