@@ -103,19 +103,21 @@ class ConvectionSimulation
    ConvectionSimulation() = delete;
 
    ConvectionSimulation( const walberla::Config::BlockHandle& mainConf );
-   ~ConvectionSimulation(){};
+   ~ConvectionSimulation() {};
 
    void init();
 
    void step();
 
-   void                        outputTimingTree();
-   real_t                      viscosityFunction( const Point3D& x, real_t Temperature );
-   real_t                      densityFunction( const Point3D& x );
-   real_t                      diffPreFactorFunction( const Point3D& x );
-   real_t                      calculateStokesResidual( uint_t level );
-   real_t                      calculateEnergyResidual( uint_t level );
-   real_t                      referenceTemperatureFunction( const Point3D& x );
+   void   outputTimingTree();
+   void   updateNonDimParameters(const Point3D& x);
+   real_t viscosityFunction( const Point3D& x, real_t Temperature );
+   real_t interpolateDataValues( const Point3D& x, const std::vector< real_t >& radius, const std::vector< real_t >& values );
+   real_t densityFunction( const Point3D& x );
+   real_t diffPreFactorFunction( const Point3D& x );
+   real_t calculateStokesResidual( uint_t level );
+   real_t calculateEnergyResidual( uint_t level );
+   real_t referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
  private:

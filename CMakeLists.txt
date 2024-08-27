@@ -224,6 +224,10 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles/tests)
    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles/tests")
 endif()
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/radialProfiles)
+   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/radialProfiles")
+endif()
+
 waLBerla_link_files_to_builddir(data/meshes/2D/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
@@ -234,6 +238,7 @@ waLBerla_link_files_to_builddir(data/terraneo/viscosityProfiles/*.json)
 waLBerla_link_files_to_builddir(data/terraneo/viscosityProfiles/tests/*.json)
 waLBerla_link_files_to_builddir(data/terraneo/plates/*.geojson)
 waLBerla_link_files_to_builddir(data/terraneo/plates/*.rot)
+waLBerla_link_files_to_builddir(data/terraneo/radialProfiles/*.json)
 
 add_subdirectory( src )
 add_subdirectory( apps )

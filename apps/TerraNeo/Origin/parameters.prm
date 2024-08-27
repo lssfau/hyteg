@@ -118,11 +118,14 @@ Parameters
    //  Model parameters   //
    /////////////////////////
 
-   // Input viscosity profile
+   // Input profiles
 
    //viscosityProfile ViscosityProfile_Lin_et_al_2022.json;
+   thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
+   specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
+   grueneisenParameterProfile ../../../data/terraneo/radialProfiles/gamma_radial.json;
 
-   characteristicVelocity 1e-6;
+   characteristicVelocity 1e-9;
 
    // Input temperature
 
@@ -146,9 +149,9 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
-   shearHeating false;
-   adiabaticHeating false;
-   internalHeating false;
+   shearHeating true;
+   adiabaticHeating true;
+   internalHeating true;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -158,9 +161,9 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 5;
+   maxNumTimeSteps 100;
    fixedTimeStep false;
-   cflMax 0.1;
+   cflMax 0.4;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -180,7 +183,7 @@ Parameters
    
    plateSmoothingDistance 110;
 
-   verbose false;
+   verbose true;
 
    //////////////////////////
    //  Solver parameters  //
@@ -196,7 +199,7 @@ Parameters
 
    // Uzawa solver parameters
 
-   stokesMaxNumIterations 5;
+   stokesMaxNumIterations 3;
    stokesRelativeResidualUTolerance 1e-6;
    stokesAbsoluteResidualUTolerance 1e-6;
    stokesUzawaCoarseGridIter 10;
@@ -205,9 +208,9 @@ Parameters
    
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
-   uzawaOmega 0.5;
-   ABlockMGPreSmooth 2;
-   ABlockMGPostSmooth 2;
+   uzawaOmega 0.3;
+   ABlockMGPreSmooth 3;
+   ABlockMGPostSmooth 3;
 
    // FGMRES solver parameters 
    FGMRESOuterIterations 5;
@@ -230,8 +233,8 @@ Parameters
 
    // Diffusion parameters 
 
-   diffusionMaxNumIterations 1000;
-   diffusionAbsoluteResidualUTolerance 1e-12;
+   diffusionMaxNumIterations 100;
+   diffusionAbsoluteResidualUTolerance 1e-8;
    
    //////////////////////////
    //  Output parameters   //
