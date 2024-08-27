@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
