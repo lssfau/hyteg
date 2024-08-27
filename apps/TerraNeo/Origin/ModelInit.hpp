@@ -394,7 +394,7 @@ void ConvectionSimulation::setupSolversAndOperators()
           projectionOperator,
           bcVelocity,
           TN.solverParameters.estimateUzawaOmega,
-          false,
+          TN.simulationParameters.verbose,
           {
               { solvertemplates::StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
                 real_c( TN.solverParameters.numPowerIterations ) },
@@ -483,7 +483,7 @@ void ConvectionSimulation::setupSolversAndOperators()
           stokesOperatorFS,
           projectionOperator,
           bcVelocity,
-          false,
+          TN.simulationParameters.verbose,
           { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
               real_c( TN.solverParameters.numPowerIterations ) },
             { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS,

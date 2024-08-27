@@ -119,9 +119,12 @@ Parameters
    //  Model parameters   //
    /////////////////////////
 
-   // Input viscosity profile
+   // Input profiles
 
    viscosityProfile ../../data/terraneo/viscosityProfiles/tests/ViscosityProfileTest.json;
+   //thermalExpansivityProfile alpha_radial.json;
+   //specificHeatCapacityProfile cp_radial.json;
+   //grueneisenParameterProfile gamma_radial.json;
 
    characteristicVelocity 1e-8;
 
