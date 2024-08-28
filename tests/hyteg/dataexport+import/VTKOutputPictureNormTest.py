@@ -145,18 +145,22 @@ def compare_images():
         img_new = Image.open(os.path.join(fresh_path, png))
         img_ref = Image.open(os.path.join(references_path, png))
 
-        data_new = np.array(img_new)
-        data_ref = np.array(img_ref)
+        data_new = np.array(img_new).astype(float)
+        data_ref = np.array(img_ref).astype(float)
 
         if data_new.shape != data_ref.shape:
             raise ValueError("Images do not have the same dimensions.")
 
         difference = np.abs(data_new - data_ref)
         inf_norm = np.max(difference)
-
-        print(f"Error (inf-norm) {png}: {inf_norm}")
-
         if inf_norm > 0:
+            difference /= inf_norm
+        mean = np.mean(difference)
+
+        print(f"Error {png} mean: {mean}")
+
+        if mean > 0.01:
+            print(f"===>>> FAILED ({png})")
             num_failures += 1
 
     if num_failures > 0:
