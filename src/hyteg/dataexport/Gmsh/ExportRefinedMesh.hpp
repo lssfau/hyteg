@@ -65,7 +65,7 @@ void writeNodesSection( std::ofstream&                       meshFile,
 
    for ( const auto& vertexIter : storage->getVertices() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing vertex with tag: " << vertexTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing vertex with tag: " << vertexTag );
 
       auto vertexPtr = vertexIter.second;
 
@@ -89,7 +89,7 @@ void writeNodesSection( std::ofstream&                       meshFile,
    uint_t edgeTag = 1u;
    for ( const auto& edgeIter : storage->getEdges() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing edge with tag: " << edgeTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing edge with tag: " << edgeTag );
 
       auto edgePtr = edgeIter.second;
 
@@ -130,7 +130,7 @@ void writeNodesSection( std::ofstream&                       meshFile,
    uint_t faceTag = 1u;
    for ( const auto& faceIter : storage->getFaces() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing face with tag: " << faceTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing face with tag: " << faceTag );
 
       auto facePtr = faceIter.second;
 
@@ -171,7 +171,7 @@ void writeNodesSection( std::ofstream&                       meshFile,
    uint_t cellTag = 1u;
    for ( const auto& cellIter : storage->getCells() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing cell with tag: " << cellTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing cell with tag: " << cellTag );
 
       auto cellPtr = cellIter.second;
 
@@ -245,7 +245,7 @@ void writeElementsSection( std::ofstream&                       meshFile,
 
    for ( const auto& vertexIter : storage->getVertices() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing vertex with tag: " << vertexTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing vertex with tag: " << vertexTag );
 
       auto vertexPtr = vertexIter.second;
 
@@ -267,7 +267,7 @@ void writeElementsSection( std::ofstream&                       meshFile,
 
    for ( const auto& edgeIter : storage->getEdges() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing edge with tag: " << edgeTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing edge with tag: " << edgeTag );
 
       auto edgePtr = edgeIter.second;
 
@@ -301,7 +301,7 @@ void writeElementsSection( std::ofstream&                       meshFile,
 
    for ( const auto& faceIter : storage->getFaces() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing face with tag: " << faceTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing face with tag: " << faceTag );
 
       auto facePtr = faceIter.second;
 
@@ -338,7 +338,7 @@ void writeElementsSection( std::ofstream&                       meshFile,
 
    for ( const auto& cellIter : storage->getCells() )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "-> Processing cell with tag: " << cellTag );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "-> Processing cell with tag: " << cellTag );
 
       auto cellPtr = cellIter.second;
 
@@ -400,8 +400,6 @@ void exportRefinedMesh( std::shared_ptr< PrimitiveStorage >& storage, uint_t exp
           "gmsh::exportRefinedMesh(): is not designed to work with multiple MPI processes! Proceed at your own risk!" );
    }
 #endif
-
-   WALBERLA_LOG_INFO_ON_ROOT( "gmsh::exportRefinedMesh(): exportLevel = " << exportLevel );
 
    // The DoFs of a P1Function correspond to the micro-vertices of the mesh.
    // Hence, we can use an enumerator to index the micro-vertices.

@@ -65,6 +65,16 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
 
 endif ()
 
+if( NOT EXISTS ./GmshExportTest-Output )
+  file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/GmshExportTest-Output" )
+endif()
+waLBerla_compile_test(FILES GmshExportTest.cpp DEPENDS hyteg core)
+if( GMSH_EXECUTABLE )
+  waLBerla_execute_test(NAME GmshExportTest COMMAND $<TARGET_FILE:GmshExportTest> --verify_with_gmsh )
+else()
+  waLBerla_execute_test(NAME GmshExportTest )
+endif()
+
 waLBerla_compile_test(FILES TableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TableTest)
 set_tests_properties(TableTest PROPERTIES FIXTURES_SETUP TableTest)
