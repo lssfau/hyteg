@@ -224,48 +224,48 @@ static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint
 
    for ( const auto& [pid, vertex] : storage->getVertices() )
    {
+      auto pos = microVertexPositionNoMesh( level, *vertex, indexing::Index( 0, 0, 0 ), withBlending );
       for ( uint_t i = 0; i < dimension; i++ )
       {
-         vertex->getData( p1Mesh.component( i ).getVertexDataID() )->getPointer( level )[0] =
-             microVertexPositionNoMesh( level, *vertex, indexing::Index( 0, 0, 0 ), withBlending )( Eigen::Index( i ) );
+         vertex->getData( p1Mesh.component( i ).getVertexDataID() )->getPointer( level )[0] = pos( Eigen::Index( i ) );
       }
    }
 
    for ( const auto& [pid, edge] : storage->getEdges() )
    {
-      for ( uint_t i = 0; i < dimension; i++ )
+      for ( auto idx : vertexdof::macroedge::Iterator( level ) )
       {
-         auto data = edge->getData( p1Mesh.component( i ).getEdgeDataID() )->getPointer( level );
-         for ( auto idx : vertexdof::macroedge::Iterator( level ) )
+         auto pos = microVertexPositionNoMesh( level, *edge, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            data[vertexdof::macroedge::index( level, idx.x() )] =
-                microVertexPositionNoMesh( level, *edge, idx, withBlending )( Eigen::Index( i ) );
+            auto data = edge->getData( p1Mesh.component( i ).getEdgeDataID() )->getPointer( level );
+            data[vertexdof::macroedge::index( level, idx.x() )] = pos( Eigen::Index( i ) );
          }
       }
    }
 
    for ( const auto& [pid, face] : storage->getFaces() )
    {
-      for ( uint_t i = 0; i < dimension; i++ )
+      for ( auto idx : vertexdof::macroface::Iterator( level ) )
       {
-         auto data = face->getData( p1Mesh.component( i ).getFaceDataID() )->getPointer( level );
-         for ( auto idx : vertexdof::macroface::Iterator( level ) )
+         auto pos = microVertexPositionNoMesh( level, *face, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            data[vertexdof::macroface::index( level, idx.x(), idx.y() )] =
-                microVertexPositionNoMesh( level, *face, idx, withBlending )( Eigen::Index( i ) );
+            auto data = face->getData( p1Mesh.component( i ).getFaceDataID() )->getPointer( level );
+            data[vertexdof::macroface::index( level, idx.x(), idx.y() )] = pos( Eigen::Index( i ) );
          }
       }
    }
 
    for ( const auto& [pid, cell] : storage->getCells() )
    {
-      for ( uint_t i = 0; i < dimension; i++ )
+      for ( auto idx : vertexdof::macrocell::Iterator( level ) )
       {
-         auto data = cell->getData( p1Mesh.component( i ).getCellDataID() )->getPointer( level );
-         for ( auto idx : vertexdof::macrocell::Iterator( level ) )
+         auto pos = microVertexPositionNoMesh( level, *cell, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            data[vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() )] =
-                microVertexPositionNoMesh( level, *cell, idx, withBlending )( Eigen::Index( i ) );
+            auto data = cell->getData( p1Mesh.component( i ).getCellDataID() )->getPointer( level );
+            data[vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() )] = pos( Eigen::Index( i ) );
          }
       }
    }
@@ -279,51 +279,58 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
    for ( const auto& [pid, vertex] : storage->getVertices() )
    {
+      auto pos = microVertexPositionNoMesh( level, *vertex, indexing::Index( 0, 0, 0 ), withBlending );
       for ( uint_t i = 0; i < dimension; i++ )
       {
          vertex->getData( p2Mesh.component( i ).getVertexDoFFunction().getVertexDataID() )->getPointer( level )[0] =
-             microVertexPositionNoMesh( level, *vertex, indexing::Index( 0, 0, 0 ), withBlending )( Eigen::Index( i ) );
+             pos( Eigen::Index( i ) );
       }
    }
 
    for ( const auto& [pid, edge] : storage->getEdges() )
    {
-      for ( uint_t i = 0; i < dimension; i++ )
+      for ( auto idx : vertexdof::macroedge::Iterator( level ) )
       {
-         auto vdata = edge->getData( p2Mesh.component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
-         for ( auto idx : vertexdof::macroedge::Iterator( level ) )
+         auto pos = microVertexPositionNoMesh( level, *edge, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            vdata[vertexdof::macroedge::index( level, idx.x() )] =
-                microVertexPositionNoMesh( level, *edge, idx, withBlending )( Eigen::Index( i ) );
+            auto vdata = edge->getData( p2Mesh.component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
+            vdata[vertexdof::macroedge::index( level, idx.x() )] = pos( Eigen::Index( i ) );
          }
+      }
 
-         auto edata = edge->getData( p2Mesh.component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
-         for ( auto idx : edgedof::macroedge::Iterator( level ) )
+      for ( auto idx : edgedof::macroedge::Iterator( level ) )
+      {
+         auto pos = microEdgePositionNoMesh( level, *edge, idx, edgedof::EdgeDoFOrientation::X, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            edata[edgedof::macroedge::index( level, idx.x() )] =
-                microEdgePositionNoMesh( level, *edge, idx, edgedof::EdgeDoFOrientation::X, withBlending )( Eigen::Index( i ) );
+            auto edata = edge->getData( p2Mesh.component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
+            edata[edgedof::macroedge::index( level, idx.x() )] = pos( Eigen::Index( i ) );
          }
       }
    }
 
    for ( const auto& [pid, face] : storage->getFaces() )
    {
-      for ( uint_t i = 0; i < dimension; i++ )
+      for ( auto idx : vertexdof::macroface::Iterator( level ) )
       {
-         auto vdata = face->getData( p2Mesh.component( i ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         for ( auto idx : vertexdof::macroface::Iterator( level ) )
+         auto pos = microVertexPositionNoMesh( level, *face, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            vdata[vertexdof::macroface::index( level, idx.x(), idx.y() )] =
-                microVertexPositionNoMesh( level, *face, idx, withBlending )( Eigen::Index( i ) );
+            auto vdata = face->getData( p2Mesh.component( i ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+            vdata[vertexdof::macroface::index( level, idx.x(), idx.y() )] = pos( Eigen::Index( i ) );
          }
+      }
 
-         auto edata = face->getData( p2Mesh.component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
+      {
          for ( auto idx : edgedof::macroface::Iterator( level ) )
          {
-            for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
+            auto pos = microEdgePositionNoMesh( level, *face, idx, orientation, withBlending );
+            for ( uint_t i = 0; i < dimension; i++ )
             {
-               edata[edgedof::macroface::index( level, idx.x(), idx.y(), orientation )] =
-                   microEdgePositionNoMesh( level, *face, idx, orientation, withBlending )( Eigen::Index( i ) );
+               auto edata = face->getData( p2Mesh.component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               edata[edgedof::macroface::index( level, idx.x(), idx.y(), orientation )] = pos( Eigen::Index( i ) );
             }
          }
       }
@@ -331,29 +338,37 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
    for ( const auto& [pid, cell] : storage->getCells() )
    {
-      for ( uint_t i = 0; i < dimension; i++ )
+      for ( auto idx : vertexdof::macrocell::Iterator( level ) )
       {
-         auto vdata = cell->getData( p2Mesh.component( i ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
-         for ( auto idx : vertexdof::macrocell::Iterator( level ) )
+         auto pos = microVertexPositionNoMesh( level, *cell, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
-            vdata[vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() )] =
-                microVertexPositionNoMesh( level, *cell, idx, withBlending )( Eigen::Index( i ) );
+            auto vdata = cell->getData( p2Mesh.component( i ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
+            vdata[vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() )] = pos( Eigen::Index( i ) );
          }
+      }
 
-         auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+      for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+      {
          for ( auto idx : edgedof::macrocell::Iterator( level ) )
          {
-            for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+            auto pos = microEdgePositionNoMesh( level, *cell, idx, orientation, withBlending );
+            for ( uint_t i = 0; i < dimension; i++ )
             {
-               edata[edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), orientation )] =
-                   microEdgePositionNoMesh( level, *cell, idx, orientation, withBlending )( Eigen::Index( i ) );
+               auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+               edata[edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), orientation )] = pos( Eigen::Index( i ) );
             }
          }
+      }
 
-         for ( auto idx : edgedof::macrocell::IteratorXYZ( level ) )
+      for ( auto idx : edgedof::macrocell::IteratorXYZ( level ) )
+      {
+         auto pos = microEdgePositionNoMesh( level, *cell, idx, edgedof::EdgeDoFOrientation::XYZ, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
          {
+            auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
             edata[edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), edgedof::EdgeDoFOrientation::XYZ )] =
-                microEdgePositionNoMesh( level, *cell, idx, edgedof::EdgeDoFOrientation::XYZ, withBlending )( Eigen::Index( i ) );
+                pos( Eigen::Index( i ) );
          }
       }
    }
