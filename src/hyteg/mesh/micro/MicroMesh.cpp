@@ -509,7 +509,7 @@ void interpolate( MicroMesh&                                                    
    WALBERLA_CHECK_GREATER_EQUAL(
        blendingFunction.size(),
        microMesh.dimension(),
-       "MicroMesh: blending function is dimension is smaller than the dimension of the space the mesh is embedded in." )
+       "MicroMesh: blending function dimension is smaller than the dimension of the space the mesh is embedded in." )
 
    if ( microMesh.p1Mesh() )
    {
