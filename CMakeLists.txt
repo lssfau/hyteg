@@ -12,6 +12,10 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.27.0")
    cmake_policy(SET CMP0144 NEW)
 endif()
 
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.30.0")
+   cmake_policy(SET CMP0167 NEW)
+endif()
+
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 include(DetectPlatformFeatures)
