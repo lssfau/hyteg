@@ -262,9 +262,6 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
 
    for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
    {
-      const Point3D microVertexPosition = vertexdof::macrocell::coordinateFromIndex( Level, cell, it );
-      const uint_t  xyz                 = it.x() + it.y() + it.z();
-
       if ( isInnerXEdgeDoF( Level, it ) )
       {
          const Point3D xMicroEdgePosition =
