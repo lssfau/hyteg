@@ -61,10 +61,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
       srcVector[k] = vertex.getData( srcIds[k] )->getPointer( level )[0];
    }
 
-   Point3D xBlend;
-   vertex.getGeometryMap()->evalF( micromesh::microVertexPosition( storage, vertex.getID(), level, indexing::Index( 0, 0, 0 ) ),
-                                   xBlend );
-   vertexMemory->getPointer( level )[0] = expr( xBlend, srcVector );
+   const auto coordinate = micromesh::microVertexPosition( storage, vertex.getID(), level, indexing::Index( 0, 0, 0 ) );
+   vertexMemory->getPointer( level )[0] = expr( coordinate, srcVector );
 }
 
 template < typename ValueType >

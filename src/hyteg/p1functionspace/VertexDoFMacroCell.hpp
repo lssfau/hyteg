@@ -110,8 +110,6 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
 
    std::vector< ValueType > srcVector( srcIds.size() );
 
-   Point3D xBlend;
-
    for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
       const auto   coordinate = micromesh::microVertexPosition( storage, cell.getID(), level, it );
@@ -121,8 +119,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
       {
          srcVector[k] = srcPtr[k][idx];
       }
-      cell.getGeometryMap()->evalF( coordinate, xBlend );
-      cellData[idx] = expr( xBlend, srcVector );
+
+      cellData[idx] = expr( coordinate, srcVector );
    }
 }
 

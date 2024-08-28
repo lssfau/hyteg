@@ -87,8 +87,6 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
 
    std::vector< ValueType > srcVector( srcIds.size() );
 
-   Point3D xBlend;
-
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const Point3D currentCoordinates =
@@ -99,9 +97,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.x() )];
       }
 
-      edge.getGeometryMap()->evalF( currentCoordinates, xBlend );
       edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C )] =
-          expr( xBlend, srcVector );
+          expr( currentCoordinates, srcVector );
    }
 }
 

@@ -271,9 +271,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          {
             srcVectorX[k] = srcPtr[k][edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D xBlend;
-         cell.getGeometryMap()->evalF( xMicroEdgePosition, xBlend );
-         cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )] = expr( xBlend, srcVectorX );
+
+         cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )] = expr( xMicroEdgePosition, srcVectorX );
       }
 
       if ( isInnerYEdgeDoF( Level, it ) )
@@ -285,9 +284,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          {
             srcVectorY[k] = srcPtr[k][edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D yBlend;
-         cell.getGeometryMap()->evalF( yMicroEdgePosition, yBlend );
-         cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )] = expr( yBlend, srcVectorY );
+
+         cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )] = expr( yMicroEdgePosition, srcVectorY );
       }
 
       if ( isInnerZEdgeDoF( Level, it ) )
@@ -299,9 +297,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          {
             srcVectorZ[k] = srcPtr[k][edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D zBlend;
-         cell.getGeometryMap()->evalF( zMicroEdgePosition, zBlend );
-         cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )] = expr( zBlend, srcVectorZ );
+
+         cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )] = expr( zMicroEdgePosition, srcVectorZ );
       }
 
       if ( isInnerXYEdgeDoF( Level, it ) )
@@ -313,9 +310,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          {
             srcVectorXY[k] = srcPtr[k][edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D xyBlend;
-         cell.getGeometryMap()->evalF( xyMicroEdgePosition, xyBlend );
-         cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyBlend, srcVectorXY );
+
+         cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyMicroEdgePosition, srcVectorXY );
       }
 
       if ( isInnerXZEdgeDoF( Level, it ) )
@@ -327,9 +323,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          {
             srcVectorXZ[k] = srcPtr[k][edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D xzBlend;
-         cell.getGeometryMap()->evalF( xzMicroEdgePosition, xzBlend );
-         cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xzBlend, srcVectorXZ );
+
+         cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xzMicroEdgePosition, srcVectorXZ );
       }
 
       if ( isInnerYZEdgeDoF( Level, it ) )
@@ -341,9 +336,8 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          {
             srcVectorYZ[k] = srcPtr[k][edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D yzBlend;
-         cell.getGeometryMap()->evalF( yzMicroEdgePosition, yzBlend );
-         cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzBlend, srcVectorYZ );
+
+         cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzMicroEdgePosition, srcVectorYZ );
       }
    }
 
@@ -358,9 +352,7 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          srcVectorXYZ[k] = srcPtr[k][edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )];
       }
 
-      Point3D xyzBlend;
-      cell.getGeometryMap()->evalF( xyzMicroEdgePosition, xyzBlend );
-      cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyzBlend, srcVectorXYZ );
+      cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyzMicroEdgePosition, srcVectorXYZ );
    }
 }
 

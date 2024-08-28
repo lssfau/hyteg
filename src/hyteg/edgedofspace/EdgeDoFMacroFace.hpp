@@ -257,8 +257,6 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
    std::vector< ValueType > srcVectorVertical( srcIds.size() );
    std::vector< ValueType > srcVectorDiagonal( srcIds.size() );
 
-   Point3D xBlend;
-
    for ( const auto& it : edgedof::macroface::Iterator( Level, 0 ) )
    {
       // Do not update horizontal DoFs at bottom
@@ -270,8 +268,9 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          }
          const Point3D horizontalMicroEdgePosition =
              micromesh::microEdgeCenterPosition( storage, face.getID(), Level, it, edgedof::EdgeDoFOrientation::X );
-         face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-         faceData[edgedof::macroface::horizontalIndex( Level, it.x(), it.y() )] = expr( xBlend, srcVectorHorizontal );
+
+         faceData[edgedof::macroface::horizontalIndex( Level, it.x(), it.y() )] =
+             expr( horizontalMicroEdgePosition, srcVectorHorizontal );
       }
 
       // Do not update vertical DoFs at left border
@@ -283,8 +282,9 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          }
          const Point3D verticalMicroEdgePosition =
              micromesh::microEdgeCenterPosition( storage, face.getID(), Level, it, edgedof::EdgeDoFOrientation::Y );
-         face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-         faceData[edgedof::macroface::verticalIndex( Level, it.x(), it.y() )] = expr( xBlend, srcVectorVertical );
+
+         faceData[edgedof::macroface::verticalIndex( Level, it.x(), it.y() )] =
+             expr( verticalMicroEdgePosition, srcVectorVertical );
       }
 
       // Do not update diagonal DoFs at diagonal border
@@ -296,8 +296,9 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          }
          const Point3D diagonalMicroEdgePosition =
              micromesh::microEdgeCenterPosition( storage, face.getID(), Level, it, edgedof::EdgeDoFOrientation::XY );
-         face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-         faceData[edgedof::macroface::diagonalIndex( Level, it.x(), it.y() )] = expr( xBlend, srcVectorDiagonal );
+
+         faceData[edgedof::macroface::diagonalIndex( Level, it.x(), it.y() )] =
+             expr( diagonalMicroEdgePosition, srcVectorDiagonal );
       }
    }
 }
