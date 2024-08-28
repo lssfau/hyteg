@@ -43,11 +43,11 @@ namespace hyteg::micromesh {
 ///    of arbitrarily high resolution - but this diminishes the advantages of a block-structured grid.
 ///
 /// 2. "Blending"
-///    An analytical mapping can be defined that maps from the coarse mesh to the actual domain. That mapping has to be
-///    differentiable and its Jacobian needs to be available to the compute kernels. If the domain can be described analytically,
-///    this approach is arbitrarily exact (the error is technically only limited by the quadrature error) and requires no
-///    additional memory. On the downside, it is hard to construct mappings for arbitrary domains, and the evaluation of the
-///    Jacobian can be expensive for complicated maps.
+///    An analytical mapping (referred to as below "blending map") can be defined that maps from the coarse mesh to the actual
+///    domain. That mapping has to be differentiable and its Jacobian needs to be available to the compute kernels. If the domain
+///    can be described analytically, this approach is arbitrarily exact (the error is technically only limited by the quadrature
+///    error) and requires no additional memory. On the downside, it is hard to construct mappings for arbitrary domains, and the
+///    evaluation of the Jacobian can be expensive for complicated maps.
 ///
 /// 3. Parametric mappings (is this what we want to call it?)
 ///    The geometry is approximated by piecewise polynomials that typically match the degree of the finite element approximation
@@ -76,9 +76,9 @@ namespace hyteg::micromesh {
 ///       Concretely, if a map f(x) is interpolated, initially x is the coordinate induced by the refined coarse mesh.
 ///       During the second call to interpolate, you get f(f(x)), i.e., the input coordinate of the function you pass is the
 ///       result of the previously interpolated value.
-///       To avoid these issues, you can _first_ interpolate the original refined coarse mesh and _then_ the apply a blending
-///       function. This is currently not happening automatically, especially, since the behavior described above might be
-///       desired.
+///       To avoid these issues, you can _first_ interpolate the original refined coarse mesh and _then_ the apply a map to the
+///       resulting, 'original' mesh. This is currently not happening automatically, especially, since the behavior described
+///       above might be desired.
 ///
 class MicroMesh
 {
@@ -138,8 +138,8 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
 /// \brief Returns the position of the center of a micro-edge.
 ///
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
-/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of a micro-vertex is
-/// requested.
+/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of the center of a micro-edge
+/// is requested.
 ///
 Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                  PrimitiveID                                primitiveId,
@@ -150,8 +150,8 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
 /// \brief Returns the position of the center of a micro-edge.
 ///
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
-/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of a micro-vertex is
-/// requested.
+/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of the center of a micro-edge
+/// is requested.
 ///
 Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                  PrimitiveID                                primitiveId,

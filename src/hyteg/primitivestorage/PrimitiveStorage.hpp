@@ -143,14 +143,20 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Uses MPIIO for (hopefully) fast consecutive reads from a single file in parallel.
    ///
    /// Please refer to the documentation of the corresponding method in the SetupPrimitiveStorage.
-   PrimitiveStorage( const std::string& file );
+   explicit PrimitiveStorage( const std::string& file );
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
 
-   /// \brief Attaches an explicit micro-mesh to the PrimitiveStorage.
+   /// \brief Attaches a MicroMesh to the PrimitiveStorage.
    ///
-   /// TODO: ===> description <===
+   /// There are two general ways to approximate curved/complex geometries with HyTeG's block-structured triangular/tetrahedral
+   /// meshes: either an analytical blending map is attached, or the nodes of the micro-elements are explicitly set to enable
+   /// parametric mappings. Attaching a MicroMesh realizes the second approach.
+   ///
+   /// Note that both approaches should not be used simultaneously.
+   ///
+   /// See documentation of the MicroMesh class for more details.
    ///
    /// \param microMesh
    void setMicroMesh( const std::shared_ptr< micromesh::MicroMesh >& microMesh ) { microMesh_ = microMesh; };
