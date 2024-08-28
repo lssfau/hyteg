@@ -39,21 +39,27 @@
 
 using namespace hyteg;
 
-std::string outputDirectory{ "./GmshExportTest-Output" };
+std::string outputDirectory{ "./GmshExportTest-Files" };
 
-std::string decorateBaseFileName( const std::string& stringIn, uint_t level )
+std::string decorateBaseFileName( const std::string& stringIn, uint_t level, bool isMeshFileNotReference )
 {
    std::stringstream stringStreamOut;
    stringStreamOut << outputDirectory << "/";
    stringStreamOut << stringIn;
    stringStreamOut << "-level=" << level;
-   stringStreamOut << ".msh";
+   stringStreamOut << ( isMeshFileNotReference ? ".msh" : ".ref" );
+
    return stringStreamOut.str();
 }
 
-void runTest( const SetupPrimitiveStorage& setupStorage, std::string baseFileName, uint_t level, bool verify_with_gmsh )
+void runTest( const SetupPrimitiveStorage& setupStorage,
+              std::string                  baseFileName,
+              uint_t                       level,
+              bool                         verify_with_gmsh,
+              bool                         verify_against_reference = true )
 {
-   std::string fileName = decorateBaseFileName( baseFileName, level );
+   std::string fileName      = decorateBaseFileName( baseFileName, level, true );
+   std::string referenceName = decorateBaseFileName( baseFileName, level, false );
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> running with level = " << level );
    WALBERLA_LOG_INFO_ON_ROOT( "-> output will go to file '" << fileName << "'" );
@@ -63,12 +69,23 @@ void runTest( const SetupPrimitiveStorage& setupStorage, std::string baseFileNam
    gmsh::exportRefinedMesh( storage, level, fileName );
 
    // feed meshfile through Gmsh to check its validity
-   if( verify_with_gmsh ) {
-     std::string command = "gmsh -parse_and_exit " + fileName + " > /dev/null";
-     WALBERLA_LOG_INFO_ON_ROOT( "-> Checking validity with '" << command << "'" );
+   if ( verify_with_gmsh )
+   {
+      std::string command = "gmsh -parse_and_exit " + fileName + " > /dev/null";
+      WALBERLA_LOG_INFO_ON_ROOT( "-> Checking validity with '" << command << "'" );
 
-     int returnCode = std::system( command.c_str() );
-     WALBERLA_CHECK_EQUAL( returnCode, 0 );
+      int returnCode = std::system( command.c_str() );
+      WALBERLA_CHECK_EQUAL( returnCode, 0 );
+   }
+
+   // compare new meshfile to stored reference
+   if ( verify_against_reference )
+   {
+      std::string command = "diff " + fileName + " " + referenceName;
+      WALBERLA_LOG_INFO_ON_ROOT( "-> Comparing generated file against stored reference:\n"
+                                 << "   " << command );
+      int returnCode = std::system( command.c_str() );
+      WALBERLA_CHECK_EQUAL( returnCode, 0 );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "done" );
@@ -90,13 +107,13 @@ int main( int argc, char* argv[] )
    if ( argc != 1 && argc != 2 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" << argv[0] << " received " << argc << " command-line arguments:" );
-      for ( uint_t i = 1; i <= argc; ++i )
+      for ( int i = 1; i <= argc; ++i )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "arg #" << i << " = '" << argv[i] << "'" );
          WALBERLA_ABORT( "Expecting either none or '--verify_with_gmsh'" );
       }
    }
-   else if( argc == 2 )
+   else if ( argc == 2 )
    {
       if ( strcmp( argv[1], "--verify_with_gmsh" ) == 0 )
       {
@@ -130,6 +147,8 @@ int main( int argc, char* argv[] )
    {
       MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/cube_6el_offcenter.msh" ) );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      runTest( setupStorage, "cube_6el_offcenter", 0, verify_with_gmsh );
+      runTest( setupStorage, "cube_6el_offcenter", 1, verify_with_gmsh );
       runTest( setupStorage, "cube_6el_offcenter", 3, verify_with_gmsh );
    }
 
@@ -139,7 +158,7 @@ int main( int argc, char* argv[] )
       MeshInfo              mesh = MeshInfo::meshSphericalShell( 2, 2, real_c( 1 ), real_c( 2 ) );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       IcosahedralShellMap::setMap( setupStorage );
-      runTest( setupStorage, "ThickSphericalShell", 3, verify_with_gmsh );
+      runTest( setupStorage, "ThickSphericalShell", 2, verify_with_gmsh );
    }
 
    // 3D surface mesh
@@ -149,7 +168,7 @@ int main( int argc, char* argv[] )
       MeshInfo              mesh = MeshInfo::meshThinSphericalShell( 2, thinShellRadius );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       ThinShellMap::setMap( setupStorage, thinShellRadius );
-      runTest( setupStorage, "ThinSphericalShell", 5, verify_with_gmsh );
+      runTest( setupStorage, "ThinSphericalShell", 5, verify_with_gmsh, false );
    }
 
    return EXIT_SUCCESS;

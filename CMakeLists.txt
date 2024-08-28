@@ -239,7 +239,7 @@ endif()
 # Determine if Gmsh executable is available for testing purposes
 find_program( GMSH_EXECUTABLE gmsh )
 if( GMSH_EXECUTABLE ) 
-    message(STATUS "Gmsh found at ${GMSH_EXECUTABLE}" )
+    message(STATUS "Found Gmsh executable at ${GMSH_EXECUTABLE}" )
 endif()
 
 waLBerla_link_files_to_builddir(data/meshes/2D/*.msh)
