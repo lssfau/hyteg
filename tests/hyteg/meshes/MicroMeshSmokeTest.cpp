@@ -49,7 +49,7 @@ void improveMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t lev
    // Can be used to steer blending of inner nodes.
    // Not sure yet if that's really useful.
    P2Function< real_t > k( "k", storage, level, level );
-   auto                 kfunc = []( const Point3D& x ) { return 1; };
+   auto                 kfunc = []( const Point3D& ) { return 1; };
    k.interpolate( kfunc, level );
 
    Lap_T      B( storage, level, level, k );
