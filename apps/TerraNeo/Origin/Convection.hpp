@@ -44,6 +44,7 @@
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticInjection.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
@@ -248,6 +249,8 @@ class ConvectionSimulation
    std::shared_ptr< DiffusionOperator >                 diffusionOperator;
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
+
+   std::shared_ptr< P2toP2QuadraticInjection >          p2InjectionOperator;
 
    std::shared_ptr< P2TransportP1CoefficientsIcosahedralShellMapOperator > transportOperatorP1Coefficients;
 

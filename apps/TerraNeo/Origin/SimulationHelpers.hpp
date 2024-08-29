@@ -123,10 +123,20 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
 
 void ConvectionSimulation::updateViscosity()
 {
-   
+   if ( p2InjectionOperator == nullptr )
+   {
+      p2InjectionOperator =
+          std::make_shared< P2toP2QuadraticInjection >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   }
+
+   for(uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level--)
+   {
+      p2InjectionOperator->restrict(*( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All);
+   }
+
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
        [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
-         updateNonDimParameters( x );
+          updateNonDimParameters( x );
           return terraneo::viscosityFunction( x, Temperature[0], TN );
        };
 
