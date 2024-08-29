@@ -158,7 +158,7 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 5;
+   maxNumTimeSteps 500;
    fixedTimeStep false;
    cflMax 0.1;
    dtConstant 100;
@@ -254,13 +254,13 @@ Parameters
    outputIntervalMyr 1;
 
    outputProfiles true;
-   ADIOS2OutputConfig ADIOS2config.xml;
+   ADIOS2OutputConfig /home/pponkumar/hyteg/hyteg/apps/TerraNeo/Origin/ADIOS2config.xml;
 
-   ADIOS2StoreCheckpointPath ./output/checkpoint;
+   ADIOS2StoreCheckpointPath /SCRATCH/pponkumar/tn-output/checkpoint;
    ADIOS2StoreCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StoreCheckpoint false;
 
-   ADIOS2StartCheckpointPath ./output/checkpoint;
+   ADIOS2StartCheckpointPath /SCRATCH/pponkumar/tn-output/checkpoint;
    ADIOS2StartCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StartFromCheckpoint false;
 
@@ -272,8 +272,8 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory ./output;
-   outputBaseName 3d_convection;
+   outputDirectory /SCRATCH/pponkumar/tn-output/;
+   outputBaseName 3d_convection_debug;
 
    // Output of a. json file containing timing tree information
 

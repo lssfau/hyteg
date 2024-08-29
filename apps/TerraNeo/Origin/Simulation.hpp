@@ -381,36 +381,36 @@ void ConvectionSimulation::setupStokesRHS()
       p2p1StokesFunctionContainer["StokesRHS"]->uvw()[2].interpolate(
           momentumFactors, { p2p1StokesFunctionContainer["StokesRHS"]->uvw()[2] }, l, All );
 
-      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithOutwardNormalX =
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithInwardNormalX =
           []( const Point3D& x, const std::vector< real_t >& vals ) {
              real_t xNorm = x[0] / x.norm();
-             return xNorm * vals[0];
+             return -xNorm * vals[0];
           };
 
-      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithOutwardNormalY =
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithInwardNormalY =
           []( const Point3D& x, const std::vector< real_t >& vals ) {
              real_t xNorm = x[1] / x.norm();
-             return xNorm * vals[0];
+             return -xNorm * vals[0];
           };
 
-      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithOutwardNormalZ =
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithInwardNormalZ =
           []( const Point3D& x, const std::vector< real_t >& vals ) {
              real_t xNorm = x[2] / x.norm();
-             return xNorm * vals[0];
+             return -xNorm * vals[0];
           };
 
       p2p1StokesFunctionContainer["StokesTmp1"]->uvw().assign(
           { 1.0 }, { p2p1StokesFunctionContainer["StokesRHS"]->uvw() }, l, All );
 
-      // multply with outward normal (for gravity)
+      // multply with inward normal (for gravity)
       p2p1StokesFunctionContainer["StokesRHS"]->uvw().component( 0u ).interpolate(
-          multiplyWithOutwardNormalX, { p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 0u ) }, l, All );
+          multiplyWithInwardNormalX, { p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 0u ) }, l, All );
 
       p2p1StokesFunctionContainer["StokesRHS"]->uvw().component( 1u ).interpolate(
-          multiplyWithOutwardNormalY, { p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 1u ) }, l, All );
+          multiplyWithInwardNormalY, { p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 1u ) }, l, All );
 
       p2p1StokesFunctionContainer["StokesRHS"]->uvw().component( 2u ).interpolate(
-          multiplyWithOutwardNormalZ, { p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 2u ) }, l, All );
+          multiplyWithInwardNormalZ, { p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 2u ) }, l, All );
 
       /////////////////
       //    Mass    //
