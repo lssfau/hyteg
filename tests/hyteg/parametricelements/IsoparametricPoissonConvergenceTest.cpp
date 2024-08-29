@@ -200,7 +200,7 @@ int main( int argc, char* argv[] )
    std::vector< Func_T > blendingFunc = {
        [&]( const Point3D& x ) { return x[0] + 0.1 * sin( 2 * pi * 1.5 * x[1] ); },
        [&]( const Point3D& x ) { return x[1] + 0.1 * sin( 2 * pi * x[0] ); },
-       [&]( const Point3D& x ) { return 0; },
+       [&]( const Point3D& ) { return 0; },
    };
 
    WALBERLA_LOG_INFO_ON_ROOT( "P1 sol, P1 mesh" )
