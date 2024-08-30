@@ -25,6 +25,8 @@
 #include "hyteg_operators_composites/gradient/P1ToP2GradientOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesOperatorTemplate.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockEpsilonOperator.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
 
 namespace hyteg {
 namespace operatorgeneration {
@@ -60,7 +62,12 @@ using P2P1StokesEpsilonAnnulusMapOperator =
 
 /// P2P1StokesEpsilonOperator with IcosahedralShellMap blending. See documentation of P2P1StokesEpsilonOperator.
 using P2P1StokesEpsilonIcosahedralShellMapOperator =
-    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockEpsilonIcosahedralShellMapOperator,
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonIcosahedralShellMap,
+                                               operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+
+using P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator =
+    detail::P2P1StokesP1VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap,
                                                operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
                                                operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
 

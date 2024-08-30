@@ -63,24 +63,17 @@ void ConvectionSimulation::setupOutput()
 #endif
    }
 
+   std::function< real_t( const Point3D& ) > scaleTRef = [this]( const Point3D& x ) {
+      real_t refTemp = referenceTemperatureFct( x );
+      return ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) * refTemp;
+   };
+
    // Setup output of Temperature and viscosity in SI units [K] and [Pa s], respectively
-
-   auto temperatureSI = std::make_shared< ScalarFunction >(
-       "Temperature [K]", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-   auto temperatureRefSI = std::make_shared< ScalarFunction >(
-       "Reference Temperature [K]", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-   auto viscositySI = std::make_shared< ScalarFunction >(
-       "Viscosity [Pa s]", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-
-   temperatureSI->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
-                          { *temperature },
-                          TN.domainParameters.maxLevel,
-                          All );
-   temperatureRefSI->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
-                             { *temperatureReference },
-                             TN.domainParameters.maxLevel,
-                             All );
-   viscositySI->assign( { ( TN.physicalParameters.referenceViscosity ) }, { *viscosityFE }, TN.domainParameters.maxLevel, All );
+   p2ScalarFunctionContainer["ReferenceTemperature[K]"]->interpolate( scaleTRef, TN.domainParameters.maxLevel, All );
+   p2ScalarFunctionContainer["Viscosity[Pas]"]->assign( { ( TN.physicalParameters.referenceViscosity ) },
+                                                        { *( p2ScalarFunctionContainer["ViscosityFE"] ) },
+                                                        TN.domainParameters.maxLevel,
+                                                        All );
 
    if ( TN.outputParameters.vtk )
    {
@@ -89,13 +82,13 @@ void ConvectionSimulation::setupOutput()
       {
          if ( TN.outputParameters.vtkOutputVertexDoFs )
          {
-            vtkOutput->add( temperatureSI->getVertexDoFFunction() );
-            vtkOutput->add( temperatureDev->getVertexDoFFunction() );
+            vtkOutput->add( p2ScalarFunctionContainer["Temperature[K]"]->getVertexDoFFunction() );
+            vtkOutput->add( p2ScalarFunctionContainer["TemperatureDev"]->getVertexDoFFunction() );
          }
          else
          {
-            vtkOutput->add( *temperatureSI );
-            vtkOutput->add( *temperatureDev );
+            vtkOutput->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
+            vtkOutput->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
          }
       }
 
@@ -103,26 +96,24 @@ void ConvectionSimulation::setupOutput()
       {
          if ( TN.outputParameters.vtkOutputVertexDoFs )
          {
-            vtkOutput->add( stokesLHS->uvw()[0].getVertexDoFFunction() );
-            vtkOutput->add( stokesLHS->uvw()[1].getVertexDoFFunction() );
-            vtkOutput->add( stokesLHS->uvw()[2].getVertexDoFFunction() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
          }
          else
          {
-            vtkOutput->add( stokesLHS->uvw()[0] );
-            vtkOutput->add( stokesLHS->uvw()[1] );
-            vtkOutput->add( stokesLHS->uvw()[2] );
+            vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
          }
       }
       else
       {
          if ( TN.outputParameters.vtkOutputVertexDoFs )
          {
-            vtkOutput->add( velocityMagnitudeSquared->getVertexDoFFunction() );
+            vtkOutput->add( p2ScalarFunctionContainer["VelocityMagnitudeSquared"]->getVertexDoFFunction() );
          }
          else
          {
-            vtkOutput->add( *velocityMagnitudeSquared );
+            vtkOutput->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
          }
       }
    }
@@ -131,34 +122,30 @@ void ConvectionSimulation::setupOutput()
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       if ( TN.outputParameters.OutputTemperature )
       {
-         _output->add( *temperatureSI );
-         _output->add( *temperatureDev );
-         _output->add( *temperatureRefSI );
+         _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
+         _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
+         _output->add( *( p2ScalarFunctionContainer["ReferenceTemperature[K]"] ) );
       }
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         _output->add( stokesLHS->uvw()[0] );
-         _output->add( stokesLHS->uvw()[1] );
-         _output->add( stokesLHS->uvw()[2] );
+         _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
 
          // stokes RHS velocity
 
-         _output->add( stokesRHS->uvw()[0] );
-         _output->add( stokesRHS->uvw()[1] );
-         _output->add( stokesRHS->uvw()[2] );
+         _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->uvw() );
 
          // stokes RHS pressure field
-         _output->add( stokesRHS->p() );
+         _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->p() );
       }
       else
       {
-         _output->add( *velocityMagnitudeSquared );
+         _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
       }
 
-      _output->add( *diffusionFE );
-      _output->add( *densityFE );
-      _output->add( *viscositySI );
+      // _output->add( *( p2ScalarFunctionContainer["DiffusionFE"] ) );
+      _output->add( *( p2ScalarFunctionContainer["DensityFE"] ) );
+      _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
 
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
@@ -238,8 +225,22 @@ void ConvectionSimulation::dataOutput()
 
       for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
       {
-         temperatureDev->interpolate( temperatureDevFunction, { *temperature }, l, All );
+         p2ScalarFunctionContainer["TemperatureDev"]->interpolate(
+             temperatureDevFunction, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
       }
+   }
+
+   p2ScalarFunctionContainer["Temperature[K]"]->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
+                                                        { *( p2ScalarFunctionContainer["TemperatureFE"] ) },
+                                                        TN.domainParameters.maxLevel,
+                                                        All );
+
+   if ( TN.simulationParameters.tempDependentViscosity )
+   {
+      p2ScalarFunctionContainer["Viscosity[Pas]"]->assign( { ( TN.physicalParameters.referenceViscosity ) },
+                                                           { *( p2ScalarFunctionContainer["ViscosityFE"] ) },
+                                                           TN.domainParameters.maxLevel,
+                                                           All );
    }
 
    uint_t outputTime;
@@ -276,7 +277,8 @@ void ConvectionSimulation::dataOutput()
       {
          WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
          checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-         checkpointExporter->registerFunction( *temperature, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+         checkpointExporter->registerFunction(
+             *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
          checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
                                               TN.outputParameters.ADIOS2StoreCheckpointFilename );
       }
