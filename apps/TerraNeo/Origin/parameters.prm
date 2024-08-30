@@ -120,12 +120,12 @@ Parameters
 
    // Input profiles
 
-   //viscosityProfile ViscosityProfile_Lin_et_al_2022.json;
-   thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
-   specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
-   grueneisenParameterProfile ../../../data/terraneo/radialProfiles/gamma_radial.json;
+   viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   //thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
+   //specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
+   //grueneisenParameterProfile ../../../data/terraneo/radialProfiles/gamma_radial.json;
 
-   characteristicVelocity 1e-9;
+   characteristicVelocity 1e-6;
 
    // Input temperature
 
@@ -142,7 +142,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 1;
+   boundaryCond 3;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
@@ -257,13 +257,13 @@ Parameters
    outputIntervalMyr 1;
 
    outputProfiles true;
-   ADIOS2OutputConfig /home/pponkumar/hyteg/hyteg/apps/TerraNeo/Origin/ADIOS2config.xml;
+   ADIOS2OutputConfig ADIOS2config.xml;
 
-   ADIOS2StoreCheckpointPath /SCRATCH/pponkumar/tn-output/checkpoint;
+   ADIOS2StoreCheckpointPath ./output/checkpoint;
    ADIOS2StoreCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StoreCheckpoint false;
 
-   ADIOS2StartCheckpointPath /SCRATCH/pponkumar/tn-output/checkpoint;
+   ADIOS2StartCheckpointPath ./output/checkpoint;
    ADIOS2StartCheckpointFilename 3d_convection_checkpoint;
    ADIOS2StartFromCheckpoint false;
 
@@ -275,8 +275,8 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 4;
 
-   outputDirectory /SCRATCH/pponkumar/tn-output/;
-   outputBaseName 3d_convection_debug;
+   outputDirectory ./output/;
+   outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information
 
