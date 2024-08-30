@@ -22,8 +22,8 @@
 
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
-#include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
 #include "terraneo/operators/P2StokesABlockWithProjection.hpp"
 
@@ -118,13 +118,15 @@ class P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-   typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator                       StokesOperator_T;
-   typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator::ViscousOperator_T    ViscousOperator_T;
-   typedef P2ABlockP1ViscousIcosahedralShellMapOperatorFS                                                    ViscousOperatorFS_T;
-   typedef ViscousOperatorFS_T                                                                               VelocityOperator_T;
-   typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator::DivergenceOperator_T DivOperator_T;
-   typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator::GradientOperator_T   GradOperator_T;
-   typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator::StabilizationOperator_T StabOperator_T;
+   typedef operatorgeneration::P2P1StokesFullP1ViscosityIcosahedralShellMapOperator    StokesOperatorBase_T;
+   // typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator StokesOperatorBase_T;
+   typedef StokesOperatorBase_T                                                        StokesOperator_T;
+   typedef StokesOperatorBase_T::ViscousOperator_T                                     ViscousOperator_T;
+   typedef P2ABlockP1ViscousIcosahedralShellMapOperatorFS                              ViscousOperatorFS_T;
+   typedef ViscousOperatorFS_T                                                         VelocityOperator_T;
+   typedef StokesOperatorBase_T::DivergenceOperator_T                                  DivOperator_T;
+   typedef StokesOperatorBase_T::GradientOperator_T                                    GradOperator_T;
+   typedef StokesOperatorBase_T::StabilizationOperator_T                               StabOperator_T;
 
    typedef operatorgeneration::P1ElementwiseKMassIcosahedralShellMap SchurOperator_T;
 

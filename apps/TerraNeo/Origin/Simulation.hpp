@@ -423,8 +423,8 @@ void ConvectionSimulation::setupStokesRHS()
          {
             // Update gradRho/Rho with new non-Dim paramters Di and alpha.
             // grad(rho)/rho = - ( Di / gamma ) * r_hat
-            std::function< real_t( const Point3D& ) > updateDensity = [&]( const Point3D& x ) { return densityFunc( x ); };
-            p2ScalarFunctionContainer["densityFE"]->interpolate( updateDensity, l, All );
+            // std::function< real_t( const Point3D& ) > updateDensity = [&]( const Point3D& x ) { return densityFunc( x ); };
+            p2ScalarFunctionContainer["densityFE"]->interpolate( densityFunc, l, All );
          }
 
          frozenVelocityRHS->apply(
