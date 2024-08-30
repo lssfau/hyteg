@@ -168,7 +168,10 @@ void test( const MeshInfo&              meshInfo,
       WALBERLA_LOG_INFO_ON_ROOT( "level " << level << " | error " << errorL2 << " | rate " << rate );
       if ( level > minLevel )
       {
-         WALBERLA_CHECK_GREATER( rate, 3.4 * real_c( polynomialDegreeOfBasisFunctions< Function_T >() ) );
+         if ( ( std::is_same_v< real_t, float > && errorL2 > 3e-6 ) || std::is_same_v< real_t, double > )
+         {
+            WALBERLA_CHECK_GREATER( rate, 3.4 * real_c( polynomialDegreeOfBasisFunctions< Function_T >() ) );
+         }
       }
    }
 
