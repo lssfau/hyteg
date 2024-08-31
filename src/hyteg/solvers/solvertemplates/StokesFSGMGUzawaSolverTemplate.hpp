@@ -66,8 +66,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                             const std::shared_ptr< ProjectionType >&                                   projectionOperator,
                             const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >&                 tmp1,
                             const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >&                 tmpProlongation,
-                            bool                                                                       verbose     = false,
-                            std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > extraParams = {} )
+                            bool                                                                       verbose,
+                            std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > extraParams )
 {
    std::map< StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > defaultParams = {
        { StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, uint_c( 25u ) },
