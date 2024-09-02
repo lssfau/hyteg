@@ -35,7 +35,7 @@ const SimulationParameters& ConvectionSimulation::getSimulationParams()
 
 real_t ConvectionSimulation::densityFunction( const Point3D& x )
 {
-   auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+   real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
    real_t retVal;
 
    if ( TN.simulationParameters.radialProfile )
