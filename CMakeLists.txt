@@ -180,6 +180,10 @@ if ( HYTEG_BUILD_WITH_ADIOS2 )
   else()
     find_package( ADIOS2 REQUIRED COMPONENTS CXX )
   endif()
+
+  if ( ${ADIOS2_VERSION} VERSION_LESS "2.9.2" )
+    message( WARNING "ADIOS2 version ${ADIOS2_VERSION} is below 2.9.2 !\nThus, your version is susceptible to the hashing issue described in\n https://github.com/ornladios/ADIOS2/discussions/3822\nThis can severly affect HyTeG's current checkpointing implementation!" )
+  endif()
 endif()
 
 configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
@@ -317,7 +321,7 @@ if ( DOXYGEN_FOUND )
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
     COMMENT "Generating API documentation with Doxygen" VERBATIM )
 
-  if ( ${DOXYGEN_VERSION} STRLESS "1.11.0" )
+  if ( ${DOXYGEN_VERSION} VERSION_LESS "1.11.0" )
     message( WARNING "Doxygen version is older than 1.11.0 !\nThus, your version does not include a patch for "
       "issue https://github.com/doxygen/doxygen/issues/10517\nwhich affects some of HyTeG's tutorials" )
   endif()
