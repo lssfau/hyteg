@@ -92,7 +92,7 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
                      "Most likely, this is not what you want to do. Presumably, the intent is to print\n"
                      "an index *vector* corresponding to a non-nodal finite element discretization. To\n"
                      "do so, add the degrees of freedoms directly to the `VTKOutput`. For example, use\n"
-                     "`add(*n1e1VectorFunction.getDoFs())`.\n"
+                     "`VTKOutput::add(*n1e1VectorFunction.getDoFs())`.\n"
                      "Nodal finite element discretizations enjoy the property that the coefficient\n"
                      "vector is exactly the evaluation at the nodes. The VTK printer therefore exports\n"
                      "the coefficient vector directly. On the other hand, functions of non-nodal\n"
