@@ -229,6 +229,60 @@ real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements
 }
 
 template < class K_Simplex >
+void K_Mesh< K_Simplex >::coarsenRG( const std::vector< PrimitiveID >& el_to_coarsen )
+{
+   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   {
+      // remove green elements from T
+      // also remove them from their parent's list of children
+      remove_green_edges( hard );
+
+      // collect parent elements of el_to_coarsen
+      std::set< std::shared_ptr< K_Simplex > > P = init_P( el_to_coarsen );
+
+      // check if el has grandkids
+      auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
+         for ( auto& child : el->get_children() )
+         {
+            if ( child->has_children() )
+            {
+               return true;
+            }
+         }
+         return false;
+      };
+
+      // remove el's children
+      auto coarsen = []( const std::shared_ptr< K_Simplex > el ) {
+         for ( auto& child : el->get_children() )
+         {
+            _T.erase( child );
+         }
+         el->kill_children();
+         _T.insert( el );
+      };
+
+      auto update = true;
+      while ( update )
+      {
+         update = false;
+         for ( auto& el : P )
+         {
+            // don't remove children of el before taking care of grandkids
+            if ( !has_grandkids( el ) )
+            {
+               P.erase( p );
+               coarsen( p );
+               update = true;
+            }
+         }
+      }
+
+      // todo remove obsolete vertices
+   }
+}
+
+template < class K_Simplex >
 void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVector& err_glob_sorted ) const
 {
    ErrorVector err_other;
@@ -1355,6 +1409,60 @@ inline std::vector< std::shared_ptr< K_Simplex > >
 }
 
 template < class K_Simplex >
+inline std::set< std::shared_ptr< K_Simplex > >
+    K_Mesh< K_Simplex >::init_P( const std::vector< PrimitiveID >& primitiveIDs ) const
+{
+   std::map< PrimitiveID, std::pair< std::shared_ptr< K_Simplex >, uint8_t > > P_tilde;
+
+   for ( auto& el : _T )
+   {
+      auto p = el->get_parent();
+
+      if ( p == nullptr )
+      {
+         // origin elements can't be coarsened
+         continue;
+      }
+
+      PrimitiveID elid = el->getPrimitiveID();
+      PrimitiveID pid  = p->getPrimitiveID();
+
+      for ( auto& id : primitiveIDs )
+      {
+         if ( elid == id )
+         {
+            if ( P_tilde.count( pid ) )
+            {
+               P_tilde[pid].second += 1; // count number of p's children marked for coarsening
+            }
+            else
+            {
+               P_tilde[pid] = std::pair< std::shared_ptr< K_Simplex >, uint8_t >{ p, uint8_t( 1 ) };
+            }
+            break;
+         }
+      }
+   }
+
+   std::set< std::shared_ptr< K_Simplex > > P;
+
+   for ( auto& [id, pn] : P_tilde )
+   {
+      WALBERLA_UNUSED( id );
+      auto& p = pn.first;
+      auto& n = pn.second;
+
+      // add parent elements to the list if at least half their children are marked for coarsening
+      if ( size_t( n ) >= p->get_children().size() / 2 )
+      {
+         P.insert( p );
+      }
+   }
+
+   return P;
+}
+
+template < class K_Simplex >
 std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex > >& R,
                                                                           std::set< std::shared_ptr< K_Simplex > >&       U )
 {
@@ -1398,7 +1506,7 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const 
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::remove_green_edges()
+void K_Mesh< K_Simplex >::remove_green_edges( bool hard )
 {
    auto T_cpy = _T;
 
@@ -1408,6 +1516,10 @@ void K_Mesh< K_Simplex >::remove_green_edges()
       {
          _T.erase( el );
          _T.insert( el->get_parent() );
+         if ( hard )
+         {
+            el->get_parent()->kill_children();
+         }
       }
    }
 }

@@ -116,6 +116,12 @@ class K_Mesh
                     bool               verbose  = false,
                     uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
 
+   /* coarsen this mesh
+      @param el_to_coarsen    subset of elements that shall coarsened
+                              given by primitiveIDs w.r.t. K_Mesh::make_storage()
+   */
+   void coarsenRG( const std::vector< PrimitiveID >& el_to_coarsen );
+
    // get minimum and maximum angle of the elements of T
    std::pair< real_t, real_t > min_max_angle() const;
 
@@ -164,8 +170,9 @@ class K_Mesh
    std::vector< uint_t > loadbalancing_greedy( const NeighborhoodMap& nbrHood, const bool allow_split_siblings );
 
    /* remove green edges from _T and replace them with their parents
+      @param hard if this is set, green elements will also be removed as children from their parents
    */
-   void remove_green_edges();
+   void remove_green_edges( bool hard = false );
 
    /* find all elements in U which require a red refinement step
       @param U set of unprocessed elements
@@ -203,6 +210,12 @@ class K_Mesh
       @return subset of _T for red refinement
    */
    std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
+
+   /* find parent elements for given primitiveIDs
+      @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
+      @return parents of a subset of _T for coarsening
+   */
+   std::set< std::shared_ptr< K_Simplex > > init_P( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
    /* extract geometryMap, boundaryFlags, etc. from all elements*/
    void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
@@ -330,6 +343,22 @@ class Mesh
       else
       {
          return _mesh2D->refineRG( local_errors, strategy, p, verbose, n_el_max );
+      }
+   }
+
+   /* coarsen this mesh
+      @param el_to_coarsen    subset of elements that shall coarsened
+                              given by primitiveIDs w.r.t. K_Mesh::make_storage()
+   */
+   void coarsenRG( const std::vector< PrimitiveID >& el_to_coarsen )
+   {
+      if ( _DIM == 3 )
+      {
+         return _mesh3D->coarsenRG( el_to_coarsen );
+      }
+      else
+      {
+         return _mesh2D->coarsenRG( el_to_coarsen );
       }
    }
 
