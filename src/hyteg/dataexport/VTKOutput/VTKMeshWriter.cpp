@@ -61,9 +61,7 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
                   for ( uint_t i = 0; i < 3; i++ )
                   {
                      const auto vtkPoint = micromesh::microVertexPosition( storage, face.getID(), level, vertexIndices[i] );
-                     Point3D    xBlend;
-                     face.getGeometryMap()->evalF( vtkPoint, xBlend );
-                     dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+                     dstStream << vtkPoint[0] << vtkPoint[1] << vtkPoint[2];
                   }
                }
             }
@@ -73,9 +71,7 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
             for ( const auto& idxIt : vertexdof::macroface::Iterator( level, 0 ) )
             {
                const Point3D vtkPoint = micromesh::microVertexPosition( storage, face.getID(), level, idxIt );
-               Point3D       xBlend;
-               face.getGeometryMap()->evalF( vtkPoint, xBlend );
-               dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+               dstStream << vtkPoint[0] << vtkPoint[1] << vtkPoint[2];
             }
          }
       }
@@ -96,9 +92,7 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
                   for ( auto vIdx : vertexIndices )
                   {
                      const auto vtkPoint = micromesh::microVertexPosition( storage, cell.getID(), level, vIdx );
-                     Point3D    xBlend;
-                     cell.getGeometryMap()->evalF( vtkPoint, xBlend );
-                     dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+                     dstStream << vtkPoint[0] << vtkPoint[1] << vtkPoint[2];
                   }
                }
             }
@@ -113,9 +107,7 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
             for ( const auto& idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
             {
                const auto vtkPoint = micromesh::microVertexPosition( storage, cell.getID(), level, idxIt );
-               Point3D    xBlend;
-               cell.getGeometryMap()->evalF( vtkPoint, xBlend );
-               dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+               dstStream << vtkPoint[0] << vtkPoint[1] << vtkPoint[2];
             }
          }
       }
@@ -137,8 +129,6 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
       {
          Face& face = *it.second;
 
-         Point3D xBlend;
-
          switch ( dofType )
          {
          case vtk::DoFType::EDGE_X: {
@@ -146,8 +136,7 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
             {
                const Point3D horizontalMicroEdgePosition =
                    micromesh::microEdgeCenterPosition( storage, face.getID(), level, itIdx, edgedof::EdgeDoFOrientation::X );
-               face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-               dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+               dstStream << horizontalMicroEdgePosition[0] << horizontalMicroEdgePosition[1] << horizontalMicroEdgePosition[2];
             }
             break;
          }
@@ -156,8 +145,7 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
             {
                const Point3D verticalMicroEdgePosition =
                    micromesh::microEdgeCenterPosition( storage, face.getID(), level, itIdx, edgedof::EdgeDoFOrientation::Y );
-               face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-               dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+               dstStream << verticalMicroEdgePosition[0] << verticalMicroEdgePosition[1] << verticalMicroEdgePosition[2];
             }
             break;
          }
@@ -166,8 +154,7 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
             {
                const Point3D diagonalMicroEdgePosition =
                    micromesh::microEdgeCenterPosition( storage, face.getID(), level, itIdx, edgedof::EdgeDoFOrientation::XY );
-               face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-               dstStream << xBlend[0] << xBlend[1] << xBlend[2];
+               dstStream << diagonalMicroEdgePosition[0] << diagonalMicroEdgePosition[1] << diagonalMicroEdgePosition[2];
             }
             break;
          }

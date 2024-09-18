@@ -330,70 +330,47 @@ void VTKP2Writer::writeP2VectorFunctionData( bool                               
    }
    else
    {
-      for ( const auto& itCells : storage->getCells() )
+      for ( const auto& [pid, cell] : storage->getCells() )
       {
-         const Cell& cell = *itCells.second;
-
-         auto vertexData0 = cell.getData( function[0].getVertexDoFFunction().getCellDataID() )->getPointer( level );
-         auto vertexData1 = cell.getData( function[1].getVertexDoFFunction().getCellDataID() )->getPointer( level );
-         auto vertexData2 = cell.getData( function[2].getVertexDoFFunction().getCellDataID() )->getPointer( level );
-
-         auto edgeData0 = cell.getData( function[0].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-         auto edgeData1 = cell.getData( function[1].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-         auto edgeData2 = cell.getData( function[2].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-
-         for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macrocell::Iterator( level ) )
          {
-            const auto  x   = it.x();
-            const auto  y   = it.y();
-            const auto  z   = it.z();
-            const idx_t mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
-
-            switch ( mod )
+            for ( uint_t idx = 0; idx < dim; ++idx )
             {
-            case 0b000:
-               dstStream << vertexData0[vertexdof::macrocell::indexFromVertex(
-                   level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               dstStream << vertexData1[vertexdof::macrocell::indexFromVertex(
-                   level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               dstStream << vertexData2[vertexdof::macrocell::indexFromVertex(
-                   level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               break;
-            case 0b100:
-               dstStream << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               break;
-            case 0b010:
-               dstStream << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               break;
-            case 0b001:
-               dstStream << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b110:
-               dstStream << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               break;
-            case 0b101:
-               dstStream << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b011:
-               dstStream << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b111:
-               dstStream << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               break;
+               auto vertexData =
+                   cell->getData( function.component( idx ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
+               dstStream << vertexData[vertexdof::macrocell::indexFromVertex(
+                   level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+            }
+         }
+      }
+
+      for ( auto orientation : edgedof::allEdgeDoFOrientations )
+      {
+         for ( const auto& [pid, cell] : storage->getCells() )
+         {
+            if ( orientation == edgedof::EdgeDoFOrientation::XYZ )
+            {
+               for ( const auto& it : edgedof::macrocell::IteratorXYZ( level ) )
+               {
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     auto edgeData =
+                         cell->getData( function.component( idx ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+                     dstStream << edgeData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation )];
+                  }
+               }
+            }
+            else
+            {
+               for ( const auto& it : edgedof::macrocell::Iterator( level ) )
+               {
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     auto edgeData =
+                         cell->getData( function.component( idx ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+                     dstStream << edgeData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation )];
+                  }
+               }
             }
          }
       }
