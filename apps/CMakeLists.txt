@@ -54,10 +54,6 @@ waLBerla_add_executable(NAME gmg_blending
       FILES gmg_blending.cpp
       DEPENDS hyteg)
 
-waLBerla_add_executable(NAME adaptiveRefinement
-        FILES adaptiveRefinement.cpp
-        DEPENDS hyteg opgen-mass constant_stencil_operator)
-
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
         FILES exportOperatorMatrix.cpp
@@ -86,6 +82,7 @@ add_subdirectory(GMRESTestApp)
 add_subdirectory(MG_with_mixed_BCs)
 add_subdirectory(MultigridStudies)
 add_subdirectory(Surrogates)
+add_subdirectory(AMR)
 add_subdirectory(benchmarks)
 add_subdirectory(blockOperators)
 add_subdirectory(profiling)

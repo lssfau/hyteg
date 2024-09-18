@@ -1208,7 +1208,7 @@ int main( int argc, char* argv[] )
    if ( argc == 1 )
    {
       walberla::shared_ptr< walberla::config::Config > cfg_( new walberla::config::Config );
-      cfg_->readParameterFile( "../hyteg/data/param/adaptiveRefinement.prm" );
+      cfg_->readParameterFile( "./adaptiveRefinement.prm" );
       cfg = cfg_;
    }
    else
