@@ -8,9 +8,11 @@ target_sources( hyteg
     PolarCoordsMap.hpp
     CircularMap.hpp
     AffineMap2D.hpp
+    AnnulusAlignedMap.hpp
     AnnulusMap.hpp
     IdentityMap.hpp
     Intersection.hpp
+    IcosahedralShellAlignedMap.hpp
     IcosahedralShellMap.hpp
     GeometryMap.hpp
     GeometryHelpers.hpp
