@@ -21,6 +21,7 @@
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
+#include "core/math/Constants.h"
 #include "core/timing/all.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -37,6 +38,8 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hyteg {
+
+using walberla::math::pi;
 
 const std::string P0_SCALAR   = "p0-scalar";
 const std::string P1_SCALAR   = "p1-scalar";
@@ -153,6 +156,40 @@ static std::shared_ptr< PrimitiveStorage > storageCurvedShell( int dim )
    return storage;
 }
 
+static std::shared_ptr< PrimitiveStorage > storageParametric( int dim, uint_t level, uint_t mappingDegree )
+{
+   MeshInfo mesh = MeshInfo::emptyMeshInfo();
+
+   if ( dim == 2 )
+   {
+      mesh = MeshInfo::meshUnitSquare( 1 );
+   }
+   else if ( dim == 3 )
+   {
+      mesh = MeshInfo::meshCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 2 ), 1, 1, 1 );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Invalid dimension." )
+   }
+
+   SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   std::vector< std::function< real_t( const Point3D& ) > > curveFunc = {
+       [&]( const Point3D& x ) { return x[0] + 0.1 * sin( 2 * pi * 1.5 * x[1] ); },
+       [&]( const Point3D& x ) { return x[1] + 0.1 * sin( 2 * pi * x[0] ); },
+       [&]( const Point3D& x ) { return x[2] + 0.1 * sin( 2 * pi * 1.1 * x[0] ); },
+   };
+
+   const auto microMesh = std::make_shared< micromesh::MicroMesh >( storage, level, level, mappingDegree, dim );
+
+   micromesh::interpolateAndCommunicate( *microMesh, curveFunc, level );
+   storage->setMicroMesh( microMesh );
+
+   return storage;
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -160,9 +197,12 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   const auto functionFlag    = "--function";
-   const auto meshFlag        = "--mesh";
-   const auto curvedShellFlag = "--curved-shell";
+   const uint_t level = 2;
+
+   const auto functionFlag      = "--function";
+   const auto meshFlag          = "--mesh";
+   const auto blendingShellFlag = "--curved-shell";
+   const auto parametricFlag    = "--parametric";
 
    std::string                                functionParam;
    std::shared_ptr< hyteg::PrimitiveStorage > storage;
@@ -179,8 +219,9 @@ int main( int argc, char* argv[] )
          WALBERLA_LOG_INFO_ON_ROOT( "      " << s )
       }
       WALBERLA_LOG_INFO_ON_ROOT( "  " << meshFlag << " <mesh-file>:    file path to a mesh file, e.g., \"2D/penta_5el.msh\"" )
-      WALBERLA_LOG_INFO_ON_ROOT( "  " << curvedShellFlag
+      WALBERLA_LOG_INFO_ON_ROOT( "  " << blendingShellFlag
                                       << " <dim>:  generates a blended annulus (dim == 2) or thick spherical shell (dim == 3)" )
+      WALBERLA_LOG_INFO_ON_ROOT( "  " << parametricFlag << " <dim>:  generates a parametrically (P1) curved domain" )
       return EXIT_SUCCESS;
    }
 
@@ -198,13 +239,18 @@ int main( int argc, char* argv[] )
                          "Invalid function. Run --help for list." )
 
          WALBERLA_LOG_INFO_ON_ROOT( "Function: " << functionParam )
+         break;
       }
+   }
 
+   for ( int i = 0; i < argc; i++ )
+   {
+      const std::string prm( argv[i] );
       if ( prm == meshFlag )
       {
          if ( storage )
          {
-            WALBERLA_ABORT( "Decide: either mesh file or shell!" )
+            WALBERLA_ABORT( "Decide: either mesh file, shell, or parametric!" )
          }
          WALBERLA_CHECK_GREATER( argc, i + 1, "Found " << meshFlag << "but no argument." )
          const auto meshFile = std::string( argv[i + 1] );
@@ -212,20 +258,53 @@ int main( int argc, char* argv[] )
          storage = hyteg::storageFromMesh( meshFile );
       }
 
-      if ( prm == curvedShellFlag )
+      if ( prm == blendingShellFlag )
       {
          if ( storage )
          {
-            WALBERLA_ABORT( "Decide: either mesh file or shell!" )
+            WALBERLA_ABORT( "Decide: either mesh file, shell, or parametric!" )
          }
-         WALBERLA_CHECK_GREATER( argc, i + 1, "Found " << curvedShellFlag << "but no argument." )
+         WALBERLA_CHECK_GREATER( argc, i + 1, "Found " << blendingShellFlag << "but no argument." )
          const auto dim = std::stoi( argv[i + 1] );
          WALBERLA_LOG_INFO_ON_ROOT( "Curved shell, dim: " << dim )
          storage = hyteg::storageCurvedShell( dim );
       }
+
+      if ( prm == parametricFlag )
+      {
+         if ( storage )
+         {
+            WALBERLA_ABORT( "Decide: either mesh file, shell, or parametric!" )
+         }
+
+         WALBERLA_LOG_INFO_ON_ROOT( functionParam );
+
+         if ( functionParam != hyteg::P1_SCALAR && functionParam != hyteg::P1_VECTOR && functionParam != hyteg::P2_SCALAR &&
+              functionParam != hyteg::P2_VECTOR )
+         {
+            WALBERLA_ABORT(
+                "Parametric mappings only supported here for P1 and P2 scalar + vector functions (but could be extended probably)." )
+         }
+
+         WALBERLA_CHECK_GREATER( argc, i + 1, "Found " << parametricFlag << "but no argument." )
+         const auto dim = std::stoi( argv[i + 1] );
+         WALBERLA_LOG_INFO_ON_ROOT( "Parametric map, dim: " << dim )
+
+         uint_t mappingDegree = 0;
+         if ( functionParam == hyteg::P1_SCALAR || functionParam == hyteg::P1_VECTOR )
+         {
+            mappingDegree = 1;
+         }
+         else if ( functionParam == hyteg::P2_SCALAR || functionParam == hyteg::P2_VECTOR )
+         {
+            mappingDegree = 2;
+         }
+
+         storage = hyteg::storageParametric( dim, level, mappingDegree );
+      }
    }
 
-   hyteg::exportFunctions( functionParam, 2, storage );
+   hyteg::exportFunctions( functionParam, level, storage );
 
    return EXIT_SUCCESS;
 }
