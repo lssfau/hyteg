@@ -170,25 +170,23 @@ void communicate( MicroMesh& microMesh, uint_t level );
 /// Interpolates a map onto the mesh function. The input point is the current position of the respective mesh node.
 /// Thus, repeated evaluation of the same map might result in different meshes each time.
 /// To interpolate the mesh node coordinates of the refined coarse mesh, use interpolateRefinedCoarseMesh().
-void interpolate( MicroMesh&                                                      microMesh,
-                  const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
-                  uint_t                                                          level );
+void interpolate( MicroMesh& microMesh, const std::vector< std::function< real_t( const Point3D& ) > >& map, uint_t level );
 
 /// Interpolates a map onto the mesh function. The input point is the current position of the respective mesh node.
 /// Thus, repeated evaluation of the same map might result in different meshes each time.
 /// To interpolate the mesh node coordinates of the refined coarse mesh, use interpolateRefinedCoarseMesh().
 void interpolate( const std::shared_ptr< PrimitiveStorage >&                      storage,
-                  const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                  const std::vector< std::function< real_t( const Point3D& ) > >& map,
                   uint_t                                                          level );
 
 /// Combines interpolate() and communicate() for convenience.
 void interpolateAndCommunicate( MicroMesh&                                                      microMesh,
-                                const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                                const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 uint_t                                                          level );
 
 /// Combines interpolate() and communicate() for convenience.
 void interpolateAndCommunicate( const std::shared_ptr< PrimitiveStorage >&                      storage,
-                                const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                                const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 uint_t                                                          level );
 
 /// Interpolates the node locations of the refined coarse mesh. Can be interpreted as "resetting" the mesh.
@@ -196,5 +194,28 @@ void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level );
 
 /// Interpolates the node locations of the refined coarse mesh. Can be interpreted as "resetting" the mesh.
 void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
+
+/// Convenience function that wraps a GeometryMap's evalF() method into a vector of std::functions.
+/// Helpful to (re-)use an existing GeometryMap via the parametric approach. Might be computationally cheaper for complicated
+/// GeometryMaps since the GeometryMap is only approximated and possibly expensive Jacobian evaluations are replaced with the
+/// Jacobian evaluations of the P1 and P2 parametric mappings respectively.
+std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap )
+{
+   return { [&]( const Point3D& x ) {
+              Point3D xout;
+              geometryMap.evalF( x, xout );
+              return xout[0];
+           },
+            [&]( const Point3D& x ) {
+               Point3D xout;
+               geometryMap.evalF( x, xout );
+               return xout[1];
+            },
+            [&]( const Point3D& x ) {
+               Point3D xout;
+               geometryMap.evalF( x, xout );
+               return xout[2];
+            } };
+}
 
 } // namespace hyteg::micromesh

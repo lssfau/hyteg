@@ -503,21 +503,20 @@ void communicate( const std::shared_ptr< PrimitiveStorage >& storage, uint_t lev
 }
 
 void interpolate( MicroMesh&                                                      microMesh,
-                  const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                  const std::vector< std::function< real_t( const Point3D& ) > >& map,
                   walberla::uint_t                                                level )
 {
-   WALBERLA_CHECK_GREATER_EQUAL(
-       blendingFunction.size(),
-       microMesh.dimension(),
-       "MicroMesh: blending function dimension is smaller than the dimension of the space the mesh is embedded in." )
+   WALBERLA_CHECK_GREATER_EQUAL( map.size(),
+                                 microMesh.dimension(),
+                                 "MicroMesh: map dimension is smaller than the dimension of the space the mesh is embedded in." )
 
    if ( microMesh.p1Mesh() )
    {
-      microMesh.p1Mesh()->interpolate( blendingFunction, level );
+      microMesh.p1Mesh()->interpolate( map, level );
    }
    else if ( microMesh.p2Mesh() )
    {
-      microMesh.p2Mesh()->interpolate( blendingFunction, level );
+      microMesh.p2Mesh()->interpolate( map, level );
    }
    else
    {
@@ -526,29 +525,29 @@ void interpolate( MicroMesh&                                                    
 }
 
 void interpolate( const std::shared_ptr< PrimitiveStorage >&                      storage,
-                  const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                  const std::vector< std::function< real_t( const Point3D& ) > >& map,
                   walberla::uint_t                                                level )
 {
    auto microMesh = storage->getMicroMesh();
 
    WALBERLA_CHECK_NOT_NULLPTR( microMesh, "MicroMesh: Cannot interpolate if no mesh has been added to the PrimitiveStorage!" )
 
-   interpolate( *microMesh, blendingFunction, level );
+   interpolate( *microMesh, map, level );
 }
 
 void interpolateAndCommunicate( MicroMesh&                                                      microMesh,
-                                const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                                const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 walberla::uint_t                                                level )
 {
-   interpolate( microMesh, blendingFunction, level );
+   interpolate( microMesh, map, level );
    communicate( microMesh, level );
 }
 
 void interpolateAndCommunicate( const std::shared_ptr< PrimitiveStorage >&                      storage,
-                                const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                                const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 walberla::uint_t                                                level )
 {
-   interpolate( storage, blendingFunction, level );
+   interpolate( storage, map, level );
    communicate( storage, level );
 }
 
