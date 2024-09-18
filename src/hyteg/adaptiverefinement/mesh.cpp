@@ -235,7 +235,7 @@ void K_Mesh< K_Simplex >::coarsenRG( const std::vector< PrimitiveID >& el_to_coa
    {
       // remove green elements from T
       // also remove them from their parent's list of children
-      remove_green_edges( hard );
+      remove_green_edges( true );
 
       // collect parent elements of el_to_coarsen
       std::set< std::shared_ptr< K_Simplex > > P = init_P( el_to_coarsen );
@@ -253,13 +253,14 @@ void K_Mesh< K_Simplex >::coarsenRG( const std::vector< PrimitiveID >& el_to_coa
       };
 
       // remove el's children
-      auto coarsen = []( const std::shared_ptr< K_Simplex > el ) {
+      auto coarsen = [&]( const std::shared_ptr< K_Simplex > el ) {
          for ( auto& child : el->get_children() )
          {
             _T.erase( child );
          }
          el->kill_children();
          _T.insert( el );
+         // todo remove childrens faces
       };
 
       auto update = true;
@@ -271,14 +272,16 @@ void K_Mesh< K_Simplex >::coarsenRG( const std::vector< PrimitiveID >& el_to_coa
             // don't remove children of el before taking care of grandkids
             if ( !has_grandkids( el ) )
             {
-               P.erase( p );
-               coarsen( p );
+               P.erase( el );
+               coarsen( el );
                update = true;
             }
          }
       }
 
       // todo remove obsolete vertices
+
+      // todo apply RG refinement with R=∅ to remove hanging nodes
    }
 }
 
@@ -1433,7 +1436,8 @@ inline std::set< std::shared_ptr< K_Simplex > >
          {
             if ( P_tilde.count( pid ) )
             {
-               P_tilde[pid].second += 1; // count number of p's children marked for coarsening
+               // count number of p's children marked for coarsening
+               P_tilde[pid].second = uint8_t( P_tilde[pid].second + 1 );
             }
             else
             {
