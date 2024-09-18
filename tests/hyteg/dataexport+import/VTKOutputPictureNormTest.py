@@ -50,12 +50,10 @@ function_types = {
     ],
 }
 
-
 mesh_flags = {
     2: [["--mesh", "2D/bfs_12el.msh"], ["--curved-shell", "2"]],
     3: [["--mesh", "3D/cube_24el.msh"], ["--curved-shell", "3"]],
 }
-
 
 fresh_path = "VTKOutputPictureNormTest-Fresh"
 references_path = "VTKOutputPictureNormTest-References"
@@ -76,7 +74,6 @@ def generate_name(cmd_args) -> str:
 
 
 def find_only_non_renamed_file() -> str:
-
     non_renamed_files = []
 
     for f in os.listdir(fresh_path):
@@ -92,7 +89,6 @@ def find_only_non_renamed_file() -> str:
 
 
 def generate_all_vtk_generator_arguments() -> List:
-
     commands = []
 
     for dim in mesh_flags:
@@ -105,7 +101,6 @@ def generate_all_vtk_generator_arguments() -> List:
 
 
 def generate_vtk():
-
     arguments = generate_all_vtk_generator_arguments()
 
     for argument in arguments:
@@ -137,7 +132,6 @@ def render_png_from_vtk(vtk_path: str):
 
 
 def compare_images():
-
     num_failures = 0
 
     for png in [png for png in os.listdir(fresh_path) if png.endswith(".png")]:
@@ -173,6 +167,16 @@ def test():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="VTK output picture norm test.")
+    parser.add_argument(
+        "--with-xvfb",
+        action="store_true",
+        help="Enable pyvista with XVFB. Relevant for headless use (mainly for CI).",
+    )
+    args = parser.parse_args()
+
+    if args.with_xvfb:
+        pv.start_xvfb()
 
     clear_fresh_dir()
     generate_vtk()
@@ -185,5 +189,4 @@ def main():
 
 
 if __name__ == "__main__":
-    pv.start_xvfb()
     main()
