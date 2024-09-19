@@ -65,8 +65,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    domainParam.maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
    //calculate non-dimensional radii such that mantle thickness = 1
-   domainParam.rMin = domainParam.rCMB / ( domainParam.rSurface - domainParam.rCMB );
-   domainParam.rMax = domainParam.rSurface / ( domainParam.rSurface - domainParam.rCMB );
+   domainParam.rMin              = domainParam.rCMB / ( domainParam.rSurface - domainParam.rCMB );
+   domainParam.rMax              = domainParam.rSurface / ( domainParam.rSurface - domainParam.rCMB );
+   physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
 
    /*############ MODEL PARAMETERS ############*/
 
@@ -88,7 +89,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       WALBERLA_CHECK_EQUAL( physicalParam.radius.size(), physicalParam.viscosityProfile.size() )
 
       simulationParam.haveViscosityProfile = true;
-      simulationParam.radialProfile = true;
+      simulationParam.radialProfile        = true;
 
       for ( uint_t i = 0; i < physicalParam.radius.size(); i++ )
       {
@@ -116,7 +117,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       WALBERLA_CHECK_EQUAL( physicalParam.radiusAlpha.size(), physicalParam.thermalExpansivityProfile.size() )
 
       simulationParam.haveThermalExpProfile = true;
-      simulationParam.radialProfile = true;
+      simulationParam.radialProfile         = true;
 
       for ( uint_t i = 0; i < physicalParam.radiusAlpha.size(); i++ )
       {
@@ -146,7 +147,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       WALBERLA_CHECK_EQUAL( physicalParam.radiusCp.size(), physicalParam.specificHeatCapacityProfile.size() )
 
       simulationParam.haveSpecificHeatCapProfile = true;
-      simulationParam.radialProfile = true;
+      simulationParam.radialProfile              = true;
 
       for ( uint_t i = 0; i < physicalParam.radiusCp.size(); i++ )
       {
@@ -174,7 +175,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       WALBERLA_CHECK_EQUAL( physicalParam.radiusGamma.size(), physicalParam.grueneisenProfile.size() )
 
       simulationParam.haveGrueneisenProfile = true;
-      simulationParam.radialProfile = true;
+      simulationParam.radialProfile         = true;
 
       for ( uint_t i = 0; i < physicalParam.radiusGamma.size(); i++ )
       {
@@ -200,7 +201,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.referenceDensity            = mainConf.getParameter< real_t >( "referenceDensity" );
 
    //used to calculate non-D numbers
-   physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
    physicalParam.thermalDiffusivity =
        physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity );
 
@@ -545,7 +545,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.vtkOutputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
+                                 << "true" );
    }
    else
    {
