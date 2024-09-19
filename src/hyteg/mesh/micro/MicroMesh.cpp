@@ -817,4 +817,23 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    return p;
 }
 
+std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap )
+{
+   return { [&]( const Point3D& x ) {
+              Point3D xout;
+              geometryMap.evalF( x, xout );
+              return xout[0];
+           },
+            [&]( const Point3D& x ) {
+               Point3D xout;
+               geometryMap.evalF( x, xout );
+               return xout[1];
+            },
+            [&]( const Point3D& x ) {
+               Point3D xout;
+               geometryMap.evalF( x, xout );
+               return xout[2];
+            } };
+}
+
 } // namespace hyteg::micromesh

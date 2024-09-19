@@ -199,23 +199,6 @@ void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& st
 /// Helpful to (re-)use an existing GeometryMap via the parametric approach. Might be computationally cheaper for complicated
 /// GeometryMaps since the GeometryMap is only approximated and possibly expensive Jacobian evaluations are replaced with the
 /// Jacobian evaluations of the P1 and P2 parametric mappings respectively.
-std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap )
-{
-   return { [&]( const Point3D& x ) {
-              Point3D xout;
-              geometryMap.evalF( x, xout );
-              return xout[0];
-           },
-            [&]( const Point3D& x ) {
-               Point3D xout;
-               geometryMap.evalF( x, xout );
-               return xout[1];
-            },
-            [&]( const Point3D& x ) {
-               Point3D xout;
-               geometryMap.evalF( x, xout );
-               return xout[2];
-            } };
-}
+std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap );
 
 } // namespace hyteg::micromesh
