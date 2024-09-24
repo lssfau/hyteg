@@ -76,7 +76,7 @@ int main( int argc, char** argv )
           walberla::real_c( face->getCoordinates()[2][1] - face->getCoordinates()[0][1] ) / walberla::real_c( ( mEperEdge ) );
       value = ( xStepSize / 2 + face->getCoordinates()[0][0] ) * 2 + face->getCoordinates()[0][0];
 
-      edgedof::macroface::interpolate< real_t >( level, *face, x.getFaceDataID(), emptyFaceIds, exact );
+      edgedof::macroface::interpolate< real_t >( storage, level, *face, x.getFaceDataID(), emptyFaceIds, exact );
       for ( idx_t i = 0; i < idx_t( mEperEdge ); ++i )
       {
          for ( idx_t j = 0; j < idx_t( mEperEdge ) - i; ++j )
@@ -131,7 +131,7 @@ int main( int argc, char** argv )
    for ( const auto& edgeIter : storage->getEdges() )
    {
       auto edge = edgeIter.second;
-      hyteg::edgedof::macroedge::interpolate< real_t >( level, *edge, x.getEdgeDataID(), emptyEdgeIds, exact );
+      hyteg::edgedof::macroedge::interpolate< real_t >( storage, level, *edge, x.getEdgeDataID(), emptyEdgeIds, exact );
       value     = 2 * edge->getCoordinates()[0][0] + edge->getCoordinates()[0][1];
       xStepSize = edge->getDirection()[0] / walberla::real_c( ( mEperEdge ) );
       yStepSize = edge->getDirection()[1] / walberla::real_c( ( mEperEdge ) );

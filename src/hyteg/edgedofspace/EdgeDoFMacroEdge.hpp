@@ -35,6 +35,7 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Edge.hpp"
@@ -69,7 +70,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                               Level,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
+                         const uint_t&                                                                               Level,
                          Edge&                                                                                       edge,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&                                 edgeMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >&                  srcIds,
@@ -85,25 +87,18 @@ inline void interpolate( const uint_t&                                          
 
    std::vector< ValueType > srcVector( srcIds.size() );
 
-   const Point3D leftCoords  = edge.getCoordinates()[0];
-   const Point3D rightCoords = edge.getCoordinates()[1];
-
-   const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( Level ) );
-
-   Point3D xBlend;
-
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * real_c( it.x() ) * microEdgeOffset;
+      const Point3D currentCoordinates =
+          micromesh::microEdgeCenterPosition( storage, edge.getID(), Level, it, edgedof::EdgeDoFOrientation::X );
 
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
          srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.x() )];
       }
 
-      edge.getGeometryMap()->evalF( currentCoordinates, xBlend );
       edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C )] =
-          expr( xBlend, srcVector );
+          expr( currentCoordinates, srcVector );
    }
 }
 
@@ -618,4 +613,4 @@ inline void applyDirichletBC( const uint_t&                                     
    }
 }
 
-} // namespace hyteg
+} // namespace hyteg::edgedof::macroedge

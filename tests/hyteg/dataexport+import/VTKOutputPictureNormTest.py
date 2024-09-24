@@ -28,6 +28,10 @@ import pyvista as pv
 from PIL import Image
 import numpy as np
 
+OPTION_MESH = "--mesh"
+OPTION_BLENDING = "--curved-shell"
+OPTION_PARAMETRIC = "--parametric"
+
 function_types = {
     2: [
         "p0-scalar",
@@ -50,12 +54,18 @@ function_types = {
     ],
 }
 
-
 mesh_flags = {
-    2: [["--mesh", "2D/bfs_12el.msh"], ["--curved-shell", "2"]],
-    3: [["--mesh", "3D/cube_24el.msh"], ["--curved-shell", "3"]],
+    2: [
+        [OPTION_MESH, "2D/bfs_12el.msh"],
+        [OPTION_BLENDING, "2"],
+        [OPTION_PARAMETRIC, "2"],
+    ],
+    3: [
+        [OPTION_MESH, "3D/cube_24el.msh"],
+        [OPTION_BLENDING, "3"],
+        [OPTION_PARAMETRIC, "3"],
+    ],
 }
-
 
 fresh_path = "VTKOutputPictureNormTest-Fresh"
 references_path = "VTKOutputPictureNormTest-References"
@@ -76,7 +86,6 @@ def generate_name(cmd_args) -> str:
 
 
 def find_only_non_renamed_file() -> str:
-
     non_renamed_files = []
 
     for f in os.listdir(fresh_path):
@@ -92,12 +101,17 @@ def find_only_non_renamed_file() -> str:
 
 
 def generate_all_vtk_generator_arguments() -> List:
-
     commands = []
 
     for dim in mesh_flags:
         for mesh_flag in mesh_flags[dim]:
             for function_type in function_types[dim]:
+
+                if OPTION_PARAMETRIC in mesh_flag and not (
+                    "p1" in function_type or "p2" in function_type
+                ):
+                    continue
+
                 command = mesh_flag + ["--function", function_type]
                 commands.append(command)
 
@@ -105,7 +119,6 @@ def generate_all_vtk_generator_arguments() -> List:
 
 
 def generate_vtk():
-
     arguments = generate_all_vtk_generator_arguments()
 
     for argument in arguments:
@@ -137,7 +150,6 @@ def render_png_from_vtk(vtk_path: str):
 
 
 def compare_images():
-
     num_failures = 0
 
     for png in [png for png in os.listdir(fresh_path) if png.endswith(".png")]:
@@ -173,6 +185,21 @@ def test():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="VTK output picture norm test.")
+    parser.add_argument(
+        "--with-xvfb",
+        action="store_true",
+        help="Enable pyvista with XVFB. Relevant for headless use (mainly for CI).",
+    )
+    parser.add_argument(
+        "--without-comparison",
+        action="store_true",
+        help="Disable comparison - only generate images.",
+    )
+    args = parser.parse_args()
+
+    if args.with_xvfb:
+        pv.start_xvfb()
 
     clear_fresh_dir()
     generate_vtk()
@@ -181,9 +208,9 @@ def main():
         path = os.path.join(fresh_path, vtk_file)
         render_png_from_vtk(path)
 
-    compare_images()
+    if not args.without_comparison:
+        compare_images()
 
 
 if __name__ == "__main__":
-    pv.start_xvfb()
     main()

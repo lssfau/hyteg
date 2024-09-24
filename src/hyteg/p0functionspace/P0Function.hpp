@@ -25,6 +25,7 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
+#include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
 
 namespace hyteg {
 

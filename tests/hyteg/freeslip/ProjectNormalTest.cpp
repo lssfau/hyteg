@@ -103,7 +103,7 @@ static void testProjectNormal( )
    projectNormalOperator.project( u, level, FreeslipBoundary );
    StokesFunctionType diff( "diff", storage, level, level );
    diff.assign( {1, -1}, {u, uTan}, level, All );
-   WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), dp ? 1e-14 : 8e-13 );
+   WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), dp ? 1e-14 : 9e-13 );
 }
 
 int main( int argc, char* argv[] )

@@ -232,7 +232,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                               Level,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
+                         const uint_t&                                                                               Level,
                          Cell&                                                                                       cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                                 cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&                  srcIds,
@@ -261,100 +262,97 @@ inline void interpolate( const uint_t&                                          
 
    for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
    {
-      const Point3D microVertexPosition = vertexdof::macrocell::coordinateFromIndex( Level, cell, it );
-      const uint_t  xyz                 = it.x() + it.y() + it.z();
-
       if ( isInnerXEdgeDoF( Level, it ) )
       {
-         const Point3D xMicroEdgePosition = microVertexPosition + xShiftFromVertex( Level, cell );
+         const Point3D xMicroEdgePosition =
+             micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::X );
+
          for ( uint_t k = 0; k < srcPtr.size(); ++k )
          {
             srcVectorX[k] = srcPtr[k][edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D xBlend;
-         cell.getGeometryMap()->evalF( xMicroEdgePosition, xBlend );
-         cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )] = expr( xBlend, srcVectorX );
+
+         cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )] = expr( xMicroEdgePosition, srcVectorX );
       }
 
       if ( isInnerYEdgeDoF( Level, it ) )
       {
-         const Point3D yMicroEdgePosition = microVertexPosition + yShiftFromVertex( Level, cell );
+         const Point3D yMicroEdgePosition =
+             micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::Y );
+
          for ( uint_t k = 0; k < srcPtr.size(); ++k )
          {
             srcVectorY[k] = srcPtr[k][edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D yBlend;
-         cell.getGeometryMap()->evalF( yMicroEdgePosition, yBlend );
-         cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )] = expr( yBlend, srcVectorY );
+
+         cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )] = expr( yMicroEdgePosition, srcVectorY );
       }
 
       if ( isInnerZEdgeDoF( Level, it ) )
       {
-         const Point3D zMicroEdgePosition = microVertexPosition + zShiftFromVertex( Level, cell );
+         const Point3D zMicroEdgePosition =
+             micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::Z );
+
          for ( uint_t k = 0; k < srcPtr.size(); ++k )
          {
             srcVectorZ[k] = srcPtr[k][edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D zBlend;
-         cell.getGeometryMap()->evalF( zMicroEdgePosition, zBlend );
-         cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )] = expr( zBlend, srcVectorZ );
+
+         cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )] = expr( zMicroEdgePosition, srcVectorZ );
       }
 
       if ( isInnerXYEdgeDoF( Level, it ) )
       {
          const Point3D xyMicroEdgePosition =
-             microVertexPosition + xShiftFromVertex( Level, cell ) + yShiftFromVertex( Level, cell );
+             micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::XY );
+
          for ( uint_t k = 0; k < srcPtr.size(); ++k )
          {
             srcVectorXY[k] = srcPtr[k][edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D xyBlend;
-         cell.getGeometryMap()->evalF( xyMicroEdgePosition, xyBlend );
-         cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyBlend, srcVectorXY );
+
+         cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyMicroEdgePosition, srcVectorXY );
       }
 
       if ( isInnerXZEdgeDoF( Level, it ) )
       {
          const Point3D xzMicroEdgePosition =
-             microVertexPosition + xShiftFromVertex( Level, cell ) + zShiftFromVertex( Level, cell );
+             micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::XZ );
+
          for ( uint_t k = 0; k < srcPtr.size(); ++k )
          {
             srcVectorXZ[k] = srcPtr[k][edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D xzBlend;
-         cell.getGeometryMap()->evalF( xzMicroEdgePosition, xzBlend );
-         cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xzBlend, srcVectorXZ );
+
+         cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xzMicroEdgePosition, srcVectorXZ );
       }
 
       if ( isInnerYZEdgeDoF( Level, it ) )
       {
          const Point3D yzMicroEdgePosition =
-             microVertexPosition + yShiftFromVertex( Level, cell ) + zShiftFromVertex( Level, cell );
+             micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::YZ );
+
          for ( uint_t k = 0; k < srcPtr.size(); ++k )
          {
             srcVectorYZ[k] = srcPtr[k][edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )];
          }
-         Point3D yzBlend;
-         cell.getGeometryMap()->evalF( yzMicroEdgePosition, yzBlend );
-         cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzBlend, srcVectorYZ );
+
+         cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzMicroEdgePosition, srcVectorYZ );
       }
    }
 
    for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
    {
       // xyz-edge is never on boundary.
-      const Point3D microVertexPosition  = vertexdof::macrocell::coordinateFromIndex( Level, cell, it );
-      const Point3D xyzMicroEdgePosition = microVertexPosition + xShiftFromVertex( Level, cell ) +
-                                           yShiftFromVertex( Level, cell ) + zShiftFromVertex( Level, cell );
+      const Point3D xyzMicroEdgePosition =
+          micromesh::microEdgeCenterPosition( storage, cell.getID(), Level, it, edgedof::EdgeDoFOrientation::XYZ );
 
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
          srcVectorXYZ[k] = srcPtr[k][edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )];
       }
 
-      Point3D xyzBlend;
-      cell.getGeometryMap()->evalF( xyzMicroEdgePosition, xyzBlend );
-      cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyzBlend, srcVectorXYZ );
+      cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyzMicroEdgePosition, srcVectorXYZ );
    }
 }
 

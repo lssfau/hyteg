@@ -133,7 +133,12 @@ class CSFVectorFunction
                      size_t                                                                    level,
                      DoFType                                                                   flag = All ) const
    {
-      WALBERLA_ASSERT_GREATER_EQUAL( expr.size(), compFunc_.size() );
+      WALBERLA_CHECK_GREATER_EQUAL(
+          expr.size(),
+          compFunc_.size(),
+          "CSFVectorFunction::interpolate() - You need to pass at least as many expressions (aka std::functions) as this vector "
+          "function has components. " );
+
       WALBERLA_DEBUG_SECTION()
       {
          if ( expr.size() > compFunc_.size() )
@@ -149,7 +154,12 @@ class CSFVectorFunction
 
    void interpolate( const std::vector< valueType >& constants, size_t level, DoFType flag = All ) const
    {
-      WALBERLA_ASSERT_GREATER_EQUAL( constants.size(), compFunc_.size() );
+      WALBERLA_CHECK_GREATER_EQUAL(
+          constants.size(),
+          compFunc_.size(),
+          "CSFVectorFunction::interpolate() - You need to pass at least as many expressions (aka constants) as this vector "
+          "function has components. " );
+
       WALBERLA_DEBUG_SECTION()
       {
          if ( constants.size() > compFunc_.size() )

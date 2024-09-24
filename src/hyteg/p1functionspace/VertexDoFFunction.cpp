@@ -451,7 +451,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
+         vertexdof::macrovertex::interpolate( this->getStorage(), vertex, vertexDataID_, srcVertexIDs, expr, level );
       }
    }
 
@@ -465,7 +465,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+         vertexdof::macroedge::interpolate< ValueType >( this->getStorage(), level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
@@ -479,7 +479,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+         vertexdof::macroface::interpolate< ValueType >( this->getStorage(), level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
@@ -493,7 +493,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+         vertexdof::macrocell::interpolate< ValueType >( this->getStorage(), level, cell, cellDataID_, srcCellIDs, expr );
       }
    }
    this->stopTiming( "Interpolate" );
@@ -531,7 +531,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( vertex.getMeshBoundaryFlag() ) == boundaryUID )
       {
-         vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
+         vertexdof::macrovertex::interpolate( this->getStorage(), vertex, vertexDataID_, srcVertexIDs, expr, level );
       }
    }
 
@@ -545,7 +545,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
-         vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+         vertexdof::macroedge::interpolate< ValueType >( this->getStorage(), level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
@@ -559,7 +559,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
-         vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+         vertexdof::macroface::interpolate< ValueType >( this->getStorage(), level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
@@ -573,7 +573,7 @@ void VertexDoFFunction< ValueType >::interpolate(
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
-         vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+         vertexdof::macrocell::interpolate< ValueType >( this->getStorage(), level, cell, cellDataID_, srcCellIDs, expr );
       }
    }
    this->stopTiming( "Interpolate" );
@@ -661,9 +661,9 @@ void VertexDoFFunction< ValueType >::interpolate( const VertexDoFFunction< Value
             return value;
          };
          if ( threeD )
-            vertexdof::macrocell::interpolate< ValueType >( level, *storage->getCell( id ), cellDataID_, {}, expr, 0 );
+            vertexdof::macrocell::interpolate< ValueType >( storage, level, *storage->getCell( id ), cellDataID_, {}, expr, 0 );
          else
-            vertexdof::macroface::interpolate< ValueType >( level, *storage->getFace( id ), faceDataID_, {}, expr, 0 );
+            vertexdof::macroface::interpolate< ValueType >( storage, level, *storage->getFace( id ), faceDataID_, {}, expr, 0 );
       }
    }
 

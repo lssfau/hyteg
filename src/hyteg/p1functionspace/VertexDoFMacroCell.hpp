@@ -32,6 +32,7 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Cell.hpp"
@@ -91,7 +92,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                               level,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
+                         const uint_t&                                                                               level,
                          const Cell&                                                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                                 cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&                  srcIds,
@@ -108,19 +110,17 @@ inline void interpolate( const uint_t&                                          
 
    std::vector< ValueType > srcVector( srcIds.size() );
 
-   Point3D xBlend;
-
    for ( const auto& it : vertexdof::macrocell::Iterator( level, offset ) )
    {
-      const Point3D coordinate = coordinateFromIndex( level, cell, it );
-      const uint_t  idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+      const auto   coordinate = micromesh::microVertexPosition( storage, cell.getID(), level, it );
+      const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
 
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
          srcVector[k] = srcPtr[k][idx];
       }
-      cell.getGeometryMap()->evalF( coordinate, xBlend );
-      cellData[idx] = expr( xBlend, srcVector );
+
+      cellData[idx] = expr( coordinate, srcVector );
    }
 }
 

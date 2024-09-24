@@ -300,13 +300,13 @@ static void testP2JacobiSmooth()
    for( auto e : storage->getEdges() )
    {
       Edge* edge = e.second.get();
-      vertexdof::macroedge::interpolate( level, *edge, x->getVertexDoFFunction().getEdgeDataID(), {}, onesExtended );
-      edgedof::macroedge::interpolate( level, *edge, x->getEdgeDoFFunction().getEdgeDataID(), {}, onesExtended );
+      vertexdof::macroedge::interpolate( storage, level, *edge, x->getVertexDoFFunction().getEdgeDataID(), {}, onesExtended );
+      edgedof::macroedge::interpolate( storage, level, *edge, x->getEdgeDoFFunction().getEdgeDataID(), {}, onesExtended );
    }
    for( auto v : storage->getVertices() )
    {
       Vertex* vertex = v.second.get();
-      vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction().getVertexDataID(), {}, onesExtended, level );
+      vertexdof::macrovertex::interpolate( storage, *vertex, x->getVertexDoFFunction().getVertexDataID(), {}, onesExtended, level );
    }
 
    hyteg::communication::syncFunctionBetweenPrimitives( ( *x ), level );
