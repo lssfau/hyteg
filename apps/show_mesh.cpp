@@ -17,14 +17,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <sstream>
 #include <filesystem>
+#include <sstream>
 
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/dataexport/Gmsh/ExportRefinedMesh.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -72,6 +74,7 @@ void showUsage()
        << "  --file <name of Gmsh file>\n"
        << "  --rect [criss|cross|crisscross|diamond]\n"
        << "  --annulus [full|partial]\n"
+       << "  --blended-annulus\n"
        << "  --face-chain [numFaces]\n"
        << "  --spherical-shell [ntan]\n"
        << "  --blended-spherical-shell [ntan]\n"
@@ -88,6 +91,7 @@ void showUsage()
        << "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)\n\n"
        << " Use  -v  to print info on mesh to console.\n\n"
        << " Use  --dofs <lvl>  to print number of DoFs on refinement level lvl.\n\n"
+       << " Use  --exportFineMesh <lvl>  to store the mesh for refinement level lvl in a MESH4.1 file.\n\n"
        << std::endl;
 }
 
@@ -143,7 +147,7 @@ int main( int argc, char* argv[] )
    {
       meshDomain   = FROM_FILE;
       meshFileName = std::string( argv[2] );
-      std::filesystem::path fullPath( meshFileName ); 
+      std::filesystem::path fullPath( meshFileName );
       vtkFileName = fullPath.stem();
    }
    else if ( strcmp( argv[1], "--rect" ) == 0 )
@@ -190,6 +194,12 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "Subtype of --annulus not recognised!" );
       }
+   }
+   else if ( strcmp( argv[1], "--blended-annulus" ) == 0 )
+   {
+      meshDomain  = ANNULUS;
+      blending    = true;
+      vtkFileName = std::string( "blendedAnnulusMesh" );
    }
    else if ( strcmp( argv[1], "--face-chain" ) == 0 )
    {
@@ -307,6 +317,21 @@ int main( int argc, char* argv[] )
    if ( strcmp( argv[argc - 1], "--dofs" ) == 0 )
    {
       WALBERLA_ABORT( "You need to give a level after '--dofs'" );
+   }
+
+   bool   exportFineMesh = false;
+   uint_t exportLevel    = 0;
+   for ( int k = 0; k < argc - 1; k++ )
+   {
+      if ( strcmp( argv[k], "--exportFineMesh" ) == 0 )
+      {
+         exportFineMesh = true;
+         exportLevel    = (uint_t) atoi( argv[k + 1] );
+      }
+   }
+   if ( strcmp( argv[argc - 1], "--exportFineMesh" ) == 0 )
+   {
+      WALBERLA_ABORT( "You need to give a level after '--exportFineMesh'" );
    }
 
    // ------------
@@ -443,7 +468,7 @@ int main( int argc, char* argv[] )
    SetupPrimitiveStorage* setupStorage = nullptr;
    setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   // check, if blending for spherical shell needs to be done
+   // check, if blending for annulus or spherical shell needs to be done
    if ( blending )
    {
       if ( meshDomain == SPHERICAL_SHELL )
@@ -454,6 +479,11 @@ int main( int argc, char* argv[] )
       else if ( meshDomain == THIN_SPHERICAL_SHELL )
       {
          ThinShellMap::setMap( *setupStorage, thinShellRadius );
+         WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
+      }
+      else if ( meshDomain == ANNULUS )
+      {
+         AnnulusMap::setMap( *setupStorage );
          WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
       }
    }
@@ -544,6 +574,16 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "level ............ " << dofLevel );
       WALBERLA_LOG_INFO_ON_ROOT( "# vertex DoFs .... " << vDoFs );
       WALBERLA_LOG_INFO_ON_ROOT( "# edge DoFs ...... " << eDoFs );
+   }
+
+   // ---------------------
+   //  Export Refined Mesh
+   // ---------------------
+   if ( exportFineMesh )
+   {
+      std::stringstream streamExportFileName;
+      streamExportFileName << vtkFileName << "-lvl=" << exportLevel << ".msh";
+      gmsh::exportRefinedMesh( storage, exportLevel, streamExportFileName.str() );
    }
 
    delete meshInfo;

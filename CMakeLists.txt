@@ -102,7 +102,7 @@ if( HYTEG_DOWNLOAD_BOOST )
    set(BOOST_ROOT ${hyteg_BINARY_DIR}/_deps/boost-src/ CACHE PATH "Path to boost root")
 endif()
 
-if(HYTEG_BUILD_WITH_PYTHON3)
+if( HYTEG_BUILD_WITH_PYTHON3 )
    find_package (Python3 COMPONENTS Interpreter Development)
 endif()
 
@@ -234,6 +234,12 @@ endif()
 
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/radialProfiles)
    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/radialProfiles")
+endif()
+
+# Determine if Gmsh executable is available for testing purposes
+find_program( GMSH_EXECUTABLE gmsh )
+if( GMSH_EXECUTABLE ) 
+    message(STATUS "Found Gmsh executable at ${GMSH_EXECUTABLE}" )
 endif()
 
 waLBerla_link_files_to_builddir(data/meshes/2D/*.msh)

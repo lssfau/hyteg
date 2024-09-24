@@ -65,6 +65,16 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
 
 endif ()
 
+if(WALBERLA_DOUBLE_ACCURACY)
+  add_subdirectory( GmshExportTest-Files )
+  waLBerla_compile_test(FILES GmshExportTest.cpp DEPENDS hyteg core)
+  if( GMSH_EXECUTABLE )
+    waLBerla_execute_test(NAME GmshExportTest COMMAND $<TARGET_FILE:GmshExportTest> --verify_with_gmsh )
+  else()
+    waLBerla_execute_test(NAME GmshExportTest )
+  endif()
+endif()
+
 waLBerla_compile_test(FILES TableTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TableTest)
 set_tests_properties(TableTest PROPERTIES FIXTURES_SETUP TableTest)
