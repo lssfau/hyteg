@@ -189,11 +189,15 @@ void interpolateAndCommunicate( const std::shared_ptr< PrimitiveStorage >&      
                                 const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 uint_t                                                          level );
 
-/// Interpolates the node locations of the refined coarse mesh. Can be interpreted as "resetting" the mesh.
-void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level );
+/// Interpolates the node locations of the refined coarse mesh with or without blending.
+/// Can be interpreted as "resetting" the mesh if withBlending is set to false.
+/// Can be used to interpolate the node positions of a "blended" mesh to the micro mesh.
+void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool withBlending = false );
 
-/// Interpolates the node locations of the refined coarse mesh. Can be interpreted as "resetting" the mesh.
-void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
+/// Interpolates the node locations of the refined coarse mesh with or without blending.
+/// Can be interpreted as "resetting" the mesh if withBlending is set to false.
+/// Can be used to interpolate the node positions of a "blended" mesh to the micro mesh.
+void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending = false );
 
 /// Convenience function that wraps a GeometryMap's evalF() method into a vector of std::functions.
 /// Helpful to (re-)use an existing GeometryMap via the parametric approach. Might be computationally cheaper for complicated

@@ -27,9 +27,12 @@
 #include "hyteg/dataexport/Gmsh/ExportRefinedMesh.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/AnnulusAlignedMap.hpp"
+#include "hyteg/geometry/IcosahedralShellAlignedMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -62,9 +65,9 @@ void showUsage()
        << " show_mesh demonstrates generation of a MeshInfo object by one of the\n following methods:\n\n"
        << "  1) by importing a file in Gmsh format\n"
        << "  2) by meshing a rectangle in a certain flavour\n"
-       << "  3) by meshing a full or partial annulus\n"
+       << "  3) by meshing a full or partial annulus (potentially radially aligned)\n"
        << "  4) by generating a strip of chained triangles\n"
-       << "  5) by meshing a thick spherical shell (w/ or w/o blending)\n"
+       << "  5) by meshing a thick spherical shell (w/ or w/o blending, potentially radially aligned)\n"
        << "  6) by meshing a thin spherical shell (w/ or w/o blending)\n"
        << "  7) by meshing a rectangular cuboid\n"
        << "  8) by meshing a symmetric rectangular cuboid\n"
@@ -75,8 +78,10 @@ void showUsage()
        << "  --rect [criss|cross|crisscross|diamond]\n"
        << "  --annulus [full|partial]\n"
        << "  --blended-annulus\n"
+       << "  --annulus-aligned [full]\n"
        << "  --face-chain [numFaces]\n"
        << "  --spherical-shell [ntan]\n"
+       << "  --spherical-shell-aligned [ntan]\n"
        << "  --blended-spherical-shell [ntan]\n"
        << "  --thin-spherical-shell [ntan]\n"
        << "  --blended-thin-spherical-shell [ntan]\n"
@@ -105,9 +110,11 @@ int main( int argc, char* argv[] )
       FROM_FILE,
       RECTANGLE,
       ANNULUS,
+      ANNULUS_ALIGNED,
       PARTIAL_ANNULUS,
       FACE_CHAIN,
       SPHERICAL_SHELL,
+      SPHERICAL_SHELL_ALIGNED,
       THIN_SPHERICAL_SHELL,
       CUBOID,
       SYMM_CUBOID,
@@ -201,6 +208,12 @@ int main( int argc, char* argv[] )
       blending    = true;
       vtkFileName = std::string( "blendedAnnulusMesh" );
    }
+   else if ( strcmp( argv[1], "--annulus-aligned" ) == 0 )
+   {
+      meshDomain  = ANNULUS_ALIGNED;
+      blending    = true;
+      vtkFileName = std::string( "annulusAlignedMesh" );
+   }
    else if ( strcmp( argv[1], "--face-chain" ) == 0 )
    {
       numFaces    = uint_c( std::stoi( argv[2] ) );
@@ -213,6 +226,13 @@ int main( int argc, char* argv[] )
       meshDomain  = SPHERICAL_SHELL;
       blending    = false;
       vtkFileName = std::string( "sphericalShell" );
+   }
+   else if ( strcmp( argv[1], "--spherical-shell-aligned" ) == 0 )
+   {
+      ntan        = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = SPHERICAL_SHELL_ALIGNED;
+      blending    = true;
+      vtkFileName = std::string( "sphericalShellAligned" );
    }
    else if ( strcmp( argv[1], "--blended-spherical-shell" ) == 0 )
    {
@@ -360,11 +380,19 @@ int main( int argc, char* argv[] )
       meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, MeshInfo::CROSS, 16, 5 ) );
       break;
 
+   case ANNULUS_ALIGNED:
+      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, MeshInfo::CROSS, 16, 5 ) );
+      break;
+
    case FACE_CHAIN:
       meshInfo = new MeshInfo( MeshInfo::meshFaceChain( numFaces ) );
       break;
 
    case SPHERICAL_SHELL:
+      meshInfo = new MeshInfo( MeshInfo::meshSphericalShell( ntan, layers ) );
+      break;
+
+   case SPHERICAL_SHELL_ALIGNED:
       meshInfo = new MeshInfo( MeshInfo::meshSphericalShell( ntan, layers ) );
       break;
 
@@ -471,9 +499,19 @@ int main( int argc, char* argv[] )
    // check, if blending for annulus or spherical shell needs to be done
    if ( blending )
    {
-      if ( meshDomain == SPHERICAL_SHELL )
+      if ( meshDomain == ANNULUS_ALIGNED )
+      {
+         AnnulusAlignedMap::setMap( *setupStorage );
+         WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
+      }
+      else if ( meshDomain == SPHERICAL_SHELL )
       {
          IcosahedralShellMap::setMap( *setupStorage );
+         WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
+      }
+      else if ( meshDomain == SPHERICAL_SHELL_ALIGNED )
+      {
+         IcosahedralShellAlignedMap::setMap( *setupStorage );
          WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
       }
       else if ( meshDomain == THIN_SPHERICAL_SHELL )
@@ -523,6 +561,24 @@ int main( int argc, char* argv[] )
    const size_t outLevel = minLevel;
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
+
+   if ( meshDomain == ANNULUS_ALIGNED || meshDomain == SPHERICAL_SHELL_ALIGNED )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "Using linear parametric mapping for radial alignment.\n"
+          "Essentially just copying over the node positions of the blended elements to the micro-mesh.\n"
+          "(Technically, we do not need the micro-mesh for the visualization here - but it showcases how to use it.)" )
+      auto microMesh =
+          std::make_shared< micromesh::MicroMesh >( storage, minLevel, maxLevel, 1, storage->hasGlobalCells() ? 3 : 2 );
+
+      storage->setMicroMesh( microMesh );
+
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+         micromesh::interpolateRefinedCoarseMesh( storage, level, true );
+         micromesh::communicate( storage, level );
+      }
+   }
 
    switch ( loadBalancingType )
    {

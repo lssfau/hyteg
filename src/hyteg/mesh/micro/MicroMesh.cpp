@@ -216,11 +216,10 @@ static Point3D microEdgePositionNoMesh( uint_t                                  
 /// Micro-mesh initialization ///
 /////////////////////////////////
 
-static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint_t level )
+static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint_t level, bool withBlending )
 {
-   auto         storage      = p1Mesh.getStorage();
-   const uint_t dimension    = p1Mesh.getDimension();
-   const bool   withBlending = false;
+   auto         storage   = p1Mesh.getStorage();
+   const uint_t dimension = p1Mesh.getDimension();
 
    for ( const auto& [pid, vertex] : storage->getVertices() )
    {
@@ -271,11 +270,10 @@ static void initMicroMeshFromMacroMesh( P1VectorFunction< real_t >& p1Mesh, uint
    }
 }
 
-static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint_t level )
+static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint_t level, bool withBlending )
 {
-   auto         storage      = p2Mesh.getStorage();
-   const uint_t dimension    = p2Mesh.getDimension();
-   const bool   withBlending = false;
+   auto         storage   = p2Mesh.getStorage();
+   const uint_t dimension = p2Mesh.getDimension();
 
    for ( const auto& [pid, vertex] : storage->getVertices() )
    {
@@ -389,12 +387,14 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
 
    WALBERLA_CHECK_LESS_EQUAL( minLevel, maxLevel, "The MicroMesh's min level should be less or equal to its max level." )
 
+   const bool withBlending = false;
+
    if ( polynomialDegree == 1 )
    {
       p1_ = std::make_shared< P1VectorFunction< real_t > >( "microMeshP1", storage, minLevel, maxLevel, dimension );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         initMicroMeshFromMacroMesh( *p1_, level );
+         initMicroMeshFromMacroMesh( *p1_, level, withBlending );
       }
    }
    else if ( polynomialDegree == 2 )
@@ -402,7 +402,7 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
       p2_ = std::make_shared< P2VectorFunction< real_t > >( "microMeshP2", storage, minLevel, maxLevel, dimension );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         initMicroMeshFromMacroMesh( *p2_, level );
+         initMicroMeshFromMacroMesh( *p2_, level, withBlending );
       }
    }
    else
@@ -551,25 +551,25 @@ void interpolateAndCommunicate( const std::shared_ptr< PrimitiveStorage >&      
    communicate( storage, level );
 }
 
-void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level )
+void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool withBlending )
 {
    if ( microMesh.p1Mesh() )
    {
-      initMicroMeshFromMacroMesh( *microMesh.p1Mesh(), level );
+      initMicroMeshFromMacroMesh( *microMesh.p1Mesh(), level, withBlending );
    }
    else if ( microMesh.p2Mesh() )
    {
-      initMicroMeshFromMacroMesh( *microMesh.p2Mesh(), level );
+      initMicroMeshFromMacroMesh( *microMesh.p2Mesh(), level, withBlending );
    }
 }
 
-void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level )
+void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending )
 {
    auto microMesh = storage->getMicroMesh();
 
    WALBERLA_CHECK_NOT_NULLPTR( microMesh, "MicroMesh: Cannot interpolate if no mesh has been added to the PrimitiveStorage!" )
 
-   interpolateRefinedCoarseMesh( *microMesh, level );
+   interpolateRefinedCoarseMesh( *microMesh, level, withBlending );
 }
 
 ////////////////////////////////////////////////////////////
