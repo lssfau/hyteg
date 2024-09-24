@@ -119,8 +119,7 @@ int main( int argc, char** argv )
 
    LIKWID_MARKER_START( "interpolate" );
    timer.reset();
-   vertexdof::macroface::interpolate< real_t >(
-         level, *face, src->getFaceDataID(), {}, exactExtended );
+   vertexdof::macroface::interpolate< real_t >( storage, level, *face, src->getFaceDataID(), {}, exactExtended );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate" );
    WALBERLA_LOG_INFO_ON_ROOT( "interpolate runtime: " << timer.last() );

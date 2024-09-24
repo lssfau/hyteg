@@ -30,6 +30,7 @@
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
@@ -257,7 +258,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                               Level,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
+                         const uint_t&                                                                               Level,
                          Face&                                                                                       face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                                 faceMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                  srcIds,
@@ -274,19 +276,17 @@ inline void interpolate( const uint_t&                                          
 
    std::vector< ValueType > srcVector( srcIds.size() );
 
-   Point3D xBlend;
-
    for ( const auto& it : vertexdof::macroface::Iterator( Level, offset ) )
    {
-      const Point3D coordinate = coordinateFromIndex( Level, face, it );
-      const uint_t  idx        = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
+      const auto   coordinate = micromesh::microVertexPosition( storage, face.getID(), Level, it );
+      const uint_t idx        = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
 
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
          srcVector[k] = srcPtr[k][idx];
       }
-      face.getGeometryMap()->evalF( coordinate, xBlend );
-      faceData[idx] = expr( xBlend, srcVector );
+
+      faceData[idx] = expr( coordinate, srcVector );
    }
 }
 

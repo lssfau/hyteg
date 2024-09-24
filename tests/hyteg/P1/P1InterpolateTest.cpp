@@ -88,7 +88,7 @@ int main( int argc, char** argv )
       yStepSize =
           walberla::real_c( face->getCoordinates()[2][1] - face->getCoordinates()[0][1] ) / walberla::real_c( ( v_perEdge - 1 ) );
 
-      vertexdof::macroface::interpolate< real_t >( maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact );
+      vertexdof::macroface::interpolate< real_t >( storage, maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact );
       for ( idx_t i = 0; i < idx_t( v_perEdge ); ++i )
       {
          for ( idx_t j = 0; j < idx_t( v_perEdge ) - i; ++j )
@@ -116,7 +116,7 @@ int main( int argc, char** argv )
    for ( auto edgeIter : storage->getEdges() )
    {
       auto edge = edgeIter.second;
-      hyteg::vertexdof::macroedge::interpolate< real_t >( maxLevel, *edge, x.getEdgeDataID(), emptyEdgeIds, exact );
+      hyteg::vertexdof::macroedge::interpolate< real_t >( storage, maxLevel, *edge, x.getEdgeDataID(), emptyEdgeIds, exact );
       value     = 2 * edge->getCoordinates()[0][0] + edge->getCoordinates()[0][1];
       xStepSize = edge->getDirection()[0] / walberla::real_c( ( v_perEdge - 1 ) );
       yStepSize = edge->getDirection()[1] / walberla::real_c( ( v_perEdge - 1 ) );

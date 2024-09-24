@@ -238,7 +238,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                               Level,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
+                         const uint_t&                                                                               Level,
                          Face&                                                                                       face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                                 faceMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                  srcIds,
@@ -256,26 +257,8 @@ inline void interpolate( const uint_t&                                          
    std::vector< ValueType > srcVectorVertical( srcIds.size() );
    std::vector< ValueType > srcVectorDiagonal( srcIds.size() );
 
-   const Point3D faceBottomLeftCoords  = face.getCoordinates()[0];
-   const Point3D faceBottomRightCoords = face.getCoordinates()[1];
-   const Point3D faceTopLeftCoords     = face.getCoordinates()[2];
-
-   const Point3D horizontalMicroEdgeOffset =
-       ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( Level ) ) ) * 0.5;
-   const Point3D verticalMicroEdgeOffset =
-       ( ( faceTopLeftCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( Level ) ) ) * 0.5;
-
-   Point3D xBlend;
-
    for ( const auto& it : edgedof::macroface::Iterator( Level, 0 ) )
    {
-      const Point3D horizontalMicroEdgePosition =
-          faceBottomLeftCoords +
-          ( ( real_c( it.x() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.y() ) * 2 ) * verticalMicroEdgeOffset );
-      const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( ( real_c( it.x() ) * 2 ) * horizontalMicroEdgeOffset +
-                                                                         ( real_c( it.y() ) * 2 + 1 ) * verticalMicroEdgeOffset );
-      const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
-
       // Do not update horizontal DoFs at bottom
       if ( it.y() != 0 )
       {
@@ -283,9 +266,11 @@ inline void interpolate( const uint_t&                                          
          {
             srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex( Level, it.x(), it.y() )];
          }
+         const Point3D horizontalMicroEdgePosition =
+             micromesh::microEdgeCenterPosition( storage, face.getID(), Level, it, edgedof::EdgeDoFOrientation::X );
 
-         face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-         faceData[edgedof::macroface::horizontalIndex( Level, it.x(), it.y() )] = expr( xBlend, srcVectorHorizontal );
+         faceData[edgedof::macroface::horizontalIndex( Level, it.x(), it.y() )] =
+             expr( horizontalMicroEdgePosition, srcVectorHorizontal );
       }
 
       // Do not update vertical DoFs at left border
@@ -295,9 +280,11 @@ inline void interpolate( const uint_t&                                          
          {
             srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex( Level, it.x(), it.y() )];
          }
+         const Point3D verticalMicroEdgePosition =
+             micromesh::microEdgeCenterPosition( storage, face.getID(), Level, it, edgedof::EdgeDoFOrientation::Y );
 
-         face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-         faceData[edgedof::macroface::verticalIndex( Level, it.x(), it.y() )] = expr( xBlend, srcVectorVertical );
+         faceData[edgedof::macroface::verticalIndex( Level, it.x(), it.y() )] =
+             expr( verticalMicroEdgePosition, srcVectorVertical );
       }
 
       // Do not update diagonal DoFs at diagonal border
@@ -307,9 +294,11 @@ inline void interpolate( const uint_t&                                          
          {
             srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex( Level, it.x(), it.y() )];
          }
+         const Point3D diagonalMicroEdgePosition =
+             micromesh::microEdgeCenterPosition( storage, face.getID(), Level, it, edgedof::EdgeDoFOrientation::XY );
 
-         face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-         faceData[edgedof::macroface::diagonalIndex( Level, it.x(), it.y() )] = expr( xBlend, srcVectorDiagonal );
+         faceData[edgedof::macroface::diagonalIndex( Level, it.x(), it.y() )] =
+             expr( diagonalMicroEdgePosition, srcVectorDiagonal );
       }
    }
 }

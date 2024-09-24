@@ -42,6 +42,10 @@ class Edge;
 class Face;
 class Cell;
 
+namespace micromesh {
+class MicroMesh;
+}
+
 typedef std::map< PrimitiveID, uint_t > MigrationMap_T;
 
 /// \brief Returns on each process the number of expected primitives after migration.
@@ -139,10 +143,25 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Uses MPIIO for (hopefully) fast consecutive reads from a single file in parallel.
    ///
    /// Please refer to the documentation of the corresponding method in the SetupPrimitiveStorage.
-   PrimitiveStorage( const std::string& file );
+   explicit PrimitiveStorage( const std::string& file );
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
+
+   /// \brief Attaches a MicroMesh to the PrimitiveStorage.
+   ///
+   /// There are two general ways to approximate curved/complex geometries with HyTeG's block-structured triangular/tetrahedral
+   /// meshes: either an analytical blending map is attached, or the nodes of the micro-elements are explicitly set to enable
+   /// parametric mappings. Attaching a MicroMesh realizes the second approach.
+   ///
+   /// Note that both approaches should not be used simultaneously.
+   ///
+   /// See documentation of the MicroMesh class for more details.
+   ///
+   /// \param microMesh
+   void setMicroMesh( const std::shared_ptr< micromesh::MicroMesh >& microMesh ) { microMesh_ = microMesh; };
+
+   std::shared_ptr< micromesh::MicroMesh > getMicroMesh() const { return microMesh_; };
 
    /// \brief Creates a shallow copy of the PrimitiveStorage.
    ///
@@ -845,6 +864,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    MPI_Comm splitComm_;
 
    uint_t additionalHaloDepth_;
+
+   std::shared_ptr< micromesh::MicroMesh > microMesh_;
 };
 
 ////////////////////////////////////////////////
@@ -915,7 +936,10 @@ void PrimitiveStorage::addCellData( PrimitiveDataID< DataType, Cell >&         d
 template < typename DataType, typename PrimitiveType >
 PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 {
-   WALBERLA_DEBUG_SECTION() { checkConsistency(); }
+   WALBERLA_DEBUG_SECTION()
+   {
+      checkConsistency();
+   }
 
    return PrimitiveDataID< DataType, PrimitiveType >( primitiveDataHandlers_++ );
 }

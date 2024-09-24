@@ -26,6 +26,7 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
+#include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
@@ -125,7 +126,8 @@ inline void interpolate( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                               level,
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
+                         const uint_t&                                                                               level,
                          Edge&                                                                                       edge,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&                                 edgeMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >&                  srcIds,
@@ -141,19 +143,17 @@ inline void interpolate( const uint_t&                                          
 
    std::vector< ValueType > srcVector( srcIds.size() );
 
-   Point3D xBlend;
-
    for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
    {
-      const Point3D coordinate = coordinateFromIndex( level, edge, it );
-      const uint_t  idx        = vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C );
+      const auto   coordinate = micromesh::microVertexPosition( storage, edge.getID(), level, it );
+      const uint_t idx        = vertexdof::macroedge::indexFromVertex( level, it.x(), stencilDirection::VERTEX_C );
 
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
          srcVector[k] = srcPtr[k][idx];
       }
-      edge.getGeometryMap()->evalF( coordinate, xBlend );
-      edgeData[idx] = expr( xBlend, srcVector );
+
+      edgeData[idx] = expr( coordinate, srcVector );
    }
 }
 
@@ -650,14 +650,14 @@ inline ValueType reduce( uint_t                                                 
    return initialValue;
 }
 
-template< typename ValueType >
-inline void saveOperator( const uint_t&                                           level,
-                          Edge&                                                   edge,
-                          const PrimitiveStorage&                                 storage,
+template < typename ValueType >
+inline void saveOperator( const uint_t&                                              level,
+                          Edge&                                                      edge,
+                          const PrimitiveStorage&                                    storage,
                           const PrimitiveDataID< StencilMemory< ValueType >, Edge >& operatorId,
-                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& srcId,
-                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&             mat )
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&    srcId,
+                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&    dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&                mat )
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 

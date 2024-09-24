@@ -95,3 +95,22 @@ waLBerla_execute_test(NAME VTKOutputTest)
 
 waLBerla_compile_test(FILES VTKDuplicatePointCountingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VTKDuplicatePointCountingTest)
+
+waLBerla_compile_test(FILES VTKOutputPictureNormGenerator.cpp DEPENDS hyteg core)
+
+execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_CURRENT_SOURCE_DIR}/VTKOutputPictureNormTest.py
+        ${CMAKE_CURRENT_BINARY_DIR}/VTKOutputPictureNormTest.py )
+
+execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_CURRENT_SOURCE_DIR}/VTKOutputPictureNormTest-References
+        ${CMAKE_CURRENT_BINARY_DIR}/VTKOutputPictureNormTest-References )
+
+if ( NOT EXISTS ./VTKOutputPictureNormTest-Fresh )
+  file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/VTKOutputPictureNormTest-Fresh" )
+endif ()
+
+if ( HYTEG_BUILD_WITH_PYTHON3 )
+  waLBerla_execute_test( NAME VTKOutputPictureNormTest
+          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/VTKOutputPictureNormTest.py --with-xvfb )
+endif ()

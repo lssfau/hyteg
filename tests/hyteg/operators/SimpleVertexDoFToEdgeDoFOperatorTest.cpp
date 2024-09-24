@@ -60,7 +60,7 @@ static void testOperator()
       {
          faceStencilData[i] = 1;
       }
-      hyteg::vertexdof::macroface::interpolate< real_t >( level, *face, vertexDof->getFaceDataID(), {}, onesVec );
+      hyteg::vertexdof::macroface::interpolate< real_t >( storage, level, *face, vertexDof->getFaceDataID(), {}, onesVec );
    }
 
    for ( auto& edgeIT : storage->getEdges() )
@@ -72,13 +72,13 @@ static void testOperator()
       {
          edgeStencilData[i] = 1;
       }
-      hyteg::vertexdof::macroedge::interpolate< real_t >( level, *edge, vertexDof->getEdgeDataID(), {}, onesVec );
+      hyteg::vertexdof::macroedge::interpolate< real_t >( storage, level, *edge, vertexDof->getEdgeDataID(), {}, onesVec );
    }
 
    for ( auto& vertexIT : storage->getVertices() )
    {
       auto vertex = vertexIT.second;
-      hyteg::vertexdof::macrovertex::interpolate< real_t >( *vertex, vertexDof->getVertexDataID(), {}, onesVec, level );
+      hyteg::vertexdof::macrovertex::interpolate< real_t >( storage, *vertex, vertexDof->getVertexDataID(), {}, onesVec, level );
    }
 
    vertexToEdgeOperator.apply( *vertexDof, *edgeDof, level, hyteg::All );
@@ -122,7 +122,7 @@ static void testOperator()
          ///this check could also be imporoved
          WALBERLA_CHECK( walberla::floatIsEqual( data[i], real_c( 4.0 ) ) || walberla::floatIsEqual( data[i], real_c( 3.0 ) ) );
       }
-      hyteg::vertexdof::macroedge::interpolate< real_t >( level, *edge, vertexDof->getEdgeDataID(), {}, onesVec );
+      hyteg::vertexdof::macroedge::interpolate< real_t >( storage, level, *edge, vertexDof->getEdgeDataID(), {}, onesVec );
    }
 }
 

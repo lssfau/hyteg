@@ -61,7 +61,26 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    {
       VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
-      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level + 1 );
+
+      VTKMeshWriter::writePointsForMicroVertices( mgr.write2D_, streamWriter, storage, level );
+      if ( mgr.write2D_ )
+      {
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_X );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XY );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_Y );
+      }
+
+      else
+      {
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_X );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_Y );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_Z );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XY );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XZ );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_YZ );
+         VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, vtk::DoFType::EDGE_XYZ );
+      }
+
       streamWriter.toStream( output );
    }
 
@@ -173,84 +192,63 @@ void VTKP2Writer::writeP2FunctionData( bool                                     
       {
          const Face& face = *itFaces.second;
 
-         for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macroface::Iterator( level ) )
          {
-            if ( it.y() % 2 == 0 )
+            dstStream
+                << face.getData( function.getVertexDoFFunction().getFaceDataID() )
+                       ->getPointer(
+                           level )[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C )];
+         }
+      }
+
+      const auto orientations = {
+          edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::XY, edgedof::EdgeDoFOrientation::Y };
+      for ( const auto orientation : orientations )
+      {
+         for ( const auto& itFaces : storage->getFaces() )
+         {
+            const Face& face = *itFaces.second;
+
+            for ( const auto& it : edgedof::macroface::Iterator( level ) )
             {
-               if ( it.x() % 2 == 0 )
-               {
-                  dstStream << face.getData( function.getVertexDoFFunction().getFaceDataID() )
-                                   ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                       level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
-               }
-               else
-               {
-                  dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                                   ->getPointer(
-                                       level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
-               }
-            }
-            else
-            {
-               if ( it.x() % 2 == 0 )
-               {
-                  dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                                   ->getPointer(
-                                       level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
-               }
-               else
-               {
-                  dstStream
-                      << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
-                             ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
-               }
+               dstStream << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer( level )[edgedof::macroface::index( level, it.x(), it.y(), orientation )];
             }
          }
       }
    }
    else
    {
-      for ( const auto& itCells : storage->getCells() )
+      for ( const auto& [pid, cell] : storage->getCells() )
       {
-         const Cell& cell       = *itCells.second;
-         auto        vertexData = cell.getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( level );
-         auto        edgeData   = cell.getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+         auto vertexData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( level );
 
-         for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macrocell::Iterator( level ) )
          {
-            const auto  x   = it.x();
-            const auto  y   = it.y();
-            const auto  z   = it.z();
-            const idx_t mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
+            dstStream
+                << vertexData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+         }
+      }
 
-            switch ( mod )
+      for ( auto orientation : edgedof::allEdgeDoFOrientations )
+      {
+         for ( const auto& [pid, cell] : storage->getCells() )
+         {
+            auto edgeData = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+            if ( orientation == edgedof::EdgeDoFOrientation::XYZ )
             {
-            case 0b000:
-               dstStream
-                   << vertexData[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               break;
-            case 0b100:
-               dstStream << edgeData[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               break;
-            case 0b010:
-               dstStream << edgeData[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               break;
-            case 0b001:
-               dstStream << edgeData[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b110:
-               dstStream << edgeData[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               break;
-            case 0b101:
-               dstStream << edgeData[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b011:
-               dstStream << edgeData[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b111:
-               dstStream << edgeData[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               break;
+               for ( const auto& it : edgedof::macrocell::IteratorXYZ( level ) )
+               {
+                  dstStream << edgeData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation )];
+               }
+            }
+            else
+            {
+               for ( const auto& it : edgedof::macrocell::Iterator( level ) )
+               {
+                  dstStream << edgeData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation )];
+               }
             }
          }
       }
@@ -273,120 +271,106 @@ void VTKP2Writer::writeP2VectorFunctionData( bool                               
       {
          const Face& face = *itFaces.second;
 
-         for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macroface::Iterator( level, 0 ) )
          {
-            if ( it.y() % 2 == 0 )
+            for ( uint_t idx = 0; idx < dim; ++idx )
             {
-               if ( it.x() % 2 == 0 )
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream << face.getData( function[idx].getVertexDoFFunction().getFaceDataID() )
-                                      ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                          level, it.x() / 2, it.y() / 2, stencilDirection::VERTEX_C )];
-                  }
-               }
-               else
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::horizontalIndex( level, ( it.x() - 1 ) / 2, it.y() / 2 )];
-                  }
-               }
+               dstStream
+                   << face.getData( function.component( idx ).getVertexDoFFunction().getFaceDataID() )
+                          ->getPointer(
+                              level )[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C )];
             }
-            else
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            for ( uint_t idx = 0; idx < dim; ++idx )
             {
-               if ( it.x() % 2 == 0 )
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
-                                      ->getPointer(
-                                          level )[edgedof::macroface::verticalIndex( level, it.x() / 2, ( it.y() - 1 ) / 2 )];
-                  }
-               }
-               else
-               {
-                  for ( uint_t idx = 0; idx < dim; ++idx )
-                  {
-                     dstStream
-                         << face.getData( function[idx].getEdgeDoFFunction().getFaceDataID() )
+               dstStream << face.getData( function.component( idx ).getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::diagonalIndex( level, ( it.x() - 1 ) / 2, ( it.y() - 1 ) / 2 )];
-                  }
-               }
+                                    level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X )];
+            }
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            for ( uint_t idx = 0; idx < dim; ++idx )
+            {
+               dstStream << face.getData( function.component( idx ).getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY )];
+            }
+         }
+      }
+
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+         {
+            for ( uint_t idx = 0; idx < dim; ++idx )
+            {
+               dstStream << face.getData( function.component( idx ).getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y )];
             }
          }
       }
    }
    else
    {
-      for ( const auto& itCells : storage->getCells() )
+      for ( const auto& [pid, cell] : storage->getCells() )
       {
-         const Cell& cell = *itCells.second;
-
-         auto vertexData0 = cell.getData( function[0].getVertexDoFFunction().getCellDataID() )->getPointer( level );
-         auto vertexData1 = cell.getData( function[1].getVertexDoFFunction().getCellDataID() )->getPointer( level );
-         auto vertexData2 = cell.getData( function[2].getVertexDoFFunction().getCellDataID() )->getPointer( level );
-
-         auto edgeData0 = cell.getData( function[0].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-         auto edgeData1 = cell.getData( function[1].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-         auto edgeData2 = cell.getData( function[2].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-
-         for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
+         for ( const auto& it : vertexdof::macrocell::Iterator( level ) )
          {
-            const auto  x   = it.x();
-            const auto  y   = it.y();
-            const auto  z   = it.z();
-            const idx_t mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
-
-            switch ( mod )
+            for ( uint_t idx = 0; idx < dim; ++idx )
             {
-            case 0b000:
-               dstStream << vertexData0[vertexdof::macrocell::indexFromVertex(
-                   level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               dstStream << vertexData1[vertexdof::macrocell::indexFromVertex(
-                   level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               dstStream << vertexData2[vertexdof::macrocell::indexFromVertex(
-                   level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
-               break;
-            case 0b100:
-               dstStream << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
-               break;
-            case 0b010:
-               dstStream << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
-               break;
-            case 0b001:
-               dstStream << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b110:
-               dstStream << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
-               break;
-            case 0b101:
-               dstStream << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b011:
-               dstStream << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               break;
-            case 0b111:
-               dstStream << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               dstStream << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
-               break;
+               auto vertexData =
+                   cell->getData( function.component( idx ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
+               dstStream << vertexData[vertexdof::macrocell::indexFromVertex(
+                   level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+            }
+         }
+      }
+
+      for ( auto orientation : edgedof::allEdgeDoFOrientations )
+      {
+         for ( const auto& [pid, cell] : storage->getCells() )
+         {
+            if ( orientation == edgedof::EdgeDoFOrientation::XYZ )
+            {
+               for ( const auto& it : edgedof::macrocell::IteratorXYZ( level ) )
+               {
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     auto edgeData =
+                         cell->getData( function.component( idx ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+                     dstStream << edgeData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation )];
+                  }
+               }
+            }
+            else
+            {
+               for ( const auto& it : edgedof::macrocell::Iterator( level ) )
+               {
+                  for ( uint_t idx = 0; idx < dim; ++idx )
+                  {
+                     auto edgeData =
+                         cell->getData( function.component( idx ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+                     dstStream << edgeData[edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation )];
+                  }
+               }
             }
          }
       }
