@@ -142,10 +142,8 @@ void checkTranspose()
 
    // VTK
    VTKOutput vtkOutput( "../../output", "P1ToDGOperatorTest", storage );
-   vtkOutput.add( srcDG );
    vtkOutput.add( dstP1 );
    vtkOutput.add( srcP1 );
-   vtkOutput.add( dstDG );
    vtkOutput.write( level, 0 );
 }
 

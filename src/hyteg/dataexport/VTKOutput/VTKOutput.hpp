@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <utility>
@@ -70,17 +71,33 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
               const std::shared_ptr< PrimitiveStorage >& storage,
               const uint_t&                              writeFrequency = 1 );
 
-   /// Add an FE Function to became part of the next dataexport phase
+   /// Add an FE Function to become part of the next dataexport phase
    template < template < typename > class func_t, typename value_t >
    inline void add( const func_t< value_t >& function )
    {
       // Allowed types for vtk printing
-      static_assert(
-          std::is_same_v< value_t, double  > ||
-          std::is_same_v< value_t, float   > ||
-          std::is_same_v< value_t, int32_t > ||
-          std::is_same_v< value_t, int64_t > ,
-          "The VTK printer is able to print only functions of the types double, float, int32 and int64.");
+      static_assert( std::is_same_v< value_t, double > || std::is_same_v< value_t, float > ||
+                         std::is_same_v< value_t, int32_t > || std::is_same_v< value_t, int64_t >,
+                     "The VTK printer is able to print only functions of the types double, float, int32 and int64." );
+
+      // Index vectors of non-nodal FE functions can not be printed directly.
+      static_assert( !( ( std::is_same_v< value_t, int32_t > || std::is_same_v< value_t, int64_t > ) &&
+                        (std::is_same_v< func_t< value_t >, DG1Function< value_t > > ||
+                         std::is_same_v< func_t< value_t >, dg::DGFunction< value_t > > ||
+                         std::is_same_v< func_t< value_t >, dg::DGVectorFunction< value_t > > ||
+                         std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > ||
+                         std::is_same_v< func_t< value_t >, EGFunction< value_t > > ||
+                         std::is_same_v< func_t< value_t >, EGP0StokesFunction< value_t > >) ),
+                     "You requested to export an integer-valued non-nodal finite element *function*.\n"
+                     "Most likely, this is not what you want to do. Presumably, the intent is to print\n"
+                     "an index *vector* corresponding to a non-nodal finite element discretization. To\n"
+                     "do so, add the degrees of freedoms directly to the `VTKOutput`. For example, use\n"
+                     "`VTKOutput::add(*n1e1VectorFunction.getDoFs())`.\n"
+                     "Nodal finite element discretizations enjoy the property that the coefficient\n"
+                     "vector is exactly the evaluation at the nodes. The VTK printer therefore exports\n"
+                     "the coefficient vector directly. On the other hand, functions of non-nodal\n"
+                     "discretization must be evaluated first by multiplying the coefficients with the\n"
+                     "basis functions. This makes no sense for index vectors." );
 
       feFunctionRegistry_.add< func_t, value_t >( function );
    }
