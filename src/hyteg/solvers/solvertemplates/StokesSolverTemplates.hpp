@@ -55,7 +55,7 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
        std::make_shared< StokesPressureBlockPreconditioner< StokesOperatorType, P1LumpedInvMassOperator > >(
            storage, level, level );
    auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< StokesOperatorType > >(
-       storage, level, level, maxIterations, absoluteTargetResidual, pressurePreconditioner );
+       storage, level, level, maxIterations, absoluteTargetResidual );
 
    pressurePreconditionedMinResSolver->setPrintInfo( printInfo );
 

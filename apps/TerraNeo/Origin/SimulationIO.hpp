@@ -116,6 +116,7 @@ void ConvectionSimulation::setupOutput()
             vtkOutput->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
          }
       }
+      vtkOutput->add( *viscP0 );
    }
    else
    {
@@ -146,6 +147,7 @@ void ConvectionSimulation::setupOutput()
       // _output->add( *( p2ScalarFunctionContainer["DiffusionFE"] ) );
       _output->add( *( p2ScalarFunctionContainer["DensityFE"] ) );
       _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      
 
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
@@ -263,6 +265,12 @@ void ConvectionSimulation::dataOutput()
       storage->getTimingTree()->start( "VTK data output" );
       vtkOutput->write( TN.domainParameters.maxLevel, outputTime );
       storage->getTimingTree()->stop( "VTK data output" );
+
+      for( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; level++ )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "****    Write Output VTK   ****" );
+         vtkOutput->write( level, outputTime );
+      }
    }
    else if ( TN.outputParameters.dataOutput )
    {

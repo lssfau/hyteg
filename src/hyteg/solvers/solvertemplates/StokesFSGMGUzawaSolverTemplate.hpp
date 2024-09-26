@@ -144,6 +144,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    auto prolongationOperator =
        std::make_shared< P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection >( tmpProlongation, projectionOperator );
    auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection >( projectionOperator );
+//    auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesInjectionWithFreeSlipProjection >(
+//        storage, minLevel, maxLevel, projectionOperator );
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperatorType > >( storage,
                                                                                               _UzawaSmoother,

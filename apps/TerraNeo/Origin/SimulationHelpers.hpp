@@ -129,9 +129,9 @@ void ConvectionSimulation::updateViscosity()
           std::make_shared< P2toP2QuadraticInjection >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
    }
 
-   for(uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level--)
+   for ( uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level-- )
    {
-      p2InjectionOperator->restrict(*( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All);
+      p2InjectionOperator->restrict( *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All );
    }
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
@@ -148,6 +148,7 @@ void ConvectionSimulation::updateViscosity()
    // Before interpolation: Ensure the new reference viscosity is set to the min current viscosity if a viscosity profile
    // or a temperature dependent viscosity is utilized.
    // This is will ensure that that the minimum non-dimensionalised value for the viscosity = 1.
+
    p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
        viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, TN.domainParameters.maxLevel, All );
 
@@ -165,13 +166,22 @@ void ConvectionSimulation::updateViscosity()
       TN.physicalParameters.referenceViscosity = minRefViscosity;
    }
 
+   P0Function< real_t > TempP0( "TempP0", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
+      viscP0->interpolate( viscosityInit, { TempP0 }, l, All );
       p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
           viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, l, All );
       p2ScalarFunctionContainer["ViscosityFEInv"]->interpolate(
           viscosityInitInv, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, l, All );
    }
+
+   communication::syncFunctionBetweenPrimitives( p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(), TN.domainParameters.maxLevel );
+
+   viscP0->averageFromP1( p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(), TN.domainParameters.maxLevel );
+   viscP0->transferToAllLowerLevels( TN.domainParameters.maxLevel );
+
 }
 
 void ConvectionSimulation::normalFunc( const Point3D& p, Point3D& n )

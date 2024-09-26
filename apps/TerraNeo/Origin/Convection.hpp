@@ -136,7 +136,7 @@ class ConvectionSimulation
    typedef P2VectorFunction< real_t >                                                  VectorFunctionP2;
    typedef P1Function< real_t >                                                        ScalarFunctionP1;
    typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator        StokesOperator;
-   typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
+   typedef P2P1StokesP0ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
    typedef hyteg::operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator BlockLaplaceOperator;
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap            SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap         DiffusionOperator;
@@ -223,6 +223,8 @@ class ConvectionSimulation
        { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
+
+   std::shared_ptr< P0Function< real_t > > viscP0;
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {};
    std::map< std::string, std::shared_ptr< VectorFunctionP2 > >                    p2VectorFunctionContainer;

@@ -220,6 +220,8 @@ void ConvectionSimulation::setupFunctions()
       }
       }
    }
+
+   viscP0 = std::make_shared< P0Function< real_t > >("viscP0", storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel);
 }
 
 void ConvectionSimulation::initialiseFunctions()
@@ -372,7 +374,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
                                                             TN.domainParameters.minLevel,
                                                             TN.domainParameters.maxLevel,
-                                                            p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
+                                                            *viscP0,
                                                             p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
                                                             *projectionOperator,
                                                             bcVelocity );

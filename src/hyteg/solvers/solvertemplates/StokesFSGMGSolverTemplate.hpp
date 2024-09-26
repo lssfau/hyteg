@@ -270,7 +270,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                                                                                             CycleType::VCYCLE );
 
    auto SchurSolver = std::make_shared< CGSolver< SubstSType > >(
-       storage, minLevel, maxLevel, SchurCGOuterIter, SchurCGOuterTol, SchurMultigridSolver_ );
+       storage, minLevel, maxLevel, SchurCGOuterIter, SchurCGOuterTol );
    SchurSolver->setPrintInfo( verbose );
    // SchurSolver->setSolverName("SchurSolver");
 
@@ -301,12 +301,24 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    WALBERLA_LOG_INFO_ON_ROOT( "Sigma: " << estimatedSigma << " ; "
                                         << "Omega: " << estimatedOmega );
 
-   auto uzawaSmoother = std::make_shared< InexactUzawaPreconditioner< StokesOperatorFS, SubstAType, SubstSType > >(
+   auto blockPreconditioner = std::make_shared< BlockFactorisationPreconditioner< StokesOperatorFS, SubstAType, SubstSType > >(
        storage,
        minLevel,
        maxLevel,
        stokesOperatorFSSelf->getSchur(),
        ABlockSolver,
+       SchurSolver,
+       1.0,
+       1.0,
+       1u,
+       projectionOperator );
+
+   auto uzawaSmoother = std::make_shared< InexactUzawaPreconditioner< StokesOperatorFS, SubstAType, SubstSType > >(
+       storage,
+       minLevel,
+       maxLevel,
+       stokesOperatorFSSelf->getSchur(),
+       ABlockMultigridSolver,
        SchurSolver,
        estimatedSigma,
        estimatedOmega,
@@ -314,7 +326,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        projectionOperator );
 
    auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorFS > >(
-       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, uzawaSmoother );
+       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, blockPreconditioner );
    finalStokesSolver->setPrintInfo( true );
 
    return { finalStokesSolver, ABlockSmoother };
