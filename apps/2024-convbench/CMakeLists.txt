@@ -19,3 +19,11 @@ waLBerla_add_executable( NAME 2DStokesFSConvTest
 waLBerla_add_executable( NAME 3DStokesFSConvTest
         FILES  3DStokesFSConvTest.cpp
         DEPENDS hyteg mixed_operator)
+
+waLBerla_add_executable( NAME TestDivKGrad
+        FILES  TestDivKGrad.cpp
+        DEPENDS hyteg mixed_operator)
+
+waLBerla_add_executable( NAME CompressibleAnnulusStatic
+        FILES  CompressibleAnnulusStatic.cpp
+        DEPENDS hyteg mixed_operator opgen-composites-stokes opgen-terraneo)

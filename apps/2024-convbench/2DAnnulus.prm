@@ -4,7 +4,9 @@ Parameters
   annulusNRad 2;
 
   // domain
-  level 3;
+  level 4;
+  minLevel 0;
+  maxLevel 4;
   
   // Type of forcing
   // If true, uses delta forcing, else smooth forcing

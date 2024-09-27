@@ -1,0 +1,28 @@
+Parameters
+{
+  rMin 1.22;
+  rMax 2.22;
+
+  nTan 8;
+  nRad 2;
+
+  maxLevel 0;
+  minLevel 0;
+
+  VrMin 1.0;
+  VpMin 1.0;
+  VpMax 2.0;
+
+  verbose false;
+
+  stokesMinresIter 10000;
+  stokesMinresRelTol 1e-12;
+  stokesMinresAbsTol 1e-8;
+
+  useAdios2 true;
+  adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/TimeDependentBenchmarks/ADIOS2demo.xml;
+
+  outputPath /import/freenas-m-03-geodynamics/pponkumar/SphericalShellBench/;
+  outputFilename CompressibleAnnulusStatic;
+  vtkWriteFrequency 1;
+}

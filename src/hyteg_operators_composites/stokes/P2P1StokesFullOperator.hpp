@@ -27,6 +27,7 @@
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockFullOperator.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0ViscosityAnnulusMap.hpp"
 
 namespace hyteg {
 namespace operatorgeneration {
@@ -57,6 +58,11 @@ using P2P1StokesFullOperator = detail::P2P1StokesVarViscOperatorTemplate< operat
 /// P2P1StokesFullOperator with AnnulusMap blending. See documentation of P2P1StokesFullOperator.
 using P2P1StokesFullAnnulusMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullAnnulusMapOperator,
+                                               operatorgeneration::P1ToP2GradientAnnulusMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
+
+using P2P1StokesFullP0ViscosityAnnulusMapOperator =
+    detail::P2P1StokesP0VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityAnnulusMap,
                                                operatorgeneration::P1ToP2GradientAnnulusMapOperator,
                                                operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
 
