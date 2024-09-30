@@ -523,7 +523,7 @@ class IcosahedralShellAlignedMap : public GeometryMap
    static void setMap( SetupPrimitiveStorage& setupStorage )
    {
       WALBERLA_LOG_WARNING_ON_ROOT(
-          "This map has not been well-tested for use with blending-capable operators.\n"
+          "The IcosahedralShellAlignedMap (blending/geometry map) has not been well-tested for use with blending-capable operators.\n"
           "Remove this warning when this has been tested.\n"
           "Otherwise, it is safer to only use the map's evaluation function to initialize a parametric map (aka MicroMesh)." )
 
