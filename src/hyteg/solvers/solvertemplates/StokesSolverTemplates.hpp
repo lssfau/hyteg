@@ -25,6 +25,12 @@
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+// PETSc
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 

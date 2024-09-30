@@ -198,6 +198,10 @@ Parameters
    // 1 - Uzawa
    SolverFlag 0;
 
+   // 0 - HyTeG MinRes solver
+   // 1 - PETSc solver
+   PETScFlag 0;
+
    // Uzawa solver parameters
 
    stokesMaxNumIterations 5;

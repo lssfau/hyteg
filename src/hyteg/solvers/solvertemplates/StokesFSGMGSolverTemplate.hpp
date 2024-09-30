@@ -24,6 +24,10 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FGMRESSolver.hpp"
@@ -52,6 +56,7 @@ enum class StokesGMGFSSolverParamKey
                 ABLOCK_MG_POSTSMOOTH,
                     ABLOCK_COARSE_ITER,
                     ABLOCK_COARSE_TOLERANCE,
+                    ABLOCK_COARSE_GRID_PETSC,
             
             SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
             SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
@@ -91,6 +96,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        { StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, uint_c( 3u ) },
        { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, uint_c( 10u ) },
        { StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE, real_c( 1e-8 ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC, real_c( 0 ) },
        { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, uint_c( 1u ) },
        { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, real_c( 1e-6 ) },
        { StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, uint_c( 3u ) },
@@ -127,8 +133,9 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    uint_t ABlockCGPreSmooth  = std::get< uint_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH] );
    uint_t ABlockCGPostSmooth = std::get< uint_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH] );
 
-   uint_t ABlockCGCoarseIter = std::get< uint_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER] );
-   real_t ABlockCGCoarseTol  = std::get< real_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE] );
+   uint_t ABlockCGCoarseIter    = std::get< uint_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER] );
+   real_t ABlockCGCoarseTol     = std::get< real_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE] );
+   uint_t ABlockCoarseGridPETSc = std::get< uint_t >( defaultParams[StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC] );
 
    uint_t SchurCGOuterIter =
        std::get< uint_t >( defaultParams[StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER] );
@@ -149,7 +156,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    typedef typename StokesOperatorType::ViscousOperatorFS_T SubstAType;
    typedef StokesOperatorType                               StokesOperatorFS;
 
-   auto APrecOperator = stokesOperatorFSSelf->getA();
+   std::shared_ptr< Solver< SubstAType > > ABlockCoarseGridSolver;
+   auto                                    APrecOperator = stokesOperatorFSSelf->getA();
 
    APrecOperator.computeInverseDiagonalOperatorValues();
 
@@ -162,14 +170,30 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    // auto Jacobi = std::make_shared< WeightedJacobiSmoother< SubstAType > >( storage, minLevel, maxLevel, 2.0 / 3.0 );
 
    // auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< SubstAType > >( storage, minLevel );
-
-   auto ABlockCoarseGridSolver = std::make_shared< hyteg::MinResSolver< SubstAType > >(
-       storage, minLevel, maxLevel, ABlockCGCoarseIter, ABlockCGCoarseTol );
-
-   // auto ABlockCoarseGridSolver =
-   //     std::make_shared< hyteg::MinResSolver< SubstAType > >( storage, minLevel, maxLevel, 100, 1e-8 );
-   ABlockCoarseGridSolver->setPrintInfo( verbose );
-   // ABlockCoarseGridSolver->setSolverName("ABlockCoarseGridSolver");
+   if ( ABlockCoarseGridPETSc == 1 )
+   {
+#ifdef HYTEG_BUILD_WITH_PETSC
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: PETSc MinRes" );
+      PETScManager petscManager;
+      real_t       AblockPETScRelativeTolerance = ABlockCGCoarseTol;
+      ABlockCoarseGridSolver                    = std::make_shared< PETScMinResSolver< SubstAType > >(
+          storage, minLevel, AblockPETScRelativeTolerance, ABlockCGCoarseTol, ABlockCGCoarseIter );
+#else
+      WALBERLA_LOG_INFO_ON_ROOT( "PETSc module not found or enabled. Switching to HyTeG MinRes." );
+      // Fall back to HyTeG MinRes solver 
+#endif
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: HyTeG MinRes." );
+   }
+   if ( !ABlockCoarseGridSolver )
+   {
+      auto ABlockCoarseGridMinResSolver = std::make_shared< hyteg::MinResSolver< SubstAType > >(
+          storage, minLevel, maxLevel, ABlockCGCoarseIter, ABlockCGCoarseTol );
+      ABlockCoarseGridMinResSolver->setPrintInfo( verbose );
+      ABlockCoarseGridSolver = ABlockCoarseGridMinResSolver;
+   }
 
    auto ABlockSmoother = std::make_shared< ChebyshevSmootherWithFreeSlipProjection< SubstAType > >(
        storage, minLevel, maxLevel, projectionOperator );

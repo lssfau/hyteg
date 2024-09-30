@@ -42,7 +42,7 @@ Parameters
    // false: generate spherical harmonics 
 
    temperatureNoise true;
-   temperatureSphericalHarmonic true;
+   temperatureSphericalHarmonic false;
 
    // the default value of noiseFactor is set to 0.05
    noiseFactor 0.02; 
@@ -59,7 +59,7 @@ Parameters
    // generate random superposition of spherical harmonics (lmin -> lmax)
    // false: generate a single spherical harmonic (degree and order defined above)
 
-   superposition false;
+   superposition true;
 
    // scaling temperature anomalies in the initial state
 
@@ -73,7 +73,7 @@ Parameters
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
-   viscosity       1e22;
+   viscosity       1e23;
 
    // Adiabatic reference state parameters
 
@@ -120,7 +120,7 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
    // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    // grueneisenParameterProfile ../../../data/terraneo/radialProfiles/gamma_radial.json;
@@ -149,9 +149,9 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
-   shearHeating false;
-   adiabaticHeating false;
-   internalHeating false;
+   shearHeating true;
+   adiabaticHeating true;
+   internalHeating true;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -161,9 +161,9 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 500;
+   maxNumTimeSteps 10;
    fixedTimeStep false;
-   cflMax 0.1;
+   cflMax 0.5;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -197,6 +197,11 @@ Parameters
    // 1 - Uzawa
    SolverFlag 1;
 
+   // 0 - HyTeG MinRes solver
+   // 1 - PETSc solver
+   PETScFlag 1;
+
+
    // Uzawa solver parameters
 
    stokesMaxNumIterations 5;
@@ -209,32 +214,32 @@ Parameters
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
    uzawaOmega 0.5;
-   ABlockMGPreSmooth 2;
-   ABlockMGPostSmooth 2;
+   ABlockMGPreSmooth 4;
+   ABlockMGPostSmooth 4;
 
    // FGMRES solver parameters 
    FGMRESOuterIterations 5;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
-   ABlockMGIterations 3;
+   ABlockMGIterations 5;
    ABlockMGTolerance 1e-6;
    ABlockCoarseGridIterations 10;
    ABlockCoarseGridTolerance 1e-6;
-   SchurMGIterations 3;
+   SchurMGIterations 5;
    SchurMGTolerance 1e-6;
-   SchurMGPreSmooth 2;
-   SchurMGPostSmooth 2;
-   SchurCoarseGridIterations 5;
+   SchurMGPreSmooth 4;
+   SchurMGPostSmooth 4;
+   SchurCoarseGridIterations 10;
    SchurCoarseGridTolerance 1e-6;
 
    // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   stokesKillTolerance 10;
+   stokesKillTolerance 100;
 
    // Diffusion parameters 
 
-   diffusionMaxNumIterations 1000;
-   diffusionAbsoluteResidualUTolerance 1e-12;
+   diffusionMaxNumIterations 100;
+   diffusionAbsoluteResidualUTolerance 1e-8;
    
    //////////////////////////
    //  Output parameters   //
@@ -275,7 +280,7 @@ Parameters
    ADIOS2ParamKey AggregatorRatio;
    ADIOS2Value 1;
 
-   outputDirectory ./output/;
+   outputDirectory ./output;
    outputBaseName 3d_convection;
 
    // Output of a. json file containing timing tree information
