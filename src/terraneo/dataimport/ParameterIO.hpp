@@ -290,7 +290,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    initialisationParam.noiseFactor                  = mainConf.getParameter< real_t >( "noiseFactor" );
 
    /*############ SOLVER PARAMETERS ############*/
-   solverParam.solverFlag = mainConf.getParameter< uint_t >( "solverFlag" );
+   solverParam.solverFlag  = mainConf.getParameter< uint_t >( "solverFlag" );
+   solverParam.solverPETSc = mainConf.getParameter< uint_t >( "PETScFlag" );
 
    solverParam.numPowerIterations    = mainConf.getParameter< uint_t >( "numPowerIterations" );
    solverParam.FGMRESOuterIterations = mainConf.getParameter< uint_t >( "FGMRESOuterIterations" );
@@ -558,6 +559,11 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "----    Solver Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
+   if ( solverParam.solverPETSc == 1u )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
+                                 << "true" );
+   }
    if ( solverParam.solverFlag == 0u )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver outer iterations         : " << solverParam.FGMRESOuterIterations );

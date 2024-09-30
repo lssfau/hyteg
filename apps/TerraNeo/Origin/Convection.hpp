@@ -42,9 +42,9 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticInjection.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
-#include "hyteg/gridtransferoperators/P2toP2QuadraticInjection.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
@@ -53,10 +53,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2TransferOperators.hpp"
-#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -112,7 +108,7 @@ class ConvectionSimulation
    ConvectionSimulation() = delete;
 
    ConvectionSimulation( const walberla::Config::BlockHandle& mainConf );
-   ~ConvectionSimulation() {};
+   ~ConvectionSimulation(){};
 
    void init();
 
@@ -250,7 +246,7 @@ class ConvectionSimulation
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
 
-   std::shared_ptr< P2toP2QuadraticInjection >          p2InjectionOperator;
+   std::shared_ptr< P2toP2QuadraticInjection > p2InjectionOperator;
 
    std::shared_ptr< P2TransportP1CoefficientsIcosahedralShellMapOperator > transportOperatorP1Coefficients;
 

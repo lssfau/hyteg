@@ -101,6 +101,15 @@ class P2ABlockP1ViscousIcosahedralShellMapOperatorFS : public Operator< P2Vector
       projectNormal_.project( dst, level, FreeslipBoundary );
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2VectorFunction< idx_t >&            src,
+                  const P2VectorFunction< idx_t >&            dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      viscousOperator.toMatrix( mat, src, dst, level, flag );
+   }
+
    void computeInverseDiagonalOperatorValues() { viscousOperator.computeInverseDiagonalOperatorValues(); }
 
    P2VectorFunction< real_t > tmp_;

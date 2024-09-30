@@ -26,6 +26,12 @@
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
 #include "terraneo/operators/P2StokesABlockWithProjection.hpp"
+// PETSc
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 
@@ -87,7 +93,29 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
 
       vertexdof::projectMean( dst.p(), level );
    }
+#ifdef HYTEG_BUILD_WTIH_PETSc
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      auto matProxyOp = mat->createCopy();
+      viscousFSOp.toMatrix( matProxyOp, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( matProxyOp, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( matProxyOp, src.uvw(), dst.p(), level, flag );
 
+      auto matProxyProjectionPost = mat->createCopy();
+      projectNormal_.toMatrix( matProxyProjectionPost, src.uvw(), dst.uvw(), level, FreeslipBoundary );
+      // save ID in pressure block
+      saveIdentityOperator( dst.p(), matProxyProjectionPost, level, All );
+
+      std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
+      matrices.push_back( matProxyProjectionPost );
+      matrices.push_back( matProxyOp );
+      mat->createFromMatrixProduct( matrices );
+   }
+#endif
    P2P1TaylorHoodFunction< real_t > tmp_;
 
    P2VectorFunction< real_t > tmp_Vec;
@@ -118,15 +146,15 @@ class P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-   typedef operatorgeneration::P2P1StokesFullP1ViscosityIcosahedralShellMapOperator    StokesOperatorBase_T;
+   typedef operatorgeneration::P2P1StokesFullP1ViscosityIcosahedralShellMapOperator StokesOperatorBase_T;
    // typedef operatorgeneration::P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator StokesOperatorBase_T;
-   typedef StokesOperatorBase_T                                                        StokesOperator_T;
-   typedef StokesOperatorBase_T::ViscousOperator_T                                     ViscousOperator_T;
-   typedef P2ABlockP1ViscousIcosahedralShellMapOperatorFS                              ViscousOperatorFS_T;
-   typedef ViscousOperatorFS_T                                                         VelocityOperator_T;
-   typedef StokesOperatorBase_T::DivergenceOperator_T                                  DivOperator_T;
-   typedef StokesOperatorBase_T::GradientOperator_T                                    GradOperator_T;
-   typedef StokesOperatorBase_T::StabilizationOperator_T                               StabOperator_T;
+   typedef StokesOperatorBase_T                           StokesOperator_T;
+   typedef StokesOperatorBase_T::ViscousOperator_T        ViscousOperator_T;
+   typedef P2ABlockP1ViscousIcosahedralShellMapOperatorFS ViscousOperatorFS_T;
+   typedef ViscousOperatorFS_T                            VelocityOperator_T;
+   typedef StokesOperatorBase_T::DivergenceOperator_T     DivOperator_T;
+   typedef StokesOperatorBase_T::GradientOperator_T       GradOperator_T;
+   typedef StokesOperatorBase_T::StabilizationOperator_T  StabOperator_T;
 
    typedef operatorgeneration::P1ElementwiseKMassIcosahedralShellMap SchurOperator_T;
 
@@ -170,7 +198,29 @@ class P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS
 
       vertexdof::projectMean( dst.p(), level );
    }
+#ifdef HYTEG_BUILD_WTIH_PETSc
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      src,
+                  const P2P1TaylorHoodFunction< idx_t >&      dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      auto matProxyOp = mat->createCopy();
+      viscousFSOp.toMatrix( matProxyOp, src.uvw(), dst.uvw(), level, flag );
+      divT.toMatrix( matProxyOp, src.p(), dst.uvw(), level, flag );
+      div.toMatrix( matProxyOp, src.uvw(), dst.p(), level, flag );
 
+      auto matProxyProjectionPost = mat->createCopy();
+      projectNormal_.toMatrix( matProxyProjectionPost, src.uvw(), dst.uvw(), level, FreeslipBoundary );
+      // save ID in pressure block
+      saveIdentityOperator( dst.p(), matProxyProjectionPost, level, All );
+
+      std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
+      matrices.push_back( matProxyProjectionPost );
+      matrices.push_back( matProxyOp );
+      mat->createFromMatrixProduct( matrices );
+   }
+#endif
    P2P1TaylorHoodFunction< real_t > tmp_;
 
    P2VectorFunction< real_t > tmp_Vec;
