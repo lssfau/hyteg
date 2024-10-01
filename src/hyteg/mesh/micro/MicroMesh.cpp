@@ -387,7 +387,7 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
 
    WALBERLA_CHECK_LESS_EQUAL( minLevel, maxLevel, "The MicroMesh's min level should be less or equal to its max level." )
 
-   const bool withBlending = false;
+   const bool withBlending = true;
 
    if ( polynomialDegree == 1 )
    {

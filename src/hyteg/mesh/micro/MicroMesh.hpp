@@ -85,6 +85,11 @@ class MicroMesh
  public:
    /// \brief Allocates data for a MicroMesh and interpolates the node locations of the refined coarse grid.
    ///
+   /// Note that if a GeometryMap is present, the node location after application of the GeometryMap is applied.
+   /// If this is not desired, i.e., if the "affine" coordinates of the original refined mesh shall be applied, either the
+   /// GeometryMaps have to be removed first (or need to be overwritten with the IdentityMap) or the mesh nodes have to be
+   /// overwritten by a subsequent call to micromesh::interpolateRefinedCoarseMesh() with a disabled blending parameter.
+   ///
    /// \param storage the underlying PrimitiveStorage
    /// \param minLevel minimum refinement level
    /// \param maxLevel maximum refinement level
@@ -190,14 +195,14 @@ void interpolateAndCommunicate( const std::shared_ptr< PrimitiveStorage >&      
                                 uint_t                                                          level );
 
 /// Interpolates the node locations of the refined coarse mesh with or without blending.
-/// Can be interpreted as "resetting" the mesh if withBlending is set to false.
+/// Can be interpreted as "resetting" the mesh if withBlending is set to false (which ignores present GeometryMaps).
 /// Can be used to interpolate the node positions of a "blended" mesh to the micro mesh.
-void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool withBlending = false );
+void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool withBlending );
 
 /// Interpolates the node locations of the refined coarse mesh with or without blending.
-/// Can be interpreted as "resetting" the mesh if withBlending is set to false.
+/// Can be interpreted as "resetting" the mesh if withBlending is set to false (which ignores present GeometryMaps).
 /// Can be used to interpolate the node positions of a "blended" mesh to the micro mesh.
-void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending = false );
+void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending );
 
 /// Convenience function that wraps a GeometryMap's evalF() method into a vector of std::functions.
 /// Helpful to (re-)use an existing GeometryMap via the parametric approach. Might be computationally cheaper for complicated

@@ -570,16 +570,11 @@ int main( int argc, char* argv[] )
           "Using linear parametric mapping.\n"
           "Essentially just copying over the node positions of the (possibly blended) elements to the micro-mesh.\n"
           "(Technically, we do not need the micro-mesh for the visualization here - but it showcases how to use it.)" )
+
       auto microMesh =
           std::make_shared< micromesh::MicroMesh >( storage, minLevel, maxLevel, 1, storage->hasGlobalCells() ? 3 : 2 );
 
       storage->setMicroMesh( microMesh );
-
-      for ( uint_t level = minLevel; level <= maxLevel; level++ )
-      {
-         micromesh::interpolateRefinedCoarseMesh( storage, level, true );
-         micromesh::communicate( storage, level );
-      }
    }
 
    switch ( loadBalancingType )
