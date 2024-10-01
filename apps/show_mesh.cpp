@@ -432,7 +432,7 @@ int main( int argc, char* argv[] )
       else if ( algorithms::contains( allArguments, "parmetis" ) )
       {
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
-         loadBalancingType = PARMETIS;
+         loadBalancingType = LoadBalancingType::PARMETIS;
 #else
          WALBERLA_ABORT( "Framework was not built with ParMetis." );
 #endif
@@ -599,7 +599,7 @@ int main( int argc, char* argv[] )
    }
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
-   if ( loadBalancingType == PARMETIS )
+   if ( loadBalancingType == LoadBalancingType::PARMETIS )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: parmetis" );
       hyteg::loadbalancing::distributed::parmetis( *storage );
