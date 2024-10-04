@@ -30,12 +30,25 @@
 
 namespace hyteg {
 
-/// Class providing geometry mapping for an annulus
+/// Class providing a geometry mapping for an annulus with improved node alignment.
+///
+/*! \htmlonly
+  <center>
+  <img src="Mesh_Annulus_Level_2_Blended_Aligned.png"/>
+  </center></br>
+  \endhtmlonly
+*/
 ///
 /// This class takes an annulus mesh generated using MeshInfo::meshAnnulus()
 /// with the CRISS or CROSS flavour and maps nodes on refined mesh levels to
-/// corresponding radial layers. The mapping is performed with local
-/// information from the individual macro face (as we did in 3D in HHG).
+/// corresponding radial shells.
+///
+/// Compared to the AnnulusMap, this slightly more expensive map also aligns
+/// all nodes on beams through the origin.
+///
+/// The mapping is performed with local information from the individual
+/// macro face (as we did in 3D in HHG).
+///
 /// Note that the resulting mesh is different from the one we get using
 /// MeshInfo::meshRectangle() in combination with the PolarCoordsMap.
 class AnnulusAlignedMap : public GeometryMap

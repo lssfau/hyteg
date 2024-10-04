@@ -37,6 +37,11 @@ using walberla::real_c;
 /// This geometry map provides a blending operation for a base mesh generated
 /// with the inline meshSphericalShell generator. Geometric nodes on refined
 /// hierarchy levels are projected onto spherical layers.
+///
+/// Compared to the IcosahedralShellMap, this slightly more expensive map also aligns
+/// all nodes on beams through the origin.
+/// (For a visual comparison in 2D have a look at the documentation of the AnnulusMap
+/// and the AnnulusAlignedMap.)
 class IcosahedralShellAlignedMap : public GeometryMap
 {
  public:
