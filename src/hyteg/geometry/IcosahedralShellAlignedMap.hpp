@@ -24,6 +24,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include "GeometryMap.hpp"
+#include "IcosahedralShellMap.hpp"
 
 // #define SHELL_MAP_LOG( STR ) WALBERLA_LOG_INFO_ON_ROOT( STR );
 #define SHELL_MAP_LOG( STR )
@@ -31,6 +32,7 @@
 namespace hyteg {
 
 using walberla::real_c;
+using TetType = IcosahedralShellMap::TetType;
 
 /// Class providing geometry mapping for a facetted isosahedral shell
 ///
@@ -607,63 +609,6 @@ class IcosahedralShellAlignedMap : public GeometryMap
    /// This variable stores (N^T N)^{-1} N^T
    MatrixXr NtN_inv_Nt;
 
-   /// internal enumeration class for classifying tetrahedra
-   enum class tetType
-   {
-      TET_INWARDS,
-      TET_OUTWARDS,
-      TET_SKEW
-   };
-
-   /// method for classifying the vertices of the macro tetrahedron
-   tetType classifyTet( const Cell& cell, std::array< real_t, 4 >& radius )
-   {
-      const std::array< Point3D, 4 >& coords = cell.getCoordinates();
-      real_t                          innerRad, outerRad;
-      innerRad = std::numeric_limits< real_t >::max();
-      outerRad = 0.0;
-
-      for ( uint_t k = 0; k < 4; k++ )
-      {
-         radius[k] = std::sqrt( coords[k].squaredNorm() );
-         innerRad  = radius[k] < innerRad ? radius[k] : innerRad;
-         outerRad  = radius[k] > outerRad ? radius[k] : outerRad;
-      }
-
-      SHELL_MAP_LOG( "outer radius = " << outerRad );
-      SHELL_MAP_LOG( "inner radius = " << innerRad );
-
-      uint_t nOuterNodes = 0;
-      real_t eps         = ( outerRad - innerRad ) * real_c( 0.001 );
-      for ( uint_t k = 0; k < 4; k++ )
-      {
-         SHELL_MAP_LOG( "radius[" << k << "] = " << radius[k] );
-         nOuterNodes += ( outerRad - radius[k] ) < eps ? 1 : 0;
-      }
-
-      SHELL_MAP_LOG( "classifyTet: nOuterNodes = " << nOuterNodes );
-      tetType thisTetType;
-      switch ( nOuterNodes )
-      {
-      case 1:
-         thisTetType = tetType::TET_OUTWARDS;
-         SHELL_MAP_LOG( " -> TET_OUTWARDS" );
-         break;
-      case 2:
-         thisTetType = tetType::TET_SKEW;
-         SHELL_MAP_LOG( " -> TET_SKEW" );
-         break;
-      case 3:
-         thisTetType = tetType::TET_INWARDS;
-         SHELL_MAP_LOG( " -> TET_INWARDS" );
-         break;
-      default:
-         WALBERLA_ABORT( "Houston we have a problem! Cannot classify macro tetrahedron!" );
-      }
-
-      return thisTetType;
-   }
-
    void classifyVertices( const Cell& cell, const SetupPrimitiveStorage& storage )
    {
       WALBERLA_UNUSED( storage );
@@ -682,7 +627,7 @@ class IcosahedralShellAlignedMap : public GeometryMap
 
       // determine type of macro-tet
       std::array< real_t, 4 > radius;
-      tetType                 thisTetType = classifyTet( cell, radius );
+      TetType                 thisTetType = IcosahedralShellMap::classifyTet( cell, radius );
 
       // determine the two vertices lying on a radial ray
       for ( uint_t k = 0; k < 4 && !pairFound; k++ )
@@ -718,17 +663,6 @@ class IcosahedralShellAlignedMap : public GeometryMap
          WALBERLA_ABORT( "Error in finding vertex pair on radial ray!!!" );
       }
 
-      // ------------------------------------------------------------------
-      //  for skew tets we have a problem, so we need to find another tet
-      //  from the same prims that is non-skew
-      // ------------------------------------------------------------------
-      //      if ( thisTetType == tetType::TET_SKEW )
-      //      {
-      //         PrimitiveID altCellID = findNonSkewTetInPrism( cell, storage, idxRefVertex, idxRayVertex );
-      //         classifyVertices( *storage.getCell( altCellID ), storage );
-      //      }
-
-      // else
       {
          // remember the indices of the two remaining nodes
          for ( uint_t k = 0; k < 4; k++ )
@@ -749,7 +683,7 @@ class IcosahedralShellAlignedMap : public GeometryMap
          // now sort ref and ray vertices depending on tet type
          switch ( thisTetType )
          {
-         case tetType::TET_OUTWARDS:
+         case TetType::TET_OUTWARDS:
             if ( radius[idxRefVertex] < radius[idxRayVertex] )
             {
                uint_t swp   = idxRayVertex;
@@ -758,7 +692,7 @@ class IcosahedralShellAlignedMap : public GeometryMap
             }
             break;
 
-         case tetType::TET_INWARDS:
+         case TetType::TET_INWARDS:
             if ( radius[idxRefVertex] > radius[idxRayVertex] )
             {
                uint_t swp   = idxRayVertex;
@@ -767,7 +701,7 @@ class IcosahedralShellAlignedMap : public GeometryMap
             }
             break;
 
-         case tetType::TET_SKEW:
+         case TetType::TET_SKEW:
             break;
 
          default:
@@ -827,52 +761,6 @@ class IcosahedralShellAlignedMap : public GeometryMap
          N.col( 1 ) = D2 - A;
          NtN_inv_Nt = ( N.transpose() * N ).inverse() * N.transpose();
       }
-   }
-
-   /// For a "skew" tetrahedron find a non-skew neighbour from the same prism
-   PrimitiveID
-       findNonSkewTetInPrism( const Cell& cell, const SetupPrimitiveStorage& storage, uint_t& idxRefVertex, uint_t& idxRayVertex )
-   {
-      std::vector< PrimitiveID > verts;
-      cell.getNeighborVertices( verts );
-
-      PrimitiveID rayNode = verts[idxRayVertex];
-      PrimitiveID refNode = verts[idxRefVertex];
-
-      WALBERLA_ASSERT_EQUAL( idxRayVertex, cell.getLocalVertexID( rayNode ) );
-      WALBERLA_ASSERT_EQUAL( idxRefVertex, cell.getLocalVertexID( refNode ) );
-
-      std::vector< PrimitiveID > nbrFaces;
-      cell.getNeighborFaces( nbrFaces );
-      SHELL_MAP_LOG( "Skew cell has " << nbrFaces.size() << " face neighbours" );
-
-      for ( uint_t k = 0; k < nbrFaces.size(); k++ )
-      {
-         const Face* candidate = storage.getFace( nbrFaces[k] );
-         candidate->getNeighborVertices( verts );
-
-         // check that not both vertices are part of the face
-         auto itRef = std::find( verts.begin(), verts.end(), refNode );
-         auto itRay = std::find( verts.begin(), verts.end(), rayNode );
-         if ( !( itRef != verts.end() && itRay != verts.end() ) )
-         {
-            SHELL_MAP_LOG( "Found fitting face: id = " << nbrFaces[k] );
-
-            // now select the correct cell
-            std::vector< PrimitiveID > nbrCells;
-            candidate->getNeighborCells( nbrCells );
-            SHELL_MAP_LOG( "  Candidate face has " << nbrCells.size() << " cell neighbours" );
-            for ( uint_t j = 0; j < nbrCells.size(); j++ )
-            {
-               if ( nbrCells[j] != cell.getID() )
-               {
-                  SHELL_MAP_LOG( "    Cell we need has ID = " << nbrCells[j] );
-                  return nbrCells[j];
-               }
-            }
-         }
-      }
-      WALBERLA_ABORT( "Cound not findNonSkewTetInPrism()" );
    }
 };
 

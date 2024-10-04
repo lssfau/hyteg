@@ -516,6 +516,63 @@ class IcosahedralShellMap : public GeometryMap
    real_t radRefVertex() const { return radRefVertex_; }
    real_t radRayVertex() const { return radRayVertex_; }
 
+   /// Enumeration class for classifying tetrahedra
+   enum class TetType
+   {
+      TET_INWARDS,
+      TET_OUTWARDS,
+      TET_SKEW
+   };
+
+   /// method for classifying the vertices of the macro tetrahedron
+   static TetType classifyTet( const Cell& cell, std::array< real_t, 4 >& radius )
+   {
+      const std::array< Point3D, 4 >& coords = cell.getCoordinates();
+      real_t                          innerRad, outerRad;
+      innerRad = std::numeric_limits< real_t >::max();
+      outerRad = 0.0;
+
+      for ( uint_t k = 0; k < 4; k++ )
+      {
+         radius[k] = std::sqrt( coords[k].squaredNorm() );
+         innerRad  = radius[k] < innerRad ? radius[k] : innerRad;
+         outerRad  = radius[k] > outerRad ? radius[k] : outerRad;
+      }
+
+      SHELL_MAP_LOG( "outer radius = " << outerRad );
+      SHELL_MAP_LOG( "inner radius = " << innerRad );
+
+      uint_t nOuterNodes = 0;
+      real_t eps         = ( outerRad - innerRad ) * real_c( 0.001 );
+      for ( uint_t k = 0; k < 4; k++ )
+      {
+         SHELL_MAP_LOG( "radius[" << k << "] = " << radius[k] );
+         nOuterNodes += ( outerRad - radius[k] ) < eps ? 1 : 0;
+      }
+
+      SHELL_MAP_LOG( "classifyTet: nOuterNodes = " << nOuterNodes );
+      TetType thisTetType;
+      switch ( nOuterNodes )
+      {
+      case 1:
+         thisTetType = TetType::TET_OUTWARDS;
+         SHELL_MAP_LOG( " -> TET_OUTWARDS" );
+         break;
+      case 2:
+         thisTetType = TetType::TET_SKEW;
+         SHELL_MAP_LOG( " -> TET_SKEW" );
+         break;
+      case 3:
+         thisTetType = TetType::TET_INWARDS;
+         SHELL_MAP_LOG( " -> TET_INWARDS" );
+         break;
+      default:
+         WALBERLA_ABORT( "Houston we have a problem! Cannot classify macro tetrahedron!" );
+      }
+
+      return thisTetType;
+   }
+
  private:
    /// \name Classified vertices of macro tetrahedron
    ///
@@ -547,63 +604,6 @@ class IcosahedralShellMap : public GeometryMap
    /// normal of prism planes
    Point3D prismNormal_;
 
-   /// internal enumeration class for classifying tetrahedra
-   enum class tetType
-   {
-      TET_INWARDS,
-      TET_OUTWARDS,
-      TET_SKEW
-   };
-
-   /// method for classifying the vertices of the macro tetrahedron
-   tetType classifyTet( const Cell& cell, std::array< real_t, 4 >& radius )
-   {
-      const std::array< Point3D, 4 >& coords = cell.getCoordinates();
-      real_t                          innerRad, outerRad;
-      innerRad = std::numeric_limits< real_t >::max();
-      outerRad = 0.0;
-
-      for ( uint_t k = 0; k < 4; k++ )
-      {
-         radius[k] = std::sqrt( coords[k].squaredNorm() );
-         innerRad  = radius[k] < innerRad ? radius[k] : innerRad;
-         outerRad  = radius[k] > outerRad ? radius[k] : outerRad;
-      }
-
-      SHELL_MAP_LOG( "outer radius = " << outerRad );
-      SHELL_MAP_LOG( "inner radius = " << innerRad );
-
-      uint_t nOuterNodes = 0;
-      real_t eps         = ( outerRad - innerRad ) * real_c( 0.001 );
-      for ( uint_t k = 0; k < 4; k++ )
-      {
-         SHELL_MAP_LOG( "radius[" << k << "] = " << radius[k] );
-         nOuterNodes += ( outerRad - radius[k] ) < eps ? 1 : 0;
-      }
-
-      SHELL_MAP_LOG( "classifyTet: nOuterNodes = " << nOuterNodes );
-      tetType thisTetType;
-      switch ( nOuterNodes )
-      {
-      case 1:
-         thisTetType = tetType::TET_OUTWARDS;
-         SHELL_MAP_LOG( " -> TET_OUTWARDS" );
-         break;
-      case 2:
-         thisTetType = tetType::TET_SKEW;
-         SHELL_MAP_LOG( " -> TET_SKEW" );
-         break;
-      case 3:
-         thisTetType = tetType::TET_INWARDS;
-         SHELL_MAP_LOG( " -> TET_INWARDS" );
-         break;
-      default:
-         WALBERLA_ABORT( "Houston we have a problem! Cannot classify macro tetrahedron!" );
-      }
-
-      return thisTetType;
-   }
-
    void classifyVertices( const Cell& cell, const SetupPrimitiveStorage& storage )
    {
       const std::array< Point3D, 4 >& coords = cell.getCoordinates();
@@ -620,7 +620,7 @@ class IcosahedralShellMap : public GeometryMap
 
       // determine type of macro-tet
       std::array< real_t, 4 > radius;
-      tetType                 thisTetType = classifyTet( cell, radius );
+      TetType                 thisTetType = classifyTet( cell, radius );
 
       // determine the two vertices lying on a radial ray
       for ( uint_t k = 0; k < 4 && !pairFound; k++ )
@@ -660,7 +660,7 @@ class IcosahedralShellMap : public GeometryMap
       //  for skew tets we have a problem, so we need to find another tet
       //  from the same prims that is non-skew
       // ------------------------------------------------------------------
-      if ( thisTetType == tetType::TET_SKEW )
+      if ( thisTetType == TetType::TET_SKEW )
       {
          PrimitiveID altCellID = findNonSkewTetInPrism( cell, storage, idxRefVertex, idxRayVertex );
          classifyVertices( *storage.getCell( altCellID ), storage );
@@ -687,7 +687,7 @@ class IcosahedralShellMap : public GeometryMap
          // now sort ref and ray vertices depending on tet type
          switch ( thisTetType )
          {
-         case tetType::TET_OUTWARDS:
+         case TetType::TET_OUTWARDS:
             if ( radius[idxRefVertex] < radius[idxRayVertex] )
             {
                uint_t swp   = idxRayVertex;
@@ -696,7 +696,7 @@ class IcosahedralShellMap : public GeometryMap
             }
             break;
 
-         case tetType::TET_INWARDS:
+         case TetType::TET_INWARDS:
             if ( radius[idxRefVertex] > radius[idxRayVertex] )
             {
                uint_t swp   = idxRayVertex;
