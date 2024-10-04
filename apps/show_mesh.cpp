@@ -307,6 +307,8 @@ struct MeshTorus : public MeshBuilder
 
    virtual MeshInfo constructMeshInfo( const std::vector< std::string >& allArguments ) const
    {
+      WALBERLA_UNUSED( allArguments );
+
       const uint_t                toroidalResolution         = 8;
       const uint_t                poloidalResolution         = 6;
       const real_t                radiusOriginToCenterOfTube = 6.2;
