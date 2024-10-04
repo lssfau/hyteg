@@ -23,6 +23,7 @@
 
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
+#include "AnnulusMap.hpp"
 #include "GeometryMap.hpp"
 
 #define ANNULUS_MAP_LOG( MSG )
@@ -385,98 +386,7 @@ class AnnulusAlignedMap : public GeometryMap
    /// method for classifying the vertices of the macro triangle
    void classifyVertices( const std::array< Point3D, 3 >& coords )
    {
-      std::array< real_t, 3 > radius{};
-      for ( uint_t k = 0; k < 3; k++ )
-      {
-         radius[k] = std::sqrt( coords[k].squaredNorm() );
-         ANNULUS_MAP_LOG( "Vertex " << k << ": (" // << std::scientific
-                                    << coords[k][0] << ", " << coords[k][1] << ", " << coords[k][2] << ")\n"
-                                    << " radius = " << radius[k] );
-      }
-      real_t cross01 = coords[0][0] * coords[1][1] - coords[0][1] * coords[1][0];
-      real_t cross02 = coords[0][0] * coords[2][1] - coords[0][1] * coords[2][0];
-      real_t cross12 = coords[1][0] * coords[2][1] - coords[1][1] * coords[2][0];
-
-      ANNULUS_MAP_LOG( "r0 x r1 = " << std::showpos << std::scientific << cross01 );
-      ANNULUS_MAP_LOG( "r0 x r2 = " << std::showpos << std::scientific << cross02 );
-      ANNULUS_MAP_LOG( "r1 x r2 = " << std::showpos << std::scientific << cross12 );
-
-      auto   dp     = std::is_same< real_t, double >();
-      real_t tol    = real_c( dp ? 1e-14 : 1e-5 );
-      uint_t intRay = 99;
-      uint_t intRef = 99;
-
-      // classify assuming we have a triangle pointing outwards from the origin
-      if ( std::abs( cross01 ) < tol )
-      {
-         thrVertex_ = coords[2];
-         if ( radius[0] < radius[1] )
-         {
-            intRay = 0;
-            intRef = 1;
-         }
-         else
-         {
-            intRay = 1;
-            intRef = 0;
-         }
-      }
-      else if ( std::abs( cross02 ) < tol )
-      {
-         thrVertex_ = coords[1];
-         if ( radius[0] < radius[2] )
-         {
-            intRay = 0;
-            intRef = 2;
-         }
-         else
-         {
-            intRay = 2;
-            intRef = 0;
-         }
-      }
-      else if ( std::abs( cross12 ) < tol )
-      {
-         thrVertex_ = coords[0];
-         if ( radius[1] < radius[2] )
-         {
-            intRay = 1;
-            intRef = 2;
-         }
-         else
-         {
-            intRay = 2;
-            intRef = 1;
-         }
-      }
-      else
-      {
-         WALBERLA_ABORT( "Classification error in classifyVertices! Did you use CRISSCROSS maybe?" );
-      }
-
-      // swap classes in case we have a triangle pointing towards the origin
-      ANNULUS_MAP_LOG( "Critical value = " << std::abs( coords[intRef].squaredNorm() - thrVertex_.squaredNorm() ) );
-      if ( std::abs( coords[intRef].squaredNorm() - thrVertex_.squaredNorm() ) < tol )
-      {
-         ANNULUS_MAP_LOG( "Detected inward pointing triangle" );
-         uint_t aux = intRay;
-         intRay     = intRef;
-         intRef     = aux;
-      }
-      else
-      {
-         ANNULUS_MAP_LOG( "Detected outward pointing triangle" );
-      }
-
-      rayVertex_ = coords[intRay];
-      refVertex_ = coords[intRef];
-
-      radRayVertex_ = radius[intRay];
-      radRefVertex_ = radius[intRef];
-
-      ANNULUS_MAP_LOG( "refVertex: (" << refVertex_[0] << ", " << refVertex_[1] << ")" );
-      ANNULUS_MAP_LOG( "rayVertex: (" << rayVertex_[0] << ", " << rayVertex_[1] << ")" );
-      ANNULUS_MAP_LOG( "thrVertex: (" << thrVertex_[0] << ", " << thrVertex_[1] << ")" );
+      AnnulusMap::classifyVertices( coords, rayVertex_, refVertex_, thrVertex_, radRefVertex_, radRayVertex_ );
 
       // A must be the outer vertex that lies on the ray
       // B must be the other (inner) vertex on the ray
