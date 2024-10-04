@@ -77,27 +77,26 @@ struct MeshBuilder
 
    virtual MeshInfo constructMeshInfo( const std::vector< std::string >& allArguments ) const = 0;
 
-   virtual SetupPrimitiveStorage constructSetupStorage( const std::vector< std::string >& _allArguments,
+   virtual SetupPrimitiveStorage constructSetupStorage( const std::vector< std::string >& allArguments,
                                                         const MeshInfo&                   meshInfo ) const
    {
-      WALBERLA_UNUSED( _allArguments );
+      WALBERLA_UNUSED( allArguments );
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       return setupStorage;
    }
 
    virtual std::shared_ptr< PrimitiveStorage >
-       constructPrimitiveStorage( const std::vector< std::string >& _allArguments,
+       constructPrimitiveStorage( const std::vector< std::string >& allArguments,
                                   const SetupPrimitiveStorage&      setupPrimitiveStorage ) const
    {
-      WALBERLA_UNUSED( _allArguments );
+      WALBERLA_UNUSED( allArguments );
       auto primitiveStorage = std::make_shared< PrimitiveStorage >( setupPrimitiveStorage, 1 );
       return primitiveStorage;
    }
 
-   const std::vector< std::string > allArguments;
-   const std::string                flag;
-   const std::string                options;
-   const std::string                description;
+   const std::string flag;
+   const std::string options;
+   const std::string description;
 };
 
 struct MeshFromFile : public MeshBuilder
@@ -375,7 +374,7 @@ int main( int argc, char* argv[] )
    auto builders = makeBuilders();
 
    std::vector< std::string > allArguments( (size_t) argc );
-   for ( size_t i = 0; i < argc; i++ )
+   for ( size_t i = 0; i < (size_t) argc; i++ )
    {
       allArguments[i] = argv[i];
       if ( i > 0 )
@@ -394,7 +393,7 @@ int main( int argc, char* argv[] )
    }
 
    std::shared_ptr< MeshBuilder > builder;
-   for ( auto b : builders )
+   for ( const auto& b : builders )
    {
       if ( algorithms::contains( allArguments, b->flag ) )
       {
