@@ -86,15 +86,16 @@ struct RefinementStrategy
       }
    }
 
-   real_t refineRG( const adaptiveRefinement::ErrorVector& local_errors, adaptiveRefinement::Mesh& mesh, uint_t n_el_max ) const
+   void refineRG( const adaptiveRefinement::ErrorVector& local_errors, adaptiveRefinement::Mesh& mesh ) const
    {
       if ( s == MEAN_SQUARED_ERROR )
       {
-         return mesh.refineRG( local_errors, adaptiveRefinement::WEIGHTED_MEAN, this->p, true );
+         return mesh.refineRG(
+             local_errors, adaptiveRefinement::WEIGHTED_MEAN, this->p, -std::numeric_limits< real_t >::infinity(), true );
       }
       if ( s == PROPORTION )
       {
-         return mesh.refineRG( local_errors, adaptiveRefinement::PERCENTILE, this->p, true );
+         return mesh.refineRG( local_errors, adaptiveRefinement::PERCENTILE, this->p, 0, true );
       }
       if ( s == SINGULARITY )
       {
@@ -127,7 +128,7 @@ struct RefinementStrategy
          auto crit = [center_elements]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
             return ( center_elements.count( err_global[i].second ) > 0 );
          };
-         return mesh.refineRG( local_errors, crit, n_el_max );
+         return mesh.refineRG( local_errors, crit );
       }
       else
       {
@@ -799,8 +800,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          real_t my_t1 = walberla::timing::getWcTime();
          t_error_indicator += my_t1 - my_t0;
       };
-      fmg = std::make_shared< FullMultigridSolver< A_t > >(
-          storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
+      fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
    };
 
    t1 = walberla::timing::getWcTime();
@@ -1009,7 +1009,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 const ModelProblem&          problem,
                                 uint_t                       n_ref,
-                                uint_t                       n_el_max,
                                 const RefinementStrategy&    ref_strat,
                                 uint_t                       l_min,
                                 uint_t                       l_max,
@@ -1102,9 +1101,9 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
       // apply refinement
-      auto t0    = walberla::timing::getWcTime();
-      auto ratio = ref_strat.refineRG( local_errors, mesh, n_el_max );
-      auto t1    = walberla::timing::getWcTime();
+      auto t0 = walberla::timing::getWcTime();
+      ref_strat.refineRG( local_errors, mesh );
+      auto t1 = walberla::timing::getWcTime();
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent for refinement: %12.3e", t1 - t0 ) );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
       // compute mesh quality
@@ -1117,13 +1116,6 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> angle (min, max) over all elements: " << a_minmax.first << ", " << a_minmax.second );
       WALBERLA_LOG_INFO_ON_ROOT( " -> angle (min, max) mean over all elements: " << a_meanminmax.first << ", "
                                                                                  << a_meanminmax.second );
-
-      if ( ratio < 0.95 )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT(
-             "* refinement could not be applied to all required elements\n  without exceeding the max number of elements!" );
-         break;
-      }
    }
 
    if ( l_final > l_max || max_iter_final > max_iter || tol_final < tol )
@@ -1233,7 +1225,6 @@ int main( int argc, char* argv[] )
        ( ModelProblem::Type( mp ) == ModelProblem::SLIT || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER ) ? 2 : 1;
    const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", N_default );
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
    const uint_t ref_strat    = parameters.getParameter< uint_t >( "refinement_strategy", RefinementStrategy::MEAN_SQUARED_ERROR );
    const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", 0.0 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
@@ -1328,7 +1319,6 @@ int main( int argc, char* argv[] )
    // todo: add output for new parameters when adding problems
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
    if ( refinementStrategy.s == RefinementStrategy::MEAN_SQUARED_ERROR )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
@@ -1386,7 +1376,6 @@ int main( int argc, char* argv[] )
    solve_for_each_refinement( setupStorage,
                               problem,
                               n_refinements,
-                              n_el_max,
                               refinementStrategy,
                               l_min,
                               l_max,

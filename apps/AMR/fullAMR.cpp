@@ -1141,6 +1141,9 @@ int main( int argc, char* argv[] )
 
    // // setup domain
    auto setupStorage = domain( dim );
+   adaptiveRefinement::Mesh mesh( setupStorage );
+
+
 
    return 0;
 }

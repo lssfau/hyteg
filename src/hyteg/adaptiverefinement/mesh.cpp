@@ -148,141 +148,203 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max )
+void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine,
+                                    const std::vector< PrimitiveID >& elements_to_coarsen )
 {
-   real_t ratio = 1;
-
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
-      // pessimistic estimate! in most cases the actual growth will be significantly smaller
-      const uint_t est_growth_factor = ( VOL == FACE ) ? 18 : 138;
+      // get elements corresponding to given IDs
+      auto R  = init_R( elements_to_refine );  // elements to refine
+      auto Cp = init_P( elements_to_coarsen ); // parents of elements to coarsen
 
-      uint_t predict = _T.size();
-
-      /* green elements must not be refined any further to
-         prevent mesh degeneration
-      */
+      // undo last green refinement step to prevent mesh degeneration
       remove_green_edges();
 
-      // get elements corresponding to given IDs
-      auto R = init_R( elements_to_refine );
+      // for each t in Cp, add t to T and remove the children of t from T
+      unrefine( Cp );
 
-      // unprocessed elements
-      std::set< std::shared_ptr< K_Simplex > > U = _T;
-      // refined elements
-      std::set< std::shared_ptr< K_Simplex > > refined;
-
-      /* successively apply recursive red-refinement to parts of R
-         until predicted n_el exceeds n_el_max
+      /* iteratively apply red refinement to elements that would otherwise
+         be subject to multiple green refinement steps later on
       */
-      auto prt      = R.begin();
-      auto prt_size = R.size();
-      while ( prt_size > 0 && prt != R.end() && predict < n_el_max )
+      bool vtxs_added = true; // run at least one iteration
+      while ( !R.empty() || vtxs_added )
       {
-         // move to next chunk
-         auto done = prt;
-         prt_size  = ( n_el_max - predict ) / est_growth_factor;
-         prt       = done + std::min( int64_t( prt_size ), int64_t( R.end() - done ) );
-
-         std::set< std::shared_ptr< K_Simplex > > R_prt( done, prt );
-         R_prt.erase( nullptr );
-
-         /* iteratively apply red refinement to elements that would otherwise
-            be subject to multiple green refinement steps later on
-         */
-         bool vtxs_added = false;
-         while ( !R_prt.empty() || vtxs_added )
-         {
-            refined.merge( refine_red( R_prt, U ) );
-            R_prt = find_elements_for_red_refinement( U, vtxs_added );
-         }
-
-         // predict number of elements after required green step
-         predict = U.size() + refined.size() + predict_n_el_green( U );
+         refine_red( R );
+         R = find_elements_for_red_refinement( vtxs_added );
       }
 
       // apply green refinement
-      refined.merge( refine_green( U ) );
+      refine_green();
 
       // update current configuration
-      _T = U;
-      _T.merge( refined );
       _n_vertices = _vertices.size();
       _n_elements = _T.size();
-
-      // compute ratio |R\U|/|R|
-      auto card_R       = R.size();
-      auto card_diff_RU = card_R;
-      for ( auto& el : R )
-      {
-         if ( U.count( el ) > 0 )
-            --card_diff_RU;
-      }
-      ratio = real_t( card_diff_RU ) / real_t( card_R );
    }
 
    walberla::mpi::broadcastObject( _n_vertices );
    walberla::mpi::broadcastObject( _n_elements );
-   walberla::mpi::broadcastObject( ratio );
-
-   return ratio;
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::coarsenRG( const std::vector< PrimitiveID >& el_to_coarsen )
+void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
+                                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion_r,
+                                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion_c )
 {
-   if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+   ErrorVector err_glob;
+   gatherGlobalError( errors_local, err_glob );
+
+   // apply criterion
+   std::vector< PrimitiveID > elements_to_refine;
+   std::vector< PrimitiveID > elements_to_coarsen;
+   for ( uint_t i = 0; i < _n_elements; ++i )
    {
-      // remove green elements from T
-      // also remove them from their parent's list of children
-      remove_green_edges( true );
-
-      // collect parent elements of el_to_coarsen
-      std::set< std::shared_ptr< K_Simplex > > P = init_P( el_to_coarsen );
-
-      // check if el has grandkids
-      auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
-         for ( auto& child : el->get_children() )
-         {
-            if ( child->has_children() )
-            {
-               return true;
-            }
-         }
-         return false;
-      };
-
-      // remove el's children
-      auto coarsen = [&]( const std::shared_ptr< K_Simplex > el ) {
-         for ( auto& child : el->get_children() )
-         {
-            _T.erase( child );
-         }
-         el->kill_children();
-         _T.insert( el );
-         // todo remove childrens faces
-      };
-
-      auto update = true;
-      while ( update )
+      bool do_r = criterion_r( err_glob, i );
+      bool do_c = criterion_c( err_glob, i );
+      auto id   = err_glob[i].second;
+      if ( do_r && do_c )
       {
-         update = false;
-         for ( auto& el : P )
+         WALBERLA_ABORT( "Can't apply both refinement and coarsening to element " << id << "!" );
+      }
+      if ( do_r )
+      {
+         elements_to_refine.push_back( id );
+      }
+      if ( do_c )
+      {
+         elements_to_coarsen.push_back( id );
+      }
+   }
+
+   refineRG( elements_to_refine, elements_to_coarsen );
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
+                                    RefinementStrategy strategy,
+                                    real_t             p_r,
+                                    real_t             p_c,
+                                    bool               verbose )
+{
+   ErrorVector err_glob;
+   gatherGlobalError( errors_local, err_glob );
+
+   if ( verbose )
+   {
+      if ( strategy == WEIGHTED_MEAN )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: weighted mean with w_i = (n-i)^p, p_r = " << p_r << ", p_c = " << p_c );
+         if ( p_r < p_c )
          {
-            // don't remove children of el before taking care of grandkids
-            if ( !has_grandkids( el ) )
-            {
-               P.erase( el );
-               coarsen( el );
-               update = true;
-            }
+            WALBERLA_ABORT( "p_r < p_c! Can't apply both refinement and coarsening to the same element!" );
          }
       }
-
-      // todo remove obsolete vertices
-
-      // todo apply RG refinement with R=∅ to remove hanging nodes
+      if ( strategy == PERCENTILE )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: percentile with p_r = " << p_r * 100 << "%, p_c = " << p_c * 100
+                                                                                  << "%" );
+         if ( p_r + p_c > real_t( 1.0 ) )
+         {
+            WALBERLA_ABORT( "p_r + p_c > 100%! Can't apply both refinement and coarsening to the same element!" );
+         }
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( " -> min_i e_i = " << err_glob.back().first );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> max_i e_i = " << err_glob.front().first );
    }
+
+   std::function< bool( real_t, uint_t ) > crit_c;
+   std::function< bool( real_t, uint_t ) > crit_r;
+   if ( strategy == WEIGHTED_MEAN )
+   {
+      auto compute_weighted_mean = [&]( real_t p ) {
+         if ( p <= -std::numeric_limits< real_t >::infinity() )
+         {
+            // p = -∞ => e_mean = e_{n-1} (smallest error), ie. refine all / coarsen none
+            return err_glob.back().first;
+         }
+         if ( p >= std::numeric_limits< real_t >::infinity() )
+         {
+            // p = ∞ => e_mean = e_{0} (greatest error), ie. refine T_0 / coarsen all except T_0
+            return err_glob.front().first;
+         }
+         // else
+         auto e_mean_w = real_t( 0.0 );
+         auto sum_w    = real_t( 0.0 );
+         auto n        = err_glob.size();
+         // iterate in reverse order to add smallest contribution first, reducing round off error
+         for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
+         {
+            auto   i   = n - n_i; // n - (n-i) = i
+            real_t e_i = err_glob[i].first;
+            real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
+            sum_w += w_i;
+            e_mean_w += w_i * e_i;
+         }
+         return e_mean_w /= sum_w;
+      };
+
+      auto e_mean_r = compute_weighted_mean( p_r );
+      auto e_mean_c = compute_weighted_mean( p_c );
+
+      crit_r = [e_mean_r]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean_r; };
+      crit_c = [e_mean_c]( real_t e_i, uint_t ) -> bool { return e_i < e_mean_c; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean_r );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i < " << e_mean_c );
+      }
+   }
+   if ( strategy == PERCENTILE )
+   {
+      auto sizeR = uint_t( std::round( real_t( _n_elements ) * p_r ) );
+      auto sizeC = uint_t( std::round( real_t( _n_elements ) * p_c ) );
+      if ( sizeR + sizeC > _n_elements )
+      {
+         // might happen due to rounding
+         sizeC = _n_elements - sizeR;
+      }
+
+      crit_r = [&]( real_t, uint_t i ) -> bool { return i < sizeR; };
+      crit_c = [&]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      if ( verbose )
+      {
+         if ( sizeR > 0 )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
+         if ( sizeC > 0 )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
+      }
+   }
+
+   std::vector< PrimitiveID > elements_to_refine;
+   for ( uint_t i = 0; i < _n_elements; ++i )
+   {
+      if ( crit_r( err_glob[i].first, i ) )
+      {
+         elements_to_refine.push_back( err_glob[i].second );
+      }
+      else
+      {
+         if ( verbose )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> " << i << " elements marked for refinement." );
+         break;
+      }
+   }
+   std::vector< PrimitiveID > elements_to_coarsen;
+   for ( uint_t n_i = 1; n_i <= _n_elements; ++n_i )
+   {
+      auto i = _n_elements - n_i; // n - (n-i) = i
+      if ( crit_c( err_glob[i].first, i ) )
+      {
+         elements_to_coarsen.push_back( err_glob[i].second );
+      }
+      else
+      {
+         if ( verbose )
+            WALBERLA_LOG_INFO_ON_ROOT( " -> " << ( n_i - 1 ) << " elements marked for coarsening." );
+         break;
+      }
+   }
+
+   refineRG( elements_to_refine, elements_to_coarsen );
 }
 
 template < class K_Simplex >
@@ -308,105 +370,6 @@ void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVe
 
    // sort by errors
    std::sort( err_glob_sorted.begin(), err_glob_sorted.end(), std::greater< std::pair< real_t, PrimitiveID > >() );
-}
-
-template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector&                                         errors_local,
-                                      const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                                      uint_t                                                     n_el_max )
-{
-   ErrorVector err_glob;
-   gatherGlobalError( errors_local, err_glob );
-
-   // apply criterion
-   std::vector< PrimitiveID > elements_to_refine;
-   for ( uint_t i = 0; i < _n_elements; ++i )
-   {
-      if ( criterion( err_glob, i ) )
-      {
-         elements_to_refine.push_back( err_glob[i].second );
-      }
-   }
-
-   return refineRG( elements_to_refine, n_el_max );
-}
-
-template < class K_Simplex >
-real_t K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
-                                      RefinementStrategy strategy,
-                                      real_t             p,
-                                      bool               verbose,
-                                      uint_t             n_el_max )
-{
-   ErrorVector err_glob;
-   gatherGlobalError( errors_local, err_glob );
-
-   if ( verbose )
-   {
-      if ( strategy == WEIGHTED_MEAN )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: weighted mean with w_i = (n-i)^" << p );
-      }
-      if ( strategy == PERCENTILE )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: percentile with p = " << p * 100 << "%" );
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( " -> min_i e_i = " << err_glob.back().first );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> max_i e_i = " << err_glob.front().first );
-   }
-
-   std::function< bool( real_t, uint_t ) > crit;
-   if ( strategy == WEIGHTED_MEAN )
-   {
-      auto e_mean_w = real_t( 0.0 );
-      auto sum_w    = real_t( 0.0 );
-      auto n        = err_glob.size();
-      for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
-      {
-         // iterate in reverse order to add smallest contribution first, reducing round off error
-         auto   i   = n - n_i; // n - (n-i) = i
-         real_t e_i = err_glob[i].first;
-         real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
-         sum_w += w_i;
-         e_mean_w += w_i * e_i;
-      }
-      e_mean_w /= sum_w;
-
-      crit = [e_mean_w]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean_w; };
-      if ( verbose )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> weighted mean = " << e_mean_w );
-         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean_w );
-      }
-   }
-   if ( strategy == PERCENTILE )
-   {
-      const auto sizeR = uint_t( std::round( real_t( _n_elements ) * p ) );
-
-      crit = [sizeR]( real_t, uint_t i ) -> bool { return i < sizeR; };
-      if ( verbose )
-      {
-         if ( sizeR > 0 )
-            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
-      }
-   }
-
-   std::vector< PrimitiveID > elements_to_refine;
-   for ( uint_t i = 0; i < _n_elements; ++i )
-   {
-      if ( crit( err_glob[i].first, i ) )
-      {
-         elements_to_refine.push_back( err_glob[i].second );
-      }
-      else
-      {
-         if ( verbose )
-            WALBERLA_LOG_INFO_ON_ROOT( " -> " << i << " elements marked for refinement." );
-         break;
-      }
-   }
-
-   return refineRG( elements_to_refine, n_el_max );
 }
 
 template < class K_Simplex >
@@ -1371,40 +1334,26 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtx
 }
 
 template < class K_Simplex >
-inline std::vector< std::shared_ptr< K_Simplex > >
+inline std::set< std::shared_ptr< K_Simplex > >
     K_Mesh< K_Simplex >::init_R( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
-   auto to_add = [&]( std::shared_ptr< K_Simplex > el, uint_t i ) -> bool {
-      if ( el->has_children() )
+   std::map< PrimitiveID, std::shared_ptr< K_Simplex > > idToEl;
+   for ( auto& el : _T )
+   {
+      idToEl[el->getPrimitiveID()] = el;
+   }
+
+   std::set< std::shared_ptr< K_Simplex > > R;
+   for ( auto& id : primitiveIDs )
+   {
+      auto el = idToEl[id];
+      if ( el->has_green_edge() )
       {
-         // loop over "green" children of el, which have already been removed from T
-         for ( auto& child : el->get_children() )
-         {
-            // add element if one of it's green children has been selected for refinement
-            if ( child->getPrimitiveID() == primitiveIDs[i] )
-            {
-               return true;
-            }
-         }
-         return false;
+         R.insert( el->get_parent() );
       }
       else
       {
-         // add element if selected for refinement
-         return ( el->getPrimitiveID() == primitiveIDs[i] );
-      }
-   };
-
-   std::vector< std::shared_ptr< K_Simplex > > R( primitiveIDs.size(), nullptr );
-   for ( auto& el : _T )
-   {
-      for ( uint_t i = 0; i < R.size(); ++i )
-      {
-         if ( to_add( el, i ) )
-         {
-            R[i] = el;
-            break;
-         }
+         R.insert( el );
       }
    }
 
@@ -1415,48 +1364,45 @@ template < class K_Simplex >
 inline std::set< std::shared_ptr< K_Simplex > >
     K_Mesh< K_Simplex >::init_P( const std::vector< PrimitiveID >& primitiveIDs ) const
 {
-   std::map< PrimitiveID, std::pair< std::shared_ptr< K_Simplex >, uint8_t > > P_tilde;
-
+   std::map< PrimitiveID, std::shared_ptr< K_Simplex > > T_fine;
+   std::map< PrimitiveID, std::shared_ptr< K_Simplex > > T_coarse;
    for ( auto& el : _T )
    {
       auto p = el->get_parent();
-
-      if ( p == nullptr )
+      // only consider elements that can be coarsened
+      // since green elements are being removed anyway, we ignore them here
+      if ( p != nullptr && !el->has_green_edge() )
       {
-         // origin elements can't be coarsened
-         continue;
-      }
-
-      PrimitiveID elid = el->getPrimitiveID();
-      PrimitiveID pid  = p->getPrimitiveID();
-
-      for ( auto& id : primitiveIDs )
-      {
-         if ( elid == id )
-         {
-            if ( P_tilde.count( pid ) )
-            {
-               // count number of p's children marked for coarsening
-               P_tilde[pid].second = uint8_t( P_tilde[pid].second + 1 );
-            }
-            else
-            {
-               P_tilde[pid] = std::pair< std::shared_ptr< K_Simplex >, uint8_t >{ p, uint8_t( 1 ) };
-            }
-            break;
-         }
+         T_fine[el->getPrimitiveID()]  = el;
+         T_coarse[p->getPrimitiveID()] = p;
       }
    }
 
-   std::set< std::shared_ptr< K_Simplex > > P;
-
-   for ( auto& [id, pn] : P_tilde )
+   // for each t in T_coarse, count number of children marked for coarsening
+   std::map< PrimitiveID, uint8_t > count;
+   for ( auto& id : primitiveIDs )
    {
-      WALBERLA_UNUSED( id );
-      auto& p = pn.first;
-      auto& n = pn.second;
+      if ( T_fine.count( id ) == 0 )
+      {
+         continue;
+      }
 
-      // add parent elements to the list if at least half their children are marked for coarsening
+      auto parentID = T_fine[id]->get_parent()->getPrimitiveID();
+      if ( count.count( parentID ) )
+      {
+         ++count[parentID];
+      }
+      else
+      {
+         count[parentID] = uint8_t( 1 );
+      }
+   }
+
+   // add parent elements to the list if at least half their children are marked for coarsening
+   std::set< std::shared_ptr< K_Simplex > > P;
+   for ( auto& [id, n] : count )
+   {
+      auto p = T_coarse[id];
       if ( size_t( n ) >= p->get_children().size() / 2 )
       {
          P.insert( p );
@@ -1467,50 +1413,140 @@ inline std::set< std::shared_ptr< K_Simplex > >
 }
 
 template < class K_Simplex >
-std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex > >& R,
-                                                                          std::set< std::shared_ptr< K_Simplex > >&       U )
+void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex > >& Cp )
 {
-   std::set< std::shared_ptr< K_Simplex > > refined;
+   // check if el has grandkids
+   auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
+      for ( auto& child : el->get_children() )
+      {
+         if ( child->has_children() )
+         {
+            return true;
+         }
+      }
+      return false;
+   };
 
-   for ( auto& el : R )
+   // unrefine this element
+   auto uref_el = [&]( const std::shared_ptr< K_Simplex > el ) {
+      for ( auto& child : el->get_children() )
+      {
+         _T.erase( child );
+      }
+      el->kill_children();
+      _T.insert( el );
+   };
+
+   // iterate until no admissable elements left in Cp
+   auto repeat = true;
+   auto queue  = Cp;
+   while ( repeat )
    {
-      // mark el as processed
-      if ( U.erase( el ) == 0 )
+      repeat = false;
+      for ( auto it = queue.begin(); it != queue.end(); )
       {
-         // for el ∉ U: don't try to refine
-         continue;
-      }
-
-      // remove green edges
-      bool check_subelements = el->kill_children();
-
-      // apply regular refinement to el
-      std::set< std::shared_ptr< K_Simplex > > subelements;
-      if constexpr ( VOL == FACE )
-      {
-         subelements = refine_face_red( _vertices, _V, el );
-      }
-      if constexpr ( VOL == CELL )
-      {
-         subelements = refine_cell_red( _vertices, _V, el );
-      }
-
-      // if this red step only replaced a green step, subelements must be checked again
-      if ( check_subelements )
-      {
-         U.merge( subelements );
-      }
-      else
-      {
-         refined.merge( subelements );
+         auto el = *it;
+         if ( !has_grandkids( el ) )
+         {
+            uref_el( el );
+            it     = queue.erase( it );
+            repeat = true; // unrefining el may allow its parent to be unrefined
+         }
+         else
+         {
+            ++it;
+         }
       }
    }
 
-   return refined;
+   /* if a face/edge of an element in T has children, these children are
+      either obsolete or correspond to hanging nodes. Obsolete children
+      must be removed while hanging nodes must be kept.
+   */
+   std::map< PrimitiveID, std::shared_ptr< Simplex2 > > refined_faces;
+   std::map< PrimitiveID, std::shared_ptr< Simplex1 > > refined_edges;
+   // find all edges/faces with children
+   for ( auto& el : _T )
+   {
+      for ( auto& edge : el->get_edges() )
+      {
+         if ( edge->has_children() )
+         {
+            refined_edges[edge->getPrimitiveID()] = edge;
+         }
+      }
+      if constexpr ( VOL == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            if ( face->has_children() )
+            {
+               refined_faces[face->getPrimitiveID()] = face;
+            }
+         }
+      }
+   }
+   // check whether their children are actually obsolete
+   for ( auto& el : _T )
+   {
+      auto p = el->get_parent();
+      if ( p == nullptr )
+      {
+         continue;
+      }
+
+      /* unmark edges/faces of parent elements that have been marked in the previous step
+         i.e. keep hanging nodes
+      */
+      for ( auto& edge : p->get_edges() )
+      {
+         refined_edges.erase( edge->getPrimitiveID() );
+      }
+      if constexpr ( VOL == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            refined_faces.erase( face->getPrimitiveID() );
+         }
+      }
+   }
+   for ( auto& [_, edge] : refined_edges )
+   {
+      WALBERLA_UNUSED( _ );
+      edge->kill_children();
+      // todo remove node on edge (and possibly on edges children)
+   }
+   for ( auto& [_, face] : refined_faces )
+   {
+      WALBERLA_UNUSED( _ );
+      face->kill_children();
+   }
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::remove_green_edges( bool hard )
+void K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex > >& R )
+{
+   for ( auto& el : R )
+   {
+      if ( _T.erase( el ) == 0 )
+      {
+         // for el ∉ T: don't try to refine
+         continue;
+      }
+
+      if constexpr ( VOL == FACE )
+      {
+         _T.merge( refine_face_red( _vertices, _V, el ) );
+      }
+      if constexpr ( VOL == CELL )
+      {
+         _T.merge( refine_cell_red( _vertices, _V, el ) );
+      }
+   }
+}
+
+template < class K_Simplex >
+void K_Mesh< K_Simplex >::remove_green_edges()
 {
    auto T_cpy = _T;
 
@@ -1518,25 +1554,35 @@ void K_Mesh< K_Simplex >::remove_green_edges( bool hard )
    {
       if ( el->has_green_edge() )
       {
+         // replace el with its parent in T
          _T.erase( el );
          _T.insert( el->get_parent() );
-         if ( hard )
+
+         // remove green child-elements
+         el->get_parent()->kill_children();
+         if constexpr ( VOL == CELL )
          {
-            el->get_parent()->kill_children();
+            // remove green edges from faces
+            for ( auto& face : el->get_parent()->get_faces() )
+            {
+               if ( face->get_children().size() == 2 )
+               {
+                  face->kill_children();
+               }
+            }
          }
       }
    }
 }
 
 template <>
-std::set< std::shared_ptr< Simplex2 > >
-    K_Mesh< Simplex2 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex2 > >& U, bool& vtxs_added )
+std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::find_elements_for_red_refinement( bool& vtxs_added )
 {
    std::set< std::shared_ptr< Simplex2 > > R;
 
    vtxs_added = false;
 
-   for ( auto& el : U )
+   for ( auto& el : _T )
    {
       if ( el->vertices_on_edges() > 1 )
       {
@@ -1548,14 +1594,13 @@ std::set< std::shared_ptr< Simplex2 > >
 }
 
 template <>
-std::set< std::shared_ptr< Simplex3 > >
-    K_Mesh< Simplex3 >::find_elements_for_red_refinement( const std::set< std::shared_ptr< Simplex3 > >& U, bool& vtxs_added )
+std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::find_elements_for_red_refinement( bool& vtxs_added )
 {
    std::set< std::shared_ptr< Simplex3 > > R;
 
    vtxs_added = false;
 
-   for ( auto& el : U )
+   for ( auto& el : _T )
    {
       // find red faces
       uint_t n_red = 0;
@@ -1565,11 +1610,6 @@ std::set< std::shared_ptr< Simplex3 > >
          {
             n_red += 1;
 
-            if ( face->get_children().size() == 2 )
-            {
-               // remove green edge from face
-               face->kill_children();
-            }
             if ( !face->has_children() )
             {
                // apply red refinement to face
@@ -1602,134 +1642,63 @@ std::set< std::shared_ptr< Simplex3 > >
    return R;
 }
 
-template < class K_Simplex >
-uint_t K_Mesh< K_Simplex >::predict_n_el_green( const std::set< std::shared_ptr< K_Simplex > >& U ) const
+template <>
+void K_Mesh< Simplex2 >::refine_green()
 {
-   uint_t n_el_green = 0;
+   auto U = _T;
 
    for ( auto& el : U )
    {
-      uint_t new_vertices = el->vertices_on_edges();
+      uint_t hanging_nodes = el->vertices_on_edges();
 
-      n_el_green += ( new_vertices == 2 ) ? 3 : new_vertices;
-   }
-
-   return n_el_green;
-}
-
-template <>
-std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::refine_green( std::set< std::shared_ptr< Simplex2 > >& U )
-{
-   std::set< std::shared_ptr< Simplex2 > > refined;
-   std::set< std::shared_ptr< Simplex2 > > U_cpy = U;
-
-   for ( auto& el : U_cpy )
-   {
-      // count number of new vertices on the edges of el
-      uint_t new_vertices = el->vertices_on_edges();
-
-      if ( new_vertices > 0 )
+      if ( hanging_nodes > 0 )
       {
+         WALBERLA_ASSERT( hanging_nodes == 1 );
          WALBERLA_ASSERT( !el->has_green_edge() );
-         WALBERLA_ASSERT( new_vertices == 1 );
 
-         /* if green refinement had been applied to the same element before,
-            nothing has to be done
-         */
-         if ( el->has_children() )
-         {
-            for ( auto& child : el->get_children() )
-            {
-               refined.insert( child );
-            }
-         }
-         else
-         {
-            refined.merge( refine_face_green( el ) );
-         }
-
-         // mark el as processed
-         U.erase( el );
+         _T.erase( el );
+         _T.merge( refine_face_green( el ) );
       }
    }
-
-   return refined;
 }
 
 template <>
-std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::refine_green( std::set< std::shared_ptr< Simplex3 > >& U )
+void K_Mesh< Simplex3 >::refine_green()
 {
-   std::set< std::shared_ptr< Simplex3 > > refined;
-   std::set< std::shared_ptr< Simplex3 > > U_cpy = U;
+   auto U = _T;
 
-   auto keepChildren = [&]( std::shared_ptr< Simplex3 > el ) {
-      for ( auto& child : el->get_children() )
-      {
-         refined.insert( child );
-      }
-   };
-
-   for ( auto& el : U_cpy )
+   for ( auto& el : U )
    {
-      uint_t new_vertices = el->vertices_on_edges();
+      uint_t hanging_nodes = el->vertices_on_edges();
 
-      switch ( new_vertices )
+      if ( hanging_nodes > 0 )
+      {
+         _T.erase( el );
+      }
+
+      switch ( hanging_nodes )
       {
       case 0:
          continue;
          break;
 
       case 1:
-         if ( el->has_children() )
-         {
-            WALBERLA_ASSERT( el->get_children().size() == 2 );
-            keepChildren( el );
-         }
-         else
-         {
-            refined.merge( refine_cell_green_1( el ) );
-         }
+         _T.merge( refine_cell_green_1( el ) );
          break;
 
       case 2:
-         if ( el->has_children() && el->get_children().size() == 4 )
-         {
-            keepChildren( el );
-         }
-         else
-         {
-            WALBERLA_ASSERT( el->get_children().size() == 0 || el->get_children().size() == 2 );
-            el->kill_children();
-            refined.merge( refine_cell_green_2( el ) );
-         }
+         _T.merge( refine_cell_green_2( el ) );
          break;
 
       case 3:
-         if ( el->has_children() && el->get_children().size() == 4 )
-         {
-            keepChildren( el );
-         }
-         else
-         {
-            WALBERLA_ASSERT( el->get_children().size() == 0 || el->get_children().size() == 2 );
-            el->kill_children();
-            refined.merge( refine_cell_green_3( el ) );
-         }
+         _T.merge( refine_cell_green_3( el ) );
          break;
 
       default:
-         WALBERLA_ASSERT( new_vertices <= 3 );
+         WALBERLA_ASSERT( hanging_nodes <= 3 );
          break;
       }
-
-      // mark el as processed
-      if ( new_vertices > 0 )
-      {
-         U.erase( el );
-      }
    }
-
-   return refined;
 }
 
 template < class K_Simplex >

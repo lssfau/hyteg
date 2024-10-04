@@ -34,7 +34,6 @@ Parameters
   p_refinement 0.125; // additional parameter for refinement (default=0):
                     // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
                     // PROPORTION: proportion of elements that will be marked for refinement, p in [0,1]
-  // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
   microlevel 2;

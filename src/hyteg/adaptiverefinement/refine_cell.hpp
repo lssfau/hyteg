@@ -40,15 +40,8 @@ inline std::set< std::shared_ptr< Simplex3 > >
    // === split faces ===
    for ( auto& face : cell->get_faces() )
    {
-      if ( face->get_children().size() == 2 )
-      {
-         // remove green edge from face
-         face->kill_children();
-      }
-
       if ( !face->has_children() )
       {
-         // apply red refinement to face
          refine_face_red( vertices, vtxData, face );
       }
    }
