@@ -32,6 +32,8 @@ Parameters
 
    tempInit 0;
 
+   //temperatureInputProfile TemperatureProfile.json;
+
    // Steepness of temperature filtering
 
    initialTemperatureSteepness 4;
@@ -41,8 +43,8 @@ Parameters
    // generate random Gaussian noise to replce spherical harmonics 
    // false: generate spherical harmonics 
 
-   temperatureNoise true;
-   temperatureSphericalHarmonic false;
+   temperatureNoise false;
+   temperatureSphericalHarmonic true;
 
    // the default value of noiseFactor is set to 0.05
    noiseFactor 0.02; 
@@ -120,12 +122,12 @@ Parameters
 
    // Input viscosity profile
 
-   // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
-   // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
-   // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
-   // grueneisenParameterProfile ../../../data/terraneo/radialProfiles/gamma_radial.json;
+   //viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
+   specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
+   grueneisenParameterProfile ../../../data/terraneo/radialProfiles/gamma_radial.json;
 
-   characteristicVelocity 1e-6;
+   characteristicVelocity 1e-9;
 
    // Input temperature
 
@@ -142,7 +144,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 3;
+   boundaryCond 1;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
@@ -161,9 +163,9 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 10;
+   maxNumTimeSteps 50;
    fixedTimeStep false;
-   cflMax 0.5;
+   cflMax 0.3;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -183,7 +185,7 @@ Parameters
    
    plateSmoothingDistance 110;
 
-   verbose false;
+   verbose true;
 
    //////////////////////////
    //  Solver parameters  //
@@ -213,9 +215,9 @@ Parameters
    
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
-   uzawaOmega 0.5;
-   ABlockMGPreSmooth 4;
-   ABlockMGPostSmooth 4;
+   uzawaOmega 0.3;
+   ABlockMGPreSmooth 3;
+   ABlockMGPostSmooth 3;
 
    // FGMRES solver parameters 
    FGMRESOuterIterations 5;
@@ -278,10 +280,10 @@ Parameters
    // ADIOS2 parameter keys and values for data output
 
    ADIOS2ParamKey AggregatorRatio;
-   ADIOS2Value 1;
+   ADIOS2Value 4;
 
    outputDirectory ./output;
-   outputBaseName 3d_convection;
+   outputBaseName TerraNeo;
 
    // Output of a. json file containing timing tree information
 

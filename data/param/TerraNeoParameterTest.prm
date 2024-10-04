@@ -33,6 +33,8 @@ Parameters
 
    tempInit 1;
 
+   //temperatureInputProfile TempForEugenio.json;
+
    // Steepness of temperature filtering
 
    initialTemperatureSteepness 4;

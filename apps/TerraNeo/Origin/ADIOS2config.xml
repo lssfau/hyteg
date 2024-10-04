@@ -3,7 +3,7 @@
 
     <io name="BPWriter">
         <engine type="BP4">
-	    <parameter key="NumAggregators" value="16"/>
+	    <parameter key="AggregatorRatio" value="4"/>
         </engine>
     </io>
 

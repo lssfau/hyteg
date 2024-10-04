@@ -129,9 +129,9 @@ void ConvectionSimulation::updateViscosity()
           std::make_shared< P2toP2QuadraticInjection >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
    }
 
-   for(uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level--)
+   for ( uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level-- )
    {
-      p2InjectionOperator->restrict(*( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All);
+      p2InjectionOperator->restrict( *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All );
    }
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
@@ -196,11 +196,6 @@ void ConvectionSimulation::oppositeGravity( const Point3D& p, Point3D& n )
 //returns a reference adiabat relevant for the Earth, commonly implemented in TALA
 real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 {
-   if ( TN.simulationParameters.radialProfile )
-   {
-      updateNonDimParameters( x );
-   }
-
    auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
 
    if ( ( radius - TN.domainParameters.rMin ) < real_c( 1e-10 ) )
@@ -212,12 +207,32 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
       return ( TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
 
-   real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
-                 std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
+   if ( TN.simulationParameters.haveTemperatureProfile )
+   {
+      real_t temp = interpolateDataValues( x,
+                                           TN.physicalParameters.radiusT,
+                                           TN.physicalParameters.temperatureInputProfile,
+                                           TN.domainParameters.rMin,
+                                           TN.domainParameters.rMax );
 
-   real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+      real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
 
-   return retVal;
+      return retVal;
+   }
+   else
+   {
+      if ( TN.simulationParameters.radialProfile )
+      {
+         updateNonDimParameters( x );
+      }
+
+      real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
+                    std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
+
+      real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+
+      return retVal;
+   }
 }
 
 void ConvectionSimulation::updateNonDimParameters( const Point3D& x )
