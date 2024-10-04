@@ -21,9 +21,11 @@
 #pragma once
 
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 
 #include "terraneo/operators/P2StokesABlockWithProjection.hpp"
 
@@ -97,6 +99,170 @@ class P2P1StokesFullIcosahedralShellMapOperatorFS
    SchurOperator_T                                               schurOperator;
    P2ProjectNormalOperator&                                      projectNormal_;
    ViscousOperatorFS_T                                           viscousFSOp;
+
+   P1PSPGInvDiagOperator pspg_inv_diag_;
+
+   P2ElementwiseBlendingMassOperator massOperator;
+
+   const ViscousOperatorFS_T& getA() const { return viscousFSOp; }
+   const DivOperator_T&       getB() const { return StokesOp.getB(); }
+   const GradOperator_T&      getBT() const { return StokesOp.getBT(); }
+   const SchurOperator_T&     getSchur() const { return schurOperator; }
+   const StabOperator_T&      getStab() const { return StokesOp.getStab(); }
+
+   const GradOperator_T divT = StokesOp.getBT();
+   const DivOperator_T  div  = StokesOp.getB();
+
+   ViscousOperatorFS_T& getA() { return viscousFSOp; }
+};
+
+class P2P1StokesP1ViscosityFullAnnulusMapOperatorFS
+: public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   typedef operatorgeneration::P2P1StokesFullP1ViscosityAnnulusMapOperator StokesOperatorBase_T;
+   typedef StokesOperatorBase_T                                            StokesOperator_T;
+   typedef StokesOperatorBase_T::ViscousOperator_T                         ViscousOperator_T;
+   typedef P2ABlockP1ViscousAnnulusMapOperatorFS                           ViscousOperatorFS_T;
+   typedef ViscousOperatorFS_T                                             VelocityOperator_T;
+   typedef StokesOperatorBase_T::DivergenceOperator_T                      DivOperator_T;
+   typedef StokesOperatorBase_T::GradientOperator_T                        GradOperator_T;
+   typedef StokesOperatorBase_T::StabilizationOperator_T                   StabOperator_T;
+
+   typedef operatorgeneration::P1ElementwiseKMassAnnulusMap SchurOperator_T;
+
+   P2P1StokesP1ViscosityFullAnnulusMapOperatorFS( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                  uint_t                                     minLevel,
+                                                  uint_t                                     maxLevel,
+                                                  const P1Function< real_t >&                mu,
+                                                  const P1Function< real_t >&                muInv,
+                                                  P2ProjectNormalOperator&                   projectNormal,
+                                                  BoundaryCondition                          bcVelocity )
+   : Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >( storage, minLevel, maxLevel )
+   , tmp_( "tmp__P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel, bcVelocity )
+   , tmp_Vec( "tmp_Vec_P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel )
+   , tmp_P2( "tmp_P2_P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel )
+   , StokesOp( storage, minLevel, maxLevel, mu )
+   , schurOperator( storage, minLevel, maxLevel, muInv )
+   , projectNormal_( projectNormal )
+   , viscousFSOp( storage, minLevel, maxLevel, mu, projectNormal_, bcVelocity )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , massOperator( storage, minLevel, maxLevel )
+   {
+      StokesOp.getA().computeInverseDiagonalOperatorValues();
+      viscousFSOp.computeInverseDiagonalOperatorValues();
+      schurOperator.computeInverseDiagonalOperatorValues();
+   }
+
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               const uint_t                            level,
+               const DoFType                           flag,
+               const UpdateType                        updateType = Replace ) const
+   {
+      // hyteg::removeRotationalModes( massOperator, src.uvw(), tmp_Vec, tmp_P2, level );
+      // vertexdof::projectMean( src.p(), level );
+
+      tmp_.assign( { 1 }, { src }, level, All );
+      projectNormal_.project( tmp_, level, FreeslipBoundary );
+
+      StokesOp.apply( tmp_, dst, level, flag );
+      projectNormal_.project( dst, level, FreeslipBoundary );
+
+      vertexdof::projectMean( dst.p(), level );
+   }
+
+   P2P1TaylorHoodFunction< real_t > tmp_;
+
+   P2VectorFunction< real_t > tmp_Vec;
+   P2Function< real_t >       tmp_P2;
+
+   StokesOperator_T         StokesOp;
+   SchurOperator_T          schurOperator;
+   P2ProjectNormalOperator& projectNormal_;
+   ViscousOperatorFS_T      viscousFSOp;
+
+   P1PSPGInvDiagOperator pspg_inv_diag_;
+
+   P2ElementwiseBlendingMassOperator massOperator;
+
+   const ViscousOperatorFS_T& getA() const { return viscousFSOp; }
+   const DivOperator_T&       getB() const { return StokesOp.getB(); }
+   const GradOperator_T&      getBT() const { return StokesOp.getBT(); }
+   const SchurOperator_T&     getSchur() const { return schurOperator; }
+   const StabOperator_T&      getStab() const { return StokesOp.getStab(); }
+
+   const GradOperator_T divT = StokesOp.getBT();
+   const DivOperator_T  div  = StokesOp.getB();
+
+   ViscousOperatorFS_T& getA() { return viscousFSOp; }
+};
+
+class P2P1StokesStdViscosityFullAnnulusMapOperatorFS
+: public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   typedef P2P1ElementwiseBlendingFullViscousStokesOperator                StokesOperatorBase_T;
+   typedef StokesOperatorBase_T                                            StokesOperator_T;
+   typedef StokesOperatorBase_T::ViscousOperator_T                         ViscousOperator_T;
+   typedef P2ABlockStdViscousAnnulusMapOperatorFS                           ViscousOperatorFS_T;
+   typedef ViscousOperatorFS_T                                             VelocityOperator_T;
+   typedef StokesOperatorBase_T::DivergenceOperator_T                      DivOperator_T;
+   typedef StokesOperatorBase_T::GradientOperator_T                        GradOperator_T;
+   typedef StokesOperatorBase_T::StabilizationOperator_T                   StabOperator_T;
+
+   typedef operatorgeneration::P1ElementwiseKMassAnnulusMap SchurOperator_T;
+
+   P2P1StokesStdViscosityFullAnnulusMapOperatorFS( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                  uint_t                                     minLevel,
+                                                  uint_t                                     maxLevel,
+                                                  std::function< real_t( const Point3D& ) >  muFunc,
+                                                  const P1Function< real_t >&                muInv,
+                                                  P2ProjectNormalOperator&                   projectNormal,
+                                                  BoundaryCondition                          bcVelocity )
+   : Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >( storage, minLevel, maxLevel )
+   , tmp_( "tmp__P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel, bcVelocity )
+   , tmp_Vec( "tmp_Vec_P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel )
+   , tmp_P2( "tmp_P2_P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel )
+   , StokesOp( storage, minLevel, maxLevel, muFunc )
+   , schurOperator( storage, minLevel, maxLevel, muInv )
+   , projectNormal_( projectNormal )
+   , viscousFSOp( storage, minLevel, maxLevel, muFunc, projectNormal_, bcVelocity )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , massOperator( storage, minLevel, maxLevel )
+   {
+      StokesOp.getA().computeInverseDiagonalOperatorValues();
+      viscousFSOp.computeInverseDiagonalOperatorValues();
+      schurOperator.computeInverseDiagonalOperatorValues();
+   }
+
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               const uint_t                            level,
+               const DoFType                           flag,
+               const UpdateType                        updateType = Replace ) const
+   {
+      // hyteg::removeRotationalModes( massOperator, src.uvw(), tmp_Vec, tmp_P2, level );
+      // vertexdof::projectMean( src.p(), level );
+
+      tmp_.assign( { 1 }, { src }, level, All );
+      projectNormal_.project( tmp_, level, FreeslipBoundary );
+
+      StokesOp.apply( tmp_, dst, level, flag );
+      projectNormal_.project( dst, level, FreeslipBoundary );
+
+      vertexdof::projectMean( dst.p(), level );
+   }
+
+   P2P1TaylorHoodFunction< real_t > tmp_;
+
+   P2VectorFunction< real_t > tmp_Vec;
+   P2Function< real_t >       tmp_P2;
+
+   StokesOperator_T         StokesOp;
+   SchurOperator_T          schurOperator;
+   P2ProjectNormalOperator& projectNormal_;
+   ViscousOperatorFS_T      viscousFSOp;
 
    P1PSPGInvDiagOperator pspg_inv_diag_;
 

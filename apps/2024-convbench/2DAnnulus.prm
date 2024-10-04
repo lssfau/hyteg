@@ -4,9 +4,9 @@ Parameters
   annulusNRad 2;
 
   // domain
-  level 4;
-  minLevel 0;
-  maxLevel 4;
+  level 2;
+  minLevel 2;
+  maxLevel 2;
   
   // Type of forcing
   // If true, uses delta forcing, else smooth forcing
@@ -19,6 +19,10 @@ Parameters
   // Inner freeslip, Outer no-slip
   mixed true;
 
+  numCoarseGridIter 1000;
+  numPreSmooth 3;
+  numPostSmooth 3;
+
   solverType 1;
   
   surfIntBlend false;
@@ -26,14 +30,14 @@ Parameters
 
   scalingDelta 0.001;
   
-  tol 1e-10;
-  minreIter 100000;
+  tol 1e-7;
+  minreIter 10000;
 
   calcAndWriteError true;
 
   outputPath ./output/;
 
-  writeVTK false; 
+  writeVTK true; 
   // Solver
   directSolver false;
 }

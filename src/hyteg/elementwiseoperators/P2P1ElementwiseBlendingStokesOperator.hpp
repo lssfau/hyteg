@@ -25,6 +25,7 @@
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseBlendingFullViscousOperator.hpp"
+#include "hyteg/operators/ZeroOperator.hpp"
 
 #include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "mixed_operator/ScalarToVectorOperator.hpp"
@@ -134,6 +135,16 @@ class P2P1ElementwiseBlendingFullViscousStokesOperator
 
    typedef P2P1ElementwiseBlendingStokesBlockPreconditioner BlockPreconditioner_T;
 
+   using ViscousOperator       = P2ElementwiseBlendingFullViscousOperator;
+   using GradientOperator      = P1ToP2ElementwiseBlendingDivTOperator;
+   using DivergenceOperator    = P2ToP1ElementwiseBlendingDivOperator;
+   using StabilizationOperator = ZeroOperator< P1Function< real_t >, P1Function< real_t > >;
+
+   using ViscousOperator_T       = ViscousOperator;
+   using GradientOperator_T      = GradientOperator;
+   using DivergenceOperator_T    = DivergenceOperator;
+   using StabilizationOperator_T = StabilizationOperator;
+
    P2P1ElementwiseBlendingFullViscousStokesOperator(
        const std::shared_ptr< PrimitiveStorage >& storage,
        size_t                                     minLevel,
@@ -143,6 +154,7 @@ class P2P1ElementwiseBlendingFullViscousStokesOperator
    , lapl( storage, minLevel, maxLevel, viscosity )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
+   , stabOp( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , blockPrec( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
@@ -196,15 +208,20 @@ class P2P1ElementwiseBlendingFullViscousStokesOperator
       div.toMatrix( mat, src.uvw(), dst.p(), level, flag );
    }
 
-   const VelocityOperator_T::visc_0_0& getA() const
-   {
-      auto ptr = lapl.getSubOperator( 0, 0 );
-      return dynamic_cast< const VelocityOperator_T::visc_0_0& >( *ptr );
-   }
+   const ViscousOperator&         getA() const { return lapl; }
+   const GradientOperator&        getBT() const { return divT; }
+   const DivergenceOperator&      getB() const { return div; }
+   const StabilizationOperator& getStab() const { return stabOp; }
+
+   ViscousOperator&         getA() { return lapl; }
+   GradientOperator&        getBT() { return divT; }
+   DivergenceOperator&      getB() { return div; }
+   StabilizationOperator& getStab() { return stabOp; }
 
    VelocityOperator_T                    lapl;
    P2ToP1ElementwiseBlendingDivOperator  div;
    P1ToP2ElementwiseBlendingDivTOperator divT;
+   StabilizationOperator                 stabOp;
 
    /// this operator is need in the uzawa smoother
    P1PSPGInvDiagOperator pspg_inv_diag_;

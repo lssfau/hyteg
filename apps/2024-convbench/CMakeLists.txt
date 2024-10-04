@@ -27,3 +27,7 @@ waLBerla_add_executable( NAME TestDivKGrad
 waLBerla_add_executable( NAME CompressibleAnnulusStatic
         FILES  CompressibleAnnulusStatic.cpp
         DEPENDS hyteg mixed_operator opgen-composites-stokes opgen-terraneo)
+
+waLBerla_add_executable( NAME 2DStokesFSConvRediscTest
+        FILES  2DStokesFSConvRediscTest.cpp
+        DEPENDS hyteg mixed_operator opgen-composites-stokes opgen-k_mass opgen-terraneo)

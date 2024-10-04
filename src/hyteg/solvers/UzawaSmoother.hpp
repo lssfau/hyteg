@@ -429,7 +429,7 @@ NOTE: This is similar to the Uzawa smoother except that projection is
       applied to set normal components to zero at the FreeslipBoundary at 
       every step of working
 ***************************************************************************/
-template < class OperatorType >
+template < class OperatorType, class SchurOperatorType >
 class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
 {
  public:
@@ -445,6 +445,7 @@ class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
 
    UzawaSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
                                 const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
+                                const std::shared_ptr< Solver< SchurOperatorType > >& schurSolver,
                                 const uint_t                                     minLevel,
                                 const uint_t                                     maxLevel,
                                 real_t                                           relaxParam,
@@ -453,8 +454,9 @@ class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
                                 const uint_t                               numSmootherIterationsVelocity = 2,
                                 const bool                                 symmetricSmootherPressure     = false,
                                 const uint_t                               numSmootherIterationsPressure = 1 )
-   : UzawaSmootherWithFreeSlipProjection< OperatorType >( storage,
+   : UzawaSmootherWithFreeSlipProjection< OperatorType, SchurOperatorType >( storage,
                                                   velocitySmoother,
+                                                  schurSolver,
                                                   FunctionType( "uzawa_smoother_r", storage, minLevel, maxLevel ),
                                                   minLevel,
                                                   maxLevel,
@@ -468,6 +470,7 @@ class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
 
    UzawaSmootherWithFreeSlipProjection( const std::shared_ptr< PrimitiveStorage >&       storage,
                                 const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
+                                const std::shared_ptr< Solver< SchurOperatorType > >& schurSolver,
                                 const FunctionType&                              tmpFunction,
                                 const uint_t                                     minLevel,
                                 const uint_t                                     maxLevel,
@@ -492,6 +495,8 @@ class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
                                     rhsZero,
                                     rhsZeroLevels )
    , projection_( projection )
+   , schurSolver_(schurSolver)
+   , tmp1_("tmp1_Uzawa", storage, minLevel, maxLevel)
    {}
 
  private:
@@ -547,12 +552,17 @@ class UzawaSmootherWithFreeSlipProjection : public UzawaSmoother< OperatorType >
       // the zero vector and added the result to the solution.
       r_.p().assign( { relaxParam_ }, { r_.p() }, level, flag_ );
       vertexdof::projectMean( r_.p(), level );
-      A.pspg_inv_diag_.apply( r_.p(), x.p(), level, flag_, Add );
+      // A.pspg_inv_diag_.apply( r_.p(), x.p(), level, flag_, Add );
+      schurSolver_->solve(A.getSchur(), tmp1_.p(), r_.p(), flag_);
+      x.p().assign({1.0, 1.0}, {x.p(), tmp1_.p()}, level, flag_);
       vertexdof::projectMean( x.p(), level );
    }
 
  private:
    std::shared_ptr< P2ProjectNormalOperator > projection_;
+   std::shared_ptr< Solver< SchurOperatorType > > schurSolver_;
+
+   FunctionType tmp1_;
 };
 
 } // namespace hyteg

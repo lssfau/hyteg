@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "core/Variant.h"
+
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
@@ -30,6 +32,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/solvers/SubstitutePreconditioner.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 #include "hyteg/solvers/preconditioners/stokes/FullStokesVelocityBlockBlockDiagonalPreconditioner.hpp"
@@ -126,30 +129,42 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    smoother->setupCoefficients( 3, spectralRadius );
 
    auto _coarseGridSolver =
-       solvertemplates::stokesMinResSolver< StokesOperatorType >( storage, minLevel, coarseGridTol, coarseGridIter, true );
+       solvertemplates::stokesMinResSolver< StokesOperatorType >( storage, minLevel, coarseGridTol, coarseGridIter, verbose );
+
+   auto _coarseGridSolverPetsc =
+       std::make_shared< PETScLUSolver< typename StokesOperatorType::StokesOperatorBase_T > >( storage, minLevel );
+
+   auto coarseGridSubstituteSolver =
+       std::make_shared< SubstitutePreconditioner< StokesOperatorType, typename StokesOperatorType::StokesOperatorBase_T > >(
+           _coarseGridSolverPetsc, stokesOperatorFSSelf->StokesOp );
 
    auto uzawaVelocityPreconditioner =
        std::make_shared< FullStokesVelocityBlockBlockDiagonalPreconditioner< StokesOperatorType > >( storage, smoother );
 
-   auto _UzawaSmoother =
-       std::make_shared< UzawaSmootherWithFreeSlipProjection< StokesOperatorType > >( storage,
-                                                                                      uzawaVelocityPreconditioner,
-                                                                                      minLevel,
-                                                                                      maxLevel,
-                                                                                      uzawaSmootherOmega,
-                                                                                      Inner | NeumannBoundary | FreeslipBoundary,
-                                                                                      projectionOperator,
-                                                                                      uzawaVelocityIter );
+   auto schurSolver =
+       std::make_shared< CGSolver< typename StokesOperatorType::SchurOperator_T > >( storage, minLevel, maxLevel, 1e-12, 1000u );
+
+   auto _UzawaSmoother = std::make_shared<
+       UzawaSmootherWithFreeSlipProjection< StokesOperatorType, typename StokesOperatorType::SchurOperator_T > >(
+       storage,
+       uzawaVelocityPreconditioner,
+       schurSolver,
+       minLevel,
+       maxLevel,
+       uzawaSmootherOmega,
+       Inner | NeumannBoundary | FreeslipBoundary,
+       projectionOperator,
+       uzawaVelocityIter );
 
    auto prolongationOperator =
        std::make_shared< P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection >( tmpProlongation, projectionOperator );
    auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection >( projectionOperator );
-//    auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesInjectionWithFreeSlipProjection >(
-//        storage, minLevel, maxLevel, projectionOperator );
+   //    auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesInjectionWithFreeSlipProjection >(
+   //        storage, minLevel, maxLevel, projectionOperator );
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperatorType > >( storage,
                                                                                               _UzawaSmoother,
-                                                                                              _coarseGridSolver,
+                                                                                              coarseGridSubstituteSolver,
                                                                                               restrictionOperator,
                                                                                               prolongationOperator,
                                                                                               minLevel,
