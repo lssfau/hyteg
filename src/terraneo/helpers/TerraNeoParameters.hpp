@@ -205,24 +205,26 @@ struct SimulationParameters
    real_t      modelRunTimeMa = real_c( 0 );
    std::string fnameTopologies;
    std::string fnameReconstructions;
-   real_t      plateVelocityScaling       = real_c( 1 );
-   real_t      plateSmoothingDistance     = real_c( 110 );
-   bool        compressible               = true; // default: Compressible foŕmulation
-   bool        shearHeating               = true; //default: include shear heating
-   bool        adiabaticHeating           = true; //default: include adiabatic heating
-   bool        internalHeating            = true; //default: include internal heating
-   uint_t      boundaryCond               = 1;    // default: No-Slip/No-Slip
-   bool        boundaryCondFreeSlip       = false;
-   bool        verbose                    = false;
-   bool        haveViscosityProfile       = false;
-   bool        haveThermalExpProfile      = false;
-   bool        haveSpecificHeatCapProfile = false;
-   bool        haveGrueneisenProfile      = false;
-   bool        radialProfile              = false;
-   std::string fileViscosityProfile       = std::string( "ViscosityProfile.txt" );
-   std::string fileThermalExpProfile      = std::string( "ThermalExpProfile.json" );
-   std::string fileSpecificHeatCap        = std::string( "SpecificHeatCapProfile.json" );
-   std::string fileGrueneisenProfile      = std::string( "GrueneisenProfile.json" );
+   real_t      plateVelocityScaling        = real_c( 1 );
+   real_t      plateSmoothingDistance      = real_c( 110 );
+   bool        compressible                = true; // default: Compressible foŕmulation
+   bool        shearHeating                = true; //default: include shear heating
+   bool        adiabaticHeating            = true; //default: include adiabatic heating
+   bool        internalHeating             = true; //default: include internal heating
+   uint_t      boundaryCond                = 1;    // default: No-Slip/No-Slip
+   bool        boundaryCondFreeSlip        = false;
+   bool        verbose                     = false;
+   bool        haveTemperatureProfile      = false;
+   bool        haveViscosityProfile        = false;
+   bool        haveThermalExpProfile       = false;
+   bool        haveSpecificHeatCapProfile  = false;
+   bool        haveGrueneisenProfile       = false;
+   bool        radialProfile               = false;
+   std::string fileTemperatureInputProfile = std::string( "TemperatureInputProfile.json" );
+   std::string fileViscosityProfile        = std::string( "ViscosityProfile.json" );
+   std::string fileThermalExpProfile       = std::string( "ThermalExpProfile.json" );
+   std::string fileSpecificHeatCap         = std::string( "SpecificHeatCapProfile.json" );
+   std::string fileGrueneisenProfile       = std::string( "GrueneisenProfile.json" );
 
    //needed for conversions in the simulation
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
@@ -256,11 +258,13 @@ struct PhysicalParameters
    // Either use profiles or constant values (decision for each individually, e.g. temp profile + constant density + viscosity profile is possible)
    // profiles
    std::vector< real_t > radius;
+   std::vector< real_t > radiusT;
    std::vector< real_t > radiusCp;
    std::vector< real_t > radiusAlpha;
    std::vector< real_t > radiusGamma;
    std::vector< real_t > temperatureProfile;
    std::vector< real_t > viscosityProfile;
+   std::vector< real_t > temperatureInputProfile;
    std::vector< real_t > thermalExpansivityProfile;
    std::vector< real_t > specificHeatCapacityProfile;
    std::vector< real_t > grueneisenProfile;

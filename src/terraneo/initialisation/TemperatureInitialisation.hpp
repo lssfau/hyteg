@@ -30,6 +30,7 @@
 #include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
+#include "terraneo/helpers/InterpolateProfile.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 using terraneo::SphericalHarmonicsTool;
@@ -120,6 +121,19 @@ inline std::function< real_t( const Point3D& ) >
    };
 }
 
+inline std::function< real_t( const Point3D& ) >
+    temperatureReferenceProfile( const TemperatureInitializationParameters& tempInitParams,
+                                 const std::vector< real_t >                radius,
+                                 const std::vector< real_t >                temperatureProfile )
+{
+   return [=]( const Point3D& x ) {
+      real_t temp = interpolateDataValues( x, radius, temperatureProfile, tempInitParams.rMin(), tempInitParams.rMax() );
+
+      real_t retVal = ( temp ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+
+      return retVal;
+   };
+}
 /// Constructs a std::function that adds white noise to a reference profile as
 ///
 ///   refProfile + noiseFactor * rand( -1, 1 )

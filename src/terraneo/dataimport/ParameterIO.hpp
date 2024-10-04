@@ -70,6 +70,31 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
 
    /*############ MODEL PARAMETERS ############*/
+   if ( mainConf.isDefined( "temperatureInputProfile" ) )
+   {
+      simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
+      auto temperatureJson                        = io::readJsonFile( simulationParam.fileTemperatureInputProfile );
+
+      const auto radiusKey      = "Radius (m)";
+      const auto temperatureKey = "Temperature (K)";
+
+      WALBERLA_CHECK_GREATER( temperatureJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
+      WALBERLA_CHECK_GREATER(
+          temperatureJson.count( temperatureKey ), 0, "No key '" << temperatureKey << "' in viscosity profile file." )
+
+      physicalParam.radiusT                 = temperatureJson[radiusKey].get< std::vector< real_t > >();
+      physicalParam.temperatureInputProfile = temperatureJson[temperatureKey].get< std::vector< real_t > >();
+
+      WALBERLA_CHECK_EQUAL( physicalParam.radiusT.size(), physicalParam.temperatureInputProfile.size() )
+
+      simulationParam.haveTemperatureProfile = true;
+
+      for ( uint_t i = 0; i < physicalParam.radiusT.size(); i++ )
+      {
+         // non-dimensionalise radius
+         physicalParam.radiusT[i] /= physicalParam.mantleThickness;
+      }
+   }
 
    if ( mainConf.isDefined( "viscosityProfile" ) )
    {
@@ -430,6 +455,10 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Reference density            : " << physicalParam.referenceDensity );
 
+   if ( simulationParam.haveTemperatureProfile )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Temperature profile name     : " << simulationParam.fileTemperatureInputProfile );
+   }
    if ( simulationParam.haveViscosityProfile )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Viscosity profile name       : " << simulationParam.fileViscosityProfile );

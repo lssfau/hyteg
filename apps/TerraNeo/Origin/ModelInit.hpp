@@ -244,10 +244,18 @@ void ConvectionSimulation::initialiseFunctions()
 
    temperatureInitParams = std::make_shared< TemperatureInitializationParameters >( tempInitParams );
 
-   temperatureReferenceFct = std::make_shared< std::function< real_t( const Point3D& ) > >(
-       terraneo::temperatureReferenceExponential( tempInitParams ) );
-
-   auto referenceTemperature = temperatureReferenceExponential( *temperatureInitParams );
+   if ( TN.simulationParameters.haveTemperatureProfile )
+   {
+      temperatureReferenceFct =
+          std::make_shared< std::function< real_t( const Point3D& ) > >( terraneo::temperatureReferenceProfile(
+              tempInitParams, TN.physicalParameters.radiusT, TN.physicalParameters.temperatureInputProfile ) );
+   }
+   else
+   {
+      temperatureReferenceFct = std::make_shared< std::function< real_t( const Point3D& ) > >(
+          terraneo::temperatureReferenceExponential( tempInitParams ) );
+   }
+   //auto referenceTemperature = temperatureReferenceExponential( *temperatureInitParams );
 
    if ( TN.initialisationParameters.temperatureNoise )
    {
