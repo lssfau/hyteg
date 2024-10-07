@@ -198,7 +198,7 @@ class P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS
 
       vertexdof::projectMean( dst.p(), level );
    }
-#ifdef HYTEG_BUILD_WTIH_PETSc
+#ifdef HYTEG_BUILD_WITH_PETSC
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2P1TaylorHoodFunction< idx_t >&      src,
                   const P2P1TaylorHoodFunction< idx_t >&      dst,
