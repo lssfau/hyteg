@@ -21,6 +21,7 @@
 #include <sstream>
 #include <utility>
 
+#include "core/Environment.h"
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
@@ -365,6 +366,9 @@ void showUsage( const std::vector< std::shared_ptr< MeshBuilder > >& builders )
 /// The actual show_mesh app itself
 int main( int argc, char* argv[] )
 {
+   walberla::mpi::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
    std::string       vtkFileName       = "show_mesh_output";
    LoadBalancingType loadBalancingType = LoadBalancingType::ROUND_ROBIN;
    bool              beVerbose         = false;
@@ -466,8 +470,6 @@ int main( int argc, char* argv[] )
    // ------------
    //  Let's rock
    // ------------
-   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
-   walberla::MPIManager::instance()->useWorldComm();
 
    WALBERLA_LOG_INFO_ON_ROOT( "HyTeG Show Mesh Test\n" );
 
