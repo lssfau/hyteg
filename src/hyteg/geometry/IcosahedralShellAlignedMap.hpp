@@ -103,6 +103,18 @@ class IcosahedralShellAlignedMap : public GeometryMap
       recvBuffer >> radRayVertex_;
 
       recvBuffer >> prismNormal_;
+
+      recvBuffer >> A;
+      recvBuffer >> B;
+      recvBuffer >> C1;
+      recvBuffer >> C2;
+      recvBuffer >> D1;
+      recvBuffer >> D2;
+
+      recvBuffer >> one_over_A_norm;
+
+      recvBuffer >> MtM_inv_Mt;
+      recvBuffer >> NtN_inv_Nt;
    }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const override
@@ -523,8 +535,9 @@ class IcosahedralShellAlignedMap : public GeometryMap
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
-      sendBuffer << Type::ICOSAHEDRAL_SHELL << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_
-                 << radRayVertex_ << prismNormal_;
+      sendBuffer << Type::ICOSAHEDRAL_SHELL_ALIGNED << rayVertex_ << refVertex_ << thrVertex_ << forVertex_ << radRefVertex_
+                 << radRayVertex_ << prismNormal_ << A << B << C1 << C2 << D1 << D2 << one_over_A_norm << MtM_inv_Mt
+                 << NtN_inv_Nt;
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage )

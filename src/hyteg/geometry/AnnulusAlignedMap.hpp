@@ -93,6 +93,15 @@ class AnnulusAlignedMap : public GeometryMap
 
       recvBuffer >> radRefVertex_;
       recvBuffer >> radRayVertex_;
+
+      recvBuffer >> A;
+      recvBuffer >> B;
+      recvBuffer >> C;
+      recvBuffer >> D;
+
+      recvBuffer >> one_over_A_norm;
+      recvBuffer >> MtM_inv_Mt;
+      recvBuffer >> NtN_inv_Nt;
    }
 
    void evalF( const Point3D& xold, Point3D& xnew ) const override
@@ -319,7 +328,8 @@ class AnnulusAlignedMap : public GeometryMap
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override
    {
-      sendBuffer << Type::ANNULUS << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
+      sendBuffer << Type::ANNULUS_ALIGNED << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_ << A << B
+                 << C << D << one_over_A_norm << MtM_inv_Mt << NtN_inv_Nt;
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage )
