@@ -322,6 +322,7 @@ class AnnulusAlignedMap : public GeometryMap
 
    void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
    {
+      WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFinvDFx );
       WALBERLA_ABORT( "Not implemented" );
    }
