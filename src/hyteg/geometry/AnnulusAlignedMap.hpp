@@ -274,8 +274,8 @@ class AnnulusAlignedMap : public GeometryMap
       real_t tmp61 = tmp35 * tmp60;
       real_t tmp62 = tmp44 / pow( tmp54, 2 );
       real_t tmp63 = tmp61 * tmp62;
-      real_t tmp64 = tmp38 * tmp41 * ( ( ( tmp40 ) > 0 ) - ( ( tmp40 ) < 0 ) );
-      real_t tmp65 = tmp38 * tmp43 * ( ( ( tmp42 ) > 0 ) - ( ( tmp42 ) < 0 ) );
+      real_t tmp64 = tmp38 * tmp41 * real_c( ( ( tmp40 ) > 0 ) - ( ( tmp40 ) < 0 ) );
+      real_t tmp65 = tmp38 * tmp43 * real_c( ( ( tmp42 ) > 0 ) - ( ( tmp42 ) < 0 ) );
       real_t tmp66 = tmp14 * tmp3 * tmp65 + tmp36 * tmp64;
       real_t tmp67 = tmp55 / tmp44;
       real_t tmp68 = tmp61 * tmp67;
@@ -287,9 +287,9 @@ class AnnulusAlignedMap : public GeometryMap
       real_t tmp74 = tmp0 * ( A_y + tmp14 * tmp24 ) - tmp14 * ( A_x + tmp0 * tmp24 );
       real_t tmp75 = tmp29 / tmp74;
       real_t tmp76 = tmp28 * tmp74;
-      real_t tmp77 = tmp26 * tmp31 * tmp76 * ( ( ( tmp73 * tmp75 ) > 0 ) - ( ( tmp73 * tmp75 ) < 0 ) ) / tmp73;
+      real_t tmp77 = tmp26 * tmp31 * tmp76 * real_c( ( ( tmp73 * tmp75 ) > 0 ) - ( ( tmp73 * tmp75 ) < 0 ) ) / tmp73;
       real_t tmp78 = A_y + tmp14 * tmp72;
-      real_t tmp79 = tmp32 * tmp33 * tmp76 * ( ( ( tmp75 * tmp78 ) > 0 ) - ( ( tmp75 * tmp78 ) < 0 ) ) / tmp78;
+      real_t tmp79 = tmp32 * tmp33 * tmp76 * real_c( ( ( tmp75 * tmp78 ) > 0 ) - ( ( tmp75 * tmp78 ) < 0 ) ) / tmp78;
       real_t tmp80 = -tmp77 * ( -tmp0 * tmp70 + tmp14 * tmp26 * tmp28 ) - tmp79 * ( tmp14 * tmp28 * tmp32 - tmp14 * tmp70 );
       real_t tmp81 = tmp56 / pow( tmp34, 3.0 / 2.0 );
       real_t tmp82 = tmp60 * tmp81;
