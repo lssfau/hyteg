@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "core/Environment.h"
+#include "core/debug/CheckFunctions.h"
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
@@ -132,7 +133,7 @@ struct MeshRectangle : public MeshBuilder
 
    virtual MeshInfo constructMeshInfo( const std::vector< std::string >& allArguments ) const
    {
-      auto flavour = *std::find( allArguments.begin(), allArguments.end(), flag )++;
+      auto flavour = *( std::next( std::find( allArguments.begin(), allArguments.end(), flag ) ) );
       WALBERLA_CHECK_EQUAL( rectMeshTypes.count( flavour ), 1, "Flavour for rect mesh not recognised!" );
       return MeshInfo::meshRectangle( Point2D( -2.0, 1.0 ), Point2D( 0.0, 3.0 ), rectMeshTypes.at( flavour ), 16, 16 );
    }
@@ -141,7 +142,7 @@ struct MeshRectangle : public MeshBuilder
 struct MeshCuboid : public MeshBuilder
 {
    MeshCuboid()
-   : MeshBuilder( "--cuboid", "[simple|symmetric] [nHint]", "meshing cuboid in a certain flavour" )
+   : MeshBuilder( "--cuboid", "[simple|symmetric] [nCubes]", "meshing cuboid in a certain flavour" )
    {}
 
    virtual ~MeshCuboid() = default;
@@ -150,15 +151,16 @@ struct MeshCuboid : public MeshBuilder
    {
       auto itFlag  = std::find( allArguments.begin(), allArguments.end(), flag );
       auto flavour = *( std::next( itFlag ) );
-      auto nHint   = uint_c( std::stoi( *std::next( itFlag, 2 ) ) );
+      WALBERLA_CHECK_UNEQUAL( std::next( itFlag, 2 ), allArguments.end(), "Parameter nCubes missing." );
+      auto nCubes = uint_c( std::stoi( *std::next( itFlag, 2 ) ) );
 
       if ( flavour == "simple" )
       {
-         return MeshInfo::meshCuboid( Point3D( -1.0, -1.0, 0.0 ), Point3D( 2.0, 0.0, 2.0 ), nHint + 1, nHint + 1, nHint );
+         return MeshInfo::meshCuboid( Point3D( -1.0, -1.0, 0.0 ), Point3D( 2.0, 0.0, 2.0 ), nCubes + 1, nCubes + 1, nCubes );
       }
       else if ( flavour == "symmetric" )
       {
-         return MeshInfo::meshSymmetricCuboid( Point3D( -1.0, -1.0, -1.0 ), Point3D( 1.0, 1.0, 1.0 ), nHint, nHint, nHint );
+         return MeshInfo::meshSymmetricCuboid( Point3D( -1.0, -1.0, -1.0 ), Point3D( 1.0, 1.0, 1.0 ), nCubes, nCubes, nCubes );
       }
       else
       {
@@ -198,16 +200,19 @@ struct MeshAnnulus : public MeshBuilder
                                                         const MeshInfo&                   meshInfo ) const
    {
       auto itFlag   = std::find( allArguments.begin(), allArguments.end(), flag );
+      auto flavour  = *( std::next( itFlag ) );
       auto blending = *( std::next( itFlag, 2 ) );
 
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       if ( blending == "affine" ) {}
       else if ( blending == "blended" )
       {
+         WALBERLA_CHECK_EQUAL( flavour, "full", "Only the 'full' annulus can be blended." )
          AnnulusMap::setMap( setupStorage );
       }
       else if ( blending == "blended-aligned" )
       {
+         WALBERLA_CHECK_EQUAL( flavour, "full", "Only the 'full' annulus can be blended." )
          AnnulusAlignedMap::setMap( setupStorage );
       }
       else
@@ -254,16 +259,19 @@ struct MeshIcosahedralShell : public MeshBuilder
                                                         const MeshInfo&                   meshInfo ) const
    {
       auto itFlag   = std::find( allArguments.begin(), allArguments.end(), flag );
+      auto flavour  = *( std::next( itFlag, 2 ) );
       auto blending = *( std::next( itFlag, 3 ) );
 
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       if ( blending == "affine" ) {}
       else if ( blending == "blended" )
       {
+         WALBERLA_CHECK_EQUAL( flavour, "thick", "Only the 'thick' shell can be blended." )
          IcosahedralShellMap::setMap( setupStorage );
       }
       else if ( blending == "blended-aligned" )
       {
+         WALBERLA_CHECK_EQUAL( flavour, "thick", "Only the 'thick' shell can be blended." )
          IcosahedralShellAlignedMap::setMap( setupStorage );
       }
       else
@@ -455,14 +463,17 @@ int main( int argc, char* argv[] )
 
    if ( algorithms::contains( allArguments, "--dofs" ) )
    {
-      auto flagIt    = std::find( allArguments.begin(), allArguments.end(), "--dofs" );
+      auto flagIt = std::find( allArguments.begin(), allArguments.end(), "--dofs" );
+      WALBERLA_CHECK_UNEQUAL( std::next( flagIt ), allArguments.end(), "The option '--dofs' requires an integer parameter." )
       reportDoFCount = true;
       dofLevel       = uint_c( std::stoi( *std::next( flagIt ) ) );
    }
 
    if ( algorithms::contains( allArguments, "--exportFineMesh" ) )
    {
-      auto flagIt    = std::find( allArguments.begin(), allArguments.end(), "--exportFineMesh" );
+      auto flagIt = std::find( allArguments.begin(), allArguments.end(), "--exportFineMesh" );
+      WALBERLA_CHECK_UNEQUAL(
+          std::next( flagIt ), allArguments.end(), "The option '--exportFineMesh' requires an integer parameter." )
       exportFineMesh = true;
       exportLevel    = uint_c( std::stoi( *std::next( flagIt ) ) );
    }
