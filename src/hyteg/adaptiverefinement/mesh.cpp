@@ -303,8 +303,8 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
          sizeC = _n_elements - sizeR;
       }
 
-      crit_r = [&]( real_t, uint_t i ) -> bool { return i < sizeR; };
-      crit_c = [&]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      crit_r = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
+      crit_c = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
       if ( verbose )
       {
          if ( sizeR > 0 )
