@@ -148,6 +148,24 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
+void K_Mesh< K_Simplex >::refine_regular( uint_t k )
+{
+   for ( uint_t j = 0; j < k; ++j )
+   {
+      std::vector< PrimitiveID > all( _T.size() );
+
+      uint_t i = 0;
+      for ( auto& el : _T )
+      {
+         all[i] = el->getPrimitiveID();
+         ++i;
+      }
+
+      refineRG( all, {} );
+   }
+}
+
+template < class K_Simplex >
 void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_to_refine,
                                     const std::vector< PrimitiveID >& elements_to_coarsen )
 {

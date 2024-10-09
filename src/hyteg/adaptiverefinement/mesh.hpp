@@ -77,6 +77,11 @@ class K_Mesh
    */
    K_Mesh( const SetupPrimitiveStorage& setupStorage );
 
+   /* apply k steps of regular refinement
+      @param k    number of refinement steps
+   */
+   void refine_regular( uint_t k );
+
    /* apply red-green refinement to this mesh
       @param el_to_refine     subset of elements that shall be refined (red)
                               given by primitiveIDs w.r.t. K_Mesh::make_storage()
@@ -246,6 +251,21 @@ class Mesh
       {
          _mesh2D = std::make_shared< Mesh2D >( setupStorage );
          _mesh3D = nullptr;
+      }
+   }
+
+   /* apply k steps of regular refinement
+      @param k    number of refinement steps
+   */
+   void refine_regular( uint_t k )
+   {
+      if ( _DIM == 3 )
+      {
+         _mesh3D->refine_regular( k );
+      }
+      else
+      {
+         _mesh2D->refine_regular( k );
       }
    }
 
