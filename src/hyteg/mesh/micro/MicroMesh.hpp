@@ -85,6 +85,11 @@ class MicroMesh
  public:
    /// \brief Allocates data for a MicroMesh and interpolates the node locations of the refined coarse grid.
    ///
+   /// Note that if a GeometryMap is present, the node location after application of the GeometryMap is applied.
+   /// If this is not desired, i.e., if the "affine" coordinates of the original refined mesh shall be applied, either the
+   /// GeometryMaps have to be removed first (or need to be overwritten with the IdentityMap) or the mesh nodes have to be
+   /// overwritten by a subsequent call to micromesh::interpolateRefinedCoarseMesh() with a disabled blending parameter.
+   ///
    /// \param storage the underlying PrimitiveStorage
    /// \param minLevel minimum refinement level
    /// \param maxLevel maximum refinement level
@@ -170,31 +175,39 @@ void communicate( MicroMesh& microMesh, uint_t level );
 /// Interpolates a map onto the mesh function. The input point is the current position of the respective mesh node.
 /// Thus, repeated evaluation of the same map might result in different meshes each time.
 /// To interpolate the mesh node coordinates of the refined coarse mesh, use interpolateRefinedCoarseMesh().
-void interpolate( MicroMesh&                                                      microMesh,
-                  const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
-                  uint_t                                                          level );
+void interpolate( MicroMesh& microMesh, const std::vector< std::function< real_t( const Point3D& ) > >& map, uint_t level );
 
 /// Interpolates a map onto the mesh function. The input point is the current position of the respective mesh node.
 /// Thus, repeated evaluation of the same map might result in different meshes each time.
 /// To interpolate the mesh node coordinates of the refined coarse mesh, use interpolateRefinedCoarseMesh().
 void interpolate( const std::shared_ptr< PrimitiveStorage >&                      storage,
-                  const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                  const std::vector< std::function< real_t( const Point3D& ) > >& map,
                   uint_t                                                          level );
 
 /// Combines interpolate() and communicate() for convenience.
 void interpolateAndCommunicate( MicroMesh&                                                      microMesh,
-                                const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                                const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 uint_t                                                          level );
 
 /// Combines interpolate() and communicate() for convenience.
 void interpolateAndCommunicate( const std::shared_ptr< PrimitiveStorage >&                      storage,
-                                const std::vector< std::function< real_t( const Point3D& ) > >& blendingFunction,
+                                const std::vector< std::function< real_t( const Point3D& ) > >& map,
                                 uint_t                                                          level );
 
-/// Interpolates the node locations of the refined coarse mesh. Can be interpreted as "resetting" the mesh.
-void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level );
+/// Interpolates the node locations of the refined coarse mesh with or without blending.
+/// Can be interpreted as "resetting" the mesh if withBlending is set to false (which ignores present GeometryMaps).
+/// Can be used to interpolate the node positions of a "blended" mesh to the micro mesh.
+void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool withBlending );
 
-/// Interpolates the node locations of the refined coarse mesh. Can be interpreted as "resetting" the mesh.
-void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
+/// Interpolates the node locations of the refined coarse mesh with or without blending.
+/// Can be interpreted as "resetting" the mesh if withBlending is set to false (which ignores present GeometryMaps).
+/// Can be used to interpolate the node positions of a "blended" mesh to the micro mesh.
+void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending );
+
+/// Convenience function that wraps a GeometryMap's evalF() method into a vector of std::functions.
+/// Helpful to (re-)use an existing GeometryMap via the parametric approach. Might be computationally cheaper for complicated
+/// GeometryMaps since the GeometryMap is only approximated and possibly expensive Jacobian evaluations are replaced with the
+/// Jacobian evaluations of the P1 and P2 parametric mappings respectively.
+std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap );
 
 } // namespace hyteg::micromesh

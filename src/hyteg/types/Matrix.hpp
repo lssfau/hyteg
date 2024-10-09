@@ -54,3 +54,78 @@ extern template class Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >;
 extern template class Matrix< real_t, Eigen::Dynamic, 1 >;
 
 } // namespace hyteg
+
+namespace walberla::mpi {
+
+template < typename T, // Element type of SendBuffer
+           typename G, // Growth policy of SendBuffer
+           typename MatrixDataType,
+           int M,
+           int N >
+GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::Matrix< MatrixDataType, M, N >& matrix )
+{
+   for ( int i = 0; i < M; ++i )
+   {
+      for ( int j = 0; j < N; j++ )
+      {
+         buf << matrix( i, j );
+      }
+   }
+
+   return buf;
+}
+
+template < typename T, // Element type  of RecvBuffer
+           typename PointNDDataType,
+           typename MatrixDataType,
+           int M,
+           int N >
+GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::Matrix< MatrixDataType, M, N >& matrix )
+{
+   for ( int i = 0; i < M; ++i )
+   {
+      for ( int j = 0; j < N; j++ )
+      {
+         buf >> matrix( i, j );
+      }
+   }
+   return buf;
+}
+
+template < typename T, // Element type of SendBuffer
+           typename G  // Growth policy of SendBuffer
+           >
+GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::MatrixXr& matrix )
+{
+   buf << matrix.rows();
+   buf << matrix.cols();
+   for ( int i = 0; i < matrix.rows(); ++i )
+   {
+      for ( int j = 0; j < matrix.cols(); j++ )
+      {
+         buf << matrix( i, j );
+      }
+   }
+
+   return buf;
+}
+
+template < typename T // Element type  of RecvBuffer
+           >
+GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::MatrixXr& matrix )
+{
+   Eigen::Index rows, cols;
+   buf >> rows;
+   buf >> cols;
+   matrix.resize( rows, cols );
+   for ( int i = 0; i < rows; ++i )
+   {
+      for ( int j = 0; j < cols; j++ )
+      {
+         buf >> matrix( i, j );
+      }
+   }
+   return buf;
+}
+
+} // namespace walberla::mpi

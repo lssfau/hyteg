@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Marcus Mohr.
+ * Copyright (c) 2017-2024 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,8 +26,10 @@
 
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
+#include "hyteg/geometry/AnnulusAlignedMap.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
+#include "hyteg/geometry/IcosahedralShellAlignedMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
@@ -90,6 +92,14 @@ auto genMap( const std::string& variant )
       map                        = std::make_shared< AnnulusMap >( face );
    }
 
+   else if ( variant == "AnnulusAlignedMap" )
+   {
+      MeshInfo              meshInfo = MeshInfo::meshAnnulus( real_c( 1 ), real_c( 2 ), MeshInfo::CRISS, 6, 1 );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      Face                  face = *( setupStorage.getFaces().begin()->second );
+      map                        = std::make_shared< AnnulusAlignedMap >( face );
+   }
+
    else if ( variant == "CircularMap" )
    {
       MeshInfo meshInfo =
@@ -106,6 +116,14 @@ auto genMap( const std::string& variant )
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       Cell                  cell = *( setupStorage.getCells().begin()->second );
       map                        = std::make_shared< IcosahedralShellMap >( cell, setupStorage );
+   }
+
+   else if ( variant == "IcosahedralShellAlignedMap" )
+   {
+      MeshInfo              meshInfo = MeshInfo::meshSphericalShell( 2, 2, real_c( 1.0 ), real_c( 2.0 ) );
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      Cell                  cell = *( setupStorage.getCells().begin()->second );
+      map                        = std::make_shared< IcosahedralShellAlignedMap >( cell, setupStorage );
    }
 
    else if ( variant == "ThinShellMap" )
@@ -179,8 +197,10 @@ int main( int argc, char* argv[] )
                                            "AffineMap2D",
                                            "AffineMap3D",
                                            "AnnulusMap",
+                                           "AnnulusAlignedMap",
                                            "CircularMap",
                                            "IcosahedralShellMap",
+                                           "IcosahedralShellAlignedMap",
                                            "ThinShellMap",
                                            "TokamakMap",
                                            "SphericalCoordsMap" };

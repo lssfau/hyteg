@@ -30,12 +30,26 @@
 
 namespace hyteg {
 
-/// Class providing geometry mapping for an annulus
+/// Class providing a geometry mapping for an annulus.
+///
+/*! \htmlonly
+  <center>
+  <img src="Mesh_Annulus_Level_2_Blended.png"/>
+  </center></br>
+  \endhtmlonly
+*/
 ///
 /// This class takes an annulus mesh generated using MeshInfo::meshAnnulus()
 /// with the CRISS or CROSS flavour and maps nodes on refined mesh levels to
-/// corresponding radial layers. The mapping is performed with local
-/// information from the individual macro face (as we did in 3D in HHG).
+/// corresponding radial shells.
+///
+/// Note that although the mesh nodes are arranged on radial shells, the
+/// nodes are not aligned on radial beams through the origin.
+/// The more expensive AnnulusAlignedMap does have that feature.
+///
+/// The mapping is performed with local information from the individual
+/// macro face (as we did in 3D in HHG).
+///
 /// Note that the resulting mesh is different from the one we get using
 /// MeshInfo::meshRectangle() in combination with the PolarCoordsMap.
 class AnnulusMap : public GeometryMap
@@ -47,7 +61,7 @@ class AnnulusMap : public GeometryMap
       ANNULUS_MAP_LOG( "Initialising Annulus map for faceID: " << face.getID() );
       ANNULUS_MAP_LOG( "---------------------------------------------" );
 
-      classifyVertices( face.getCoordinates() );
+      classifyVertices( face.getCoordinates(), rayVertex_, refVertex_, thrVertex_, radRefVertex_, radRayVertex_ );
    }
 
    AnnulusMap( const Edge& edge, const SetupPrimitiveStorage& storage )
@@ -60,7 +74,7 @@ class AnnulusMap : public GeometryMap
       edge.getNeighborFaces( neighborFaces );
       WALBERLA_ASSERT_GREATER( neighborFaces.size(), 0 );
       const Face& face = *storage.getFace( neighborFaces[0] );
-      classifyVertices( face.getCoordinates() );
+      classifyVertices( face.getCoordinates(), rayVertex_, refVertex_, thrVertex_, radRefVertex_, radRayVertex_ );
    }
 
    AnnulusMap( walberla::mpi::RecvBuffer& recvBuffer )
@@ -242,27 +256,13 @@ class AnnulusMap : public GeometryMap
    real_t radRefVertex() const { return radRefVertex_; }
    real_t radRayVertex() const { return radRayVertex_; }
 
- private:
-   /// \name Classified vertices of macro triangle
-   ///
-   /// Each macro triangle of the annulus has two vertices which lie on a ray coming from the origin and
-   /// two with the same distance from the origin. The vertex opposite to the edge formed by the latter
-   /// two is stored as rayVertex_, the one on the ray with the rayVertex_ is stored as refVertex_.
-   /// The third vertex then is stored as thrVertex_.
-   ///@{
-   Point3D rayVertex_;
-   Point3D refVertex_;
-   Point3D thrVertex_;
-   ///@}
-
-   /// distance from origin of vertex rayVertex_
-   real_t radRefVertex_;
-
-   /// distance from origin of vertex refVertex_
-   real_t radRayVertex_;
-
    /// method for classifying the vertices of the macro triangle
-   void classifyVertices( const std::array< Point3D, 3 >& coords )
+   static void classifyVertices( const std::array< Point3D, 3 >& coords,
+                                 Point3D&                        rayVertex,
+                                 Point3D&                        refVertex,
+                                 Point3D&                        thrVertex,
+                                 real_t&                         radRefVertex,
+                                 real_t&                         radRayVertex )
    {
       std::array< real_t, 3 > radius{};
       for ( uint_t k = 0; k < 3; k++ )
@@ -288,7 +288,7 @@ class AnnulusMap : public GeometryMap
       // classify assuming we have a triangle pointing outwards from the origin
       if ( std::abs( cross01 ) < tol )
       {
-         thrVertex_ = coords[2];
+         thrVertex = coords[2];
          if ( radius[0] < radius[1] )
          {
             intRay = 0;
@@ -302,7 +302,7 @@ class AnnulusMap : public GeometryMap
       }
       else if ( std::abs( cross02 ) < tol )
       {
-         thrVertex_ = coords[1];
+         thrVertex = coords[1];
          if ( radius[0] < radius[2] )
          {
             intRay = 0;
@@ -316,7 +316,7 @@ class AnnulusMap : public GeometryMap
       }
       else if ( std::abs( cross12 ) < tol )
       {
-         thrVertex_ = coords[0];
+         thrVertex = coords[0];
          if ( radius[1] < radius[2] )
          {
             intRay = 1;
@@ -335,7 +335,7 @@ class AnnulusMap : public GeometryMap
 
       // swap classes in case we have a triangle pointing towards the origin
       ANNULUS_MAP_LOG( "Critical value = " << std::abs( coords[intRef].squaredNorm() - thrVertex_.squaredNorm() ) );
-      if ( std::abs( coords[intRef].squaredNorm() - thrVertex_.squaredNorm() ) < tol )
+      if ( std::abs( coords[intRef].squaredNorm() - thrVertex.squaredNorm() ) < tol )
       {
          ANNULUS_MAP_LOG( "Detected inward pointing triangle" );
          uint_t aux = intRay;
@@ -347,16 +347,35 @@ class AnnulusMap : public GeometryMap
          ANNULUS_MAP_LOG( "Detected outward pointing triangle" );
       }
 
-      rayVertex_ = coords[intRay];
-      refVertex_ = coords[intRef];
+      rayVertex = coords[intRay];
+      refVertex = coords[intRef];
 
-      radRayVertex_ = radius[intRay];
-      radRefVertex_ = radius[intRef];
+      radRayVertex = radius[intRay];
+      radRefVertex = radius[intRef];
 
-      ANNULUS_MAP_LOG( "refVertex: (" << refVertex_[0] << ", " << refVertex_[1] << ")" );
-      ANNULUS_MAP_LOG( "rayVertex: (" << rayVertex_[0] << ", " << rayVertex_[1] << ")" );
-      ANNULUS_MAP_LOG( "thrVertex: (" << thrVertex_[0] << ", " << thrVertex_[1] << ")" );
+      ANNULUS_MAP_LOG( "refVertex: (" << refVertex[0] << ", " << refVertex[1] << ")" );
+      ANNULUS_MAP_LOG( "rayVertex: (" << rayVertex[0] << ", " << rayVertex[1] << ")" );
+      ANNULUS_MAP_LOG( "thrVertex: (" << thrVertex[0] << ", " << thrVertex[1] << ")" );
    }
+
+ private:
+   /// \name Classified vertices of macro triangle
+   ///
+   /// Each macro triangle of the annulus has two vertices which lie on a ray coming from the origin and
+   /// two with the same distance from the origin. The vertex opposite to the edge formed by the latter
+   /// two is stored as rayVertex_, the one on the ray with the rayVertex_ is stored as refVertex_.
+   /// The third vertex then is stored as thrVertex_.
+   ///@{
+   Point3D rayVertex_;
+   Point3D refVertex_;
+   Point3D thrVertex_;
+   ///@}
+
+   /// distance from origin of vertex rayVertex_
+   real_t radRefVertex_;
+
+   /// distance from origin of vertex refVertex_
+   real_t radRayVertex_;
 };
 
 } // namespace hyteg

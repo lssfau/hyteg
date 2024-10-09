@@ -67,18 +67,20 @@ class GeometryMap
    /// the type of map contained in the stream to allow correct deserialisation
    enum class Type : uint_t
    {
-      IDENTITY          = 0,
-      AFFINE            = 1, // [keep for backward compatibility or remove?]
-      CIRCULAR          = 2,
-      POLAR_COORDS      = 3,
-      ANNULUS           = 4,
-      ICOSAHEDRAL_SHELL = 5,
-      AFFINE_2D         = 6,
-      AFFINE_3D         = 7,
-      THIN_SHELL        = 8,
-      TOKAMAK           = 9,
-      SPHERICAL_COORDS  = 10,
-      TORUS             = 11,
+      IDENTITY                  = 0,
+      AFFINE                    = 1, // [keep for backward compatibility or remove?]
+      CIRCULAR                  = 2,
+      POLAR_COORDS              = 3,
+      ANNULUS                   = 4,
+      ICOSAHEDRAL_SHELL         = 5,
+      AFFINE_2D                 = 6,
+      AFFINE_3D                 = 7,
+      THIN_SHELL                = 8,
+      TOKAMAK                   = 9,
+      SPHERICAL_COORDS          = 10,
+      TORUS                     = 11,
+      ANNULUS_ALIGNED           = 12,
+      ICOSAHEDRAL_SHELL_ALIGNED = 13,
    };
 
    virtual ~GeometryMap(){};

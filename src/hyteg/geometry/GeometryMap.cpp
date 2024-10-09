@@ -21,8 +21,10 @@
 
 #include "AffineMap2D.hpp"
 #include "AffineMap3D.hpp"
+#include "AnnulusAlignedMap.hpp"
 #include "AnnulusMap.hpp"
 #include "CircularMap.hpp"
+#include "IcosahedralShellAlignedMap.hpp"
 #include "IcosahedralShellMap.hpp"
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
@@ -59,12 +61,16 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< AffineMap3D >( recvBuffer );
    case Type::ANNULUS:
       return std::make_shared< AnnulusMap >( recvBuffer );
+   case Type::ANNULUS_ALIGNED:
+      return std::make_shared< AnnulusAlignedMap >( recvBuffer );
    case Type::CIRCULAR:
       return std::make_shared< CircularMap >( recvBuffer );
    case Type::IDENTITY:
       return std::make_shared< IdentityMap >();
    case Type::ICOSAHEDRAL_SHELL:
       return std::make_shared< IcosahedralShellMap >( recvBuffer );
+   case Type::ICOSAHEDRAL_SHELL_ALIGNED:
+      return std::make_shared< IcosahedralShellAlignedMap >( recvBuffer );
    case Type::THIN_SHELL:
       return std::make_shared< ThinShellMap >( recvBuffer );
    case Type::POLAR_COORDS:
