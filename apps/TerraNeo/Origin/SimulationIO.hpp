@@ -30,12 +30,17 @@ void ConvectionSimulation::setupOutput()
    WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
+   vtkOutputViscP0 = std::make_shared< hyteg::VTKOutput >(
+          TN.outputParameters.outputDirectory, TN.outputParameters.outputBaseName.append("_viscP0"), storage, TN.outputParameters.OutputInterval );
+
+
    if ( TN.outputParameters.vtk )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Output format: VTK" );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       vtkOutput = std::make_shared< hyteg::VTKOutput >(
           TN.outputParameters.outputDirectory, TN.outputParameters.outputBaseName, storage, TN.outputParameters.OutputInterval );
+      
       vtkOutput->setVTKDataFormat( hyteg::vtk::DataFormat::BINARY );
    }
    else
@@ -74,6 +79,8 @@ void ConvectionSimulation::setupOutput()
                                                         { *( p2ScalarFunctionContainer["ViscosityFE"] ) },
                                                         TN.domainParameters.maxLevel,
                                                         All );
+
+   vtkOutputViscP0->add( *viscP0 );
 
    if ( TN.outputParameters.vtk )
    {
@@ -116,7 +123,6 @@ void ConvectionSimulation::setupOutput()
             vtkOutput->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
          }
       }
-      vtkOutput->add( *viscP0 );
    }
    else
    {
@@ -257,6 +263,14 @@ void ConvectionSimulation::dataOutput()
    else
    {
       outputTime = uint_c( std::round( TN.simulationParameters.timeStep ) );
+   }
+
+   
+
+   for( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; level++ )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "****    Write Output VTK P0   ****" );
+      vtkOutputViscP0->write( level, outputTime );
    }
 
    if ( TN.outputParameters.dataOutput && TN.outputParameters.vtk )

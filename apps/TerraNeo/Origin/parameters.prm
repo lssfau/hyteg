@@ -41,7 +41,7 @@ Parameters
    // generate random Gaussian noise to replce spherical harmonics 
    // false: generate spherical harmonics 
 
-   temperatureNoise true;
+   temperatureNoise false;
    temperatureSphericalHarmonic true;
 
    // the default value of noiseFactor is set to 0.05
@@ -59,7 +59,7 @@ Parameters
    // generate random superposition of spherical harmonics (lmin -> lmax)
    // false: generate a single spherical harmonic (degree and order defined above)
 
-   superposition false;
+   superposition true;
 
    // scaling temperature anomalies in the initial state
 
@@ -92,7 +92,7 @@ Parameters
 
    // Temperature dependent or independent viscosity
 
-   tempDependentViscosity false;
+   tempDependentViscosity true;
 
    // Temperature-dependent viscosity law
    // 0 =  Frank–Kamenetskii type 1: goes as e^(-Activation * T)
@@ -104,7 +104,7 @@ Parameters
 
    tempDependentViscosityType 0; 
 
-   activationEnergy 0;
+   activationEnergy 2;
    depthViscosityFactor 0;
    viscosityLowerBound 5e19;
    viscosityUpperBound 1e23;
@@ -142,13 +142,13 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 3;
+   boundaryCond 1;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
    simulationType ConvectionModel;
 
-   compressible true;
+   compressible false;
    shearHeating false;
    adiabaticHeating false;
    internalHeating false;
@@ -191,7 +191,7 @@ Parameters
 
    // Number of power iterations for estimating spectral radius
 
-   numPowerIterations 50;
+   numPowerIterations 25;
 
    // 0 - FMGRES
    // 1 - Uzawa
@@ -202,7 +202,7 @@ Parameters
    stokesMaxNumIterations 5;
    stokesRelativeResidualUTolerance 1e-6;
    stokesAbsoluteResidualUTolerance 1e-6;
-   stokesUzawaCoarseGridIter 0;
+   stokesUzawaCoarseGridIter 100;
    stokesUzawaCoarseGridTol 1e-6;
    stokesSmoothIncrementCoarseGrid 2;
    
@@ -218,9 +218,9 @@ Parameters
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
-   ABlockCoarseGridIterations 25;
+   ABlockCoarseGridIterations 100;
    ABlockCoarseGridTolerance 1e-6;
-   SchurMGIterations 3;
+   SchurMGIterations 100;
    SchurMGTolerance 1e-6;
    SchurMGPreSmooth 2;
    SchurMGPostSmooth 2;
@@ -244,7 +244,7 @@ Parameters
    
    // vtk or adios2
    // if set to false then dataOutput is through adios2
-   vtk true;
+   vtk false;
    
    OutputVelocity true;
    OutputTemperature true;

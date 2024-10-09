@@ -359,6 +359,20 @@ void ConvectionSimulation::setupStokesRHS()
 
       // Multiply with mass matrix (of velocity space -- P2) to get the weak form
 
+      // std::function< real_t( const Point3D& ) > tempTestFunc = [&]( const Point3D& x ) {
+      //    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+
+      //    std::shared_ptr< SphericalHarmonicsTool > sphTool =
+      //        std::make_shared< SphericalHarmonicsTool >( TN.initialisationParameters.lmax );
+
+      //    return ( std::sin( walberla::math::pi * ( radius - TN.domainParameters.rMin ) /
+      //                       ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) *
+      //             sphTool->shconvert_eval( TN.initialisationParameters.deg, TN.initialisationParameters.ord, x[0], x[1], x[2] ) /
+      //             std::sqrt( real_c( 4 ) * walberla::math::pi ) );
+      // };
+
+      // p2ScalarFunctionContainer["TemperatureDev"]->interpolate( tempTestFunc, l, All );
+
       P2MassOperator->apply(
           *( p2ScalarFunctionContainer["TemperatureDev"] ), p2p1StokesFunctionContainer["StokesRHS"]->uvw()[0], l, All );
       P2MassOperator->apply(
@@ -521,6 +535,16 @@ void ConvectionSimulation::solveStokes()
 
    localTimer.start();
    storage->getTimingTree()->start( "Stokes Solve" );
+
+   // auto checkpointExporterURhs = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+   // checkpointExporterURhs->registerFunction(
+   //       *( p2p1StokesFunctionContainer["VelocityFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   // checkpointExporterURhs->registerFunction(
+   //       *( p2p1StokesFunctionContainer["StokesRHS"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+
+   // checkpointExporterURhs->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+   //                                        "Velocity_and_RHS" );
+
    projectionOperator->project( *( p2p1StokesFunctionContainer["StokesRHS"] ), TN.domainParameters.maxLevel, FreeslipBoundary );
    stokesSolverFS->solve( *stokesOperatorFS,
                           *( p2p1StokesFunctionContainer["VelocityFE"] ),

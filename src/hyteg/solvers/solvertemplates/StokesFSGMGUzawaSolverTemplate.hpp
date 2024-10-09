@@ -126,10 +126,13 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated spectral radius: " << spectralRadius );
 
-   smoother->setupCoefficients( 3, spectralRadius );
+   smoother->setupCoefficients( 3, spectralRadius, 2.0, 0.3 );
+
+   //    auto _coarseGridSolver =
+   //        solvertemplates::stokesMinResSolver< StokesOperatorType >( storage, minLevel, coarseGridTol, coarseGridIter, false );
 
    auto _coarseGridSolver =
-       solvertemplates::stokesMinResSolver< StokesOperatorType >( storage, minLevel, coarseGridTol, coarseGridIter, verbose );
+       std::make_shared< MinResSolver< StokesOperatorType > >( storage, minLevel, maxLevel, coarseGridIter, coarseGridTol );
 
    auto _coarseGridSolverPetsc =
        std::make_shared< PETScLUSolver< typename StokesOperatorType::StokesOperatorBase_T > >( storage, minLevel );
@@ -164,7 +167,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperatorType > >( storage,
                                                                                               _UzawaSmoother,
-                                                                                              coarseGridSubstituteSolver,
+                                                                                              _coarseGridSolver,
                                                                                               restrictionOperator,
                                                                                               prolongationOperator,
                                                                                               minLevel,

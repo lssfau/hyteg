@@ -371,6 +371,14 @@ void ConvectionSimulation::setupSolversAndOperators()
    stokesOperator = std::make_shared< StokesOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["ViscosityFE"] ) );
 
+   std::function< real_t( const Point3D& ) > viscosityStd =
+       [&]( const Point3D& x ) {
+          updateNonDimParameters( x );
+          real_t Tval = 0.0;
+          bool eval = p2ScalarFunctionContainer["TemperatureFE"]->evaluate(x, TN.domainParameters.maxLevel, Tval);
+          return terraneo::viscosityFunction( x, Tval, TN );
+       };
+
    stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
                                                             TN.domainParameters.minLevel,
                                                             TN.domainParameters.maxLevel,

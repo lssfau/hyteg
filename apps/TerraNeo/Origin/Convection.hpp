@@ -136,7 +136,9 @@ class ConvectionSimulation
    typedef P2VectorFunction< real_t >                                                  VectorFunctionP2;
    typedef P1Function< real_t >                                                        ScalarFunctionP1;
    typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator        StokesOperator;
+   // typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
    typedef P2P1StokesP0ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
+   // typedef P2P1StokesStdViscosityFullIcosahedralShellMapOperatorFS                     StokesOperatorFS;
    typedef hyteg::operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator BlockLaplaceOperator;
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap            SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap         DiffusionOperator;
@@ -266,6 +268,7 @@ class ConvectionSimulation
                                                uzawaSmoother;
    std::shared_ptr< Solver< StokesOperator > > coarseGridSolver;
    std::shared_ptr< hyteg::VTKOutput >         vtkOutput;
+   std::shared_ptr< hyteg::VTKOutput >         vtkOutputViscP0;
 
    // ADIOS2 data output
 #ifdef HYTEG_BUILD_WITH_ADIOS2
