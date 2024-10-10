@@ -172,8 +172,8 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
       // get elements corresponding to given IDs
-      auto R  = init_R( elements_to_refine );  // elements to refine
-      auto Cp = init_P( elements_to_coarsen ); // parents of elements to coarsen
+      auto R  = init_R( elements_to_refine );                      // elements to refine
+      auto Cp = init_P( elements_to_coarsen, elements_to_refine ); // parents of elements to coarsen
 
       // undo last green refinement step to prevent mesh degeneration
       remove_green_edges();
@@ -1379,8 +1379,8 @@ inline std::set< std::shared_ptr< K_Simplex > >
 }
 
 template < class K_Simplex >
-inline std::set< std::shared_ptr< K_Simplex > >
-    K_Mesh< K_Simplex >::init_P( const std::vector< PrimitiveID >& primitiveIDs ) const
+inline std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::init_P( const std::vector< PrimitiveID >& id_c,
+                                                                             const std::vector< PrimitiveID >& id_r ) const
 {
    std::map< PrimitiveID, std::shared_ptr< K_Simplex > > T_fine;
    std::map< PrimitiveID, std::shared_ptr< K_Simplex > > T_coarse;
@@ -1398,7 +1398,7 @@ inline std::set< std::shared_ptr< K_Simplex > >
 
    // for each t in T_coarse, count number of children marked for coarsening
    std::map< PrimitiveID, uint8_t > count;
-   for ( auto& id : primitiveIDs )
+   for ( auto& id : id_c )
    {
       if ( T_fine.count( id ) == 0 )
       {
@@ -1416,7 +1416,25 @@ inline std::set< std::shared_ptr< K_Simplex > >
       }
    }
 
-   // add parent elements to the list if at least half their children are marked for coarsening
+   // unmark parent elements of elements that shall be refined
+   for ( auto& id : id_r )
+   {
+      if ( T_fine.count( id ) == 0 )
+      {
+         continue;
+      }
+
+      auto parentID = T_fine[id]->get_parent()->getPrimitiveID();
+      if ( count.count( parentID ) )
+      {
+         count[parentID] = uint8_t( 0 );
+      }
+   }
+
+   /* add parent elements to the list if
+      at least half their children are marked for coarsening
+      and none of them are marked for refinement
+   */
    std::set< std::shared_ptr< K_Simplex > > P;
    for ( auto& [id, n] : count )
    {

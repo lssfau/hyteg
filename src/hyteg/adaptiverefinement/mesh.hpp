@@ -182,17 +182,19 @@ class K_Mesh
    */
    void unrefine( const std::set< std::shared_ptr< K_Simplex > >& P );
 
-   /* find elements in _T corresponding to primitiveIDs
+   /* find elements in _T corresponding to primitiveIDs marked for refinement
       @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
       @return subset of _T for red refinement
    */
    std::set< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
 
-   /* find parent elements for given primitiveIDs
-      @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
+   /* find parent elements of elements marked for coarsening
+      @param id_c  set of primitiveIDs of elements that shall be coarsened
+      @param id_r  set of primitiveIDs of elements that shall be refined
       @return parents of a subset of _T for coarsening
    */
-   std::set< std::shared_ptr< K_Simplex > > init_P( const std::vector< PrimitiveID >& primitiveIDs ) const;
+   std::set< std::shared_ptr< K_Simplex > > init_P( const std::vector< PrimitiveID >& id_c,
+                                                    const std::vector< PrimitiveID >& id_r ) const;
 
    /* extract geometryMap, boundaryFlags, etc. from all elements*/
    void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
