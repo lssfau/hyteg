@@ -31,3 +31,7 @@ waLBerla_add_executable( NAME CompressibleAnnulusStatic
 waLBerla_add_executable( NAME 2DStokesFSConvRediscTest
         FILES  2DStokesFSConvRediscTest.cpp
         DEPENDS hyteg mixed_operator opgen-composites-stokes opgen-k_mass opgen-terraneo)
+
+waLBerla_add_executable( NAME SphericalShellBenchRotation
+        FILES  SphericalShellBenchRotation.cpp
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes opgen-full_stokes opgen-k_mass opgen-epsilon opgen-divergence opgen-gradient)

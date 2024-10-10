@@ -25,6 +25,8 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2RotationOperator.hpp"
+
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1TaylorHoodFunction< real_t > >
@@ -61,6 +63,34 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
    P1toP1LinearRestriction<>  linearRestrictionOperator_;
 
    bool projectMeanAfterRestriction_;
+};
+
+class P2P1StokesToP2P1StokesRestrictionWithRotation : public P2P1StokesToP2P1StokesRestriction
+{
+ public:
+   P2P1StokesToP2P1StokesRestrictionWithRotation( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp,
+                                                  std::shared_ptr< P2RotationOperator >               rotation )
+   : P2P1StokesToP2P1StokesRestriction( false )
+   , rotation_( rotation )
+   , temp_( temp )
+   {}
+
+   void restrict( const P2P1TaylorHoodFunction< real_t >& function,
+                  const uint_t&                           sourceLevel,
+                  const DoFType&                          flag ) const override
+   {
+      temp_->assign( { 1.0 }, { function }, sourceLevel, All );
+      rotation_->rotate( *temp_, sourceLevel, FreeslipBoundary, true );
+      P2P1StokesToP2P1StokesRestriction::restrict( *temp_, sourceLevel, flag );
+      // removeRotationalModes( *temp_, sourceLevel - 1 );
+      rotation_->rotate( *temp_, sourceLevel - 1, FreeslipBoundary, false );
+      function.assign( { 1.0 }, { *temp_ }, sourceLevel - 1, All );
+      vertexdof::projectMean( function.p(), sourceLevel - 1 );
+   }
+
+ private:
+   std::shared_ptr< P2RotationOperator >               rotation_;
+   std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp_;
 };
 
 class P2P1StokesToP2P1StokesInjection : public RestrictionOperator< P2P1TaylorHoodFunction< real_t > >

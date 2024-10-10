@@ -25,6 +25,8 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2RotationOperator.hpp"
+
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1TaylorHoodFunction< real_t > >
@@ -58,6 +60,48 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
  private:
    P2toP2QuadraticProlongation quadraticProlongationOperator_;
    P1toP1LinearProlongation<>  linearProlongationOperator_;
+};
+
+class P2P1StokesToP2P1StokesProlongationWithRotation : public P2P1StokesToP2P1StokesProlongation
+{
+ public:
+   P2P1StokesToP2P1StokesProlongationWithRotation( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp,
+                                                   std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp1,
+                                                   std::shared_ptr< P2RotationOperator >               rotation )
+   : P2P1StokesToP2P1StokesProlongation()
+   , temp_( temp )
+   , temp1_( temp1 )
+   , rotation_( rotation )
+   {}
+
+   void prolongate( const P2P1TaylorHoodFunction< real_t >& function,
+                    const uint_t&                           sourceLevel,
+                    const DoFType&                          flag ) const override
+   {
+      temp_->assign( { 1.0 }, { function }, sourceLevel, All );
+      rotation_->rotate( *temp_, sourceLevel, FreeslipBoundary, true );
+      P2P1StokesToP2P1StokesProlongation::prolongate( *temp_, sourceLevel, flag );
+      // removeRotationalModes( *temp_, sourceLevel + 1 );
+      rotation_->rotate( *temp_, sourceLevel + 1, FreeslipBoundary, false );
+      function.assign( { 1.0 }, { *temp_ }, sourceLevel + 1, All );
+      vertexdof::projectMean( function.p(), sourceLevel + 1 );
+   }
+
+   // prolongateAndAdd has a different implementation than prolongate and seemingly needs internal projections
+   // as a quick fix we are using prolongate on a temporary function and add it manually
+   void prolongateAndAdd( const P2P1TaylorHoodFunction< real_t >& function,
+                          const uint_t&                           sourceLevel,
+                          const DoFType&                          flag ) const override
+   {
+      temp1_->assign( { 1.0 }, { function }, sourceLevel, All );
+      prolongate( *temp1_, sourceLevel, flag );
+      function.assign( { 1.0, 1.0 }, { function, *temp1_ }, sourceLevel + 1, flag );
+   }
+
+ private:
+   std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp_;
+   std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp1_;
+   std::shared_ptr< P2RotationOperator >               rotation_;
 };
 
 /***************************************************************************

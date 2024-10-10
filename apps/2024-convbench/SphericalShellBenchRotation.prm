@@ -1,0 +1,139 @@
+Parameters
+{
+  nTan 3;
+  nRad 2;
+	
+  rMin 1.22;
+  rMax 2.22;
+
+  RayleighNumber 7e3;
+  DissipationNumber 0.5;
+  alpha 1.0;
+  thermalConductivity 1.0;
+
+  rho 1.0;
+  cp 1.0;
+
+  lmax 3;
+  mSph 2;
+  expScaling 10.0;
+  directScaling 6e-2;
+
+  epsC 0.0;
+  epsS 0.1;
+  eps 0.01;
+
+  thetaPhaseShift 0.0;
+  phiPhaseShift 0.0;
+
+  NshGrad 0.001;
+  NsEpsBoundary 1e-6;
+  NsCalcFreq 1;
+  NsnSamples 101;
+
+  plateDirSwitch false;
+  plateSwitchFreq 100;
+  plateVelRad 0.0;
+
+  freeslip true;
+  mixed false;
+
+  rMu 100.0;
+  TRef 0.5;
+  
+  nPlumes 8;
+
+  nx 10;
+  ny 4;
+
+  maxLevel 4;
+  minLevel 2;
+
+  verbose true;
+
+  useGMG false;
+
+  omegaJacobi 0.1;
+
+  setEigenAllLevels true;
+  eigenUpperBoundFactor 1.2;
+  eigenLowerBoundFactor 15.0;
+
+  relaxSchur 1.0;
+  uzawaOmega 1.0;
+  cgSmootherIter 10;
+  cgSchurSmootherIter 200;
+  fgmresIterations 50;
+
+  uzawaPreSmooth 20;
+  uzawaPostSmooth 20;
+
+  chebyshevOrder 4;
+  spectralRadius 1.0;
+
+  spectralRadiusLower 1e-1;
+  spectralRadiusUpper 1.0;
+
+  nVCycles 5;
+
+  estimateUzawaOmega true;
+
+  numPowerIteration 30;
+
+  stokesMinresIter 10000;
+  stokesMinresRelTol 1e-6;
+  stokesMinresAbsTol 1e-10;
+
+  stokesCoarseMinresIter 10000;
+  stokesCoarseMinresRelTol 1e-6;
+  stokesCoarseMinresAbsTol 1e-10;
+
+  stokesFineMinresIter 1;
+  stokesFineMinresRelTol 1e-6;
+  stokesFineMinresAbsTol 1e-8;
+
+  stokesFGMRESIter 10;
+
+  stokesDxExitTol 1e-8;
+
+  transportMinresIter 1000;
+  transportMinresTol 1e-8;
+
+  transportGmresArnoldiTol 1e-8;
+  transportGmresAbsTol 1e-8;
+
+  specRadCalFreq 100;
+
+  residualExitTol 1e12;
+
+  Direct false;
+
+  maxTimeSteps 1000;
+  dtStart 1e-6;
+  dtMin 1e-12;
+  dtMax 1e-1;
+  dtRaster 1e-7;
+  cflMax 0.75;
+  simulationTime 10;
+  nonLinIter 4;
+  iterPicard 1;
+
+  nVCycles 10;
+
+  level 1;
+
+  useAdios2 true;
+  adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2demo.xml;
+  checkpointPath /import/freenas-m-03-geodynamics/pponkumar/SphericalShellBench/;
+  checkpointFilename SphericalShell_MT64_Ra_7e3_23052024_1330_Checkpoint1;
+
+  storeCheckpoint false;
+
+  startCheckpointFilename SphericalShell_MT64_Ra_7e3_27042024_1400_Checkpoint;
+  startFromCheckpoint false;
+
+  outputPath /import/freenas-m-03-geodynamics/pponkumar/SphericalShellBench/;
+  // outputFilename SphericalShell_MT64_rMu_100_Ra_2e4_MX_01082024_1550;
+  outputFilename SphericalShellDebug;
+  vtkWriteFrequency 1;
+}
