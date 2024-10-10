@@ -3,7 +3,7 @@ Parameters
   dim 2;
 
   // adaptive refinement:
-  n_refinements 3; // number of refinement steps
+  n_refinements 5; // number of refinement steps
   refinement_strategy 1; //0:MEAN_SQUARED_ERROR, 1:PROPORTION
   // additional parameter for refinement/coarsening (default=0):
   // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
@@ -25,8 +25,8 @@ Parameters
   cg_tolerance 1e-9;
 
   // misc
-  // vtkName auto;
-  // writeDomainPartitioning 1;
+  vtkName auto;
+  writeDomainPartitioning 1;
   // writeMeshfile 0;
   // printMeshData 0;
 }

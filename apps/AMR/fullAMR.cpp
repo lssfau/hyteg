@@ -59,7 +59,7 @@ SetupPrimitiveStorage domain( const uint_t dim )
 
    if ( dim == 2 )
    {
-      auto filename = "../hyteg/data/meshes/2D/LShape_6el.msh";
+      auto filename = "data/LShape_6el.msh";
       meshInfo      = MeshInfo::fromGmshFile( filename );
    }
    else
@@ -481,7 +481,7 @@ void solve_for_each_refinement( uint_t                                 dim,
       WALBERLA_LOG_INFO_ON_ROOT( "* Time spent for ...  " );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "  %20s: %12.3e", "AMR", t_ref ) );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "  %20s: %12.3e", "loadbalancing", t_loadbalancing ) );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "  %20s: %12.3e", "creating PrimitiveStorage", t_primitivestorage ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "  %20s: %12.3e", "creating storage", t_primitivestorage ) );
 
       // output mesh info
       if ( writeMeshfile )
@@ -553,11 +553,11 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   walberla::shared_ptr< walberla::config::Config > cfg;
+   walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
 
    if ( argc == 1 )
    {
-      cfg->readParameterFile( "./fullAMR.prm" );
+      cfg->readParameterFile( "data/fullAMR.prm" );
    }
    else
    {
@@ -567,26 +567,25 @@ int main( int argc, char* argv[] )
    // read parameters
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
 
-   const uint_t dim                   = parameters.getParameter< uint_t >( "dim" );
+   const uint_t dim = parameters.getParameter< uint_t >( "dim", 0 );
 
-   const uint_t n_refinements         = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t ref_strat             = parameters.getParameter< uint_t >( "refinement_strategy",
-                                                               uint_t( adaptiveRefinement::RefinementStrategy::WEIGHTED_MEAN ) );
+   const uint_t n_refinements         = parameters.getParameter< uint_t >( "n_refinements", 0 );
+   const uint_t ref_strat             = parameters.getParameter< uint_t >( "refinement_strategy", 0 );
    const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", 0.0 );
    const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", 0.0 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
-   uint_t      l2error           = parameters.getParameter< uint_t >( "l2error", 0 );
+   uint_t       l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
 
    const uint_t l_min = parameters.getParameter< uint_t >( "cg_level", 0 );
    const uint_t l_max = parameters.getParameter< uint_t >( "fg_level", 3 );
 
-   const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations" );
-   const uint_t n_cycles = parameters.getParameter< uint_t >( "n_cycles" );
+   const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations", 1 );
+   const uint_t n_cycles = parameters.getParameter< uint_t >( "n_cycles", 1 );
    const uint_t n1       = parameters.getParameter< uint_t >( "presmooth", 2 );
    const uint_t n2       = parameters.getParameter< uint_t >( "postsmooth", 2 );
-   const real_t tol      = parameters.getParameter< real_t >( "tolerance" );
-   const real_t cg_tol   = parameters.getParameter< real_t >( "cg_tolerance" );
+   const real_t tol      = parameters.getParameter< real_t >( "tolerance", 1e-10 );
+   const real_t cg_tol   = parameters.getParameter< real_t >( "cg_tolerance", 1e-10 );
 
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -613,6 +612,63 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.l2error=max_iter!" )
       l2error = max_iter;
    }
+   if ( vtkname == "auto" )
+   {
+      vtkname = ( dim == 2 ) ? "L_shape_full_AMR" : "dirac_3d_full_AMR";
+   }
+
+   // print parameters
+   WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
+   if ( dim == 2 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "model problem", "L-shape domain" ) );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "model problem", "dirac, 3d" ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinement steps", n_refinements ) );
+   if ( adaptiveRefinement::RefinementStrategy( ref_strat ) == adaptiveRefinement::RefinementStrategy::WEIGHTED_MEAN )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
+      WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for coarsening where ||e_T||^2 < mean_T ||e_T||^2" );
+      WALBERLA_LOG_INFO_ON_ROOT( "    with weighted mean μ(x) = (∑_i i^p x_i)/(∑_i i^p) for x_1 <= x_2 <= ..." );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "    where p_refinement = %1.1f and p_coarsening = %1.1f", p_refinement, p_coarsen ) );
+   }
+   if ( adaptiveRefinement::RefinementStrategy( ref_strat ) == adaptiveRefinement::RefinementStrategy::PERCENTILE )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( " %30s: %3.1f%%", "proportion of elements marked for coarsening", p_coarsen * 100.0 ) );
+   }
+   if ( error_indicator )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "error estimate for refinement", l_max - 1, l_max ) );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u", "error for refinement", l_max ) );
+   }
+   if ( global_error_estimate )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "compute global error estimate", global_error_estimate ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", n_cycles ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d/%d", "number of (gs) smoothing steps", n1, n2 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e / %2.1e", "tolerance (CG/MG)", cg_tol, tol ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write vtk output", ( vtkname != "" ) ) );
+   if ( vtkname != "" )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "vtk name", vtkname.c_str() ) );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write domain partitioning", writePartitioning ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write  mesh to file", writeMeshfile ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "export mesh data", printMeshData ) );
 
    // solve
    solve_for_each_refinement( dim,

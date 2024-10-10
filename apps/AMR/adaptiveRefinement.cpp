@@ -536,7 +536,7 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::
             WALBERLA_ABORT( "Initial resolution for reentrant corner must be an even number with 2 <= N <= 10!" );
          }
          uint_t n_el     = N * N * 3 / 2;
-         auto   filename = "../hyteg/data/meshes/2D/LShape_" + std::to_string( n_el ) + "el.msh";
+         auto   filename = "data/LShape_" + std::to_string( n_el ) + "el.msh";
          meshInfo        = MeshInfo::fromGmshFile( filename );
       }
       else if ( problem.type == ModelProblem::WAVES || problem.type == ModelProblem::WAVES_K ||
@@ -1200,7 +1200,7 @@ int main( int argc, char* argv[] )
    if ( argc == 1 )
    {
       walberla::shared_ptr< walberla::config::Config > cfg_( new walberla::config::Config );
-      cfg_->readParameterFile( "./adaptiveRefinement.prm" );
+      cfg_->readParameterFile( "data/adaptiveRefinement.prm" );
       cfg = cfg_;
    }
    else
