@@ -88,7 +88,7 @@ class K_Mesh
       @param el_to_coarsen    subset of elements that shall be coarsened. Note that
                               only previously refined elements can be coarsened this way
    */
-   void refineRG( const std::vector< PrimitiveID >& el_to_refine, const std::vector< PrimitiveID >& el_to_coarsen );
+   void refineRG( const std::vector< PrimitiveID >& el_to_refine, const std::vector< PrimitiveID >& el_to_coarsen = {} );
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
