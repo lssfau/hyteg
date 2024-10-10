@@ -3,6 +3,9 @@ cmake_minimum_required (VERSION 3.20)
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
@@ -54,8 +57,20 @@ link_directories(${EIGEN_DIR})
 
 include_directories(src)
 
-unset(CMAKE_CXX_FLAGS_DEBUGOPTIMIZED CACHE)
-find_package(waLBerla QUIET)
+add_subdirectory( walberla )
+list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}/tests" )
+
+# Treat warnings as errors
+if ( WARNING_ERROR )
+   if( WALBERLA_CXX_COMPILER_IS_GNU OR WALBERLA_CXX_COMPILER_IS_INTEL OR WALBERLA_CXX_COMPILER_IS_CLANG )
+      add_flag ( CMAKE_CXX_FLAGS "-pedantic-errors -Werror" )
+   elseif( WALBERLA_CXX_COMPILER_IS_MSVC )
+      add_flag ( CMAKE_CXX_FLAGS "/WX" )
+   elseif ( WALBERLA_CXX_COMPILER_IS_CRAY )
+      add_flag ( CMAKE_CXX_FLAGS "-h error_on_warning" )
+   endif()
+endif ( )
+
 
 if ( HYTEG_BUILD_WITH_MPFR )
     # Extends cmake module path - so that FindMPFR.cmake in the current directory is found

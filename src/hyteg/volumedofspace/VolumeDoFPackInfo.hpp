@@ -105,20 +105,20 @@ class VolumeDoFPackInfo : public communication::PackInfo
 
    /// @name Face to Face
    ///@{
-   void packFaceForFace( const Face* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const;
+   void packFaceForFace( const Face* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
 
-   void unpackFaceFromFace( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const;
+   void unpackFaceFromFace( Face* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
 
-   void communicateLocalFaceToFace( const Face* sender, Face* receiver ) const;
+   void communicateLocalFaceToFace( const Face* sender, Face* receiver ) const override;
    ///@}
 
    /// @name Cell to Cell
    ///@{
-   void packCellForCell( const Cell* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const;
+   void packCellForCell( const Cell* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
 
-   void unpackCellFromCell( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const;
+   void unpackCellFromCell( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
 
-   void communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const;
+   void communicateLocalCellToCell( const Cell* sender, Cell* receiver ) const override;
    ///@}
 
  private:

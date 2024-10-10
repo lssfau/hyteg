@@ -46,7 +46,7 @@ class P1LinearCombinationForm : public P1Form
       WALBERLA_CHECK_EQUAL( scalars.size(), forms.size(), "Must pass same number of forms and scalars!" )
    }
 
-   virtual ~P1LinearCombinationForm() = default;
+   ~P1LinearCombinationForm() override = default;
 
    template < typename NewFormType, typename... ConstructorArguments >
    void addOwnedForm( const real_t& scalar, ConstructorArguments... args )
@@ -64,7 +64,7 @@ class P1LinearCombinationForm : public P1Form
    // ---------------------------
    //  2D versions for triangles
    // ---------------------------
-   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
+   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
@@ -91,7 +91,7 @@ class P1LinearCombinationForm : public P1Form
       }
    }
 
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
       elMat.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
@@ -111,7 +111,7 @@ class P1LinearCombinationForm : public P1Form
    // ----------------------------
    //  3D versions for tetrahedra
    // ----------------------------
-   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
@@ -138,7 +138,7 @@ class P1LinearCombinationForm : public P1Form
       }
    }
 
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override
    {
       elMat.setZero();
       for ( uint_t i = 0; i < unowned_forms_.size(); i++ )
@@ -155,7 +155,7 @@ class P1LinearCombinationForm : public P1Form
       }
    }
 
-   virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
+   void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) override
    {
       for ( auto& form : unowned_forms_ )
       {

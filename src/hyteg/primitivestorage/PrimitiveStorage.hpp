@@ -245,6 +245,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    inline bool primitiveExistsLocallyGenerically( const PrimitiveID& id ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
+      return false;
    }
 
    /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
@@ -252,6 +253,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    inline bool primitiveExistsInNeighborhoodGenerically( const PrimitiveID& id ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
+      return false;
    }
 
    /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.

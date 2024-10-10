@@ -197,7 +197,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                const P1Function< ValueType >& dst,
                size_t                         level,
                DoFType                        flag,
-               UpdateType                     updateType = Replace ) const
+               UpdateType                     updateType = Replace ) const override
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -462,7 +462,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
    // void computeInverseDiagonalOperatorValues( bool use_variable_stencil_assembly = false )
-   void computeInverseDiagonalOperatorValues()
+   void computeInverseDiagonalOperatorValues() override
    {
       bool use_variable_stencil_assembly = false;
       computeDiagonalOperatorValues( true, use_variable_stencil_assembly );

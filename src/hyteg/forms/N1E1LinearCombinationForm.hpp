@@ -64,7 +64,7 @@ class N1E1LinearCombinationForm : public N1E1Form
       }
    }
 
-   virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
+   void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) override
    {
       for ( auto& form : forms_ )
       {

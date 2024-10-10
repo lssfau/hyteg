@@ -795,6 +795,8 @@ inline hyteg::indexing::Index getMicroVertexIdxOnRefinedMacro( const hyteg::inde
       fRow3 = Index( 0, 1, 1 );
       // (yep the matrix is involutory, too :) )
       break;
+   case CellType::WHITE_DOWN:
+      WALBERLA_ABORT( "Wrong cell type" )
    }
 
    auto d = idxCoarse - b;
@@ -894,6 +896,8 @@ inline hyteg::indexing::Index getMicroVertexIdxOnCoarserMacro( const hyteg::inde
       fRow2 = Index( 0, -1, 0 );
       fRow3 = Index( 0, 1, 1 );
       break;
+   case CellType::WHITE_DOWN:
+      WALBERLA_ABORT( "Wrong cell type" )
    }
 
    idxCoarse[0] = fRow1.dot( idxFine );
