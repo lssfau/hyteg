@@ -1499,8 +1499,8 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       either obsolete or correspond to hanging nodes. Obsolete children
       must be removed while hanging nodes must be kept.
    */
-   std::map< PrimitiveID, std::shared_ptr< Simplex2 > > refined_faces;
-   std::map< PrimitiveID, std::shared_ptr< Simplex1 > > refined_edges;
+   std::map< PrimitiveID, std::shared_ptr< Simplex1 > > edges_to_unrefine;
+   std::map< PrimitiveID, std::shared_ptr< Simplex2 > > faces_to_unrefine;
    // find all edges/faces with children
    for ( auto& el : _T )
    {
@@ -1508,7 +1508,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       {
          if ( edge->has_children() )
          {
-            refined_edges[edge->getPrimitiveID()] = edge;
+            edges_to_unrefine[edge->getPrimitiveID()] = edge;
          }
       }
       if constexpr ( VOL == CELL )
@@ -1517,7 +1517,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
          {
             if ( face->has_children() )
             {
-               refined_faces[face->getPrimitiveID()] = face;
+               faces_to_unrefine[face->getPrimitiveID()] = face;
             }
          }
       }
@@ -1531,28 +1531,26 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
          continue;
       }
 
-      /* unmark edges/faces of parent elements that have been marked in the previous step
-         i.e. keep hanging nodes
-      */
+      // edges/faces of p are supposed to have children (the edges/faces of el and it's siblings)
       for ( auto& edge : p->get_edges() )
       {
-         refined_edges.erase( edge->getPrimitiveID() );
+         edges_to_unrefine.erase( edge->getPrimitiveID() );
       }
       if constexpr ( VOL == CELL )
       {
          for ( auto& face : el->get_faces() )
          {
-            refined_faces.erase( face->getPrimitiveID() );
+            faces_to_unrefine.erase( face->getPrimitiveID() );
          }
       }
    }
-   for ( auto& [_, edge] : refined_edges )
+   for ( auto& [_, edge] : edges_to_unrefine )
    {
       WALBERLA_UNUSED( _ );
       edge->kill_children();
       // todo remove node on edge (and possibly on edges children)
    }
-   for ( auto& [_, face] : refined_faces )
+   for ( auto& [_, face] : faces_to_unrefine )
    {
       WALBERLA_UNUSED( _ );
       face->kill_children();
