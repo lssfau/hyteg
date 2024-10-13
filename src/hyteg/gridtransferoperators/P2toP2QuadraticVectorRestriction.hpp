@@ -24,6 +24,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2RotationOperator.hpp"
 
 namespace hyteg {
 
@@ -68,6 +69,30 @@ class P2toP2QuadraticVectorRestrictionWithFreeSlipProjection : public P2toP2Quad
 
  private:
    std::shared_ptr< P2ProjectNormalOperator > projection_;
+};
+
+class P2toP2QuadraticVectorRestrictionWithRotation : public P2toP2QuadraticVectorRestriction
+{
+ public:
+   P2toP2QuadraticVectorRestrictionWithRotation( std::shared_ptr< P2VectorFunction< real_t > > temp,
+                                           std::shared_ptr< P2RotationOperator >         rotation )
+   : rotation_( rotation )
+   , temp_( temp )
+   {}
+
+   void restrict( const P2VectorFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
+   {
+      temp_->assign( { 1.0 }, { function }, sourceLevel, All );
+      rotation_->rotate( *temp_, sourceLevel, FreeslipBoundary, true );
+      P2toP2QuadraticVectorRestriction::restrict( *temp_, sourceLevel, flag );
+      // removeRotationalModes( *temp_, sourceLevel - 1 );
+      rotation_->rotate( *temp_, sourceLevel - 1, FreeslipBoundary, false );
+      function.assign( { 1.0 }, { *temp_ }, sourceLevel - 1, All );
+   }
+
+ private:
+   std::shared_ptr< P2RotationOperator >         rotation_;
+   std::shared_ptr< P2VectorFunction< real_t > > temp_;
 };
 
 } // namespace hyteg

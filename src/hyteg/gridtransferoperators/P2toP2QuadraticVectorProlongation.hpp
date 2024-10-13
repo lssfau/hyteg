@@ -24,6 +24,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2RotationOperator.hpp"
 
 namespace hyteg {
 
@@ -86,5 +87,44 @@ class P2toP2QuadraticVectorProlongationWithFreeSlipProjection : public P2toP2Qua
  private:
    std::shared_ptr< P2VectorFunction< real_t > > temp_;
    std::shared_ptr< P2ProjectNormalOperator >    projection_;
+};
+
+class P2toP2QuadraticVectorProlongationWithRotation : public P2toP2QuadraticVectorProlongation
+{
+ public:
+   P2toP2QuadraticVectorProlongationWithRotation( std::shared_ptr< P2VectorFunction< real_t > > temp,
+                                                  std::shared_ptr< P2VectorFunction< real_t > > temp1,
+                                                  std::shared_ptr< P2RotationOperator >         rotation )
+   : P2toP2QuadraticVectorProlongation()
+   , temp_( temp )
+   , temp1_( temp1 )
+   , rotation_( rotation )
+   {}
+
+   void prolongate( const P2VectorFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
+   {
+      temp_->assign( { 1.0 }, { function }, sourceLevel, All );
+      rotation_->rotate( *temp_, sourceLevel, FreeslipBoundary, true );
+      P2toP2QuadraticVectorProlongation::prolongate( *temp_, sourceLevel, flag );
+      // removeRotationalModes( *temp_, sourceLevel + 1 );
+      rotation_->rotate( *temp_, sourceLevel + 1, FreeslipBoundary, false );
+      function.assign( { 1.0 }, { *temp_ }, sourceLevel + 1, All );
+   }
+
+   // prolongateAndAdd has a different implementation than prolongate and seemingly needs internal projections
+   // as a quick fix we are using prolongate on a temporary function and add it manually
+   void prolongateAndAdd( const P2VectorFunction< real_t >& function,
+                          const uint_t&                     sourceLevel,
+                          const DoFType&                    flag ) const override
+   {
+      temp1_->assign( { 1.0 }, { function }, sourceLevel, All );
+      prolongate( *temp1_, sourceLevel, flag );
+      function.assign( { 1.0, 1.0 }, { function, *temp1_ }, sourceLevel + 1, flag );
+   }
+
+ private:
+   std::shared_ptr< P2VectorFunction< real_t > > temp_;
+   std::shared_ptr< P2VectorFunction< real_t > > temp1_;
+   std::shared_ptr< P2RotationOperator >         rotation_;
 };
 } // namespace hyteg

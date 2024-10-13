@@ -98,6 +98,29 @@ class PETScMinResSolver : public Solver< OperatorType >
       MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
+   void setNullSpaces( const std::vector< FunctionType >& nullspaces )
+   {
+      nullSpaceSet_ = true;
+      uint_t idx    = 0u;
+      for ( auto& nullspace : nullspaces )
+      {
+         auto nullspaceIdx =
+             std::make_shared< PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > >(
+                 std::string( "nullspaceVec" ) + std::to_string( idx++ ), petscCommunicator_ );
+
+         nullspaceIdx->createVectorFromFunction( nullspace, num, allocatedLevel_ );
+
+         real_t norm = 0;
+         VecNormalize( nullspaceIdx->get(), &norm );
+
+         nullspaceCollectionVec_.push_back( nullspaceIdx );
+
+         nullspaceVecs_.push_back( nullspaceIdx->get() );
+      }
+
+      MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, nullspaces.size(), nullspaceVecs_.data(), &nullspace_ );
+   }
+
    void setFromOptions( bool doIt ) { setFromOptions_ = doIt; }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
@@ -154,6 +177,10 @@ class PETScMinResSolver : public Solver< OperatorType >
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
+   std::vector< std::shared_ptr< PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > > >
+       nullspaceCollectionVec_;
+
+   std::vector< Vec > nullspaceVecs_;
 
    KSP            ksp;
    PC             pc;

@@ -27,6 +27,8 @@
 #include "hyteg_operators/operators/divergence/P2VectorToP1ElementwiseDivergenceRotationIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradientRotationIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg/operatorgeneration/EpsilonRotation/P2VectorElementwiseEpsilonRotation_IcosahedralShellMap_fused_quadloops_float64.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
 
 namespace hyteg {
 
@@ -34,7 +36,9 @@ class P2ViscousIcosahedralShellMapOperatorRotation : public Operator< P2VectorFu
                                                      public OperatorWithInverseDiagonal< P2VectorFunction< real_t > >
 {
  public:
-   typedef operatorgeneration::P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap ViscousOperator_T;
+   // typedef operatorgeneration::P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap ViscousOperator_T;
+   // typedef operatorgeneration::P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap ViscousOperator_T;
+   typedef operatorgeneration::P2VectorElementwiseEpsilonRotation_IcosahedralShellMap_fused_quadloops_float64 ViscousOperator_T;
 
    // using P2VectorElementwiseEpsilonRotationAbsOperator =
    //     operatorgeneration::P2VectorElementwiseEpsilonRotationAbsIcosahedralShellMapOperator;
@@ -45,11 +49,12 @@ class P2ViscousIcosahedralShellMapOperatorRotation : public Operator< P2VectorFu
                                                  P0Function< real_t >&                      mu,
                                                  P2Function< real_t >&                      nx,
                                                  P2Function< real_t >&                      ny,
-                                                 P2Function< real_t >&                      nz )
+                                                 P2Function< real_t >&                      nz,
+                                                 real_t                                     rotFactor )
    : Operator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
    , tmp_( "tmp__P2ViscousIcosahedralShellMapOperatorRotation", storage, minLevel, maxLevel )
    , ones_( "ones__P2ViscousIcosahedralShellMapOperatorRotation", storage, minLevel, maxLevel )
-   , viscousOperator( storage, minLevel, maxLevel, mu, nx, ny, nz )
+   , viscousOperator( storage, minLevel, maxLevel, mu, nx, ny, nz, rotFactor )
    // , epsilonAbsOperator( storage, minLevel, maxLevel, mu, nx, ny, nz )
    {
       invDiag_ = std::make_shared< P2VectorFunction< real_t > >(
@@ -136,10 +141,11 @@ class P2P1StokesOpgenRotationWrapper : public Operator< P2P1TaylorHoodFunction< 
                                    P2Function< real_t >& nx,
                                    P2Function< real_t >& ny,
                                    P2Function< real_t >& nz,
+                                   real_t                rotFactor,
                                    P2RotationOperator&   rotationOperator,
                                    BoundaryCondition     bcVelocity )
    : Operator( storage, minLevel, maxLevel )
-   , stokesViscousOperator_( storage, minLevel, maxLevel, mu, nx, ny, nz )
+   , stokesViscousOperator_( storage, minLevel, maxLevel, mu, nx, ny, nz, rotFactor )
    , rotationOperator_( rotationOperator )
    , divT( storage, minLevel, maxLevel, nx, ny, nz )
    , div( storage, minLevel, maxLevel, nx, ny, nz )

@@ -34,4 +34,4 @@ waLBerla_add_executable( NAME 2DStokesFSConvRediscTest
 
 waLBerla_add_executable( NAME SphericalShellBenchRotation
         FILES  SphericalShellBenchRotation.cpp
-        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes opgen-full_stokes opgen-k_mass opgen-epsilon opgen-divergence opgen-gradient)
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes opgen-div_k_grad opgen-advection opgen-supg_diffusion opgen-supg_advection opgen-full_stokes opgen-terraneo opgen-mass opgen-k_mass opgen-epsilon opgen-divergence opgen-gradient)
