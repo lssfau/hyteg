@@ -149,7 +149,7 @@ inline real_t Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 
 }
 
 template < uint_t K, class K_Simplex >
-inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const std::vector< Point3D >& nodes ) const
+inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const EnumeratedList< Point3D >& nodes ) const
 {
    std::array< Point3D, K + 1 > vertices;
    for ( uint_t i = 0; i < K + 1; ++i )
@@ -160,19 +160,19 @@ inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const 
 }
 
 template < uint_t K, class K_Simplex >
-Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
+Point3D Simplex< K, K_Simplex >::barycenter( const EnumeratedList< Point3D >& nodes ) const
 {
    return barycenter( this->coordinates( nodes ) );
 }
 
 template < uint_t K, class K_Simplex >
-real_t Simplex< K, K_Simplex >::radius( const std::vector< Point3D >& nodes ) const
+real_t Simplex< K, K_Simplex >::radius( const EnumeratedList< Point3D >& nodes ) const
 {
    return radius( this->coordinates( nodes ) );
 }
 
 template < uint_t K, class K_Simplex >
-real_t Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
+real_t Simplex< K, K_Simplex >::volume( const EnumeratedList< Point3D >& nodes ) const
 {
    return volume( this->coordinates( nodes ) );
 }
@@ -273,7 +273,7 @@ std::shared_ptr< Simplex1 > Simplex2::get_Edge( uint_t a, uint_t b ) const
    return nullptr;
 }
 
-std::pair< real_t, real_t > Simplex2::min_max_angle( const std::vector< Point3D >& nodes ) const
+std::pair< real_t, real_t > Simplex2::min_max_angle( const EnumeratedList< Point3D >& nodes ) const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
 
@@ -381,7 +381,7 @@ uint_t Simplex3::vertices_on_edges() const
    return n;
 }
 
-std::pair< real_t, real_t > Simplex3::min_max_angle( const std::vector< Point3D >& nodes ) const
+std::pair< real_t, real_t > Simplex3::min_max_angle( const EnumeratedList< Point3D >& nodes ) const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
 

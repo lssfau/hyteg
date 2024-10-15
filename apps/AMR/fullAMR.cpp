@@ -401,6 +401,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
 }
 
 void solve_for_each_refinement( uint_t                                 dim,
+                                uint_t                                 n_ref_init,
                                 uint_t                                 n_ref,
                                 adaptiveRefinement::RefinementStrategy ref_strat,
                                 real_t                                 ref_param,
@@ -436,7 +437,7 @@ void solve_for_each_refinement( uint_t                                 dim,
       auto t0 = walberla::timing::getWcTime();
       if ( refinement == 0 )
       {
-         mesh.refine_regular( n_ref );
+         mesh.refine_regular( n_ref_init );
       }
       else
       {
@@ -569,7 +570,8 @@ int main( int argc, char* argv[] )
 
    const uint_t dim = parameters.getParameter< uint_t >( "dim", 0 );
 
-   const uint_t n_refinements         = parameters.getParameter< uint_t >( "n_refinements", 0 );
+   const uint_t n_regref              = parameters.getParameter< uint_t >( "n_regular_refinement", 0 );
+   const uint_t n_amr                 = parameters.getParameter< uint_t >( "n_amr", 0 );
    const uint_t ref_strat             = parameters.getParameter< uint_t >( "refinement_strategy", 0 );
    const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", 0.0 );
    const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", 0.0 );
@@ -621,13 +623,14 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
    if ( dim == 2 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "model problem", "L-shape domain" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "model problem", "L-shape domain" ) );
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "model problem", "dirac, 3d" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "model problem", "dirac, 3d" ) );
    }
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinement steps", n_refinements ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "regular refinement steps", n_regref ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "adaptive refinement steps", n_amr ) );
    if ( adaptiveRefinement::RefinementStrategy( ref_strat ) == adaptiveRefinement::RefinementStrategy::WEIGHTED_MEAN )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
@@ -672,7 +675,8 @@ int main( int argc, char* argv[] )
 
    // solve
    solve_for_each_refinement( dim,
-                              n_refinements,
+                              n_regref,
+                              n_amr,
                               adaptiveRefinement::RefinementStrategy( ref_strat ),
                               p_refinement,
                               p_coarsen,

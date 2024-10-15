@@ -55,8 +55,6 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
    {
       // extract vertices
       _n_vertices = setupStorage.getVertices().size();
-      _vertices.resize( _n_vertices );
-      _V.resize( _n_vertices );
 
       // [0,1,...,n-1]
       std::vector< uint_t > vtxIndices( _n_vertices );
@@ -64,18 +62,15 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       std::map< PrimitiveID, uint_t > conversion;
 
       // initialize vertices
-      uint_t idx = 0;
       for ( auto& [id, vtx] : setupStorage.getVertices() )
       {
-         // extract coordinates of vertex
-         _vertices[idx] = vtx->getCoordinates();
-         // extract geometry map, boundary flag, primitive id and target rank
-         _V[idx] = VertexData( id, vtx->getMeshBoundaryFlag(), id, { { idx } }, setupStorage.getTargetRank( id ) );
+         auto idx = _V.get_next_idx();
+         _coords.append( vtx->getCoordinates() );
+         _V.append( VertexData( id, vtx->getMeshBoundaryFlag(), id, { { idx } }, setupStorage.getTargetRank( id ) ) );
 
          // prepare element setup
          conversion[id]  = idx;
          vtxIndices[idx] = idx;
-         ++idx;
       }
 
       // initialize all edges, faces and cells
@@ -93,7 +88,6 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
          myEdge->setGeometryMap( id );
          myEdge->setBoundaryFlag( edge->getMeshBoundaryFlag() );
          myEdge->setTargetRank( setupStorage.getTargetRank( PrimitiveID( id ) ) );
-         ++idx;
       }
 
       for ( auto& [id, face] : setupStorage.getFaces() )
@@ -195,7 +189,7 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       refine_green();
 
       // update current configuration
-      _n_vertices = _vertices.size();
+      _n_vertices = _coords.size();
       _n_elements = _T.size();
    }
 
@@ -393,6 +387,31 @@ void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVe
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
+   WALBERLA_DEBUG_SECTION()
+   {
+      std::set< uint_t > allvtxs;
+      for ( auto& el : _T )
+      {
+         for ( auto& idx : el->get_vertices() )
+         {
+            allvtxs.insert( idx );
+         }
+      }
+      for ( auto& [idx, _] : _V )
+      {
+         if ( allvtxs.count( idx ) == 0 )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "vertex " << idx << " is not part of any element!" );
+         }
+      }
+      for ( auto& idx : allvtxs )
+      {
+         if ( _V.count( idx ) == 0 )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "vertex " << idx << " is not in V!" );
+         }
+      }
+   }
    std::map< PrimitiveID, VertexData > vtxs;
    std::map< PrimitiveID, EdgeData >   edges;
    std::map< PrimitiveID, FaceData >   faces;
@@ -828,6 +847,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
+         // todo remove redundant evaluation
          auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
@@ -853,6 +873,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
+         // todo remove redundant evaluation
          auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
@@ -895,6 +916,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
+         // todo remove redundant evaluation
          auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
@@ -951,12 +973,12 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    // ****** create primitives ******
 
    // broadcast vertices to all processes
-   walberla::mpi::broadcastObject( _vertices );
+   walberla::mpi::broadcastObject( _coords );
 
    // create new vertex and add it to map
    auto add_vertex = [&]( PrimitiveStorage::VertexMap& map, const VertexData& vtx ) {
       // vertex coordinate
-      auto coord = vtx.get_coordinates( _vertices )[0];
+      auto coord = vtx.get_coordinates( _coords )[0];
       // add new vertex
       auto& id = vtx.getPrimitiveID();
       map[id]  = std::make_shared< Vertex >( id, coord );
@@ -970,7 +992,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       // vertex coordinates and IDs
       auto v      = edge.get_vertices();
-      auto coords = edge.get_coordinates( _vertices );
+      auto coords = edge.get_coordinates( _coords );
 
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i <= K; ++i )
@@ -994,7 +1016,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       // vertex coordinates and IDs
       auto v      = face.get_vertices();
-      auto coords = face.get_coordinates( _vertices );
+      auto coords = face.get_coordinates( _coords );
 
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i <= K; ++i )
@@ -1034,7 +1056,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       // vertex coordinates and IDs
       auto v      = cell.get_vertices();
-      auto coords = cell.get_coordinates( _vertices );
+      auto coords = cell.get_coordinates( _coords );
 
       std::vector< PrimitiveID > vertexIDs( K + 1 );
       for ( uint_t i = 0; i <= K; ++i )
@@ -1162,7 +1184,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
    // coordinates only required on rank 0
    if ( rank != 0 )
    {
-      _vertices.clear();
+      _coords.clear();
    }
 
    // ****** add neighborhood information to primitives ******
@@ -1174,6 +1196,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
+         // todo remove redundant evaluation
          auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
@@ -1195,6 +1218,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
+         // todo remove redundant evaluation
          auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
@@ -1231,6 +1255,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
+         // todo remove redundant evaluation
          auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
@@ -1329,9 +1354,10 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtx
       }
    }
 
-   // collect vertex data
-   for ( auto& vtx : _V )
+   // collect vertex data // todo check if we can use _V directly
+   for ( auto& [_, vtx] : _V )
    {
+      WALBERLA_UNUSED( _ );
       vtxData[vtx.getPrimitiveID()] = vtx;
    }
    // collect edge data
@@ -1451,6 +1477,13 @@ inline std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::init_P( con
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex > >& Cp )
 {
+   /* if a face/edge of an element in T has children, these children are
+      either obsolete or correspond to hanging nodes. Obsolete children
+      must be removed while hanging nodes must be kept.
+   */
+   std::map< PrimitiveID, std::shared_ptr< Simplex1 > > edges_to_unrefine;
+   std::map< PrimitiveID, std::shared_ptr< Simplex2 > > faces_to_unrefine;
+
    // check if el has grandkids
    auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
       for ( auto& child : el->get_children() )
@@ -1465,10 +1498,25 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
 
    // unrefine this element
    auto uref_el = [&]( const std::shared_ptr< K_Simplex > el ) {
+      // remove el's children from T
       for ( auto& child : el->get_children() )
       {
          _T.erase( child );
       }
+      // mark el's edges for unrefinement
+      for ( auto& edge : el->get_edges() )
+      {
+         edges_to_unrefine[edge->getPrimitiveID()] = edge;
+      }
+      // mark el's faces for unrefinement
+      if constexpr ( VOL == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            faces_to_unrefine[face->getPrimitiveID()] = face;
+         }
+      }
+
       el->kill_children();
       _T.insert( el );
    };
@@ -1495,34 +1543,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       }
    }
 
-   /* if a face/edge of an element in T has children, these children are
-      either obsolete or correspond to hanging nodes. Obsolete children
-      must be removed while hanging nodes must be kept.
-   */
-   std::map< PrimitiveID, std::shared_ptr< Simplex1 > > edges_to_unrefine;
-   std::map< PrimitiveID, std::shared_ptr< Simplex2 > > faces_to_unrefine;
-   // find all edges/faces with children
-   for ( auto& el : _T )
-   {
-      for ( auto& edge : el->get_edges() )
-      {
-         if ( edge->has_children() )
-         {
-            edges_to_unrefine[edge->getPrimitiveID()] = edge;
-         }
-      }
-      if constexpr ( VOL == CELL )
-      {
-         for ( auto& face : el->get_faces() )
-         {
-            if ( face->has_children() )
-            {
-               faces_to_unrefine[face->getPrimitiveID()] = face;
-            }
-         }
-      }
-   }
-   // check whether their children are actually obsolete
+   // check whether edges/faces of unrefined elements can also be unrefined
    for ( auto& el : _T )
    {
       auto p = el->get_parent();
@@ -1544,11 +1565,25 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
          }
       }
    }
+   // remove obsolete vertices, edges and faces
+   std::function< void( std::shared_ptr< Simplex1 > ) > remove_inner_vtxs = [&]( std::shared_ptr< Simplex1 > edge ) {
+      for ( auto& child : edge->get_children() )
+      {
+         remove_inner_vtxs( child );
+      }
+      if ( edge->has_children() )
+      {
+         auto vtx = edge->get_midpoint_idx();
+         _V.erase( vtx );
+         _coords.erase( vtx );
+      }
+   };
    for ( auto& [_, edge] : edges_to_unrefine )
    {
       WALBERLA_UNUSED( _ );
+      remove_inner_vtxs( edge );
+      edge->reset_midpoint_idx();
       edge->kill_children();
-      // todo remove node on edge (and possibly on edges children)
    }
    for ( auto& [_, face] : faces_to_unrefine )
    {
@@ -1570,11 +1605,11 @@ void K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex
 
       if constexpr ( VOL == FACE )
       {
-         _T.merge( refine_face_red( _vertices, _V, el ) );
+         _T.merge( refine_face_red( _coords, _V, el ) );
       }
       if constexpr ( VOL == CELL )
       {
-         _T.merge( refine_cell_red( _vertices, _V, el ) );
+         _T.merge( refine_cell_red( _coords, _V, el ) );
       }
    }
 }
@@ -1647,7 +1682,7 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::find_elements_for_re
             if ( !face->has_children() )
             {
                // apply red refinement to face
-               refine_face_red( _vertices, _V, face );
+               refine_face_red( _coords, _V, face );
                vtxs_added = true;
             }
          }
@@ -1744,7 +1779,7 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_angle() const
    {
       for ( auto& el : _T )
       {
-         auto mm_el = el->min_max_angle( _vertices );
+         auto mm_el = el->min_max_angle( _coords );
 
          mm.first  = std::min( mm.first, mm_el.first );
          mm.second = std::max( mm.second, mm_el.second );
@@ -1765,7 +1800,7 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::mean_min_max_angle() const
    {
       for ( auto& el : _T )
       {
-         auto mm_el = el->min_max_angle( _vertices );
+         auto mm_el = el->min_max_angle( _coords );
 
          mm.first += mm_el.first;
          mm.second += mm_el.second;
@@ -1789,7 +1824,7 @@ std::pair< real_t, real_t > K_Mesh< K_Simplex >::min_max_volume() const
    {
       for ( auto& el : _T )
       {
-         auto v = el->volume( _vertices );
+         auto v = el->volume( _coords );
 
          mm.first  = std::min( mm.first, v );
          mm.second = std::max( mm.second, v );
@@ -1810,7 +1845,7 @@ real_t K_Mesh< K_Simplex >::volume() const
    {
       for ( auto& el : _T )
       {
-         v_tot += el->volume( _vertices );
+         v_tot += el->volume( _coords );
       }
    }
 
@@ -1836,11 +1871,12 @@ void K_Mesh< K_Simplex >::exportMesh( const std::string& filename ) const
 
       file << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n" << n_vtx() << "\n";
 
+      // todo: fix vertex numbering
       for ( uint_t i = 0; i < n_vtx(); ++i )
       {
          file << ( i + 1 );
          for ( int j = 0; j < 3; ++j )
-            file << " " << _vertices[i][j];
+            file << " " << _coords[i][j];
          file << "\n";
       }
 

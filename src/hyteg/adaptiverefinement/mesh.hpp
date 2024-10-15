@@ -142,7 +142,7 @@ class K_Mesh
    // reference to set of volume elements corresponding to current refinement
    const std::set< std::shared_ptr< K_Simplex > >& get_elements() const { return _T; }
    // reference to list of vertex coordinates corresponding to current refinement
-   const std::vector< Point3D >& get_vertices() const { return _vertices; }
+   const EnumeratedList< Point3D >& get_vertices() const { return _coords; }
    // export mesh to gmsh file
    void exportMesh( const std::string& filename ) const;
 
@@ -218,9 +218,9 @@ class K_Mesh
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
    uint_t                                                  _n_processes; // number of processes
-   std::vector< Point3D >                                  _vertices;    // vertex coordinates
-   std::vector< VertexData >                               _V;           // set of vertices of current refinement
-   std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement level
+   EnumeratedList< Point3D >                               _coords;      // vertex coordinates
+   EnumeratedList< VertexData >                            _V;           // set of vertices of current refinement
+   std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement
    std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometryMaps of original mesh
 
    PrimitiveID _invalidID;
@@ -464,7 +464,7 @@ class Mesh
    const std::set< std::shared_ptr< Simplex3 > >& get_elements3d() const { return _mesh3D->get_elements(); }
 
    // get vertex coordinates
-   const std::vector< Point3D >& get_vertices() const
+   const EnumeratedList< Point3D >& get_vertices() const
    {
       if ( _DIM == 3 )
       {

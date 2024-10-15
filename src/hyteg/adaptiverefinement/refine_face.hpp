@@ -50,13 +50,13 @@ namespace adaptiveRefinement {
       |       \ |        \
       0---------3---------1
          [0]        [1]
-   @param vertices      global coordinates of all vertices in the mesh
-   @param vtxData       geometrymap, boundaryflag etc. of all vertices in the mesh
-   @param face          subject to refinement
+   @param coords     global coordinates of all vertices in the mesh
+   @param vtxs       geometrymap, boundaryflag etc. of all vertices in the mesh
+   @param face       subject to refinement
    @return sub-elements
 */
 inline std::set< std::shared_ptr< Simplex2 > >
-    refine_face_red( std::vector< Point3D >& vertices, std::vector< VertexData >& vtxData, std::shared_ptr< Simplex2 > face )
+    refine_face_red( EnumeratedList< Point3D >& coords, EnumeratedList< VertexData >& vtxs, std::shared_ptr< Simplex2 > face )
 {
    // === prepare sets of vertices and edges for face->split() ===
 
@@ -82,7 +82,7 @@ inline std::set< std::shared_ptr< Simplex2 > >
       }
       else
       {
-         ref_vertices[3 + i] = bisect_edge( vertices, vtxData, edge );
+         ref_vertices[3 + i] = bisect_edge( coords, vtxs, edge );
       }
 
       auto child_edges     = edge->get_children_sorted( { ref_vertices[i], ref_vertices[( i + 1 ) % 3] } );
