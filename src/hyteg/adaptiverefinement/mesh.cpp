@@ -1559,7 +1559,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       }
       if constexpr ( VOL == CELL )
       {
-         for ( auto& face : el->get_faces() )
+         for ( auto& face : p->get_faces() )
          {
             faces_to_unrefine.erase( face->getPrimitiveID() );
          }
