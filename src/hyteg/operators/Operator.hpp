@@ -27,10 +27,11 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/types/Concepts.hpp"
 
 namespace hyteg {
 
-template < typename SourceFunction, typename DestinationFunction >
+template < concepts::fe_function SourceFunction, concepts::fe_function DestinationFunction >
 class Operator
 {
  public:

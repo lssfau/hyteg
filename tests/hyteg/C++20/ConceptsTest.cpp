@@ -21,21 +21,34 @@
 // check pipeline compilers for support of C++20 concepts
 
 #include <concepts>
-#include <core/Environment.h>
+#include <iostream>
 
-#include "hyteg/geometry/CircularMap.hpp"
+#include "core/Environment.h"
+
+#include "hyteg/functions/CSFVectorFunction.hpp"
+#include "hyteg/functions/Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/types/Concepts.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
 
 using namespace hyteg;
 
+// Test template
 template< typename T >
 requires std::integral<T>
 struct myClass {
   T attribute;
 };
+
+// Test using concept
+void getFunctionName( const concepts::fe_function auto& function ) {
+  std::cout << "Name of function is ' " << function.getFunctionName() << "'" << std::endl;
+}
 
 int main( int argc, char** argv )
 {
@@ -48,6 +61,19 @@ int main( int argc, char** argv )
    myClass< uint > obj1;
 
    obj1.attribute = 2UL;
+
+   WALBERLA_UNUSED( obj1 );
+
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
+   SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   P2Function< real_t > p2Func( "Lagrange, 2nd order", storage, 2, 2 );
+   P1VectorFunction< real_t > p1Func( "P1 Vector Function", storage, 2, 2 );
+
+   getFunctionName( p1Func );
+   getFunctionName( p2Func );
+   // getFunctionName( obj1 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "If you see this message, compiling with concepts worked ;-)" );
 
