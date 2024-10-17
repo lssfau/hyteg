@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,7 +26,9 @@
 namespace hyteg {
 namespace communication {
 
-std::atomic_uint BufferedCommunicator::bufferSystemTag_( 0 );
+int MPITagProvider::maxMPITag_{ 0u };
+bool MPITagProvider::poolExhausted_{ false };
+std::atomic_int MPITagProvider::nextMPITag_{ 0u };
 
 const uint_t BufferedCommunicator::SYNC_WORD( 1234 );
 
@@ -39,7 +41,8 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
   const bool serialRecvs = true;
   for ( auto & bufferSystem : bufferSystems_ )
   {
-    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), int_c( bufferSystemTag_++ ), serialSends, serialRecvs ) );
+    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(),
+                                                                                                                MPITagProvider::getMPITag(), serialSends, serialRecvs ) );
   }
 
   setupBeforeNextCommunication();
