@@ -943,6 +943,12 @@ template void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons(
     AdiosWriter::StreamAccessBuffer< ADIOS2_PARAVIEW_INT_TYPE, 11 >& dstStream_t,
     const std::shared_ptr< PrimitiveStorage >&                       storage,
     uint_t                                                           level );
+
+template void VTKMeshWriter::writePointsForMicroEdges( bool                                       write2D,
+                                                       AdiosWriter::StreamAccessBuffer< real_t >& dstStream,
+                                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                                       uint_t                                     level,
+                                                       const vtk::DoFType&                        dofType );
 #endif
 
 } // namespace hyteg
