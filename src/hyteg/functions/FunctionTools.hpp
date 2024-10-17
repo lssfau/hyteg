@@ -87,4 +87,14 @@ void copyBCs( const FunctionType< value_t1 >& src, FunctionType< value_t2 >& dst
    }
 }
 
+template < typename FunctionType >
+void removeNullspace( FunctionType x, const std::vector< std::shared_ptr< FunctionType > >& nullspaces, uint_t level, const DoFType flag = All )
+{
+   for( uint_t idx = 0u; idx < nullspaces.size(); idx++ )
+   {
+      real_t dotProd = x.dotGlobal(*(nullspaces[idx]), level, flag);
+      x.assign({1.0, -dotProd}, {x, *(nullspaces[idx])}, level, flag);
+   }
+}
+
 } // namespace hyteg

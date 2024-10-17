@@ -92,6 +92,7 @@ class MinResSolver : public Solver< OperatorType >
       p_v.assign( { 1.0, -1.0 }, { b, r_ }, level, flag_ );
 
       p_z.interpolate( 0, level, flag_ );
+      // removeNullspace(p_v, nullspaces_, level, flag_);
       preconditioner_->solve( A, p_z, p_v, level );
 
       real_t gamma_old = 1.0;
@@ -124,6 +125,7 @@ class MinResSolver : public Solver< OperatorType >
       for ( size_t i = 0; i < maxIter_; ++i )
       {
          p_z.assign( { real_t( 1 ) / gamma_new }, { p_z }, level, flag_ );
+         // removeNullspace(p_z, nullspaces_, level, flag_);
          A.apply( p_z, p_vp, level, flag_ );
          real_t delta = p_vp.dotGlobal( p_z, level, flag_ );
 
@@ -187,6 +189,11 @@ class MinResSolver : public Solver< OperatorType >
 
    void setRelativeTolerance( real_t relativeTolerance ) { relativeTolerance_ = relativeTolerance; }
 
+   void setNullspaces( const std::vector< std::shared_ptr< FunctionType > >& nullspaces )
+   {
+      nullspaces_ = nullspaces;
+   }
+
  private:
    uint_t         maxIter_;
    real_t         relativeTolerance_;
@@ -207,6 +214,8 @@ class MinResSolver : public Solver< OperatorType >
    FunctionType p_tmp;
 
    FunctionType r_;
+
+   std::vector< std::shared_ptr< FunctionType > > nullspaces_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };

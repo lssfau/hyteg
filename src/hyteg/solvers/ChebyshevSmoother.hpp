@@ -45,7 +45,9 @@ class ChebyshevSmoother : public Solver< OperatorType >
    , tmp2_( "cheb_tmp2", storage, minLevel, maxLevel )
    , flag_( Inner | NeumannBoundary | FreeslipBoundary )
    , timingTree_( storage->getTimingTree() )
-   {}
+   {
+      coefficientsAllLevels.resize( maxLevel - minLevel + 1, {} );
+   }
 
    ChebyshevSmoother( const FunctionType& tmp1, const FunctionType& tmp2 )
    : coefficients{}
@@ -84,6 +86,17 @@ class ChebyshevSmoother : public Solver< OperatorType >
       }
       timingTree_->start( "Chebyshev Smoother" );
 
+      std::vector< real_t > coefficients_;
+
+      if ( coefficientsAllLevelsSet )
+      {
+         coefficients_ = coefficientsAllLevels[level - tmp1_.getMinLevel()];
+      }
+      else
+      {
+         coefficients_ = coefficients;
+      }
+
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
       // tmp1_ := b-Ax
@@ -92,7 +105,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
       // tmp1_ := D^{-1} (b-Ax)
       tmp1_.multElementwise( { *inverseDiagonalValues, tmp1_ }, level, flag_ );
       // x := x + omega_0 D^{-1} (b-Ax)
-      x.assign( { walberla::numeric_cast< ValueType >( 1. ), walberla::numeric_cast< ValueType >( coefficients[0] ) },
+      x.assign( { walberla::numeric_cast< ValueType >( 1. ), walberla::numeric_cast< ValueType >( coefficients_[0] ) },
                 { x, tmp1_ },
                 level,
                 flag_ );
@@ -100,7 +113,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
       // Loop preconditions before the kth iteration:
       // 1.)  x := x + sum_{i<k} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
       // 2.) tmp1_ := (D^{-1}A)^{k-1} D^{-1} (b-Ax)
-      for ( uint_t k = 1; k < coefficients.size(); k += 1 )
+      for ( uint_t k = 1; k < coefficients_.size(); k += 1 )
       {
          // tmp2_ := A (D^{-1}A)^{k-1} D^{-1} (b-Ax)
          A.apply( tmp1_, tmp2_, level, flag_ );
@@ -108,7 +121,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
          tmp1_.multElementwise( { *inverseDiagonalValues, tmp2_ }, level, flag_ );
 
          // x := x + sum_{i<k+1} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
-         x.assign( { walberla::numeric_cast< ValueType >( 1 ), walberla::numeric_cast< ValueType >( coefficients[k] ) },
+         x.assign( { walberla::numeric_cast< ValueType >( 1 ), walberla::numeric_cast< ValueType >( coefficients_[k] ) },
                    { x, tmp1_ },
                    level,
                    flag_ );
@@ -213,8 +226,88 @@ class ChebyshevSmoother : public Solver< OperatorType >
       }
    }
 
+   void setupCoefficientsInternalAllLevels( const uint_t                 order,
+                                            const std::vector< real_t >& lowerBounds,
+                                            const std::vector< real_t >& upperBounds )
+   {
+      WALBERLA_ASSERT_GREATER( order, 0, "Order cannot be 0." );
+      WALBERLA_ASSERT_LESS( order, 6, "Chebyshev-Smoother does not support polynomial orders larger than 5." );
+
+      WALBERLA_ASSERT_EQUAL( lowerBounds.size(), upperBounds.size() );
+
+      eigenLowerBounds = lowerBounds;
+      eigenUpperBounds = upperBounds;
+
+      for ( uint_t idx = 0u; idx < lowerBounds.size(); idx++ )
+      {
+         const double theta = 0.5 * ( upperBounds[idx] + lowerBounds[idx] );
+         const double delta = 0.5 * ( upperBounds[idx] + lowerBounds[idx] );
+
+         coefficientsAllLevels[idx].resize( order, 0 );
+
+         switch ( order - 1 )
+         {
+         case 0: {
+            coefficientsAllLevels[idx][0] = 1.0 / theta;
+            break;
+         }
+         case 1: {
+            const double tmp_0            = 1.0 / ( pow( delta, 2 ) - 2 * pow( theta, 2 ) );
+            coefficientsAllLevels[idx][0] = -4 * theta * tmp_0;
+            coefficientsAllLevels[idx][1] = 2 * tmp_0;
+            break;
+         }
+         case 2: {
+            const double tmp_0            = 3 * pow( delta, 2 );
+            const double tmp_1            = pow( theta, 2 );
+            const double tmp_2            = 1.0 / ( -4 * pow( theta, 3 ) + theta * tmp_0 );
+            coefficientsAllLevels[idx][0] = tmp_2 * ( tmp_0 - 12 * tmp_1 );
+            coefficientsAllLevels[idx][1] = 12 / ( tmp_0 - 4 * tmp_1 );
+            coefficientsAllLevels[idx][2] = -4 * tmp_2;
+            break;
+         }
+         case 3: {
+            const double tmp_0            = pow( delta, 2 );
+            const double tmp_1            = pow( theta, 2 );
+            const double tmp_2            = 8 * tmp_0;
+            const double tmp_3            = 1.0 / ( pow( delta, 4 ) + 8 * pow( theta, 4 ) - tmp_1 * tmp_2 );
+            coefficientsAllLevels[idx][0] = tmp_3 * ( 32 * pow( theta, 3 ) - 16 * theta * tmp_0 );
+            coefficientsAllLevels[idx][1] = tmp_3 * ( -48 * tmp_1 + tmp_2 );
+            coefficientsAllLevels[idx][2] = 32 * theta * tmp_3;
+            coefficientsAllLevels[idx][3] = -8 * tmp_3;
+            break;
+         }
+         case 4: {
+            const double tmp_0            = 5 * pow( delta, 4 );
+            const double tmp_1            = pow( theta, 4 );
+            const double tmp_2            = pow( theta, 2 );
+            const double tmp_3            = pow( delta, 2 );
+            const double tmp_4            = 60 * tmp_3;
+            const double tmp_5            = 20 * tmp_3;
+            const double tmp_6            = 1.0 / ( 16 * pow( theta, 5 ) - pow( theta, 3 ) * tmp_5 + theta * tmp_0 );
+            const double tmp_7            = 160 * tmp_2;
+            const double tmp_8            = 1.0 / ( tmp_0 + 16 * tmp_1 - tmp_2 * tmp_5 );
+            coefficientsAllLevels[idx][0] = tmp_6 * ( tmp_0 + 80 * tmp_1 - tmp_2 * tmp_4 );
+            coefficientsAllLevels[idx][1] = tmp_8 * ( tmp_4 - tmp_7 );
+            coefficientsAllLevels[idx][2] = tmp_6 * ( -tmp_5 + tmp_7 );
+            coefficientsAllLevels[idx][3] = -80 * tmp_8;
+            coefficientsAllLevels[idx][4] = 16 * tmp_6;
+            break;
+         }
+         default:
+            WALBERLA_ABORT( "Chebyshev smoother not implemented for order " << order );
+         }
+      }
+
+      coefficientsAllLevelsSet = true;
+   }
+
  protected:
+   std::vector< real_t >                     eigenLowerBounds;
+   std::vector< real_t >                     eigenUpperBounds;
    std::vector< real_t >                     coefficients;
+   std::vector< std::vector< real_t > >      coefficientsAllLevels;
+   bool                                      coefficientsAllLevelsSet = false;
    FunctionType                              tmp1_;
    FunctionType                              tmp2_;
    DoFType                                   flag_;
@@ -320,7 +413,7 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
                                     const uint_t&                              maxLevel,
                                     const WrappedOperatorType&                 wrappedOperator )
    : Operator< SrcFunctionType, DstFunctionType >( storage, minLevel, maxLevel )
-   , wrappedOperator_( wrappedOperator ){};
+   , wrappedOperator_( wrappedOperator ) {};
 
    /// Evaluates D^{-1} A.
    inline void apply( const SrcFunctionType& src,

@@ -134,12 +134,12 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    auto _coarseGridSolver =
        std::make_shared< MinResSolver< StokesOperatorType > >( storage, minLevel, maxLevel, coarseGridIter, coarseGridTol );
 
-   auto _coarseGridSolverPetsc =
-       std::make_shared< PETScLUSolver< typename StokesOperatorType::StokesOperatorBase_T > >( storage, minLevel );
+//    auto _coarseGridSolverPetsc =
+//        std::make_shared< PETScLUSolver< typename StokesOperatorType::StokesOperatorBase_T > >( storage, minLevel );
 
-   auto coarseGridSubstituteSolver =
-       std::make_shared< SubstitutePreconditioner< StokesOperatorType, typename StokesOperatorType::StokesOperatorBase_T > >(
-           _coarseGridSolverPetsc, stokesOperatorFSSelf->StokesOp );
+//    auto coarseGridSubstituteSolver =
+//        std::make_shared< SubstitutePreconditioner< StokesOperatorType, typename StokesOperatorType::StokesOperatorBase_T > >(
+//            _coarseGridSolverPetsc, stokesOperatorFSSelf->StokesOp );
 
    auto uzawaVelocityPreconditioner =
        std::make_shared< FullStokesVelocityBlockBlockDiagonalPreconditioner< StokesOperatorType > >( storage, smoother );

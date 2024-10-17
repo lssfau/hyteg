@@ -106,6 +106,7 @@ real_t estimateSpectralRadiusWithPowerIteration( OperatorType&                  
 /// \param lowerBound  on return contains an estimate for the largest eigenvalue of op
 template < typename OperatorType >
 void estimateSpectralBoundsWithCG( OperatorType                               op,
+                                   CGSolver< OperatorType >&                  cg,
                                    typename OperatorType::srcType&            itrVec,
                                    typename OperatorType::srcType&            rhsVec,
                                    const uint_t                               numIts,
@@ -115,7 +116,7 @@ void estimateSpectralBoundsWithCG( OperatorType                               op
                                    real_t&                                    upperBound )
 {
    // setup CG solver and generate the Lanczos matrix
-   CGSolver< OperatorType > cg = CGSolver< OperatorType >( storage, level, level );
+   // CGSolver< OperatorType > cg = CGSolver< OperatorType >( storage, level, level );
    std::vector< real_t >    mainDiag, subDiag;
    cg.setupLanczosTriDiagMatrix( op, itrVec, rhsVec, level, numIts, mainDiag, subDiag );
 
