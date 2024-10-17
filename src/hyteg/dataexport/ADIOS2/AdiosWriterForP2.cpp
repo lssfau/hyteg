@@ -183,7 +183,27 @@ void AdiosWriterForP2::writeMesh( const std::vector< std::string >& p2FunctionLi
    adios2::Variable< real_t >                varVertices = io_.DefineVariable< real_t >( "vertices", {}, {}, { numVertices, 3 } );
    adios2::Variable< real_t >::Span          vertices    = engine_.Put< real_t >( varVertices );
    AdiosWriter::StreamAccessBuffer< real_t > vertexStream( vertices, varVertices.Count() );
-   VTKMeshWriter::writePointsForMicroVertices( dim == 2, vertexStream, storage_, level_ + 1, false );
+
+   const bool write2D = dim == 2;
+
+   VTKMeshWriter::writePointsForMicroVertices( write2D, vertexStream, storage_, level_ );
+
+   std::vector< vtk::DoFType > doftypes = { vtk::DoFType::EDGE_X, vtk::DoFType::EDGE_XY, vtk::DoFType::EDGE_Y };
+   if ( !write2D )
+   {
+      doftypes = { vtk::DoFType::EDGE_X,
+                   vtk::DoFType::EDGE_Y,
+                   vtk::DoFType::EDGE_Z,
+                   vtk::DoFType::EDGE_XY,
+                   vtk::DoFType::EDGE_XZ,
+                   vtk::DoFType::EDGE_YZ,
+                   vtk::DoFType::EDGE_XYZ };
+   }
+
+   for ( auto doftype : doftypes )
+   {
+      VTKMeshWriter::writePointsForMicroEdges( write2D, vertexStream, storage_, level_, doftype );
+   }
 
    // store element connectivity
    adios2::Variable< intData_t > varConnectivity =
