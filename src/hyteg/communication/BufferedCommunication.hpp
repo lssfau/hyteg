@@ -21,6 +21,7 @@
 #pragma once
 
 #include <atomic>
+#include <limits>
 
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
@@ -507,68 +508,75 @@ void BufferedCommunicator::staticAssertCommunicationDirections() const
                   "BufferedCommunicator: illegal sender and receiver type combination." );
 }
 
-
 // Auxilliary class to provide MPI tag values for BufferedCommunicator
-class MPITagProvider {
+class MPITagProvider
+{
+   // Maximal tag value supported by the MPI library implementation used
+   //
+   // The MPI 4.1 standard requires the largest tag to be at least 2^15-1 = 32,767.
+   // Larger values are possible, though. Since the value must be an int, it cannot
+   // exceed 2,147,483,647 for the standard 32-bit signed int setting.
+   static int maxMPITag_;
 
-  // Maximal tag value supported by the MPI library implementation used
-  //
-  // The MPI 4.1 standard requires the largest tag to be at least 2^15-1 = 32,767.
-  // Larger values are possible, though. Since the value must be an int, it cannot
-  // exceed 2,147,483,647 for the standard 32-bit signed int setting.
-  static int maxMPITag_;
+   // Stores the next tag that will be returned by getMPITag()
+   static std::atomic_int nextMPITag_;
 
-  // Stores the next tag that will be returned by getMPITag()
-  static std::atomic_int nextMPITag_;
+   // Marks whether class can still provide tag values
+   static bool poolExhausted_;
 
-  // Marks whether class can still provide tag values
-  static bool poolExhausted_;
+ public:
+   // Return the largest possible tag value supported by the MPI library in use
+   static int getMaxMPITag()
+   {
+#ifdef WALBERLA_BUILD_WITH_MPI
+      void* maxTag;
+      int   status;
+      MPI_Comm_get_attr( walberla::mpi::MPIManager::instance()->comm(), MPI_TAG_UB, &maxTag, &status );
+      if ( status == 0 )
+      {
+         WALBERLA_ABORT( "Failed to query maximal tag value from MPI implementation!" );
+      }
+      return *static_cast< int* >( maxTag );
+#else
+      return std::numeric_limits< int >::max();
+#endif
+   }
 
-public:
+   // Return another MPI tag value
+   //
+   // The current implementation is very simple. In order to return unique tag values it starts with
+   // the smallest possbile value, i.e. 0, and then returns tags by incrementation until reaching the
+   // limit. Thus, there is no re-use of values that are no longer needed, and the pool of tags might
+   // get exhausted. In this case the class calls WALBERLA_ABORT().
+   static int getMPITag()
+   {
+      // initialise largest available tag value (can only happen once MPI was activated)
+      if ( maxMPITag_ == 0u )
+      {
+         maxMPITag_ = getMaxMPITag();
+      }
 
-  // Return the largest possible tag value supported by the MPI library in use
-  static int getMaxMPITag() {
-    void *maxTag;
-    int status;
-    MPI_Comm_get_attr( walberla::mpi::MPIManager::instance()->comm(), MPI_TAG_UB, &maxTag, &status );
-    if( status == 0 ) {
-      WALBERLA_ABORT( "Failed to query maximal tag value from MPI implementation!" );
-    }
-    return *static_cast< int* >( maxTag );
-  }
+      if ( poolExhausted_ )
+      {
+         WALBERLA_ABORT( "Your application exhausted the pool of available MPI tags.\n"
+                         << "Your MPI implementation provides a maximum of " << maxMPITag_ << " tags." );
+      }
 
-  // Return another MPI tag value
-  //
-  // The current implementation is very simple. In order to return unique tag values it starts with
-  // the smallest possbile value, i.e. 0, and then returns tags by incrementation until reaching the
-  // limit. Thus, there is no re-use of values that are no longer needed, and the pool of tags might
-  // get exhausted. In this case the class calls WALBERLA_ABORT().
-  static int getMPITag() {
+      // this will store the return tag
+      int freshTag{ nextMPITag_ };
 
-    // initialise largest available tag value (can only happen once MPI was activated)
-    if( maxMPITag_ == 0u ) {
-      maxMPITag_ = getMaxMPITag();
-    }
+      // check whether we can safely increase the tag
+      if ( nextMPITag_ == maxMPITag_ )
+      {
+         poolExhausted_ = true;
+      }
+      else
+      {
+         ++nextMPITag_;
+      }
 
-    if( poolExhausted_ ) {
-      WALBERLA_ABORT( "Your application exhausted the pool of available MPI tags.\n"
-                      << "Your MPI implementation provides a maximum of " << maxMPITag_ << " tags." );
-    }
-
-    // this will store the return tag
-    int freshTag{ nextMPITag_ };
-
-    // check whether we can safely increase the tag
-    if( nextMPITag_ == maxMPITag_ ) {
-      poolExhausted_ = true;
-    }
-    else {
-      ++nextMPITag_;
-    }
-
-    return freshTag;
-  }
-
+      return freshTag;
+   }
 };
 
 } // namespace communication
