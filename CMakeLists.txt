@@ -55,9 +55,7 @@ set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
 include_directories(SYSTEM ${EIGEN_DIR})
 link_directories(${EIGEN_DIR})
 
-include_directories(src)
-
-add_subdirectory( walberla )
+add_subdirectory( walberla EXCLUDE_FROM_ALL )
 list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}/tests" )
 
 # Treat warnings as errors
@@ -203,7 +201,7 @@ endif()
 configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
                  src/hyteg/HytegDefinitions.hpp )
 
-include_directories( ${hyteg_BINARY_DIR}/src )
+#include_directories( ${hyteg_BINARY_DIR}/src )
 
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes/2D)

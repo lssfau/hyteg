@@ -1,5 +1,7 @@
 add_library(hyteg)
 target_link_libraries(hyteg PUBLIC core vtk git_version)
+target_include_directories( hyteg PUBLIC ${hyteg_SOURCE_DIR}/src/ ${hyteg_BINARY_DIR}/src/ )
+
 if (HYTEG_BUILD_WITH_PETSC)
    target_link_libraries(hyteg PUBLIC PETSc::PETSc)
 endif ()
