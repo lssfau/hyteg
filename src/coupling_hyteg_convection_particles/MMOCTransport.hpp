@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2024 Andreas Burkhart, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,6 +24,7 @@
 #include "core/mpi/MPIWrapper.h"
 
 #include "hyteg/MeshQuality.hpp"
+#include "hyteg/communication/MPITagProvider.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
@@ -940,7 +941,8 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
 
    WALBERLA_MPI_SECTION()
    {
-      const int TAG = 31224;
+      static const int TAG1 = communication::MPITagProvider::getMPITag();
+
 #ifdef _MSC_VER
       //need a first receive to avoid blocking on windows while communicating with itself
       int         selfCommMessage = 0;
@@ -949,7 +951,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
                  1,
                  MPI_INT,
                  walberla::mpi::MPIManager::instance()->rank(),
-                 TAG,
+                 TAG1,
                  walberla::mpi::MPIManager::instance()->comm(),
                  &selfCommRequest );
 #endif
@@ -971,7 +973,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
                     1,
                     MPI_INT,
                     (int) it.first,
-                    TAG,
+                    TAG1,
                     walberla::mpi::MPIManager::instance()->comm(),
                     &sendRequests[it.first] );
       }
@@ -1006,7 +1008,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
 
          int numParticlesSum = 0;
 
-         MPI_Recv( &numParticlesSum, 1, MPI_INT, MPI_ANY_SOURCE, TAG, walberla::mpi::MPIManager::instance()->comm(), &status );
+         MPI_Recv( &numParticlesSum, 1, MPI_INT, MPI_ANY_SOURCE, TAG1, walberla::mpi::MPIManager::instance()->comm(), &status );
 
          //         WALBERLA_LOG_INFO( "Particle communcation prep: receiving " << numParticlesSum << " particles from rank "
          //                                                                     << status.MPI_SOURCE );
@@ -1030,7 +1032,8 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       ranksToReceiveFrom.insert( 0 );
    }
 
-   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 27385 );
+   static const int TAG2 = communication::MPITagProvider::getMPITag();
+   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), TAG2 );
 
    for ( const auto& p : particleStorage )
    {
