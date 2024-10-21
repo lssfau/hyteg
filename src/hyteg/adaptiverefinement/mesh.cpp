@@ -1477,12 +1477,8 @@ inline std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::init_P( con
 template < class K_Simplex >
 void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex > >& Cp )
 {
-   /* if a face/edge of an element in T has children, these children are
-      either obsolete or correspond to hanging nodes. Obsolete children
-      must be removed while hanging nodes must be kept.
-   */
-   std::map< PrimitiveID, std::shared_ptr< Simplex1 > > edges_to_unrefine;
-   std::map< PrimitiveID, std::shared_ptr< Simplex2 > > faces_to_unrefine;
+   std::set< std::shared_ptr< Simplex1 > > edges_to_unrefine;
+   std::set< std::shared_ptr< Simplex2 > > faces_to_unrefine;
 
    // check if el has grandkids
    auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
@@ -1496,32 +1492,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       return false;
    };
 
-   // unrefine this element
-   auto uref_el = [&]( const std::shared_ptr< K_Simplex > el ) {
-      // remove el's children from T
-      for ( auto& child : el->get_children() )
-      {
-         _T.erase( child );
-      }
-      // mark el's edges for unrefinement
-      for ( auto& edge : el->get_edges() )
-      {
-         edges_to_unrefine[edge->getPrimitiveID()] = edge;
-      }
-      // mark el's faces for unrefinement
-      if constexpr ( VOL == CELL )
-      {
-         for ( auto& face : el->get_faces() )
-         {
-            faces_to_unrefine[face->getPrimitiveID()] = face;
-         }
-      }
-
-      el->kill_children();
-      _T.insert( el );
-   };
-
-   // iterate until no admissable elements left in Cp
+   // repeatedly iterate over Cp and unrefine admissable elements until no admissable elements are left
    auto repeat = true;
    auto queue  = Cp;
    while ( repeat )
@@ -1530,42 +1501,82 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       for ( auto it = queue.begin(); it != queue.end(); )
       {
          auto el = *it;
-         if ( !has_grandkids( el ) )
+
+         if ( has_grandkids( el ) )
          {
-            uref_el( el );
-            it     = queue.erase( it );
-            repeat = true; // unrefining el may allow its parent to be unrefined
+            // if el has grandkids, don't process it until they are removed
+            ++it;
          }
          else
          {
-            ++it;
+            // replace el's children in T with el
+            for ( auto& child : el->get_children() )
+            {
+               _T.erase( child );
+            }
+            el->kill_children();
+            _T.insert( el );
+
+            // mark el's faces and edges for unrefinement
+            for ( auto& edge : el->get_edges() )
+            {
+               edges_to_unrefine.insert( edge );
+            }
+            if constexpr ( VOL == CELL )
+            {
+               for ( auto& face : el->get_faces() )
+               {
+                  faces_to_unrefine.insert( face );
+               }
+            }
+
+            // we need to check all elements again to potentially unrefine el's parent
+            repeat = true;
+
+            it = queue.erase( it );
          }
       }
    }
 
-   // check whether edges/faces of unrefined elements can also be unrefined
+   // also mark remaining faces with children from previous green refinement
+   if constexpr ( VOL == CELL )
+   {
+      for ( auto& el : _T )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            if ( face->has_children() )
+            {
+               faces_to_unrefine.insert( face );
+            }
+         }
+      }
+   }
+
+   // check whether marked edges/faces can be unrefined
    for ( auto& el : _T )
    {
-      auto p = el->get_parent();
-      if ( p == nullptr )
+      /*if a face/edge belongs to an ancestor of an el, some descendent of
+         this face/edge belongs to el. Thus, we can't unrefine the face/edge.
+      */
+      for ( auto p = el->get_parent(); p != nullptr; p = p->get_parent() )
       {
-         continue;
-      }
-
-      // edges/faces of p are supposed to have children (the edges/faces of el and it's siblings)
-      for ( auto& edge : p->get_edges() )
-      {
-         edges_to_unrefine.erase( edge->getPrimitiveID() );
-      }
-      if constexpr ( VOL == CELL )
-      {
-         for ( auto& face : p->get_faces() )
+         for ( auto& edge : p->get_edges() )
          {
-            faces_to_unrefine.erase( face->getPrimitiveID() );
+            edges_to_unrefine.erase( edge );
+         }
+         if constexpr ( VOL == CELL )
+         {
+            for ( auto& face : p->get_faces() )
+            {
+               faces_to_unrefine.erase( face );
+            }
          }
       }
    }
+
    // remove obsolete vertices, edges and faces
+   // vertices must be processed recursively to make sure that all vertices are removed
    std::function< void( std::shared_ptr< Simplex1 > ) > remove_inner_vtxs = [&]( std::shared_ptr< Simplex1 > edge ) {
       for ( auto& child : edge->get_children() )
       {
@@ -1578,16 +1589,14 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
          _coords.erase( vtx );
       }
    };
-   for ( auto& [_, edge] : edges_to_unrefine )
+   for ( auto& edge : edges_to_unrefine )
    {
-      WALBERLA_UNUSED( _ );
       remove_inner_vtxs( edge );
       edge->reset_midpoint_idx();
       edge->kill_children();
    }
-   for ( auto& [_, face] : faces_to_unrefine )
+   for ( auto& face : faces_to_unrefine )
    {
-      WALBERLA_UNUSED( _ );
       face->kill_children();
    }
 }

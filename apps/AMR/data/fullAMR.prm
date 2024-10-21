@@ -1,6 +1,6 @@
 Parameters
 {
-  dim 2;
+  dim 3;
 
   // adaptive refinement:
   n_regular_refinement 3; //number of initial regular refinement steps (to enable coarsening)
@@ -10,7 +10,7 @@ Parameters
   // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
   // PROPORTION: proportion of elements that will be marked for refinement/coarsening, p in [0,1]
   p_refinement 0.05;
-  p_coarsen 0.3;
+  p_coarsen 0.6;
   error_indicator 0; // else refine based on actual L2 error (using analytic solution)
   global_error_estimate 1; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
   l2error 1; // compute actual L2 error after every n-th iteration; default: 0 (never)
