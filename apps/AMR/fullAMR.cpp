@@ -537,14 +537,14 @@ void solve_for_each_refinement( uint_t                                 dim,
                             error_freq );
 
       // print timing tree
-      if ( refinement == n_ref )
-      {
-         auto& timingTree = *( storage->getTimingTree() );
-         if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
-         {
-            std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
-         }
-      }
+      // if ( refinement == n_ref )
+      // {
+      //    auto& timingTree = *( storage->getTimingTree() );
+      //    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
+      //    {
+      //       std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
+      //    }
+      // }
    }
 }
 
@@ -570,11 +570,11 @@ int main( int argc, char* argv[] )
 
    const uint_t dim = parameters.getParameter< uint_t >( "dim", 0 );
 
-   const uint_t n_regref              = parameters.getParameter< uint_t >( "n_regular_refinement", 0 );
+   const uint_t n_regref              = parameters.getParameter< uint_t >( "n_regular_refinement", 3 );
    const uint_t n_amr                 = parameters.getParameter< uint_t >( "n_amr", 0 );
-   const uint_t ref_strat             = parameters.getParameter< uint_t >( "refinement_strategy", 0 );
-   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", 0.0 );
-   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", 0.0 );
+   const uint_t ref_strat             = parameters.getParameter< uint_t >( "refinement_strategy", 1 );
+   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.05 : 0.01 );
+   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 0.3 : 0.4 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
    uint_t       l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
