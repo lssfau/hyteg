@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,6 +21,7 @@
 #pragma once
 
 #include <atomic>
+#include <limits>
 
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
@@ -134,8 +135,6 @@ class BufferedCommunicator
 
    static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
    static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
-
-   static std::atomic_uint bufferSystemTag_;
 
    template < typename SenderType, typename ReceiverType >
    inline CommunicationDirection getCommunicationDirection() const;
