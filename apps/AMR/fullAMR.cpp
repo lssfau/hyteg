@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// example app where both adaptive refinement and coarsening are used to keep the number of elements approximately constant
+
 #include <core/Environment.h>
 #include <core/Format.hpp>
 #include <core/config/Create.h>
