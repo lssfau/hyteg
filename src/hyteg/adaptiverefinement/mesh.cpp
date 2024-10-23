@@ -1882,27 +1882,33 @@ void K_Mesh< K_Simplex >::exportMesh( const std::string& filename ) const
 
       file << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n" << n_vtx() << "\n";
 
-      // todo: fix vertex numbering
-      for ( uint_t i = 0; i < n_vtx(); ++i )
+      // due to repeated coarsening/refinement our indices may be non-contiguous
+      std::map< uint_t, uint_t > vtxIdxMap;
+
+      uint_t i = 0;
+      for ( auto& [idx, coord] : _coords )
       {
-         file << ( i + 1 );
+         ++i;
+         vtxIdxMap[idx] = i;
+
+         file << i;
          for ( int j = 0; j < 3; ++j )
-            file << " " << _coords[i][j];
+            file << " " << coord[j];
          file << "\n";
       }
 
       file << "$EndNodes\n$Elements\n" << n_elements() << "\n";
 
-      uint_t i = 0;
+      uint_t k = 0;
       for ( auto& el : _T )
       {
+         ++k;
          auto& v = el->get_vertices();
 
-         file << ( i + 1 ) << " " << elType << " 2 0 0";
+         file << k << " " << elType << " 2 0 0";
          for ( uint_t j = 0; j <= VOL; ++j )
-            file << " " << ( v[j] + 1 );
+            file << " " << vtxIdxMap[v[j]];
          file << "\n";
-         ++i;
       }
 
       file << "$EndElements\n";
