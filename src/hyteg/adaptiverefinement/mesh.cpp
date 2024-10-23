@@ -170,14 +170,13 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
          WALBERLA_ABORT( "Can't apply both refinement and coarsening to the same element!" );
       }
       // get elements corresponding to given IDs
-      auto R  = init_R( elements_to_refine );                      // elements to refine
-      auto Cp = init_P( elements_to_coarsen, elements_to_refine ); // parents of elements to coarsen
+      auto [R, Pc] = init_R_Pc( elements_to_refine, elements_to_coarsen );
 
       // undo last green refinement step to prevent mesh degeneration
       remove_green_edges();
 
-      // for each t in Cp, add t to T and remove the children of t from T
-      unrefine( Cp );
+      // for each t in Pc, add t to T and remove the children of t from T
+      unrefine( Pc );
 
       /* iteratively apply red refinement to elements that would otherwise
          be subject to multiple green refinement steps later on
@@ -1380,8 +1379,8 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtx
 }
 
 template < class K_Simplex >
-inline std::set< std::shared_ptr< K_Simplex > >
-    K_Mesh< K_Simplex >::init_R( const std::vector< PrimitiveID >& primitiveIDs ) const
+inline std::pair< std::set< std::shared_ptr< K_Simplex > >, std::set< std::shared_ptr< K_Simplex > > >
+    K_Mesh< K_Simplex >::init_R_Pc( const std::vector< PrimitiveID >& id_r, const std::vector< PrimitiveID >& id_c ) const
 {
    std::map< PrimitiveID, std::shared_ptr< K_Simplex > > idToEl;
    for ( auto& el : _T )
@@ -1389,8 +1388,10 @@ inline std::set< std::shared_ptr< K_Simplex > >
       idToEl[el->getPrimitiveID()] = el;
    }
 
-   std::set< std::shared_ptr< K_Simplex > > R;
-   for ( auto& id : primitiveIDs )
+   std::set< std::shared_ptr< K_Simplex > > R, Pc;
+
+   // fill R
+   for ( auto& id : id_r )
    {
       auto el = idToEl[id];
       if ( el->has_green_edge() )
@@ -1403,81 +1404,48 @@ inline std::set< std::shared_ptr< K_Simplex > >
       }
    }
 
-   return R;
-}
-
-template < class K_Simplex >
-inline std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::init_P( const std::vector< PrimitiveID >& id_c,
-                                                                             const std::vector< PrimitiveID >& id_r ) const
-{
-   std::map< PrimitiveID, std::shared_ptr< K_Simplex > > T_fine;
-   std::map< PrimitiveID, std::shared_ptr< K_Simplex > > T_coarse;
-   for ( auto& el : _T )
-   {
-      auto p = el->get_parent();
-      // only consider elements that can be coarsened
-      // since green elements are being removed anyway, we ignore them here
-      if ( p != nullptr && !el->has_green_edge() )
+   // the children of p must be kept if any of them are marked for refinement
+   auto keep_children = [&]( std::shared_ptr< K_Simplex > p ) {
+      for ( auto& c : p->get_children() )
       {
-         T_fine[el->getPrimitiveID()]  = el;
-         T_coarse[p->getPrimitiveID()] = p;
+         if ( R.count( c ) > 0 )
+         {
+            return true;
+         }
       }
-   }
+      return false;
+   };
 
-   // for each t in T_coarse, count number of children marked for coarsening
-   std::map< PrimitiveID, uint8_t > count;
+   // fill Pc
    for ( auto& id : id_c )
    {
-      if ( T_fine.count( id ) == 0 )
+      auto el = idToEl[id];
+      auto p  = el->get_parent();
+
+      // el is already a root element
+      if ( p == nullptr )
+      {
+         continue;
+      }
+      // since green elements are being removed anyway, we ignore them here
+      if ( el->has_green_edge() )
+      {
+         continue;
+      }
+      // el's parent can't be un-refined if any of its children are marked for refinement
+      if ( keep_children( p ) )
       {
          continue;
       }
 
-      auto parentID = T_fine[id]->get_parent()->getPrimitiveID();
-      if ( count.count( parentID ) )
-      {
-         ++count[parentID];
-      }
-      else
-      {
-         count[parentID] = uint8_t( 1 );
-      }
+      Pc.insert( p );
    }
 
-   // unmark parent elements of elements that shall be refined
-   for ( auto& id : id_r )
-   {
-      if ( T_fine.count( id ) == 0 )
-      {
-         continue;
-      }
-
-      auto parentID = T_fine[id]->get_parent()->getPrimitiveID();
-      if ( count.count( parentID ) )
-      {
-         count[parentID] = uint8_t( 0 );
-      }
-   }
-
-   /* add parent elements to the list if
-      at least half their children are marked for coarsening
-      and none of them are marked for refinement
-   */
-   std::set< std::shared_ptr< K_Simplex > > P;
-   for ( auto& [id, n] : count )
-   {
-      auto p = T_coarse[id];
-      if ( size_t( n ) >= p->get_children().size() / 2 )
-      {
-         P.insert( p );
-      }
-   }
-
-   return P;
+   return { R, Pc };
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex > >& Cp )
+void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex > >& Pc )
 {
    std::set< std::shared_ptr< Simplex1 > > edges_to_unrefine;
    std::set< std::shared_ptr< Simplex2 > > faces_to_unrefine;
@@ -1494,9 +1462,9 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       return false;
    };
 
-   // repeatedly iterate over Cp and unrefine admissable elements until no admissable elements are left
+   // repeatedly iterate over Pc and unrefine admissable elements until no admissable elements are left
    auto repeat = true;
-   auto queue  = Cp;
+   auto queue  = Pc;
    while ( repeat )
    {
       repeat = false;
