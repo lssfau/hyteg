@@ -1,0 +1,40 @@
+Parameters
+{
+    nx 4;
+    ny 4;
+
+    minLevel 3;
+    maxLevel 3;
+
+    verbose true;
+
+    cflMax 0.25;
+    diffusivity 0.0;
+    
+    RayleighNumber 1e2;
+
+    deltaT 1e5;
+    deltaZ 10;
+
+    nPicard 10;
+    reltolPicard 1e-6;
+    abstolPicard 1e-11;
+
+    NTimesteps 1000;
+    endTime 10;
+
+    stokesIter 20000;
+    stokesRelTol 1e-3;
+
+    transportIter 10000;
+    transportRelTol 1e-5;
+
+    logNsFreq 100;
+
+    useAdios2 true;
+    adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
+
+    outputFilename TosiNonlinearUnitSquare;
+    outputPath ./output/;
+    vtkWriteFrequency 10;
+}

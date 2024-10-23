@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -38,11 +39,11 @@
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvectionIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeating.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingP1ViscosityIcosahedralShellMap.hpp"
-#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
@@ -95,6 +96,7 @@ template < typename P2MassOperatorTALA,
            typename P2DivKGradOperatorTALA,
            typename P2AdvectionOperatorTALA,
            typename P2ShearHeatingOperatorTALA,
+           typename P2SupgMassOperatorTALA,
            typename P2SupgAdvectionOperatorTALA,
            typename P2SupgDiffusionOperatorTALA,
            typename TemperatureFunctionType,
@@ -126,7 +128,7 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
                     { TransportOperatorTermKey::DIFFUSION_TERM, true },
                     { TransportOperatorTermKey::SUPG_STABILISATION, false } };
 
-      real_t hVal = hyteg::MeshQuality::getMaximalEdgeLength( storage, maxLevel_ );
+      // real_t hVal = hyteg::MeshQuality::getMaximalEdgeLength( storage, maxLevel_ );
 
       supgDeltaFunc_ = [&]( const hyteg::Point3D& x, const std::vector< real_t >& vals ) {
          real_t ux = vals[0];
@@ -137,43 +139,45 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
 
          real_t k = vals[3];
 
-         real_t Pe = hVal * v / ( 2.0 * k );
+         real_t Pe = hMax * v / ( 2.0 * k );
 
          real_t tau = 1.0;
 
-         // real_t cothPe = (1.0 + std::exp(-2.0*Pe))/(1.0 - std::exp(-2.0*Pe));
+         real_t cothPe = (1.0 + std::exp(-2.0*Pe))/(1.0 - std::exp(-2.0*Pe));
 
-         // real_t tau = (hVal / (2.0 * v * 2.0)) * (cothPe - (1.0/Pe));
+         tau = (hMax / (2.0 * v * 2.0)) * (cothPe - (1.0/Pe));
 
-         // if( v < 1e-8 )
-         // {
-         //    tau = 0.0;
-         // }
-
-         // return SUPG_scaling_ * tau;
-
-         // replace xi with approximations in case Pe is too small or too large
-         if ( Pe <= 0.5 )
-         {
-            // error smaller than ~1e-5 here
-            tau = Pe / 3.0 - ( Pe * Pe * Pe ) / 45.0;
-         }
-         else if ( Pe >= 20.0 )
-         {
-            // error smaller than ~1e-15 here
-            tau = 1.0 - 1.0 / Pe;
-         }
-         else
-         {
-            tau = 1.0 + 2.0 / ( std::exp( 2.0 * Pe ) - 1.0 ) - 1.0 / Pe;
-         }
+         WALBERLA_LOG_INFO_ON_ROOT("Pe = " << Pe << ", cothPe = " << cothPe << ", tau = " << tau << ", k = " << k << ", v = " << v << ", hVal = " << hMax);
 
          if( v < 1e-8 )
          {
-            return 0.0;
+            tau = 0.0;
          }
 
-         return SUPG_scaling_ * hVal / ( 2 * v ) * tau;
+         return SUPG_scaling_ * tau;
+
+         // replace xi with approximations in case Pe is too small or too large
+         // if ( Pe <= 0.5 )
+         // {
+         //    // error smaller than ~1e-5 here
+         //    tau = Pe / 3.0 - ( Pe * Pe * Pe ) / 45.0;
+         // }
+         // else if ( Pe >= 20.0 )
+         // {
+         //    // error smaller than ~1e-15 here
+         //    tau = 1.0 - 1.0 / Pe;
+         // }
+         // else
+         // {
+         //    tau = 1.0 + 2.0 / ( std::exp( 2.0 * Pe ) - 1.0 ) - 1.0 / Pe;
+         // }
+
+         // if ( v < 1e-6 )
+         // {
+         //    return 0.0;
+         // }
+
+         // return SUPG_scaling_ * hMax / ( 2 * v ) * tau;
       };
    }
 
@@ -255,12 +259,15 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
                                   level,
                                   hyteg::All );
 
+         supgMassOperator_->apply(src, temp1_, level, flag);
+         dst.assign( { 1.0, 1.0 }, { dst, temp1_ }, level, flag );
+
          supgAdvectionCoeff_->assign( { 1.0 }, { *supgDelta_ }, level, hyteg::All );
          supgAdvectionCoeff_->multElementwise( { *supgAdvectionCoeff_, *advectionCoeff_ }, level );
          supgAdvectionOperator_->apply( src, temp1_, level, flag );
          dst.assign( { 1.0, timestep }, { dst, temp1_ }, level, flag );
 
-         supgDiffusionCoeff_->assign( { 1.0 }, { *supgDelta_ }, level, hyteg::All );
+         supgDiffusionCoeff_->assign( { -1.0 }, { *supgDelta_ }, level, hyteg::All );
          supgDiffusionCoeff_->multElementwise( { *supgDiffusionCoeff_, *diffusivityCoeff_ }, level );
          supgDiffusionOperator_->apply( src, temp1_, level, flag );
          dst.assign( { 1.0, timestep }, { dst, temp1_ }, level, flag );
@@ -413,6 +420,9 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
 
       if ( TALADict_.at( TransportOperatorTermKey::SUPG_STABILISATION ) )
       {
+         supgMassOperator_->apply(*temperature_, temp1_, level, flag);
+         dst.assign( { 1.0, 1.0 }, { dst, temp1_ }, level, flag );
+
          // WALBERLA_ABORT( "SUPG not yet tested and supported" );
          /*
          supgDiffusionCoeff_->multElementwise( { *supgDelta_, *diffusivityCoeff_ }, maxLevel_, hyteg::All );
@@ -523,6 +533,14 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
 
          supgDelta_ =
              std::make_shared< CoefficientFunctionType >( "supgDelta__P2TransportOperatorTALA", storage_, minLevel_, maxLevel_ );
+
+         supgMassOperator_ = std::make_shared< P2SupgMassOperatorTALA >( storage_,
+                                                                         minLevel_,
+                                                                         maxLevel_,
+                                                                         *supgDelta_,
+                                                                         velocity_->uvw().component( 0U ),
+                                                                         velocity_->uvw().component( 1U ),
+                                                                         velocity_->uvw().component( zComp ) );
 
          /*
          supgShearHeatingCoeff_ = std::make_shared< CoefficientFunctionType >(
@@ -663,10 +681,7 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
       }
    }
 
-   void setSUPGScaling( real_t scaling )
-   {
-      SUPG_scaling_ = scaling;
-   }
+   void setSUPGScaling( real_t scaling ) { SUPG_scaling_ = scaling; }
 
    void setTimestep( real_t dt ) { timestep = dt; }
 
@@ -691,6 +706,7 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
    std::shared_ptr< P2KMassOperatorTALA >                             adiabaticOperator_;
    std::shared_ptr< P2AdvectionOperatorTALA >                         advectionOperator_;
 
+   std::shared_ptr< P2SupgMassOperatorTALA >      supgMassOperator_;
    std::shared_ptr< P2SupgAdvectionOperatorTALA > supgAdvectionOperator_;
    std::shared_ptr< P2SupgDiffusionOperatorTALA > supgDiffusionOperator_;
 
@@ -757,6 +773,7 @@ using P2TransportIcosahedralShellMapOperator =
                                  hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap,
+                                 hyteg::operatorgeneration::P2ElementwiseSupgMassIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseSupgAdvectionIcosahedralShellMap,
                                  hyteg::operatorgeneration::P2ElementwiseSupgDiffusionIcosahedralShellMap,
                                  hyteg::P2Function< real_t >,

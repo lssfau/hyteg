@@ -1325,8 +1325,10 @@ void TALASimulation::solveU()
       rotationOperator->rotate( *u, maxLevel, FreeslipBoundary, false );
       uRotated->assign( { 1.0 }, { *u }, maxLevel, All );
 
+      PETScLUSolver< hyteg::StokesOperatorType > directSolver(storage, maxLevel);
       // multigridSolverLoop.solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
-      fgmresSolver->solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
+      directSolver.solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
+      // fgmresSolver->solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
 
       u->assign( { 1.0 }, { *uRotated }, maxLevel, All );
       rotationOperator->rotate( *u, maxLevel, FreeslipBoundary, true );

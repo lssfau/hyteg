@@ -96,6 +96,7 @@ add_subdirectory(stokesFreeSlip)
 add_subdirectory(stokesSphere)
 add_subdirectory(stokesSphereTransport)
 add_subdirectory(surfaces)
+add_subdirectory(SUPGTest)
 
 if( HYTEG_BUILD_WITH_PETSC )
   add_subdirectory(2021-tokamak)

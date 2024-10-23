@@ -5,8 +5,8 @@ Parameters
 
   // domain
   level 2;
-  minLevel 2;
-  maxLevel 2;
+  minLevel 0;
+  maxLevel 0;
   
   // Type of forcing
   // If true, uses delta forcing, else smooth forcing
@@ -17,7 +17,7 @@ Parameters
   // Both inner and outer boundary -- freeslip
   freeslip false;
   // Inner freeslip, Outer no-slip
-  mixed true;
+  mixed false;
 
   numCoarseGridIter 1000;
   numPreSmooth 3;
@@ -31,7 +31,7 @@ Parameters
   scalingDelta 0.001;
   
   tol 1e-7;
-  minreIter 10000;
+  minreIter 1;
 
   calcAndWriteError true;
 

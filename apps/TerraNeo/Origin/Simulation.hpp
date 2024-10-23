@@ -138,10 +138,10 @@ void ConvectionSimulation::step()
                             p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
                             p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw(),
                             TN.domainParameters.maxLevel,
-                            All,
+                            hyteg::Inner,
                             TN.simulationParameters.dt,
                             1,
-                            true );
+                            true, true, false );
 
    // Reset temperature on boundary to initial values
 
