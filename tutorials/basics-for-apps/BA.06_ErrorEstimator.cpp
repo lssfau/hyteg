@@ -127,8 +127,9 @@ namespace hyteg {
  * Currently, there are two strategies available, weighted mean and percentile.
  * The former refines all macro elements where the squared error is greater than the weighted mean squared local error over all elements.
  * The latter refines a given fraction of the macros.
- * Here, we use `RefinementStrategy::WEIGHTED_MEAN`.
- * Setting the weighting parameter to zero yields the arithmetic mean.
+ * Here, we use `Strategy::mean()`.
+ * Note that not only refinement but also coarsening of previously refined elements is possible.
+ * Here, we set the coarsening strategy to `Strategy::none()`, meaning that no elements will be coarsened.
  *
  * \snippet{trimleft} this RefinementStrategy
  *
@@ -224,19 +225,19 @@ void errorEstimatorTutorial()
 
       /// [LocalError]
       // get an indication to local squared L2 errors
-      auto local_sqared_err = errorEstimator.eta_T_sq();
+      auto local_squared_err = errorEstimator.eta_T_sq();
       /// [LocalError]
 
       /// [RefinementStrategy]
       // choose a refinement strategy
-      auto   strategy  = adaptiveRefinement::RefinementStrategy::WEIGHTED_MEAN;
-      real_t weighting = 0;
-      bool   verbose   = true;
+      auto refinement_strat = adaptiveRefinement::Strategy::mean();
+      auto coarsening_strat = adaptiveRefinement::Strategy::none();
+      bool verbose          = true;
       /// [RefinementStrategy]
 
       /// [RefineRG]
-      // refine those macros where the squared local errors are largest
-      adaptive_mesh.refineRG( local_sqared_err, strategy, weighting, verbose );
+      // refine those macros where the squared local errors are greater than the mean
+      adaptive_mesh.refineRG( local_squared_err, refinement_strat, coarsening_strat, verbose );
       /// [RefineRG]
 
       /// [UpdateStorage]

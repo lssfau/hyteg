@@ -1,17 +1,13 @@
 Parameters
 {
-  dim 3;
+  dim 2;
 
   // adaptive refinement:
   n_regular_refinement 3; //number of initial regular refinement steps (to enable coarsening)
   n_amr 5; // number of refinement steps
-  refinement_strategy 1; //0:MEAN_SQUARED_ERROR, 1:PROPORTION
-  // additional parameter for refinement/coarsening (default=0):
-  // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
-  // PROPORTION: proportion of elements that will be marked for refinement/coarsening, p in [0,1]
-  // p_refinement 0.01;
-  // p_coarsen 0.4;
-  error_indicator 0; // else refine based on actual L2 error (using analytic solution)
+  // p_refinement 0.01; // proportion of elements that will be marked for refinement [0,1]
+  // p_coarsen 0.4; // proportion of elements that will be marked for coarsening [0,1]
+  error_indicator 1; // else refine based on actual L2 error (using analytic solution)
   global_error_estimate 0; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
   l2error 1; // compute actual L2 error after every n-th iteration; default: 0 (never)
 
@@ -26,7 +22,7 @@ Parameters
   cg_tolerance 1e-9;
 
   // misc
-  // vtkName auto;
+  vtkName auto;
   // writeDomainPartitioning 1;
   // writeMeshfile 0;
   // printMeshData 0;

@@ -30,7 +30,7 @@ Parameters
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
   n_refinements 5; // number of refinement steps
-  refinement_strategy 1; //0:MEAN_SQUARED_ERROR, 1:PROPORTION, 2:SINGULARITY
+  refinement_strategy 1; //0:MEAN_SQUARED_ERROR, 1:PROPORTION
   p_refinement 0.1; // additional parameter for refinement (default=0):
                     // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
                     // PROPORTION: proportion of elements that will be marked for refinement, p in [0,1]

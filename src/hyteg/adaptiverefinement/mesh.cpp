@@ -142,7 +142,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::refine_regular( uint_t k )
+void K_Mesh< K_Simplex >::refine_uniform( uint_t k )
 {
    for ( uint_t j = 0; j < k; ++j )
    {
@@ -165,6 +165,10 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
 {
    if ( walberla::mpi::MPIManager::instance()->rank() == 0 )
    {
+      if ( elements_to_refine.size() + elements_to_coarsen.size() > n_elements() )
+      {
+         WALBERLA_ABORT( "Can't apply both refinement and coarsening to the same element!" );
+      }
       // get elements corresponding to given IDs
       auto R  = init_R( elements_to_refine );                      // elements to refine
       auto Cp = init_P( elements_to_coarsen, elements_to_refine ); // parents of elements to coarsen
@@ -213,7 +217,6 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                          
       bool do_r = criterion_r( err_glob, i );
       bool do_c = criterion_c( err_glob, i );
       auto id   = err_glob[i].second;
-      if ( do_r && do_c )
       {
          WALBERLA_ABORT( "Can't apply both refinement and coarsening to element " << id << "!" );
       }
@@ -231,98 +234,93 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                          
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
-                                    RefinementStrategy strategy,
-                                    real_t             p_r,
-                                    real_t             p_c,
-                                    bool               verbose )
+void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy ref_strat, Strategy cors_strat, bool verbose )
 {
    ErrorVector err_glob;
    gatherGlobalError( errors_local, err_glob );
 
    if ( verbose )
    {
-      if ( strategy == WEIGHTED_MEAN )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: weighted mean with w_i = (n-i)^p, p_r = " << p_r << ", p_c = " << p_c );
-         if ( p_r < p_c )
+      auto info = [&]( const std::string& which, const Strategy& strat ) {
+         if ( strat.t == Strategy::WEIGHTED_MEAN )
          {
-            WALBERLA_ABORT( "p_r < p_c! Can't apply both refinement and coarsening to the same element!" );
+            WALBERLA_LOG_INFO_ON_ROOT( which << " strategy: weighted mean with weights w_i = (n-i)^(" << strat.p << ")" );
          }
-      }
-      if ( strategy == PERCENTILE )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "refinement strategy: percentile with p_r = " << p_r * 100 << "%, p_c = " << p_c * 100
-                                                                                  << "%" );
-         if ( p_r + p_c > real_t( 1.0 ) )
+         if ( strat.t == Strategy::PERCENTILE )
          {
-            WALBERLA_ABORT( "p_r + p_c > 100%! Can't apply both refinement and coarsening to the same element!" );
+            WALBERLA_LOG_INFO_ON_ROOT( which << " strategy: percentile with p = " << strat.p * 100 << "%" );
          }
-      }
+      };
+      info( "refinement", ref_strat );
+      info( "coarsening", cors_strat );
       WALBERLA_LOG_INFO_ON_ROOT( " -> min_i e_i = " << err_glob.back().first );
       WALBERLA_LOG_INFO_ON_ROOT( " -> max_i e_i = " << err_glob.front().first );
    }
 
-   std::function< bool( real_t, uint_t ) > crit_c;
+   auto compute_weighted_mean = [&]( real_t p ) {
+      if ( p <= -std::numeric_limits< real_t >::infinity() )
+      {
+         // p = -∞ => e_mean = e_{n-1} (smallest error), ie. refine all / coarsen none
+         return err_glob.back().first;
+      }
+      if ( p >= std::numeric_limits< real_t >::infinity() )
+      {
+         // p = ∞ => e_mean = e_{0} (greatest error), ie. refine T_0 / coarsen all except T_0
+         return err_glob.front().first;
+      }
+      // else
+      auto e_mean_w = real_t( 0.0 );
+      auto sum_w    = real_t( 0.0 );
+      auto n        = err_glob.size();
+      // iterate in reverse order to add smallest contribution first, reducing round off error
+      for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
+      {
+         auto   i   = n - n_i; // n - (n-i) = i
+         real_t e_i = err_glob[i].first;
+         real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
+         sum_w += w_i;
+         e_mean_w += w_i * e_i;
+      }
+      return e_mean_w /= sum_w;
+   };
+
    std::function< bool( real_t, uint_t ) > crit_r;
-   if ( strategy == WEIGHTED_MEAN )
+   std::function< bool( real_t, uint_t ) > crit_c;
+
+   if ( ref_strat.t == Strategy::WEIGHTED_MEAN )
    {
-      auto compute_weighted_mean = [&]( real_t p ) {
-         if ( p <= -std::numeric_limits< real_t >::infinity() )
-         {
-            // p = -∞ => e_mean = e_{n-1} (smallest error), ie. refine all / coarsen none
-            return err_glob.back().first;
-         }
-         if ( p >= std::numeric_limits< real_t >::infinity() )
-         {
-            // p = ∞ => e_mean = e_{0} (greatest error), ie. refine T_0 / coarsen all except T_0
-            return err_glob.front().first;
-         }
-         // else
-         auto e_mean_w = real_t( 0.0 );
-         auto sum_w    = real_t( 0.0 );
-         auto n        = err_glob.size();
-         // iterate in reverse order to add smallest contribution first, reducing round off error
-         for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
-         {
-            auto   i   = n - n_i; // n - (n-i) = i
-            real_t e_i = err_glob[i].first;
-            real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
-            sum_w += w_i;
-            e_mean_w += w_i * e_i;
-         }
-         return e_mean_w /= sum_w;
-      };
-
-      auto e_mean_r = compute_weighted_mean( p_r );
-      auto e_mean_c = compute_weighted_mean( p_c );
-
-      crit_r = [e_mean_r]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean_r; };
-      crit_c = [e_mean_c]( real_t e_i, uint_t ) -> bool { return e_i < e_mean_c; };
+      auto e_mean = compute_weighted_mean( ref_strat.p );
+      crit_r      = [e_mean]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean; };
       if ( verbose )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean_r );
-         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i < " << e_mean_c );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean );
       }
    }
-   if ( strategy == PERCENTILE )
+   if ( ref_strat.t == Strategy::PERCENTILE )
    {
-      auto sizeR = uint_t( std::round( real_t( _n_elements ) * p_r ) );
-      auto sizeC = uint_t( std::round( real_t( _n_elements ) * p_c ) );
-      if ( sizeR + sizeC > _n_elements )
-      {
-         // might happen due to rounding
-         sizeC = _n_elements - sizeR;
-      }
-
-      crit_r = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
-      crit_c = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      auto sizeR = uint_t( std::round( real_t( _n_elements ) * ref_strat.p ) );
+      crit_r     = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
       if ( verbose )
       {
-         if ( sizeR > 0 )
-            WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
-         if ( sizeC > 0 )
-            WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
+      }
+   }
+   if ( cors_strat.t == Strategy::WEIGHTED_MEAN )
+   {
+      auto e_mean = compute_weighted_mean( cors_strat.p );
+      crit_c      = [e_mean]( real_t e_i, uint_t ) -> bool { return e_i < e_mean; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i < " << e_mean );
+      }
+   }
+   if ( cors_strat.t == Strategy::PERCENTILE )
+   {
+      auto sizeC = uint_t( std::round( real_t( _n_elements ) * cors_strat.p ) );
+      crit_c     = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
       }
    }
 
@@ -336,7 +334,9 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
       else
       {
          if ( verbose )
+         {
             WALBERLA_LOG_INFO_ON_ROOT( " -> " << i << " elements marked for refinement." );
+         }
          break;
       }
    }
@@ -351,7 +351,9 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local,
       else
       {
          if ( verbose )
+         {
             WALBERLA_LOG_INFO_ON_ROOT( " -> " << ( n_i - 1 ) << " elements marked for coarsening." );
+         }
          break;
       }
    }

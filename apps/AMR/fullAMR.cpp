@@ -400,27 +400,26 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
    return err_2_elwise_loc;
 }
 
-void solve_for_each_refinement( uint_t                                 dim,
-                                uint_t                                 n_ref_init,
-                                uint_t                                 n_ref,
-                                adaptiveRefinement::RefinementStrategy ref_strat,
-                                real_t                                 ref_param,
-                                real_t                                 cors_param,
-                                uint_t                                 l_min,
-                                uint_t                                 l_max,
-                                uint_t                                 n_cycles,
-                                uint_t                                 max_iter,
-                                uint_t                                 n1,
-                                uint_t                                 n2,
-                                real_t                                 tol,
-                                real_t                                 cg_tol,
-                                std::string                            vtkname,
-                                bool                                   writePartitioning,
-                                bool                                   writeMeshfile,
-                                bool                                   printMeshData,
-                                bool                                   error_indicator,
-                                bool                                   global_error_estimate,
-                                uint_t                                 error_freq )
+void solve_for_each_refinement( uint_t      dim,
+                                uint_t      n_ref_init,
+                                uint_t      n_ref,
+                                real_t      p_ref,
+                                real_t      p_cors,
+                                uint_t      l_min,
+                                uint_t      l_max,
+                                uint_t      n_cycles,
+                                uint_t      max_iter,
+                                uint_t      n1,
+                                uint_t      n2,
+                                real_t      tol,
+                                real_t      cg_tol,
+                                std::string vtkname,
+                                bool        writePartitioning,
+                                bool        writeMeshfile,
+                                bool        printMeshData,
+                                bool        error_indicator,
+                                bool        global_error_estimate,
+                                uint_t      error_freq )
 {
    // setup domain
    auto setupStorage = domain( dim );
@@ -437,11 +436,13 @@ void solve_for_each_refinement( uint_t                                 dim,
       auto t0 = walberla::timing::getWcTime();
       if ( refinement == 0 )
       {
-         mesh.refine_regular( n_ref_init );
+         mesh.refine_uniform( n_ref_init );
       }
       else
       {
-         mesh.refineRG( local_errors, ref_strat, ref_param, cors_param, true );
+         auto ref_strat  = adaptiveRefinement::Strategy::percentile( p_ref );
+         auto cors_strat = adaptiveRefinement::Strategy::percentile( p_cors );
+         mesh.refineRG( local_errors, ref_strat, cors_strat, true );
       }
       auto t1    = walberla::timing::getWcTime();
       auto t_ref = t1 - t0;
@@ -572,7 +573,6 @@ int main( int argc, char* argv[] )
 
    const uint_t n_regref              = parameters.getParameter< uint_t >( "n_regular_refinement", 3 );
    const uint_t n_amr                 = parameters.getParameter< uint_t >( "n_amr", 0 );
-   const uint_t ref_strat             = parameters.getParameter< uint_t >( "refinement_strategy", 1 );
    const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.05 : 0.01 );
    const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 0.3 : 0.4 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
@@ -631,21 +631,10 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "regular refinement steps", n_regref ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "adaptive refinement steps", n_amr ) );
-   if ( adaptiveRefinement::RefinementStrategy( ref_strat ) == adaptiveRefinement::RefinementStrategy::WEIGHTED_MEAN )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
-      WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for coarsening where ||e_T||^2 < mean_T ||e_T||^2" );
-      WALBERLA_LOG_INFO_ON_ROOT( "    with weighted mean μ(x) = (∑_i i^p x_i)/(∑_i i^p) for x_1 <= x_2 <= ..." );
-      WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( "    where p_refinement = %1.1f and p_coarsening = %1.1f", p_refinement, p_coarsen ) );
-   }
-   if ( adaptiveRefinement::RefinementStrategy( ref_strat ) == adaptiveRefinement::RefinementStrategy::PERCENTILE )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
-      WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( " %30s: %3.1f%%", "proportion of elements marked for coarsening", p_coarsen * 100.0 ) );
-   }
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( " %30s: %3.1f%%", "proportion of elements marked for coarsening", p_coarsen * 100.0 ) );
    if ( error_indicator )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "error estimate for refinement", l_max - 1, l_max ) );
@@ -677,7 +666,6 @@ int main( int argc, char* argv[] )
    solve_for_each_refinement( dim,
                               n_regref,
                               n_amr,
-                              adaptiveRefinement::RefinementStrategy( ref_strat ),
                               p_refinement,
                               p_coarsen,
                               l_min,

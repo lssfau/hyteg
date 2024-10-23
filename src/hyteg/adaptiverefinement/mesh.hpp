@@ -37,22 +37,65 @@ enum Loadbalancing
    SFC_VISUALIZE // use space filling curve for loadbalancing. Also export the sfc to vtk (NOT IMPLEMENTED YET)
 };
 
-enum RefinementStrategy
+struct Strategy
 {
+   enum Type
+   {
+      /* e_mean(p) = (∑_i (n-i)^p e_i) / (∑_i (n-i)^p)
+         e.g. e_mean(0) = (∑_i e_i)/n (arithmetic mean),
+            e_mean(∞) = e_0 (greatest error),
+            e_mean(-∞) = e_{n-1} (smallest error)
+         Refinement:
+            refine all elements j where e_j >= e_mean(p)
+            fewer elements are refined as p gets larger
+         Coarsening:
+            coarsen all elements j where e_j < e_mean(p_c)
+            more elements are coarsened as p gets larger
+      */
+      WEIGHTED_MEAN,
+      /* Refinement:
+            refine the p*n elements with largest error
+         Coarsening:
+            coarsen the p*n elements with smallest error
+      */
+      PERCENTILE
+   };
+
+   constexpr Strategy( Type type, real_t param )
+   : t( type )
+   , p( param )
+   {}
+
    /* e_mean(p) = (∑_i (n-i)^p e_i) / (∑_i (n-i)^p)
       e.g. e_mean(0) = (∑_i e_i)/n (arithmetic mean),
-           e_mean(∞) = e_0 (greatest error),
-           e_mean(-∞) = e_{n-1} (smallest error)
-      refine all elements j where e_j >= e_mean(p_r)
-      coarsen all elements j where e_j < e_mean(p_c)
-      Note: If p_r < p_c there's an overlap!
+         e_mean(∞) = e_0 (greatest error),
+         e_mean(-∞) = e_{n-1} (smallest error)
+      Refinement:
+         refine all elements j where e_j >= e_mean(p)
+         fewer elements are refined as p gets larger
+      Coarsening:
+         coarsen all elements j where e_j < e_mean(p_c)
+         more elements are coarsened as p gets larger
+      @param p weighting parameter; (-∞, ∞)
    */
-   WEIGHTED_MEAN,
-   /*  refine the p_r*n elements with largest error
-      coarsen the p_c*n elements with smallest error
-      Note: If p_r + p_c > 1, there's an overlap!
+   constexpr static Strategy mean( real_t p = real_t( 0.0 ) ) { return { WEIGHTED_MEAN, p }; }
+
+   /* Refinement:
+         refine the p*n elements with largest error
+      Coarsening:
+         coarsen the p*n elements with smallest error
+      @param p proportion of elements to be marked; [0,1]
    */
-   PERCENTILE
+   constexpr static Strategy percentile( real_t p ) { return { PERCENTILE, p }; }
+
+   /* refine/coarsen all elements */
+   constexpr static Strategy all() { return { PERCENTILE, real_t( 1.0 ) }; }
+
+   /* refine/coarsen no elements */
+   constexpr static Strategy none() { return { PERCENTILE, real_t( 0.0 ) }; }
+
+   Type   t;
+   real_t p;
 };
 
 // local error for each macro-cell
@@ -80,7 +123,7 @@ class K_Mesh
    /* apply k steps of regular refinement
       @param k    number of refinement steps
    */
-   void refine_regular( uint_t k );
+   void refine_uniform( uint_t k );
 
    /* apply red-green refinement to this mesh
       @param el_to_refine     subset of elements that shall be refined (red)
@@ -101,12 +144,11 @@ class K_Mesh
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param strategy         predefined refinement/coarsening strategy
-      @param p_r              parameter for refinement strategy
-      @param p_c              parameter for coarsening strategy
+      @param refinement       refinement strategy
+      @param coarsening       coarsening strategy
       @param verbose          print information about refinement
    */
-   void refineRG( const ErrorVector& local_errors, RefinementStrategy strategy, real_t p_r, real_t p_c, bool verbose = false );
+   void refineRG( const ErrorVector& local_errors, Strategy refinement, Strategy coarsening, bool verbose = false );
 
    // get minimum and maximum angle of the elements of T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -259,15 +301,15 @@ class Mesh
    /* apply k steps of regular refinement
       @param k    number of refinement steps
    */
-   void refine_regular( uint_t k )
+   void refine_uniform( uint_t k )
    {
       if ( _DIM == 3 )
       {
-         _mesh3D->refine_regular( k );
+         _mesh3D->refine_uniform( k );
       }
       else
       {
-         _mesh2D->refine_regular( k );
+         _mesh2D->refine_uniform( k );
       }
    }
 
@@ -311,20 +353,22 @@ class Mesh
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param strategy         predefined refinement/coarsening strategy
-      @param p_r              parameter for refinement strategy
-      @param p_c              parameter for coarsening strategy
+      @param refinement       refinement strategy
+      @param coarsening       coarsening strategy
       @param verbose          print information about refinement
    */
-   void refineRG( const ErrorVector& local_errors, RefinementStrategy strategy, real_t p_r, real_t p_c, bool verbose = false )
+   void refineRG( const ErrorVector& local_errors,
+                  Strategy           refinement,
+                  Strategy           coarsening = Strategy::none(),
+                  bool               verbose    = false )
    {
       if ( _DIM == 3 )
       {
-         _mesh3D->refineRG( local_errors, strategy, p_r, p_c, verbose );
+         _mesh3D->refineRG( local_errors, refinement, coarsening, verbose );
       }
       else
       {
-         _mesh2D->refineRG( local_errors, strategy, p_r, p_c, verbose );
+         _mesh2D->refineRG( local_errors, refinement, coarsening, verbose );
       }
    }
 
