@@ -95,7 +95,7 @@ class FunctionMultiStore
       {
          WALBERLA_ABORT( "FunctionMultiStore::add() detected unsupported datatype '" << typeid( function ).name() << "'" );
       };
-   };
+   }
 
    /// Return the size of the FunctionMultiStore, i.e. the number of all functions stored (independent of their value type)
    uint_t size() const { return r64Funcs_.size() + r32Funcs_.size() + i32Funcs_.size() + i64Funcs_.size(); };

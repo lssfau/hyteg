@@ -50,7 +50,7 @@ class OperatorWrapper final
                     ConstructorArguments... args )
    {
       wrappedOper_ = std::make_unique< oper_t >( storage, minLevel, maxLevel, args... );
-   };
+   }
 
    ~OperatorWrapper() {}
 

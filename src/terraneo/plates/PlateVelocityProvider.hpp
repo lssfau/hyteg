@@ -109,7 +109,7 @@ class PlateVelocityProvider
       WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor: " << smoothingFactor << "\n" );
       WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
       return computeCartesianVelocityVector( plateRotations_, plateID, age, pointLonLat, smoothingFactor );
-   };
+   }
 
    /// Query function to obtain a vector of plate stages avaible in the datafiles
    const std::vector< real_t >& getListOfPlateStages() const { return plateTopologies_.getListOfPlateStages(); }

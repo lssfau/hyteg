@@ -46,14 +46,14 @@ class GenericOperator
    {
       auto realMe = static_cast< OperatorWrapper< oper_t >* >( this );
       return realMe->unwrap();
-   };
+   }
 
    template < typename oper_t >
    const oper_t& unwrap() const
    {
       auto realMe = static_cast< const OperatorWrapper< oper_t >* >( this );
       return realMe->unwrap();
-   };
+   }
 
    virtual void apply( const GenericFunction< value_t >& src,
                        const GenericFunction< value_t >& dst,

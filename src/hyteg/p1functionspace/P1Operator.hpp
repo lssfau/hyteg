@@ -121,19 +121,19 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
       uint_t       rowsizeY, rowsizeX;
 
-      for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
+      for ( int k = 1; k < rowsizeZ - 3; ++k )
       {
          assemble_stencil_cell_init_z( k );
 
          rowsizeY = rowsizeZ - k;
 
-         for ( uint_t j = 1; j < rowsizeY - 2; ++j )
+         for ( int j = 1; j < rowsizeY - 2; ++j )
          {
             assemble_stencil_cell_init_y( j );
 
             rowsizeX = rowsizeY - j;
 
-            for ( uint_t i = 1; i < rowsizeX - 1; ++i )
+            for ( int i = 1; i < rowsizeX - 1; ++i )
             {
                indexing::Index idx{ i, j, k };
 
@@ -170,11 +170,11 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       assemble_stencil_face_init( face, level );
 
-      for ( uint_t j = 1; j < rowsize - 2; ++j )
+      for ( int j = 1; j < rowsize - 2; ++j )
       {
          assemble_stencil_face_init_y( j );
 
-         for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+         for ( int i = 1; i < inner_rowsize - 2; ++i )
          {
             indexing::Index idx{ i, j, 0 };
 
@@ -1059,7 +1059,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       ValueType tmp;
 
-      for ( size_t i = 1; i < rowsize - 1; ++i )
+      for ( int i = 1; i < rowsize - 1; ++i )
       {
          if ( variableStencil() )
          {
@@ -1191,11 +1191,11 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       ValueType tmp = real_c( 0 );
 
-      for ( uint_t j = 1; j < rowsize - 2; ++j )
+      for ( int j = 1; j < rowsize - 2; ++j )
       {
          assemble_stencil_face_init_y( j );
 
-         for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+         for ( int i = 1; i < inner_rowsize - 2; ++i )
          {
             if ( variableStencil() )
             {
@@ -1274,19 +1274,19 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       if ( level == 0 )
          return;
 
-      for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
+      for ( int k = 1; k < rowsizeZ - 3; ++k )
       {
          assemble_stencil_cell_init_z( k );
 
          rowsizeY = rowsizeZ - k;
 
-         for ( uint_t j = 1; j < rowsizeY - 2; ++j )
+         for ( int j = 1; j < rowsizeY - 2; ++j )
          {
             assemble_stencil_cell_init_y( j );
 
             rowsizeX = rowsizeY - j;
 
-            for ( uint_t i = 1; i < rowsizeX - 1; ++i )
+            for ( int i = 1; i < rowsizeX - 1; ++i )
             {
                if ( variableStencil() )
                {
@@ -1526,11 +1526,11 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       ValueType tmp;
 
-      for ( uint_t j = 1; j < rowsize - 2; ++j )
+      for ( int j = 1; j < rowsize - 2; ++j )
       {
          assemble_stencil_face_init_y( j );
 
-         for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+         for ( int i = 1; i < inner_rowsize - 2; ++i )
          {
             if ( variableStencil() )
             {
@@ -1550,7 +1550,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
             }
             else if ( face.getNumNeighborCells() == 1 )
             {
-               for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+               for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
                {
                   tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
                          dst[vertexdof::macroface::indexFromVertex( level, i, j, direction )];
@@ -1605,19 +1605,19 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       if ( level == 0 )
          return;
 
-      for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
+      for ( int k = 1; k < rowsizeZ - 3; ++k )
       {
          assemble_stencil_cell_init_z( k );
 
          rowsizeY = rowsizeZ - k;
 
-         for ( uint_t j = 1; j < rowsizeY - 2; ++j )
+         for ( int j = 1; j < rowsizeY - 2; ++j )
          {
             assemble_stencil_cell_init_y( j );
 
             rowsizeX = rowsizeY - j;
 
-            for ( uint_t i = 1; i < rowsizeX - 1; ++i )
+            for ( int i = 1; i < rowsizeX - 1; ++i )
             {
                if ( variableStencil() )
                {
