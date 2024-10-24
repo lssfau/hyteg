@@ -69,8 +69,9 @@ using walberla::uint_t;
 
 namespace hyteg {
 
+typedef operatorgeneration::P2P1StokesFullP1ViscosityOperator StokesOperator;
 typedef P2P1ElementwiseBlendingStokesOperator      StokesOperatorLinear;
-typedef operatorgeneration::P2P1StokesViscoplastic StokesOperator;
+typedef operatorgeneration::P2P1StokesViscoplastic StokesOperatorNonlinear;
 
 typedef StrongFreeSlipWrapper< StokesOperator, P2ProjectNormalOperator, true > StokesOperatorFS;
 
@@ -248,8 +249,8 @@ int main( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t > uPrev( "uPrev", storage, minLevel, maxLevel, bcVelocity );
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel, bcVelocity );
 
-   P2P1TaylorHoodFunction< real_t > uDirect( "u", storage, minLevel, maxLevel );
-   P2P1TaylorHoodFunction< real_t > fDirect( "f", storage, minLevel, maxLevel );
+   P2P1TaylorHoodFunction< real_t > uDirect( "uDirect", storage, minLevel, maxLevel );
+   P2P1TaylorHoodFunction< real_t > fDirect( "fDirect", storage, minLevel, maxLevel );
 
    uDirect.uvw().component( 0 ).setBoundaryCondition( bcVelocityX );
    uDirect.uvw().component( 1 ).setBoundaryCondition( bcVelocityY );
@@ -260,7 +261,7 @@ int main( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t > fTemp( "fTemp", storage, minLevel, maxLevel, bcVelocity );
    P2P1TaylorHoodFunction< real_t > fStrong( "fStrong", storage, minLevel, maxLevel, bcVelocity );
 
-   P2Function< real_t > T( "T", storage, minLevel, maxLevel, bcTemp );
+   P2Function< real_t >  T( "T", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > TPrev( "TPrev", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > fT( "fT", storage, minLevel, maxLevel, bcTemp );
 
@@ -270,22 +271,24 @@ int main( int argc, char* argv[] )
    real_t diffusivity = mainConf.getParameter< real_t >( "diffusivity" );
 
    P1Function< real_t > onesP1( "onesP1", storage, minLevel, maxLevel );
-   P2Function< real_t > viscosityP2( "viscosityP2", storage, minLevel, maxLevel );
+   P1Function< real_t > viscosityP1( "viscosityP1", storage, minLevel, maxLevel );
+   P1Function< real_t > viscosityP1Nonlinear( "viscosityP1Nonlinear", storage, minLevel, maxLevel );
    P1Function< real_t > viscosityP1Out( "viscosityP1Out", storage, minLevel, maxLevel );
 
    onesP1.interpolate( 1.0, maxLevel, All );
-   viscosityP2.interpolate( 1.0, maxLevel, All );
+   viscosityP1.interpolate( 1.0, maxLevel, All );
+   viscosityP1Nonlinear.interpolate( 1.0, maxLevel, All );
    viscosityP1Out.interpolate( 1.0, maxLevel, All );
 
    real_t etaStar = real_c( 0.001 );
    real_t sigmaY  = real_c( 1.0 );
 
+   auto stokesOperator = std::make_shared< StokesOperator >(storage, minLevel, maxLevel, viscosityP1Nonlinear);
    auto stokesOperatorLinear = std::make_shared< StokesOperatorLinear >( storage, minLevel, maxLevel );
-
-   auto stokesOperator = std::make_shared< StokesOperator >( storage,
+   auto stokesOperatorNonlinear = std::make_shared< StokesOperatorNonlinear >( storage,
                                                              minLevel,
                                                              maxLevel,
-                                                             viscosityP2.getVertexDoFFunction(),
+                                                             viscosityP1,
                                                              uOp.uvw().component( 0u ).getVertexDoFFunction(),
                                                              uOp.uvw().component( 1u ).getVertexDoFFunction(),
                                                              etaStar,
@@ -301,7 +304,7 @@ int main( int argc, char* argv[] )
    operatorgeneration::P2EvaluateViscosityViscoplastic evaluateVisc( storage,
                                                                      minLevel,
                                                                      maxLevel,
-                                                                     viscosityP2.getVertexDoFFunction(),
+                                                                     viscosityP1,
                                                                      uOp.uvw().component( 0u ).getVertexDoFFunction(),
                                                                      uOp.uvw().component( 1u ).getVertexDoFFunction(),
                                                                      etaStar,
@@ -354,8 +357,9 @@ int main( int argc, char* argv[] )
    // EigenSparseDirectSolver<StokesOperator> eigenDirect(storage, maxLevel);
    // eigenDirect.setReassembleMatrix(true);
 
+   PETScLUSolver< StokesOperator > petscDirect( storage, maxLevel );
    PETScLUSolver< StokesOperatorLinear > petscDirectLinear( storage, maxLevel );
-   PETScLUSolver< StokesOperator >       petscDirect( storage, maxLevel );
+   PETScLUSolver< StokesOperatorNonlinear > petscDirectNonlinear( storage, maxLevel );
    petscDirect.setReassembleMatrix( true );
 
    bool verbose = mainConf.getParameter< bool >( "verbose" );
@@ -366,6 +370,25 @@ int main( int argc, char* argv[] )
    const real_t deltaZ = mainConf.getParameter< real_t >( "deltaZ" );
 
    const real_t AiniPerturb = 0.05;
+
+   std::string outputPath     = mainConf.getParameter< std::string >( "outputPath" );
+   std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
+
+   bool useAdios2 = mainConf.getParameter< bool >( "useAdios2" );
+
+   // auto clockTime  = std::time( nullptr );
+   // auto clockTimeM = *std::localtime( &clockTime );
+
+   std::ostringstream ossVtkName;
+   ossVtkName << outputFilename; // << "_" << std::put_time( &clockTimeM, "%d-%m-%Y_%H-%M-%S" );
+
+   VTKOutput vtkOutput( outputPath, ossVtkName.str(), storage );
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+   std::string                    adiosXmlConfig = mainConf.getParameter< std::string >( "adiosXmlConfig" );
+   std::shared_ptr< AdiosWriter > adios2Output =
+       std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
+#endif
 
    std::function< real_t( const Point3D& ) > TIni = [&]( const Point3D& x ) {
       return ( 1 - x[1] ) + AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
@@ -404,7 +427,16 @@ int main( int argc, char* argv[] )
       return etaLin;
    };
 
-   std::function< void() > calculateNewViscosity = [&]() { viscosityP2.interpolate( viscFunc, { T }, maxLevel, All ); };
+   std::function< void() > calculateNewViscosity = [&]() { 
+      viscosityP1.interpolate( viscFunc, { T.getVertexDoFFunction() }, maxLevel, All );
+      viscosityP1Nonlinear.assign({1.0}, {viscosityP1}, maxLevel, All);
+   };
+
+   std::function< void() > calculateNewViscosityNonlinear = [&]() { 
+      viscosityP1.interpolate( viscFunc, { T.getVertexDoFFunction() }, maxLevel, All );
+      evaluateVisc.apply(onesP1, viscosityP1Nonlinear, maxLevel, All);
+      viscosityP1Nonlinear.multElementwise({viscosityP1Nonlinear, *(onesOp.getInverseDiagonalValues())}, maxLevel, All);
+   };
 
    std::function< void() > solveU = [&]() {
       u.interpolate( 0.0, maxLevel, DirichletBoundary );
@@ -451,7 +483,9 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nStarting Picard, iter %d\n\n", iPicard ) );
 
-         calculateNewViscosity();
+         uOp.assign( { 1.0 }, { u }, maxLevel, All );
+
+         calculateNewViscosityNonlinear();
 
          stokesResidualInitial = calculateResidual();
 
@@ -472,7 +506,7 @@ int main( int argc, char* argv[] )
 
          stokesResidualBeforeViscRecalc = calculateResidual();
 
-         calculateNewViscosity();
+         calculateNewViscosityNonlinear();
 
          stokesResidualFinal = calculateResidual();
 
@@ -523,32 +557,14 @@ int main( int argc, char* argv[] )
 
    uint_t NTimesteps = mainConf.getParameter< uint_t >( "NTimesteps" );
 
-   std::string outputPath     = mainConf.getParameter< std::string >( "outputPath" );
-   std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
-
-   bool useAdios2 = mainConf.getParameter< bool >( "useAdios2" );
-
-   // auto clockTime  = std::time( nullptr );
-   // auto clockTimeM = *std::localtime( &clockTime );
-
-   std::ostringstream ossVtkName;
-   ossVtkName << outputFilename; // << "_" << std::put_time( &clockTimeM, "%d-%m-%Y_%H-%M-%S" );
-
-   VTKOutput vtkOutput( outputPath, ossVtkName.str(), storage );
-
-#ifdef HYTEG_BUILD_WITH_ADIOS2
-   std::string                    adiosXmlConfig = mainConf.getParameter< std::string >( "adiosXmlConfig" );
-   std::shared_ptr< AdiosWriter > adios2Output =
-       std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
-#endif
-
    if ( useAdios2 )
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       adios2Output->add( u );
       adios2Output->add( T );
-      adios2Output->add( viscosityP2 );
+      adios2Output->add( viscosityP1 );
       adios2Output->add( viscosityP1Out );
+      adios2Output->add( viscosityP1Nonlinear );
       adios2Output->add( *( onesOp.getInverseDiagonalValues() ) );
 #else
       WALBERLA_ABORT( "ADIOS2 output requested in prm file but ADIOS2 was not compiled!" );
@@ -558,8 +574,9 @@ int main( int argc, char* argv[] )
    {
       vtkOutput.add( u );
       vtkOutput.add( T );
-      vtkOutput.add( viscosityP2 );
+      vtkOutput.add( viscosityP1 );
       vtkOutput.add( viscosityP1Out );
+      vtkOutput.add( viscosityP1Nonlinear );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting initial Stokes solve\n\n" );

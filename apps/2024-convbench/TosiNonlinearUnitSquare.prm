@@ -3,13 +3,13 @@ Parameters
     nx 4;
     ny 4;
 
-    minLevel 3;
-    maxLevel 3;
+    minLevel 4;
+    maxLevel 4;
 
     verbose true;
 
     cflMax 0.25;
-    diffusivity 0.0;
+    diffusivity 1.0;
     
     RayleighNumber 1e2;
 
@@ -20,7 +20,7 @@ Parameters
     reltolPicard 1e-6;
     abstolPicard 1e-11;
 
-    NTimesteps 1000;
+    NTimesteps 25000;
     endTime 10;
 
     stokesIter 20000;
