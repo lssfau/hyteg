@@ -136,6 +136,8 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       _n_elements = _T.size();
    }
 
+   check_integrity( false );
+
    // broadcast required values to all processes
    walberla::mpi::broadcastObject( _n_elements );
    walberla::mpi::broadcastObject( _n_vertices );
@@ -388,31 +390,6 @@ void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVe
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
-   WALBERLA_DEBUG_SECTION()
-   {
-      std::set< uint_t > allvtxs;
-      for ( auto& el : _T )
-      {
-         for ( auto& idx : el->get_vertices() )
-         {
-            allvtxs.insert( idx );
-         }
-      }
-      for ( auto& [idx, _] : _V )
-      {
-         if ( allvtxs.count( idx ) == 0 )
-         {
-            WALBERLA_LOG_WARNING_ON_ROOT( "vertex " << idx << " is not part of any element!" );
-         }
-      }
-      for ( auto& idx : allvtxs )
-      {
-         if ( _V.count( idx ) == 0 )
-         {
-            WALBERLA_LOG_WARNING_ON_ROOT( "vertex " << idx << " is not in V!" );
-         }
-      }
-   }
    std::map< PrimitiveID, VertexData > vtxs;
    std::map< PrimitiveID, EdgeData >   edges;
    std::map< PrimitiveID, FaceData >   faces;
@@ -1317,6 +1294,112 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 }
 
 template < class K_Simplex >
+void K_Mesh< K_Simplex >::check_integrity( bool hanging_nodes_allowed ) const
+{
+   WALBERLA_DEBUG_SECTION()
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         std::set< uint_t > v_el;
+         for ( auto& el : _T )
+         {
+            if ( el == nullptr )
+            {
+               WALBERLA_LOG_WARNING( "el == nullptr" );
+            }
+            else
+            {
+               if ( el->has_children() )
+               {
+                  WALBERLA_LOG_WARNING( "el has children" );
+               }
+               for ( auto& idx : el->get_vertices() )
+               {
+                  v_el.insert( idx );
+               }
+               for ( auto& e : el->get_edges() )
+               {
+                  if ( e == nullptr )
+                  {
+                     WALBERLA_LOG_WARNING( "e == nullptr" );
+                  }
+                  else
+                  {
+                     if ( !hanging_nodes_allowed )
+                     {
+                        if ( e->has_children() )
+                        {
+                           WALBERLA_LOG_WARNING( "e has children" );
+                        }
+                     }
+                     for ( auto& idx : e->get_vertices() )
+                     {
+                        if ( !el->has_vertex( idx ) )
+                        {
+                           WALBERLA_LOG_WARNING( "vertex mismatch element/edge" );
+                        }
+                     }
+                  }
+               }
+               if constexpr ( VOL == CELL )
+               {
+                  for ( auto& f : el->get_faces() )
+                  {
+                     if ( f == nullptr )
+                     {
+                        WALBERLA_LOG_WARNING( "f == nullptr" );
+                     }
+                     else
+                     {
+                        if ( !hanging_nodes_allowed )
+                        {
+                           if ( f->has_children() )
+                           {
+                              WALBERLA_LOG_WARNING( "f has children" );
+                           }
+                        }
+                        for ( auto& idx : f->get_vertices() )
+                        {
+                           if ( !el->has_vertex( idx ) )
+                           {
+                              WALBERLA_LOG_WARNING( "vertex mismatch element/face" );
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+         std::vector< uint_t > v_msh, diff;
+         for ( auto& [idx, _] : _V )
+         {
+            WALBERLA_UNUSED( _ );
+            v_msh.push_back( idx );
+         }
+         std::set_difference( v_msh.begin(), v_msh.end(), v_el.begin(), v_el.end(), std::back_inserter( diff ) );
+         if ( !diff.empty() )
+         {
+            WALBERLA_LOG_WARNING( "vertices in mesh but not in elements" );
+            for ( auto& idx : diff )
+            {
+               WALBERLA_LOG_WARNING( idx );
+            }
+         }
+         diff.clear();
+         std::set_difference( v_el.begin(), v_el.end(), v_msh.begin(), v_msh.end(), std::back_inserter( diff ) );
+         if ( !diff.empty() )
+         {
+            WALBERLA_LOG_WARNING( "vertices in elements but not in mesh" );
+            for ( auto& idx : diff )
+            {
+               WALBERLA_LOG_WARNING( idx );
+            }
+         }
+      }
+   }
+}
+
+template < class K_Simplex >
 void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtxData,
                                         std::map< PrimitiveID, EdgeData >&   edgeData,
                                         std::map< PrimitiveID, FaceData >&   faceData,
@@ -1450,6 +1533,30 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
    std::set< std::shared_ptr< Simplex1 > > edges_to_unrefine;
    std::set< std::shared_ptr< Simplex2 > > faces_to_unrefine;
 
+   /* mark faces/edges of elements in T if they have children
+      This should only be the case if an element has been green refined before
+   */
+   for ( auto& el : _T )
+   {
+      for ( auto& edge : el->get_edges() )
+      {
+         if ( edge->has_children() )
+         {
+            edges_to_unrefine.insert( edge );
+         }
+      }
+      if constexpr ( VOL == CELL )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            if ( face->has_children() )
+            {
+               faces_to_unrefine.insert( face );
+            }
+         }
+      }
+   }
+
    // check if el has grandkids
    auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
       for ( auto& child : el->get_children() )
@@ -1462,7 +1569,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       return false;
    };
 
-   // repeatedly iterate over Pc and unrefine admissable elements until no admissable elements are left
+   // repeatedly iterate over Pc and un-refine admissable elements until no admissable elements are left
    auto repeat = true;
    auto queue  = Pc;
    while ( repeat )
@@ -1487,7 +1594,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
             el->kill_children();
             _T.insert( el );
 
-            // mark el's faces and edges for unrefinement
+            // mark el's faces and edges for un-refinement
             for ( auto& edge : el->get_edges() )
             {
                edges_to_unrefine.insert( edge );
@@ -1504,21 +1611,6 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
             repeat = true;
 
             it = queue.erase( it );
-         }
-      }
-   }
-
-   // also mark remaining faces with children from previous green refinement
-   if constexpr ( VOL == CELL )
-   {
-      for ( auto& el : _T )
-      {
-         for ( auto& face : el->get_faces() )
-         {
-            if ( face->has_children() )
-            {
-               faces_to_unrefine.insert( face );
-            }
          }
       }
    }
@@ -1569,6 +1661,8 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
    {
       face->kill_children();
    }
+
+   check_integrity( true );
 }
 
 template < class K_Simplex >
@@ -1708,6 +1802,8 @@ void K_Mesh< Simplex2 >::refine_green()
          _T.merge( refine_face_green( el ) );
       }
    }
+
+   check_integrity( false );
 }
 
 template <>
@@ -1747,6 +1843,8 @@ void K_Mesh< Simplex3 >::refine_green()
          break;
       }
    }
+
+   check_integrity( false );
 }
 
 template < class K_Simplex >

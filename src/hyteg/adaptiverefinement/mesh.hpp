@@ -232,6 +232,13 @@ class K_Mesh
    std::pair< std::set< std::shared_ptr< K_Simplex > >, std::set< std::shared_ptr< K_Simplex > > >
        init_R_Pc( const std::vector< PrimitiveID >& id_r, const std::vector< PrimitiveID >& id_c ) const;
 
+   /* check whether
+      * all required vertices and only those are stored
+      * elements in T have no children
+      * all faces/edges of elements in T exist and have no children
+   */
+   void check_integrity( bool hanging_nodes_allowed = false ) const;
+
    /* extract geometryMap, boundaryFlags, etc. from all elements*/
    void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
                       std::map< PrimitiveID, EdgeData >&   edgeData,

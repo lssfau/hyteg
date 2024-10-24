@@ -22,7 +22,7 @@ Parameters
   cg_tolerance 1e-9;
 
   // misc
-  vtkName auto;
+  // vtkName auto;
   // writeDomainPartitioning 1;
   // writeMeshfile 0;
   // printMeshData 0;
