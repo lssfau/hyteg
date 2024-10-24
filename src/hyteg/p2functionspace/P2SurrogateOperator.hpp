@@ -220,7 +220,7 @@ class P2SurrogateOperator : public Operator< P2Function< real_t >, P2Function< r
                const P2Function< real_t >& dst,
                const size_t                level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               UpdateType                  updateType = Replace ) const override
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 

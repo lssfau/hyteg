@@ -91,18 +91,17 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = a_0_0;
    }
 
-   virtual void integrateFacetInner2D( const std::vector< Point3D >&      coordsElement,
-                                       const std::vector< Point3D >&      coordsFacet,
-                                       const Point3D&                     oppositeVertex,
-                                       const Point3D&                     outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
+                                       MatrixXr&                     elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
-                   trialBasis.numDoFsPerElement( 2, trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -128,20 +127,19 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = 0;
    }
 
-   virtual void integrateFacetCoupling2D( const std::vector< Point3D >&      coordsElementInner,
-                                          const std::vector< Point3D >&      coordsElementOuter,
-                                          const std::vector< Point3D >&      coordsFacet,
-                                          const Point3D&                     oppositeVertexInnerElement,
-                                          const Point3D&                     oppositeVertexOuterElement,
-                                          const Point3D&                     outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                          const std::vector< Point3D >& coordsElementOuter,
+                                          const std::vector< Point3D >& coordsFacet,
+                                          const Point3D&                oppositeVertexInnerElement,
+                                          const Point3D&                oppositeVertexOuterElement,
+                                          const Point3D&                outwardNormal,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
+                                          MatrixXr&                     elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
-                   trialBasis.numDoFsPerElement( 2, trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
       const auto p_affine_0_1 = coordsElementInner[0]( 1 );
@@ -179,18 +177,17 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       elMat( 0, 0) = 0;
    };
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >&      coordsElement,
-                                                   const std::vector< Point3D >&      coordsFacet,
-                                                   const Point3D&                     oppositeVertex,
-                                                   const Point3D&                     outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertex,
+                                                   const Point3D&                outwardNormal,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
+                                                   MatrixXr&                     elMat ) const override
    {
-      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
-                   trialBasis.numDoFsPerElement( 2, trialDegree ) );
+      elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -213,7 +210,7 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      elMat( 0, 0) = 0;
+      elMat( 0, 0 ) = 0;
    }
 
     void integrateRHSDirichletBoundary2D( const std::vector< Point3D >&      coordsElement,
@@ -290,17 +287,17 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
 
       elMat( 0, 0) = 0;
    }
-   void integrateVolume3D( const std::vector< Point3D >&      coords,
-                                                 const DGBasisInfo&                                       trialBasis,
-                                                 const DGBasisInfo&                                       testBasis,
-                                                 int                                                      trialDegree,
-                                                 int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+   void integrateVolume3D( const std::vector< Point3D >& coords,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
+                           MatrixXr&                     elMat ) const override
    {
-   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
-                 Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
+      elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                    Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
-   const auto p_affine_0_0 = coords[0]( 0 );
+      const auto p_affine_0_0 = coords[0]( 0 );
    const auto p_affine_0_1 = coords[0]( 1 );
    const auto p_affine_0_2 = coords[0]( 2 );
 
@@ -371,7 +368,7 @@ void Scalar_Variable_Coefficient_3D_k( real_t in_0, real_t in_1, real_t in_2, re
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -424,7 +421,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -481,59 +478,55 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
       elMat( 0, 0) = 0;
 }
 
+   void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+                                           const std::vector< Point3D >& coordsFacet,
+                                           const Point3D&,
+                                           const Point3D&     outwardNormal,
+                                           const DGBasisInfo& trialBasis,
+                                           const DGBasisInfo& testBasis,
+                                           int                trialDegree,
+                                           int                testDegree,
+                                           MatrixXr&          elMat ) const override
+   {
+      elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                    Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
+      const auto p_affine_0_0 = coordsElement[0]( 0 );
+      const auto p_affine_0_1 = coordsElement[0]( 1 );
+      const auto p_affine_0_2 = coordsElement[0]( 2 );
 
-void integrateFacetDirichletBoundary3D(
-    const std::vector< Point3D >& coordsElement,
-    const std::vector< Point3D >& coordsFacet,
-    const Point3D&,
-    const Point3D&                     outwardNormal,
-    const DGBasisInfo&                                       trialBasis,
-    const DGBasisInfo&                                       testBasis,
-    int                                                      trialDegree,
-    int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
-{
-   elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
-                 Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
+      const auto p_affine_1_0 = coordsElement[1]( 0 );
+      const auto p_affine_1_1 = coordsElement[1]( 1 );
+      const auto p_affine_1_2 = coordsElement[1]( 2 );
 
-   const auto p_affine_0_0 = coordsElement[0]( 0 );
-   const auto p_affine_0_1 = coordsElement[0]( 1 );
-   const auto p_affine_0_2 = coordsElement[0]( 2 );
+      const auto p_affine_2_0 = coordsElement[2]( 0 );
+      const auto p_affine_2_1 = coordsElement[2]( 1 );
+      const auto p_affine_2_2 = coordsElement[2]( 2 );
 
-   const auto p_affine_1_0 = coordsElement[1]( 0 );
-   const auto p_affine_1_1 = coordsElement[1]( 1 );
-   const auto p_affine_1_2 = coordsElement[1]( 2 );
+      const auto p_affine_3_0 = coordsElement[3]( 0 );
+      const auto p_affine_3_1 = coordsElement[3]( 1 );
+      const auto p_affine_3_2 = coordsElement[3]( 2 );
 
-   const auto p_affine_2_0 = coordsElement[2]( 0 );
-   const auto p_affine_2_1 = coordsElement[2]( 1 );
-   const auto p_affine_2_2 = coordsElement[2]( 2 );
+      const auto p_affine_8_0 = coordsFacet[0]( 0 );
+      const auto p_affine_8_1 = coordsFacet[0]( 1 );
+      const auto p_affine_8_2 = coordsFacet[0]( 2 );
 
-   const auto p_affine_3_0 = coordsElement[3]( 0 );
-   const auto p_affine_3_1 = coordsElement[3]( 1 );
-   const auto p_affine_3_2 = coordsElement[3]( 2 );
+      const auto p_affine_9_0 = coordsFacet[1]( 0 );
+      const auto p_affine_9_1 = coordsFacet[1]( 1 );
+      const auto p_affine_9_2 = coordsFacet[1]( 2 );
 
-   const auto p_affine_8_0 = coordsFacet[0]( 0 );
-   const auto p_affine_8_1 = coordsFacet[0]( 1 );
-   const auto p_affine_8_2 = coordsFacet[0]( 2 );
+      const auto p_affine_10_0 = coordsFacet[2]( 0 );
+      const auto p_affine_10_1 = coordsFacet[2]( 1 );
+      const auto p_affine_10_2 = coordsFacet[2]( 2 );
 
-   const auto p_affine_9_0 = coordsFacet[1]( 0 );
-   const auto p_affine_9_1 = coordsFacet[1]( 1 );
-   const auto p_affine_9_2 = coordsFacet[1]( 2 );
+      const auto p_affine_13_0 = outwardNormal( 0 );
+      const auto p_affine_13_1 = outwardNormal( 1 );
+      const auto p_affine_13_2 = outwardNormal( 2 );
 
-   const auto p_affine_10_0 = coordsFacet[2]( 0 );
-   const auto p_affine_10_1 = coordsFacet[2]( 1 );
-   const auto p_affine_10_2 = coordsFacet[2]( 2 );
-
-   const auto p_affine_13_0 = outwardNormal( 0 );
-   const auto p_affine_13_1 = outwardNormal( 1 );
-   const auto p_affine_13_2 = outwardNormal( 2 );
-
-
-      elMat( 0, 0) = 0;
+      elMat( 0, 0 ) = 0;
    }
 
-public:
+ public:
 
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_k;
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_k;

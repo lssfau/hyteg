@@ -66,7 +66,7 @@ enum class HandleOutsideDomainMethod
    DO_NOTHING,
 };
 
-const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = { { { 0 } } };
+const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = { { 0 } };
 const static std::vector< real_t >                RK_b_ExplicitEuler = { 1 };
 const static std::vector< real_t >                RK_c_ExplicitEuler = { 0 };
 

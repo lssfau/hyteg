@@ -66,17 +66,17 @@ namespace hyteg {
                 elMat(0, 0) = a_0_0;
             }
 
-            virtual void integrateFacetInner2D(const std::vector<Point3D > &coordsElement,
-                                               const std::vector<Point3D > &coordsFacet,
-                                               const Point3D &oppositeVertex,
-                                               const Point3D &outwardNormal,
-                                               const DGBasisInfo &trialBasis,
-                                               const DGBasisInfo &testBasis,
-                                               int trialDegree,
-                                               int testDegree,
-                                               MatrixXr &elMat) const {
-                elMat.resize(testBasis.numDoFsPerElement(2, testDegree),
-                             trialBasis.numDoFsPerElement(2, trialDegree));
+            virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                                const std::vector< Point3D >& coordsFacet,
+                                                const Point3D&                oppositeVertex,
+                                                const Point3D&                outwardNormal,
+                                                const DGBasisInfo&            trialBasis,
+                                                const DGBasisInfo&            testBasis,
+                                                int                           trialDegree,
+                                                int                           testDegree,
+                                                MatrixXr&                     elMat ) const override
+            {
+                elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
                 const auto p_affine_0_0 = coordsElement[0](0);
                 const auto p_affine_0_1 = coordsElement[0](1);
@@ -102,19 +102,19 @@ namespace hyteg {
                 elMat(0, 0) = 0;
             }
 
-            virtual void integrateFacetCoupling2D(const std::vector<Point3D > &coordsElementInner,
-                                                  const std::vector<Point3D > &coordsElementOuter,
-                                                  const std::vector<Point3D > &coordsFacet,
-                                                  const Point3D &oppositeVertexInnerElement,
-                                                  const Point3D &oppositeVertexOuterElement,
-                                                  const Point3D &outwardNormal,
-                                                  const DGBasisInfo &trialBasis,
-                                                  const DGBasisInfo &testBasis,
-                                                  int trialDegree,
-                                                  int testDegree,
-                                                  MatrixXr &elMat) const {
-                elMat.resize(testBasis.numDoFsPerElement(2, testDegree),
-                             trialBasis.numDoFsPerElement(2, trialDegree));
+            virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+                                                   const std::vector< Point3D >& coordsElementOuter,
+                                                   const std::vector< Point3D >& coordsFacet,
+                                                   const Point3D&                oppositeVertexInnerElement,
+                                                   const Point3D&                oppositeVertexOuterElement,
+                                                   const Point3D&                outwardNormal,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
+                                                   MatrixXr&                     elMat ) const override
+            {
+                elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
                 const auto p_affine_0_0 = coordsElementInner[0](0);
                 const auto p_affine_0_1 = coordsElementInner[0](1);
@@ -152,20 +152,19 @@ namespace hyteg {
                 elMat(0, 0) = 0;
             };
 
-            virtual void
-            integrateFacetDirichletBoundary2D(const std::vector<Point3D > &coordsElement,
-                                              const std::vector<Point3D > &coordsFacet,
-                                              const Point3D &oppositeVertex,
-                                              const Point3D &outwardNormal,
-                                              const DGBasisInfo &trialBasis,
-                                              const DGBasisInfo &testBasis,
-                                              int trialDegree,
-                                              int testDegree,
-                                              MatrixXr &elMat) const {
-                elMat.resize(testBasis.numDoFsPerElement(2, testDegree),
-                             trialBasis.numDoFsPerElement(2, trialDegree));
+            virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+                                                            const std::vector< Point3D >& coordsFacet,
+                                                            const Point3D&                oppositeVertex,
+                                                            const Point3D&                outwardNormal,
+                                                            const DGBasisInfo&            trialBasis,
+                                                            const DGBasisInfo&            testBasis,
+                                                            int                           trialDegree,
+                                                            int                           testDegree,
+                                                            MatrixXr&                     elMat ) const override
+            {
+               elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
-                const auto p_affine_0_0 = coordsElement[0](0);
+               const auto p_affine_0_0 = coordsElement[0](0);
                 const auto p_affine_0_1 = coordsElement[0](1);
 
                 const auto p_affine_1_0 = coordsElement[1](0);
@@ -225,66 +224,67 @@ namespace hyteg {
                 // Does nothing.
             }
 
-            void integrateVolume3D(const std::vector<Point3D > &coords,
-                                   const DGBasisInfo &trialBasis,
-                                   const DGBasisInfo &testBasis,
-                                   int trialDegree,
-                                   int testDegree,
-                                   MatrixXr &elMat) const {
-                elMat.resize(Eigen::Index(testBasis.numDoFsPerElement(3, uint_c(testDegree))),
-                             Eigen::Index(trialBasis.numDoFsPerElement(3, uint_c(trialDegree))));
+            void integrateVolume3D( const std::vector< Point3D >& coords,
+                                    const DGBasisInfo&            trialBasis,
+                                    const DGBasisInfo&            testBasis,
+                                    int                           trialDegree,
+                                    int                           testDegree,
+                                    MatrixXr&                     elMat ) const override
+            {
+               elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                             Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
-                const auto p_affine_0_0 = coords[0](0);
-                const auto p_affine_0_1 = coords[0](1);
-                const auto p_affine_0_2 = coords[0](2);
+               const auto p_affine_0_0 = coords[0]( 0 );
+               const auto p_affine_0_1 = coords[0]( 1 );
+               const auto p_affine_0_2 = coords[0]( 2 );
 
-                const auto p_affine_1_0 = coords[1](0);
-                const auto p_affine_1_1 = coords[1](1);
-                const auto p_affine_1_2 = coords[1](2);
+               const auto p_affine_1_0 = coords[1]( 0 );
+               const auto p_affine_1_1 = coords[1]( 1 );
+               const auto p_affine_1_2 = coords[1]( 2 );
 
-                const auto p_affine_2_0 = coords[2](0);
-                const auto p_affine_2_1 = coords[2](1);
-                const auto p_affine_2_2 = coords[2](2);
+               const auto p_affine_2_0 = coords[2]( 0 );
+               const auto p_affine_2_1 = coords[2]( 1 );
+               const auto p_affine_2_2 = coords[2]( 2 );
 
-                const auto p_affine_3_0 = coords[3](0);
-                const auto p_affine_3_1 = coords[3](1);
-                const auto p_affine_3_2 = coords[3](2);
+               const auto p_affine_3_0 = coords[3]( 0 );
+               const auto p_affine_3_1 = coords[3]( 1 );
+               const auto p_affine_3_2 = coords[3]( 2 );
 
-                real_t tmp_0 = p_affine_0_0 * p_affine_1_1;
-                real_t tmp_1 = p_affine_0_0 * p_affine_1_2;
-                real_t tmp_2 = p_affine_2_1 * p_affine_3_2;
-                real_t tmp_3 = p_affine_0_1 * p_affine_1_0;
-                real_t tmp_4 = p_affine_0_1 * p_affine_1_2;
-                real_t tmp_5 = p_affine_2_2 * p_affine_3_0;
-                real_t tmp_6 = p_affine_0_2 * p_affine_1_0;
-                real_t tmp_7 = p_affine_0_2 * p_affine_1_1;
-                real_t tmp_8 = p_affine_2_0 * p_affine_3_1;
-                real_t tmp_9 = p_affine_2_2 * p_affine_3_1;
-                real_t tmp_10 = p_affine_2_0 * p_affine_3_2;
-                real_t tmp_11 = p_affine_2_1 * p_affine_3_0;
-                real_t tmp_12 = std::abs(
-                        p_affine_0_0 * tmp_2 - p_affine_0_0 * tmp_9 - p_affine_0_1 * tmp_10 + p_affine_0_1 * tmp_5 -
-                        p_affine_0_2 * tmp_11 + p_affine_0_2 * tmp_8 - p_affine_1_0 * tmp_2 + p_affine_1_0 * tmp_9 +
-                        p_affine_1_1 * tmp_10 - p_affine_1_1 * tmp_5 + p_affine_1_2 * tmp_11 - p_affine_1_2 * tmp_8 +
-                        p_affine_2_0 * tmp_4 - p_affine_2_0 * tmp_7 - p_affine_2_1 * tmp_1 + p_affine_2_1 * tmp_6 +
-                        p_affine_2_2 * tmp_0 - p_affine_2_2 * tmp_3 - p_affine_3_0 * tmp_4 + p_affine_3_0 * tmp_7 +
-                        p_affine_3_1 * tmp_1 - p_affine_3_1 * tmp_6 - p_affine_3_2 * tmp_0 + p_affine_3_2 * tmp_3);
-                real_t a_0_0 = 0.1666666666666668 * tmp_12;
-                elMat(0, 0) = a_0_0;
+               real_t tmp_0  = p_affine_0_0 * p_affine_1_1;
+               real_t tmp_1  = p_affine_0_0 * p_affine_1_2;
+               real_t tmp_2  = p_affine_2_1 * p_affine_3_2;
+               real_t tmp_3  = p_affine_0_1 * p_affine_1_0;
+               real_t tmp_4  = p_affine_0_1 * p_affine_1_2;
+               real_t tmp_5  = p_affine_2_2 * p_affine_3_0;
+               real_t tmp_6  = p_affine_0_2 * p_affine_1_0;
+               real_t tmp_7  = p_affine_0_2 * p_affine_1_1;
+               real_t tmp_8  = p_affine_2_0 * p_affine_3_1;
+               real_t tmp_9  = p_affine_2_2 * p_affine_3_1;
+               real_t tmp_10 = p_affine_2_0 * p_affine_3_2;
+               real_t tmp_11 = p_affine_2_1 * p_affine_3_0;
+               real_t tmp_12 =
+                   std::abs( p_affine_0_0 * tmp_2 - p_affine_0_0 * tmp_9 - p_affine_0_1 * tmp_10 + p_affine_0_1 * tmp_5 -
+                             p_affine_0_2 * tmp_11 + p_affine_0_2 * tmp_8 - p_affine_1_0 * tmp_2 + p_affine_1_0 * tmp_9 +
+                             p_affine_1_1 * tmp_10 - p_affine_1_1 * tmp_5 + p_affine_1_2 * tmp_11 - p_affine_1_2 * tmp_8 +
+                             p_affine_2_0 * tmp_4 - p_affine_2_0 * tmp_7 - p_affine_2_1 * tmp_1 + p_affine_2_1 * tmp_6 +
+                             p_affine_2_2 * tmp_0 - p_affine_2_2 * tmp_3 - p_affine_3_0 * tmp_4 + p_affine_3_0 * tmp_7 +
+                             p_affine_3_1 * tmp_1 - p_affine_3_1 * tmp_6 - p_affine_3_2 * tmp_0 + p_affine_3_2 * tmp_3 );
+               real_t a_0_0  = 0.1666666666666668 * tmp_12;
+               elMat( 0, 0 ) = a_0_0;
             }
 
-
-            void integrateFacetInner3D(const std::vector<Point3D > &coordsElement,
-                                       const std::vector<Point3D > &coordsFacet,
-                                       const Point3D &,
-                                       const Point3D &outwardNormal,
-                                       const DGBasisInfo &trialBasis,
-                                       const DGBasisInfo &testBasis,
-                                       int trialDegree,
-                                       int testDegree,
-                                       MatrixXr &elMat) const {
-                elMat.resize(Eigen::Index(testBasis.numDoFsPerElement(3, uint_c(testDegree))),
-                             Eigen::Index(trialBasis.numDoFsPerElement(3, uint_c(trialDegree))));
+            void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
+                                        const std::vector< Point3D >& coordsFacet,
+                                        const Point3D&,
+                                        const Point3D&     outwardNormal,
+                                        const DGBasisInfo& trialBasis,
+                                        const DGBasisInfo& testBasis,
+                                        int                trialDegree,
+                                        int                testDegree,
+                                        MatrixXr&          elMat ) const override
+            {
+               elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                             Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
                 const auto p_affine_0_0 = coordsElement[0](0);
                 const auto p_affine_0_1 = coordsElement[0](1);
@@ -321,20 +321,20 @@ namespace hyteg {
                 elMat(0, 0) = 0;
             }
 
-
-            void integrateFacetCoupling3D(const std::vector<Point3D > &coordsElementInner,
-                                          const std::vector<Point3D > &coordsElementOuter,
-                                          const std::vector<Point3D > &coordsFacet,
-                                          const Point3D &,
-                                          const Point3D &,
-                                          const Point3D &outwardNormal,
-                                          const DGBasisInfo &trialBasis,
-                                          const DGBasisInfo &testBasis,
-                                          int trialDegree,
-                                          int testDegree,
-                                          MatrixXr &elMat) const {
-                elMat.resize(Eigen::Index(testBasis.numDoFsPerElement(3, uint_c(testDegree))),
-                             Eigen::Index(trialBasis.numDoFsPerElement(3, uint_c(trialDegree))));
+            void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
+                                           const std::vector< Point3D >& coordsElementOuter,
+                                           const std::vector< Point3D >& coordsFacet,
+                                           const Point3D&,
+                                           const Point3D&,
+                                           const Point3D&     outwardNormal,
+                                           const DGBasisInfo& trialBasis,
+                                           const DGBasisInfo& testBasis,
+                                           int                trialDegree,
+                                           int                testDegree,
+                                           MatrixXr&          elMat ) const override
+            {
+                elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                              Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
                 const auto p_affine_0_0 = coordsElementInner[0](0);
                 const auto p_affine_0_1 = coordsElementInner[0](1);
@@ -388,21 +388,20 @@ namespace hyteg {
                 elMat(0, 0) = 0;
             }
 
+            void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+                                                    const std::vector< Point3D >& coordsFacet,
+                                                    const Point3D&,
+                                                    const Point3D&     outwardNormal,
+                                                    const DGBasisInfo& trialBasis,
+                                                    const DGBasisInfo& testBasis,
+                                                    int                trialDegree,
+                                                    int                testDegree,
+                                                    MatrixXr&          elMat ) const override
+            {
+               elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
+                             Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
 
-            void integrateFacetDirichletBoundary3D(
-                    const std::vector<Point3D > &coordsElement,
-                    const std::vector<Point3D > &coordsFacet,
-                    const Point3D &,
-                    const Point3D &outwardNormal,
-                    const DGBasisInfo &trialBasis,
-                    const DGBasisInfo &testBasis,
-                    int trialDegree,
-                    int testDegree,
-                    MatrixXr &elMat) const {
-                elMat.resize(Eigen::Index(testBasis.numDoFsPerElement(3, uint_c(testDegree))),
-                             Eigen::Index(trialBasis.numDoFsPerElement(3, uint_c(trialDegree))));
-
-                const auto p_affine_0_0 = coordsElement[0](0);
+               const auto p_affine_0_0 = coordsElement[0](0);
                 const auto p_affine_0_1 = coordsElement[0](1);
                 const auto p_affine_0_2 = coordsElement[0](2);
 

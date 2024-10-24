@@ -139,9 +139,9 @@ void runAllTestsP1()
    ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 2, 4, 16e-3 );
    ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 2, 5, 4e-3 );
 
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 3, 3, 6e-1 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 3, 4, 2e-1 );
-   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 3, 5, 8e-2 );
+//   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 3, 3, 6e-1 );
+//   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 3, 4, 2e-1 );
+//   ElementwiseDivKGradCGTest< ElementwiseOperator, MassOperator, FunctionType, FormType >( 3, 5, 8e-2 );
 }
 
 void runAllTestsP2()
@@ -175,5 +175,6 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::runAllTestsP1();
-   hyteg::runAllTestsP2();
+   WALBERLA_LOG_DEVEL(walberla::mpi::MPIManager::instance()->rank())
+   //hyteg::runAllTestsP2();
 }

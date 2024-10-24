@@ -210,7 +210,7 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
                   const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< idx_t >& src,
                   const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< idx_t >& dst,
                   size_t                                                                                         level,
-                  DoFType                                                                                        flag ) const
+                  DoFType flag ) const override
    {
       unsteadyDiffusionOperator_->toMatrix( mat, src, dst, level, flag );
    }

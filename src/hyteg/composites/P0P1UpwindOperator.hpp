@@ -53,7 +53,7 @@ class P0P1UpwindOperator : public Operator< P0Function< real_t >, P0Function< re
                const P0Function< real_t >& dst,
                uint_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               UpdateType                  updateType = Replace ) const override
    {
       // need to update faces on the ghost-layers
       src.communicate( level );
