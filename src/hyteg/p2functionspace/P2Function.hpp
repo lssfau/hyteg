@@ -133,7 +133,7 @@ class P2Function final : public Function< P2Function< ValueType > >
                   ValueType&     value,
                   real_t         searchToleranceRadius = real_c( 1e-05 ) ) const;
 
-   inline void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
+   void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 
    /// @name Member functions for interpolation using BoundaryUID flags
    ///@{

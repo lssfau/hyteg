@@ -149,7 +149,7 @@ EGEpsilonEnergyNormFormP1E_0( std::function< real_t( const Point3D& ) > callback
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -260,7 +260,7 @@ EGEpsilonEnergyNormFormP1E_0( std::function< real_t( const Point3D& ) > callback
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -396,7 +396,7 @@ EGEpsilonEnergyNormFormP1E_0( std::function< real_t( const Point3D& ) > callback
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -538,7 +538,7 @@ EGEpsilonEnergyNormFormP1E_0( std::function< real_t( const Point3D& ) > callback
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -884,7 +884,7 @@ EGEpsilonEnergyNormFormP1E_0( std::function< real_t( const Point3D& ) > callback
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -1366,7 +1366,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -1957,7 +1957,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2558,7 +2558,7 @@ EGEpsilonEnergyNormFormP1E_1( std::function< real_t( const Point3D& ) > callback
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -2669,7 +2669,7 @@ EGEpsilonEnergyNormFormP1E_1( std::function< real_t( const Point3D& ) > callback
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -2805,7 +2805,7 @@ EGEpsilonEnergyNormFormP1E_1( std::function< real_t( const Point3D& ) > callback
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -2947,7 +2947,7 @@ EGEpsilonEnergyNormFormP1E_1( std::function< real_t( const Point3D& ) > callback
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -3293,7 +3293,7 @@ EGEpsilonEnergyNormFormP1E_1( std::function< real_t( const Point3D& ) > callback
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -3775,7 +3775,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4366,7 +4366,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4897,7 +4897,7 @@ EGEpsilonEnergyNormFormP1E_2( std::function< real_t( const Point3D& ) > callback
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4941,7 +4941,7 @@ EGEpsilonEnergyNormFormP1E_2( std::function< real_t( const Point3D& ) > callback
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4995,7 +4995,7 @@ EGEpsilonEnergyNormFormP1E_2( std::function< real_t( const Point3D& ) > callback
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -5070,7 +5070,7 @@ EGEpsilonEnergyNormFormP1E_2( std::function< real_t( const Point3D& ) > callback
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5416,7 +5416,7 @@ EGEpsilonEnergyNormFormP1E_2( std::function< real_t( const Point3D& ) > callback
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5898,7 +5898,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6489,7 +6489,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7090,7 +7090,7 @@ EGEpsilonEnergyNormFormEP1_0( std::function< real_t( const Point3D& ) > callback
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -7201,7 +7201,7 @@ EGEpsilonEnergyNormFormEP1_0( std::function< real_t( const Point3D& ) > callback
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -7337,7 +7337,7 @@ EGEpsilonEnergyNormFormEP1_0( std::function< real_t( const Point3D& ) > callback
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -7412,7 +7412,7 @@ EGEpsilonEnergyNormFormEP1_0( std::function< real_t( const Point3D& ) > callback
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7758,7 +7758,7 @@ EGEpsilonEnergyNormFormEP1_0( std::function< real_t( const Point3D& ) > callback
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8240,7 +8240,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8831,7 +8831,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -9010,7 +9010,7 @@ EGEpsilonEnergyNormFormEP1_1( std::function< real_t( const Point3D& ) > callback
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -9121,7 +9121,7 @@ EGEpsilonEnergyNormFormEP1_1( std::function< real_t( const Point3D& ) > callback
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -9257,7 +9257,7 @@ EGEpsilonEnergyNormFormEP1_1( std::function< real_t( const Point3D& ) > callback
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -9332,7 +9332,7 @@ EGEpsilonEnergyNormFormEP1_1( std::function< real_t( const Point3D& ) > callback
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -9678,7 +9678,7 @@ EGEpsilonEnergyNormFormEP1_1( std::function< real_t( const Point3D& ) > callback
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -10160,7 +10160,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -10751,7 +10751,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -10860,7 +10860,7 @@ EGEpsilonEnergyNormFormEP1_2( std::function< real_t( const Point3D& ) > callback
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -10904,7 +10904,7 @@ EGEpsilonEnergyNormFormEP1_2( std::function< real_t( const Point3D& ) > callback
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -10958,7 +10958,7 @@ EGEpsilonEnergyNormFormEP1_2( std::function< real_t( const Point3D& ) > callback
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -11033,7 +11033,7 @@ EGEpsilonEnergyNormFormEP1_2( std::function< real_t( const Point3D& ) > callback
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -11379,7 +11379,7 @@ EGEpsilonEnergyNormFormEP1_2( std::function< real_t( const Point3D& ) > callback
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -11861,7 +11861,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -12452,7 +12452,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -12611,7 +12611,7 @@ EGEpsilonEnergyNormFormEE( std::function< real_t( const Point3D& ) > callback )
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -12694,7 +12694,7 @@ EGEpsilonEnergyNormFormEE( std::function< real_t( const Point3D& ) > callback )
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -12824,7 +12824,7 @@ EGEpsilonEnergyNormFormEE( std::function< real_t( const Point3D& ) > callback )
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -12938,7 +12938,7 @@ EGEpsilonEnergyNormFormEE( std::function< real_t( const Point3D& ) > callback )
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -13216,7 +13216,7 @@ EGEpsilonEnergyNormFormEE( std::function< real_t( const Point3D& ) > callback )
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -13482,7 +13482,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -13983,7 +13983,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );

@@ -91,7 +91,7 @@ class EGIIPGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -208,7 +208,7 @@ class EGIIPGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -360,7 +360,7 @@ class EGIIPGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -492,7 +492,7 @@ class EGIIPGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -581,7 +581,7 @@ class EGIIPGVectorLaplaceFormP1E_0 : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -1069,7 +1069,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -1729,7 +1729,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2218,7 +2218,7 @@ class EGIIPGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -2336,7 +2336,7 @@ class EGIIPGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -2489,7 +2489,7 @@ class EGIIPGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -2621,7 +2621,7 @@ class EGIIPGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                     elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2710,7 +2710,7 @@ class EGIIPGVectorLaplaceFormP1E_1 : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -3198,7 +3198,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -3858,7 +3858,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&          elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4330,7 +4330,7 @@ class EGIIPGVectorLaplaceFormP1E_2 : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4374,7 +4374,7 @@ class EGIIPGVectorLaplaceFormP1E_2 : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4428,7 +4428,7 @@ class EGIIPGVectorLaplaceFormP1E_2 : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4503,7 +4503,7 @@ class EGIIPGVectorLaplaceFormP1E_2 : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4592,7 +4592,7 @@ class EGIIPGVectorLaplaceFormP1E_2 : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5080,7 +5080,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5740,7 +5740,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6229,7 +6229,7 @@ class EGIIPGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -6347,7 +6347,7 @@ class EGIIPGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -6490,7 +6490,7 @@ class EGIIPGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -6598,7 +6598,7 @@ class EGIIPGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                     elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6687,7 +6687,7 @@ class EGIIPGVectorLaplaceFormEP1_0 : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7175,7 +7175,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7772,7 +7772,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&          elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8013,7 +8013,7 @@ class EGIIPGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -8131,7 +8131,7 @@ class EGIIPGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -8274,7 +8274,7 @@ class EGIIPGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -8382,7 +8382,7 @@ class EGIIPGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                     elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8471,7 +8471,7 @@ class EGIIPGVectorLaplaceFormEP1_1 : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8959,7 +8959,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -9556,7 +9556,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&          elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -9780,7 +9780,7 @@ class EGIIPGVectorLaplaceFormEP1_2 : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -9824,7 +9824,7 @@ class EGIIPGVectorLaplaceFormEP1_2 : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -9878,7 +9878,7 @@ class EGIIPGVectorLaplaceFormEP1_2 : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -9953,7 +9953,7 @@ class EGIIPGVectorLaplaceFormEP1_2 : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                     elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -10042,7 +10042,7 @@ class EGIIPGVectorLaplaceFormEP1_2 : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -10530,7 +10530,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -11127,7 +11127,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&          elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -11361,7 +11361,7 @@ class EGIIPGVectorLaplaceFormEE : public hyteg::dg::DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -11455,7 +11455,7 @@ class EGIIPGVectorLaplaceFormEE : public hyteg::dg::DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -11596,7 +11596,7 @@ class EGIIPGVectorLaplaceFormEE : public hyteg::dg::DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -11700,7 +11700,7 @@ class EGIIPGVectorLaplaceFormEE : public hyteg::dg::DGForm
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                     elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -11785,7 +11785,7 @@ class EGIIPGVectorLaplaceFormEE : public hyteg::dg::DGForm
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -12086,7 +12086,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&          elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -12622,7 +12622,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&          elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );

@@ -59,7 +59,7 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
                const dstBlockFunc_t& dst,
                size_t                level,
                DoFType               flag,
-               UpdateType            updateType = Replace ) const
+               UpdateType            updateType = Replace ) const override
    {
       WALBERLA_ASSERT_EQUAL( nCols_, src.getNumberOfBlocks() );
       WALBERLA_ASSERT_EQUAL( nRows_, dst.getNumberOfBlocks() );

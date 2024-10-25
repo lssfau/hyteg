@@ -55,7 +55,7 @@ set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
 include_directories(SYSTEM ${EIGEN_DIR})
 link_directories(${EIGEN_DIR})
 
-add_subdirectory( walberla EXCLUDE_FROM_ALL )
+add_subdirectory( walberla EXCLUDE_FROM_ALL SYSTEM )
 list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}/tests" )
 
 # Treat warnings as errors

@@ -90,7 +90,7 @@ class EGVectorMassFormP1E_0 : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -245,7 +245,7 @@ class EGVectorMassFormP1E_1 : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -384,7 +384,7 @@ class EGVectorMassFormP1E_2 : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -537,7 +537,7 @@ class EGVectorMassFormEP1_0 : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -690,7 +690,7 @@ class EGVectorMassFormEP1_1 : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -826,7 +826,7 @@ class EGVectorMassFormEP1_2 : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -990,7 +990,7 @@ class EGVectorMassFormEE : public hyteg::dg::DGFormVolume
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );

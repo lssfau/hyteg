@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/indexing/Common.hpp"
