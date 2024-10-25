@@ -308,9 +308,9 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 
    /// type of engine to be used for export
    ///
-   /// We will use the BP format, but the most recent "BP5" format is unsupported by ParaView 5.11.1.
-   /// Thus, we still use BP4
-   inline static const std::string engineType_{ "BP4" };
+   /// Currently the most recent format is "BP5" which is supported by ParaView
+   /// from at least 5.12.1
+   inline static const std::string engineType_{ "BP5" };
 };
 
 } // namespace hyteg
