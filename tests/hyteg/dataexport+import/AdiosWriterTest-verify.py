@@ -25,8 +25,8 @@ def initArgparse() -> argparse.ArgumentParser:
         description="Compare BP-files created with AdiosWriterTest to reference files."
     )
 
-    parser.add_argument( "-nw", "--num-writers", required=True, help="number of writers used to create files" )
-    parser.add_argument( "-fp", "--fp-bits", required=True, help="number of bits in FP-type of files" )
+    parser.add_argument( "-n", "--num-writers", required=True, help="number of writers used to create files" )
+    parser.add_argument( "-f", "--fp-bits", required=True, help="number of bits in FP-type of files" )
 
     return parser
 
@@ -66,6 +66,19 @@ def importReferenceData( case ):
     refFile = open( refsDir + "/" + case + ".txt", "r" )
     refOutput = refFile.read().splitlines()
     return filterOutVolatileAttribute( refOutput )
+
+
+def importConnectivityData( case ):
+    """Read connectivity info from reference file for specific case"""
+
+    # remove fp part from case name
+    filename = case + "-connectivity.dump"
+    filename = filename.replace( "-fp=32", "" )
+    filename = filename.replace( "-fp=64", "" )
+
+    dumpFile = open( refsDir + "/" + filename, "r" )
+    connectivity = dumpFile.read().splitlines()
+    return connectivity
 
 
 def compareData( dataTest, dataRef ):
@@ -108,20 +121,57 @@ def runBPLSonBPfilesFromJob( case ):
 
     return filterOutVolatileAttribute( bplsOutput )
 
+def dumpConnectivity( case ):
+    """Dump connectivity from BP files created by test job using bpls and filter it"""
+
+    tool = "bpls"          # must be in path (but building with ADIOS2 should take care of this)
+    options ="-d"          # dump a field
+    field = "connectivity"
+
+    command = tool + " " + options + " " + dataDir + "/" + case + ".bp" + " " + field
+    bplsOutput = sproc.getoutput( command )
+    bplsOutput = bplsOutput.splitlines()
+
+    return bplsOutput
+
 def executeSingleTest( case ):
+    """Compare data of single BP file to reference(s)"""
+    print( "===============================================================" )
+    print( f" Comparing {case}.bp to references" )
+
+    status = executeMetaDataTest( case )
+    status = status and executeConnectivityDataTest( case )
+
+    return status
+
+def executeMetaDataTest( case ):
     """Compare single BP file to reference"""
 
-    print( "===============================================================" )
-    print( f" Comparing {case}.bp to reference" )
-    print( " ---------" )
+    print( " * checking meta-data", end="" )
 
     dataJob = runBPLSonBPfilesFromJob( case )
     dataRef = importReferenceData( case )
     checkPassed = compareData( dataJob, dataRef )
     if checkPassed:
-        print( " CHECK: okay" )
+        print( " -> OKAY" )
     else:
-        print( " CHECK: failed" )
+        print( " -> FAILED" )
+
+    return checkPassed
+
+def executeConnectivityDataTest( case ):
+    """Compare connectivity info from single BP file to reference"""
+
+    print( " * checking connectivity", end="" )
+
+    dataJob = dumpConnectivity( case )
+    dataRef = importConnectivityData( case )
+    checkPassed = compareData( dataJob, dataRef )
+    if checkPassed:
+        print( " -> OKAY" )
+    else:
+        print( " -> FAILED" )
+
     return checkPassed
 
 def executeFailingTest( case ):
