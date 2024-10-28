@@ -85,6 +85,19 @@ bool Simplex< K, K_Simplex >::kill_children()
 }
 
 template < uint_t K, class K_Simplex >
+bool Simplex< K, K_Simplex >::has_grandkids() const
+{
+   for ( auto& child : _children )
+   {
+      if ( child->has_children() )
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
+template < uint_t K, class K_Simplex >
 bool Simplex< K, K_Simplex >::has_vertex( uint_t idx ) const
 {
    for ( auto& vtx : _vertices )
@@ -212,10 +225,10 @@ Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices
 {
    for ( uint_t i = 0; i < 3; ++i )
    {
-         WALBERLA_ASSERT( _edges[i] != nullptr );
+      WALBERLA_ASSERT( _edges[i] != nullptr );
 
-         WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
-         WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
+      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
+      WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
    }
 }
 

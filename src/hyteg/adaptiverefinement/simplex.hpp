@@ -119,6 +119,10 @@ class Simplex
 
    // return true if this has been refined
    bool has_children() const { return !_children.empty(); }
+
+   // return true if one of the children has been refined
+   bool has_grandkids() const;
+
    /* check whether idx is a vertex of this element
       @param idx global vertex-id
       @return (idx \\in Simplex::_vertices)
