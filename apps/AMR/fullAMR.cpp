@@ -27,7 +27,6 @@
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 #include <iomanip>
-
 #include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -43,7 +42,6 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
-
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using namespace hyteg;
@@ -575,8 +573,8 @@ int main( int argc, char* argv[] )
 
    const uint_t n_regref              = parameters.getParameter< uint_t >( "n_regular_refinement", 3 );
    const uint_t n_amr                 = parameters.getParameter< uint_t >( "n_amr", 0 );
-   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.05 : 0.01 );
-   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 0.3 : 0.4 );
+   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.05 : 0.015 );
+   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", 0.2 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
    uint_t       l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
