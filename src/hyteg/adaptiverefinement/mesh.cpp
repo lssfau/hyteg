@@ -136,7 +136,7 @@ K_Mesh< K_Simplex >::K_Mesh( const SetupPrimitiveStorage& setupStorage )
       _n_elements = _T.size();
    }
 
-   check_integrity( false );
+   check_integrity( 0 );
 
    // broadcast required values to all processes
    walberla::mpi::broadcastObject( _n_elements );
@@ -183,11 +183,10 @@ void K_Mesh< K_Simplex >::refineRG( const std::vector< PrimitiveID >& elements_t
       /* iteratively apply red refinement to elements that would otherwise
          be subject to multiple green refinement steps later on
       */
-      bool vtxs_added = true; // run at least one iteration
-      while ( !R.empty() || vtxs_added )
+      while ( !R.empty() )
       {
          refine_red( R );
-         R = find_elements_for_red_refinement( vtxs_added );
+         R = find_elements_for_red_refinement();
       }
 
       // apply green refinement
@@ -1294,7 +1293,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::check_integrity( bool hanging_nodes_allowed ) const
+void K_Mesh< K_Simplex >::check_integrity( uint_t hanging_nodes_allowed, bool unassigned_nodes_allowed ) const
 {
    WALBERLA_DEBUG_SECTION()
    {
@@ -1325,11 +1324,18 @@ void K_Mesh< K_Simplex >::check_integrity( bool hanging_nodes_allowed ) const
                   }
                   else
                   {
-                     if ( !hanging_nodes_allowed )
+                     if ( hanging_nodes_allowed == 0 )
                      {
                         if ( e->has_children() )
                         {
                            WALBERLA_LOG_WARNING( "e has children" );
+                        }
+                     }
+                     else
+                     {
+                        if ( e->inner_vertices() > hanging_nodes_allowed )
+                        {
+                           WALBERLA_LOG_WARNING( "e has too many inner vertices" );
                         }
                      }
                      for ( auto& idx : e->get_vertices() )
@@ -1370,29 +1376,33 @@ void K_Mesh< K_Simplex >::check_integrity( bool hanging_nodes_allowed ) const
                }
             }
          }
-         std::vector< uint_t > v_msh, diff;
-         for ( auto& [idx, _] : _V )
+
+         if ( !unassigned_nodes_allowed )
          {
-            WALBERLA_UNUSED( _ );
-            v_msh.push_back( idx );
-         }
-         std::set_difference( v_msh.begin(), v_msh.end(), v_el.begin(), v_el.end(), std::back_inserter( diff ) );
-         if ( !diff.empty() )
-         {
-            WALBERLA_LOG_WARNING( "vertices in mesh but not in elements" );
-            for ( auto& idx : diff )
+            std::vector< uint_t > v_msh, diff;
+            for ( auto& [idx, _] : _V )
             {
-               WALBERLA_LOG_WARNING( idx );
+               WALBERLA_UNUSED( _ );
+               v_msh.push_back( idx );
             }
-         }
-         diff.clear();
-         std::set_difference( v_el.begin(), v_el.end(), v_msh.begin(), v_msh.end(), std::back_inserter( diff ) );
-         if ( !diff.empty() )
-         {
-            WALBERLA_LOG_WARNING( "vertices in elements but not in mesh" );
-            for ( auto& idx : diff )
+            std::set_difference( v_msh.begin(), v_msh.end(), v_el.begin(), v_el.end(), std::back_inserter( diff ) );
+            if ( !diff.empty() )
             {
-               WALBERLA_LOG_WARNING( idx );
+               WALBERLA_LOG_WARNING( "vertices in mesh but not in elements" );
+               for ( auto& idx : diff )
+               {
+                  WALBERLA_LOG_WARNING( idx );
+               }
+            }
+            diff.clear();
+            std::set_difference( v_el.begin(), v_el.end(), v_msh.begin(), v_msh.end(), std::back_inserter( diff ) );
+            if ( !diff.empty() )
+            {
+               WALBERLA_LOG_WARNING( "vertices in elements but not in mesh" );
+               for ( auto& idx : diff )
+               {
+                  WALBERLA_LOG_WARNING( idx );
+               }
             }
          }
       }
@@ -1557,18 +1567,6 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       }
    }
 
-   // check if el has grandkids
-   auto has_grandkids = []( const std::shared_ptr< K_Simplex > el ) {
-      for ( auto& child : el->get_children() )
-      {
-         if ( child->has_children() )
-         {
-            return true;
-         }
-      }
-      return false;
-   };
-
    // repeatedly iterate over Pc and un-refine admissable elements until no admissable elements are left
    auto repeat = true;
    auto queue  = Pc;
@@ -1579,7 +1577,7 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       {
          auto el = *it;
 
-         if ( has_grandkids( el ) )
+         if ( el->has_grandkids() )
          {
             // if el has grandkids, don't process it until they are removed
             ++it;
@@ -1662,7 +1660,28 @@ void K_Mesh< K_Simplex >::unrefine( const std::set< std::shared_ptr< K_Simplex >
       face->kill_children();
    }
 
-   check_integrity( true );
+   check_integrity( 100 );
+}
+
+template < class K_Simplex >
+bool K_Mesh< K_Simplex >::refine_faces()
+{
+   bool faces_refined = false;
+   if constexpr ( VOL == CELL )
+   {
+      for ( auto& el : _T )
+      {
+         for ( auto& face : el->get_faces() )
+         {
+            if ( face->vertices_on_edges() > 1 && !face->has_children() )
+            {
+               refine_face_red( _coords, _V, face );
+               faces_refined = true;
+            }
+         }
+      }
+   }
+   return faces_refined;
 }
 
 template < class K_Simplex >
@@ -1684,6 +1703,13 @@ void K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex
       {
          _T.merge( refine_cell_red( _coords, _V, el ) );
       }
+   }
+
+   // In 3d, we additionally refine all faces with more than one hanging node
+   bool rf = true;
+   while (rf)
+   {
+      rf = refine_faces();
    }
 }
 
@@ -1717,67 +1743,42 @@ void K_Mesh< K_Simplex >::remove_green_edges()
    }
 }
 
-template <>
-std::set< std::shared_ptr< Simplex2 > > K_Mesh< Simplex2 >::find_elements_for_red_refinement( bool& vtxs_added )
+template < class K_Simplex >
+std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::find_elements_for_red_refinement() const
 {
-   std::set< std::shared_ptr< Simplex2 > > R;
-
-   vtxs_added = false;
+   std::set< std::shared_ptr< K_Simplex > > R;
 
    for ( auto& el : _T )
    {
-      if ( el->vertices_on_edges() > 1 )
+      if constexpr ( VOL == FACE )
       {
-         R.insert( el );
-      }
-   }
-
-   return R;
-}
-
-template <>
-std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::find_elements_for_red_refinement( bool& vtxs_added )
-{
-   std::set< std::shared_ptr< Simplex3 > > R;
-
-   vtxs_added = false;
-
-   for ( auto& el : _T )
-   {
-      // find red faces
-      uint_t n_red = 0;
-      for ( auto& face : el->get_faces() )
-      {
-         if ( face->vertices_on_edges() > 1 )
+         // mark face for red refinement if it has more than one hanging node
+         if ( el->vertices_on_edges() > 1 )
          {
-            n_red += 1;
-
-            if ( !face->has_children() )
-            {
-               // apply red refinement to face
-               refine_face_red( _coords, _V, face );
-               vtxs_added = true;
-            }
+            R.insert( el );
          }
       }
-
-      // if there is more than one red face, mark cell for red refinement
-      if ( n_red > 1 )
+      if constexpr ( VOL == CELL )
       {
-         R.insert( el );
-      }
-      else if ( el->vertices_on_edges() > 3 ) // this actually can't happen
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Something went wrong: Cell has only "
-                                    << n_red << " red faces but " << el->vertices_on_edges() << " vertices on its edges." );
-         uint_t k = 0;
+         uint_t grandkids = false;
+         uint_t n_red     = 0;
          for ( auto& face : el->get_faces() )
          {
-            auto n = face->vertices_on_edges();
-            WALBERLA_LOG_INFO_ON_ROOT( "     face << " << k << " has " << n << " vertices on its edges," );
-            ++k;
+            if ( face->has_children() )
+            {
+               n_red += 1;
+            }
+            if ( face->has_grandkids() )
+            {
+               grandkids = true;
+            }
          }
-         WALBERLA_ABORT( "ERROR: Illegal mesh configuration!" )
+
+         // mark cell for red refinement if it has more than one red face or one of its faces has grandkids
+         if ( n_red > 1 || grandkids )
+         {
+            R.insert( el );
+         }
       }
    }
 
@@ -1787,6 +1788,8 @@ std::set< std::shared_ptr< Simplex3 > > K_Mesh< Simplex3 >::find_elements_for_re
 template <>
 void K_Mesh< Simplex2 >::refine_green()
 {
+   check_integrity( 1 );
+
    auto U = _T;
 
    for ( auto& el : U )
@@ -1803,48 +1806,48 @@ void K_Mesh< Simplex2 >::refine_green()
       }
    }
 
-   check_integrity( false );
+   check_integrity( 0 );
 }
 
 template <>
 void K_Mesh< Simplex3 >::refine_green()
 {
+   check_integrity( 1, true );
+
    auto U = _T;
 
    for ( auto& el : U )
    {
       uint_t hanging_nodes = el->vertices_on_edges();
 
-      if ( hanging_nodes > 0 )
+      if ( hanging_nodes == 0 )
       {
-         _T.erase( el );
-      }
-
-      switch ( hanging_nodes )
-      {
-      case 0:
          continue;
-         break;
-
-      case 1:
-         _T.merge( refine_cell_green_1( el ) );
-         break;
-
-      case 2:
-         _T.merge( refine_cell_green_2( el ) );
-         break;
-
-      case 3:
-         _T.merge( refine_cell_green_3( el ) );
-         break;
-
-      default:
-         WALBERLA_ASSERT( hanging_nodes <= 3 );
-         break;
       }
-   }
 
-   check_integrity( false );
+      std::set< std::shared_ptr< Simplex3 > > new_els;
+
+      if ( hanging_nodes == 1 )
+      {
+         new_els = refine_cell_green_1( el );
+      }
+      else if ( hanging_nodes == 2 )
+      {
+         new_els = refine_cell_green_2( el );
+      }
+      else if ( hanging_nodes == 3 )
+      {
+         new_els = refine_cell_green_3( el );
+      }
+      else
+      {
+         WALBERLA_ASSERT( hanging_nodes <= 3 );
+      }
+
+      _T.erase( el );
+      _T.merge( new_els );
+   }
+   check_integrity( 0 );
 }
 
 template < class K_Simplex >

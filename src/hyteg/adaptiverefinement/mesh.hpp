@@ -202,11 +202,15 @@ class K_Mesh
    */
    void remove_green_edges();
 
-   /* find all elements in U which require a red refinement step
-      @param vtxs_added Flag that will be set to true if any new vertices are added during this step
+   /* refine all faces with more than one hanging node on their edges (3d only)
+      @return true if any face was refined
+   */
+   bool refine_faces();
+
+   /* find all elements which require a red refinement step
       @return set R of elements requiring red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( bool& vtxs_added );
+   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement() const;
 
    /*
       apply red refinement to all elements in R
@@ -236,8 +240,10 @@ class K_Mesh
       * all required vertices and only those are stored
       * elements in T have no children
       * all faces/edges of elements in T exist and have no children
+      @param hanging_nodes_allowed  number of hanging nodes allowed on an edge
+      @param unassigned_nodes_allowed  allow vertices which aren't part of any element
    */
-   void check_integrity( bool hanging_nodes_allowed = false ) const;
+   void check_integrity( uint_t hanging_nodes_allowed, bool unassigned_nodes_allowed = false ) const;
 
    /* extract geometryMap, boundaryFlags, etc. from all elements*/
    void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
