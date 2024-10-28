@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Benjamin Mann
+ * Copyright (c) 2021-2024 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
