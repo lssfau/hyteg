@@ -3,12 +3,12 @@ Parameters
     nx 4;
     ny 4;
 
-    minLevel 4;
-    maxLevel 4;
+    minLevel 3;
+    maxLevel 5;
 
     verbose true;
 
-    cflMax 0.25;
+    cflMax 0.75;
     diffusivity 1.0;
     
     RayleighNumber 1e2;
@@ -16,7 +16,7 @@ Parameters
     deltaT 1e5;
     deltaZ 10;
 
-    nPicard 10;
+    nPicard 5;
     reltolPicard 1e-6;
     abstolPicard 1e-11;
 
@@ -34,7 +34,7 @@ Parameters
     useAdios2 true;
     adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
 
-    outputFilename TosiNonlinearUnitSquare;
+    outputFilename TosiNonlinearUnitSquareP0;
     outputPath ./output/;
     vtkWriteFrequency 10;
 }

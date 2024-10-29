@@ -45,12 +45,106 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 // #include "hyteg/elementwiseoperators/P2ToP1ElementwiseBlendingGradientOperator.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/operatorgeneration/generated/EvaluateViscosityViscoplastic/P2EvaluateViscosityViscoplastic.hpp"
 #include "hyteg/operatorgeneration/generated/FullStokesViscoplastic/P2VectorElementwiseFullStokesViscoplastic.hpp"
 #include "hyteg/operatorgeneration/generated/Ones/P2Ones.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/ChebyshevSmoother.hpp"
+#include "hyteg/solvers/FGMRESSolver.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/Solver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
+#include "hyteg/numerictools/SpectrumEstimation.hpp"
 
 namespace hyteg {
+namespace solvertemplates {
+
+template < typename StokesOperatorType, typename StokesABlockType, typename StokesSchurOperatorType >
+inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                       uint_t                                     minLevel,
+                                                                       uint_t                                     maxLevel,
+                                                                       const StokesABlockType&        stokesABlockOperator,
+                                                                       const StokesSchurOperatorType& schurOperator )
+{
+   uint_t ABlockCoarseIter = 100u;
+   real_t ABlockCoarseTol  = 1e-8;
+
+   uint_t ABlockPreSmooth  = 5u;
+   uint_t ABlockPostSmooth = 5u;
+
+   auto ABlockSmoother = std::make_shared< ChebyshevSmoother< StokesABlockType > >( storage, minLevel, maxLevel );
+
+   auto uTmp = std::make_shared< typename StokesABlockType::srcType >( "uTmpSolverTemplate", storage, minLevel, maxLevel );
+   auto uSpecTmp =
+       std::make_shared< typename StokesABlockType::srcType >( "uSpecTmpSolverTemplate", storage, minLevel, maxLevel );
+
+   std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
+      return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
+   };
+
+   uTmp->interpolate( { randFuncA, randFuncA }, maxLevel, All );
+   uSpecTmp->interpolate( { randFuncA, randFuncA }, maxLevel, All );
+
+   real_t spectralRadius = chebyshev::estimateRadius( stokesABlockOperator, maxLevel, 25u, storage, *uTmp, *uSpecTmp );
+
+   CGSolver< StokesABlockType > cgSolverSpectrum( storage, minLevel, maxLevel );
+
+   real_t lowerBound = 0.0, upperBound = 0.0;
+
+   estimateSpectralBoundsWithCG(
+       stokesABlockOperator, cgSolverSpectrum, *uTmp, *uSpecTmp, 100u, storage, maxLevel, lowerBound, upperBound );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius << ", lowerBound = " << lowerBound
+                                                  << ", upperBound = " << upperBound );
+
+   ABlockSmoother->setupCoefficients( 3u, upperBound, 4.0 );
+
+   auto ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
+   auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
+
+   auto ABlockCoarseGridSolver =
+       std::make_shared< MinResSolver< StokesABlockType > >( storage, minLevel, maxLevel, ABlockCoarseIter, ABlockCoarseTol );
+
+   auto ABlockMultigridSolver = std::make_shared< GeometricMultigridSolver< StokesABlockType > >( storage,
+                                                                                                  ABlockSmoother,
+                                                                                                  ABlockCoarseGridSolver,
+                                                                                                  ABlockRestrictionOperator,
+                                                                                                  ABlockProlongationOperator,
+                                                                                                  minLevel,
+                                                                                                  maxLevel,
+                                                                                                  ABlockPreSmooth,
+                                                                                                  ABlockPostSmooth,
+                                                                                                  0,
+                                                                                                  CycleType::VCYCLE );
+
+   uint_t SchurOuterIter = 500u;
+   real_t SchurOuterTol  = 1e-12;
+
+   auto SchurSolver =
+       std::make_shared< CGSolver< StokesSchurOperatorType > >( storage, minLevel, maxLevel, SchurOuterIter, SchurOuterTol );
+
+   auto blockPreconditioner =
+       std::make_shared< BlockFactorisationPreconditioner< StokesOperatorType, StokesABlockType, StokesSchurOperatorType > >(
+           storage, minLevel, maxLevel, schurOperator, ABlockMultigridSolver, SchurSolver, 1.0, 1.0, 1u );
+
+   uint_t fGMRESOuterIter = 10u;
+   real_t fGMRESTol       = 1e-8;
+
+   auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorType > >(
+       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, blockPreconditioner );
+   finalStokesSolver->setPrintInfo( true );
+
+   return finalStokesSolver;
+}
+
+} // namespace solvertemplates
 namespace operatorgeneration {
 
 using P2P1StokesViscoplastic =
@@ -69,7 +163,8 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-typedef operatorgeneration::P2P1StokesFullP1ViscosityOperator StokesOperator;
+typedef operatorgeneration::P2P1StokesFullP0ViscosityOperator StokesOperator;
+// typedef operatorgeneration::P2P1StokesFullP1ViscosityOperator StokesOperator;
 typedef P2P1ElementwiseBlendingStokesOperator      StokesOperatorLinear;
 typedef operatorgeneration::P2P1StokesViscoplastic StokesOperatorNonlinear;
 
@@ -142,7 +237,7 @@ int main( int argc, char* argv[] )
    const uint_t minLevel = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISSCROSS, nx, ny );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, nx, ny );
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -261,7 +356,7 @@ int main( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t > fTemp( "fTemp", storage, minLevel, maxLevel, bcVelocity );
    P2P1TaylorHoodFunction< real_t > fStrong( "fStrong", storage, minLevel, maxLevel, bcVelocity );
 
-   P2Function< real_t >  T( "T", storage, minLevel, maxLevel, bcTemp );
+   P2Function< real_t > T( "T", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > TPrev( "TPrev", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > fT( "fT", storage, minLevel, maxLevel, bcTemp );
 
@@ -273,26 +368,35 @@ int main( int argc, char* argv[] )
    P1Function< real_t > onesP1( "onesP1", storage, minLevel, maxLevel );
    P1Function< real_t > viscosityP1( "viscosityP1", storage, minLevel, maxLevel );
    P1Function< real_t > viscosityP1Nonlinear( "viscosityP1Nonlinear", storage, minLevel, maxLevel );
+   P1Function< real_t > viscosityP1NonlinearInv( "viscosityP1NonlinearInv", storage, minLevel, maxLevel );
    P1Function< real_t > viscosityP1Out( "viscosityP1Out", storage, minLevel, maxLevel );
+
+   P0Function< real_t > viscosityP0Nonlinear( "viscosityP0Nonlinear", storage, minLevel, maxLevel );
 
    onesP1.interpolate( 1.0, maxLevel, All );
    viscosityP1.interpolate( 1.0, maxLevel, All );
    viscosityP1Nonlinear.interpolate( 1.0, maxLevel, All );
+   viscosityP1NonlinearInv.interpolate( 1.0, maxLevel, All );
+   viscosityP0Nonlinear.interpolate( 1.0, maxLevel, All );
    viscosityP1Out.interpolate( 1.0, maxLevel, All );
 
    real_t etaStar = real_c( 0.001 );
    real_t sigmaY  = real_c( 1.0 );
 
-   auto stokesOperator = std::make_shared< StokesOperator >(storage, minLevel, maxLevel, viscosityP1Nonlinear);
-   auto stokesOperatorLinear = std::make_shared< StokesOperatorLinear >( storage, minLevel, maxLevel );
+   // auto stokesOperator = std::make_shared< StokesOperator >(storage, minLevel, maxLevel, viscosityP1Nonlinear);
+   auto stokesOperator          = std::make_shared< StokesOperator >( storage, minLevel, maxLevel, viscosityP0Nonlinear );
+   auto stokesOperatorLinear    = std::make_shared< StokesOperatorLinear >( storage, minLevel, maxLevel );
    auto stokesOperatorNonlinear = std::make_shared< StokesOperatorNonlinear >( storage,
-                                                             minLevel,
-                                                             maxLevel,
-                                                             viscosityP1,
-                                                             uOp.uvw().component( 0u ).getVertexDoFFunction(),
-                                                             uOp.uvw().component( 1u ).getVertexDoFFunction(),
-                                                             etaStar,
-                                                             sigmaY );
+                                                                               minLevel,
+                                                                               maxLevel,
+                                                                               viscosityP1,
+                                                                               uOp.uvw().component( 0u ).getVertexDoFFunction(),
+                                                                               uOp.uvw().component( 1u ).getVertexDoFFunction(),
+                                                                               etaStar,
+                                                                               sigmaY );
+
+   auto schurOperator =
+       std::make_shared< operatorgeneration::P1ElementwiseKMass >( storage, minLevel, maxLevel, viscosityP1NonlinearInv );
 
    P2TransportTimesteppingOperator         transportOperator( storage, minLevel, maxLevel, diffusivity );
    P2ElementwiseBlendingMassOperator       massOperator( storage, minLevel, maxLevel );
@@ -343,6 +447,9 @@ int main( int argc, char* argv[] )
 
    auto mmocTransport = MMOCTransport< P2Function< real_t > >( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
+   mmocTransport.setParticleLocalRadiusTolerance( 1e-6 );
+   mmocTransport.setP1Evaluate( true );
+
    StokesOperatorFS stokesOperatorFS( stokesOperator, projectionNormal, FreeslipBoundary );
 
    uint_t stokesIter   = mainConf.getParameter< uint_t >( "stokesIter" );
@@ -354,11 +461,17 @@ int main( int argc, char* argv[] )
    MinResSolver< StokesOperatorFS >            minresSolver( storage, minLevel, maxLevel, stokesIter, stokesRelTol );
    CGSolver< P2TransportTimesteppingOperator > transportSolver( storage, minLevel, maxLevel, transportIter, transportRelTol );
 
+   stokesOperator->getA().computeInverseDiagonalOperatorValues();
+
+   auto fgmresMGSolver = solvertemplates::
+       fgmresMGSolver< StokesOperator, StokesOperator::ViscousOperator_T, operatorgeneration::P1ElementwiseKMass >(
+           storage, minLevel, maxLevel, stokesOperator->getA(), *schurOperator );
+
    // EigenSparseDirectSolver<StokesOperator> eigenDirect(storage, maxLevel);
    // eigenDirect.setReassembleMatrix(true);
 
-   PETScLUSolver< StokesOperator > petscDirect( storage, maxLevel );
-   PETScLUSolver< StokesOperatorLinear > petscDirectLinear( storage, maxLevel );
+   PETScLUSolver< StokesOperator >          petscDirect( storage, maxLevel );
+   PETScLUSolver< StokesOperatorLinear >    petscDirectLinear( storage, maxLevel );
    PETScLUSolver< StokesOperatorNonlinear > petscDirectNonlinear( storage, maxLevel );
    petscDirect.setReassembleMatrix( true );
 
@@ -427,15 +540,26 @@ int main( int argc, char* argv[] )
       return etaLin;
    };
 
-   std::function< void() > calculateNewViscosity = [&]() { 
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > invHelperFunc =
+       []( const Point3D&, const std::vector< real_t >& vals ) { return ( 1.0 / vals[0] ); };
+
+   std::function< void() > calculateNewViscosity = [&]() {
       viscosityP1.interpolate( viscFunc, { T.getVertexDoFFunction() }, maxLevel, All );
-      viscosityP1Nonlinear.assign({1.0}, {viscosityP1}, maxLevel, All);
+      viscosityP1Nonlinear.assign( { 1.0 }, { viscosityP1 }, maxLevel, All );
+      viscosityP1NonlinearInv.interpolate( invHelperFunc, { viscosityP1Nonlinear }, maxLevel, All );
+      communication::syncFunctionBetweenPrimitives( viscosityP1Nonlinear, maxLevel );
+      viscosityP0Nonlinear.averageFromP1( viscosityP1Nonlinear, maxLevel );
+      viscosityP0Nonlinear.transferToAllLowerLevels( maxLevel );
    };
 
-   std::function< void() > calculateNewViscosityNonlinear = [&]() { 
+   std::function< void() > calculateNewViscosityNonlinear = [&]() {
       viscosityP1.interpolate( viscFunc, { T.getVertexDoFFunction() }, maxLevel, All );
-      evaluateVisc.apply(onesP1, viscosityP1Nonlinear, maxLevel, All);
-      viscosityP1Nonlinear.multElementwise({viscosityP1Nonlinear, *(onesOp.getInverseDiagonalValues())}, maxLevel, All);
+      evaluateVisc.apply( onesP1, viscosityP1Nonlinear, maxLevel, All );
+      viscosityP1Nonlinear.multElementwise( { viscosityP1Nonlinear, *( onesOp.getInverseDiagonalValues() ) }, maxLevel, All );
+      viscosityP1NonlinearInv.interpolate( invHelperFunc, { viscosityP1Nonlinear }, maxLevel, All );
+      communication::syncFunctionBetweenPrimitives( viscosityP1Nonlinear, maxLevel );
+      viscosityP0Nonlinear.averageFromP1( viscosityP1Nonlinear, maxLevel );
+      viscosityP0Nonlinear.transferToAllLowerLevels( maxLevel );
    };
 
    std::function< void() > solveU = [&]() {
@@ -447,12 +571,14 @@ int main( int argc, char* argv[] )
       vectorMassOperator.apply( fStrong.uvw(), f.uvw(), maxLevel, All );
 
       calculateNewViscosity();
+      stokesOperator->getA().computeInverseDiagonalOperatorValues();
 
       stokesResidualInitial = calculateResidual();
 
       fDirect.assign( { 1.0 }, { f }, maxLevel, All );
       // eigenDirect.solve(*stokesOperator, uDirect, fDirect, maxLevel);
-      petscDirect.solve( *stokesOperator, uDirect, fDirect, maxLevel );
+      fgmresMGSolver->solve( *stokesOperator, uDirect, fDirect, maxLevel );
+      // petscDirect.solve( *stokesOperator, uDirect, fDirect, maxLevel );
       // petscDirectLinear.solve(*stokesOperatorLinear, uDirect, fDirect, maxLevel);
       u.assign( { 1.0 }, { uDirect }, maxLevel, All );
 
@@ -486,6 +612,7 @@ int main( int argc, char* argv[] )
          uOp.assign( { 1.0 }, { u }, maxLevel, All );
 
          calculateNewViscosityNonlinear();
+         stokesOperator->getA().computeInverseDiagonalOperatorValues();
 
          stokesResidualInitial = calculateResidual();
 
@@ -496,7 +623,8 @@ int main( int argc, char* argv[] )
 
          fDirect.assign( { 1.0 }, { f }, maxLevel, All );
          // eigenDirect.solve(*stokesOperator, uDirect, fDirect, maxLevel);
-         petscDirect.solve( *stokesOperator, uDirect, fDirect, maxLevel );
+         fgmresMGSolver->solve( *stokesOperator, uDirect, fDirect, maxLevel );
+         // petscDirect.solve( *stokesOperator, uDirect, fDirect, maxLevel );
          u.assign( { 1.0 }, { uDirect }, maxLevel, All );
 
          uOp.assign( { 1.0 }, { u }, maxLevel, All );
@@ -579,6 +707,8 @@ int main( int argc, char* argv[] )
       vtkOutput.add( viscosityP1Nonlinear );
    }
 
+   vtkOutput.add( viscosityP0Nonlinear );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Starting initial Stokes solve\n\n" );
 
    solveU();
@@ -592,6 +722,10 @@ int main( int argc, char* argv[] )
 
    if ( useAdios2 )
    {
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+         vtkOutput.write( level, 0U );
+      }
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       adios2Output->write( maxLevel, 0U );
 #else
@@ -626,8 +760,8 @@ int main( int argc, char* argv[] )
       uPrev.assign( { 1.0 }, { u }, maxLevel, All );
       uOp.assign( { 1.0 }, { u }, maxLevel, All );
 
-      evaluateVisc.apply(onesP1, viscosityP1Out, maxLevel, All);
-      viscosityP1Out.multElementwise({viscosityP1Out, *(onesOp.getInverseDiagonalValues())}, maxLevel, All);
+      evaluateVisc.apply( onesP1, viscosityP1Out, maxLevel, All );
+      viscosityP1Out.multElementwise( { viscosityP1Out, *( onesOp.getInverseDiagonalValues() ) }, maxLevel, All );
 
       WALBERLA_LOG_INFO_ON_ROOT( "Starting Stokes\n\n" );
 
@@ -647,6 +781,10 @@ int main( int argc, char* argv[] )
       {
          if ( useAdios2 )
          {
+            for ( uint_t level = minLevel; level <= maxLevel; level++ )
+            {
+               vtkOutput.write( level, iTimestep );
+            }
 #ifdef HYTEG_BUILD_WITH_ADIOS2
             adios2Output->write( maxLevel, iTimestep );
 #else

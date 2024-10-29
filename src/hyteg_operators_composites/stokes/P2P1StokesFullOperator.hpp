@@ -27,6 +27,7 @@
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockFullOperator.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1Viscosity.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0Viscosity.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityAnnulusMap.hpp"
@@ -89,6 +90,11 @@ using P2P1StokesFullP1ViscosityIcosahedralShellMapOperator =
     detail::P2P1StokesP1VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap,
                                                operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
                                                operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+
+using P2P1StokesFullP0ViscosityOperator =
+    detail::P2P1StokesP0VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0Viscosity,
+                                               operatorgeneration::P1ToP2GradientOperator,
+                                               operatorgeneration::P2ToP1DivergenceOperator >;
 
 using P2P1StokesFullP0ViscosityIcosahedralShellMapOperator =
     detail::P2P1StokesP0VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap,

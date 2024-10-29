@@ -38,4 +38,4 @@ waLBerla_add_executable( NAME SphericalShellBenchRotation
 
 waLBerla_add_executable( NAME TosiNonlinearUnitSquare
         FILES  TosiNonlinearUnitSquare.cpp
-        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes)
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-k_mass opgen-composites-stokes)

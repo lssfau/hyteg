@@ -6,7 +6,7 @@ Parameters
   // domain
   level 2;
   minLevel 0;
-  maxLevel 0;
+  maxLevel 5;
   
   // Type of forcing
   // If true, uses delta forcing, else smooth forcing

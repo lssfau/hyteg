@@ -6,7 +6,7 @@ Parameters
   rMin 1.22;
   rMax 2.22;
 
-  RayleighNumber 2e7;
+  RayleighNumber 7e3;
   DissipationNumber 0.5;
   alpha 1.0;
   thermalConductivity 1.0;
@@ -14,12 +14,18 @@ Parameters
   rho 1.0;
   cp 1.0;
 
-  lmax 3;
-  mSph 2;
+  lmax 4;
+  mSph 0;
+
+  cubicSymmetry true;
+
+  lmaxC 4;
+  mSphC 4;
+
   expScaling 10.0;
   directScaling 6e-2;
 
-  epsC 0.0;
+  epsC 0.001;
   epsS 0.1;
   eps 0.01;
 
@@ -35,8 +41,8 @@ Parameters
   plateSwitchFreq 100;
   plateVelRad 0.0;
 
-  freeslip false;
-  mixed true;
+  freeslip true;
+  mixed false;
 
   rMu 1;
   TRef 0.5;
@@ -46,7 +52,7 @@ Parameters
   nx 10;
   ny 4;
 
-  maxLevel 3;
+  maxLevel 4;
   minLevel 2;
 
   verbose true;
@@ -69,7 +75,7 @@ Parameters
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterations 50;
+  fgmresIterations 25;
 
   uzawaPreSmooth 3;
   uzawaPostSmooth 3;

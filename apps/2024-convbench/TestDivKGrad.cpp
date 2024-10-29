@@ -105,16 +105,19 @@ int main( int argc, char* argv[] )
    // AnnulusMap::setMap( *setupStorage );
    // auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
-   MeshInfo meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+   MeshInfo meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/2D/tri_1el.msh" );
+   // MeshInfo meshInfo     = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
    P0Function< real_t > T( "T", storage, minLevel, maxLevel );
 
-   std::function< real_t( const Point3D& ) > TInterp = []( const Point3D& x ) { return x.norm(); };
+   real_t globalVal = 0.0;
 
-   T.interpolate( TInterp, maxLevel, All );
+   std::function< real_t( const Point3D& ) > TInterp = [&]( const Point3D& x ) { return std::exp(5.0 * x.norm()); };
+
+   // T.interpolate( TInterp, maxLevel, All );
 
    // for ( auto it : storage->getCells() )
    // {

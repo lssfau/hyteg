@@ -423,7 +423,67 @@ class P0Function : public Function< P0Function< ValueType > >
       }
       else
       {
-         WALBERLA_ABORT("Not implemented");
+         // WALBERLA_ABORT("Not implemented");
+         for ( auto& it : this->storage_->getFaces() )
+         {
+            PrimitiveID faceID = it.first;
+            Face&       face   = *( it.second );
+
+            uint_t coarseLevel = level - 1;
+            uint_t fineLevel   = level;
+
+            const auto coarseDofMemory = this->getDGFunction()->volumeDoFFunction()->dofMemory( faceID, coarseLevel );
+            const auto fineDofMemory   = this->getDGFunction()->volumeDoFFunction()->dofMemory( faceID, fineLevel );
+
+            for ( auto coarseFaceType : facedof::allFaceTypes )
+            {
+               for ( const auto& itSrc : facedof::macroface::Iterator( coarseLevel, coarseFaceType ) )
+               {
+                  const indexing::Index& coarseElementIdx = itSrc;
+
+                  std::vector< hyteg::indexing::Index > fineElementIndices;
+                  std::vector< facedof::FaceType >      fineFaceTypes;
+
+                  real_t fineAverage = 0.0;
+                  real_t fineInvAverage = 0.0;
+
+                  volumedofspace::indexing::getFineMicroElementsFromCoarseMicroElement(
+                     coarseElementIdx, coarseFaceType, fineElementIndices, fineFaceTypes );
+
+                  WALBERLA_CHECK_EQUAL( fineElementIndices.size(), fineFaceTypes.size() );
+
+                  for ( uint_t fineIdx = 0; fineIdx < fineElementIndices.size(); fineIdx += 1 )
+                  {
+                     auto fineElementIdx = fineElementIndices[fineIdx];
+                     auto fineFaceType   = fineFaceTypes[fineIdx];
+
+                     real_t fineVal =
+                        fineDofMemory[volumedofspace::indexing::index( fineElementIdx.x(),
+                                                                        fineElementIdx.y(),
+                                                                        fineFaceType,
+                                                                        0u,
+                                                                        1u,
+                                                                        fineLevel,
+                                                                        volumedofspace::indexing::VolumeDoFMemoryLayout::SoA )];
+
+                     fineAverage += fineVal;
+                     fineInvAverage += (1.0 / fineVal);
+                  }
+
+                  // WALBERLA_LOG_INFO_ON_ROOT( "fineElementIndices.size() = " << fineElementIndices.size() );
+
+                  coarseDofMemory[volumedofspace::indexing::index( coarseElementIdx.x(),
+                                                                  coarseElementIdx.y(),
+                                                                  coarseFaceType,
+                                                                  0u,
+                                                                  1u,
+                                                                  coarseLevel,
+                                                                  volumedofspace::indexing::VolumeDoFMemoryLayout::SoA )] =
+                     fineElementIndices.size() / fineInvAverage;
+                     // fineAverage / fineElementIndices.size();
+               }
+            }
+         }
       }
    }
 
@@ -454,7 +514,8 @@ class P0Function : public Function< P0Function< ValueType > >
       auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] ) + valueTet1 * xLocal[0] +
                   valueTet2 * xLocal[1];
 
-      return (value + valueTet0 + valueTet1 + valueTet2) / 4.0;
+      // return (value + valueTet0 + valueTet1 + valueTet2) / 4.0;
+      return (valueTet0 + valueTet1 + valueTet2) / 3.0;
    }
 
    inline real_t evaluateSampledAverage( std::array< Point3D, 4 > microTets, std::array< real_t, 4 > valueTets )
@@ -535,7 +596,48 @@ class P0Function : public Function< P0Function< ValueType > >
       }
       else
       {
-         WALBERLA_ABORT("Not implemented");
+         for ( auto& it : this->getStorage()->getFaces() )
+         {
+            PrimitiveID faceId = it.first;
+            Face&       face   = *( it.second );
+
+            const auto p0DofMemory = this->getDGFunction()->volumeDoFFunction()->dofMemory( faceId, level );
+
+            auto       p1FuncId   = src.getFaceDataID();
+            const auto p1FuncData = face.getData( p1FuncId )->getPointer( level );
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  uint_t p0DofIdx = volumedofspace::indexing::index(
+                     idxIt.x(), idxIt.y(), faceType, 0, 1, level, volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
+
+                  const std::array< indexing::Index, 3 > vertexIndices =
+                      facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
+                  std::array< Point3D, 3 > elementVertices;
+                  for ( uint_t i = 0; i < 3; i++ )
+                  {
+                     const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                     elementVertices[i]( 0 )  = elementVertex[0];
+                     elementVertices[i]( 1 )  = elementVertex[1];
+                     elementVertices[i]( 2 )  = 0.0;
+                  }
+
+                  auto valueTri0 = p1FuncData[vertexdof::macroface::indexFromVertex(
+                     level, vertexIndices[0].x(), vertexIndices[0].y(), stencilDirection::VERTEX_C )];
+                  auto valueTri1 = p1FuncData[vertexdof::macroface::indexFromVertex(
+                     level, vertexIndices[1].x(), vertexIndices[1].y(), stencilDirection::VERTEX_C )];
+                  auto valueTri2 = p1FuncData[vertexdof::macroface::indexFromVertex(
+                     level, vertexIndices[2].x(), vertexIndices[2].y(), stencilDirection::VERTEX_C )];
+
+                  real_t sampledAverage = evaluateSampledAverage(
+                     elementVertices, { valueTri0, valueTri1, valueTri2 } );
+
+                  p0DofMemory[p0DofIdx] = sampledAverage;
+               }
+            }
+         }
       }
       
    }

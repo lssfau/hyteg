@@ -381,11 +381,13 @@ struct ParameterData
 {
    real_t expScaling = 10.0, directScaling = 1e-2;
 
-   uint_t lmax = 2U;
+   uint_t lmax = 2U, lmaxC = 2U;
 
-   int mSph = 2;
+   int mSph = 2, mSphC = 2;
 
    bool plateDirSwitch = false, plateCurrDir = false, verbose = false, estimateUzawaOmega = false;
+
+   bool cubicSymmetry = false;
 
    uint_t iTimeStep = 0U, maxTimeSteps = 1U, iterPicard = 5U, vtkWriteFrequency = 1U, NsCalcFreq = 10, plateSwitchFreq = 25U,
           specRadCalFreq = 100U, nVCycles = 3U, numPowerIteration = 30U;
@@ -451,8 +453,14 @@ class TALASimulation
       params.nSamples    = mainConf.getParameter< uint_t >( "NsnSamples" );
       params.useGMG      = mainConf.getParameter< bool >( "useGMG" );
 
-      params.lmax          = mainConf.getParameter< uint_t >( "lmax" );
-      params.mSph          = mainConf.getParameter< int >( "mSph" );
+      params.lmax = mainConf.getParameter< uint_t >( "lmax" );
+      params.mSph = mainConf.getParameter< int >( "mSph" );
+
+      params.lmaxC = mainConf.getParameter< uint_t >( "lmaxC" );
+      params.mSphC = mainConf.getParameter< int >( "mSphC" );
+
+      params.cubicSymmetry = mainConf.getParameter< bool >( "cubicSymmetry" );
+
       params.expScaling    = mainConf.getParameter< real_t >( "expScaling" );
       params.directScaling = mainConf.getParameter< real_t >( "directScaling" );
       params.eps           = mainConf.getParameter< real_t >( "eps" );
@@ -596,6 +604,15 @@ class TALASimulation
 
          real_t Tdev = ( params.epsC * std::cos( params.mSph * phi ) + params.epsS * std::sin( params.mSph * phi ) ) *
                        plm( params.lmax, params.mSph, theta ) * std::sin( walberla::math::pi * ( r - params.rMin ) );
+
+         if ( params.cubicSymmetry )
+         {
+            real_t Y40 = ( params.epsC * std::cos( params.mSph * theta ) ) * plm( params.lmax, params.mSph, theta );
+            real_t Y44 = ( params.epsS * std::sin( params.mSphC * phi ) ) * plm( params.lmaxC, params.mSphC, theta );
+
+            Tdev = ( Y40 + ( 5.0 / 7.0 ) * Y44 ) * std::sin( walberla::math::pi * ( r - params.rMin ) );
+         }
+
          //   std::sin( walberla::math::pi * ( r - params.rMin ) / ( params.rMax - params.rMin ) );
 
          // real_t Tdev = ( params.epsC * std::cos( params.mSph * phi ) + params.epsS * std::sin( params.mSph * phi ) ) *
@@ -686,7 +703,7 @@ class TALASimulation
       viscP2    = std::make_shared< P2Function< real_t > >( "viscP2", storage_, minLevel_, maxLevel_, bcTemp );
       viscInvP1 = std::make_shared< P1Function< real_t > >( "viscInvP1", storage_, minLevel_, maxLevel_, bcTemp );
 
-      viscP0 = std::make_shared<P0Function< real_t >>( "viscP0", storage_, minLevel_, maxLevel_ );
+      viscP0 = std::make_shared< P0Function< real_t > >( "viscP0", storage_, minLevel_, maxLevel_ );
 
       zero = std::make_shared< P2Function< real_t > >( "zero", storage_, minLevel_, maxLevel_, bcTemp );
 
@@ -791,15 +808,15 @@ class TALASimulation
       real_t rotFactor = mainConf.getParameter< real_t >( "rotFactor" );
 
       stokesOperatorRotationOpgen = std::make_shared< StokesOperatorType >( storage,
-                                                                              minLevel,
-                                                                              maxLevel,
-                                                                              *viscP0,
-                                                                              normalsP2Vec->component( 0u ),
-                                                                              normalsP2Vec->component( 1u ),
-                                                                              normalsP2Vec->component( 2u ),
-                                                                              rotFactor,
-                                                                              *rotationOperator,
-                                                                              bcVelocity );
+                                                                            minLevel,
+                                                                            maxLevel,
+                                                                            *viscP0,
+                                                                            normalsP2Vec->component( 0u ),
+                                                                            normalsP2Vec->component( 1u ),
+                                                                            normalsP2Vec->component( 2u ),
+                                                                            rotFactor,
+                                                                            *rotationOperator,
+                                                                            bcVelocity );
 
       // stokesOperatorFSSelf =
       //     std::make_shared< StokesOperatorFS >( storage, minLevel_, maxLevel_, *viscP2, *viscInvP1, *projectionOperator );
@@ -831,7 +848,7 @@ class TALASimulation
       real_t relaxSchur          = mainConf.getParameter< real_t >( "relaxSchur" );
       uint_t cgSmootherIter      = mainConf.getParameter< uint_t >( "cgSmootherIter" );
       uint_t cgSchurSmootherIter = mainConf.getParameter< uint_t >( "cgSchurSmootherIter" );
-      real_t cgSchurSmootherTol = mainConf.getParameter< real_t >( "cgSchurSmootherTol" );
+      real_t cgSchurSmootherTol  = mainConf.getParameter< real_t >( "cgSchurSmootherTol" );
 
       uint_t stokesCoarseMinresIter   = mainConf.getParameter< uint_t >( "stokesCoarseMinresIter" );
       real_t stokesCoarseMinresRelTol = mainConf.getParameter< real_t >( "stokesCoarseMinresRelTol" );
@@ -846,7 +863,8 @@ class TALASimulation
       ABlockCGSolver = std::make_shared< CGSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel, maxLevel );
 
       schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscInvP1 );
-      schurSolver = std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, cgSchurSmootherIter, cgSchurSmootherTol );
+      schurSolver =
+          std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, cgSchurSmootherIter, cgSchurSmootherTol );
 
       inexactUzawaSmoother = std::make_shared<
           InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >(
@@ -858,7 +876,7 @@ class TALASimulation
 
       ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
       ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
-      
+
       ABlockMultigridSolver =
           std::make_shared< GeometricMultigridSolver< StokesOperatorType::VelocityOperator_T > >( storage,
                                                                                                   chebyshevSmoother,
@@ -872,11 +890,10 @@ class TALASimulation
                                                                                                   0u,
                                                                                                   CycleType::VCYCLE );
 
-      blockPreconditioner =
-          std::make_shared< BlockFactorisationPreconditioner< StokesOperatorType,
-                                                              typename StokesOperatorType::VelocityOperator_T,
-                                                              SchurOperator > >(
-              storage, minLevel, maxLevel, *schurOperator, ABlockMultigridSolver, schurSolver, uzawaOmega, relaxSchur, 1u );
+      blockPreconditioner = std::make_shared< BlockFactorisationPreconditioner< StokesOperatorType,
+                                                                                typename StokesOperatorType::VelocityOperator_T,
+                                                                                SchurOperator > >(
+          storage, minLevel, maxLevel, *schurOperator, ABlockMultigridSolver, schurSolver, uzawaOmega, relaxSchur, 1u );
 
       prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
       restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >();
@@ -886,17 +903,17 @@ class TALASimulation
       // coarseGridSolver->setPrintInfo( false );
 
       multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperatorType > >( storage,
-                                                                                                 inexactUzawaSmoother,
-                                                                                                 // uzawaSmoother,
-                                                                                                 coarseGridSolver,
-                                                                                                 restrictionOperator,
-                                                                                                 prolongationOperator,
-                                                                                                 minLevel,
-                                                                                                 maxLevel,
-                                                                                                 uzawaPreSmooth,
-                                                                                                 uzawaPostSmooth,
-                                                                                                 2u,
-                                                                                                 CycleType::VCYCLE );
+                                                                                            inexactUzawaSmoother,
+                                                                                            // uzawaSmoother,
+                                                                                            coarseGridSolver,
+                                                                                            restrictionOperator,
+                                                                                            prolongationOperator,
+                                                                                            minLevel,
+                                                                                            maxLevel,
+                                                                                            uzawaPreSmooth,
+                                                                                            uzawaPostSmooth,
+                                                                                            2u,
+                                                                                            CycleType::VCYCLE );
 
       uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
 
@@ -914,7 +931,7 @@ class TALASimulation
 
       std::string startCpFilename = mainConf.getParameter< std::string >( "startCheckpointFilename" );
 
-      vtkOutput = std::make_shared< VTKOutput >( outputPath, outputFilename, storage );
+      vtkOutput       = std::make_shared< VTKOutput >( outputPath, outputFilename, storage );
       vtkOutputViscP0 = std::make_shared< VTKOutput >( outputPath, outputFilename + "_viscP0", storage );
 
       vtkOutputViscP0->add( *viscP0 );
@@ -1020,7 +1037,7 @@ class TALASimulation
    std::shared_ptr< StokesOperatorFreeSlip >    stokesOperatorFS;
    // std::shared_ptr< StokesOperatorFS > stokesOperatorFSSelf;
    std::shared_ptr< StokesOperatorType > stokesOperatorRotationOpgen;
-   std::shared_ptr< SchurOperator > schurOperator;
+   std::shared_ptr< SchurOperator >      schurOperator;
 
    std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
    std::shared_ptr< P2RotationOperator >      rotationOperator;
@@ -1035,7 +1052,7 @@ class TALASimulation
    std::shared_ptr< operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap > gradRhoRhoOpY;
    std::shared_ptr< operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap > gradRhoRhoOpZ;
 
-   std::shared_ptr< P2TransportTimesteppingOperator > transportOp;
+   std::shared_ptr< P2TransportTimesteppingOperator >                  transportOp;
    std::shared_ptr< terraneo::P2TransportIcosahedralShellMapOperator > transportTALAOp;
 
    std::shared_ptr< P2Function< real_t > > diffusivityCoeff_;
@@ -1059,33 +1076,35 @@ class TALASimulation
 
    // Multigrid
    std::shared_ptr< ChebyshevSmoother< StokesOperatorType::VelocityOperator_T > > chebyshevSmoother;
-   std::shared_ptr< CGSolver< StokesOperatorType::VelocityOperator_T > > ABlockCGSolver;
-   std::shared_ptr< CGSolver< SchurOperator > > schurSolver;
-   
-   std::shared_ptr< InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > > inexactUzawaSmoother;
+   std::shared_ptr< CGSolver< StokesOperatorType::VelocityOperator_T > >          ABlockCGSolver;
+   std::shared_ptr< CGSolver< SchurOperator > >                                   schurSolver;
 
-   std::shared_ptr<MinResSolver< StokesOperatorType::VelocityOperator_T >> ABlockCoarseGridMinresSolver;
+   std::shared_ptr<
+       InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >
+       inexactUzawaSmoother;
 
-   std::shared_ptr<P2toP2QuadraticVectorProlongation> ABlockProlongationOperator;
-   std::shared_ptr<P2toP2QuadraticVectorRestriction> ABlockRestrictionOperator;
-   std::shared_ptr<GeometricMultigridSolver< StokesOperatorType::VelocityOperator_T >> ABlockMultigridSolver;
-   
-   std::shared_ptr<BlockFactorisationPreconditioner< StokesOperatorType,
-                                                              typename StokesOperatorType::VelocityOperator_T,
-                                                              SchurOperator >> blockPreconditioner;
+   std::shared_ptr< MinResSolver< StokesOperatorType::VelocityOperator_T > > ABlockCoarseGridMinresSolver;
 
-   std::shared_ptr<P2P1StokesToP2P1StokesProlongation> prolongationOperator;
-   std::shared_ptr<P2P1StokesToP2P1StokesRestriction> restrictionOperator;
+   std::shared_ptr< P2toP2QuadraticVectorProlongation >                                  ABlockProlongationOperator;
+   std::shared_ptr< P2toP2QuadraticVectorRestriction >                                   ABlockRestrictionOperator;
+   std::shared_ptr< GeometricMultigridSolver< StokesOperatorType::VelocityOperator_T > > ABlockMultigridSolver;
 
-   std::shared_ptr<MinResSolver< StokesOperatorType >> coarseGridSolver;
+   std::shared_ptr<
+       BlockFactorisationPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >
+       blockPreconditioner;
 
-   std::shared_ptr<GeometricMultigridSolver< StokesOperatorType >> multigridSolver;
+   std::shared_ptr< P2P1StokesToP2P1StokesProlongation > prolongationOperator;
+   std::shared_ptr< P2P1StokesToP2P1StokesRestriction >  restrictionOperator;
 
-   std::shared_ptr<FGMRESSolver< StokesOperatorType >> fgmresSolver;
+   std::shared_ptr< MinResSolver< StokesOperatorType > > coarseGridSolver;
+
+   std::shared_ptr< GeometricMultigridSolver< StokesOperatorType > > multigridSolver;
+
+   std::shared_ptr< FGMRESSolver< StokesOperatorType > > fgmresSolver;
 
    // Transport
 
-   std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
+   std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > >                   transportGmresSolver;
    std::shared_ptr< GMRESSolver< terraneo::P2TransportIcosahedralShellMapOperator > >  transportTALAGmresSolver;
    std::shared_ptr< MinResSolver< terraneo::P2TransportIcosahedralShellMapOperator > > transportTALAMinresSolver;
 
@@ -1276,7 +1295,6 @@ void TALASimulation::solveU()
 
       // ABlockCoarseGridPETScSolver->setNullSpaces( { nullspaceZ.uvw(), nullspaceX.uvw(), nullspaceY.uvw() } );
 
-      
       // auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorInjection >();
 
       // auto uTmp1 = std::make_shared< P2VectorFunction< real_t > >( "uTmp1__", storage, minLevel, maxLevel );
@@ -1325,10 +1343,10 @@ void TALASimulation::solveU()
       rotationOperator->rotate( *u, maxLevel, FreeslipBoundary, false );
       uRotated->assign( { 1.0 }, { *u }, maxLevel, All );
 
-      PETScLUSolver< hyteg::StokesOperatorType > directSolver(storage, maxLevel);
+      // PETScLUSolver< hyteg::StokesOperatorType > directSolver( storage, maxLevel );
       // multigridSolverLoop.solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
-      directSolver.solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
-      // fgmresSolver->solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
+      // directSolver.solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
+      fgmresSolver->solve( *stokesOperatorRotationOpgen, *uRotated, *uRhsRotated, maxLevel );
 
       u->assign( { 1.0 }, { *uRotated }, maxLevel, All );
       rotationOperator->rotate( *u, maxLevel, FreeslipBoundary, true );
@@ -1534,7 +1552,7 @@ void TALASimulation::solve()
    writeVTK( iTimeStep );
    iTimeStep++;
 
-   uint_t adios2CheckpointFreq = mainConf.getParameter< uint_t >("adios2CheckpointFreq");
+   uint_t adios2CheckpointFreq = mainConf.getParameter< uint_t >( "adios2CheckpointFreq" );
 
    while ( simulationTime < endTime && iTimeStep < params.maxTimeSteps )
    {
@@ -1587,11 +1605,11 @@ void TALASimulation::solve()
       //    WALBERLA_ABORT( "Residual is blowing up, so exiting!" );
       // }
 
-      if ( params.storeCheckpoint && (iTimeStep % adios2CheckpointFreq == 0) )
+      if ( params.storeCheckpoint && ( iTimeStep % adios2CheckpointFreq == 0 ) )
       {
          real_t velocityRMS = nusseltcalc::velocityRMSSphere( *u, *uTmp, massOperator, params.rMin, params.rMax, maxLevel );
 
-         if( std::isnan(velocityRMS) )
+         if ( std::isnan( velocityRMS ) )
          {
             WALBERLA_ABORT( "I am not checkpointing NaNs" );
          }
@@ -1600,11 +1618,11 @@ void TALASimulation::solve()
             std::string adiosXmlConfig = mainConf.getParameter< std::string >( "adiosXmlConfig" );
 
             auto adios2Exporter = std::make_shared< AdiosCheckpointExporter >( adiosXmlConfig );
-            
+
             adios2Exporter->registerFunction( u->uvw(), minLevel, maxLevel );
             adios2Exporter->registerFunction( u->p(), minLevel, maxLevel );
             adios2Exporter->registerFunction( *T, minLevel, maxLevel );
-            
+
             adios2Exporter->storeCheckpoint( cpPath, cpFilename );
          }
       }
