@@ -780,7 +780,7 @@ class TALASimulation
       advectionCoeff_->interpolate( 1.0, maxLevel, All );
 
       transportTALAOp->setDiffusivityCoeff( diffusivityCoeff_ );
-      transportTALAOp->setAdvectionCoeff( advectionCoeff_ );
+      // transportTALAOp->setAdvectionCoeff( advectionCoeff_ );
       transportTALAOp->setTemperature( TInt );
       transportTALAOp->setVelocity( u );
 
@@ -1371,31 +1371,36 @@ void TALASimulation::solveT()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING TRANSPORT SOLVER with dt = %2.6e", dt ) );
 
-   TInt->assign( { 1.0 }, { *TPrev }, maxLevel, All );
+   for(uint_t iTempSteps = 0u; iTempSteps < 1u; iTempSteps++)
+   {
+      TInt->assign( { 1.0 }, { *TPrev }, maxLevel, All );
 
-   transport.step( *TInt, u->uvw(), uPrev->uvw(), maxLevel, All, dt, 1, true );
+      transport.step( *TInt, u->uvw(), uPrev->uvw(), maxLevel, All, dt, 1, true );
 
-   TInt->interpolate( bcTemperature, maxLevel, DirichletBoundary );
+      TInt->interpolate( bcTemperature, maxLevel, DirichletBoundary );
 
-   // transportOp->setDt( dt );
-   transportTALAOp->setTimestep( dt );
+      // transportOp->setDt( dt );
+      transportTALAOp->setTimestep( dt );
 
-   real_t supgScaling = mainConf.getParameter< real_t >( "supgScaling" );
+      real_t supgScaling = mainConf.getParameter< real_t >( "supgScaling" );
 
-   transportTALAOp->setSUPGScaling( supgScaling );
+      // transportTALAOp->setSUPGScaling( supgScaling );
 
-   transportTALAOp->applyRHS( *TRhs, maxLevel, Inner | NeumannBoundary );
+      transportTALAOp->applyRHS( *TRhs, maxLevel, Inner | NeumannBoundary );
 
-   TInt->interpolate( bcTemperature, maxLevel, DirichletBoundary );
+      TInt->interpolate( bcTemperature, maxLevel, DirichletBoundary );
 
-   T->interpolate( bcTemperature, maxLevel, DirichletBoundary );
+      T->interpolate( bcTemperature, maxLevel, DirichletBoundary );
 
-   // PETScLUSolver< terraneo::P2TransportIcosahedralShellMapOperator > transportDirectSolver( storage, maxLevel );
+      // PETScLUSolver< terraneo::P2TransportIcosahedralShellMapOperator > transportDirectSolver( storage, maxLevel );
 
-   // transportGmresSolver->solve( *transportOp, *T, *TRhs, maxLevel );
-   transportTALAGmresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
-   // transportTALAMinresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
-   // transportDirectSolver.solve( *transportTALAOp, *T, *TRhs, maxLevel );
+      // transportGmresSolver->solve( *transportOp, *T, *TRhs, maxLevel );
+      transportTALAGmresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
+      // transportTALAMinresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
+      // transportDirectSolver.solve( *transportTALAOp, *T, *TRhs, maxLevel );
+
+      TPrev->assign( { 1.0 }, { *T }, maxLevel, All );
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
 }

@@ -1,0 +1,80 @@
+Parameters
+{
+  nx 12;
+  ny 12;
+	
+  rMin 1.0;
+  rMax 2.0;
+  # rMin 3.141592653589793;
+  # rMax 6.283185307179586;
+
+  RayleighNumber 1e5;
+  DissipationNumber 0.5;
+  alpha 1.0;
+  thermalConductivity 1.0;
+
+  nsCalcFreq 1;
+
+  rho 1.0;
+  cp 1.0;
+
+  plateDirSwitch false;
+  plateSwitchFreq 100;
+  plateVelRad 0.0;
+  
+  nPlumes 8;
+
+  nx 10;
+  ny 4;
+
+  minLevel 4;
+  maxLevel 4;
+
+  AiniPerturb 0.1;
+
+  verbose true;
+
+  stokesMinresIter 2000;
+  stokesMinresTol 1e-4;
+
+  transportMinresIter 1000;
+  transportMinresTol 1e-5;
+
+  transportGmresIter 1000;
+  transportGmresTol 1e-8;
+
+  residualExitTol 1e12;
+
+  MMOC true;
+  SUPG false;
+  compressible true;
+  adiabaticHeating true;
+  shearHeating true;
+
+  Direct false;
+
+  maxTimeSteps 100001;
+  dtStart 1e-6;
+  dtMin 1e-12;
+  dtMax 1e-1;
+  dtRaster 1e-7;
+  cflMax 0.25;
+  simulationTime 1e1;
+  nonLinIter 4;
+  iterPicard 1;
+
+  level 1;
+
+  cpPath ./output/checkpoint;
+  cpFilename KingSquare_TALA_Ra_1e5_Di_0_5_22062024_Checkpoint_div_2;
+  cpStartFilename KingSquare_TALA_Ra_1e5_Di_0_5_22062024_Checkpoint_div_1;
+
+  outputPath ./output/;
+  outputFilename KingSquare_TALA_Ra_1e5_Di_0_5;
+  vtkWriteFrequency 25;
+  adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
+
+  storeCheckpointFreq 1000;
+  storeCheckpoint false;
+  startFromCheckpoint false;
+}

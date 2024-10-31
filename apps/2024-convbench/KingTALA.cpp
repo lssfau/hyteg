@@ -1,0 +1,834 @@
+#include "core/DataTypes.h"
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/math/Constants.h"
+#include "core/mpi/MPIManager.h"
+
+#include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
+#include "hyteg/composites/StrongFreeSlipWrapper.hpp"
+#include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GMRESSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
+// #include "hyteg/operatorgeneration/generated/DivDiv/P2VectorElementwiseDivDiv_float64.hpp"
+
+#include "terraneo/utils/NusseltNumberOperator.hpp"
+#include "mixed_operator/VectorMassOperator.hpp"
+// #include "SimpleCompStokesOperator.hpp"
+#include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMass.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
+// #include "hyteg_operators/operators/k_mass/P1ToP2ElementwiseKMass.hpp"
+
+#include "terraneo/operators/P2TransportTALAOperator.hpp"
+// #include "P2TransportTALAOperator.hpp"
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+
+using walberla::real_t;
+using walberla::uint_t;
+
+using namespace hyteg;
+
+using namespace terraneo;
+
+using P2ToP1ElementwiseKMass = operatorgeneration::P2ToP1ElementwiseKMass;
+// using P1ToP2ElementwiseKMass = operatorgeneration::P1ToP2ElementwiseKMass;
+
+namespace hyteg {
+
+const real_t boundaryMarkerThreshold = 1e-6;
+
+std::function< bool( const Point3D& ) > bottomMarker = []( const Point3D& x ) {
+   if ( std::abs( x[1] ) < boundaryMarkerThreshold )
+   {
+      return true;
+   }
+   else
+   {
+      return false;
+   }
+};
+
+std::function< bool( const Point3D& ) > rightMarker = []( const Point3D& x ) {
+   if ( std::abs( x[0] - 1.0 ) < boundaryMarkerThreshold )
+   {
+      return true;
+   }
+   else
+   {
+      return false;
+   }
+};
+
+std::function< bool( const Point3D& ) > leftMarker = []( const Point3D& x ) {
+   if ( std::abs( x[0] ) < boundaryMarkerThreshold )
+   {
+      return true;
+   }
+   else
+   {
+      return false;
+   }
+};
+
+std::function< bool( const Point3D& ) > topMarker = []( const Point3D& x ) {
+   if ( std::abs( x[1] - 1.0 ) < boundaryMarkerThreshold )
+   {
+      return true;
+   }
+   else
+   {
+      return false;
+   }
+};
+
+std::function< bool( const Point3D& ) > cornersMarker = []( const Point3D& x ) {
+   if ( ( topMarker( x ) && rightMarker( x ) ) || ( bottomMarker( x ) && rightMarker( x ) ) ||
+        ( topMarker( x ) && leftMarker( x ) ) || ( bottomMarker( x ) && leftMarker( x ) ) )
+   {
+      return true;
+   }
+   else
+   {
+      return false;
+   }
+};
+
+using P2P1StokesOperator = operatorgeneration::P2P1StokesFullOperator;
+typedef StrongFreeSlipWrapper< P2P1StokesOperator, P2ProjectNormalOperator, true > StokesOperatorFreeSlip;
+
+// std::function< real_t( const Point3D&, real_t ) > advectionSUPG = []( const Point3D& x, real_t v ) { return getDelta( v ); };
+
+enum BoundaryMarkers
+{
+   Bottom = 23,
+   Right,
+   Left,
+   Top,
+   Corners
+};
+
+struct ParameterContainer
+{
+   bool verbose = true;
+
+   real_t rMin = 1.22, rMax = 2.22;
+
+   uint_t maxTimeSteps = 1000, vtkWriteFrequency = 1U;
+
+   bool MMOC = true, SUPG = false, compressible = true, adiabaticHeating = true, shearHeating = true;
+
+   real_t Ra = 1e5, Di = 0.5, T0 = 0.091, diffusivity = 1.0, cflMax = 0.75, AiniPerturb = 0.1;
+
+   real_t rho0 = 1.0, alpha = 1.0, cpr = 1.0, cvr = 1.0, grueneisen = 1.0, alphabar = 1.0, cpbar = 1.0, chibar = 1.0, k_ = 1.0;
+
+   real_t minresRelTol = 1e-4, minresAbsTol = 1e-8, gmresTol = 1e-5;
+   uint_t minresIter = 1000U, gmresIter = 1000U;
+
+   uint_t nsCalcFreq = 10U;
+};
+
+class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
+{
+ public:
+   P2TransportTimesteppingOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const uint_t                               minLevel,
+                                    const uint_t                               maxLevel,
+                                    real_t                                     k )
+   : Operator( storage, minLevel, maxLevel )
+   , diffusionOperator( storage, minLevel, maxLevel )
+   , massOperator( storage, minLevel, maxLevel )
+   , k_( k )
+   {}
+
+   ///[TransportOperatorApply]
+   void apply( const P2Function< real_t >& src,
+               const P2Function< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const
+   {
+      diffusionOperator.apply( src, dst, level, flag, updateType );
+      dst.assign( { k_ * dt }, { dst }, level, flag );
+      massOperator.apply( src, dst, level, flag, Add );
+   }
+   ///[TransportOperatorApply]
+
+   void setDt( real_t dt_ ) { dt = dt_; }
+
+ private:
+   P2ElementwiseBlendingLaplaceOperator diffusionOperator;
+   P2ElementwiseBlendingMassOperator    massOperator;
+
+   real_t dt = 0.01, k_ = 1.0;
+};
+
+class TALASimulation
+{
+ public:
+   TALASimulation( const walberla::Config::BlockHandle& mainConf_,
+                   std::shared_ptr< PrimitiveStorage >  storage_,
+                   uint_t                               minLevel_,
+                   uint_t                               maxLevel_ )
+   : mainConf( mainConf_ )
+   , storage( storage_ )
+   , minLevel( minLevel_ )
+   , maxLevel( maxLevel_ )
+   , vecMassOperator( storage, minLevel_, maxLevel_ )
+   , massOperator( storage, minLevel_, maxLevel_ )
+   , massOperatorP1( storage, minLevel_, maxLevel_ )
+   , transport( storage, minLevel_, maxLevel_, TimeSteppingScheme::RK4 )
+   {
+      params.rMin = mainConf.getParameter< real_t >( "rMin" );
+      params.rMax = mainConf.getParameter< real_t >( "rMax" );
+
+      endTime             = mainConf.getParameter< real_t >( "simulationTime" );
+      params.maxTimeSteps = mainConf.getParameter< uint_t >( "maxTimeSteps" );
+
+      params.vtkWriteFrequency = mainConf.getParameter< uint_t >( "vtkWriteFrequency" );
+
+      params.AiniPerturb = mainConf.getParameter< real_t >( "AiniPerturb" );
+
+      params.Ra = mainConf.getParameter< real_t >( "RayleighNumber" );
+      params.Di = mainConf.getParameter< real_t >( "DissipationNumber" );
+
+      params.MMOC             = mainConf.getParameter< bool >( "MMOC" );
+      params.SUPG             = mainConf.getParameter< bool >( "SUPG" );
+      params.compressible     = mainConf.getParameter< bool >( "compressible" );
+      params.adiabaticHeating = mainConf.getParameter< bool >( "adiabaticHeating" );
+      params.shearHeating     = mainConf.getParameter< bool >( "shearHeating" );
+
+      params.minresIter   = mainConf.getParameter< uint_t >( "stokesMinresIter" );
+      params.minresRelTol = mainConf.getParameter< real_t >( "stokesMinresTol" );
+
+      params.nsCalcFreq = mainConf.getParameter< real_t >( "nsCalcFreq" );
+
+      params.gmresIter = mainConf.getParameter< uint_t >( "transportGmresIter" );
+      params.gmresTol  = mainConf.getParameter< real_t >( "transportGmresTol" );
+
+      normalsFS = [=]( const Point3D& x, Point3D& nx ) {
+         if ( rightMarker( x ) )
+         {
+            nx[0] = 1.0;
+            nx[1] = 0.0;
+         }
+         else if ( leftMarker( x ) )
+         {
+            nx[0] = -1.0;
+            nx[1] = 0.0;
+         }
+         else if ( topMarker( x ) )
+         {
+            nx[0] = 0.0;
+            nx[1] = 1.0;
+         }
+         else if ( bottomMarker( x ) )
+         {
+            nx[0] = 0.0;
+            nx[1] = -1.0;
+         }
+         // else if(cornersMarker(x))
+         // {
+         //    Point3D center(0.5, 0.5, 0.0);
+         //    nx = x - center;
+         //    nx.normalize();
+         // }
+         else
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Probably shouldn't be here!" );
+         }
+      };
+
+      tempDevBC = [=]( const Point3D& x ) {
+         if ( topMarker( x ) )
+         {
+            return 0.0;
+         }
+         else if ( bottomMarker( x ) )
+         {
+            // return ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
+            return 1.0;
+         }
+         return 0.0;
+      };
+
+      tempIni = [=]( const Point3D& x ) {
+         // return 0.0;
+         // real_t tempDevMax = ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
+         // return ( 1 - x[1] ) * tempDevMax +
+         return ( 1 - x[1] ) + params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
+      };
+
+      TRefFunc = [=]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
+
+      BoundaryCondition bcTemp, bcVelocity, bcVelocityX, bcVelocityY;
+
+      bcTemp.createDirichletBC( "DirichletBottomAndTop",
+                                { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Corners } );
+      bcTemp.createNeumannBC( "NeumannLeftAndRight", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
+
+      bcVelocity.createAllInnerBC();
+      // bcVelocity.createDirichletBC(
+      //     "AllDirichlet", { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Left, BoundaryMarkers::Right } );
+      bcVelocity.createFreeslipBC(
+          "AllFreeslip", { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Left, BoundaryMarkers::Right } );
+      // bcVelocity.createFreeslipBC( "DirichletCorners", { BoundaryMarkers::Corners } );
+      bcVelocity.createDirichletBC( "DirichletCorners", { BoundaryMarkers::Corners } );
+
+      bcVelocityX.createAllInnerBC();
+      bcVelocityX.createDirichletBC( "LRDirichlet", { BoundaryMarkers::Left, BoundaryMarkers::Right, BoundaryMarkers::Corners } );
+      bcVelocityX.createNeumannBC( "TBNeumann", { BoundaryMarkers::Top, BoundaryMarkers::Bottom } );
+
+      bcVelocityY.createAllInnerBC();
+      bcVelocityY.createNeumannBC( "LRNeumann", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
+      bcVelocityY.createDirichletBC( "TBDirichlet", { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Corners } );
+
+      TDev     = std::make_shared< P2Function< real_t > >( "TDev", storage_, minLevel_, maxLevel_, bcTemp );
+      TDevPrev = std::make_shared< P2Function< real_t > >( "TDevPrev", storage_, minLevel_, maxLevel_, bcTemp );
+      TDevInt  = std::make_shared< P2Function< real_t > >( "TDevInt", storage_, minLevel_, maxLevel_, bcTemp );
+      TRef     = std::make_shared< P2Function< real_t > >( "TRef", storage_, minLevel_, maxLevel_, bcTemp );
+      TRefDev  = std::make_shared< P2Function< real_t > >( "TRefDev", storage_, minLevel_, maxLevel_, bcTemp );
+      TRes     = std::make_shared< P2Function< real_t > >( "TRes", storage_, minLevel_, maxLevel_, bcTemp );
+      TRhs     = std::make_shared< P2Function< real_t > >( "TRhs", storage_, minLevel_, maxLevel_, bcTemp );
+      rhoP2    = std::make_shared< P2Function< real_t > >( "rhoP2", storage_, minLevel_, maxLevel_, bcTemp );
+      rhoInvP2 = std::make_shared< P2Function< real_t > >( "rhoInvP2", storage_, minLevel_, maxLevel_, bcTemp );
+      viscP2   = std::make_shared< P2Function< real_t > >( "viscP2", storage_, minLevel_, maxLevel_ );
+
+      Ttemp = std::make_shared< P2Function< real_t > >( "Ttemp", storage_, minLevel_, maxLevel_ );
+
+      zero = std::make_shared< P2Function< real_t > >( "zero", storage_, minLevel_, maxLevel_, bcTemp );
+
+      gradRhoByRhoP2 = std::make_shared< P2VectorFunction< real_t > >( "gradRhoByRhoP2", storage_, minLevel_, maxLevel_ );
+
+      u     = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "u", storage_, minLevel_, maxLevel_, bcVelocity );
+      uRes  = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRes", storage_, minLevel_, maxLevel_, bcVelocity );
+      uPrev = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uPrev", storage_, minLevel_, maxLevel_, bcVelocity );
+      uRhs  = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhs", storage_, minLevel_, maxLevel_, bcVelocity );
+      uRhsStrong =
+          std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhsStrong", storage_, minLevel_, maxLevel_, bcVelocity );
+      uTemp = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uTemp", storage_, minLevel_, maxLevel_, bcVelocity );
+
+      u->uvw().setBoundaryCondition( bcVelocityX, 0U );
+      u->uvw().setBoundaryCondition( bcVelocityY, 1U );
+
+      uRhs->uvw().setBoundaryCondition( bcVelocityX, 0U );
+      uRhs->uvw().setBoundaryCondition( bcVelocityY, 1U );
+
+      transportOp = std::make_shared< P2TransportTimesteppingOperator >( storage_, minLevel_, maxLevel_, params.diffusivity );
+
+      transportTALAOp = std::make_shared< terraneo::P2TransportOperator >( storage_, minLevel_, maxLevel_ );
+
+      gradRhoByRhoP2->component( 0U ).interpolate( 0.0, maxLevel_, All );
+
+      if ( params.compressible )
+      {
+         rhoFunc = [=]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.alpha / params.Di ); };
+         gradRhoByRhoP2->component( 1U ).interpolate( params.alpha / params.Di, maxLevel_, All );
+      }
+      else
+      {
+         rhoFunc = [=]( const Point3D& ) { return 1.0; };
+         gradRhoByRhoP2->component( 1U ).interpolate( 0.0, maxLevel_, All );
+      }
+
+      rhoInvFunc = [=]( const Point3D& x ) { return 1.0 / rhoFunc( x ); };
+
+      gradRhoByRhoX =
+          std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 0U ) );
+      gradRhoByRhoY =
+          std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 1U ) );
+
+      transportTALAOp->setVelocity( u );
+      transportTALAOp->setViscosity( viscP2 );
+      transportTALAOp->setTemperature( TDev );
+
+      invGravityField = std::make_shared< P2VectorFunction< real_t > >( "invGravityField", storage_, minLevel_, maxLevel_ );
+
+      diffusionTermCoeff    = std::make_shared< P2Function< real_t > >( "diffusionTermCoeff", storage_, minLevel_, maxLevel_ );
+      adiabaticTermCoeff    = std::make_shared< P2Function< real_t > >( "adiabaticTermCoeff", storage_, minLevel_, maxLevel_ );
+      shearHeatingTermCoeff = std::make_shared< P2Function< real_t > >( "shearHeatingTermCoeff", storage_, minLevel_, maxLevel_ );
+      constEnergyCoeff      = std::make_shared< P2Function< real_t > >( "constEnergyCoeff", storage_, minLevel_, maxLevel_ );
+      surfTempCoeff         = std::make_shared< P2Function< real_t > >( "surfTempCoeff", storage_, minLevel_, maxLevel_ );
+
+      rhoP2->interpolate( rhoFunc, maxLevel_, All );
+      rhoInvP2->interpolate( rhoInvFunc, maxLevel_, All );
+
+      diffusionTermCoeff->interpolate( params.k_ / params.cpbar, maxLevel_, All );
+      diffusionTermCoeff->multElementwise( { *diffusionTermCoeff, *rhoInvP2 }, maxLevel_, All );
+
+      adiabaticTermCoeff->interpolate( params.alphabar * params.Di / params.cpbar, maxLevel_, All );
+
+      shearHeatingTermCoeff->interpolate( params.Di / ( params.Ra * params.cpbar ), maxLevel_, All );
+      shearHeatingTermCoeff->multElementwise( { *shearHeatingTermCoeff, *rhoInvP2 }, maxLevel_, All );
+
+      constEnergyCoeff->interpolate( 0.0, maxLevel_, All );
+      surfTempCoeff->interpolate( 0.0, maxLevel_, All );
+
+      TRef->interpolate( TRefFunc, maxLevel_, All );
+
+      invGravityField->component( 0U ).interpolate( 0.0, maxLevel_, All );
+      invGravityField->component( 1U ).interpolate( 1.0, maxLevel_, All );
+
+      transportTALAOp->setInvGravity( invGravityField );
+
+      transportTALAOp->setDiffusivityCoeff( diffusionTermCoeff );
+      transportTALAOp->setAdiabaticCoeff( adiabaticTermCoeff );
+      transportTALAOp->setShearHeatingCoeff( shearHeatingTermCoeff );
+      transportTALAOp->setConstEnergyCoeff( constEnergyCoeff );
+      transportTALAOp->setSurfTempCoeff( surfTempCoeff );
+      transportTALAOp->setReferenceTemperature( TRef );
+
+      transportTALAOp->setTALADict( {
+          { terraneo::TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY, !params.MMOC },
+          { terraneo::TransportOperatorTermKey::DIFFUSION_TERM, true },
+          { terraneo::TransportOperatorTermKey::SHEAR_HEATING_TERM, params.shearHeating },
+          { terraneo::TransportOperatorTermKey::ADIABATIC_HEATING_TERM, params.adiabaticHeating },
+          { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, false },
+          { terraneo::TransportOperatorTermKey::SUPG_STABILISATION, params.SUPG },
+      } );
+
+      transportTALAOp->initializeOperators();
+
+      projectionOperator = std::make_shared< P2ProjectNormalOperator >( storage_, minLevel_, maxLevel_, normalsFS );
+
+      viscP2->interpolate( 1.0, maxLevel_, All );
+      stokesOperator = std::make_shared< P2P1StokesOperator >( storage_, minLevel_, maxLevel_, *viscP2 );
+
+      stokesOperatorFS = std::make_shared< StokesOperatorFreeSlip >( stokesOperator, projectionOperator, FreeslipBoundary );
+
+      params.cflMax = mainConf.getParameter< real_t >( "cflMax" );
+
+      params.verbose     = mainConf.getParameter< bool >( "verbose" );
+      stokesMinresSolver = std::make_shared< MinResSolver< StokesOperatorFreeSlip > >(
+          storage_, minLevel_, maxLevel_, params.minresIter, params.minresRelTol );
+      stokesMinresSolver->setPrintInfo( params.verbose );
+
+      stokesMinresSolverNoFS = std::make_shared< MinResSolver< P2P1StokesOperator > >(
+          storage_, minLevel_, maxLevel_, params.minresIter, params.minresRelTol );
+      stokesMinresSolverNoFS->setPrintInfo( params.verbose );
+
+      stokesDirectSolver = std::make_shared< PETScLUSolver< P2P1StokesOperator > >( storage_, maxLevel_ );
+
+      transportGmresSolver = std::make_shared< GMRESSolver< P2TransportTimesteppingOperator > >(
+          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
+      transportGmresSolver->setPrintInfo( params.verbose );
+
+      transportTALAGmresSolver = std::make_shared< GMRESSolver< terraneo::P2TransportOperator > >(
+          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
+      transportTALAGmresSolver->setPrintInfo( true );
+
+      transportTALAMinresSolver = std::make_shared< MinResSolver< terraneo::P2TransportOperator > >(
+          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresTol );
+      transportTALAMinresSolver->setPrintInfo( params.verbose );
+
+      // transportTALADirectSolver = std::make_shared< PETScLUSolver< P2TransportTALAOperator > >( storage_, maxLevel_ );
+
+      std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
+      std::string outputPath     = mainConf.getParameter< std::string >( "outputPath" );
+
+      if ( params.SUPG )
+      {
+         outputFilename.append( "_SUPG" );
+      }
+      else if ( params.MMOC )
+      {
+         outputFilename.append( "_MMOC" );
+      }
+      else
+      {
+         outputFilename.append( "_noMMOC" );
+      }
+
+      vtkOutput = std::make_shared< VTKOutput >( outputPath, outputFilename, storage );
+
+      adiosXmlConfig = mainConf.getParameter< std::string >( "adiosXmlConfig" );
+      adios2Output   = std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
+
+      adios2Output->add( *u );
+      adios2Output->add( *TDev );
+      adios2Output->add( *TRef );
+      adios2Output->add( *TRefDev );
+      adios2Output->add( *diffusionTermCoeff );
+      adios2Output->add( *rhoP2 );
+
+      storeCheckpoint     = mainConf.getParameter< bool >( "storeCheckpoint" );
+      startFromCheckpoint = mainConf.getParameter< bool >( "startFromCheckpoint" );
+
+      storeCheckpointFreq = mainConf.getParameter< uint_t >( "storeCheckpointFreq" );
+
+      cpPath     = mainConf.getParameter< std::string >( "cpPath" );
+      cpFilename = mainConf.getParameter< std::string >( "cpFilename" );
+
+      cpStartFilename = mainConf.getParameter< std::string >( "cpStartFilename" );
+
+   }
+
+   void solveU();
+   void solveT();
+   void step();
+   void solve();
+   void writeVTK( uint_t timestep = 0 ) { adios2Output->write( maxLevel, timestep ); }
+
+ private:
+   const walberla::Config::BlockHandle& mainConf;
+
+   std::shared_ptr< PrimitiveStorage > storage;
+   uint_t                              minLevel, maxLevel;
+
+   std::shared_ptr< P2Function< real_t > > TDev, TDevPrev, TDevInt, TRef, TRefDev, TRhs, TRes, rhoP2, rhoInvP2, zero, viscP2,
+       Ttemp;
+   std::shared_ptr< P2P1TaylorHoodFunction< real_t > > u, uRes, uPrev, uPrevIter, uRhs, uRhsStrong, uTemp;
+   std::shared_ptr< P2VectorFunction< real_t > >       gradRhoByRhoP2;
+   std::shared_ptr< P2VectorFunction< real_t > >       invGravityField;
+
+   std::shared_ptr< P2Function< real_t > > diffusionTermCoeff, adiabaticTermCoeff, shearHeatingTermCoeff, constEnergyCoeff,
+       surfTempCoeff;
+
+   std::shared_ptr< P2P1StokesOperator > stokesOperator;
+
+   std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
+   std::shared_ptr< StokesOperatorFreeSlip >  stokesOperatorFS;
+
+   P2ElementwiseBlendingVectorMassOperator vecMassOperator;
+   P2ElementwiseBlendingMassOperator       massOperator;
+   P1ElementwiseBlendingMassOperator       massOperatorP1;
+
+   std::shared_ptr< P2ToP1ElementwiseKMass > gradRhoByRhoX;
+   std::shared_ptr< P2ToP1ElementwiseKMass > gradRhoByRhoY;
+
+   std::shared_ptr< P2TransportTimesteppingOperator > transportOp;
+
+   std::shared_ptr< terraneo::P2TransportOperator > transportTALAOp;
+
+   //    std::shared_ptr< P2P1THCompStokesOperator > compStokesOp;
+
+   MMOCTransport< P2Function< real_t > > transport;
+
+   // Solvers
+
+   std::shared_ptr< PETScLUSolver< P2P1StokesOperator > >             stokesDirectSolver;
+   std::shared_ptr< MinResSolver< P2P1StokesOperator > >              stokesMinresSolverNoFS;
+   std::shared_ptr< MinResSolver< StokesOperatorFreeSlip > >          stokesMinresSolver;
+   std::shared_ptr< MinResSolver< P2TransportTimesteppingOperator > > transportMinresSolver;
+
+   std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
+   std::shared_ptr< GMRESSolver< terraneo::P2TransportOperator > >         transportTALAGmresSolver;
+   std::shared_ptr< MinResSolver< terraneo::P2TransportOperator > >        transportTALAMinresSolver;
+   // std::shared_ptr< PETScLUSolver< P2TransportTALAOperator > >       transportTALADirectSolver;
+
+   ParameterContainer params;
+
+   uint_t iTimeStep = 0U;
+
+   real_t simulationTime = 0.0, endTime = 1.0;
+
+   std::function< real_t( const Point3D& ) > tempIni, tempDevBC, rhoFunc, rhoInvFunc, TRefFunc;
+
+   std::function< void( const Point3D&, Point3D& ) > normalsFS;
+
+   // Output
+
+   std::shared_ptr< VTKOutput > vtkOutput;
+
+   uint_t      storeCheckpointFreq = 1000U;
+   bool        storeCheckpoint = false, startFromCheckpoint = false;
+   std::string cpFilename, cpPath, cpStartFilename, adiosXmlConfig;
+
+   std::shared_ptr< AdiosWriter > adios2Output;
+
+   std::shared_ptr< AdiosCheckpointExporter > adios2CheckpointExporter;
+   std::shared_ptr< AdiosCheckpointImporter > adios2CheckpointImporter;
+};
+
+void TALASimulation::solveU()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
+
+   uRhsStrong->uvw().component( 0U ).interpolate( 0.0, maxLevel, All );
+   uRhsStrong->uvw().component( 1U ).interpolate( params.Ra * params.alphabar, maxLevel, All );
+   // uRhsStrong->uvw().component( 1U ).multElementwise( { uRhsStrong->uvw().component( 1U ), *rhoP2 }, maxLevel, All );
+
+   TRefDev->assign( { 1.0, -1.0 }, { *TDev, *TRef }, maxLevel, All );
+   uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *TRefDev }, maxLevel, All );
+   uRhsStrong->uvw().component( 1 ).multElementwise( { uRhsStrong->uvw().component( 1 ), *TRefDev }, maxLevel, All );
+
+   vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
+
+   // operatorgeneration::P2VectorElementwiseDivDiv_float64 divdiv(storage, minLevel, maxLevel, *viscP2);
+
+   // divdiv.apply(u->uvw(), uRhs->uvw(), maxLevel, All, Add);
+
+   P2Function< real_t > alaCoeff("alaCoeff", storage, minLevel, maxLevel);
+
+   alaCoeff.interpolate(-params.Di, maxLevel, All);
+   alaCoeff.multElementwise({alaCoeff, *rhoP2}, maxLevel, All);
+
+   // P1ToP2ElementwiseKMass alaOp(storage, minLevel, maxLevel, alaCoeff);
+
+   // alaOp.apply(u->p(), uRhs->uvw().component(1U), maxLevel, All, Add);
+
+   gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
+   uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+
+   // u->uvw().interpolate( { bcVelocityX, bcVelocityY }, maxLevel, DirichletBoundary );
+
+   projectionOperator->project( *uRhs, maxLevel, FreeslipBoundary );
+
+   stokesOperatorFS->apply( *u, *uTemp, maxLevel, All ^ DirichletBoundary );
+   uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, All ^ DirichletBoundary );
+   real_t residualBefore = uTemp->dotGlobal( *uTemp, maxLevel, All ^ DirichletBoundary );
+
+   // for(uint_t iStokesPicard = 0U; iStokesPicard < 2U; iStokesPicard++)
+   // {
+   u->uvw().interpolate( 0.0, maxLevel, DirichletBoundary );
+   stokesDirectSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
+   // stokesMinresSolverNoFS->solve( *stokesOperator, *u, *uRhs, maxLevel );
+   vertexdof::projectMean(u->p(), maxLevel);
+   //    gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
+   //    uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+   // }
+
+   stokesOperatorFS->apply( *u, *uTemp, maxLevel, All ^ DirichletBoundary );
+   uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, All ^ DirichletBoundary );
+   real_t residualAfter = uTemp->dotGlobal( *uTemp, maxLevel, All ^ DirichletBoundary );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Stokes Residual Before = " << residualBefore << std::endl
+                                                          << "Stokes Residual After = " << residualAfter << std::endl );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STOKES SOLVER DONE!" ) );
+}
+
+void TALASimulation::solveT()
+{
+   transportTALAOp->calculateTimestep( params.cflMax );
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING TRANSPORT SOLVER with dt = %2.6e", transportTALAOp->timestep ) );
+
+   if ( params.MMOC )
+      transportTALAOp->stepMMOC( maxLevel );
+
+   // transportTALAOp->setSUPG(false);
+
+   TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
+   transportTALAOp->applyRHS( *TRhs, maxLevel, All );
+
+   TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
+
+   DoFType residualCalcFlag = All;
+
+   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, residualCalcFlag );
+   Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
+   real_t residualBefore = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
+
+   transportTALAGmresSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
+   // transportTALAMinresSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
+   // transportTALADirectSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
+
+   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, residualCalcFlag );
+   Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
+   real_t residualAfter = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
+
+   transportTALAOp->incrementTimestep();
+
+   //    TDevInt->assign( { 1.0 }, { *TDevPrev }, maxLevel, All );
+
+   //    transport.step( *TDevInt, u->uvw(), uPrev->uvw(), maxLevel, All, dt, 1, true );
+
+   //    TDevInt->interpolate( tempDevBC, maxLevel, DirichletBoundary );
+
+   //    transportOp->setDt( dt );
+
+   //    //    transportOp->applyRhs( *zero, *TDevInt, *TRhs, maxLevel, Inner | NeumannBoundary );
+
+   //    TDevInt->interpolate( tempDevBC, maxLevel, DirichletBoundary );
+
+   //    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
+
+   //    massOperator.apply( *TDevInt, *TRhs, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
+
+   //    transportGmresSolver->solve( *transportOp, *TDev, *TRhs, maxLevel );
+
+   //    TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Transport Residual Before = " << residualBefore << std::endl
+                                                             << "Transport Residual After = " << residualAfter << std::endl );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
+}
+
+void TALASimulation::step()
+{
+   real_t vMax = u->uvw().getMaxComponentMagnitude( maxLevel, All );
+   real_t hMin = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
+   real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
+
+   real_t Pe = hMax * vMax / ( 4 * params.k_ );
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Peclet number = %f", Pe ) );
+
+   solveT();
+
+   solveU();
+
+   TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
+
+   uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
+}
+
+void TALASimulation::solve()
+{
+   TDev->interpolate( tempIni, maxLevel, Inner | NeumannBoundary );
+   TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
+
+   TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
+
+   if ( startFromCheckpoint )
+   {
+      adios2CheckpointImporter = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
+
+      adios2CheckpointImporter->restoreFunction( u->uvw() );
+      adios2CheckpointImporter->restoreFunction( *TDev );
+   }
+   else
+   {
+      solveU();
+   }
+
+   TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
+
+   uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
+
+   writeVTK( iTimeStep );
+
+   iTimeStep++;
+
+   while ( simulationTime < endTime && iTimeStep < params.maxTimeSteps )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nStarting step %d at time = %f!\n", iTimeStep, simulationTime ) );
+
+      step();
+
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Step done!" ) );
+
+      iTimeStep++;
+
+      simulationTime += transportTALAOp->timestep;
+
+      TRefDev->assign( { -1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
+
+      if ( iTimeStep % params.vtkWriteFrequency == 0 )
+      {
+         writeVTK( iTimeStep );
+      }
+
+      // if ( residualTransport > residualExitTol )
+      // {
+      //    WALBERLA_ABORT( "Residual is blowing up, so exiting!" );
+      // }
+
+      if ( iTimeStep % params.nsCalcFreq == 0 )
+      {
+         real_t deltaT              = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
+         real_t nusseltNumberTop    = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
+         // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
+         real_t velocityRMSValue    = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
+
+         uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
+         uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
+
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+             "nusseltNumberTop = %4.7e\nnusseltNumberBot = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
+             nusseltNumberTop,
+             nusseltNumberTop,
+             deltaT,
+             velocityRMSValue,
+             nVelocityDoFs,
+             nTemperatureDoFs,
+             nVelocityDoFs + nTemperatureDoFs ) );
+      }
+
+      if ( iTimeStep % storeCheckpointFreq == 0 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Storing Checkpoint!" );
+
+         adios2CheckpointExporter = std::make_shared< AdiosCheckpointExporter >( adiosXmlConfig );
+
+         adios2CheckpointExporter->registerFunction( u->uvw(), minLevel, maxLevel );
+         adios2CheckpointExporter->registerFunction( *TDev, minLevel, maxLevel );
+
+         adios2CheckpointExporter->storeCheckpoint( cpPath, cpFilename );
+      }
+   }
+}
+
+} // namespace hyteg
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+#if defined( HYTEG_BUILD_WITH_PETSC )
+   PETScManager petscManager( &argc, &argv );
+#endif
+
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
+      cfg->readParameterFile( "./KingTALA.prm" );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
+
+   WALBERLA_ROOT_SECTION() { mainConf.listParameters(); }
+
+   const uint_t nx = mainConf.getParameter< uint_t >( "nx" );
+   const uint_t ny = mainConf.getParameter< uint_t >( "ny" );
+
+   const uint_t minLevel = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
+
+   auto meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), hyteg::MeshInfo::CRISS, nx, ny );
+
+   auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
+       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Bottom, bottomMarker );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Left, leftMarker );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Right, rightMarker );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Top, topMarker );
+   setupStorage->setMeshBoundaryFlagsByCentroidLocation( BoundaryMarkers::Corners, cornersMarker );
+
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
+
+   uint_t nMacroFaces      = storage->getNumberOfGlobalFaces();
+   uint_t nMacroPrimitives = storage->getNumberOfGlobalPrimitives();
+
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nMacroFaces = %d, nMacroPrimitives = %d\n", nMacroFaces, nMacroPrimitives ) );
+
+   TALASimulation simulation( mainConf, storage, minLevel, maxLevel );
+
+   simulation.solve();
+
+   // simulation.writeVTK();
+
+   return 0;
+}

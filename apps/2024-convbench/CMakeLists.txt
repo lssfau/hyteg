@@ -24,6 +24,10 @@ waLBerla_add_executable( NAME TestDivKGrad
         FILES  TestDivKGrad.cpp
         DEPENDS hyteg mixed_operator)
 
+waLBerla_add_executable( NAME TestPerf
+        FILES  TestPerf.cpp
+        DEPENDS hyteg mixed_operator opgen-k_mass)
+
 waLBerla_add_executable( NAME CompressibleAnnulusStatic
         FILES  CompressibleAnnulusStatic.cpp
         DEPENDS hyteg mixed_operator opgen-composites-stokes opgen-terraneo)
@@ -39,3 +43,7 @@ waLBerla_add_executable( NAME SphericalShellBenchRotation
 waLBerla_add_executable( NAME TosiNonlinearUnitSquare
         FILES  TosiNonlinearUnitSquare.cpp
         DEPENDS hyteg terraneo mixed_operator convection_particles opgen-k_mass opgen-composites-stokes)
+
+waLBerla_add_executable( NAME KingTALA
+        FILES  KingTALA.cpp
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-mass opgen-k_mass opgen-div_k_grad opgen-epsilon opgen-terraneo opgen-composites-stokes)
