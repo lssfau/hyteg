@@ -121,7 +121,7 @@ void GmshReaderForMSH41::analyseSectionList( const std::vector< std::string >& s
                                  << "We minimally need 'MeshFormat', 'Entities', 'Nodes', and 'Elements'." );
       }
    }
-};
+}
 
 // import information on physical names defined in the MSH file
 std::map< marker, std::string > GmshReaderForMSH41::readSectionPhysicalNames( std::ifstream& file ) const
