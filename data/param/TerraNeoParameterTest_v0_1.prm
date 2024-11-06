@@ -287,4 +287,6 @@ Parameters
    // default: false
 
    timingAnalysis false;
+   createTimingDB false;
+   SQLdatabaseFileName timingDB.db;
 }
