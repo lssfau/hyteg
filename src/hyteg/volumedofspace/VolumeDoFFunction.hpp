@@ -120,12 +120,13 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
    ValueType dotGlobal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
 
-   /// \brief Evaluates the sum on all local DoFs. No communication is involved and the results may be different on each
-   /// process.
-   ValueType sumLocal( uint_t level ) const;
+   /// \brief Computes the sum over all local DoFs. No communication is involved and the results may be different on each
+   /// process. For absolute = true, the magnitudes of the DoFs are accumulated.
+   ValueType sumLocal( uint_t level, bool absolute = false ) const;
 
-   /// \brief Evaluates the (global) sum. Involves communication and has to be called collectively.
-   ValueType sumGlobal( uint_t level ) const;
+   /// \brief Evaluates the (global) sum. Involves communication and has to be called collectively. For absolute = true,
+   /// the magnitudes of the DoFs are accumulated.
+   ValueType sumGlobal( uint_t level, bool absolute = false ) const;
 
    /// \brief Returns a pointer to the array that stores all degrees of freedom.
    ///
