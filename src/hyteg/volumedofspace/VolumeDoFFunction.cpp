@@ -355,7 +355,7 @@ template < typename ValueType >
 void VolumeDoFFunction< ValueType >::assign(
     const std::vector< ValueType >&                                                      scalars,
     const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-    uint_t                                                                               level )
+    uint_t                                                                               level ) const
 {
    WALBERLA_CHECK_EQUAL( scalars.size(),
                          functions.size(),
@@ -447,7 +447,7 @@ void VolumeDoFFunction< ValueType >::assign(
 
 /// \brief Adds a scalar to this VolumeDoFFunction.
 template < typename ValueType >
-void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag )
+void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
 {
    WALBERLA_UNUSED( flag );
    if ( this->storage_->hasGlobalCells() )
@@ -558,7 +558,7 @@ template < typename ValueType >
 void VolumeDoFFunction< ValueType >::add(
     const std::vector< ValueType >&                                                      scalars,
     const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-    uint_t                                                                               level )
+    uint_t                                                                               level ) const
 {
    WALBERLA_CHECK_EQUAL( scalars.size(),
                          functions.size(),
@@ -684,7 +684,7 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
 
 /// \brief swaps the content of one volumeDoFFunction with another.
 template < typename ValueType >
-void VolumeDoFFunction< ValueType >::swap( VolumeDoFFunction< ValueType >& rhs, uint_t level )
+void VolumeDoFFunction< ValueType >::swap( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
 {
    if ( this->storage_->hasGlobalCells() )
    {

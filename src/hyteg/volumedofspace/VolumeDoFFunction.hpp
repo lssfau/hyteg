@@ -100,18 +100,18 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// \brief Assigns a linear combination of multiple VolumeDoFFunctions to this.
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-                uint_t                                                                               level );
+                uint_t                                                                               level ) const;
 
    /// \brief swaps the content of one volumeDoFFunction with another.
-   void swap( VolumeDoFFunction< ValueType >& rhs, uint_t level );
+   void swap( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
 
    /// \brief Adds a scalar to this VolumeDoFFunction.
-   void add( const ValueType scalar, uint_t level, DoFType flag = All );
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    /// \brief Adds a series of scalars and functions to this VolumeDoFFunction.
    void add( const std::vector< ValueType >&                                                      scalars,
              const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-             uint_t                                                                               level );
+             uint_t                                                                               level ) const;
 
    /// \brief Evaluates the dot product on all local DoFs. No communication is involved and the results may be different on each
    /// process.
