@@ -33,6 +33,7 @@
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #endif
 
+#include "hyteg/Git.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -72,6 +73,8 @@
 #include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesFSGMGUzawaSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+
+#include "sqlite/SQLite.h"
 // HOG generated HyTeG operator
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
@@ -115,6 +118,7 @@ class ConvectionSimulation
    void step();
 
    void                        outputTimingTree();
+   void                        updateNonDimParameters( const Point3D& x );
    real_t                      densityFunction( const Point3D& x );
    real_t                      diffPreFactorFunction( const Point3D& x );
    real_t                      calculateStokesResidual( uint_t level );
@@ -155,6 +159,7 @@ class ConvectionSimulation
    void solveEnergy();
 
    void dataOutput();
+   void initTimingDB();
    void normalFunc( const Point3D& p, Point3D& n );
    void oppositeGravity( const Point3D& p, Point3D& n );
 
@@ -174,6 +179,9 @@ class ConvectionSimulation
 
    BoundaryUID idSurfaceT;
    BoundaryUID idCMBT;
+
+   // Timing Analysis SQL db
+   std::shared_ptr< FixedSizeSQLDB > db;
 
    // function and solver initialization
 

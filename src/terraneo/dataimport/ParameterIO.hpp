@@ -164,9 +164,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    domainParam.maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
    //calculate non-dimensional radii such that mantle thickness = 1
+   physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
    domainParam.rMin              = domainParam.rCMB / ( domainParam.rSurface - domainParam.rCMB );
    domainParam.rMax              = domainParam.rSurface / ( domainParam.rSurface - domainParam.rCMB );
-   physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
 
    /*############ MODEL PARAMETERS ############*/
    if ( mainConf.isDefined( "temperatureInputProfile" ) )
@@ -476,10 +476,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );
    outputParam.vtk             = mainConf.getParameter< bool >( "vtk" );
 
-   outputParam.OutputVelocity      = mainConf.getParameter< bool >( "OutputVelocity" );
-   outputParam.OutputTemperature   = mainConf.getParameter< bool >( "OutputTemperature" );
-   outputParam.OutputInterval      = mainConf.getParameter< uint_t >( "OutputInterval" );
-   outputParam.vtkOutputVertexDoFs = mainConf.getParameter< bool >( "OutputVertexDoFs" );
+   outputParam.OutputVelocity    = mainConf.getParameter< bool >( "OutputVelocity" );
+   outputParam.OutputTemperature = mainConf.getParameter< bool >( "OutputTemperature" );
+   outputParam.OutputInterval    = mainConf.getParameter< uint_t >( "OutputInterval" );
+   outputParam.outputVertexDoFs  = mainConf.getParameter< bool >( "OutputVertexDoFs" );
 
    outputParam.ADIOS2ParamKey     = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
    outputParam.ADIOS2Value        = mainConf.getParameter< std::string >( "ADIOS2Value" );
@@ -505,6 +505,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       outputParam.outputIntervalMyr = mainConf.getParameter< uint_t >( "outputIntervalMyr" );
       outputParam.OutputInterval    = 1;
    }
+
+   outputParam.fileNameSQLdb  = mainConf.getParameter< std::string >( "SQLdatabaseFileName" );
+   outputParam.createTimingDB = mainConf.getParameter< bool >( "createTimingDB" );
 
    simulationParam.verbose = mainConf.getParameter< bool >( "verbose" );
    //number of radial layers at max level (x2 for P2 elements)
@@ -702,7 +705,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "vtk               : " << ( outputParam.vtk ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Interval   : " << outputParam.OutputInterval );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.vtkOutputVertexDoFs ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );

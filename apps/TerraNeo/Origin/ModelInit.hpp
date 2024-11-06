@@ -58,8 +58,9 @@ void ConvectionSimulation::init()
    TN.simulationParameters.unknownsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, TN.domainParameters.maxLevel );
    TN.simulationParameters.unknownsStokes =
        numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMin = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.simulationParameters.hMin      = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.simulationParameters.hMax      = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.domainParameters.numProcessors = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
    printConfig( TN );
 
@@ -114,6 +115,11 @@ void ConvectionSimulation::init()
    initialiseFunctions();
    setupSolversAndOperators();
    setupOutput();
+   if ( TN.outputParameters.createTimingDB )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Create SQL database for runtime analysis" );
+      initTimingDB();
+   }
 }
 
 // Setup the domain
@@ -487,11 +493,8 @@ void ConvectionSimulation::setupSolversAndOperators()
 
              stokesResidual = calculateStokesResidual( _level );
 
-             if ( TN.solverParameters.numVCycles == 0 )
-             {
-                WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-                    "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, TN.solverParameters.vCycleResidualUPrev ) );
-             }
+             WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+                 "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, TN.solverParameters.vCycleResidualUPrev ) );
 
              auto reductionRateU = stokesResidual / TN.solverParameters.vCycleResidualUPrev;
 

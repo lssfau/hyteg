@@ -38,6 +38,7 @@ namespace terraneo {
 
 void ConvectionSimulation::step()
 {
+   walberla::WcTimer localTimerStep;
    if ( TN.simulationParameters.timeStep == 0 )
    {
       //set up logging
@@ -46,45 +47,14 @@ void ConvectionSimulation::step()
          walberla::logging::Logging::instance()->includeLoggingToFile( TN.outputParameters.outputDirectory + "/" +
                                                                        TN.outputParameters.outputBaseName + ".out" );
       }
+
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
          WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 load Temperature field from Checkpoint" );
-         // Get Information about checkpoint data
-         std::vector< AdiosCheckpointImporter::FunctionDescription > checkpointDataInfo =
-             checkpointImporter->getFunctionDetails();
-         // Import temperature field from checkpoint
-         // restore function will only work out of the box at the same level -> if new level is higher -> prolongate, if lower -> restrict
-         // Check if current simulation max Level is compatible with checkpoint data maxLevel
-         if ( TN.domainParameters.maxLevel > checkpointDataInfo[0].maxLevel )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT(
-                "Restore Temperature field from checkpoint data maxLevel: " << checkpointDataInfo[0].maxLevel );
-            checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                                 TN.domainParameters.minLevel,
-                                                 checkpointDataInfo[0].maxLevel,
-                                                 0,
-                                                 true );
-
-            WALBERLA_LOG_INFO_ON_ROOT( "Prolongate Temperature field checkpoint data from level: "
-                                       << checkpointDataInfo[0].maxLevel
-                                       << " to new maxLevel: " << TN.domainParameters.maxLevel );
-            for ( uint_t l = checkpointDataInfo[0].maxLevel; l < TN.domainParameters.maxLevel; l++ )
-            {
-               p2ProlongationOperator->prolongate( *( p2ScalarFunctionContainer["TemperatureFE"] ), l, All );
-               WALBERLA_LOG_INFO_ON_ROOT( "Temperatuer field prolongated from level:  " << l << " to level: " << l + 1 );
-            }
-         }
-         else
-         {
-            WALBERLA_LOG_INFO_ON_ROOT(
-                "Restore Temperature field from checkpoint data at level: " << checkpointDataInfo[0].maxLevel );
-            checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                                 TN.domainParameters.minLevel,
-                                                 TN.domainParameters.maxLevel,
-                                                 0,
-                                                 true );
-         }
+         checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ) );
+         solveStokes();
+         dataOutput();
 #else
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
 #endif
@@ -124,14 +94,15 @@ void ConvectionSimulation::step()
    }
 
    TN.simulationParameters.modelTime += TN.simulationParameters.dt;
-
+   real_t stepSize = ( TN.simulationParameters.dt * TN.physicalParameters.mantleThickness ) /
+                     ( TN.physicalParameters.characteristicVelocity * TN.simulationParameters.plateVelocityScaling *
+                       TN.simulationParameters.secondsPerMyr );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "Step size: " << ( TN.simulationParameters.dt * TN.physicalParameters.mantleThickness ) /
-                            ( TN.physicalParameters.characteristicVelocity * TN.simulationParameters.plateVelocityScaling *
-                              TN.simulationParameters.secondsPerMyr )
-                     << " Ma" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Step size: " << stepSize << " Ma" );
    WALBERLA_LOG_INFO_ON_ROOT( "Velocity max magnitude: " << vMax << " " );
+
+   // convert vMax to SI-unit velocity in [cm/a]
+   real_t MaxVelocityMagSI = ( ( 100.0 * 365.0 * 24.0 * 3600.0 ) * ( vMax * TN.physicalParameters.characteristicVelocity ) );
 
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
@@ -208,10 +179,12 @@ void ConvectionSimulation::step()
    /*############ ENERGY STEP ############*/
 
    // setupEnergyRHS();
-
-   storage->getTimingTree()->start( "Solve Energy equation" );
+   localTimerStep.start();
+   storage->getTimingTree()->start( "TerraNeo solve Energy equation" );
    solveEnergy();
-   storage->getTimingTree()->stop( "Solve Energy equation" );
+   storage->getTimingTree()->stop( "TerraNeo solve Energy equation" );
+   localTimerStep.end();
+   real_t timerSolveEnergy = localTimerStep.last();
 
    //######################################################//
    //                  STOKES EQUATIONS                    //
@@ -262,6 +235,7 @@ void ConvectionSimulation::step()
    //######################################################//
    //                  DUMP OUTPUT                         //
    //######################################################//
+   real_t timerDataOutput = real_c( 0 );
 
    if ( TN.outputParameters.outputMyr && ( ( TN.simulationParameters.modelRunTimeMa - TN.outputParameters.prevOutputTime ) >=
                                            real_c( TN.outputParameters.outputIntervalMyr ) ) )
@@ -271,11 +245,26 @@ void ConvectionSimulation::step()
 
    if ( !TN.outputParameters.outputMyr )
    {
+      localTimerStep.start();
       dataOutput();
+      localTimerStep.end();
+      timerDataOutput = localTimerStep.last();
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Finished step: " << TN.simulationParameters.timeStep );
+
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "Step_size_Ma", stepSize );
+      db->setVariableEntry( "model_runtime_Ma", TN.simulationParameters.modelRunTimeMa );
+      db->setVariableEntry( "timestep", TN.simulationParameters.timeStep );
+      db->setVariableEntry( "max_magnitude_velocity_cm_a", MaxVelocityMagSI );
+      db->setVariableEntry( "Time_solve_Energy", timerSolveEnergy );
+      db->setVariableEntry( "Time_data_Output", timerDataOutput );
+      db->writeRowOnRoot();
+   }
+
    ++TN.simulationParameters.timeStep;
 }
 
@@ -470,6 +459,7 @@ void ConvectionSimulation::setupStokesRHS()
       // Provide the option to run incompressible simulations for test or educational purposes
       if ( TN.simulationParameters.compressible )
       {
+         // Update non-dimensional numbers for mass conservation equation
          if ( TN.simulationParameters.haveThermalExpProfile || TN.simulationParameters.haveSpecificHeatCapProfile )
          {
             // Update gradRho/Rho with new non-Dim paramters Di and alpha.
@@ -491,9 +481,12 @@ void ConvectionSimulation::setupStokesRHS()
 
 void ConvectionSimulation::solveStokes()
 {
+   walberla::WcTimer localTimer;
    if ( TN.simulationParameters.tempDependentViscosity )
    {
+      storage->getTimingTree()->start( "TerraNeo update viscosity" );
       updateViscosity();
+      storage->getTimingTree()->stop( "TerraNeo update viscosity" );
    }
 
    if ( TN.simulationParameters.tempDependentViscosity && TN.simulationParameters.resetSolver &&
@@ -531,7 +524,12 @@ void ConvectionSimulation::solveStokes()
       WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------------" );
    }
 
+   localTimer.start();
+   storage->getTimingTree()->start( "TerraNeo setup Stokes RHS" );
    setupStokesRHS();
+   storage->getTimingTree()->stop( "TerraNeo setup Stokes RHS" );
+   localTimer.end();
+   real_t setupStokesTimer = localTimer.last();
 
    if ( TN.simulationParameters.timeStep == 0 )
    {
@@ -546,8 +544,7 @@ void ConvectionSimulation::solveStokes()
       WALBERLA_LOG_INFO_ON_ROOT( "--------------------------" );
    }
 
-   walberla::WcTimer localTimer;
-   real_t            stokesResidual = calculateStokesResidual( TN.domainParameters.maxLevel );
+   real_t stokesResidual = calculateStokesResidual( TN.domainParameters.maxLevel );
 
    TN.solverParameters.vCycleResidualUPrev       = stokesResidual;
    TN.solverParameters.initialResidualU          = stokesResidual;
@@ -565,19 +562,19 @@ void ConvectionSimulation::solveStokes()
    }
 
    localTimer.start();
-   storage->getTimingTree()->start( "Stokes Solve" );
+   storage->getTimingTree()->start( "TerraNeo solve Stokes" );
    projectionOperator->project( *( p2p1StokesFunctionContainer["StokesRHS"] ), TN.domainParameters.maxLevel, FreeslipBoundary );
    stokesSolverFS->solve( *stokesOperatorFS,
                           *( p2p1StokesFunctionContainer["VelocityFE"] ),
                           *( p2p1StokesFunctionContainer["StokesRHS"] ),
                           TN.domainParameters.maxLevel );
    // stokesSolver->solve( *stokesOperator, *(p2p1StokesFunctionContainer["VelocityFE"]), *(p2p1StokesFunctionContainer["StokesRHS"]), TN.domainParameters.maxLevel );
-   storage->getTimingTree()->stop( "Stokes Solve" );
+   storage->getTimingTree()->stop( "TerraNeo solve Stokes" );
    localTimer.end();
 
-   real_t timeStokes = localTimer.last();
+   real_t timeStokesSolve = localTimer.last();
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( "Stokes time [s]: " << timeStokes );
+   WALBERLA_LOG_INFO_ON_ROOT( "Stokes time [s]: " << timeStokesSolve );
 
    stokesResidual = calculateStokesResidual( TN.domainParameters.maxLevel );
 
@@ -588,6 +585,13 @@ void ConvectionSimulation::solveStokes()
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes residual (final): " << stokesResidual );
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "Stokes_residual_initial", stokesResidual );
+      db->setVariableEntry( "Stokes_residual_final", stokesResidual );
+      db->setVariableEntry( "Time_setup_Stokes_RHS", setupStokesTimer );
+      db->setVariableEntry( "Time_solve_Stokes", timeStokesSolve );
+   }
 }
 
 real_t ConvectionSimulation::calculateStokesResidual( uint_t level )

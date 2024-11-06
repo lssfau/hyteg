@@ -80,7 +80,7 @@ void ConvectionSimulation::setupOutput()
       WALBERLA_LOG_INFO_ON_ROOT( " VTK is NOT recommended for speed and memory management " );
       if ( TN.outputParameters.OutputTemperature )
       {
-         if ( TN.outputParameters.vtkOutputVertexDoFs )
+         if ( TN.outputParameters.outputVertexDoFs )
          {
             vtkOutput->add( p2ScalarFunctionContainer["Temperature[K]"]->getVertexDoFFunction() );
             vtkOutput->add( p2ScalarFunctionContainer["TemperatureDev"]->getVertexDoFFunction() );
@@ -94,7 +94,7 @@ void ConvectionSimulation::setupOutput()
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         if ( TN.outputParameters.vtkOutputVertexDoFs )
+         if ( TN.outputParameters.outputVertexDoFs )
          {
             vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
             vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
@@ -107,7 +107,7 @@ void ConvectionSimulation::setupOutput()
       }
       else
       {
-         if ( TN.outputParameters.vtkOutputVertexDoFs )
+         if ( TN.outputParameters.outputVertexDoFs )
          {
             vtkOutput->add( p2ScalarFunctionContainer["VelocityMagnitudeSquared"]->getVertexDoFFunction() );
          }
@@ -124,18 +124,20 @@ void ConvectionSimulation::setupOutput()
       {
          _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
          _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
-         _output->add( *( p2ScalarFunctionContainer["ReferenceTemperature[K]"] ) );
       }
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
-
-         // stokes RHS velocity
-
-         _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->uvw() );
-
-         // stokes RHS pressure field
+         if ( TN.outputParameters.outputVertexDoFs )
+         {
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
+         }
+         else
+         {
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
+         }
          _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->p() );
       }
       else
@@ -143,10 +145,16 @@ void ConvectionSimulation::setupOutput()
          _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
       }
 
-      // _output->add( *( p2ScalarFunctionContainer["DiffusionFE"] ) );
-      _output->add( *( p2ScalarFunctionContainer["DensityFE"] ) );
-      _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      _output->add( p2ScalarFunctionContainer["DensityFE"]->getVertexDoFFunction() );
+      if ( TN.outputParameters.outputVertexDoFs )
+      {
+         _output->add( p2ScalarFunctionContainer["Viscosity[Pas]"]->getVertexDoFFunction() );
+      }
+      else
 
+      {
+         _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      }
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
 
@@ -234,7 +242,7 @@ void ConvectionSimulation::dataOutput()
          storage->getTimingTree()->stop( "Adios2 data output" );
       }
 
-      if ( TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
+      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
            TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
@@ -243,6 +251,18 @@ void ConvectionSimulation::dataOutput()
              *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
          checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
                                               TN.outputParameters.ADIOS2StoreCheckpointFilename, attributeList_ );
+      }
+      else if ( TN.outputParameters.outputMyr && TN.outputParameters.ADIOS2StoreCheckpoint &&
+                ( ( TN.simulationParameters.modelRunTimeMa ) >=
+                  real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+         checkpointExporter->registerFunction(
+             *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+                                              TN.outputParameters.ADIOS2StoreCheckpointFilename );
+         TN.outputParameters.checkpointCount += 1;
       }
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified! " );

@@ -289,4 +289,23 @@ void ConvectionSimulation::outputTimingTree()
    writeTimingTreeJSON( *timer, TN.outputParameters.outputDirectory + "/" + "TimingTree.json" );
 }
 
+// SQL database for runtime analysis
+void ConvectionSimulation::initTimingDB()
+{
+   auto gitHash = gitSHA1();
+   db           = std::make_shared< hyteg::FixedSizeSQLDB >( TN.outputParameters.fileNameSQLdb, true );
+
+   db->setConstantEntry( "gitHash", gitHash );
+   db->setConstantEntry( "cfl_max", TN.simulationParameters.cflMax );
+   db->setConstantEntry( "unknownsTemperature", TN.simulationParameters.unknownsTemperature );
+   db->setConstantEntry( "unknownsStokes", TN.simulationParameters.unknownsStokes );
+   db->setConstantEntry( "h_min", TN.simulationParameters.hMin );
+   db->setConstantEntry( "h_max", TN.simulationParameters.hMax );
+   db->setConstantEntry( "numProcessors", TN.domainParameters.numProcessors );
+   db->setConstantEntry( "nRad", TN.domainParameters.nRad );
+   db->setConstantEntry( "nTAn", TN.domainParameters.nTan );
+   db->setConstantEntry( "maxLevel", TN.domainParameters.maxLevel );
+   db->setConstantEntry( "minLevel", TN.domainParameters.minLevel );
+}
+
 } // namespace terraneo

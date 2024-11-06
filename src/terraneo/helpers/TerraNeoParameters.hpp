@@ -46,17 +46,18 @@ struct DomainParameters
 {
    //geometric information
 
-   real_t rCMB     = real_c( 3471000 );
+   real_t rCMB     = real_c( 3480000 );
    real_t rSurface = real_c( 6371000 );
 
    //calculate non-dimensional radii such that mantle thickness = 1
    real_t rMin = rCMB / ( rSurface - rCMB );
    real_t rMax = rSurface / ( rSurface - rCMB );
 
-   uint_t nTan     = 2;
-   uint_t nRad     = 2;
-   uint_t minLevel = 0;
-   uint_t maxLevel = 1;
+   uint_t nTan          = 2;
+   uint_t nRad          = 2;
+   uint_t minLevel      = 0;
+   uint_t maxLevel      = 1;
+   uint_t numProcessors = 1;
 
    real_t domainVolume() const
    {
@@ -130,6 +131,8 @@ struct OutputParameters
    std::string ADIOS2CheckpointPath     = std::string( "output" );
    std::string ADIOS2CheckpointFilename = std::string( "conv_sim" );
 
+   std::string fileNameSQLdb = std::string( "SQLdatabaseFileName" );
+
    bool ADIOS2StartFromCheckpoint = false;
    bool ADIOS2StoreCheckpoint     = false;
 
@@ -141,13 +144,16 @@ struct OutputParameters
    bool   OutputViscosity   = true;
    bool   OutputTemperature = true;
    uint_t OutputInterval    = 1;
+   uint_t checkpointCount   = 1;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
    real_t prevOutputTime    = real_c( 0 );
 
-   bool vtkOutputVertexDoFs = true;
-   bool outputProfiles      = false;
+   bool outputVertexDoFs = true;
+   bool outputProfiles   = false;
+
+   bool createTimingDB = false;
 };
 // Simulation parameters
 struct SimulationParameters
