@@ -145,6 +145,25 @@ template void
 template void
     syncFunctionBetweenPrimitives( const P2Function< int64_t >& function, const uint_t& level, syncDirection_t direction );
 
+// --------------------------------------------------
+//  Explicit Instantiations for P2PlusBubbleFunction
+// --------------------------------------------------
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< double >& function,
+                                             const uint_t&                         level,
+                                             syncDirection_t                       direction );
+
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< float >& function,
+                                             const uint_t&                        level,
+                                             syncDirection_t                      direction );
+
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< int32_t >& function,
+                                             const uint_t&                          level,
+                                             syncDirection_t                        direction );
+
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< int64_t >& function,
+                                             const uint_t&                          level,
+                                             syncDirection_t                        direction );
+
 // ----------------------------------------------
 //  Explicit Instantiations for P1VectorFunction
 // ----------------------------------------------
@@ -298,6 +317,35 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
    for ( const auto& function : feFunctionRegistry.getP2VectorFunctions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+
+   // ---------------------------------------------------------
+   //  P2PlusBubbleFunctions [double, float, int32_t, int64_t]
+   // ---------------------------------------------------------
+   if ( !excludeDGTypeFunctions && feFunctionRegistry.getP2PlusBubbleFunctions().size() > 0 )
+   {
+      WALBERLA_ABORT( "Sorry, but P2PlusBubbleFunction::communicate() currently does not communicate bubble dofs!\n"
+                      << "Make sure to call syncing with excludeDGTypeFunctions = true!" );
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< double >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< float >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< int64_t >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
       controlCount++;
    }
 

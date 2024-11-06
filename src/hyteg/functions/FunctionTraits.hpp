@@ -53,6 +53,8 @@ struct DG1FunctionTag
 {};
 struct P2FunctionTag
 {};
+struct P2PlusBubbleFunctionTag
+{};
 struct P1StokesFunctionTag
 {};
 struct P2P1TaylorHoodFunctionTag
@@ -111,6 +113,9 @@ template < typename VType >
 class P2Function;
 
 template < typename VType >
+class P2PlusBubbleFunction;
+
+template < typename VType >
 class P1StokesFunction;
 
 template < typename VType >
@@ -154,6 +159,7 @@ typedef enum
    DG1_FUNCTION,
    P1_FUNCTION,
    P2_FUNCTION,
+   P2_PLUS_BUBBLE_FUNCTION,
    EDGE_DOF_FUNCTION,
    VOLUME_DOF_FUNCTION,
    DG_FUNCTION,
@@ -274,6 +280,19 @@ struct FunctionTrait< P2Function< VType > >
    static std::string getTypeName() { return "P2Function"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::P2_FUNCTION;
+};
+
+/// P2 plus Bubble specialization
+template < typename VType >
+struct FunctionTrait< P2PlusBubbleFunction< VType > >
+{
+   typedef VType                     ValueType;
+   typedef P2PlusBubbleFunctionTag   Tag;
+   // typedef P2VectorFunction< VType > AssocVectorFunctionType;
+
+   static std::string getTypeName() { return "P2PlusBubbleFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P2_PLUS_BUBBLE_FUNCTION;
 };
 
 /// P1Stokes specialization

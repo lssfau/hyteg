@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,6 +28,7 @@
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
+#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -78,12 +79,6 @@ class FEFunctionRegistry
          p2VecFunctions_.add( function );
       }
 
-      // EdgeDoFFunctions
-      else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
-      {
-         edgeDoFFunctions_.add( function );
-      }
-
       // -------------
       //  DGFunctions
       // -------------
@@ -115,6 +110,18 @@ class FEFunctionRegistry
       // ---------------------------------
       //  Special and Composite Functions
       // ---------------------------------
+
+      // P2PlusBubbleFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2PlusBubbleFunction< value_t > > )
+      {
+         p2PlusBubbleFunctions_.add( function );
+      }
+
+      // EdgeDoFFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
+      {
+         edgeDoFFunctions_.add( function );
+      }
 
       // N1E1VectorFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > )
@@ -216,12 +223,6 @@ class FEFunctionRegistry
          p2VecFunctions_.remove( function );
       }
 
-      // EdgeDoFFunctions
-      else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
-      {
-         edgeDoFFunctions_.remove( function );
-      }
-
       // -------------
       //  DGFunctions
       // -------------
@@ -253,6 +254,18 @@ class FEFunctionRegistry
       // ---------------------------------
       //  Special and Composite Functions
       // ---------------------------------
+
+      // P2PlusBubbleFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P2PlusBubbleFunction< value_t > > )
+      {
+         p2PlusBubbleFunctions_.remove( function );
+      }
+
+      // EdgeDoFFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, EdgeDoFFunction< value_t > > )
+      {
+         edgeDoFFunctions_.remove( function );
+      }
 
       // N1E1VectorFunctions
       else if constexpr ( std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > )
@@ -325,6 +338,7 @@ class FEFunctionRegistry
    const FunctionMultiStore< dg::DGVectorFunction >&     getDGVectorFunctions() const { return dgVecFunctions_; }
    const FunctionMultiStore< n1e1::N1E1VectorFunction >& getN1E1VectorFunctions() const { return n1e1Functions_; }
    const FunctionMultiStore< EGFunction >&               getEGFunctions() const { return p1dgeVecFunctions_; }
+   const FunctionMultiStore< P2PlusBubbleFunction >&     getP2PlusBubbleFunctions() const { return p2PlusBubbleFunctions_; }
 
    /// return the total number of registered functions
    ///
@@ -337,6 +351,7 @@ class FEFunctionRegistry
       uint_t num{ 0u };
       num += p1Functions_.size();
       num += p2Functions_.size();
+      num += p2PlusBubbleFunctions_.size();
       num += p1VecFunctions_.size();
       num += p2VecFunctions_.size();
       num += edgeDoFFunctions_.size();
@@ -357,6 +372,10 @@ class FEFunctionRegistry
       else if constexpr ( std::is_same_v< func_t< real_t >, P2Function< real_t > > )
       {
          return p2Functions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, P2PlusBubbleFunction< real_t > > )
+      {
+         return p2PlusBubbleFunctions_;
       }
       else if constexpr ( std::is_same_v< func_t< real_t >, P1VectorFunction< real_t > > )
       {
@@ -408,6 +427,9 @@ class FEFunctionRegistry
       case functionTraits::P2_FUNCTION:
          namesFound = p2Functions_.getFunctionNames();
          break;
+      case functionTraits::P2_PLUS_BUBBLE_FUNCTION:
+         namesFound = p2PlusBubbleFunctions_.getFunctionNames();
+         break;
       case functionTraits::P2_VECTOR_FUNCTION:
          namesFound = p2VecFunctions_.getFunctionNames();
          break;
@@ -443,6 +465,7 @@ class FEFunctionRegistry
    FunctionMultiStore< dg::DGVectorFunction >     dgVecFunctions_;
    FunctionMultiStore< n1e1::N1E1VectorFunction > n1e1Functions_;
    FunctionMultiStore< EGFunction >               p1dgeVecFunctions_;
+   FunctionMultiStore< P2PlusBubbleFunction >     p2PlusBubbleFunctions_;
 
    template < typename value_t >
    void addGenericFunction( const GenericFunction< value_t >& function )
@@ -456,6 +479,10 @@ class FEFunctionRegistry
 
       case functionTraits::P2_FUNCTION:
          matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< value_t > > >( function );
+         break;
+
+      case functionTraits::P2_PLUS_BUBBLE_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P2PlusBubbleFunction< value_t > > >( function );
          break;
 
       case functionTraits::P1_VECTOR_FUNCTION:

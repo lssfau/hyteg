@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Marcus Mohr, Dominik Thoennes.
+ * Copyright (c) 2017-2024 Marcus Mohr, Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,6 +26,7 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -298,6 +299,28 @@ int main( int argc, char* argv[] )
    runFindTest( "Test #D (face/edge): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
    runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p2func, testFuncMin, TEST_MIN_VALUE );
    runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
+
+   // ======================
+   //  P2PlusBubbleFunction
+   // ======================
+
+   WALBERLA_LOG_INFO_ON_ROOT( "\n\nP2PlusBubbleFunction (DoFType=All)\n" );
+
+   theLevel = 2;
+   hyteg::P2PlusBubbleFunction< real_t > p2bubblefunc( "P2+", storage, theLevel, theLevel );
+
+   // NOTE: The code below will not work. The bubbleDoF is an excess value. It does not give the FEfuncion's value
+   //       at the face center. We must take this into account in the testing.
+
+   // runFindTest( "Test #1: maximum   = ", FIND_MAX, theLevel, p2bubblefunc, testFuncMax, TEST_MAX_VALUE );
+   // runFindTest( "         minimum   = ", FIND_MIN, theLevel, p2bubblefunc, testFuncMin, TEST_MIN_VALUE );
+   // runFindTest( "         magnitude = ", FIND_MAG, theLevel, p2bubblefunc, testFuncMin, TEST_MAG_VALUE );
+
+   // runFindTest( "Test #2 (combo    ): maximum   = ", FIND_MAX, theLevel, p2bubblefunc, testFuncCombo, real_c(+3.0), Inner );
+   // runFindTest( "                     minumum   = ", FIND_MIN, theLevel, p2bubblefunc, testFuncCombo, real_c(-5.0), Inner );
+   // runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2bubblefunc, testFuncCombo, real_c(+5.0), Inner );
+
+   WALBERLA_LOG_WARNING_ON_ROOT( "Only tested function creation!!!!!" );
 
    // ===========
    //  3D Meshes
