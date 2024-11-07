@@ -60,7 +60,7 @@ namespace hyteg::micromesh {
 ///    cheap. On the downside, three scalars have to be stored per node, and the accuracy is limited by the chosen polynomial
 ///    degree.
 ///
-/// The MicroMesh class is a container that stores the mesh to implement the third approach outlines above.
+/// The MicroMesh class is a container that stores the mesh to implement the third approach outlined above.
 ///
 /// After construction of a MicroMesh instance, all vertices are mapped to the positions they have in the standard, refined coarse
 /// mesh. In other words, if no map is applied to the MicroMesh after construction, then the result is what is described in
@@ -132,8 +132,8 @@ class MicroMesh
 /// \brief Returns the position of any micro-vertex of the MicroMesh.
 ///
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
-/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of a micro-vertex is
-/// requested.
+/// refined and potentially blended coarse mesh. Thus, this function can (and should) be called safely whenever the position of
+/// a micro-vertex is requested.
 ///
 Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                              PrimitiveID                                primitiveId,
@@ -143,8 +143,8 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
 /// \brief Returns the position of the center of a micro-edge.
 ///
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
-/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of the center of a micro-edge
-/// is requested.
+/// refined and potentially blended coarse mesh. Thus, this function can (and should) be called safely whenever the position of
+/// the center of a micro-edge is requested.
 ///
 Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                  PrimitiveID                                primitiveId,
@@ -155,8 +155,8 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
 /// \brief Returns the position of the center of a micro-edge.
 ///
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
-/// refined coarse mesh. Thus, this function can (and should) be called safely whenever the position of the center of a micro-edge
-/// is requested.
+/// refined and potentially blended coarse mesh. Thus, this function can (and should) be called safely whenever the position of
+/// the center of a micro-edge is requested.
 ///
 Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                  PrimitiveID                                primitiveId,
