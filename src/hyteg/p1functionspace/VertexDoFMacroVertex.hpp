@@ -261,7 +261,7 @@ inline void
 
 template < typename ValueType >
 inline ValueType
-    getMaxValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
+    getMaxDoFValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
    auto src = vertex.getData( srcId )->getPointer( level );
    return src[0];
@@ -269,7 +269,7 @@ inline ValueType
 
 template < typename ValueType >
 inline ValueType
-    getMaxMagnitude( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
+    getMaxDoFMagnitude( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
    auto src = vertex.getData( srcId )->getPointer( level );
    return std::abs( src[0] );
@@ -277,7 +277,7 @@ inline ValueType
 
 template < typename ValueType >
 inline ValueType
-    getMinValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
+    getMinDoFValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
    auto src = vertex.getData( srcId )->getPointer( level );
    return src[0];

@@ -40,8 +40,8 @@ void testDuplicatePointCountingForOutput( std::string meshFile, uint_t level, ty
 
    interpolateNumberOfAdjacentMacroVolumes( u, level );
 
-   auto min = u.getMinValue( level );
-   auto max = u.getMaxValue( level );
+   auto min = u.getMinDoFValue( level );
+   auto max = u.getMaxDoFValue( level );
 
    const bool vtk = false;
 

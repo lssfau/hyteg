@@ -236,11 +236,11 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    void restrictInjection( uint_t sourceLevel, DoFType flag = All ) const;
 
-   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxDoFMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
-   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMinDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
    void              setBoundaryCondition( BoundaryCondition bc );

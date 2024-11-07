@@ -529,7 +529,7 @@ static inline void solveLSE( const SetupType& config )
       errorRate     = lastErrorNorm / pointWiseErrorNorm;
       lastErrorNorm = pointWiseErrorNorm;
 #endif // n-def PERFORMANCE_RUN
-      real_t maxError = err.getMaxMagnitude( currentMaxLevel, DoFType::Inner );
+      real_t maxError = err.getMaxDoFMagnitude( currentMaxLevel, DoFType::Inner );
 
       tt->stop( "maxLevel_" + std::to_string( currentMaxLevel ) );
 

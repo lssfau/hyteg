@@ -202,8 +202,8 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, std::map
 
    auto discrL2            = std::sqrt( cError.dotGlobal( cError, maxLevel, All ) /
                                         real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-   auto maxTempApproximate = c.getMaxMagnitude( maxLevel, All );
-   auto maxTempAnalytical  = cSolution.getMaxMagnitude( maxLevel, All );
+   auto maxTempApproximate = c.getMaxDoFMagnitude( maxLevel, All );
+   auto maxTempAnalytical  = cSolution.getMaxDoFMagnitude( maxLevel, All );
    auto E_peak             = maxTempApproximate / maxTempAnalytical - 1;
 
    M.apply( c, cMass, maxLevel, All );
@@ -251,8 +251,8 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, std::map
 
       discrL2            = std::sqrt( cError.dotGlobal( cError, maxLevel, All ) /
                            real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
-      maxTempApproximate = c.getMaxMagnitude( maxLevel, All );
-      maxTempAnalytical  = cSolution.getMaxMagnitude( maxLevel, All );
+      maxTempApproximate = c.getMaxDoFMagnitude( maxLevel, All );
+      maxTempAnalytical  = cSolution.getMaxDoFMagnitude( maxLevel, All );
       E_peak             = maxTempApproximate / maxTempAnalytical - 1;
 
       M.apply( c, cMass, maxLevel, All );

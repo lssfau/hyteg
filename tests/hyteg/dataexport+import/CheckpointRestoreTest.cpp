@@ -226,17 +226,17 @@ value_t computeCheckValue( const func_t< value_t >& feFunc, uint_t level )
 
    if constexpr ( std::is_same_v< func_t< value_t >, P2P1TaylorHoodFunction< value_t > > )
    {
-      error = feFunc.p().getMaxMagnitude( level, All );
+      error = feFunc.p().getMaxDoFMagnitude( level, All );
       for ( uint_t k = 0; k < feFunc.getDimension(); ++k )
       {
-         error += feFunc.uvw()[k].getMaxMagnitude( level, All );
+         error += feFunc.uvw()[k].getMaxDoFMagnitude( level, All );
       }
    }
    else
    {
       for ( uint_t k = 0; k < feFunc.getDimension(); ++k )
       {
-         error += feFunc[k].getMaxMagnitude( level, All );
+         error += feFunc[k].getMaxDoFMagnitude( level, All );
       }
    }
    return error;

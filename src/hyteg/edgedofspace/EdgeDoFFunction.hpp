@@ -217,9 +217,9 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
-   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
-   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMinDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxDoFMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
    inline void              setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
@@ -233,16 +233,20 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
    {
-      WALBERLA_CHECK_EQUAL( communicators_.count( level ), 1, "No communicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
       communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void endCommunication( const uint_t& level ) const
    {
-      WALBERLA_CHECK_EQUAL( communicators_.count( level ), 1, "No communicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
@@ -263,8 +267,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
       {
          interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
       }
-      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
@@ -304,8 +310,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
          interpolateByPrimitiveType< ReceiverType >(
              real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
       }
-      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
    }
 
@@ -313,8 +321,10 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void endAdditiveCommunication( const uint_t& level ) const
    {
-      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ), 1, "No additiveCommunicator found for level = " << level
-                            << ".\nDoes function '" << this->functionName_ << "' exist on this level?" );
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
       additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 

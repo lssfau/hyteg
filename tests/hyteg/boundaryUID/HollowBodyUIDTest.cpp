@@ -79,7 +79,7 @@ void runTest( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, real_t
       func1.interpolate( { oValue, oValue }, level, outerBC );
    }
 
-   func2.assign( {real_c(1)}, {func1}, level, All );
+   func2.assign( { real_c( 1 ) }, { func1 }, level, All );
 
    // ------------------
    //  Control Function
@@ -118,7 +118,7 @@ void runTest( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, real_t
       }
       else
       {
-         check = diff.getMaxMagnitude( level, All );
+         check = diff.getMaxDoFMagnitude( level, All );
       }
       WALBERLA_LOG_INFO_ON_ROOT( "k = " << k << ", check = " << check );
       WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
@@ -138,7 +138,6 @@ void runTest( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, real_t
       vtkOutput.add( diff );
       vtkOutput.write( level );
    }
-
 }
 
 int main( int argc, char* argv[] )
@@ -166,8 +165,8 @@ int main( int argc, char* argv[] )
       AnnulusMap::setMap( setupStorage );
       auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      runTest< P1Function< real_t > >( storage, 2, rmin, rmax, tag+"AnnulusP1" );
-      runTest< P2Function< real_t > >( storage, 2, rmin, rmax, tag+"AnnulusP2" );
+      runTest< P1Function< real_t > >( storage, 2, rmin, rmax, tag + "AnnulusP1" );
+      runTest< P2Function< real_t > >( storage, 2, rmin, rmax, tag + "AnnulusP2" );
    }
 
    // --------------------
@@ -184,8 +183,8 @@ int main( int argc, char* argv[] )
       IcosahedralShellMap::setMap( setupStorage );
       auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      runTest< P1Function< real_t > >( storage, 2, rmin, rmax, tag+"ShellP1" );
-      runTest< P2Function< real_t > >( storage, 2, rmin, rmax, tag+"ShellP2" );
+      runTest< P1Function< real_t > >( storage, 2, rmin, rmax, tag + "ShellP1" );
+      runTest< P2Function< real_t > >( storage, 2, rmin, rmax, tag + "ShellP2" );
    }
 
    return 0;

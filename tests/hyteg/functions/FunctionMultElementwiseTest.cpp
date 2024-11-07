@@ -67,8 +67,7 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
       termThr.interpolate( real_c( 2.0 ), level, All );
       break;
 
-   case POLY_RAT:
-   {
+   case POLY_RAT: {
       WALBERLA_LOG_INFO_ON_ROOT( "[" << tag << "] Running POLY_RAT test in 2D:" );
       std::function< real_t( const Point3D& ) > polyFunc = []( const Point3D& x ) {
          return ( x[0] + real_c( 2.0 ) ) * ( x[1] - real_c( 3.0 ) );
@@ -90,8 +89,8 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    }
 
    // perform multiplication ...
-   product.multElementwise( {termOne, termTwo, termThr}, level );
-   aux.assign( {real_c( 1.0 ), real_c( -1.0 )}, {aux, product}, level, All );
+   product.multElementwise( { termOne, termTwo, termThr }, level );
+   aux.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { aux, product }, level, All );
 
    if ( outputVTK )
    {
@@ -105,7 +104,7 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    }
 
    // ... and check result
-   real_t error = aux.getMaxMagnitude( level, All );
+   real_t error = aux.getMaxDoFMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
    auto dp = std::is_same< real_t, double >();
    WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );
@@ -133,8 +132,7 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
       termThr.interpolate( real_c( 2.0 ), level, All );
       break;
 
-   case POLY_RAT:
-   {
+   case POLY_RAT: {
       WALBERLA_LOG_INFO_ON_ROOT( "[" << tag << "] Running CONST_FUNCS test in 3D:" );
       std::function< real_t( const Point3D& ) > polyFunc = []( const Point3D& x ) {
          return ( x[0] + real_c( 2.0 ) ) * ( x[1] - real_c( 3.0 ) ) * ( x[2] + real_c( 5.0 ) );
@@ -156,8 +154,8 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    }
 
    // perform multiplication ...
-   product.multElementwise( {termOne, termTwo, termThr}, level );
-   aux.assign( {real_c( 1.0 ), real_c( -1.0 )}, {aux, product}, level, All );
+   product.multElementwise( { termOne, termTwo, termThr }, level );
+   aux.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { aux, product }, level, All );
 
    if ( outputVTK )
    {
@@ -171,7 +169,7 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    }
 
    // ... and check result
-   real_t error = aux.getMaxMagnitude( level, All );
+   real_t error = aux.getMaxDoFMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
    auto dp = std::is_same< real_t, double >();
    WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 3e-7 );

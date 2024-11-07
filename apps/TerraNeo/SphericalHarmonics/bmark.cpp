@@ -314,7 +314,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
          aux.assign( {1.0}, {feSol.uvw()[idx]}, maxLevel );
          embedder.prolongate( aux, maxLevel, All );
          aux.assign( {1.0, -1.0}, {u_fine[idx], aux}, fLevel );
-         real_t val = aux.getMaxMagnitude( fLevel );
+         real_t val = aux.getMaxDoFMagnitude( fLevel );
          maxError   = maxError < val ? val : maxError;
       }
 

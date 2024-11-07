@@ -341,7 +341,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ///
    /// \param level     refinement level
    /// \param mpiReduce if true, reduces over all processes (global max magnitude), if false returns the process local value
-   ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const;
+   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const;
 
    /// \brief Returns the max DoF value.
    ///

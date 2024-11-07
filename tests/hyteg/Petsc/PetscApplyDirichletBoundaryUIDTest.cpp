@@ -128,7 +128,7 @@ int main( int argc, char** argv )
 
    // compare results
    difference.assign( { real_c( 1 ), real_c( -1 ) }, { uAnalytic, uDiscrete }, maxLevel, All );
-   real_t diffMax = difference.getMaxMagnitude( maxLevel, All );
+   real_t diffMax = difference.getMaxDoFMagnitude( maxLevel, All );
 
    // export functions to visually check results
    bool beVerbose = false;

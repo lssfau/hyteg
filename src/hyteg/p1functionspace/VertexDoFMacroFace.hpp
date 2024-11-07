@@ -890,7 +890,8 @@ inline void enumerate( const uint_t&                                            
 }
 
 template < typename ValueType >
-inline ValueType getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType
+    getMaxDoFValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
@@ -912,7 +913,7 @@ inline ValueType getMaxValue( const uint_t& level, Face& face, const PrimitiveDa
 
 template < typename ValueType >
 inline ValueType
-    getMaxMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+    getMaxDoFMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
@@ -934,7 +935,8 @@ inline ValueType
 }
 
 template < typename ValueType >
-inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType
+    getMinDoFValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;

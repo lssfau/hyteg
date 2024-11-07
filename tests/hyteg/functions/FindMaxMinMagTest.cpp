@@ -74,15 +74,15 @@ void runFindTest( std::string                                       mesg,
    switch ( testType )
    {
    case FIND_MAG:
-      measure = dofFunc.getMaxMagnitude( theLevel, flag );
+      measure = dofFunc.getMaxDoFMagnitude( theLevel, flag );
       break;
 
    case FIND_MAX:
-      measure = dofFunc.getMaxValue( theLevel, flag );
+      measure = dofFunc.getMaxDoFValue( theLevel, flag );
       break;
 
    case FIND_MIN:
-      measure = dofFunc.getMinValue( theLevel, flag );
+      measure = dofFunc.getMinDoFValue( theLevel, flag );
       break;
    }
 

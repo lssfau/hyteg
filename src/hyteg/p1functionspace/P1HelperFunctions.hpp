@@ -30,10 +30,10 @@ template<uint_t N>
 inline real_t getSupremumNorm(std::array<P1Function<real_t>*, N> functions, uint_t level) {
   WALBERLA_ASSERT(N >= 1, "getSupremumNorm requires at least one function as argument");
 
-  real_t maxValue = functions[0]->getMaxValue(level);
+  real_t maxValue = functions[0]->getMaxDoFValue(level);
 
   for (uint_t k = 1; k < functions.size(); ++k) {
-    maxValue = std::max(maxValue, functions[k]->getMaxValue(level));
+    maxValue = std::max(maxValue, functions[k]->getMaxDoFValue(level));
   }
 
   return maxValue;

@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " outer step | timestep | max temperature | total mass | mass lost since last outer step " )
    WALBERLA_LOG_INFO_ON_ROOT( "------------+----------+-----------------+------------+---------------------------------" )
 
-   auto max_temp = c.getMaxMagnitude( maxLevel, All );
+   auto max_temp = c.getMaxDoFMagnitude( maxLevel, All );
    M.apply( c, cMass, maxLevel, All );
    auto total_mass = cMass.sumGlobal( maxLevel );
 
@@ -191,7 +191,7 @@ int main( int argc, char* argv[] )
 
       transport.step( c, u.uvw(), uLast.uvw(), maxLevel, Inner, dt, 1, true );
 
-      max_temp = c.getMaxMagnitude( maxLevel, All );
+      max_temp = c.getMaxDoFMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
       auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );

@@ -106,7 +106,7 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
 
    // compare
    err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
-   const auto maxError = err.getMaxMagnitude( level );
+   const auto maxError = err.getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );
 

@@ -151,11 +151,11 @@ void ConvectionSimulation::updateViscosity()
    p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
        viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, TN.domainParameters.maxLevel, All );
 
-   real_t maxViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMaxValue( TN.domainParameters.maxLevel ) *
+   real_t maxViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMaxDoFValue( TN.domainParameters.maxLevel ) *
                          TN.physicalParameters.referenceViscosity;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity [Pa s]: " << maxViscosity );
-   real_t minRefViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMinValue( TN.domainParameters.maxLevel ) *
+   real_t minRefViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMinDoFValue( TN.domainParameters.maxLevel ) *
                             TN.physicalParameters.referenceViscosity;
    WALBERLA_LOG_INFO_ON_ROOT( "New update reference viscosity [Pa s]: " << minRefViscosity );
 

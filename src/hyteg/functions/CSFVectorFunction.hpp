@@ -309,7 +309,7 @@ class CSFVectorFunction
 
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         values.push_back( compFunc_[k]->getMaxMagnitude( level, flag, false ) );
+         values.push_back( compFunc_[k]->getMaxDoFMagnitude( level, flag, false ) );
       }
 
       valueType localMax = *std::max_element( values.begin(), values.end() );

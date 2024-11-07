@@ -75,7 +75,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
 
    // compute error
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
-   auto errorMax = err.getMaxMagnitude( level );
+   auto errorMax = err.getMaxDoFMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q)u||_inf" );
 }
 

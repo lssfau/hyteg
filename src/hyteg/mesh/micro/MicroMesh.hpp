@@ -60,7 +60,7 @@ namespace hyteg::micromesh {
 ///    cheap. On the downside, three scalars have to be stored per node, and the accuracy is limited by the chosen polynomial
 ///    degree.
 ///
-/// The MicroMesh class is a container that stores the mesh to implement the third approach outlines above.
+/// The MicroMesh class is a container that stores the mesh to implement the third approach outlined above.
 ///
 /// After construction of a MicroMesh instance, all vertices are mapped to the positions they have in the standard, refined coarse
 /// mesh. In other words, if no map is applied to the MicroMesh after construction, then the result is what is described in

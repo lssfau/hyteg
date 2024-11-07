@@ -208,7 +208,7 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
    error.assign( { 1.0, -1.0 }, { u_exact, u }, maxLevel, All );
    real_t npoints = static_cast< real_t >( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) );
    real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, All ) / npoints );
-   real_t maxNorm = error.getMaxMagnitude( maxLevel );
+   real_t maxNorm = error.getMaxDoFMagnitude( maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
    WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );
@@ -282,7 +282,7 @@ void solve_using_pimped_form( MeshInfo& meshInfo, walberla::Config::BlockHandle&
    error.assign( { real_c( 1 ), real_c( -1 ) }, { u_exact, u }, maxLevel, All );
    real_t npoints = static_cast< real_t >( numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) );
    real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, All ) / npoints );
-   real_t maxNorm = error.getMaxMagnitude( maxLevel );
+   real_t maxNorm = error.getMaxDoFMagnitude( maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
    WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );

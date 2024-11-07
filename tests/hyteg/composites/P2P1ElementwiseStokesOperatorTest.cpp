@@ -84,10 +84,10 @@ void compareApplyCC( const MeshInfo& meshInfo, const uint_t level, bool precompu
 
    error.assign( { 1.0, -1.0 }, { dstStencilCC, dstElementwiseCC }, level, All );
 
-   auto errorMaxMagnitudeU = error.uvw()[0].getMaxMagnitude( level );
-   auto errorMaxMagnitudeV = error.uvw()[1].getMaxMagnitude( level );
-   auto errorMaxMagnitudeW = error.uvw().getDimension() == 3 ? error.uvw()[2].getMaxMagnitude( level ) : real_c( 0 );
-   auto errorMaxMagnitudeP = error.p().getMaxMagnitude( level );
+   auto errorMaxMagnitudeU = error.uvw()[0].getMaxDoFMagnitude( level );
+   auto errorMaxMagnitudeV = error.uvw()[1].getMaxDoFMagnitude( level );
+   auto errorMaxMagnitudeW = error.uvw().getDimension() == 3 ? error.uvw()[2].getMaxDoFMagnitude( level ) : real_c( 0 );
+   auto errorMaxMagnitudeP = error.p().getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude u: " << errorMaxMagnitudeU );
    WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude v: " << errorMaxMagnitudeV );
@@ -139,10 +139,10 @@ void compareApplyFullViscousStokesIcosahedralShellMap( const uint_t level )
 
    error.assign( { 1.0, -1.0 }, { dstRefOp, dstNewOp }, level, All );
 
-   auto errorMaxMagnitudeU = error.uvw()[0].getMaxMagnitude( level );
-   auto errorMaxMagnitudeV = error.uvw()[1].getMaxMagnitude( level );
-   auto errorMaxMagnitudeW = error.uvw()[2].getMaxMagnitude( level );
-   auto errorMaxMagnitudeP = error.p().getMaxMagnitude( level );
+   auto errorMaxMagnitudeU = error.uvw()[0].getMaxDoFMagnitude( level );
+   auto errorMaxMagnitudeV = error.uvw()[1].getMaxDoFMagnitude( level );
+   auto errorMaxMagnitudeW = error.uvw()[2].getMaxDoFMagnitude( level );
+   auto errorMaxMagnitudeP = error.p().getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude u: " << errorMaxMagnitudeU );
    WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude v: " << errorMaxMagnitudeV );

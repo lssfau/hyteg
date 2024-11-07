@@ -74,7 +74,7 @@ void testRHS( const std::shared_ptr< PrimitiveStorage >&          storage,
    M.apply( f_proj, b_M, lvl, All );                  // compute rhs using mass matrix
    L2.dot( f, b_q );                                  // compute rhs using quadrature
    e.assign( { 1.0, -1.0 }, { b_q, b_M }, lvl, All ); // compute error
-   auto err = e.getMaxMagnitude( lvl, All, true );    // max norm of error
+   auto err = e.getMaxDoFMagnitude( lvl, All, true ); // max norm of error
    WALBERLA_LOG_INFO_ON_ROOT( "max_i |(v_i, f)_q - [Mf]_i| = " << err );
    WALBERLA_CHECK_LESS_EQUAL( min_error, err );
    WALBERLA_CHECK_LESS_EQUAL( err, max_error );

@@ -53,17 +53,17 @@ void testSparseMatrix()
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   OperatorType                       op( storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   src( "src", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   dstTrilinos( "dstTrilinos", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   dstHyteg( "dstHyteg", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >   error( "error", storage, level, level );
-   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
+   OperatorType                     op( storage, level, level );
+   P2P1TaylorHoodFunction< real_t > src( "src", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > dstTrilinos( "dstTrilinos", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > dstHyteg( "dstHyteg", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > error( "error", storage, level, level );
+   P2P1TaylorHoodFunction< idx_t >  numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };
 
-   src.uvw().interpolate( {f, f}, level, All );
+   src.uvw().interpolate( { f, f }, level, All );
    src.p().interpolate( f, level, All );
 
    trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( storage, level );
@@ -80,11 +80,11 @@ void testSparseMatrix()
 
    op.apply( src, dstHyteg, level, All );
 
-   error.assign( {1.0, -1.0}, {dstTrilinos, dstHyteg}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstTrilinos, dstHyteg }, level, All );
 
-   const auto maxMagnitudeU = error.uvw()[0].getMaxMagnitude( level );
-   const auto maxMagnitudeV = error.uvw()[1].getMaxMagnitude( level );
-   const auto maxMagnitudeP = error.p().getMaxMagnitude( level );
+   const auto maxMagnitudeU = error.uvw()[0].getMaxDoFMagnitude( level );
+   const auto maxMagnitudeV = error.uvw()[1].getMaxDoFMagnitude( level );
+   const auto maxMagnitudeP = error.p().getMaxDoFMagnitude( level );
 
    WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );
    WALBERLA_CHECK_LESS( maxMagnitudeV, 1e-14 );
@@ -107,8 +107,8 @@ void compareSparseMatrixMatlabOutput()
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   OperatorType                       op( storage, level, level );
-   P2P1TaylorHoodFunction< idx_t >    numerator( "numerator", storage, level, level );
+   OperatorType                    op( storage, level, level );
+   P2P1TaylorHoodFunction< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > trilinosMatrix( storage, level );

@@ -140,12 +140,12 @@ void runTest( bool useCentroids )
    else
    {
       // use an expression
-      func1.interpolate( {DirichletInner, DirichletInner}, maxLevel, innerBC );
-      func1.interpolate( {DirichletOuter, DirichletOuter}, maxLevel, outerBC );
+      func1.interpolate( { DirichletInner, DirichletInner }, maxLevel, innerBC );
+      func1.interpolate( { DirichletOuter, DirichletOuter }, maxLevel, outerBC );
 
       // use constant value
-      func2.interpolate( {iValue, iValue}, maxLevel, innerBC );
-      func2.interpolate( {oValue, oValue}, maxLevel, outerBC );
+      func2.interpolate( { iValue, iValue }, maxLevel, innerBC );
+      func2.interpolate( { oValue, oValue }, maxLevel, outerBC );
    }
 
    // ------------------
@@ -172,11 +172,11 @@ void runTest( bool useCentroids )
       ctrl.interpolate( controlValues, maxLevel, All );
       if ( k == 1 )
       {
-         diff.assign( {-1.0, 1.0}, {func1, ctrl}, maxLevel, All );
+         diff.assign( { -1.0, 1.0 }, { func1, ctrl }, maxLevel, All );
       }
       else
       {
-         diff.assign( {-1.0, 1.0}, {func2, ctrl}, maxLevel, All );
+         diff.assign( { -1.0, 1.0 }, { func2, ctrl }, maxLevel, All );
       }
       real_t check = real_c( 0 );
       if constexpr ( std::is_base_of< CSFVectorFunction< func_t >, func_t >::value )
@@ -185,7 +185,7 @@ void runTest( bool useCentroids )
       }
       else
       {
-         check = diff.getMaxMagnitude( maxLevel, All );
+         check = diff.getMaxDoFMagnitude( maxLevel, All );
       }
       // WALBERLA_LOG_INFO_ON_ROOT( "k = " << k << ", check = " << check );
       WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
@@ -287,8 +287,7 @@ void centroidHardBlendingTest()
    real_t boundaryRad = 0.0;
    real_t tol         = real_c( 1e-5 );
 
-   MeshInfo meshInfo =
-       MeshInfo::meshRectangle( Point2D( innerRad, phiMin ), Point2D( outerRad, phiMax ), MeshInfo::CRISS, 3, 4 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( innerRad, phiMin ), Point2D( outerRad, phiMax ), MeshInfo::CRISS, 3, 4 );
    // MeshInfo::meshRectangle( Point2D( innerRad, phiMin ), Point2D( outerRad, phiMax ), MeshInfo::DIAMOND, 3, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    PolarCoordsMap::setMap( setupStorage );
@@ -393,8 +392,8 @@ void centroidHardBlendingTest()
    //  check for differences
    // -----------------------
    func_t diff( "Diff Func", storage, minLevel, maxLevel );
-   diff.assign( {-1.0, 1.0}, {test, ctrl}, maxLevel, All );
-   real_t check = diff.getMaxMagnitude( maxLevel, All );
+   diff.assign( { -1.0, 1.0 }, { test, ctrl }, maxLevel, All );
+   real_t check = diff.getMaxDoFMagnitude( maxLevel, All );
    WALBERLA_CHECK_FLOAT_EQUAL( check, real_c( 0 ) );
 }
 

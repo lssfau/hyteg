@@ -144,7 +144,7 @@ void testSmoother( SmootherType type,
   auto dp = std::is_same< real_t, double >();
   WALBERLA_CHECK_LESS( errorNorm, dp ? 2e-13 : 1.5e-7 );
 
-  errorNorm = difference.getMaxMagnitude( level );
+  errorNorm = difference.getMaxDoFMagnitude( level );
   WALBERLA_CHECK_LESS( errorNorm, dp ? 3e-13 : 8e-7 );
 
   switch( type ) {

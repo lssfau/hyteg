@@ -58,8 +58,7 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
 
    switch ( testCase )
    {
-   case CONST_FUNCS:
-   {
+   case CONST_FUNCS: {
       WALBERLA_LOG_INFO_ON_ROOT( "[" << tag << "] Running CONST_FUNCS test in 2D:" );
       termOne.interpolate( real_c( 3.0 ), level, All );
       termTwo.interpolate( real_c( -2.0 ), level, All );
@@ -69,12 +68,11 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
           []( const Point3D&, const std::vector< real_t >& values ) { return values[0] + values[1]; };
 
       // perform extended expression interpolation
-      termsCombined.interpolate( extExpr, {termOne, termTwo}, level, All );
+      termsCombined.interpolate( extExpr, { termOne, termTwo }, level, All );
    }
    break;
 
-   case POLY_RAT:
-   {
+   case POLY_RAT: {
       WALBERLA_LOG_INFO_ON_ROOT( "[" << tag << "] Running POLY_RAT test in 2D:" );
       std::function< real_t( const Point3D& ) > polyFunc = []( const Point3D& x ) {
          return ( x[0] + real_c( 2.0 ) ) * ( x[1] - real_c( 3.0 ) );
@@ -92,7 +90,7 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
           };
 
       // perform extended expression interpolation
-      termsCombined.interpolate( extExpr, {termOne, termTwo}, level, All );
+      termsCombined.interpolate( extExpr, { termOne, termTwo }, level, All );
    }
    break;
 
@@ -103,7 +101,7 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    // Exact result will always be constant to one everywhere,
    // compute difference
    difference.interpolate( real_c( 1.0 ), level, All );
-   difference.assign( {real_c( 1.0 ), real_c( -1.0 )}, {difference, termsCombined}, level, All );
+   difference.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { difference, termsCombined }, level, All );
 
    if ( outputVTK )
    {
@@ -116,7 +114,7 @@ void run2DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    }
 
    // ... and check result
-   real_t error = difference.getMaxMagnitude( level, All );
+   real_t error = difference.getMaxDoFMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
    auto dp = std::is_same< real_t, double >();
    WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );
@@ -134,8 +132,7 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
 
    switch ( testCase )
    {
-   case CONST_FUNCS:
-   {
+   case CONST_FUNCS: {
       WALBERLA_LOG_INFO_ON_ROOT( "[" << tag << "] Running CONST_FUNCS test in 3D:" );
       termOne.interpolate( real_c( 3.0 ), level, All );
       termTwo.interpolate( real_c( 1.0 / 6.0 ), level, All );
@@ -146,12 +143,11 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
           []( const Point3D&, const std::vector< real_t >& values ) { return values[0] * values[1] * values[2]; };
 
       // perform extended expression interpolation
-      termsCombined.interpolate( extExpr, {termOne, termTwo, termThr}, level, All );
+      termsCombined.interpolate( extExpr, { termOne, termTwo, termThr }, level, All );
    }
    break;
 
-   case POLY_RAT:
-   {
+   case POLY_RAT: {
       WALBERLA_LOG_INFO_ON_ROOT( "[" << tag << "] Running CONST_FUNCS test in 3D:" );
       std::function< real_t( const Point3D& ) > polyFunc = []( const Point3D& x ) {
          return ( x[0] + real_c( 2.0 ) ) * ( x[1] - real_c( 3.0 ) ) * ( x[2] + real_c( 5.0 ) );
@@ -173,7 +169,7 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
           };
 
       // perform extended expression interpolation
-      termsCombined.interpolate( extExpr, {termOne, termTwo, termThr}, level, All );
+      termsCombined.interpolate( extExpr, { termOne, termTwo, termThr }, level, All );
    }
    break;
 
@@ -184,7 +180,7 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    // Exact result will always be constant to one everywhere,
    // compute difference
    difference.interpolate( real_c( 1.0 ), level, All );
-   difference.assign( {real_c( 1.0 ), real_c( -1.0 )}, {difference, termsCombined}, level, All );
+   difference.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { difference, termsCombined }, level, All );
 
    if ( outputVTK )
    {
@@ -198,7 +194,7 @@ void run3DTest( TestCase testCase, std::shared_ptr< PrimitiveStorage > storage, 
    }
 
    // ... and check result
-   real_t error = difference.getMaxMagnitude( level, All );
+   real_t error = difference.getMaxDoFMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal magnitude of error = " << std::scientific << error );
    auto dp = std::is_same< real_t, double >();
    WALBERLA_CHECK_LESS( error, dp ? 1e-15 : 4e-7 );

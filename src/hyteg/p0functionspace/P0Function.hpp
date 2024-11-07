@@ -387,16 +387,16 @@ class P0Function : public Function< P0Function< ValueType > >
       dgFunction_->copyBoundaryConditionFromFunction( *other.getDGFunction() );
    }
 
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   ValueType getMaxDoFMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
       if ( flag != All && flag != Inner )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMaxMagnitude -> DoFType flag will be ignored!" );
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMaxDoFMagnitude -> DoFType flag will be ignored!" );
       }
-      return dgFunction_->getMaxMagnitude( level, mpiReduce );
+      return dgFunction_->getMaxDoFMagnitude( level, mpiReduce );
    }
 
-   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   ValueType getMaxDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
       if ( flag != All && flag != Inner )
       {
@@ -405,11 +405,11 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getMax( level, mpiReduce );
    }
 
-   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
+   ValueType getMinDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
    {
       if ( flag != All && flag != Inner )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMinValue -> DoFType flag will be ignored!" );
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMinDoFValue -> DoFType flag will be ignored!" );
       }
       return dgFunction_->getMin( level, mpiReduce );
    }

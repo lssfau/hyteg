@@ -26,7 +26,7 @@ real_t velocityMaxMagnitude( const vfunc_t&                                     
       magnitudeSquared.assign( {1.0, 1.0}, {magnitudeSquared, tmp}, level, flag );
    }
 
-   return std::sqrt( magnitudeSquared.getMaxMagnitude( level, flag ) );
+   return std::sqrt( magnitudeSquared.getMaxDoFMagnitude( level, flag ) );
 }
 
 } // namespace hyteg

@@ -191,10 +191,10 @@ int main( int argc, char* argv[] )
    // difficult check
    p2vecWrap.interpolate( real_t( 2 ), maxLevel, All );
    P2VectorFunction< real_t > p2vec = p2vecWrap.unwrap();
-   WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxMagnitude( maxLevel ), real_c( 2 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxDoFMagnitude( maxLevel ), real_c( 2 ) );
 
    p2vecWrap.multElementwise( { p2vecWrap, p2vecWrap }, maxLevel, All );
-   WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxMagnitude( maxLevel ), real_c( 4 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxDoFMagnitude( maxLevel ), real_c( 4 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "P2VecFunc.interpolate() -> check" );
 
 #ifdef HYTEG_BUILD_WITH_PETSC

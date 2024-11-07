@@ -585,7 +585,8 @@ inline void printFunctionMemory( const uint_t&                                  
 }
 
 template < typename ValueType >
-inline ValueType getMaxValue( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+inline ValueType
+    getMaxDoFValue( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
 {
    uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
@@ -602,7 +603,7 @@ inline ValueType getMaxValue( const uint_t& level, Edge& edge, const PrimitiveDa
 
 template < typename ValueType >
 inline ValueType
-    getMaxMagnitude( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+    getMaxDoFMagnitude( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
 {
    uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
@@ -619,7 +620,8 @@ inline ValueType
 }
 
 template < typename ValueType >
-inline ValueType getMinValue( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+inline ValueType
+    getMinDoFValue( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
 {
    uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 

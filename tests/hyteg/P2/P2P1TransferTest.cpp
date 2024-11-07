@@ -173,7 +173,7 @@ void run_P1ToP2EmbeddingTest( const std::shared_ptr< PrimitiveStorage >& storage
       vtkOutput.write( level );
    }
 
-   real_t errorMeasure = p2FuncError.getMaxMagnitude( level, All );
+   real_t errorMeasure = p2FuncError.getMaxDoFMagnitude( level, All );
    WALBERLA_LOG_INFO_ON_ROOT( " measure of error = " << std::scientific << errorMeasure );
    real_t tol{ std::is_same< double, real_t >() ? 1e-12 : 1e-6f };
    WALBERLA_CHECK_LESS( errorMeasure, tol );
