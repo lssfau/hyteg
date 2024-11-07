@@ -355,7 +355,7 @@ template < typename ValueType >
 void VolumeDoFFunction< ValueType >::assign(
     const std::vector< ValueType >&                                                      scalars,
     const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-    uint_t                                                                               level )
+    uint_t                                                                               level ) const
 {
    WALBERLA_CHECK_EQUAL( scalars.size(),
                          functions.size(),
@@ -447,7 +447,7 @@ void VolumeDoFFunction< ValueType >::assign(
 
 /// \brief Adds a scalar to this VolumeDoFFunction.
 template < typename ValueType >
-void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag )
+void VolumeDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
 {
    WALBERLA_UNUSED( flag );
    if ( this->storage_->hasGlobalCells() )
@@ -558,7 +558,7 @@ template < typename ValueType >
 void VolumeDoFFunction< ValueType >::add(
     const std::vector< ValueType >&                                                      scalars,
     const std::vector< std::reference_wrapper< const VolumeDoFFunction< ValueType > > >& functions,
-    uint_t                                                                               level )
+    uint_t                                                                               level ) const
 {
    WALBERLA_CHECK_EQUAL( scalars.size(),
                          functions.size(),
@@ -684,7 +684,7 @@ ValueType VolumeDoFFunction< ValueType >::dotLocal( const VolumeDoFFunction< Val
 
 /// \brief swaps the content of one volumeDoFFunction with another.
 template < typename ValueType >
-void VolumeDoFFunction< ValueType >::swap( VolumeDoFFunction< ValueType >& rhs, uint_t level )
+void VolumeDoFFunction< ValueType >::swap( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const
 {
    if ( this->storage_->hasGlobalCells() )
    {
@@ -759,7 +759,7 @@ ValueType VolumeDoFFunction< ValueType >::dotGlobal( const VolumeDoFFunction< Va
 /// \brief Evaluates the sum of all local DoFs. No communication is involved and the results may be different on each
 /// process.
 template < typename ValueType >
-ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
+ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level, bool absolute ) const
 {
    walberla::math::KahanAccumulator< ValueType > sum;
 
@@ -803,10 +803,21 @@ ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
          {
             for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
             {
-               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               if ( absolute )
                {
-                  const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
-                  sum += mem[idx];
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                     sum += std::abs( mem[idx] );
+                  }
+               }
+               else
+               {
+                  for ( uint_t dof = 0; dof < numDofs; dof++ )
+                  {
+                     const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                     sum += mem[idx];
+                  }
                }
             }
          }
@@ -818,9 +829,9 @@ ValueType VolumeDoFFunction< ValueType >::sumLocal( uint_t level ) const
 
 /// \brief Evaluates the (global) sum. Involves communication and has to be called collectively.
 template < typename ValueType >
-ValueType VolumeDoFFunction< ValueType >::sumGlobal( uint_t level ) const
+ValueType VolumeDoFFunction< ValueType >::sumGlobal( uint_t level, bool absolute ) const
 {
-   const ValueType sLocal = sumLocal( level );
+   const ValueType sLocal = sumLocal( level, absolute );
    return walberla::mpi::allReduce( sLocal, walberla::mpi::SUM );
 }
 
