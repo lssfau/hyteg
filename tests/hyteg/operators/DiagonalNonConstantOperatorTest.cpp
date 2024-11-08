@@ -93,7 +93,7 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    vOper.apply( funcInp, funcOut2, level, All );
 
    funcErr.assign( { 1.0, -1.0 }, { funcOut1, funcOut2 }, level, All );
-   real_t maxErr = funcErr.getMaxMagnitude( level );
+   real_t maxErr = funcErr.getMaxDoFMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( "--> Maximal difference = " << maxErr );
 
    if ( outputVTK )

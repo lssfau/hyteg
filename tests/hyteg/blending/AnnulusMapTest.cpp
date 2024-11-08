@@ -50,7 +50,7 @@ void runTest1( std::string tag )
 
    // generate a mesh with one triangle only
    std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
+   MeshInfo    meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare (setup) storage and initialise annulus map
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -105,7 +105,7 @@ void runTest0( std::string tag )
 
    // generate a mesh with one triangle only
    std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
+   MeshInfo    meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare (setup) storage and initialise annulus map
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -117,7 +117,7 @@ void runTest0( std::string tag )
    for ( auto& it : storage->getFaces() )
    {
       Face& face = *it.second;
-      faceID = face.getID();
+      faceID     = face.getID();
    }
 
    // setup a map for that face
@@ -215,7 +215,7 @@ void runTest2( std::string tag, uint_t level )
 
    // generate a mesh with one triangle only
    std::string meshFileName = "2D/annulusTriangle" + tag + ".msh";
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
+   MeshInfo    meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( meshFileName ) );
 
    // prepare unmapped storage
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -350,9 +350,9 @@ void runTest2( std::string tag, uint_t level )
 
    P1Function< real_t > error( "err", storage, level, level );
    error.assign( { 1.0, -1.0 }, { xFwdBwd, xUnmapped }, level );
-   real_t value5 = error.getMaxMagnitude( level );
+   real_t value5 = error.getMaxDoFMagnitude( level );
    error.assign( { 1.0, -1.0 }, { yFwdBwd, yUnmapped }, level );
-   real_t value6 = error.getMaxMagnitude( level );
+   real_t value6 = error.getMaxDoFMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> maximum difference in x-coordinate = " << std::scientific << value5 );
    WALBERLA_LOG_INFO_ON_ROOT( " -> maximum difference in y-coordinate = " << std::scientific << value6 );
    WALBERLA_ASSERT_FLOAT_EQUAL( value5, 0.0 );

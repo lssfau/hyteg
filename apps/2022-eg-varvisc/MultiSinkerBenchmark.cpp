@@ -221,7 +221,7 @@ void MultiSinker( const std::string& name,
       errEq.uvw().getConformingPart()->assign(
           { 1.0, -1.0 }, { *xFiner.uvw().getConformingPart(), *x.uvw().getConformingPart() }, level + 1, All );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "error equivalent u = " << errEq.uvw().getMaxMagnitude( level + 1 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "error equivalent u = " << errEq.uvw().getMaxDoFMagnitude( level + 1 ) );
    }
 
    //vtkOutput.write( level, 1 );

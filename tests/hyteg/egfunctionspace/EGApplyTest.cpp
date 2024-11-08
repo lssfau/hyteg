@@ -120,7 +120,7 @@ void EGApplyTest( ScalarLambda       srcLambda,
       vtk.write( level, 0 );
    }
 
-   auto maxMag = err.getMaxMagnitude( level );
+   auto maxMag = err.getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||_max = " << maxMag );
 
@@ -215,7 +215,7 @@ void EGApplyNitscheBCTest( ScalarLambda       srcLambda,
       vtk.write( level, 0 );
    }
 
-   auto maxMag = err.getMaxMagnitude( level );
+   auto maxMag = err.getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( testName << ": ||e||_max = " << maxMag );
 

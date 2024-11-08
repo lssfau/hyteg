@@ -133,8 +133,8 @@ int main( int argc, char* argv[] )
       if ( i % 10 == 0 )
       {
          c_error->assign( { 1.0, -1.0 }, { *c, *c_final }, maxLevel, All );
-         // const auto max_error = c_error->getMaxMagnitude( maxLevel, All );
-         max_error = c_error->getMaxMagnitude( maxLevel );
+         // const auto max_error = c_error->getMaxDoFMagnitude( maxLevel, All );
+         max_error = c_error->getMaxDoFMagnitude( maxLevel );
          WALBERLA_LOG_INFO_ON_ROOT( "Timestep: " << i << ", max error magnitude = " << max_error );
       }
 

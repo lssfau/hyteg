@@ -128,7 +128,7 @@ static void solvePoisson( uint_t minLevel, uint_t maxLevel, uint_t cycles, real_
    timer.end();
 
    WALBERLA_LOG_INFO(
-       walberla::format( "Max Magnitude: %9.3e | Time: %9.3e", u.getMaxMagnitude( maxLevel, Inner ), timer.last() ) );
+       walberla::format( "Max Magnitude: %9.3e | Time: %9.3e", u.getMaxDoFMagnitude( maxLevel, Inner ), timer.last() ) );
 }
 } // namespace hyteg
 

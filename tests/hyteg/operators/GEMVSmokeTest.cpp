@@ -112,7 +112,7 @@ void compareHytegAndEigenGEMV( const std::string&                         testId
 
    error.assign( { 1.0, -1.0 }, { y, eigenYResult }, level, All );
 
-   auto errorMaxMagnitude = error.getMaxMagnitude( level );
+   auto errorMaxMagnitude = error.getMaxDoFMagnitude( level );
 
    auto testString = testId + " " + ( checkApply ? "apply" : "gemv" );
    WALBERLA_LOG_INFO_ON_ROOT( "error inf: " << errorMaxMagnitude << "    | " << testString );

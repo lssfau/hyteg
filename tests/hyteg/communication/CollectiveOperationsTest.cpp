@@ -50,35 +50,35 @@ void runTest( const uint_t level )
       return std::max( reduced, newValue );
    };
 
-   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxValue( level, All, false ),
+   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxDoFValue( level, All, false ),
                                func.reduceLocal( level, reduceMax, std::numeric_limits< double >::min(), All ) )
    WALBERLA_CHECK_FLOAT_EQUAL(
-       func.getMaxValue( level, All, true ),
+       func.getMaxDoFValue( level, All, true ),
        func.reduceGlobal( level, reduceMax, std::numeric_limits< double >::min(), walberla::mpi::MAX, All ) )
-   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxValue( level, All, true ),
+   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxDoFValue( level, All, true ),
                                func.reduceGlobal( level, reduceMax, std::numeric_limits< double >::min(), All ) )
 
    std::function< double( double, double ) > reduceMin = []( double reduced, double newValue ) {
       return std::min( reduced, newValue );
    };
 
-   WALBERLA_CHECK_FLOAT_EQUAL( func.getMinValue( level, All, false ),
+   WALBERLA_CHECK_FLOAT_EQUAL( func.getMinDoFValue( level, All, false ),
                                func.reduceLocal( level, reduceMin, std::numeric_limits< double >::max(), All ) )
    WALBERLA_CHECK_FLOAT_EQUAL(
-       func.getMinValue( level, All, true ),
+       func.getMinDoFValue( level, All, true ),
        func.reduceGlobal( level, reduceMin, std::numeric_limits< double >::max(), walberla::mpi::MIN, All ) )
-   WALBERLA_CHECK_FLOAT_EQUAL( func.getMinValue( level, All, true ),
+   WALBERLA_CHECK_FLOAT_EQUAL( func.getMinDoFValue( level, All, true ),
                                func.reduceGlobal( level, reduceMin, std::numeric_limits< double >::max(), All ) )
 
    std::function< double( double, double ) > maxMagnitued = []( double reduced, double newValue ) {
       return std::max( std::abs( reduced ), std::abs( newValue ) );
    };
-   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxMagnitude( level, All, false ),
+   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxDoFMagnitude( level, All, false ),
                                func.reduceLocal( level, maxMagnitued, std::numeric_limits< double >::min(), All ) )
    WALBERLA_CHECK_FLOAT_EQUAL(
-       func.getMaxMagnitude( level, All, true ),
+       func.getMaxDoFMagnitude( level, All, true ),
        func.reduceGlobal( level, maxMagnitued, std::numeric_limits< double >::min(), walberla::mpi::MAX, All ) )
-   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxMagnitude( level, All, true ),
+   WALBERLA_CHECK_FLOAT_EQUAL( func.getMaxDoFMagnitude( level, All, true ),
                                func.reduceGlobal( level, maxMagnitued, std::numeric_limits< double >::min(), All ) )
 }
 } // namespace hyteg

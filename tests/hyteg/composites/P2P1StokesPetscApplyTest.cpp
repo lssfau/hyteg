@@ -106,13 +106,13 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
 
    // compare
    err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
-   auto maxError = err.uvw()[0].getMaxMagnitude( level );
-   maxError      = std::max( maxError, err.uvw()[1].getMaxMagnitude( level ) );
+   auto maxError = err.uvw()[0].getMaxDoFMagnitude( level );
+   maxError      = std::max( maxError, err.uvw()[1].getMaxDoFMagnitude( level ) );
    if ( err.uvw().getDimension() == 3 )
    {
-      maxError = std::max( maxError, err.uvw()[2].getMaxMagnitude( level ) );
+      maxError = std::max( maxError, err.uvw()[2].getMaxDoFMagnitude( level ) );
    }
-   maxError = std::max( maxError, err.p().getMaxMagnitude( level ) );
+   maxError = std::max( maxError, err.p().getMaxDoFMagnitude( level ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );
 
@@ -152,7 +152,8 @@ int main( int argc, char* argv[] )
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, hyteg::prependHyTeGMeshDir( "3D/tet_1el.msh" ), hyteg::All, 1.0e-16 );
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_2el.msh" ), hyteg::All, 7.3e-16 );
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/pyramid_4el.msh" ), hyteg::All, 1.4e-15 );
-   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), hyteg::All, 4.0e-15 );
+   succeeded &=
+       hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ), hyteg::All, 4.0e-15 );
    succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, hyteg::prependHyTeGMeshDir( "3D/cube_24el.msh" ), hyteg::All, 3.5e-15 );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )

@@ -208,9 +208,9 @@ int main( int argc, char* argv[] )
 
    P1Function< real_t > kappa( "kappa", storage, minLevel, maxLevel );
    kappa.interpolate( parameterFunction, maxLevel, All );
-   real_t kappaMin = kappa.getMinValue( maxLevel, All );
+   real_t kappaMin = kappa.getMinDoFValue( maxLevel, All );
    WALBERLA_LOG_INFO_ON_ROOT( " -> kappa (minVal) = " << kappaMin );
-   WALBERLA_LOG_INFO_ON_ROOT( " -> kappa (maxVal) = " << kappa.getMaxValue( maxLevel, All ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> kappa (maxVal) = " << kappa.getMaxDoFValue( maxLevel, All ) );
    if ( kappaMin < real_c( 0 ) )
    {
       WALBERLA_ABORT( "Expecting positive values of kappa!" );
@@ -344,7 +344,7 @@ int main( int argc, char* argv[] )
    difference.assign( {1.0, -1.0}, {stencilWeight, surrogateWeight}, maxLevel );
 
    // compute error norms
-   real_t errorNormMax = difference.getMaxMagnitude( maxLevel, Inner );
+   real_t errorNormMax = difference.getMaxDoFMagnitude( maxLevel, Inner );
    real_t errorNormL2discr =
        std::sqrt( difference.dotGlobal( difference, maxLevel, Inner ) ) / real_c( getNumInnerMicroVertices( params.lsqLevel ) );
 
@@ -357,7 +357,7 @@ int main( int argc, char* argv[] )
    relErr.assign( {1.0}, {stencilWeight}, maxLevel, All );
    relErr.invertElementwise( maxLevel, All );
    relErr.multElementwise( {difference, relErr}, maxLevel, All );
-   real_t errorMaxRel = relErr.getMaxMagnitude( maxLevel, Inner );
+   real_t errorMaxRel = relErr.getMaxDoFMagnitude( maxLevel, Inner );
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> maximum norm ........ " << std::scientific << errorNormMax );
    WALBERLA_LOG_INFO_ON_ROOT( " -> discrete L2 norm .... " << std::scientific << errorNormL2discr );

@@ -48,13 +48,13 @@ void runTest()
    double dummy = 0.0;
    for ( int i = 0; i < 100; ++i )
    {
-      dummy += func.getMaxValue( 4, All, true );
+      dummy += func.getMaxDoFValue( 4, All, true );
    }
    timingTree->stop( "getMaxValue" );
    timingTree->start( "getMaxValueWoMPI" );
    for ( int i = 0; i < 100; ++i )
    {
-      dummy += func.getMaxValue( 4, All, false );
+      dummy += func.getMaxDoFValue( 4, All, false );
    }
    timingTree->stop( "getMaxValueWoMPI" );
 

@@ -73,7 +73,7 @@ caseResult analyseCase( std::shared_ptr< PrimitiveStorage > storage,
    caseResult testCase;
    testCase.level   = level;
    testCase.dofs    = numberOfGlobalInnerDoFs< funcTag >( *storage, level );
-   testCase.maxNorm = error.getMaxMagnitude( level + 1 );
+   testCase.maxNorm = error.getMaxDoFMagnitude( level + 1 );
    testCase.errNorm = std::sqrt( error.dotGlobal( error, level + 1, All ) / npoints );
 
    return testCase;

@@ -247,7 +247,7 @@ int main( int argc, char* argv[] )
       transport.step( c, uv, uvLastTimeStep, maxLevel, Inner, dt, 1, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
-      auto max_temp = c.getMaxMagnitude( maxLevel, All );
+      auto max_temp = c.getMaxDoFMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
       auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );

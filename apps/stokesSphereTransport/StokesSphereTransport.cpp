@@ -320,7 +320,7 @@ void simulate( int argc, char* argv[] )
       tmp.multElementwise( { tmp, tmp }, maxLevel, All );
       tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
-      return std::sqrt( tmp2.getMaxMagnitude( maxLevel, All ) );
+      return std::sqrt( tmp2.getMaxDoFMagnitude( maxLevel, All ) );
    };
 
    if ( writeVTK )

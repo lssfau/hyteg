@@ -97,11 +97,11 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormTyp
    // compare
    real_t maxError;
    error.assign( { 1.0, -1.0 }, { dstVerificationLaplace, dstRowSumLaplace }, level, All );
-   maxError = error.getMaxMagnitude( level );
+   maxError = error.getMaxDoFMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude Laplace: " << maxError << ", eps: " << eps );
 
    error.assign( { 1.0, -1.0 }, { dstVerificationMass, dstRowSumMass }, level, All );
-   maxError = error.getMaxMagnitude( level );
+   maxError = error.getMaxDoFMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude mass: " << maxError << ", eps: " << eps );
 
    bool success = maxError <= eps;

@@ -656,7 +656,7 @@ namespace hyteg {
         }
 
         template<typename ValueType>
-        ValueType DGFunction<ValueType>::getMaxMagnitude(uint_t level, bool mpiReduce) const {
+        ValueType DGFunction<ValueType>::getMaxDoFMagnitude(uint_t level, bool mpiReduce) const {
             auto localMax = ValueType(0.0);
 
             if (storage_->hasGlobalCells()) {

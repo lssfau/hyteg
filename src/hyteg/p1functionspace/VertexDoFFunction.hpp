@@ -298,9 +298,9 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    void enumerate( uint_t level, ValueType& offset ) const;
 
    // TODO: write more general version(s)
-   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
-   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMinDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxDoFMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    /// reduces the function locally using the reduceOperation
    /// \param level the refinement level

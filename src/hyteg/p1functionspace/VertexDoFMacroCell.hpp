@@ -672,7 +672,8 @@ inline void enumerate( const uint_t&                                            
 }
 
 template < typename ValueType >
-inline ValueType getMaxValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+inline ValueType
+    getMaxDoFValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
 {
    auto src      = cell.getData( srcId )->getPointer( level );
    auto localMax = -std::numeric_limits< ValueType >::max();
@@ -687,7 +688,8 @@ inline ValueType getMaxValue( const uint_t& level, Cell& cell, const PrimitiveDa
 }
 
 template < typename ValueType >
-inline ValueType getMinValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+inline ValueType
+    getMinDoFValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
 {
    auto src      = cell.getData( srcId )->getPointer( level );
    auto localMin = std::numeric_limits< ValueType >::max();
@@ -703,7 +705,7 @@ inline ValueType getMinValue( const uint_t& level, Cell& cell, const PrimitiveDa
 
 template < typename ValueType >
 inline ValueType
-    getMaxMagnitude( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+    getMaxDoFMagnitude( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
 {
    auto src      = cell.getData( srcId )->getPointer( level );
    auto localMax = ValueType( 0.0 );

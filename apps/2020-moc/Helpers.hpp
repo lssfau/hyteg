@@ -97,8 +97,8 @@ inline real_t
 template < typename FunctionType >
 inline real_t maxPeakDifference( const FunctionType& u, const FunctionType& uSolution, uint_t level, DoFType flag )
 {
-   const real_t maxTempApproximate = u.getMaxValue( level, flag );
-   const real_t maxTempAnalytical  = uSolution.getMaxValue( level, flag );
+   const real_t maxTempApproximate = u.getMaxDoFValue( level, flag );
+   const real_t maxTempAnalytical  = uSolution.getMaxDoFValue( level, flag );
    const real_t peakError          = maxTempApproximate / maxTempAnalytical - 1;
    return peakError;
 }
@@ -110,8 +110,8 @@ inline real_t maxPeakDifference( const FunctionType& u, const FunctionType& uSol
 template < typename FunctionType >
 inline real_t spuriousOscillations( const FunctionType& u, uint_t level, DoFType flag )
 {
-   const real_t maxTemp = u.getMaxValue( level, flag );
-   const real_t minTemp = u.getMinValue( level, flag );
+   const real_t maxTemp = u.getMaxDoFValue( level, flag );
+   const real_t minTemp = u.getMinDoFValue( level, flag );
    return maxTemp - minTemp;
 }
 

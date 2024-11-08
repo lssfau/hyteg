@@ -177,9 +177,9 @@ class DG1Function : public Function< DG1Function< ValueType > >
    {
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
-   ValueType getMaxMagnitude( uint_t level, bool mpiReduce = true ) const
+   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const
    {
-      return dgFunction_->getMaxMagnitude( level, mpiReduce );
+      return dgFunction_->getMaxDoFMagnitude( level, mpiReduce );
    }
    template < typename OtherValueType >
    void copyBoundaryConditionFromFunction( const DG1Function< OtherValueType >& other )

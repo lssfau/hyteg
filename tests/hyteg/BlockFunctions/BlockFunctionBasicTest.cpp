@@ -184,7 +184,7 @@ void testEnumerate()
    auto p   = enumerator[1].unwrap< P1Function< int > >();
 
    int value = uvw.getMaxComponentMagnitude( maxLevel, All );
-   value     = std::max( value, p.getMaxValue( maxLevel, All ) );
+   value     = std::max( value, p.getMaxDoFValue( maxLevel, All ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Largest index in enumerator = " << value );
    uint_t nDoFs = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel );

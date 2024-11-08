@@ -102,7 +102,7 @@ bool P2LinearCombinationFormTest( const uint_t& level, const std::string& meshFi
 
    // compare
    err.assign( {1.0, -1.0}, {dstVerification, dstAssign}, level, All );
-   const auto maxError = err.getMaxMagnitude( level );
+   const auto maxError = err.getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );
 

@@ -561,11 +561,11 @@ void P2Function< ValueType >::restrictInjection( uint_t sourceLevel, DoFType fla
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
+ValueType P2Function< ValueType >::getMaxDoFValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = -std::numeric_limits< ValueType >::max();
-   localMax      = std::max( localMax, vertexDoFFunction_.getMaxValue( level, flag, false ) );
-   localMax      = std::max( localMax, edgeDoFFunction_.getMaxValue( level, flag, false ) );
+   localMax      = std::max( localMax, vertexDoFFunction_.getMaxDoFValue( level, flag, false ) );
+   localMax      = std::max( localMax, edgeDoFFunction_.getMaxDoFValue( level, flag, false ) );
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMax = localMax;
@@ -578,11 +578,11 @@ ValueType P2Function< ValueType >::getMaxValue( uint_t level, DoFType flag, bool
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
+ValueType P2Function< ValueType >::getMaxDoFMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = ValueType( 0.0 );
-   localMax      = std::max( localMax, vertexDoFFunction_.getMaxMagnitude( level, flag, false ) );
-   localMax      = std::max( localMax, edgeDoFFunction_.getMaxMagnitude( level, flag, false ) );
+   localMax      = std::max( localMax, vertexDoFFunction_.getMaxDoFMagnitude( level, flag, false ) );
+   localMax      = std::max( localMax, edgeDoFFunction_.getMaxDoFMagnitude( level, flag, false ) );
 
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
@@ -596,11 +596,11 @@ ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, 
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
+ValueType P2Function< ValueType >::getMinDoFValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMin = std::numeric_limits< ValueType >::max();
-   localMin      = std::min( localMin, vertexDoFFunction_.getMinValue( level, flag, false ) );
-   localMin      = std::min( localMin, edgeDoFFunction_.getMinValue( level, flag, false ) );
+   localMin      = std::min( localMin, vertexDoFFunction_.getMinDoFValue( level, flag, false ) );
+   localMin      = std::min( localMin, edgeDoFFunction_.getMinDoFValue( level, flag, false ) );
    walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMin = localMin;

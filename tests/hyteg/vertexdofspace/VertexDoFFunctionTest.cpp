@@ -267,8 +267,8 @@ void testInvertElementwise()
    vertexdof::VertexDoFFunction< real_t > vFunc( "testFunc", storage, level, level );
    vFunc.interpolate( real_c( -1.0 / 3.0 ), level, All );
    vFunc.invertElementwise( level, All );
-   WALBERLA_CHECK_FLOAT_EQUAL( vFunc.getMaxValue( level, All ), real_c( -3 ) );
-   WALBERLA_CHECK_FLOAT_EQUAL( vFunc.getMinValue( level, All ), real_c( -3 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( vFunc.getMaxDoFValue( level, All ), real_c( -3 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( vFunc.getMinDoFValue( level, All ), real_c( -3 ) );
 }
 
 } // namespace hyteg

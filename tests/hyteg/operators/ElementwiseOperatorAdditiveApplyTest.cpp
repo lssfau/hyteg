@@ -114,19 +114,19 @@ void additiveApplyTest( std::shared_ptr< PrimitiveStorage > storage, const uint_
    elemWiseOp.apply( srcB, dstConstReplaceElementwiseAdd, level, All, Add );
 
    error.assign( { 1.0, -1.0 }, { dstManualConst, dstManualElementwise }, level, All );
-   auto errorMax = error.getMaxMagnitude( level );
+   auto errorMax = error.getMaxDoFMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "manual elementwise" );
 
    error.assign( { 1.0, -1.0 }, { dstManualConst, dstAdditiveConst }, level, All );
-   errorMax = error.getMaxMagnitude( level );
+   errorMax = error.getMaxDoFMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "const replace, const add" );
 
    error.assign( { 1.0, -1.0 }, { dstManualConst, dstAdditiveElementwise }, level, All );
-   errorMax = error.getMaxMagnitude( level );
+   errorMax = error.getMaxDoFMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "elementwise replace, elementwise add" );
 
    error.assign( { 1.0, -1.0 }, { dstManualConst, dstConstReplaceElementwiseAdd }, level, All );
-   errorMax = error.getMaxMagnitude( level );
+   errorMax = error.getMaxDoFMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "const replace, elementwise add" );
 }
 

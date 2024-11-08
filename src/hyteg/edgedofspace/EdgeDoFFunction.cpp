@@ -1379,7 +1379,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
+ValueType EdgeDoFFunction< ValueType >::getMaxDoFValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = -std::numeric_limits< ValueType >::max();
 
@@ -1389,7 +1389,7 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         localMax = std::max( localMax, edgedof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ) );
+         localMax = std::max( localMax, edgedof::macroedge::getMaxDoFValue< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
@@ -1399,14 +1399,14 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         localMax = std::max( localMax, edgedof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ) );
+         localMax = std::max( localMax, edgedof::macroface::getMaxDoFValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
    for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMax   = std::max( localMax, edgedof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+      localMax   = std::max( localMax, edgedof::macrocell::getMaxDoFValue< ValueType >( level, cell, cellDataID_ ) );
    }
 
    if ( mpiReduce )
@@ -1418,7 +1418,7 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
+ValueType EdgeDoFFunction< ValueType >::getMinDoFValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMin = std::numeric_limits< ValueType >::max();
 
@@ -1428,7 +1428,7 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         localMin = std::min( localMin, edgedof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ) );
+         localMin = std::min( localMin, edgedof::macroedge::getMinDoFValue< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
@@ -1438,14 +1438,14 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         localMin = std::min( localMin, edgedof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ) );
+         localMin = std::min( localMin, edgedof::macroface::getMinDoFValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
    for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMin   = std::min( localMin, edgedof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+      localMin   = std::min( localMin, edgedof::macrocell::getMinDoFValue< ValueType >( level, cell, cellDataID_ ) );
    }
 
    if ( mpiReduce )
@@ -1457,7 +1457,7 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
+ValueType EdgeDoFFunction< ValueType >::getMaxDoFMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = ValueType( 0.0 );
 
@@ -1467,7 +1467,7 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         localMax = std::max( localMax, edgedof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ) );
+         localMax = std::max( localMax, edgedof::macroedge::getMaxDoFMagnitude< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
@@ -1477,14 +1477,14 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         localMax = std::max( localMax, edgedof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ) );
+         localMax = std::max( localMax, edgedof::macroface::getMaxDoFMagnitude< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
    for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMax   = std::max( localMax, edgedof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
+      localMax   = std::max( localMax, edgedof::macrocell::getMaxDoFMagnitude< ValueType >( level, cell, cellDataID_ ) );
    }
 
    if ( mpiReduce )

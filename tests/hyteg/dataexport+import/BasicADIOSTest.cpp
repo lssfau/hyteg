@@ -54,7 +54,7 @@ void compareFunctions( const P1Function< real_t >& original, const P1Function< r
    auto                 storage = original.getStorage();
    P1Function< real_t > check( "auxilliary function", storage, level, level );
    check.assign( { real_c( 1 ), real_c( -1 ) }, { original, clone }, level, All );
-   real_t measure = check.getMaxMagnitude( level, All );
+   real_t measure = check.getMaxDoFMagnitude( level, All );
 
    if ( writeOutVTK )
    {

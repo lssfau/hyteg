@@ -97,7 +97,7 @@ void dgPetscApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
 
    // compare
    err.assign( { 1.0, -1.0 }, { hytegDst, petscDst }, level );
-   auto maxMag = err.getMaxMagnitude( level );
+   auto maxMag = err.getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max mag = " << maxMag );
 

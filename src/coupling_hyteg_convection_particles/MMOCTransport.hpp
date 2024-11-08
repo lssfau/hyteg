@@ -1030,8 +1030,8 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
 
    if ( globalMaxLimiter )
    {
-      minTempCOld = cOld.getMinValue( level );
-      maxTempCOld = cOld.getMaxValue( level );
+      minTempCOld = cOld.getMinDoFValue( level );
+      maxTempCOld = cOld.getMaxDoFValue( level );
    }
 
    // evaluate temperature at final position

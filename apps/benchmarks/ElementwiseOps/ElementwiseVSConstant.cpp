@@ -255,13 +255,7 @@ int main( int argc, char** argv )
 
    //compar results
    diff.assign( { 1.0, -1.0 }, { dstConst, dstElem }, benchLevel, hyteg::All );
-   WALBERLA_LOG_INFO_ON_ROOT( "Diff Magnitude: " << diff.getMaxMagnitude( benchLevel ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "Diff Magnitude: " << diff.getMaxDoFMagnitude( benchLevel ) )
 
    LIKWID_MARKER_CLOSE;
-   // hyteg::VTKOutput vtkOutput( ".", "P2ConstantVSP2Elementwise", storage );
-   // vtkOutput.add( src );
-   // vtkOutput.add( diff );
-   // vtkOutput.add( dstConst );
-   // vtkOutput.add( dstElem );
-   // vtkOutput.write( benchLevel, 0 );
 }

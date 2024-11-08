@@ -82,7 +82,7 @@ void testMatVec()
 
    err.assign( { 1.0, -1.0 }, { y, yFromEigen }, level );
 
-   auto errNormInf = err.getMaxMagnitude( level );
+   auto errNormInf = err.getMaxDoFMagnitude( level );
 
    WALBERLA_LOG_DEVEL_VAR( errNormInf );
 

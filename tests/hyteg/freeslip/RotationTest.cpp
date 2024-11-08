@@ -229,8 +229,8 @@ static void testRotation()
    // we check if the rotation makes the ndim component ~ equal to the radial component
    uint_t radialComponentIdx = use3D ? 2u : 1u;
 
-   real_t urMax = u.uvw().component( radialComponentIdx ).getMaxValue( level, FreeslipBoundary );
-   // real_t urMin = u.uvw().component( radialComponentIdx ).getMinValue( level, FreeslipBoundary );
+   real_t urMax = u.uvw().component( radialComponentIdx ).getMaxDoFValue( level, FreeslipBoundary );
+   // real_t urMin = u.uvw().component( radialComponentIdx ).getMinDoFValue( level, FreeslipBoundary );
 
    // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "urVal = %4.7e, urMax = %4.7e, urMin = %4.7e", ur, urMax, urMin ) );
 

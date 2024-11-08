@@ -191,7 +191,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "----------+-----------------+------------+---------------------------------" )
 
    cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
-   auto max_temp = c.getMaxMagnitude( maxLevel, All );
+   auto max_temp = c.getMaxDoFMagnitude( maxLevel, All );
    M.apply( c, cMass, maxLevel, All );
    auto total_mass = cMass.sumGlobal( maxLevel );
 
@@ -204,7 +204,7 @@ int main( int argc, char* argv[] )
       transport.step( c, velocity, maxLevel, Inner, dt, 0 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
-      max_temp = c.getMaxMagnitude( maxLevel, All );
+      max_temp = c.getMaxDoFMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
       auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );

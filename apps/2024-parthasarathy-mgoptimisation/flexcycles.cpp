@@ -129,8 +129,8 @@ void calculateErrorAndResidual( const uint_t&              level,
 
    auto num = numberOfGlobalDoFs< typename Function::Tag >( *u.getStorage(), level );
 
-   LInfError    = error.getMaxMagnitude( level );
-   LInfResidual = residual.getMaxMagnitude( level );
+   LInfError    = error.getMaxDoFMagnitude( level );
+   LInfResidual = residual.getMaxDoFMagnitude( level );
 
    L2Error    = std::sqrt( error.dotGlobal( error, level, Inner ) / (long double) ( num ) );
    L2Residual = std::sqrt( residual.dotGlobal( residual, level, Inner ) / (long double) ( num ) );
