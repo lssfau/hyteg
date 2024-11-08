@@ -177,10 +177,22 @@ class DG1Function : public Function< DG1Function< ValueType > >
    {
       return dgFunction_->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
    }
+
    ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const
    {
       return dgFunction_->getMaxDoFMagnitude( level, mpiReduce );
    }
+
+   ValueType getMaxDoFValue( uint_t level, bool mpiReduce = true ) const
+   {
+      return dgFunction_->getMaxDoFValue( level, mpiReduce );
+   }
+
+   ValueType getMinDoFValue( uint_t level, bool mpiReduce = true ) const
+   {
+      return dgFunction_->getMinDoFValue( level, mpiReduce );
+   }
+
    template < typename OtherValueType >
    void copyBoundaryConditionFromFunction( const DG1Function< OtherValueType >& other )
    {

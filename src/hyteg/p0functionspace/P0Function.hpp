@@ -402,7 +402,7 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMaxValue -> DoFType flag will be ignored!" );
       }
-      return dgFunction_->getMax( level, mpiReduce );
+      return dgFunction_->getMaxDoFValue( level, mpiReduce );
    }
 
    ValueType getMinDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const
@@ -411,7 +411,7 @@ class P0Function : public Function< P0Function< ValueType > >
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::getMinDoFValue -> DoFType flag will be ignored!" );
       }
-      return dgFunction_->getMin( level, mpiReduce );
+      return dgFunction_->getMinDoFValue( level, mpiReduce );
    }
 
  private:

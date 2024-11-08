@@ -804,7 +804,7 @@ ValueType DGFunction< ValueType >::getMaxDoFMagnitude( uint_t level, bool mpiRed
 }
 
 template < typename ValueType >
-ValueType DGFunction< ValueType >::getMax( uint_t level, bool mpiReduce ) const
+ValueType DGFunction< ValueType >::getMaxDoFValue( uint_t level, bool mpiReduce ) const
 {
    auto localMax = ValueType( 0.0 );
 
@@ -873,7 +873,7 @@ ValueType DGFunction< ValueType >::getMax( uint_t level, bool mpiReduce ) const
 }
 
 template < typename ValueType >
-ValueType DGFunction< ValueType >::getMin( uint_t level, bool mpiReduce ) const
+ValueType DGFunction< ValueType >::getMinDoFValue( uint_t level, bool mpiReduce ) const
 {
    auto localMin = ValueType( 0.0 );
 
