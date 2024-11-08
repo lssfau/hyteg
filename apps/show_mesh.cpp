@@ -33,6 +33,7 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellAlignedMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -309,8 +310,15 @@ struct MeshTDomain : public MeshBuilder
 struct MeshTorus : public MeshBuilder
 {
    MeshTorus()
-   : MeshBuilder( "--torus", "", "meshing a torus" )
+   : MeshBuilder( "--torus", "[affine|blended]", "meshing a torus (with or without blending)" )
    {}
+
+   const uint_t                toroidalResolution         = 8;
+   const uint_t                poloidalResolution         = 6;
+   const real_t                radiusOriginToCenterOfTube = 6.2;
+   const std::vector< real_t > tubeLayerRadii             = { 3 };
+   const real_t                torodialStartAngle         = 0.0;
+   const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * poloidalResolution );
 
    virtual ~MeshTorus() = default;
 
@@ -318,19 +326,37 @@ struct MeshTorus : public MeshBuilder
    {
       WALBERLA_UNUSED( allArguments );
 
-      const uint_t                toroidalResolution         = 8;
-      const uint_t                poloidalResolution         = 6;
-      const real_t                radiusOriginToCenterOfTube = 6.2;
-      const std::vector< real_t > tubeLayerRadii             = { 3 };
-      const real_t                torodialStartAngle         = 0.0;
-      const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * poloidalResolution );
-
       return MeshInfo::meshTorus( toroidalResolution,
                                   poloidalResolution,
                                   radiusOriginToCenterOfTube,
                                   tubeLayerRadii,
                                   torodialStartAngle,
                                   polodialStartAngle );
+   }
+
+   virtual SetupPrimitiveStorage constructSetupStorage( const std::vector< std::string >& allArguments,
+                                                        const MeshInfo&                   meshInfo ) const
+   {
+      auto itFlag   = std::find( allArguments.begin(), allArguments.end(), flag );
+      auto blending = *( std::next( itFlag, 1 ) );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      if ( blending == "affine" ) {}
+      else if ( blending == "blended" )
+      {
+         TorusMap::setMap( setupStorage,
+                           toroidalResolution,
+                           poloidalResolution,
+                           radiusOriginToCenterOfTube,
+                           tubeLayerRadii,
+                           torodialStartAngle,
+                           polodialStartAngle );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid shell parameter." )
+      }
+      return setupStorage;
    }
 };
 
@@ -368,7 +394,8 @@ void showUsage( const std::vector< std::shared_ptr< MeshBuilder > >& builders )
    WALBERLA_LOG_INFO_ON_ROOT( "Use --dofs <lvl>  to print number of DoFs on refinement level lvl." )
    WALBERLA_LOG_INFO_ON_ROOT( "Use --exportFineMesh <lvl>  to store the mesh for refinement level lvl in a MESH4.1 file." )
    WALBERLA_LOG_INFO_ON_ROOT(
-       "Use --parametric-map to write the node positions to the micro-mesh and plot via a linear parametric map." )
+       "Use --parametric-map <map-degree> to write the node positions to the micro-mesh and plot via a linear parametric map. "
+       "Only degrees 1 and 2 are supported." )
 }
 
 /// The actual show_mesh app itself
@@ -580,13 +607,19 @@ int main( int argc, char* argv[] )
 
    if ( algorithms::contains( allArguments, "--parametric-map" ) )
    {
+      auto flagIt              = std::find( allArguments.begin(), allArguments.end(), "--parametric-map" );
+      auto parametricMapDegree = std::stoi( *std::next( flagIt, 1 ) );
+
+      WALBERLA_CHECK_GREATER_EQUAL( parametricMapDegree, 1, "Parametric map degree has to be 1 or 2." );
+      WALBERLA_CHECK_LESS_EQUAL( parametricMapDegree, 2, "Parametric map degree has to be 1 or 2." );
+
       WALBERLA_LOG_INFO_ON_ROOT(
-          "Using linear parametric mapping.\n"
+          "Using parametric mapping.\n"
           "Essentially just copying over the node positions of the (possibly blended) elements to the micro-mesh.\n"
           "(Technically, we do not need the micro-mesh for the visualization here - but it showcases how to use it.)" )
 
-      auto microMesh =
-          std::make_shared< micromesh::MicroMesh >( storage, minLevel, maxLevel, 1, storage->hasGlobalCells() ? 3 : 2 );
+      auto microMesh = std::make_shared< micromesh::MicroMesh >(
+          storage, minLevel, maxLevel, parametricMapDegree, storage->hasGlobalCells() ? 3 : 2 );
 
       storage->setMicroMesh( microMesh );
    }
@@ -615,18 +648,25 @@ int main( int argc, char* argv[] )
    }
 #endif
 
-   hyteg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
+   const auto outputDirectory = "../output";
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Writing to directory: " << outputDirectory );
+
+   hyteg::writeDomainPartitioningVTK( storage, outputDirectory, vtkFileName + "_domain_partitioning" );
    WALBERLA_LOG_INFO_ON_ROOT(
        "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: "
        << vtkFileName + "_domain_partitioning" );
 
-   hyteg::VTKOutput                                 vtkOutput( "../output", vtkFileName, storage );
-   hyteg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
+   hyteg::VTKOutput                                 vtkOutput( outputDirectory, vtkFileName, storage );
+   hyteg::P1Function< real_t >                      someDataP1( "test data P1", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t >                      someDataP2( "test data P2", storage, minLevel, maxLevel );
    std::function< real_t( const hyteg::Point3D& ) > myFunc = []( const hyteg::Point3D& xx ) {
       return xx[0] * xx[0] - xx[1] * xx[1];
    };
-   someData.interpolate( myFunc, maxLevel );
-   vtkOutput.add( someData );
+   someDataP1.interpolate( myFunc, maxLevel );
+   someDataP2.interpolate( myFunc, maxLevel );
+   vtkOutput.add( someDataP1 );
+   vtkOutput.add( someDataP2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );
    vtkOutput.write( outLevel );
 
