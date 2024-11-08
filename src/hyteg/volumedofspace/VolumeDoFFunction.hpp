@@ -120,6 +120,66 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    /// \brief Evaluates the (global) dot product. Involves communication and has to be called collectively.
    ValueType dotGlobal( const VolumeDoFFunction< ValueType >& rhs, uint_t level ) const;
 
+   /// Return the maximal value of the degrees of freedom of the function
+   ///
+   /// \param level     function acts on the dofs of this refinement level
+   /// \param mpiReduce if true the returned value is the global maximum, otherwise the local one
+   ValueType getMaxDoFValue( uint_t level, bool mpiReduce = true ) const
+   {
+      ValueType localMax = reduceLocal(
+          level,
+          []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, newCandidate ); },
+          std::numeric_limits< ValueType >::lowest() );
+
+      ValueType globalMax = localMax;
+      if ( mpiReduce )
+      {
+         globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+      }
+
+      return globalMax;
+   };
+
+   /// Return the minimal value of the degrees of freedom of the function
+   ///
+   /// \param level     function acts on the dofs of this refinement level
+   /// \param mpiReduce if true the returned value is the global minimum, otherwise the local one
+   ValueType getMinDoFValue( uint_t level, bool mpiReduce = true ) const
+   {
+      ValueType localMin = reduceLocal(
+          level,
+          []( ValueType oldMin, ValueType newCandidate ) { return std::min( oldMin, newCandidate ); },
+          std::numeric_limits< ValueType >::max() );
+
+      ValueType globalMin = localMin;
+      if ( mpiReduce )
+      {
+         globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
+      }
+
+      return globalMin;
+   };
+
+   /// Return the maximal magnitude of the degrees of freedom of the function
+   ///
+   /// \param level     function acts on the dofs of this refinement level
+   /// \param mpiReduce if true the returned value is the global maximum, otherwise the local one
+   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const
+   {
+      ValueType localMax = reduceLocal(
+          level,
+          []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, std::abs( newCandidate ) ); },
+          ValueType( 0 ) );
+
+      ValueType globalMax = localMax;
+      if ( mpiReduce )
+      {
+         globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+      }
+
+      return globalMax;
+   };
+
    /// \brief Computes the sum over all local DoFs. No communication is involved and the results may be different on each
    /// process. For absolute = true, the magnitudes of the DoFs are accumulated.
    ValueType sumLocal( uint_t level, bool absolute = false ) const;
@@ -296,6 +356,11 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
          }
       }
    }
+
+   // A generic local reduce operation to be used by getMaxDoFValue() and the like
+   ValueType reduceLocal( uint_t                                                    level,
+                          const std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                          ValueType                                                 initialValue ) const;
 
    std::map< PrimitiveID, uint_t > numScalarsPerPrimitive_;
 

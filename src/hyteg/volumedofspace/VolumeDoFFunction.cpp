@@ -835,7 +835,68 @@ ValueType VolumeDoFFunction< ValueType >::sumGlobal( uint_t level, bool absolute
    return walberla::mpi::allReduce( sLocal, walberla::mpi::SUM );
 }
 
-/// explicit instantiation
+// A generic local reduce operation to be used by getMaxDoFValue() and the like
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::reduceLocal( uint_t                                                    level,
+                                                       const std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                                                       ValueType initialValue ) const
+{
+   ValueType result{ initialValue };
+
+   if ( this->storage_->hasGlobalCells() )
+   {
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         const auto mem     = dofMemory( cellId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                  const auto idx =
+                      indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                  result = reduceOperation( result, mem[idx] );
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( const auto& faceIt : this->getStorage()->getFaces() )
+      {
+         const auto faceId = faceIt.first;
+         const auto face   = *faceIt.second;
+
+         const auto mem     = dofMemory( faceId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                  const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                  result         = reduceOperation( result, mem[idx] );
+               }
+            }
+         }
+      }
+   }
+
+   return result;
+}
+
+// explicit instantiation
 template class VolumeDoFFunction< double >;
 template class VolumeDoFFunction< float >;
 template class VolumeDoFFunction< int32_t >;
