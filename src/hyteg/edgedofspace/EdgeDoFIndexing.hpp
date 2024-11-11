@@ -1306,7 +1306,7 @@ inline void getEdgeDoFDataIndicesFromMicroCell( const indexing::Index&   microCe
 
    for ( uint_t k = 0; k < 6; ++k )
    {
-      // generate Indexs for vertices in the current pair
+      // generate Index for vertices in the current pair
       uint_t n1 = pairs[k].first;
       uint_t n2 = pairs[k].second;
 

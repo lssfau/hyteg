@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl.
+* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -834,6 +834,112 @@ std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometr
                geometryMap.evalF( x, xout );
                return xout[2];
             } };
+}
+
+/////////////////////////////////////////////
+/// Computation of micro-center positions ///
+/////////////////////////////////////////////
+
+static Point3D microFaceCenterPositionNoMesh( const std::shared_ptr< PrimitiveStorage >& storage,
+                                              PrimitiveID                                faceId,
+                                              uint_t                                     level,
+                                              const indexing::Index&                     microFaceIndex,
+                                              facedof::FaceType                          faceType,
+                                              bool                                       withBlending )
+{
+   WALBERLA_ASSERT( storage->faceExistsLocally( faceId ), "Cannot compute center of micro-face for non-local macro-face" );
+
+   const Face& face = *( storage->getPrimitiveGenerically< Face >( faceId ) );
+
+   std::array< indexing::Index, 3 > vertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+
+   Point3D v0 = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[0] );
+   Point3D v1 = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[1] );
+   Point3D v2 = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[2] );
+
+   Point3D center = ( v0 + v1 + v2 ) / real_c( 3 );
+
+   if ( !withBlending )
+   {
+      return center;
+   }
+
+   return applyBlending( center, face );
+}
+
+Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                 PrimitiveID                                faceId,
+                                 uint_t                                     level,
+                                 const indexing::Index&                     microFaceIndex,
+                                 facedof::FaceType                          faceType )
+
+{
+   WALBERLA_CHECK( storage->faceExistsLocally( faceId ), "Cannot compute center of micro-face for non-local macro-face" );
+
+   auto microMesh = storage->getMicroMesh();
+
+   if ( !microMesh )
+   {
+      return microFaceCenterPositionNoMesh( storage, faceId, level, microFaceIndex, faceType, true );
+   }
+
+   const uint_t dim  = microMesh->dimension();
+   const Face*  face = storage->getPrimitiveGenerically< Face >( faceId );
+   Point3D      center;
+
+   if ( microMesh->polynomialDegree() == 1 )
+   {
+      const auto& p1Mesh = *( microMesh->p1Mesh() );
+
+      std::array< uint_t, 3 > vertexDoFIndices;
+      vertexdof::getVertexDoFDataIndicesFromMicroFace( microFaceIndex, faceType, level, vertexDoFIndices );
+
+      std::array< Point3D, 3 > coords;
+
+      for ( uint_t k = 0; k < dim; k++ )
+      {
+         real_t* vdata = face->getData( p1Mesh.component( k ).getFaceDataID() )->getPointer( level );
+         for ( uint_t vIdx = 0; vIdx < 3; ++vIdx )
+         {
+            center( Eigen::Index( k ) ) += vdata[vertexDoFIndices[vIdx]];
+         }
+         center( Eigen::Index( k ) ) /= real_t( 3 );
+      }
+   }
+   else if ( microMesh->polynomialDegree() == 2 )
+   {
+      const auto& p2Mesh = *( microMesh->p2Mesh() );
+
+      std::array< uint_t, 3 > vertexDoFIndices;
+      vertexdof::getVertexDoFDataIndicesFromMicroFace( microFaceIndex, faceType, level, vertexDoFIndices );
+
+      std::array< uint_t, 3 > edgeDoFIndices;
+      edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFaceIndex, faceType, level, edgeDoFIndices );
+
+      std::array< Point3D, 6 > node;
+
+      for ( uint_t k = 0; k < dim; k++ )
+      {
+         real_t* vData = face->getData( p2Mesh.component( k ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+         real_t* eData = face->getData( p2Mesh.component( k ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+
+         real_t node0 = vData[vertexDoFIndices[0]];
+         real_t node1 = vData[vertexDoFIndices[1]];
+         real_t node2 = vData[vertexDoFIndices[2]];
+
+         real_t node3 = eData[edgeDoFIndices[0]];
+         real_t node4 = eData[edgeDoFIndices[1]];
+         real_t node5 = eData[edgeDoFIndices[2]];
+
+         center( Eigen::Index( k ) ) = ( real_c( 4 ) * ( node3 + node4 + node5 ) - ( node0 + node1 + node2 ) ) / real_c( 9 );
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "Invalid polynomial degree " << microMesh->polynomialDegree() << " of MicroMesh." )
+   }
+
+   return center;
 }
 
 } // namespace hyteg::micromesh
