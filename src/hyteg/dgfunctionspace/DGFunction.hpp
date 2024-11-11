@@ -341,19 +341,28 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ///
    /// \param level     refinement level
    /// \param mpiReduce if true, reduces over all processes (global max magnitude), if false returns the process local value
-   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const;
+   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const
+   {
+      return volumeDoFFunction_->getMaxDoFMagnitude( level, mpiReduce );
+   };
 
    /// \brief Returns the max DoF value.
    ///
    /// \param level     refinement level
    /// \param mpiReduce if true, reduces over all processes (global max), if false returns the process local value
-   ValueType getMax( uint_t level, bool mpiReduce = true ) const;
+   ValueType getMaxDoFValue( uint_t level, bool mpiReduce = true ) const
+   {
+      return volumeDoFFunction_->getMaxDoFValue( level, mpiReduce );
+   };
 
    /// \brief Returns the min DoF value.
    ///
    /// \param level     refinement level
    /// \param mpiReduce if true, reduces over all processes (global min), if false returns the process local value
-   ValueType getMin( uint_t level, bool mpiReduce = true ) const;
+   ValueType getMinDoFValue( uint_t level, bool mpiReduce = true ) const
+   {
+      return volumeDoFFunction_->getMinDoFValue( level, mpiReduce );
+   };
 
  private:
    using Function< DGFunction< ValueType > >::communicators_;

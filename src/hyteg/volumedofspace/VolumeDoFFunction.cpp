@@ -835,7 +835,122 @@ ValueType VolumeDoFFunction< ValueType >::sumGlobal( uint_t level, bool absolute
    return walberla::mpi::allReduce( sLocal, walberla::mpi::SUM );
 }
 
-/// explicit instantiation
+// A generic local reduce operation to be used by getMaxDoFValue() and the like
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::reduceLocal( uint_t                                                    level,
+                                                       const std::function< ValueType( ValueType, ValueType ) >& reduceOperation,
+                                                       ValueType initialValue ) const
+{
+   ValueType result{ initialValue };
+
+   if ( this->storage_->hasGlobalCells() )
+   {
+      for ( const auto& cellIt : this->getStorage()->getCells() )
+      {
+         const auto cellId = cellIt.first;
+         const auto cell   = *cellIt.second;
+
+         const auto mem     = dofMemory( cellId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( cellId );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( auto elementIdx : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                  const auto idx =
+                      indexing::index( elementIdx.x(), elementIdx.y(), elementIdx.z(), cellType, dof, numDofs, level, layout );
+                  result = reduceOperation( result, mem[idx] );
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( const auto& faceIt : this->getStorage()->getFaces() )
+      {
+         const auto faceId = faceIt.first;
+         const auto face   = *faceIt.second;
+
+         const auto mem     = dofMemory( faceId, level );
+         const auto layout  = memoryLayout_;
+         const auto numDofs = this->numScalarsPerPrimitive_.at( faceId );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( auto elementIdx : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t dof = 0; dof < numDofs; dof++ )
+               {
+                  const auto idx = indexing::index( elementIdx.x(), elementIdx.y(), faceType, dof, numDofs, level, layout );
+                  result         = reduceOperation( result, mem[idx] );
+               }
+            }
+         }
+      }
+   }
+
+   return result;
+}
+
+// Return the maximal value of the degrees of freedom of the function
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::getMaxDoFValue( uint_t level, bool mpiReduce ) const
+{
+   ValueType localMax = reduceLocal(
+       level,
+       []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, newCandidate ); },
+       std::numeric_limits< ValueType >::lowest() );
+
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
+};
+
+// Return the minimal value of the degrees of freedom of the function
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::getMinDoFValue( uint_t level, bool mpiReduce ) const
+{
+   ValueType localMin = reduceLocal(
+       level,
+       []( ValueType oldMin, ValueType newCandidate ) { return std::min( oldMin, newCandidate ); },
+       std::numeric_limits< ValueType >::max() );
+
+   ValueType globalMin = localMin;
+   if ( mpiReduce )
+   {
+      globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
+   }
+
+   return globalMin;
+};
+
+// Return the maximal magnitude of the degrees of freedom of the function
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::getMaxDoFMagnitude( uint_t level, bool mpiReduce ) const
+{
+   ValueType localMax = reduceLocal(
+       level,
+       []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, std::abs( newCandidate ) ); },
+       ValueType( 0 ) );
+
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
+};
+
+// explicit instantiation
 template class VolumeDoFFunction< double >;
 template class VolumeDoFFunction< float >;
 template class VolumeDoFFunction< int32_t >;
