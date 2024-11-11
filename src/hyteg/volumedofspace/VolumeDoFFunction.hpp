@@ -124,61 +124,19 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
    ///
    /// \param level     function acts on the dofs of this refinement level
    /// \param mpiReduce if true the returned value is the global maximum, otherwise the local one
-   ValueType getMaxDoFValue( uint_t level, bool mpiReduce = true ) const
-   {
-      ValueType localMax = reduceLocal(
-          level,
-          []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, newCandidate ); },
-          std::numeric_limits< ValueType >::lowest() );
-
-      ValueType globalMax = localMax;
-      if ( mpiReduce )
-      {
-         globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
-      }
-
-      return globalMax;
-   };
+   ValueType getMaxDoFValue( uint_t level, bool mpiReduce = true ) const;
 
    /// Return the minimal value of the degrees of freedom of the function
    ///
    /// \param level     function acts on the dofs of this refinement level
    /// \param mpiReduce if true the returned value is the global minimum, otherwise the local one
-   ValueType getMinDoFValue( uint_t level, bool mpiReduce = true ) const
-   {
-      ValueType localMin = reduceLocal(
-          level,
-          []( ValueType oldMin, ValueType newCandidate ) { return std::min( oldMin, newCandidate ); },
-          std::numeric_limits< ValueType >::max() );
-
-      ValueType globalMin = localMin;
-      if ( mpiReduce )
-      {
-         globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
-      }
-
-      return globalMin;
-   };
+   ValueType getMinDoFValue( uint_t level, bool mpiReduce = true ) const;
 
    /// Return the maximal magnitude of the degrees of freedom of the function
    ///
    /// \param level     function acts on the dofs of this refinement level
    /// \param mpiReduce if true the returned value is the global maximum, otherwise the local one
-   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const
-   {
-      ValueType localMax = reduceLocal(
-          level,
-          []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, std::abs( newCandidate ) ); },
-          ValueType( 0 ) );
-
-      ValueType globalMax = localMax;
-      if ( mpiReduce )
-      {
-         globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
-      }
-
-      return globalMax;
-   };
+   ValueType getMaxDoFMagnitude( uint_t level, bool mpiReduce = true ) const;
 
    /// \brief Computes the sum over all local DoFs. No communication is involved and the results may be different on each
    /// process. For absolute = true, the magnitudes of the DoFs are accumulated.

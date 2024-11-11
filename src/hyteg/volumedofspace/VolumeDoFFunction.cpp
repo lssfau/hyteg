@@ -896,6 +896,60 @@ ValueType VolumeDoFFunction< ValueType >::reduceLocal( uint_t                   
    return result;
 }
 
+// Return the maximal value of the degrees of freedom of the function
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::getMaxDoFValue( uint_t level, bool mpiReduce ) const
+{
+   ValueType localMax = reduceLocal(
+       level,
+       []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, newCandidate ); },
+       std::numeric_limits< ValueType >::lowest() );
+
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
+};
+
+// Return the minimal value of the degrees of freedom of the function
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::getMinDoFValue( uint_t level, bool mpiReduce ) const
+{
+   ValueType localMin = reduceLocal(
+       level,
+       []( ValueType oldMin, ValueType newCandidate ) { return std::min( oldMin, newCandidate ); },
+       std::numeric_limits< ValueType >::max() );
+
+   ValueType globalMin = localMin;
+   if ( mpiReduce )
+   {
+      globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
+   }
+
+   return globalMin;
+};
+
+// Return the maximal magnitude of the degrees of freedom of the function
+template < typename ValueType >
+ValueType VolumeDoFFunction< ValueType >::getMaxDoFMagnitude( uint_t level, bool mpiReduce ) const
+{
+   ValueType localMax = reduceLocal(
+       level,
+       []( ValueType oldMax, ValueType newCandidate ) { return std::max( oldMax, std::abs( newCandidate ) ); },
+       ValueType( 0 ) );
+
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
+};
+
 // explicit instantiation
 template class VolumeDoFFunction< double >;
 template class VolumeDoFFunction< float >;
