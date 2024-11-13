@@ -870,9 +870,12 @@ class TALASimulation
           InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >(
           storage, minLevel, maxLevel, *schurOperator, chebyshevSmoother, schurSolver, uzawaOmega, relaxSchur, 1u );
 
+      auto ABlockCoarseGridDirectSolver = std::make_shared< PETScLUSolver< StokesOperatorType::VelocityOperator_T > >(storage, minLevel);
+      ABlockCoarseGridDirectSolver->assembleAndFactorize(stokesOperatorRotationOpgen->getA());
+
       auto ABlockCoarseGridMinresSolver = std::make_shared< MinResSolver< StokesOperatorType::VelocityOperator_T > >(
           storage, minLevel, maxLevel, stokesCoarseMinresIter, stokesCoarseMinresRelTol );
-      ABlockCoarseGridMinresSolver->setNullspaces( { nullspacePtrX, nullspacePtrY, nullspacePtrZ } );
+      // ABlockCoarseGridMinresSolver->setNullspaces( { nullspacePtrX, nullspacePtrY, nullspacePtrZ } );
 
       ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
       ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
@@ -881,6 +884,7 @@ class TALASimulation
           std::make_shared< GeometricMultigridSolver< StokesOperatorType::VelocityOperator_T > >( storage,
                                                                                                   chebyshevSmoother,
                                                                                                   ABlockCoarseGridMinresSolver,
+                                                                                                  // ABlockCoarseGridDirectSolver,
                                                                                                   ABlockRestrictionOperator,
                                                                                                   ABlockProlongationOperator,
                                                                                                   minLevel,
@@ -1244,6 +1248,12 @@ void TALASimulation::solveU()
       std::vector< real_t > eigenLowerVals;
       std::vector< real_t > eigenUpperVals;
 
+      bool handsetEigen = mainConf.getParameter< bool >("handsetEigen");
+      
+      real_t handsetEigenValue = mainConf.getParameter< real_t >("handsetEigenValue");
+
+      if( handsetEigen )
+      {
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          real_t eigenLower = 0.0;
@@ -1289,36 +1299,12 @@ void TALASimulation::solveU()
          chebyshevSmoother->setupCoefficients(
              3u, eigenUpperVals[eigenLevel - minLevel], eigenUpperBoundFactor, 1.0 / eigenLowerBoundFactor );
       }
-
-      // auto ABlockCoarseGridPETScSolver =
-      //     std::make_shared< PETScMinResSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel, 1e-8, 1e-8, 1000u );
-
-      // ABlockCoarseGridPETScSolver->setNullSpaces( { nullspaceZ.uvw(), nullspaceX.uvw(), nullspaceY.uvw() } );
-
-      // auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorInjection >();
-
-      // auto uTmp1 = std::make_shared< P2VectorFunction< real_t > >( "uTmp1__", storage, minLevel, maxLevel );
-      // auto uTmp2 = std::make_shared< P2VectorFunction< real_t > >( "uTmp2__", storage, minLevel, maxLevel );
-
-      // auto ABlockProlongationOperator =
-      //     std::make_shared< P2toP2QuadraticVectorProlongationWithRotation >( uTmp1, uTmp2, rotationOperator );
-      // auto ABlockRestrictionOperator = std::make_shared< P2toP2QuadraticVectorRestrictionWithRotation >( uTmp1, rotationOperator );
-
-      // auto prolongationOperator =
-      //     std::make_shared< P2P1StokesToP2P1StokesProlongationWithRotation >( uSpec, uTmpSpec, rotationOperator );
-      // auto restrictionOperator = std::make_shared< P2P1StokesToP2P1StokesRestrictionWithRotation >( uSpec, rotationOperator );
-
-      // auto petscMinresSolver =
-      //     std::make_shared< PETScMinResSolver< StokesOperatorType > >( storage, maxLevel, 1e-6, 1e-10, 10000u );
-
-      // auto coarseGridPETScSolver = std::make_shared< PETScMinResSolver< StokesOperatorType > >(
-      //     storage, minLevel, stokesCoarseMinresRelTol, stokesCoarseMinresAbsTol, stokesCoarseMinresIter );
-
-      // coarseGridPETScSolver->setNullSpace( nullspaceZ );
-      // petscMinresSolver->setNullSpaces( { nullspaceZ, nullspaceX, nullspaceY } );
-      // coarseGridPETScSolver->setNullSpaces( { nullspaceZ, nullspaceX, nullspaceY } );
-
-      // uint_t nVCycles = mainConf.getParameter< uint_t >( "nVCycles" );
+      }
+      else
+      {
+         chebyshevSmoother->setupCoefficients(
+               3u, handsetEigenValue, eigenUpperBoundFactor, 1.0 / eigenLowerBoundFactor );
+      }
 
       auto stopIterationCallback = [&]( const StokesOperatorType&               A,
                                         const P2P1TaylorHoodFunction< real_t >& x,
