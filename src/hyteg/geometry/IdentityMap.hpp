@@ -19,11 +19,15 @@
  */
 #pragma once
 
-#include "GeometryMap.hpp"
+#include "hyteg/geometry/GeometryMap.hpp"
 
 using walberla::real_c;
 
 namespace hyteg {
+
+// cannot include the header here, but neet a declaration for the
+// interface of IdentityMap::setMap()
+class SetupPrimitiveStorage;
 
 class IdentityMap : public GeometryMap
 {
@@ -83,6 +87,8 @@ class IdentityMap : public GeometryMap
    bool isAffine() const final { return true; }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::IDENTITY; }
+
+   static void setMap( SetupPrimitiveStorage& setupStorage );
 };
 
 } // namespace hyteg

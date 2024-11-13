@@ -1,23 +1,24 @@
 target_sources( hyteg
     PRIVATE
-    TokamakMap.hpp
-    GeometryMap.cpp
-    AffineMap3D.hpp
-    Torus.hpp
-    SphereTools.hpp
-    PolarCoordsMap.hpp
-    CircularMap.hpp
     AffineMap2D.hpp
+    AffineMap3D.hpp
     AnnulusAlignedMap.hpp
     AnnulusMap.hpp
-    IdentityMap.hpp
-    Intersection.hpp
+    CircularMap.hpp
+    GeometryHelpers.cpp
+    GeometryHelpers.hpp
+    GeometryMap.cpp
+    GeometryMap.hpp
     IcosahedralShellAlignedMap.hpp
     IcosahedralShellMap.hpp
-    GeometryMap.hpp
-    GeometryHelpers.hpp
-    GeometryHelpers.cpp
+    IdentityMap.cpp
+    IdentityMap.hpp
+    Intersection.hpp
+    PolarCoordsMap.hpp
     Polygons.hpp
-    ThinShellMap.hpp
+    SphereTools.hpp
     SphericalCoordsMap.hpp
+    ThinShellMap.hpp
+    TokamakMap.hpp
+    Torus.hpp
 )
