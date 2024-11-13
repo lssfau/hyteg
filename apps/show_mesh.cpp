@@ -33,6 +33,7 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellAlignedMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/mesh/micro/MicroMesh.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -142,7 +143,7 @@ struct MeshRectangle : public MeshBuilder
 struct MeshCuboid : public MeshBuilder
 {
    MeshCuboid()
-   : MeshBuilder( "--cuboid", "[simple|symmetric] [nCubes]", "meshing cuboid in a certain flavour" )
+   : MeshBuilder( "--cuboid", "[simple|symmetric] [number-of-cubes-in-each-direction]", "meshing cuboid in a certain flavour" )
    {}
 
    virtual ~MeshCuboid() = default;
@@ -227,8 +228,9 @@ struct MeshIcosahedralShell : public MeshBuilder
 {
    MeshIcosahedralShell()
    : MeshBuilder( "--spherical-shell",
-                  "[ntan] [thin|thick] [affine|blended|blended-aligned]",
-                  "meshing a thin or thick spherical shell (w/ or w/o blending, optionally radially aligned)" )
+                  "[ntan] [nrad] [thin|thick] [affine|blended|blended-aligned]",
+                  "meshing a thin or thick spherical shell (w/ or w/o blending, optionally radially aligned) - thick shell with "
+                  "inner radius 0.5 and outer radius 1.0" )
 
    {}
 
@@ -238,10 +240,12 @@ struct MeshIcosahedralShell : public MeshBuilder
    {
       auto itFlag  = std::find( allArguments.begin(), allArguments.end(), flag );
       auto ntan    = uint_c( std::stoi( *( std::next( itFlag ) ) ) );
-      auto flavour = *( std::next( itFlag, 2 ) );
+      auto nrad    = uint_c( std::stoi( *( std::next( itFlag, 2 ) ) ) );
+      auto flavour = *( std::next( itFlag, 3 ) );
 
-      const auto                  thinShellRadius = real_t( 0.5 );
-      const std::vector< real_t > layers          = { 1.0, 2.0 };
+      const auto thinShellRadius = real_t( 0.5 );
+      const auto rmin            = real_c( 0.5 );
+      const auto rmax            = real_c( 1.0 );
 
       MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
       if ( flavour == "thin" )
@@ -250,7 +254,7 @@ struct MeshIcosahedralShell : public MeshBuilder
       }
       else if ( flavour == "thick" )
       {
-         return MeshInfo::meshSphericalShell( ntan, layers );
+         return MeshInfo::meshSphericalShell( ntan, nrad, rmin, rmax );
       }
       WALBERLA_ABORT( "Invalid shell parameter." )
    }
@@ -259,8 +263,8 @@ struct MeshIcosahedralShell : public MeshBuilder
                                                         const MeshInfo&                   meshInfo ) const
    {
       auto itFlag   = std::find( allArguments.begin(), allArguments.end(), flag );
-      auto flavour  = *( std::next( itFlag, 2 ) );
-      auto blending = *( std::next( itFlag, 3 ) );
+      auto flavour  = *( std::next( itFlag, 3 ) );
+      auto blending = *( std::next( itFlag, 4 ) );
 
       SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       if ( blending == "affine" ) {}
@@ -285,7 +289,7 @@ struct MeshIcosahedralShell : public MeshBuilder
 struct MeshTDomain : public MeshBuilder
 {
    MeshTDomain()
-   : MeshBuilder( "--t-domain", "[nCubesInEachDirection]", "meshing a T-domain using the cubed domain generator" )
+   : MeshBuilder( "--t-domain", "[number-of-cubes-in-each-direction]", "meshing a T-domain using the cubed domain generator" )
    {}
 
    virtual ~MeshTDomain() = default;
@@ -309,8 +313,15 @@ struct MeshTDomain : public MeshBuilder
 struct MeshTorus : public MeshBuilder
 {
    MeshTorus()
-   : MeshBuilder( "--torus", "", "meshing a torus" )
+   : MeshBuilder( "--torus", "[affine|blended]", "meshing a torus (with or without blending)" )
    {}
+
+   const uint_t                toroidalResolution         = 8;
+   const uint_t                poloidalResolution         = 6;
+   const real_t                radiusOriginToCenterOfTube = 6.2;
+   const std::vector< real_t > tubeLayerRadii             = { 3 };
+   const real_t                torodialStartAngle         = 0.0;
+   const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * poloidalResolution );
 
    virtual ~MeshTorus() = default;
 
@@ -318,19 +329,37 @@ struct MeshTorus : public MeshBuilder
    {
       WALBERLA_UNUSED( allArguments );
 
-      const uint_t                toroidalResolution         = 8;
-      const uint_t                poloidalResolution         = 6;
-      const real_t                radiusOriginToCenterOfTube = 6.2;
-      const std::vector< real_t > tubeLayerRadii             = { 3 };
-      const real_t                torodialStartAngle         = 0.0;
-      const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * poloidalResolution );
-
       return MeshInfo::meshTorus( toroidalResolution,
                                   poloidalResolution,
                                   radiusOriginToCenterOfTube,
                                   tubeLayerRadii,
                                   torodialStartAngle,
                                   polodialStartAngle );
+   }
+
+   virtual SetupPrimitiveStorage constructSetupStorage( const std::vector< std::string >& allArguments,
+                                                        const MeshInfo&                   meshInfo ) const
+   {
+      auto itFlag   = std::find( allArguments.begin(), allArguments.end(), flag );
+      auto blending = *( std::next( itFlag, 1 ) );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      if ( blending == "affine" ) {}
+      else if ( blending == "blended" )
+      {
+         TorusMap::setMap( setupStorage,
+                           toroidalResolution,
+                           poloidalResolution,
+                           radiusOriginToCenterOfTube,
+                           tubeLayerRadii,
+                           torodialStartAngle,
+                           polodialStartAngle );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid shell parameter." )
+      }
+      return setupStorage;
    }
 };
 
@@ -364,11 +393,12 @@ void showUsage( const std::vector< std::shared_ptr< MeshBuilder > >& builders )
    WALBERLA_LOG_INFO_ON_ROOT( "The desired load balancing approach can be steered by:" )
    WALBERLA_LOG_INFO_ON_ROOT(
        "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)" )
-   WALBERLA_LOG_INFO_ON_ROOT( "Use -v  to print info on mesh to console." )
-   WALBERLA_LOG_INFO_ON_ROOT( "Use --dofs <lvl>  to print number of DoFs on refinement level lvl." )
-   WALBERLA_LOG_INFO_ON_ROOT( "Use --exportFineMesh <lvl>  to store the mesh for refinement level lvl in a MESH4.1 file." )
+   WALBERLA_LOG_INFO_ON_ROOT( "Use -v                            to print info on mesh to console." )
+   WALBERLA_LOG_INFO_ON_ROOT( "Use --level <level>               to specify the refinement level for all outputs (default = 2)." )
+   WALBERLA_LOG_INFO_ON_ROOT( "Use --export-fine-mesh            to store the mesh for refinement level lvl in a MESH4.1 file." )
    WALBERLA_LOG_INFO_ON_ROOT(
-       "Use --parametric-map to write the node positions to the micro-mesh and plot via a linear parametric map." )
+       "Use --parametric-map <map-degree> to write the node positions to the micro-mesh and plot via a linear or quadratic "
+       "parametric map. Only degrees 1 and 2 are supported." )
 }
 
 /// The actual show_mesh app itself
@@ -380,10 +410,8 @@ int main( int argc, char* argv[] )
    std::string       vtkFileName       = "show_mesh_output";
    LoadBalancingType loadBalancingType = LoadBalancingType::ROUND_ROBIN;
    bool              beVerbose         = false;
-   bool              reportDoFCount    = false;
-   uint_t            dofLevel          = 0;
+   uint_t            level             = 2;
    bool              exportFineMesh    = false;
-   uint_t            exportLevel       = 0;
 
    auto builders = makeBuilders();
 
@@ -461,28 +489,20 @@ int main( int argc, char* argv[] )
       beVerbose = true;
    }
 
-   if ( algorithms::contains( allArguments, "--dofs" ) )
+   if ( algorithms::contains( allArguments, "--level" ) )
    {
-      auto flagIt = std::find( allArguments.begin(), allArguments.end(), "--dofs" );
-      WALBERLA_CHECK_UNEQUAL( std::next( flagIt ), allArguments.end(), "The option '--dofs' requires an integer parameter." )
-      reportDoFCount = true;
-      dofLevel       = uint_c( std::stoi( *std::next( flagIt ) ) );
+      auto flagIt = std::find( allArguments.begin(), allArguments.end(), "--level" );
+      WALBERLA_CHECK_UNEQUAL( std::next( flagIt ), allArguments.end(), "The option '--level' requires an integer parameter." )
+      level = uint_c( std::stoi( *std::next( flagIt ) ) );
    }
 
-   if ( algorithms::contains( allArguments, "--exportFineMesh" ) )
-   {
-      auto flagIt = std::find( allArguments.begin(), allArguments.end(), "--exportFineMesh" );
-      WALBERLA_CHECK_UNEQUAL(
-          std::next( flagIt ), allArguments.end(), "The option '--exportFineMesh' requires an integer parameter." )
-      exportFineMesh = true;
-      exportLevel    = uint_c( std::stoi( *std::next( flagIt ) ) );
-   }
+   WALBERLA_LOG_INFO_ON_ROOT( "Output refinement level: " << level )
+
+   exportFineMesh = algorithms::contains( allArguments, "--export-fine-mesh" );
 
    // ------------
    //  Let's rock
    // ------------
-
-   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG Show Mesh Test\n" );
 
    auto meshInfo = builder->constructMeshInfo( allArguments );
 
@@ -580,13 +600,19 @@ int main( int argc, char* argv[] )
 
    if ( algorithms::contains( allArguments, "--parametric-map" ) )
    {
+      auto flagIt              = std::find( allArguments.begin(), allArguments.end(), "--parametric-map" );
+      auto parametricMapDegree = std::stoi( *std::next( flagIt, 1 ) );
+
+      WALBERLA_CHECK_GREATER_EQUAL( parametricMapDegree, 1, "Parametric map degree has to be 1 or 2." );
+      WALBERLA_CHECK_LESS_EQUAL( parametricMapDegree, 2, "Parametric map degree has to be 1 or 2." );
+
       WALBERLA_LOG_INFO_ON_ROOT(
-          "Using linear parametric mapping.\n"
+          "Using parametric mapping.\n"
           "Essentially just copying over the node positions of the (possibly blended) elements to the micro-mesh.\n"
           "(Technically, we do not need the micro-mesh for the visualization here - but it showcases how to use it.)" )
 
-      auto microMesh =
-          std::make_shared< micromesh::MicroMesh >( storage, minLevel, maxLevel, 1, storage->hasGlobalCells() ? 3 : 2 );
+      auto microMesh = std::make_shared< micromesh::MicroMesh >(
+          storage, minLevel, maxLevel, parametricMapDegree, storage->hasGlobalCells() ? 3 : 2 );
 
       storage->setMicroMesh( microMesh );
    }
@@ -615,33 +641,37 @@ int main( int argc, char* argv[] )
    }
 #endif
 
-   hyteg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
+   const auto outputDirectory = "../output";
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Writing to directory: " << outputDirectory );
+
+   hyteg::writeDomainPartitioningVTK( storage, outputDirectory, vtkFileName + "_domain_partitioning" );
    WALBERLA_LOG_INFO_ON_ROOT(
        "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: "
        << vtkFileName + "_domain_partitioning" );
 
-   hyteg::VTKOutput                                 vtkOutput( "../output", vtkFileName, storage );
-   hyteg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
+   hyteg::VTKOutput                                 vtkOutput( outputDirectory, vtkFileName, storage );
+   hyteg::P1Function< real_t >                      someDataP1( "test data P1", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t >                      someDataP2( "test data P2", storage, minLevel, maxLevel );
    std::function< real_t( const hyteg::Point3D& ) > myFunc = []( const hyteg::Point3D& xx ) {
       return xx[0] * xx[0] - xx[1] * xx[1];
    };
-   someData.interpolate( myFunc, maxLevel );
-   vtkOutput.add( someData );
+   someDataP1.interpolate( myFunc, maxLevel );
+   someDataP2.interpolate( myFunc, maxLevel );
+   vtkOutput.add( someDataP1 );
+   vtkOutput.add( someDataP2 );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );
    vtkOutput.write( outLevel );
 
    // -------------------
    //  Report DoF Counts
    // -------------------
-   if ( reportDoFCount )
-   {
-      uint_t vDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, dofLevel );
-      uint_t eDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, dofLevel );
-      WALBERLA_LOG_INFO_ON_ROOT( "\nDOF INFO:" );
-      WALBERLA_LOG_INFO_ON_ROOT( "level ............ " << dofLevel );
-      WALBERLA_LOG_INFO_ON_ROOT( "# vertex DoFs .... " << vDoFs );
-      WALBERLA_LOG_INFO_ON_ROOT( "# edge DoFs ...... " << eDoFs );
-   }
+   uint_t vertexDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, level );
+   uint_t edgeDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
+   uint_t volumeDoFs = numberOfGlobalDoFs< P0FunctionTag >( *storage, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of micro-vertices ... " << vertexDoFs );
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of micro-edges ...... " << edgeDoFs );
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of micro-volumes .... " << volumeDoFs );
 
    // ---------------------
    //  Export Refined Mesh
@@ -649,8 +679,8 @@ int main( int argc, char* argv[] )
    if ( exportFineMesh )
    {
       std::stringstream streamExportFileName;
-      streamExportFileName << vtkFileName << "-lvl=" << exportLevel << ".msh";
-      gmsh::exportRefinedMesh( storage, exportLevel, streamExportFileName.str() );
+      streamExportFileName << vtkFileName << "-lvl=" << level << ".msh";
+      gmsh::exportRefinedMesh( storage, level, streamExportFileName.str() );
    }
 
    return 0;

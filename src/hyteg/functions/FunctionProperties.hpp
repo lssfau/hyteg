@@ -173,8 +173,9 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
    // ============
    if constexpr ( std::is_same_v< P0FunctionTag, FunctionTag_T > )
    {
-      return primitiveStorage.hasGlobalCells() ? numberOfInnerDoFs< P0FunctionTag, Cell >( level ) :
-                                                 numberOfInnerDoFs< P0FunctionTag, Face >( level );
+      return primitiveStorage.hasGlobalCells() ?
+                 numberOfInnerDoFs< P0FunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells() :
+                 numberOfInnerDoFs< P0FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces();
    }
 
    // ============
