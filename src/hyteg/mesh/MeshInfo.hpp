@@ -336,40 +336,59 @@ class MeshInfo
 
    /// Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
    ///
-   /// <b>Details of inline mesh generators for spherical shells:</b>
+   /// <b>Overview</b>
    ///
-   /// This class generates a tetrahedral mesh for a thick spherical shell. It
+   /// This function generates a tetrahedral mesh for a thick spherical shell. It
    /// is based on the icosahedral grid approach, i.e. one starts by mapping
    /// an icosahedron onto the unit sphere, which results in 20 spherical
-   /// triangles. Two of these triangles are then conceptually combined resulting
-   /// in 10 spherical diamonds. These are then further subdivided and the
-   /// resulting scaled appropriately to obtain radial layers. This leads to
+   /// triangles. Pairs of these triangles are then conceptually combined resulting
+   /// in 10 spherical diamonds. These are then further subdivided and
+   /// scaled appropriately to obtain radial layers. This leads to
    /// a mesh consisting of prismatoidal elements with spherical triangles on
    /// top and bottom.
    ///
-   /// This class uses the vertices of this mesh and from each prismatoid
+   /// This function uses the vertices of this mesh and from each prismatoid
    /// generates 3 tetrahedrons. Given the following input parameters for the
    /// constructor
    ///
-   /// | parameter | meaning                                  |
-   /// |:----------|:-----------------------------------------|
-   /// | ntan      | number of nodes along a diamond edge     |
-   /// | nrad      | number of radial layers                  |
-   /// | rmin      | radius of interior boundary of the shell |
-   /// | rmax      | radius of exterior boundary of the shell |
+   /// | parameter | constraints                                           | meaning                                  |
+   /// |:----------|:------------------------------------------------------|:-----------------------------------------|
+   /// | ntan      | (ntan-1) must be a power of 2 (for SHELLMESH_CLASSIC) | number of nodes along a diamond edge     |
+   /// | nrad      | nrad >= 2                                             | number of radial layers (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)                 |
+   /// | rmin      | rmin < rmax                                           | radius of interior boundary of the shell (innermost layer) |
+   /// | rmax      | rmin < rmax                                           | radius of exterior boundary of the shell (outermost layer) |
    ///
    /// this results in
    ///
    /// - no. of vertices: (10 * (ntan-1) * (ntan-1) + 2) * nrad
    /// - no. of tetrahedrons: 60 * (ntan-1) * (ntan-1) * (nrad-1)
    ///
+   /// <br/>
    /*! \htmlonly
    <center>
-   <img src="ShellMesh-ntan4-nrad3.png" width="50%"/><br/>
-   Mesh resulting from parameter choice (ntan,nrad,rmin,rmax)=(5,3,1.0,2.0)
+   <img src="SphericalShell_coarse_ntan_5_diamond.png" width="50%"/><br/>
+   Surface of the spherical shell mesh for ntan = 5, highlighting the spherical diamond (split into two spherical triangles)
+   and the ntan = 5 vertices along one of the edges of the diamond.
    </center>
    \endhtmlonly */
    ///
+   /*! \htmlonly
+   <center>
+   <img src="SphericalShell_coarse_ntan_5_nrad_2_clip.png" width="30%"/>
+   <img src="SphericalShell_coarse_ntan_5_nrad_3_clip.png" width="30%"/>
+   <img src="SphericalShell_coarse_ntan_5_nrad_4_clip.png" width="30%"/>
+   <br/>
+   Cut through spherical shell meshes with ntan = 5, rmin = 0.5, rmax = 1.0, and nrad = {2, 3, 4} (from left to right increasing).
+   </center>
+   \endhtmlonly */
+   /// <br/>
+   ///
+   /// <b>Boundary flags</b>
+   ///
+   /// The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+   /// #flagInnerBoundary or #flagInterior.
+   ///
+   /// <b>Details</b>
    ///
    /// We start by generating a mesh for the unit sphere. This mesh is generated
    /// by first splitting the four outer arcs of each diamond into (ntan-1)
@@ -386,7 +405,7 @@ class MeshInfo
    /*! \htmlonly
    <center>
    <img src="Diamonds-and-SphericalIndices.png" width="50%"/><br/>
-   Numbering of diamonds and direction of tangential indices depending on hemisphere
+   Numbering of diamonds and direction of tangential indices depending on the hemisphere
    </center>
    \endhtmlonly */
    ///
@@ -396,6 +415,7 @@ class MeshInfo
    Splitting a local cell into six tetrahedra
    </center>
    \endhtmlonly */
+   /// <br/>
    ///
    /// Every tetrahedron of the mesh can uniquely be addressed by a five-tuple
    /// of indices \f$\Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. These
@@ -470,14 +490,14 @@ class MeshInfo
    </center>
    \endhtmlonly */
    ///
-   /// The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
-   /// #flagInnerBoundary or #flagInterior.
    ///
    /// \param ntan      number of nodes along spherical diamond edge
-   /// \param nrad      number of radial layers
+   /// \param nrad      number of radial layers (>= 2)
+   ///                  (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)
    /// \param rmin      radius of innermost shell (core-mantle-boundary)
    /// \param rmax      radius of outermost shell
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do)
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you
+   ///                  are doing)
    static MeshInfo meshSphericalShell( uint_t        ntan,
                                        uint_t        nrad,
                                        real_t        rmin,
@@ -491,7 +511,8 @@ class MeshInfo
    /// \param ntan      number of nodes along spherical diamond edge
    /// \param layers    vector that gives the radii of all layers, sorted from the
    ///                  CMB outwards
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do)
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you
+   ///                  are doing)
    static MeshInfo meshSphericalShell( uint_t                       ntan,
                                        const std::vector< real_t >& layers,
                                        shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
