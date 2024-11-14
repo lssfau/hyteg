@@ -6,7 +6,7 @@ Parameters
   rMin 1.22;
   rMax 2.22;
 
-  RayleighNumber 7e3;
+  RayleighNumber 1e5;
   DissipationNumber 0.5;
   alpha 1.0;
   thermalConductivity 1.0;
@@ -14,10 +14,10 @@ Parameters
   rho 1.0;
   cp 1.0;
 
-  lmax 4;
-  mSph 0;
+  lmax 3;
+  mSph 2;
 
-  cubicSymmetry true;
+  cubicSymmetry false;
 
   lmaxC 4;
   mSphC 4;
@@ -52,6 +52,8 @@ Parameters
   nx 10;
   ny 4;
 
+  viscosityProfile /home/pponkumar/hyteg/hyteg/data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+
   maxLevel 5;
   minLevel 2;
 
@@ -65,17 +67,21 @@ Parameters
 
   supgScaling 1.0;
 
+  handsetEigen false;
+  handsetEigenValue 4.0;
+
   eigenLevel 3;
-  setEigenAllLevels false;
-  eigenUpperBoundFactor 2.0;
+  setEigenAllLevels true;
+  eigenUpperBoundFactor 4.0;
   eigenLowerBoundFactor 15.0;
 
   relaxSchur 0.1;
-  uzawaOmega 1.0;
+  uzawaOmega 0.1;
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterations 1;
+  fgmresIterations 50;
+  fgmresTolerance 1e-1;  
 
   uzawaPreSmooth 3;
   uzawaPostSmooth 3;
@@ -118,12 +124,12 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 1;
+  maxTimeSteps 2001;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
   dtRaster 1e-7;
-  cflMax 0.25;
+  cflMax 2.0;
   simulationTime 10;
   nonLinIter 4;
   iterPicard 1;
@@ -135,16 +141,16 @@ Parameters
   useAdios2 true;
   adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
   checkpointPath ./output/checkpoint/;
-  checkpointFilename SphericalShell_MT64_rMu_1_P1_Ra_7e3_13102024_2240_Checkpoint.bp;
+  checkpointFilename SphericalShell_MT128_rMu_1_P1_Ra_7e3_14112024_Checkpoint.bp;
 
-  storeCheckpoint false;
-  adios2CheckpointFreq 1;
+  storeCheckpoint true;
+  adios2CheckpointFreq 10;
 
   startCheckpointFilename SphericalShell_MT64_rMu_1_P1_Ra_7e3_13102024_2240_Checkpoint.bp;
   startFromCheckpoint false;
 
   outputPath ./output/;
-  // outputFilename SphericalShell_MT64_rMu_1_P1_Ra_7e3_FS_13102024_2240;
-  outputFilename SphericalShellDebug;
+  outputFilename SphericalShell_MT128_rMu_1_P1_Ra_1e5_FS_14112024;
+  // outputFilename SphericalShellDebug;
   vtkWriteFrequency 1;
 }

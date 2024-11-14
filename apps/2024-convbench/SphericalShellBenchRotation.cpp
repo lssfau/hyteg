@@ -75,6 +75,8 @@
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
+#include "terraneo/dataimport/FileIO.hpp"
+#include "terraneo/helpers/InterpolateProfile.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -623,10 +625,69 @@ class TALASimulation
          // return Tdev;
       };
 
+      if ( mainConf.isDefined( "viscosityProfile" ) )
+      {
+         std::string fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
+         auto viscosityJson               = terraneo::io::readJsonFile( fileViscosityProfile );
+
+         const auto radiusKey    = "Radius (m)";
+         const auto viscosityKey = "Viscosity (Pa s)";
+
+         WALBERLA_CHECK_GREATER( viscosityJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
+         WALBERLA_CHECK_GREATER(
+            viscosityJson.count( viscosityKey ), 0, "No key '" << viscosityKey << "' in viscosity profile file." )
+
+         radiusViscosityProfile = viscosityJson[radiusKey].get< std::vector< real_t > >();
+         viscosityProfile       = viscosityJson[viscosityKey].get< std::vector< real_t > >();
+
+         WALBERLA_CHECK_EQUAL( radiusViscosityProfile.size(), viscosityProfile.size() )
+
+         haveViscosityProfile = true;
+
+         real_t rMin = radiusViscosityProfile[radiusViscosityProfile.size() - 1];
+         real_t rMax = radiusViscosityProfile[0];
+
+         real_t minVisc = *(std::min_element(viscosityProfile.begin(), viscosityProfile.end()));
+         real_t maxVisc = *(std::max_element(viscosityProfile.begin(), viscosityProfile.end()));
+
+         real_t meanVisc = std::sqrt(minVisc * maxVisc); // This could cause overflow in single precision
+
+         WALBERLA_LOG_INFO_ON_ROOT(walberla::format("minVisc = %4.7e, maxVisc = %4.7e", minVisc, maxVisc));
+
+         for ( uint_t i = 0; i < radiusViscosityProfile.size(); i++ )
+         {
+            radiusViscosityProfile[i] = (radiusViscosityProfile[i] - rMin) / (rMax - rMin);
+
+            radiusViscosityProfile[i] = params.rMin + (params.rMax - params.rMin) * radiusViscosityProfile[i];
+            
+            if( std::abs(radiusViscosityProfile[i]) < 1e-10 )
+            {
+               radiusViscosityProfile[i] = 0.0;
+            }
+
+            viscosityProfile[i] /= meanVisc;
+
+            WALBERLA_LOG_INFO_ON_ROOT(walberla::format("radius = %4.7e, viscosity = %4.7e", radiusViscosityProfile[i], viscosityProfile[i]));
+         }
+      }
+
       tempDepViscFunc = [=]( const Point3D& x, const std::vector< real_t >& T_ ) {
          // WALBERLA_UNUSED( x );
          // real_t minVal = std::pow( params.rMu, -1.0 * ( 1.0 - params.TRef ) );
-         return std::pow( params.rMu, -1.0 * ( T_[0] - params.TRef ) ); // / minVal;
+
+         real_t viscVal = terraneo::interpolateDataValues( x,
+                                                radiusViscosityProfile,
+                                                viscosityProfile,
+                                                params.rMin,
+                                                params.rMax );
+
+         real_t activationEnergy = 4.0;
+
+         viscVal *= std::exp( activationEnergy * ( real_c( 0.5 ) - T_[0] ));
+
+         return viscVal;
+
+         // return std::pow( params.rMu, -1.0 * ( T_[0] - params.TRef ) ); // / minVal;
 
          // real_t r = x.norm() - params.rMin;
          // return piecewise_linear_interpolate(visc_map, r);
@@ -921,8 +982,10 @@ class TALASimulation
 
       uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
 
+      real_t fgmresTolerance = mainConf.getParameter< real_t >( "fgmresTolerance" );
+      
       fgmresSolver = std::make_shared< FGMRESSolver< StokesOperatorType > >(
-          storage, minLevel, maxLevel, fgmresIterations, 50, 1e-8, 1e-8, 0, blockPreconditioner );
+          storage, minLevel, maxLevel, fgmresIterations, 50, fgmresTolerance, fgmresTolerance, 0, blockPreconditioner );
       fgmresSolver->setPrintInfo( true );
 
       // Visualization
@@ -1035,6 +1098,11 @@ class TALASimulation
    std::shared_ptr< P2VectorFunction< real_t > > nullspacePtrX, nullspacePtrY, nullspacePtrZ;
 
    BoundaryCondition bcVelocity;
+
+   bool haveViscosityProfile = false;
+
+   std::vector< real_t > radiusViscosityProfile;
+   std::vector< real_t > viscosityProfile;
 
    std::shared_ptr< StokesOperator >            stokesOperator;
    std::shared_ptr< P2P1StokesRotationWrapper > stokesOperatorRotation;
@@ -1254,51 +1322,51 @@ void TALASimulation::solveU()
 
       if( handsetEigen )
       {
-      for ( uint_t level = minLevel; level <= maxLevel; level++ )
-      {
-         real_t eigenLower = 0.0;
-         real_t eigenUpper = 0.0;
+         for ( uint_t level = minLevel; level <= maxLevel; level++ )
+         {
+            real_t eigenLower = 0.0;
+            real_t eigenUpper = 0.0;
 
-         uSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
-         uSpec->uvw().interpolate( 0.0, level, DirichletBoundary );
+            uSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
+            uSpec->uvw().interpolate( 0.0, level, DirichletBoundary );
 
-         uTmpSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
-         uTmpSpec->uvw().interpolate( 0.0, level, DirichletBoundary );
+            uTmpSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
+            uTmpSpec->uvw().interpolate( 0.0, level, DirichletBoundary );
 
-         estimateSpectralBoundsWithCG( stokesOperatorRotationOpgen->getA(),
-                                       *ABlockCGSolver,
-                                       uSpec->uvw(),
-                                       uTmpSpec->uvw(),
-                                       nPowerIter,
-                                       storage,
-                                       level,
-                                       eigenLower,
-                                       eigenUpper );
+            estimateSpectralBoundsWithCG( stokesOperatorRotationOpgen->getA(),
+                                          *ABlockCGSolver,
+                                          uSpec->uvw(),
+                                          uTmpSpec->uvw(),
+                                          nPowerIter,
+                                          storage,
+                                          level,
+                                          eigenLower,
+                                          eigenUpper );
 
-         uSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
+            uSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
 
-         real_t spectralRadius = estimateSpectralRadiusWithPowerIteration(
-             stokesOperatorRotationOpgen->getA(), uSpec->uvw(), uTmpSpec->uvw(), nPowerIter, storage, level );
+            real_t spectralRadius = estimateSpectralRadiusWithPowerIteration(
+               stokesOperatorRotationOpgen->getA(), uSpec->uvw(), uTmpSpec->uvw(), nPowerIter, storage, level );
 
-         WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
-         WALBERLA_LOG_INFO_ON_ROOT( "eigenLower = " << eigenLower << ", eigenUpper = " << eigenUpper );
+            WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
+            WALBERLA_LOG_INFO_ON_ROOT( "eigenLower = " << eigenLower << ", eigenUpper = " << eigenUpper );
 
-         eigenUpperVals.push_back( eigenUpper * eigenUpperBoundFactor );
-         eigenLowerVals.push_back( eigenUpper / eigenLowerBoundFactor );
-      }
+            eigenUpperVals.push_back( eigenUpper * eigenUpperBoundFactor );
+            eigenLowerVals.push_back( eigenUpper / eigenLowerBoundFactor );
+         }
 
-      if ( setEigenAllLevels )
-      {
-         // WALBERLA_ABORT("Not possible");
-         chebyshevSmoother->setupCoefficientsInternalAllLevels( 3u, eigenLowerVals, eigenUpperVals );
-      }
-      else
-      {
-         uint_t eigenLevel = mainConf.getParameter< uint_t >( "eigenLevel" );
+         if ( setEigenAllLevels )
+         {
+            // WALBERLA_ABORT("Not possible");
+            chebyshevSmoother->setupCoefficientsInternalAllLevels( 3u, eigenLowerVals, eigenUpperVals );
+         }
+         else
+         {
+            uint_t eigenLevel = mainConf.getParameter< uint_t >( "eigenLevel" );
 
-         chebyshevSmoother->setupCoefficients(
-             3u, eigenUpperVals[eigenLevel - minLevel], eigenUpperBoundFactor, 1.0 / eigenLowerBoundFactor );
-      }
+            chebyshevSmoother->setupCoefficients(
+               3u, eigenUpperVals[eigenLevel - minLevel], eigenUpperBoundFactor, 1.0 / eigenLowerBoundFactor );
+         }
       }
       else
       {
@@ -1321,7 +1389,7 @@ void TALASimulation::solveU()
          return false;
       };
 
-      // auto multigridSolverLoop = SolverLoop< StokesOperatorType >( multigridSolver, params.nVCycles, stopIterationCallback );
+      auto multigridSolverLoop = SolverLoop< StokesOperatorType >( multigridSolver, params.nVCycles, stopIterationCallback );
 
       rotationOperator->rotate( *uRhs, maxLevel, FreeslipBoundary, false );
       uRhsRotated->assign( { 1.0 }, { *uRhs }, maxLevel, All );
