@@ -18,7 +18,6 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 // The MicroMeshPositionTest checks that the following free-functions from
 // the micromesh namespace work correctly:
 //
@@ -34,24 +33,18 @@
 // d) use of degree 2 micromesh
 
 #include "core/Environment.h"
-#include "core/math/Constants.h"
-#include "core/math/Random.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/mesh/micro/MicroMesh.hpp"
-#include "hyteg/numerictools/L2Space.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 
 using walberla::real_t;
-using walberla::uint_c;
 using walberla::uint_t;
-using walberla::math::pi;
 
 using namespace hyteg;
 
@@ -88,9 +81,7 @@ void checkNodeIdentity( const Point3D& first, const Point3D& second )
    }
 }
 
-std::array< Point3D, 3 > getMicroFaceVertexCoordinatesOnComputationalDomain( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                             PrimitiveID                                faceID,
-                                                                             uint_t                                     level,
+std::array< Point3D, 3 > getMicroFaceVertexCoordinatesOnComputationalDomain( uint_t                 level,
                                                                              const indexing::Index& microFaceIndex,
                                                                              facedof::FaceType      faceType )
 {
@@ -117,8 +108,7 @@ std::array< Point3D, 3 > getMicroFaceVertexCoordinatesOnComputationalDomain( con
 
 Point3D mapPointToPhysicalDomain( const Point3D&                             point,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
-                                  const PrimitiveID&                         faceID,
-                                  uint_t                                     level = 0 )
+                                  const PrimitiveID&                         faceID )
 {
    Point3D mapped;
 
@@ -141,8 +131,7 @@ Point3D mapPointToPhysicalDomain( const Point3D&                             poi
 // or an edge midpoint (micromesh degree 2 ) !
 Point3D mapPointToPhysicalDomain( const Point3D&                                                   point,
                                   const std::shared_ptr< PrimitiveStorage >&                       storage,
-                                  std::vector< std::function< real_t( const hyteg::Point3D& ) > >& map,
-                                  uint_t                                                           level = 0 )
+                                  std::vector< std::function< real_t( const hyteg::Point3D& ) > >& map )
 {
    Point3D mapped;
 
@@ -269,7 +258,7 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
 
             // obtain coordinates of vertices of current micro-face
             std::array< Point3D, 3 > coords =
-                getMicroFaceVertexCoordinatesOnComputationalDomain( storage, faceID, level, microFaceIndex, faceType );
+                getMicroFaceVertexCoordinatesOnComputationalDomain( level, microFaceIndex, faceType );
 
             // compute edge midpoints on computational domain
             std::array< Point3D, 3 > edgeCenters;
@@ -351,7 +340,7 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
 
             // obtain coordinates of vertices of current micro-face
             std::array< Point3D, 3 > coords =
-                getMicroFaceVertexCoordinatesOnComputationalDomain( storage, faceID, level, microFaceIndex, faceType );
+                getMicroFaceVertexCoordinatesOnComputationalDomain( level, microFaceIndex, faceType );
 
             if ( k == 0 || k == 1 )
             {
