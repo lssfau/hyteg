@@ -22,3 +22,6 @@ endif ()
 
 waLBerla_compile_test(FILES MicroMeshSmokeTest.cpp DEPENDS hyteg core opgen-div_k_grad)
 waLBerla_execute_test(NAME MicroMeshSmokeTest)
+
+waLBerla_compile_test(FILES MicroMeshPositionTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME MicroMeshPositionTest)

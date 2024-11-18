@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl.
+* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,6 +27,7 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg::micromesh {
 
@@ -163,6 +164,20 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
                                  uint_t                                     level,
                                  const indexing::Index&                     microEdgeIndex,
                                  const edgedof::EdgeDoFOrientation&         microEdgeOrientation );
+
+/// \brief Returns the position of the "center" of a micro-face.
+///
+/// The method determines and returns the position of the "center" of the micro-face specified by the given microFaceIndex.
+/// In this context we use as "center" of the micro-face the position to which the barycenter of the reference triangle is
+/// mapped by which ever mapping (affine, blending, isoparametric) is in use. Thus, if no MicroMesh was allocated and added
+/// to the PrimitiveStorage either an affine mapping is employed, giving the barycenter of the triangular element on the
+/// physical domain, or the result of applying the blending map to the barycenter of the triangular element on the
+/// computational domain.
+Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                 PrimitiveID                                faceId,
+                                 uint_t                                     level,
+                                 const indexing::Index&                     microFaceIndex,
+                                 facedof::FaceType                          faceType );
 
 /// Communicates the MicroMesh such that all ghost-layers are updated.
 /// Relevant, e.g., for VTK output.
