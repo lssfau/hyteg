@@ -295,10 +295,20 @@ class MeshInfo
 
    /// Construct a MeshInfo object for a full annulus
    ///
-   /// Meshing of a partial annulus is (conceptually) handled by meshing the corresponding
+   /// Meshing of a partial annulus
+   /// (see
+   ///   meshAnnulus( const real_t,
+   ///                const real_t,
+   ///                const real_t,
+   ///                const real_t,
+   ///                const meshFlavour,
+   ///                uint_t,
+   ///                uint_t ) )
+   /// is (conceptually) handled by meshing the corresponding
    /// rectangle in cartesian coordinates. In case of a partial annulus this is given by
    /// lower left vertex (rhoMin, phiMin) and upper right vertex (rhoMax, phiMax).
-   /// In the case of a full annulus the rectangle is then "glued" together.
+   ///
+   /// In the case of a full annulus (covered by this function) the rectangle is then "glued" together.
    ///
    /// For both a full and a partial annulus the same four  meshing flavours as for rectangles
    /// can be specified. Note, however, that blending only works together with CRISS or CROSS,
@@ -322,8 +332,8 @@ class MeshInfo
    <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
    </tr>
    <tr>
-   <td align="center">partial annulus (nTan=4, nRad=2)</td>
-   <td align="center">full annulus (nTan=15, nRad=2)</td>
+   <td align="center">partial annulus (nTan=4, nRad=2, flavour=CRISSCROSS)</td>
+   <td align="center">full annulus (nTan=15, nRad=2, flavour=CRISSCROSS)</td>
    </tr>
    </table>
    </center>
@@ -504,7 +514,7 @@ class MeshInfo
                                        real_t        rmax,
                                        shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
 
-   /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
+   /// Constructs a MeshInfo object for a spherical shell (externally computed positions of radial layers)
    ///
    /// See documentation of meshSphericalShell( uint_t, uint_t, real_t, real_t, shellMeshType )
    ///
