@@ -19,8 +19,8 @@ Parameters
 
    // Refinement level
 
-   maxLevel 3;
-   minLevel 0;
+   maxLevel 4;
+   minLevel 2;
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -112,11 +112,11 @@ Parameters
    // default: 0
    //Note that the same values of activationEnergy aren't necessarily relevant for all cases
 
-   tempDependentViscosityType 2; 
+   tempDependentViscosityType 3; 
 
    activationEnergy 4.605;
    depthViscosityFactor 2.997;
-   viscosityLowerBound 5e20;
+   viscosityLowerBound 1e21;
    viscosityUpperBound 1e25;
 
    //setup solvers again due to changing spectral bounds of stokes operator
@@ -155,7 +155,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 1;
+   boundaryCond 3;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
@@ -174,9 +174,9 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 20000;
+   maxNumTimeSteps 5;
    fixedTimeStep false;
-   cflMax 0.9;
+   cflMax 0.5;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -190,7 +190,7 @@ Parameters
    fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
    initialAge 100;
    finalAge 0;
-   plateVelocityScaling 10;
+   plateVelocityScaling 8;
 
    //distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)
    
@@ -227,12 +227,12 @@ Parameters
    
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
-   uzawaOmega 0.2;
+   uzawaOmega 0.3;
    ABlockMGPreSmooth 5;
    ABlockMGPostSmooth 5;
 
    // FGMRES solver parameters 
-   FGMRESOuterIterations 10;
+   FGMRESOuterIterations 3;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
    ABlockMGIterations 3;
@@ -248,7 +248,7 @@ Parameters
 
    // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   stokesKillTolerance 100;
+   stokesKillTolerance 10000;
 
    // Diffusion parameters 
 
@@ -281,7 +281,7 @@ Parameters
    ADIOS2OutputConfig ADIOS2config.xml;
 
    ADIOS2StoreCheckpointPath ./output/checkpoint;
-   ADIOS2StoreCheckpointFilename TerraNeo_checkpoint;
+   ADIOS2StoreCheckpointFilename TerraNeo_checkpoint_Test_HAWK-v4;
    ADIOS2StoreCheckpoint false;
 
    ADIOS2StartCheckpointPath ./output/checkpoint;
@@ -296,7 +296,7 @@ Parameters
    ADIOS2ParamKey NumAggregators;
    ADIOS2Value 16;
 
-   outputDirectory ./output/Test_HAWK-v4_UZAWA_PETSc;
+   outputDirectory ./output/Test_HAWK-P0_test;
    outputBaseName TerraNeo;
 
    // Output of a. json file containing timing tree informationf
