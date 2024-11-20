@@ -21,6 +21,7 @@
 
 #include <algorithm>
 
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
@@ -37,8 +38,8 @@ P2PlusBubbleFunction< ValueType >::P2PlusBubbleFunction( const std::string&     
                                                          const std::shared_ptr< PrimitiveStorage >& storage )
 : Function< P2PlusBubbleFunction< ValueType > >( name, storage )
 , vertexDoFFunction_( vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF_dummy", storage ) )
-, edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "__EdgeDoF_dummy", storage ) )
-, volumeDoFFunction_( VolumeDoFFunction< ValueType >( name + "__VolumeDoF_dummy",
+, edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF_dummy", storage ) )
+, volumeDoFFunction_( VolumeDoFFunction< ValueType >( name + "_VolumeDoF_dummy",
                                                       storage,
                                                       1,
                                                       1,
@@ -228,6 +229,10 @@ void P2PlusBubbleFunction< ValueType >::interpolate( const std::function< ValueT
       vertexDoFFunction_.interpolate( expr, level, flag );
       edgeDoFFunction_.interpolate( expr, level, flag );
 
+      // Could likely be done more efficiently
+      syncFunctionBetweenPrimitives( vertexDoFFunction_, level, communication::syncDirection_t::BIDIRECTIONAL );
+      syncFunctionBetweenPrimitives( edgeDoFFunction_, level, communication::syncDirection_t::BIDIRECTIONAL );
+
       // For 3D we work on cells and for 2D on faces
       if ( this->storage_->hasGlobalCells() )
       {
@@ -277,7 +282,7 @@ void P2PlusBubbleFunction< ValueType >::interpolate( const std::function< ValueT
                   std::array< uint_t, 3 > edgeDoFIndices;
                   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFace, faceType, level, edgeDoFIndices );
 
-                  // assemble "correcton term"
+                  // assemble "correction term"
                   ValueType vertexDoFsum = ValueType( 0 );
                   vertexDoFsum += vertexData[vertexDoFIndices[0]];
                   vertexDoFsum += vertexData[vertexDoFIndices[1]];
@@ -291,11 +296,14 @@ void P2PlusBubbleFunction< ValueType >::interpolate( const std::function< ValueT
                   ValueType correction = ( vertexDoFsum - ValueType( 4 ) * edgeDoFsum ) / ValueType( 9 );
 
                   // obtain location of barycenter mapped to physical domain
-                  Point3D barycenter = micromesh::microFaceCenterPosition( this->storage_, faceID, level, microFace, faceType  );
+                  Point3D barycenter = micromesh::microFaceCenterPosition( this->storage_, faceID, level, microFace, faceType );
 
                   // evaluate expression at this center and add the correction
                   bubbleData[volumedofspace::indexing::index( microFace.x(), microFace.y(), faceType, 0, 1, level, memLayout )] =
-                      expr( barycenter ) + correction;
+                    expr( barycenter ) + correction;
+                  // WALBERLA_LOG_INFO_ON_ROOT( " - x(x_b) = " << barycenter[0] << "\n - f(x_b) = " << expr( barycenter )
+                  //                                           << "\n - correction = " << -correction << "\n - vertexDoFsum = "
+                  //                                           << vertexDoFsum << "\n - edgeDoFsum = " << edgeDoFsum );
                }
             }
          }

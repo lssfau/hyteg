@@ -43,6 +43,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP2PlusBubbleWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
 
 // from walberla
@@ -177,6 +178,7 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    friend class VTKMeshWriter;
    friend class VTKP1Writer;
    friend class VTKP2Writer;
+   friend class VTKP2PlusBubbleWriter;
    friend class VTKDGWriter;
    friend class VTKP1DGEWriter;
    friend class VTKN1E1Writer;

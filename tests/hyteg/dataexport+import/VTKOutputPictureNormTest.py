@@ -1,5 +1,5 @@
 """
-Copyright (c) 2017-2024 Nils Kohl.
+Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 
 This file is part of HyTeG
 (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -37,6 +37,7 @@ function_types = {
         "p0-scalar",
         "p1-scalar",
         "p2-scalar",
+        "p2-plus-bubble-scalar",
         # "dg1-scalar", # cannot interpolate() into that space :/
         "p1-vector",
         "p2-vector",
@@ -108,7 +109,7 @@ def generate_all_vtk_generator_arguments() -> List:
             for function_type in function_types[dim]:
 
                 if OPTION_PARAMETRIC in mesh_flag and not (
-                    "p1" in function_type or "p2" in function_type
+                    "p1" in function_type or ( "p2" in function_type and not "bubble" in function_type )
                 ):
                     continue
 

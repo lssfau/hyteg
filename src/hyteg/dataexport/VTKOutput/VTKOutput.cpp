@@ -71,6 +71,7 @@ const std::map< vtk::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
     { vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF" },
     { vtk::DoFType::DG, "DGDoF" },
     { vtk::DoFType::P2, "P2" },
+    { vtk::DoFType::P2_PLUS_BUBBLE, "P2+Bubble" },
     { vtk::DoFType::N1E1, "N1E1" },
     { vtk::DoFType::P1DGE, "P1DGE" },
 };
@@ -102,6 +103,9 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
    case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
       break;
+   case vtk::DoFType::P2_PLUS_BUBBLE:
+      VTKP2PlusBubbleWriter::write( *this, output, level );
+      break;
    case vtk::DoFType::N1E1:
       VTKN1E1Writer::write( *this, output, level );
       break;
@@ -132,6 +136,8 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
       return feFunctionRegistry_.getDGFunctions().size() + feFunctionRegistry_.getDGVectorFunctions().size();
    case vtk::DoFType::P2:
       return feFunctionRegistry_.getP2Functions().size() + feFunctionRegistry_.getP2VectorFunctions().size();
+   case vtk::DoFType::P2_PLUS_BUBBLE:
+      return feFunctionRegistry_.getP2PlusBubbleFunctions().size(); // + feFunctionRegistry_.getP2PlusBubbleVectorFunctions().size();
    case vtk::DoFType::P1DGE:
       return feFunctionRegistry_.getEGFunctions().size();
       break;
@@ -160,6 +166,7 @@ void VTKOutput::write( const uint_t level, const uint_t timestep )
                                                        vtk::DoFType::EDGE_XY,
                                                        vtk::DoFType::DG,
                                                        vtk::DoFType::P2,
+                                                       vtk::DoFType::P2_PLUS_BUBBLE,
                                                        vtk::DoFType::P1DGE };
 
       const std::vector< vtk::DoFType > dofTypes3D = { vtk::DoFType::VERTEX,

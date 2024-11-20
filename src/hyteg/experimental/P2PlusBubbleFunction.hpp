@@ -74,6 +74,10 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
    inline const vertexdof::VertexDoFFunction< ValueType >&      getVertexDoFFunction() const { return vertexDoFFunction_; }
    inline const EdgeDoFFunction< ValueType >&                   getEdgeDoFFunction() const { return edgeDoFFunction_; }
    inline const volumedofspace::VolumeDoFFunction< ValueType >& getVolumeDoFFunction() const { return volumeDoFFunction_; }
+   inline const P2Function< ValueType >&                        getP2Function() const
+   {
+      return reinterpret_cast< const P2Function< ValueType >& >( *this );
+   }
 
    template < typename SenderType, typename ReceiverType >
    void startCommunication( const uint_t& level ) const

@@ -30,6 +30,7 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
+#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
@@ -77,11 +78,10 @@ static void exportFunctions2D( uint_t level )
    EGFunction< real_t >       egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
 
    // Some tests for float
-   P0Function < float > p0ScalarFloat ( "P0  float scalar function", storageDG, minLevel, maxLevel );
-   P1Function < float > p1ScalarFloat ( "P1  float scalar function", storage, minLevel, maxLevel );
-   P2Function < float > p2ScalarFloat ( "P2  float scalar function", storage, minLevel, maxLevel );
-   EGFunction < float > egVectorFloat ( "EG  float vector function", storageDG, minLevel, maxLevel );
-
+   P0Function< float > p0ScalarFloat( "P0  float scalar function", storageDG, minLevel, maxLevel );
+   P1Function< float > p1ScalarFloat( "P1  float scalar function", storage, minLevel, maxLevel );
+   P2Function< float > p2ScalarFloat( "P2  float scalar function", storage, minLevel, maxLevel );
+   EGFunction< float > egVectorFloat( "EG  float vector function", storageDG, minLevel, maxLevel );
 
    // Interpolate
    std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
@@ -101,7 +101,9 @@ static void exportFunctions2D( uint_t level )
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    egVectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
-   auto floatVecFunc = []( const Point3D& p ) -> float { return static_cast<float>( static_cast<float>(p[0]) + static_cast<float>(p[1]) ); };
+   auto floatVecFunc = []( const Point3D& p ) -> float {
+      return static_cast< float >( static_cast< float >( p[0] ) + static_cast< float >( p[1] ) );
+   };
    p0ScalarFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
    p1ScalarFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
    p2ScalarFloat.interpolate( floatVecFunc, maxLevel, DoFType::All );
@@ -166,6 +168,7 @@ static void exportFunctions2D( uint_t level )
       vtkOutputFloat.add( p1ScalarFloat );
       vtkOutputFloat.add( p2ScalarFloat );
       vtkOutputFloat.write( maxLevel );
+
       fName = "VTKOutputTest-FloatEG";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutputFloatEG( fPath, fName, storageDG );
@@ -186,12 +189,12 @@ static void exportFunctions3D( uint_t level )
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // Expressions for interpolation
-   std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0*p[0]; };
-   std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0]+p[1]+p[2]; };
-   std::function< real_t( const hyteg::Point3D& ) > zFunc = []( const Point3D& p ) -> real_t { return 3.0*p[0]+p[2]; };
+   std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
+   std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0] + p[1] + p[2]; };
+   std::function< real_t( const hyteg::Point3D& ) > zFunc = []( const Point3D& p ) -> real_t { return 3.0 * p[0] + p[2]; };
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc, zFunc };
    std::function< Point3D( const Point3D& ) >                      vecFunc = [xFunc, yFunc, zFunc]( const Point3D& p ) {
-      Point3D result{ xFunc(p), yFunc(p), zFunc(p) }; // or rather p[0], p[1], p[2]
+      Point3D result{ xFunc( p ), yFunc( p ), zFunc( p ) }; // or rather p[0], p[1], p[2]
       return result;
    };
 
@@ -241,13 +244,13 @@ static void exportFunctions3D( uint_t level )
    // float
 
    // Test for float
-   P0Function< float > p0FuncFloat( "P0 float scalar function", storageDG, minLevel, maxLevel );
+   P0Function< float >       p0FuncFloat( "P0 float scalar function", storageDG, minLevel, maxLevel );
    P1VectorFunction< float > p1FuncFloat( "P1 float vector function", storage, minLevel, maxLevel );
    P2VectorFunction< float > p2FuncFloat( "P2 float vector function", storage, minLevel, maxLevel );
-   EGFunction< float > egFuncFloat( "EG float vector function", storageDG, minLevel, maxLevel );
-   auto xFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast<float>(-2.0f * p[0]); };
-   auto yFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast<float>(p[0]+p[1]+p[2]); };
-   auto zFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast<float>(3.0f*p[0]+p[2]); };
+   EGFunction< float >       egFuncFloat( "EG float vector function", storageDG, minLevel, maxLevel );
+   auto xFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast< float >( -2.0f * p[0] ); };
+   auto yFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast< float >( p[0] + p[1] + p[2] ); };
+   auto zFuncFloat = []( const Point3D& p ) -> float { return walberla::numeric_cast< float >( 3.0f * p[0] + p[2] ); };
    std::vector< std::function< float( const hyteg::Point3D& ) > > vecExprFloat = { xFuncFloat, yFuncFloat, zFuncFloat };
    p0FuncFloat.interpolate( xFuncFloat, maxLevel, DoFType::All );
    p1FuncFloat.interpolate( vecExprFloat, maxLevel, DoFType::All );
@@ -410,7 +413,7 @@ static void testVTKQuadraticTriangle( uint_t meshType, uint_t level )
    }
 
    SetupPrimitiveStorage setupStorage( *mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   if ( meshType == 3 )
+   if ( meshType == 5 )
       AnnulusMap::setMap( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -481,6 +484,64 @@ static void testVTKQuadraticTetra( uint_t meshType, uint_t level )
    }
 }
 
+void testP2PlusBubble( uint_t meshType, uint_t level )
+{
+   using walberla::math::pi;
+
+   std::shared_ptr< MeshInfo > mesh;
+   std::string                 fName;
+
+   switch ( meshType )
+   {
+      // one triangle
+   case 1:
+      mesh  = std::make_shared< MeshInfo >( MeshInfo::singleTriangle(
+          Point2D{ real_c( 0 ), real_c( 0 ) }, Point2D{ real_c( 1 ), real_c( 0 ) }, Point2D{ real_c( 0 ), real_c( 1 ) } ) );
+      fName = "P2PlusBubble-UnitSimplex";
+      break;
+
+      // l-shaped domain
+   case 2:
+      mesh  = std::make_shared< MeshInfo >( MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/LShape_6el.msh" ) ) );
+      fName = "P2PlusBubble-LShape_6el";
+      break;
+
+   // annulus
+   case 3:
+      mesh = std::make_shared< MeshInfo >(
+          MeshInfo::meshAnnulus( real_c( 1 ), real_c( 2 ), real_c( 0.25 ) * pi, real_c( 0.75 ) * pi, MeshInfo::CROSS, 4, 2 ) );
+      fName = "P2PlusBubble-Annulus";
+      break;
+
+   default:
+      WALBERLA_ABORT( "meshType = " << meshType << " is not supported!" );
+   }
+
+   SetupPrimitiveStorage setupStorage( *mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   // annulus needs blending
+   if ( meshType == 3 )
+   {
+      AnnulusMap::setMap( setupStorage );
+   }
+
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   P2PlusBubbleFunction< real_t > func( "Bubble enhanced P2 function", storage, level, level );
+
+   std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& x ) -> real_t {
+      return x[0] * x[1] * ( real_c( 1 ) - x[0] - x[1] ) * real_c( 27 );
+   };
+
+   func.interpolate( expr, level );
+
+   std::string fPath = "../../output";
+   WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+   VTKOutput vtkOutput( fPath, fName, storage );
+   vtkOutput.add( func );
+   vtkOutput.write( level );
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -525,6 +586,12 @@ int main( int argc, char* argv[] )
    for ( uint_t level = 0; level <= 2; ++level )
    {
       hyteg::testVTKQuadraticTetra( 3, level );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export for P2PlusBubbleFunction:" );
+   for ( uint_t level = 0; level <= 3; ++level )
+   {
+      hyteg::testP2PlusBubble( 3, level );
    }
 
    return EXIT_SUCCESS;
