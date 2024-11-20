@@ -384,6 +384,7 @@ class P0Function : public Function< P0Function< ValueType > >
                   std::vector< celldof::CellType >      fineCellTypes;
 
                   real_t fineAverage = 0.0;
+                  real_t fineInvAverage = 0.0;
 
                   volumedofspace::indexing::getFineMicroElementsFromCoarseMicroElement(
                      coarseElementIdx, coarseCellType, fineElementIndices, fineCellTypes );
@@ -395,7 +396,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      auto fineElementIdx = fineElementIndices[fineIdx];
                      auto fineCellType   = fineCellTypes[fineIdx];
 
-                     fineAverage +=
+                     real_t fineVal =
                         fineDofMemory[volumedofspace::indexing::index( fineElementIdx.x(),
                                                                         fineElementIdx.y(),
                                                                         fineElementIdx.z(),
@@ -404,6 +405,9 @@ class P0Function : public Function< P0Function< ValueType > >
                                                                         1u,
                                                                         fineLevel,
                                                                         volumedofspace::indexing::VolumeDoFMemoryLayout::SoA )];
+                     
+                     fineAverage += fineVal;
+                     fineInvAverage += (1.0 / fineVal);
                   }
 
                   // WALBERLA_LOG_INFO_ON_ROOT( "fineElementIndices.size() = " << fineElementIndices.size() );
@@ -416,7 +420,8 @@ class P0Function : public Function< P0Function< ValueType > >
                                                                   1u,
                                                                   coarseLevel,
                                                                   volumedofspace::indexing::VolumeDoFMemoryLayout::SoA )] =
-                     fineAverage / fineElementIndices.size();
+                     fineElementIndices.size() / fineInvAverage;
+                     // fineAverage / fineElementIndices.size();
                }
             }
          }
@@ -539,7 +544,8 @@ class P0Function : public Function< P0Function< ValueType > >
       auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
                   valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
-      return (value + valueTet0 + valueTet1 + valueTet2 + valueTet3) / 5.0;
+      // return (value + valueTet0 + valueTet1 + valueTet2 + valueTet3) / 5.0;
+      return 5.0 / ( (1.0 / value) + (1.0 / valueTet0) + (1.0 / valueTet1) + (1.0 / valueTet2) + (1.0 / valueTet3) );
    }
 
    void averageFromP1( P1Function< real_t > src, uint_t level )
