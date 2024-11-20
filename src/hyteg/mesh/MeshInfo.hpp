@@ -50,230 +50,10 @@ class GmshReaderForMSH41;
 /// - internal mesh generation for rectangles
 /// - internal mesh generation for full or partial annuli
 /// - internal mesh generation for spherical shells
+/// and more.
 ///
-/// \ref MeshInfo instance can then be used to create domains via \ref SetupPrimitiveStorage.
+/// \ref A MeshInfo instance can then be used to create domains via \ref SetupPrimitiveStorage.
 ///
-/// <b>Details of inline mesh generators for rectangles:</b>
-///
-/// The inline mesh generator expects to input arguments nx and ny for the discretisation.
-/// It supports generation of four different flavours of meshes.
-/// - For CRISS, CROSS and CRISSCROSS the rectangle is split into a regular mesh of nx by ny
-///   cells, which are then subdivived into two (CRISS and CROSS) or four (CRISSCROSS)
-///   triangles.
-/// - For DIAMOND we use the same number and position of vertices as for CRISSCROSS, but
-///   these are connected in a layered fashion from the outside in.
-///
-/// | flavour    |      \#vertices       |\#triangles |
-/// |:-----------|:---------------------:|:----------:|
-/// | CRISS      | (nx+1)*(ny+1)         | 2*nx*ny    |
-/// | CROSS      | (nx+1)*(ny+1)         | 2*nx*ny    |
-/// | CRISSCROSS | (nx+1)*(ny+1) + nx*ny | 4*nx*ny    |
-/// | DIAMOND    | (nx+1)*(ny+1) + nx*ny | 4*nx*ny    |
-///
-/*! \htmlonly
-  <center>
-  <table border="1">
-  <tr>
-  <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
-  </tr>
-  <tr>
-  <td><img src="Mesh_RectangleCriss.png"      width="600" height="600"/></td>
-  <td><img src="Mesh_RectangleCross.png"      width="600" height="600"/></td>
-  <td><img src="Mesh_RectangleCrissCross.png" width="600" height="600"/></td>
-  <td><img src="Mesh_RectangleDiamond.png"    width="600" height="600"/></td>
-  </tr>
-  <tr>
-  <td align="center">CRISS</td>
-  <td align="center">CROSS</td>
-  <td align="center">CRISSCROSS</td>
-  <td align="center">DIAMOND</td>
-  </tr>
-  </table>
-  </center></br>
-  \endhtmlonly
-*/
-/// <b>Details of inline mesh generators for annuli:</b>
-///
-/// Meshing of a partial annulus is (conceptually) handled by meshing the corresponding
-/// rectangle in cartesian coordinates. In case of a partial annulus this is given by
-/// lower left vertex (rhoMin, phiMin) and upper right vertex (rhoMax, phiMax).
-/// In the case of a full annulus the rectangle is then "glued" together.
-///
-/// For both a full and a partial annulus the same four  meshing flavours as for rectangles
-/// can be specified. Note, however, that blending only works together with CRISS or CROSS,
-/// but not for CRISSCROSS or DIAMOND.
-///
-/// Number of mesh entities for different flavour and a full annulus
-/// |    \#vertices    |\#triangles  |   flavour  |
-/// |:----------------:|:-----------:|:----------:|
-/// |  nTan*(2*nRad+1) | 4*nTan*nRad | CRISSCROSS |
-/// |  nTan*(nRad+1)   | 2*nTan*nRad | CRISS      |
-/// |  nTan*(nRad+1)   | 2*nTan*nRad | CROSS      |
-/// |  nTan*(2*nRad+1) | 4*nTan*nRad | DIAMOND    |
-///
-/// The boundaryFlags for the full annulus are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
-/// #flagInnerBoundary or #flagInterior.
-
-/*! \htmlonly
-  <center>
-  <table>
-  <tr>
-  <td align="center"><img src="Mesh_AnnulusPartial.png" width="50%"/></td>
-  <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
-  </tr>
-  <tr>
-  <td align="center">partial annulus (nTan=4, nRad=2)</td>
-  <td align="center">full annulus (nTan=15, nRad=2)</td>
-  </tr>
-  </table>
-  </center>
-  \endhtmlonly
-*/
-///
-///
-/// <b>Details of inline mesh generators for spherical shells:</b>
-///
-/// This class generates a tetrahedral mesh for a thick spherical shell. It
-/// is based on the icosahedral grid approach, i.e. one starts by mapping
-/// an icosahedron onto the unit sphere, which results in 20 spherical
-/// triangles. Two of these triangles are then conceptually combined resulting
-/// in 10 spherical diamonds. These are then further subdivided and the
-/// resulting scaled appropriately to obtain radial layers. This leads to
-/// a mesh consisting of prismatoidal elements with spherical triangles on
-/// top and bottom.
-///
-/// This class uses the vertices of this mesh and from each prismatoid
-/// generates 3 tetrahedrons. Given the following input parameters for the
-/// constructor
-///
-/// | parameter | meaning                                  |
-/// |:----------|:-----------------------------------------|
-/// | ntan      | number of nodes along a diamond edge     |
-/// | nrad      | number of radial layers                  |
-/// | rmin      | radius of interior boundary of the shell |
-/// | rmax      | radius of exterior boundary of the shell |
-///
-/// this results in
-///
-/// - no. of vertices: (10 * (ntan-1) * (ntan-1) + 2) * nrad
-/// - no. of tetrahedrons: 60 * (ntan-1) * (ntan-1) * (nrad-1)
-///
-/*! \htmlonly
-     <center>
-       <img src="ShellMesh-ntan4-nrad3.png"
-       width="50%"/><br/>
-     Mesh resulting from parameter choice (ntan,nrad,rmin,rmax)=(5,3,1.0,2.0)
-     </center>
-     \endhtmlonly
-*/
-///
-///
-/// We start by generating a mesh for the unit sphere. This mesh is generated
-/// by first splitting the four outer arcs of each diamond into (ntan-1)
-/// sections of equal arc length and then splitting the west-to-east arcs
-/// connecting these new points into sections of equal arc length such that we
-/// end up with ntan x ntan nodes on each diamond.
-///
-/// The thick spherical shell is then meshed by scaling the spherical mesh to
-/// obtain nrad radial layers whose radii split the interval [rmin,rmax] into
-/// equidistant sub-intervals. Alternatively the radii of the layers can be
-/// computed externally and provided to the class via the corresponding
-/// constructor.
-///
-/*! \htmlonly
-     <center>
-       <img src="Diamonds-and-SphericalIndices.png"
-       width="50%"/><br/>
-     Numbering of diamonds and direction of tangential indices depending on
-     hemisphere
-     </center>
-     \endhtmlonly
-*/
-///
-/*! \htmlonly
-     <center>
-       <img src="Tets-per-local-Cell.png" width="50%"/><br/>
-       Splitting a local cell into six tetrahedra
-     </center>
-     \endhtmlonly
-*/
-///
-/// Every tetrahedron of the mesh can uniquely be addressed by a five-tuple
-/// of indices \f$\Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. These
-/// indices have the following meaning an (by our convention) the following
-/// ranges:
-///
-/// |      index       |                           range                 |             indicates              |
-/// |:----------------:|:-----------------------------------------------:|:-----------------------------------|
-/// | \f$i_t      \f$  | \f$\Big\{ 0, 1, \ldots, 5             \Big\}\f$ | index of tetrahedron in grid cell  |
-/// | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | first spherical node index         |
-/// | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | second spherical node index        |
-/// | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9             \Big\}\f$ | index of diamond                   |
-/// | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}-1\Big\}\f$ | index of radial layer (inside-out) |
-///
-/// We denote by
-///
-/// \f[ \mathcal{M}_\text{elem} : \Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{elem} \f]
-///
-/// the mapping that assigns to each such five-tuple a unique one-dimensional
-/// index. We construct the mapping by counting the tetrahedra starting at
-/// zero and going through the indices in the given order, with \f$i_t\f$
-/// being the fastest running and so on.
-/// In a similar fashion each vertex of the grid can be addressed by
-/// a four-tuple \f$\Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. Here the indices
-/// have an identical meaning as before, but slightly different ranges:
-///
-/// |      index       |                           range               |             indicates              |
-/// |:----------------:|:---------------------------------------------:|:-----------------------------------|
-/// | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | first spherical node index         |
-/// | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | second spherical node index        |
-/// | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9           \Big\}\f$ | index of diamond                   |
-/// | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}\Big\}\f$ | index of radial layer (inside-out) |
-///
-/// Additionally the representation of a vertex by such a four-tuple is
-/// non-unique. Considering the spherical grid, we see that the north
-/// and south pole belong to five diamonds each, while the remaining
-/// ten points of the base icosahedron (pentagonal nodes) belong to
-/// three diamonds each, and the remaining nodes along a diamond edge
-/// always belong to two diamonds. To construct a unique mapping
-///
-/// \f[ \mathcal{M}_\text{vert} : \Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{vert} \f]
-///
-/// we introduce the following conventions:
-///
-/// - The spherical indices of north and south pole are given by (0,0)
-/// - A diamond with index \f$i_d\f$ owns all nodes, which satisfy
-///   \f{equation*}{\begin{split}
-///   i_s^{(1)} &\in \Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\\
-///   i_s^{(2)} &\in \Big\{ 1, \ldots, n_\text{tan}\Big\}
-///   \end{split}\f}
-///   on the northern hemisphere this excludes the upper and lower
-///   left edge of the diamond.
-/// - The above assignment leads to the poles not belonging to any
-///   diamond. We assign the north pole to diamond #1 and the south
-///   pole to diamond #6.
-///
-/// The mapping \f$\mathcal{M}_\text{vert}\f$ is then constructed as
-/// follows:
-///
-/// - We first index the north pole on each radial layer, going from
-///   \f$i_r=0\f$ up to \f$i_r=n_\text{rad}\f$.
-/// - Then we do the same for all south poles.
-/// - Then we go through all vertices assigning them indices
-///   \f$j_\text{vert}\f$ starting from \f$2\cdot n_\text{rad}\f$.
-///   The ordering again follows the given index ordering with,
-///   this time, \f$i_s^{(1)}\f$ being the fastest running index.
-/*! \htmlonly
-     <center>
-       <img src="tuple2VertIndex.png" width="50%"/><br/>
-     Visualisation of vertex ownership convention; vertices marked yellow and
-     green are owned by neighbouring diamonds in the indicated direction
-     </center>
-     \endhtmlonly
-*/
-///
-/// The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
-/// #flagInnerBoundary or #flagInterior.
 class MeshInfo
 {
  public:
@@ -448,7 +228,44 @@ class MeshInfo
    /// @}
 
    /// Construct a MeshInfo object for a rectangular domain
-
+   ///
+   /// The inline mesh generator expects to input arguments nx and ny for the discretisation.
+   /// It supports generation of four different flavours of meshes.
+   /// - For CRISS, CROSS and CRISSCROSS the rectangle is split into a regular mesh of nx by ny
+   ///   cells, which are then subdivived into two (CRISS and CROSS) or four (CRISSCROSS)
+   ///   triangles.
+   /// - For DIAMOND we use the same number and position of vertices as for CRISSCROSS, but
+   ///   these are connected in a layered fashion from the outside in.
+   ///
+   /// | flavour    |      \#vertices       |\#triangles |
+   /// |:-----------|:---------------------:|:----------:|
+   /// | CRISS      | (nx+1)*(ny+1)         | 2*nx*ny    |
+   /// | CROSS      | (nx+1)*(ny+1)         | 2*nx*ny    |
+   /// | CRISSCROSS | (nx+1)*(ny+1) + nx*ny | 4*nx*ny    |
+   /// | DIAMOND    | (nx+1)*(ny+1) + nx*ny | 4*nx*ny    |
+   ///
+   /*! \htmlonly
+   <center>
+   <table border="1">
+   <tr>
+   <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
+   </tr>
+   <tr>
+   <td><img src="Mesh_RectangleCriss.png"      width="600" height="600"/></td>
+   <td><img src="Mesh_RectangleCross.png"      width="600" height="600"/></td>
+   <td><img src="Mesh_RectangleCrissCross.png" width="600" height="600"/></td>
+   <td><img src="Mesh_RectangleDiamond.png"    width="600" height="600"/></td>
+   </tr>
+   <tr>
+   <td align="center">CRISS</td>
+   <td align="center">CROSS</td>
+   <td align="center">CRISSCROSS</td>
+   <td align="center">DIAMOND</td>
+   </tr>
+   </table>
+   </center></br>
+   \endhtmlonly */
+   ///
    /// \param lowerLeft    coordinates of lower left corner of rectangle
    /// \param upperRight   coordinates of upper right corner of rectangle
    /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
@@ -458,7 +275,9 @@ class MeshInfo
        meshRectangle( const Point2D lowerLeft, const Point2D upperRight, const meshFlavour flavour, uint_t nx, uint_t ny );
 
    /// Construct a MeshInfo object for a partial annulus
-
+   ///
+   /// See documentation of meshAnnulus( const real_t, const real_t, const meshFlavour, uint_t, uint_t )
+   ///
    /// \param rhoMin       radius of inner circle of partial annulus
    /// \param rhoMax       radius of outer circle of partial annulus
    /// \param phiLeft      smaller angle of radial boundary in polar coordinates
@@ -475,9 +294,51 @@ class MeshInfo
                                 uint_t            nRad );
 
    /// Construct a MeshInfo object for a full annulus
-   static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, uint_t nTan, uint_t nRad );
-
-   /// Construct a MeshInfo object for a full annulus
+   ///
+   /// Meshing of a partial annulus
+   /// (see
+   ///   meshAnnulus( const real_t,
+   ///                const real_t,
+   ///                const real_t,
+   ///                const real_t,
+   ///                const meshFlavour,
+   ///                uint_t,
+   ///                uint_t ) )
+   /// is (conceptually) handled by meshing the corresponding
+   /// rectangle in cartesian coordinates. In case of a partial annulus this is given by
+   /// lower left vertex (rhoMin, phiMin) and upper right vertex (rhoMax, phiMax).
+   ///
+   /// In the case of a full annulus (covered by this function) the rectangle is then "glued" together.
+   ///
+   /// For both a full and a partial annulus the same four  meshing flavours as for rectangles
+   /// can be specified. Note, however, that blending only works together with CRISS or CROSS,
+   /// but not for CRISSCROSS or DIAMOND.
+   ///
+   /// Number of mesh entities for different flavour and a full annulus
+   /// |    \#vertices    |\#triangles  |   flavour  |
+   /// |:----------------:|:-----------:|:----------:|
+   /// |  nTan*(2*nRad+1) | 4*nTan*nRad | CRISSCROSS |
+   /// |  nTan*(nRad+1)   | 2*nTan*nRad | CRISS      |
+   /// |  nTan*(nRad+1)   | 2*nTan*nRad | CROSS      |
+   /// |  nTan*(2*nRad+1) | 4*nTan*nRad | DIAMOND    |
+   ///
+   /// The boundaryFlags for the full annulus are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+   /// #flagInnerBoundary or #flagInterior.
+   /*! \htmlonly
+   <center>
+   <table>
+   <tr>
+   <td align="center"><img src="Mesh_AnnulusPartial.png" width="50%"/></td>
+   <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
+   </tr>
+   <tr>
+   <td align="center">partial annulus (nTan=4, nRad=2, flavour=CRISSCROSS)</td>
+   <td align="center">full annulus (nTan=15, nRad=2, flavour=CRISSCROSS)</td>
+   </tr>
+   </table>
+   </center>
+   \endhtmlonly */
+   ///
    static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, const meshFlavour flavour, uint_t nTan, uint_t nRad );
 
    /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
@@ -485,23 +346,183 @@ class MeshInfo
 
    /// Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
    ///
+   /// <b>Overview</b>
+   ///
+   /// This function generates a tetrahedral mesh for a thick spherical shell. It
+   /// is based on the icosahedral grid approach, i.e. one starts by mapping
+   /// an icosahedron onto the unit sphere, which results in 20 spherical
+   /// triangles. Pairs of these triangles are then conceptually combined resulting
+   /// in 10 spherical diamonds. These are then further subdivided and
+   /// scaled appropriately to obtain radial layers. This leads to
+   /// a mesh consisting of prismatoidal elements with spherical triangles on
+   /// top and bottom.
+   ///
+   /// This function uses the vertices of this mesh and from each prismatoid
+   /// generates 3 tetrahedrons. Given the following input parameters for the
+   /// constructor
+   ///
+   /// | parameter | constraints                                           | meaning                                  |
+   /// |:----------|:------------------------------------------------------|:-----------------------------------------|
+   /// | ntan      | (ntan-1) must be a power of 2 (for SHELLMESH_CLASSIC) | number of nodes along a diamond edge     |
+   /// | nrad      | nrad >= 2                                             | number of radial layers (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)                 |
+   /// | rmin      | rmin < rmax                                           | radius of interior boundary of the shell (innermost layer) |
+   /// | rmax      | rmin < rmax                                           | radius of exterior boundary of the shell (outermost layer) |
+   ///
+   /// this results in
+   ///
+   /// - no. of vertices: (10 * (ntan-1) * (ntan-1) + 2) * nrad
+   /// - no. of tetrahedrons: 60 * (ntan-1) * (ntan-1) * (nrad-1)
+   ///
+   /// <br/>
+   /*! \htmlonly
+   <center>
+   <img src="SphericalShell_coarse_ntan_5_diamond.png" width="50%"/><br/>
+   Surface of the spherical shell mesh for ntan = 5, highlighting the spherical diamond (split into two spherical triangles)
+   and the ntan = 5 vertices along one of the edges of the diamond.
+   </center>
+   \endhtmlonly */
+   ///
+   /*! \htmlonly
+   <center>
+   <img src="SphericalShell_coarse_ntan_5_nrad_2_clip.png" width="30%"/>
+   <img src="SphericalShell_coarse_ntan_5_nrad_3_clip.png" width="30%"/>
+   <img src="SphericalShell_coarse_ntan_5_nrad_4_clip.png" width="30%"/>
+   <br/>
+   Cut through spherical shell meshes with ntan = 5, rmin = 0.5, rmax = 1.0, and nrad = {2, 3, 4} (from left to right increasing).
+   </center>
+   \endhtmlonly */
+   /// <br/>
+   ///
+   /// <b>Boundary flags</b>
+   ///
+   /// The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+   /// #flagInnerBoundary or #flagInterior.
+   ///
+   /// <b>Details</b>
+   ///
+   /// We start by generating a mesh for the unit sphere. This mesh is generated
+   /// by first splitting the four outer arcs of each diamond into (ntan-1)
+   /// sections of equal arc length and then splitting the west-to-east arcs
+   /// connecting these new points into sections of equal arc length such that we
+   /// end up with ntan x ntan nodes on each diamond.
+   ///
+   /// The thick spherical shell is then meshed by scaling the spherical mesh to
+   /// obtain nrad radial layers whose radii split the interval [rmin,rmax] into
+   /// equidistant sub-intervals. Alternatively the radii of the layers can be
+   /// computed externally and provided to the class via the corresponding
+   /// constructor.
+   ///
+   /*! \htmlonly
+   <center>
+   <img src="Diamonds-and-SphericalIndices.png" width="50%"/><br/>
+   Numbering of diamonds and direction of tangential indices depending on the hemisphere
+   </center>
+   \endhtmlonly */
+   ///
+   /*! \htmlonly
+   <center>
+   <img src="Tets-per-local-Cell.png" width="50%"/><br/>
+   Splitting a local cell into six tetrahedra
+   </center>
+   \endhtmlonly */
+   /// <br/>
+   ///
+   /// Every tetrahedron of the mesh can uniquely be addressed by a five-tuple
+   /// of indices \f$\Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. These
+   /// indices have the following meaning an (by our convention) the following
+   /// ranges:
+   ///
+   /// |      index       |                           range                 |             indicates              |
+   /// |:----------------:|:-----------------------------------------------:|:-----------------------------------|
+   /// | \f$i_t      \f$  | \f$\Big\{ 0, 1, \ldots, 5             \Big\}\f$ | index of tetrahedron in grid cell  |
+   /// | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | first spherical node index         |
+   /// | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | second spherical node index        |
+   /// | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9             \Big\}\f$ | index of diamond                   |
+   /// | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}-1\Big\}\f$ | index of radial layer (inside-out) |
+   ///
+   /// We denote by
+   ///
+   /// \f[ \mathcal{M}_\text{elem} : \Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{elem} \f]
+   ///
+   /// the mapping that assigns to each such five-tuple a unique one-dimensional
+   /// index. We construct the mapping by counting the tetrahedra starting at
+   /// zero and going through the indices in the given order, with \f$i_t\f$
+   /// being the fastest running and so on.
+   /// In a similar fashion each vertex of the grid can be addressed by
+   /// a four-tuple \f$\Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. Here the indices
+   /// have an identical meaning as before, but slightly different ranges:
+   ///
+   /// |      index       |                           range               |             indicates              |
+   /// |:----------------:|:---------------------------------------------:|:-----------------------------------|
+   /// | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | first spherical node index         |
+   /// | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | second spherical node index        |
+   /// | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9           \Big\}\f$ | index of diamond                   |
+   /// | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}\Big\}\f$ | index of radial layer (inside-out) |
+   ///
+   /// Additionally the representation of a vertex by such a four-tuple is
+   /// non-unique. Considering the spherical grid, we see that the north
+   /// and south pole belong to five diamonds each, while the remaining
+   /// ten points of the base icosahedron (pentagonal nodes) belong to
+   /// three diamonds each, and the remaining nodes along a diamond edge
+   /// always belong to two diamonds. To construct a unique mapping
+   ///
+   /// \f[ \mathcal{M}_\text{vert} : \Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{vert} \f]
+   ///
+   /// we introduce the following conventions:
+   ///
+   /// - The spherical indices of north and south pole are given by (0,0)
+   /// - A diamond with index \f$i_d\f$ owns all nodes, which satisfy
+   ///   \f{equation*}{\begin{split}
+   ///   i_s^{(1)} &\in \Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\\
+   ///   i_s^{(2)} &\in \Big\{ 1, \ldots, n_\text{tan}\Big\}
+   ///   \end{split}\f}
+   ///   on the northern hemisphere this excludes the upper and lower
+   ///   left edge of the diamond.
+   /// - The above assignment leads to the poles not belonging to any
+   ///   diamond. We assign the north pole to diamond #1 and the south
+   ///   pole to diamond #6.
+   ///
+   /// The mapping \f$\mathcal{M}_\text{vert}\f$ is then constructed as
+   /// follows:
+   ///
+   /// - We first index the north pole on each radial layer, going from
+   ///   \f$i_r=0\f$ up to \f$i_r=n_\text{rad}\f$.
+   /// - Then we do the same for all south poles.
+   /// - Then we go through all vertices assigning them indices
+   ///   \f$j_\text{vert}\f$ starting from \f$2\cdot n_\text{rad}\f$.
+   ///   The ordering again follows the given index ordering with,
+   ///   this time, \f$i_s^{(1)}\f$ being the fastest running index.
+   /*! \htmlonly
+   <center>
+   <img src="tuple2VertIndex.png" width="50%"/><br/>
+   Visualisation of vertex ownership convention; vertices marked yellow and
+   green are owned by neighbouring diamonds in the indicated direction
+   </center>
+   \endhtmlonly */
+   ///
+   ///
    /// \param ntan      number of nodes along spherical diamond edge
-   /// \param nrad      number of radial layers
+   /// \param nrad      number of radial layers (>= 2)
+   ///                  (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)
    /// \param rmin      radius of innermost shell (core-mantle-boundary)
    /// \param rmax      radius of outermost shell
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do)
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you
+   ///                  are doing)
    static MeshInfo meshSphericalShell( uint_t        ntan,
                                        uint_t        nrad,
                                        real_t        rmin,
                                        real_t        rmax,
                                        shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
 
-   /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
+   /// Constructs a MeshInfo object for a spherical shell (externally computed positions of radial layers)
+   ///
+   /// See documentation of meshSphericalShell( uint_t, uint_t, real_t, real_t, shellMeshType )
    ///
    /// \param ntan      number of nodes along spherical diamond edge
    /// \param layers    vector that gives the radii of all layers, sorted from the
    ///                  CMB outwards
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you do)
+   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you
+   ///                  are doing)
    static MeshInfo meshSphericalShell( uint_t                       ntan,
                                        const std::vector< real_t >& layers,
                                        shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
@@ -674,7 +695,7 @@ class MeshInfo
    void processPrimitivesFromGmshFile( const EdgeContainer& parsedEdges,
                                        const FaceContainer& parsedFaces,
                                        const CellContainer& parsedCells,
-                                       bool inheritParentBoundaryFlag = false );
+                                       bool                 inheritParentBoundaryFlag = false );
 };
 
 } // namespace hyteg

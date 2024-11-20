@@ -155,7 +155,7 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
    const uint_t numMaxCubesY = numCubeCornerVerticesY - 1;
    const uint_t numMaxCubesZ = numCubeCornerVerticesZ - 1;
 
-   ///// MAPPINGS FOR CUBE TYPE == 0 /////
+   // MAPPINGS FOR CUBE TYPE == 0
 
    // mapping of tetrahedron to vertices of local cell (this is standard
    // hexahedron numbering)
@@ -213,9 +213,9 @@ MeshInfo MeshInfo::meshCubedDomain( const std::set< std::array< int, 3 > >& cube
    offset[7][1] = 1;
    offset[7][2] = 1;
 
-   ///// MAPPINGS FOR CUBE TYPE == 1 /////
+   // MAPPINGS FOR CUBE TYPE == 1
 
-   /**
+   /*
     * Vertex numbering for cube type == 1 (symmetric cube with 24 tets)
     *
     * z == 0 | z == 1 | z == 2
