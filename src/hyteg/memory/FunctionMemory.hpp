@@ -138,9 +138,16 @@ class FunctionMemory
    {
       WALBERLA_ASSERT( hasLevel( level ), "Requested level not allocated." );
       ValueType* ptr = data_.at( level )->data();
-      for ( uint_t k = 0; k < data_.at( level )->size(); ++k )
+      if constexpr ( sizeof( unsigned char ) == 1 )
       {
-         ptr[k] = generateZero< ValueType >();
+         std::memset( ptr, 0u, data_.at( level )->size() * sizeof( ValueType ) );
+      }
+      else
+      {
+         for ( uint_t k = 0; k < data_.at( level )->size(); ++k )
+         {
+            ptr[k] = generateZero< ValueType >();
+         }
       }
    }
 
