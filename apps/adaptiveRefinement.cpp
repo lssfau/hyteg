@@ -374,18 +374,22 @@ struct ModelProblem
 
       if ( type == WAVES )
       {
-         // v(t) = t * (1 - cos(1/squeeze * (2π * n_waves * squeeze)^t))
-         auto v = [*this]( const real_t& t ) {
-            auto x0 = 1.0 / p_w;
-            auto x1 = 2 * n_w * p_w * pi;
-            return t * ( 1 - cos( x0 * pow( x1, t ) ) );
-         };
-         auto d2v = [*this]( const real_t& t ) {
-            auto x0 = 1.0 / p_w;
-            auto x1 = 2 * n_w * p_w * pi;
-            auto x2 = x0 * pow( x1, t );
-            auto x3 = log( x1 );
-            return x2 * x3 * ( x2 * t * cos( x2 ) * x3 + ( 2 + t * x3 ) * sin( x2 ) );
+         auto omega = 2.0 * pi * n_w;
+         auto alpha = p_w;
+         // v(t) = 1 - cos(omega * t * alpha^(t-1))
+         auto v = [=]( const real_t& t ) { return 1 - std::cos( omega * t * std::pow( alpha, t - 1.0 ) ); };
+         // v''(t) = ω^2 * α^(2t-2) * (cos(ωtα^(t-1)) * (log(α))^2 * t^2 - sin(ωtα^(t-1)) * (log(α)) * (2t-1))
+         auto log_a = std::log( alpha );
+         auto d2v   = [=]( const real_t& t ) {
+            auto a_t1    = pow( alpha, t - 1.0 );
+            auto o_a_t1  = omega * a_t1;
+            auto t_log_a = t * log_a;
+            auto s       = log_a * o_a_t1 * ( t_log_a + 2.0 );
+            auto c       = o_a_t1 * ( t_log_a + 1.0 );
+            return s * std::sin( o_a_t1 * t ) + c * c * std::cos( o_a_t1 * t );
+            // auto o_t_at1 = omega * t * a_t1;
+            // return omega * omega * a_t1 * a_t1 *
+            //        ( std::cos( o_t_at1 ) * log_a * log_a * t * t - std::sin( o_t_at1 ) * log_a * ( 2.0 * t - 1.0 ) );
          };
 
          if ( dim == 3 )
@@ -799,8 +803,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          real_t my_t1 = walberla::timing::getWcTime();
          t_error_indicator += my_t1 - my_t0;
       };
-      fmg = std::make_shared< FullMultigridSolver< A_t > >(
-          storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
+      fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
    };
 
    t1 = walberla::timing::getWcTime();
@@ -1189,12 +1192,12 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       }
    }
 
-   auto& timingTree = *( u_old->getStorage()->getTimingTree() );
+   // auto& timingTree = *( u_old->getStorage()->getTimingTree() );
 
-   if ( walberla::mpi::MPIManager::instance()->rank() == 0 && u_old )
-   {
-      std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
-   }
+   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 && u_old )
+   // {
+   //    std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
+   // }
 }
 
 int main( int argc, char* argv[] )
