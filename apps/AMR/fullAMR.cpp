@@ -27,6 +27,7 @@
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 #include <iomanip>
+
 #include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -42,6 +43,7 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using namespace hyteg;
@@ -424,6 +426,7 @@ void solve_for_each_refinement( uint_t      dim,
    // setup domain
    auto setupStorage = domain( dim );
    // create adaptive mesh
+
    adaptiveRefinement::Mesh mesh( setupStorage );
    // run refinement loop
    hyteg::adaptiveRefinement::ErrorVector local_errors;
@@ -440,8 +443,8 @@ void solve_for_each_refinement( uint_t      dim,
       }
       else
       {
-         auto ref_strat  = adaptiveRefinement::Strategy::percentile( p_ref );
-         auto cors_strat = adaptiveRefinement::Strategy::percentile( p_cors );
+         auto ref_strat  = adaptiveRefinement::Strategy::doerfler( p_ref );
+         auto cors_strat = adaptiveRefinement::Strategy::multiple_of_R( p_cors );
          mesh.refineRG( local_errors, ref_strat, cors_strat, true );
       }
       auto t1    = walberla::timing::getWcTime();
@@ -571,10 +574,11 @@ int main( int argc, char* argv[] )
 
    const uint_t dim = parameters.getParameter< uint_t >( "dim", 0 );
 
-   const uint_t n_regref              = parameters.getParameter< uint_t >( "n_regular_refinement", 3 );
-   const uint_t n_amr                 = parameters.getParameter< uint_t >( "n_amr", 0 );
-   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.05 : 0.015 );
-   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", 0.2 );
+   const uint_t n_regref = parameters.getParameter< uint_t >( "n_regular_refinement", 3 );
+   const uint_t n_amr    = parameters.getParameter< uint_t >( "n_amr", 0 );
+   const real_t p_refinement =
+       parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.5 : 0.5 ); // todo optimize default value
+   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 4.0 : 12.0 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
    uint_t       l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
@@ -632,9 +636,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "regular refinement steps", n_regref ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "adaptive refinement steps", n_amr ) );
    WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( " %30s: %3.1f%%", "proportion of elements marked for coarsening", p_coarsen * 100.0 ) );
+       walberla::format( " %30s: %3.1f (%s)", "refinement parameter p_r for Dörfler marking", p_refinement ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %3.1f (%s)", "coarsening parameter p_c", p_coarsen ) );
    if ( error_indicator )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "error estimate for refinement", l_max - 1, l_max ) );

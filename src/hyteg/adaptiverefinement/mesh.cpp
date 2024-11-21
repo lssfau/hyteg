@@ -269,20 +269,45 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          return err_glob.front().first;
       }
       // else
+
+      // disable weighting if p is close to zero
+      bool weighted = ( std::abs( p ) > real_t( 0.01 ) );
+
       auto e_mean_w = real_t( 0.0 );
       auto sum_w    = real_t( 0.0 );
       auto n        = err_glob.size();
-      // iterate in reverse order to add smallest contribution first, reducing round off error
-      for ( uint_t n_i = 1; n_i <= err_glob.size(); ++n_i )
+      for ( uint_t n_i = 1; n_i <= n; ++n_i )
       {
+         // iterate in reverse order to add smallest contribution first, reducing round off error
          auto   i   = n - n_i; // n - (n-i) = i
          real_t e_i = err_glob[i].first;
-         real_t w_i = ( std::abs( p ) > real_t( 0.01 ) ) ? std::pow( real_t( n_i ), p ) : 1.0;
-         sum_w += w_i;
-         e_mean_w += w_i * e_i;
+         if ( weighted )
+         {
+            real_t w_i = std::pow( real_t( n_i ), p );
+            e_mean_w += w_i * e_i;
+            sum_w += w_i;
+         }
+         else
+         {
+            e_mean_w += e_i;
+            sum_w = real_t( n );
+         }
       }
       return e_mean_w /= sum_w;
    };
+
+   // todo remove this lambda
+   // auto compute_sum = [&]() {
+   //    auto sum = real_t( 0.0 );
+   //    auto n   = err_glob.size();
+   //    // iterate in reverse order to add smallest contribution first, reducing round off error
+   //    for ( uint_t n_i = 1; n_i <= n; ++n_i )
+   //    {
+   //       auto i = n - n_i; // n - (n-i) = i
+   //       sum += err_glob[i].first;
+   //    }
+   //    return sum;
+   // };
 
    std::function< bool( real_t, uint_t ) > crit_r;
    std::function< bool( real_t, uint_t ) > crit_c;
@@ -296,7 +321,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean );
       }
    }
-   if ( ref_strat.t == Strategy::PERCENTILE )
+   else if ( ref_strat.t == Strategy::PERCENTILE )
    {
       auto sizeR = uint_t( std::round( real_t( _n_elements ) * ref_strat.p ) );
       crit_r     = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
@@ -305,23 +330,44 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
       }
    }
-   if ( cors_strat.t == Strategy::WEIGHTED_MEAN )
+   // else if ( ref_strat.t == Strategy::DOERFLER )
+   // {
+   //    auto e_sum = compute_sum();
+   //    crit_r     = [=]( real_t e_i, uint_t ) -> bool { return e_i >= ref_strat.p * e_sum; };
+   //    if ( verbose )
+   //    {
+   //       WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << ref_strat.p * e_sum );
+   //    }
+   // }
+   // todo replace with this
+   else if ( ref_strat.t == Strategy::DOERFLER )
    {
-      auto e_mean = compute_weighted_mean( cors_strat.p );
-      crit_c      = [e_mean]( real_t e_i, uint_t ) -> bool { return e_i < e_mean; };
+      // compute sum of all errors
+      auto e_sum = real_t( 0.0 );
+      for ( uint_t n_i = 1; n_i <= _n_elements; ++n_i )
+      {
+         // iterate in reverse order to add smallest contribution first, reducing round off error
+         auto i = _n_elements - n_i; // i = n - (n-i)
+         e_sum += err_glob[i].first;
+      }
+      // find smallest subset R of T where ∑_t∈R e_t >= p * ∑_t∈T e_t
+      auto   e_sum_R = real_t( 0.0 );
+      uint_t sizeR   = uint_t( 0 );
+      while ( sizeR < _n_elements && e_sum_R < ref_strat.p * e_sum )
+      {
+         e_sum_R += err_glob[sizeR].first;
+         ++sizeR;
+      }
+      // refine all elements in R
+      crit_r = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
       if ( verbose )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i < " << e_mean );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
       }
    }
-   if ( cors_strat.t == Strategy::PERCENTILE )
+   else
    {
-      auto sizeC = uint_t( std::round( real_t( _n_elements ) * cors_strat.p ) );
-      crit_c     = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
-      if ( verbose )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
-      }
+      WALBERLA_ABORT( "Unknown refinement strategy!" );
    }
 
    std::vector< PrimitiveID > elements_to_refine;
@@ -340,6 +386,45 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          break;
       }
    }
+
+   if ( cors_strat.t == Strategy::WEIGHTED_MEAN )
+   {
+      auto e_mean = compute_weighted_mean( cors_strat.p );
+      crit_c      = [e_mean]( real_t e_i, uint_t ) -> bool { return e_i < e_mean; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i < " << e_mean );
+      }
+   }
+   else if ( cors_strat.t == Strategy::PERCENTILE )
+   {
+      auto sizeC = uint_t( std::round( real_t( _n_elements ) * cors_strat.p ) );
+      crit_c     = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
+      }
+   }
+   else if ( cors_strat.t == Strategy::MULTIPLE_OF_R )
+   {
+      auto sizeR = elements_to_refine.size();
+      auto sizeC = uint_t( std::round( real_t( sizeR ) * cors_strat.p ) );
+      if ( sizeR + sizeC > _n_elements )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "n_C + n_R > n_el for n_C = p*n_R -> using n_C = n_el - n_R instead!" );
+         sizeC = _n_elements - sizeR;
+      }
+      crit_c = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsen all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "Unknown coarsening strategy!" );
+   }
+
    std::vector< PrimitiveID > elements_to_coarsen;
    for ( uint_t n_i = 1; n_i <= _n_elements; ++n_i )
    {
@@ -1299,6 +1384,8 @@ void K_Mesh< K_Simplex >::check_integrity( uint_t hanging_nodes_allowed, bool un
    {
       WALBERLA_ROOT_SECTION()
       {
+         std::set< std::shared_ptr< K_Simplex > > problematic_elements;
+
          std::set< uint_t > v_el;
          for ( auto& el : _T )
          {
@@ -1308,6 +1395,10 @@ void K_Mesh< K_Simplex >::check_integrity( uint_t hanging_nodes_allowed, bool un
             }
             else
             {
+               if ( hanging_nodes_allowed == 0 && el->vertices_on_edges() > 0 )
+               {
+                  problematic_elements.insert( el );
+               }
                if ( el->has_children() )
                {
                   WALBERLA_LOG_WARNING( "el has children" );
@@ -1404,6 +1495,11 @@ void K_Mesh< K_Simplex >::check_integrity( uint_t hanging_nodes_allowed, bool un
                   WALBERLA_LOG_WARNING( idx );
                }
             }
+         }
+
+         for ( auto& el : problematic_elements )
+         {
+            WALBERLA_LOG_WARNING( "hanging nodes: " << el->vertices_on_edges() );
          }
       }
    }
@@ -1707,7 +1803,7 @@ void K_Mesh< K_Simplex >::refine_red( const std::set< std::shared_ptr< K_Simplex
 
    // In 3d, we additionally refine all faces with more than one hanging node
    bool rf = true;
-   while (rf)
+   while ( rf )
    {
       rf = refine_faces();
    }
@@ -1748,37 +1844,49 @@ std::set< std::shared_ptr< K_Simplex > > K_Mesh< K_Simplex >::find_elements_for_
 {
    std::set< std::shared_ptr< K_Simplex > > R;
 
-   for ( auto& el : _T )
-   {
+   auto mark_for_refinement = [&]( std::shared_ptr< K_Simplex > el ) -> bool {
       if constexpr ( VOL == FACE )
       {
          // mark face for red refinement if it has more than one hanging node
-         if ( el->vertices_on_edges() > 1 )
-         {
-            R.insert( el );
-         }
+         return el->vertices_on_edges() > 1;
       }
       if constexpr ( VOL == CELL )
       {
-         uint_t grandkids = false;
-         uint_t n_red     = 0;
+         /* mark cell for red refinement if it has more than 3 hanging nodes
+            This is the case if either of the following conditions is met:
+            (a) more than one of the cell's faces are refined (red)
+            (b) there are hanging nodes on the interior of one of its faces
+         */
+         uint_t rf = 0; // number of refined faces
          for ( auto& face : el->get_faces() )
          {
             if ( face->has_children() )
             {
-               n_red += 1;
-            }
-            if ( face->has_grandkids() )
-            {
-               grandkids = true;
+               ++rf;
+               // check for condition (a)
+               if ( rf > 1 )
+               {
+                  return true;
+               }
+               /* check for condition (b)
+                  If there is a hanging node on the interior of the face, this node must be
+                  on the boundary of the interior child (face->get_children()[3]).
+               */
+               if ( face->get_children()[3]->vertices_on_edges() > 0 )
+               {
+                  return true;
+               }
             }
          }
+      }
+      return false;
+   };
 
-         // mark cell for red refinement if it has more than one red face or one of its faces has grandkids
-         if ( n_red > 1 || grandkids )
-         {
-            R.insert( el );
-         }
+   for ( auto& el : _T )
+   {
+      if ( mark_for_refinement( el ) )
+      {
+         R.insert( el );
       }
    }
 

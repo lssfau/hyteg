@@ -1,12 +1,12 @@
 Parameters
 {
-  dim 2;
+  dim 3;
 
   // adaptive refinement:
-  n_regular_refinement 5; //number of initial regular refinement steps (to enable coarsening)
-  n_amr 6; // number of refinement steps
-  // p_refinement 0.05; // proportion of elements that will be marked for refinement [0,1]
-  // p_coarsen 0.2; // proportion of elements that will be marked for coarsening [0,1]
+  n_regular_refinement 4; //number of initial regular refinement steps (to enable coarsening)
+  n_amr 5; // number of refinement steps
+  p_refinement 0.5; // parameter for Dörfler marking [0,1] -> refine smallest subset R of T where ∑_t∈R||e_t||^2 >= p ∑_t∈T||e_t||^2" (p=0 ⇒ R=∅; p=1 ⇒ R=T)
+  p_coarsen 4; // coarsen p*n_R elements each step where n_R is the number of refined elements
   error_indicator 0; // else refine based on actual L2 error (using analytic solution)
   global_error_estimate 0; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
   l2error 1; // compute actual L2 error after every n-th iteration; default: 0 (never)
@@ -14,12 +14,12 @@ Parameters
   // linear solver (FMG)
   cg_level 0;
   fg_level 0;
-  n_iterations 2; // first iteration FMG, then V-cycles
-  n_cycles 2; // number of V-cycles on each level in FMG+
+  n_iterations 1; // first iteration FMG, then V-cycles
+  n_cycles 1; // number of V-cycles on each level in FMG+
   presmooth 2; // number of gs iterations for smoothing
   postsmooth 1;
   tolerance 1e-10;
-  cg_tolerance 1e-9;
+  cg_tolerance 1e-4;
 
   // misc
   // vtkName auto;

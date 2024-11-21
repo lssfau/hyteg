@@ -58,7 +58,15 @@ struct Strategy
          Coarsening:
             coarsen the p*n elements with smallest error
       */
-      PERCENTILE
+      PERCENTILE,
+      /* refine smallest subset R of T where ∑_t∈R e_t >= p ∑_t∈T e_t (p=0 ⇒ R=∅; p=1 ⇒ R=T)
+         (when providing a list of squared errors, this is the classic Dörfler marking)
+      */
+      DOERFLER,
+      /* coarsen a number of elements equal to p*|R|
+         should be chosen to keep the number of elements approximately constant
+      */
+      MULTIPLE_OF_R
    };
 
    constexpr Strategy( Type type, real_t param )
@@ -87,6 +95,17 @@ struct Strategy
       @param p proportion of elements to be marked; [0,1]
    */
    constexpr static Strategy percentile( real_t p ) { return { PERCENTILE, p }; }
+
+   /* refine all elements j where e_j <= p*∑_j e_j
+      (when providing a list of squared errors, this is the classic Dörfler marking)
+      @param p proportion of total error; [0,1]
+   */
+   constexpr static Strategy doerfler( real_t p ) { return { DOERFLER, p }; }
+
+   /* coarsen a number of elements p*|R| to enable keeping the number
+      of elements approximately constant
+   */
+   constexpr static Strategy multiple_of_R( real_t p ) { return { MULTIPLE_OF_R, p }; }
 
    /* refine/coarsen all elements */
    constexpr static Strategy all() { return { PERCENTILE, real_t( 1.0 ) }; }
