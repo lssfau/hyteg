@@ -376,20 +376,15 @@ struct ModelProblem
       {
          auto omega = 2.0 * pi * n_w;
          auto alpha = p_w;
-         // v(t) = 1 - cos(omega * t * alpha^(t-1))
-         auto v = [=]( const real_t& t ) { return 1 - std::cos( omega * t * std::pow( alpha, t - 1.0 ) ); };
-         // v''(t) = ω^2 * α^(2t-2) * (cos(ωtα^(t-1)) * (log(α))^2 * t^2 - sin(ωtα^(t-1)) * (log(α)) * (2t-1))
-         auto log_a = std::log( alpha );
-         auto d2v   = [=]( const real_t& t ) {
-            auto a_t1    = pow( alpha, t - 1.0 );
-            auto o_a_t1  = omega * a_t1;
-            auto t_log_a = t * log_a;
-            auto s       = log_a * o_a_t1 * ( t_log_a + 2.0 );
-            auto c       = o_a_t1 * ( t_log_a + 1.0 );
-            return s * std::sin( o_a_t1 * t ) + c * c * std::cos( o_a_t1 * t );
-            // auto o_t_at1 = omega * t * a_t1;
-            // return omega * omega * a_t1 * a_t1 *
-            //        ( std::cos( o_t_at1 ) * log_a * log_a * t * t - std::sin( o_t_at1 ) * log_a * ( 2.0 * t - 1.0 ) );
+         // v(t) = 1 - cos(φ(t)), φ(t) = ωte^(α(t-1))
+         auto v = [=]( const real_t& t ) { return 1 - std::cos( omega * t * std::exp( alpha * ( t - 1.0 ) ) ); };
+         // v''(t) = sin(φ)φ'' + cos(φ)φ'φ'
+         auto d2v = [=]( const real_t& t ) {
+            auto weat1 = omega * std::exp( alpha * ( t - 1.0 ) );     // ωe^(α(t-1))
+            auto phi   = t * weat1;                                   // φ = ωte^(α(t-1))
+            auto dphi  = weat1 * ( 1.0 + alpha * t );                 // φ' = ωe^(α(t-1))(1+αt)
+            auto d2phi = weat1 * ( 2.0 * alpha + alpha * alpha * t ); // φ'' = ωe^(α(t-1))(2α+α^2t)
+            return std::sin( phi ) * d2phi + std::cos( phi ) * dphi * dphi;
          };
 
          if ( dim == 3 )
