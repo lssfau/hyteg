@@ -11,17 +11,17 @@ Parameters
   // 6: wave shape induced by coefficient
   // 7: jump coefficient
   // 8: jump coefficient regularized
-  modelProblem 0;
+  modelProblem 4;
   // spacial dimension of domain
-  dim 3;
+  dim 2;
 
   sigma 80; // regularization parameter (problem 2/8)
-  n_waves 8; // number of waves (problem 4/6)
-  squeeze_waves 100; // factor to 'squeeze' the waves towards the corners (problem 4/6)
+  n_waves 3; // number of waves (problem 4/6)
+  squeeze_waves 3; // factor to 'squeeze' the waves towards the corners (problem 4/6)
   k_low 1; // value of coefficient before jump (problem 7)
   k_high 10000;// value of coefficient after jump (problem 7)
 
-  initial_resolution 8; // initial number of elements in each direction
+  initial_resolution 2; // initial number of elements in each direction
 
   // adaptive refinement:
   error_indicator 1; // else refine based on actual L2 error (using analytic solution)
@@ -29,7 +29,7 @@ Parameters
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
-  n_refinements 1; // number of refinement steps
+  n_refinements 0; // number of refinement steps
   refinement_strategy 1; //0:MEAN_SQUARED_ERROR, 1:PROPORTION, 2:SINGULARITY
   p_refinement 0.125; // additional parameter for refinement (default=0):
                     // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
@@ -37,7 +37,7 @@ Parameters
   // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
-  microlevel 2;
+  microlevel 8;
   // microlevel_final 8; // use different micro level for final solve step
 
 
@@ -56,6 +56,7 @@ Parameters
   // // misc
   loadbalancing 1; // else, assign macros via round robin
   l2error 1; // compute actual L2 error after every n-th iteration; default: 0 (never)
+  l2error_lvl 0; // level to compute L2 error on (default: l_max)
   // vtkName auto;
   // vtkName err_ex;
   // writeDomainPartitioning 1;

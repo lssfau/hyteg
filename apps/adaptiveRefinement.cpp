@@ -624,6 +624,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
                                        uint_t                                   error_freq,
+                                       uint_t                                   error_lvl,
                                        bool                                     loadbalancing )
 {
    // timing
@@ -704,7 +705,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t_residual = 0;
    t_error    = 0;
 
-   L2Space< 5, P1Function< real_t > > L2( storage, l_max );
+   L2Space< 5, P1Function< real_t > > L2( storage, std::max( l_max, error_lvl ) );
    std::map< PrimitiveID, real_t >    err_el;
 
    t0 = walberla::timing::getWcTime();
@@ -1028,6 +1029,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                 bool                         error_indicator,
                                 bool                         global_error_estimate,
                                 uint_t                       error_freq,
+                                uint_t                       error_lvl,
                                 bool                         loadbalancing )
 {
    // construct adaptive mesh
@@ -1061,6 +1063,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                           error_indicator,
                                           global_error_estimate,
                                           error_freq,
+                                          error_lvl,
                                           loadbalancing );
       else
          local_errors = solve< DivkGrad >( mesh,
@@ -1084,6 +1087,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                                            error_indicator,
                                            global_error_estimate,
                                            error_freq,
+                                           error_lvl,
                                            loadbalancing );
 
       if ( refinement >= n_ref )
@@ -1158,6 +1162,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                            error_indicator,
                            global_error_estimate,
                            error_freq,
+                           error_lvl,
                            loadbalancing );
       }
       else
@@ -1183,6 +1188,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             error_indicator,
                             global_error_estimate,
                             error_freq,
+                            error_lvl,
                             loadbalancing );
       }
    }
@@ -1251,8 +1257,10 @@ int main( int argc, char* argv[] )
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
-   const bool  loadbalancing     = parameters.getParameter< bool >( "loadbalancing", false );
-   uint_t      l2error           = parameters.getParameter< uint_t >( "l2error", 0 );
+   const bool   loadbalancing = parameters.getParameter< bool >( "loadbalancing", false );
+   uint_t       l2error       = parameters.getParameter< uint_t >( "l2error", 0 );
+   const uint_t l2_err_lvl    = parameters.getParameter< uint_t >( "l2error_lvl", l_max );
+
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -1405,6 +1413,7 @@ int main( int argc, char* argv[] )
                               error_indicator,
                               global_error_estimate,
                               l2error,
+                              l2_err_lvl,
                               loadbalancing );
 
    return 0;
