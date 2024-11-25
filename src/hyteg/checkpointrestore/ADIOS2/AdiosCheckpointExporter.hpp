@@ -318,7 +318,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       auto varTimeStep = io_.InquireVariable< real_t >( "TIME" );
       engine_.Put( varTimeStep, time );
 
-      if ( finalCall )
+      if ( !attributesWritten )
       {
          // add user defined attributes
          WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
@@ -340,6 +340,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
          }
          io_.DefineAttribute< uint_t >( "FunctionMinLevels", allMinLevels.data(), allMinLevels.size() );
          io_.DefineAttribute< uint_t >( "FunctionMaxLevels", allMaxLevels.data(), allMaxLevels.size() );
+
+         attributesWritten = true;
       }
 
       // actual export performed here (if lazy not overwritten in config file)
@@ -359,6 +361,9 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    inline static const std::string engineType_{ "BP4" };
 
  private:
+
+   bool attributesWritten = false;
+
    /// object that remembers the functions we should export
    FEFunctionRegistry feFunctionRegistry_;
 

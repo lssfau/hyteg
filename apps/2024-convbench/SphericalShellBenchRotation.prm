@@ -6,7 +6,7 @@ Parameters
   rMin 1.22;
   rMax 2.22;
 
-  RayleighNumber 1e5;
+  RayleighNumber 7e3;
   DissipationNumber 0.5;
   alpha 1.0;
   thermalConductivity 1.0;
@@ -26,8 +26,8 @@ Parameters
   directScaling 6e-2;
 
   epsC 0.001;
-  epsS 0.1;
-  eps 0.01;
+  epsS 0.01;
+  eps 0.001;
 
   thetaPhaseShift 0.0;
   phiPhaseShift 0.0;
@@ -57,6 +57,9 @@ Parameters
   maxLevel 5;
   minLevel 2;
 
+  readInMinLevel 2;
+  readInMaxLevel 4;
+
   verbose true;
 
   useGMG false;
@@ -70,9 +73,9 @@ Parameters
   handsetEigen false;
   handsetEigenValue 4.0;
 
-  eigenLevel 3;
-  setEigenAllLevels true;
-  eigenUpperBoundFactor 4.0;
+  eigenLevel 5;
+  setEigenAllLevels false;
+  eigenUpperBoundFactor 1.2;
   eigenLowerBoundFactor 15.0;
 
   relaxSchur 0.1;
@@ -80,8 +83,10 @@ Parameters
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterations 50;
-  fgmresTolerance 1e-1;  
+  fgmresIterationsInitial 25;
+  nStepsInitial 25;
+  fgmresIterations 10;
+  fgmresTolerance 1e-4;
 
   uzawaPreSmooth 3;
   uzawaPostSmooth 3;
@@ -140,17 +145,19 @@ Parameters
 
   useAdios2 true;
   adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
-  checkpointPath ./output/checkpoint/;
-  checkpointFilename SphericalShell_MT128_rMu_1_P1_Ra_7e3_14112024_Checkpoint.bp;
+  checkpointPath ./output/checkpoint;
+  checkpointFilename SphericalShell_MT128_Profile_Arrhenius_P2_21112024_Checkpoint_Continuous.bp;
 
   storeCheckpoint true;
-  adios2CheckpointFreq 10;
+  adios2CheckpointFreq 100;
 
-  startCheckpointFilename SphericalShell_MT64_rMu_1_P1_Ra_7e3_13102024_2240_Checkpoint.bp;
+  startCheckpointFilename SphericalShell_MT64_Profile_Arrhenius_P1_21112024_Checkpoint_Continuous.bp;
   startFromCheckpoint false;
 
+  importStep 99999;
+
   outputPath ./output/;
-  outputFilename SphericalShell_MT128_rMu_1_P1_Ra_1e5_FS_14112024;
+  outputFilename SphericalShell_MT128_Profile_Arrhenius_P2_FS_21112024;
   // outputFilename SphericalShellDebug;
   vtkWriteFrequency 1;
 }

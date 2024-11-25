@@ -8,6 +8,12 @@ target_sources( hyteg
     EpsilonRotation/P2VectorElementwiseEpsilonRotation_IcosahedralShellMap_fused_quadloops_float64.hpp
     EpsilonRotation/P2VectorElementwiseEpsilonRotation_IcosahedralShellMap_fused_quadloops_float64.cpp
 
+    EpsilonRotation/P2VectorElementwiseEpsilonRotationAnnulusMap.hpp
+    EpsilonRotation/P2VectorElementwiseEpsilonRotationAnnulusMap.cpp
+
+    EpsilonRotation/P2VectorElementwiseEpsilonRotationIcosahedralShellMapVectorizedOperator.hpp
+    EpsilonRotation/P2VectorElementwiseEpsilonRotationIcosahedralShellMapVectorizedOperator.cpp
+
     generated/FullStokesViscoplastic/P2VectorElementwiseFullStokesViscoplastic.hpp
     generated/FullStokesViscoplastic/P2VectorElementwiseFullStokesViscoplastic.cpp
 

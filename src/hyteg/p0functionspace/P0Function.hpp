@@ -539,13 +539,33 @@ class P0Function : public Function< P0Function< ValueType > >
 
       Point3D coordinates = (microTet0 + microTet1 + microTet2 + microTet3) / 4.0;
 
-      auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
+      // auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
 
-      auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
-                  valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
+      std::function< real_t(const Point3D&) > locallyEvaluate = [&](const Point3D& x)
+      {
+         return valueTet0 * ( real_c( 1.0 ) - x[0] - x[1] - x[2] ) + valueTet1 * x[0] +
+                  valueTet2 * x[1] + valueTet3 * x[2];
+      };
+
+      Point3D qp1 = Point3D(0.25, 0.25, 0.25);
+      Point3D qp2 = Point3D(0.16666667, 0.16666667, 0.5);
+      Point3D qp3 = Point3D(0.16666667, 0.5, 0.16666667);
+      Point3D qp4 = Point3D(0.5, 0.16666667, 0.16666667);
+      Point3D qp5 = Point3D(0.16666667, 0.16666667, 0.16666667);
+
+      real_t val1 = locallyEvaluate(qp1);
+      real_t val2 = locallyEvaluate(qp2);
+      real_t val3 = locallyEvaluate(qp3);
+      real_t val4 = locallyEvaluate(qp4);
+      real_t val5 = locallyEvaluate(qp5);
+
+      // auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
+      //             valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
       // return (value + valueTet0 + valueTet1 + valueTet2 + valueTet3) / 5.0;
-      return 5.0 / ( (1.0 / value) + (1.0 / valueTet0) + (1.0 / valueTet1) + (1.0 / valueTet2) + (1.0 / valueTet3) );
+      // return 5.0 / ( (1.0 / value) + (1.0 / valueTet0) + (1.0 / valueTet1) + (1.0 / valueTet2) + (1.0 / valueTet3) );
+      // return 4.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) );
+      return 5.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) + (1.0 / val5) );
    }
 
    void averageFromP1( P1Function< real_t > src, uint_t level )
