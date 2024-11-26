@@ -347,6 +347,19 @@ void ConvectionSimulation::solveEnergy()
                                    ( TN.physicalParameters.rayleighNumber * density[0] ) );
           }
 
+          if ( TN.simulationParameters.haveGrueneisenProfile && TN.simulationParameters.haveDensityProfile )
+          {
+             shearHeatingCoeff = ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                     ( TN.physicalParameters.rayleighNumber ) *
+                                     ( TN.physicalParameters.specificHeatCapacity /
+                                       ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) ) );
+          }
+          else
+          {
+             shearHeatingCoeff = ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                   ( TN.physicalParameters.rayleighNumber * density[0] ) );
+          }
+
           if ( radius > TN.domainParameters.rMax -
                             ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
           {

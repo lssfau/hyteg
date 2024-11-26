@@ -9,6 +9,7 @@ Parameters
    // Spherical shell radii
 
    rCMB 3481000;
+   rCMB 3481000;
    rSurface 6371000;
 
    // Coarse grid
@@ -67,6 +68,7 @@ Parameters
    // tempInit = 3: no filtering
    tempInit 0;
 
+   temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
    temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
 
    // Steepness of temperature filtering
