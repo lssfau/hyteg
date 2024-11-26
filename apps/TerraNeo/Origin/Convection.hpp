@@ -245,6 +245,7 @@ class ConvectionSimulation
    std::shared_ptr< DiffusionOperator >                 diffusionOperator;
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
+   std::shared_ptr< P2toP2QuadraticProlongation >       p2ProlongationOperator;
 
    std::shared_ptr< P2toP2QuadraticInjection > p2InjectionOperator;
 
