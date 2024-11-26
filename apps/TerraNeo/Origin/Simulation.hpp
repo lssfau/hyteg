@@ -48,14 +48,45 @@ void ConvectionSimulation::step()
          walberla::logging::Logging::instance()->includeLoggingToFile( TN.outputParameters.outputDirectory + "/" +
                                                                        TN.outputParameters.outputBaseName + ".out" );
       }
-
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
          WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 load Temperature field from Checkpoint" );
-         checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ) );
-         solveStokes();
-         dataOutput();
+         // Get Information about checkpoint data
+         std::vector< AdiosCheckpointImporter::FunctionDescription > checkpointDataInfo =
+             checkpointImporter->getFunctionDetails();
+         // Import temperature field from checkpoint
+         // restore function will only work out of the box at the same level -> if new level is higher -> prolongate, if lower -> restrict
+         // Check if current simulation max Level is compatible with checkpoint data maxLevel
+         if ( TN.domainParameters.maxLevel > checkpointDataInfo[0].maxLevel )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT(
+                "Restore Temperature field from checkpoint data maxLevel: " << checkpointDataInfo[0].maxLevel );
+            checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                 TN.domainParameters.minLevel,
+                                                 checkpointDataInfo[0].maxLevel,
+                                                 0,
+                                                 true );
+
+            WALBERLA_LOG_INFO_ON_ROOT( "Prolongate Temperature field checkpoint data from level: "
+                                       << checkpointDataInfo[0].maxLevel
+                                       << " to new maxLevel: " << TN.domainParameters.maxLevel );
+            for ( uint_t l = checkpointDataInfo[0].maxLevel; l < TN.domainParameters.maxLevel; l++ )
+            {
+               p2ProlongationOperator->prolongate( *( p2ScalarFunctionContainer["TemperatureFE"] ), l, All );
+               WALBERLA_LOG_INFO_ON_ROOT( "Temperatuer field prolongated from level:  " << l << " to level: " << l + 1 );
+            }
+         }
+         else
+         {
+            WALBERLA_LOG_INFO_ON_ROOT(
+                "Restore Temperature field from checkpoint data at level: " << checkpointDataInfo[0].maxLevel );
+            checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                 TN.domainParameters.minLevel,
+                                                 TN.domainParameters.maxLevel,
+                                                 0,
+                                                 true );
+         }
 #else
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
 #endif
@@ -72,6 +103,12 @@ void ConvectionSimulation::step()
       p2p1StokesFunctionContainer["VelocityFEPrev"]->assign(
           { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
    } //end timestep0 stokes
+
+   else
+   {
+      solveStokes();
+      dataOutput();
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "-------- Time step: " << TN.simulationParameters.timeStep << " --------" );
