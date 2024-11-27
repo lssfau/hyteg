@@ -37,6 +37,51 @@ using walberla::real_t;
 using walberla::uint_t;
 
 /**
+ * @brief Loads the radial profiles if provided via the main configuration block.
+ *
+ * This function reads and extracts radial profile data from the main configuration block.
+ * It parses the radial profiles and stores the values in the correpsonding std::vectors. 
+ * These vectors are later populated to the application where the corresponding value can be 
+ * extracted for each radial layer and be further processed. 
+ */
+
+template < typename T >
+inline void loadRadialProfile( const walberla::Config::BlockHandle& mainConf,
+                               const std::string&                   profileKey,
+                               T&                                   radiusData,
+                               T&                                   profileData,
+                               bool&                                haveProfileFlag,
+                               const real_t                         mantleThickness )
+{
+   SimulationParameters simulationParam;
+
+   if ( mainConf.isDefined( profileKey ) )
+   {
+      const std::string filePath = mainConf.getParameter< std::string >( profileKey );
+      auto              jsonData = io::readJsonFile( filePath );
+
+      const auto radiusKey = "Radius (m)";
+      const auto valueKey  = simulationParam.getKeyValue( jsonData );
+
+      WALBERLA_CHECK_GREATER( jsonData.count( radiusKey ), 0, "No key '" << radiusKey << "' in " << profileKey << " file." );
+      WALBERLA_CHECK_GREATER( jsonData.count( valueKey ), 0, "No key '" << valueKey << "' in " << profileKey << " file." );
+
+      radiusData  = jsonData[radiusKey].get< std::vector< real_t > >();
+      profileData = jsonData[valueKey].get< std::vector< real_t > >();
+
+      WALBERLA_CHECK_EQUAL(
+          radiusData.size(), profileData.size(), "Mismatch in size for " << profileKey << " radius and values." );
+
+      for ( auto& radius : radiusData )
+      {
+         radius /= mantleThickness; // Non-dimensionalize radius
+      }
+
+      haveProfileFlag = true;
+   }
+}
+
+/**
  * @brief Parses the configuration parameters from the main configuration block.
  *
  * This function reads and extracts various domain, model, simulation, and initialization parameters from the main configuration block.
@@ -73,87 +118,41 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    if ( mainConf.isDefined( "temperatureInputProfile" ) )
    {
       simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
-      auto temperatureJson                        = io::readJsonFile( simulationParam.fileTemperatureInputProfile );
+      const std::string profileKey                = "temperatureInputProfile";
 
-      const auto radiusKey      = "Radius (m)";
-      const auto temperatureKey = "Temperature (K)";
-
-      WALBERLA_CHECK_GREATER( temperatureJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
-      WALBERLA_CHECK_GREATER(
-          temperatureJson.count( temperatureKey ), 0, "No key '" << temperatureKey << "' in viscosity profile file." )
-
-      physicalParam.radiusT                 = temperatureJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.temperatureInputProfile = temperatureJson[temperatureKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusT.size(), physicalParam.temperatureInputProfile.size() )
-
-      simulationParam.haveTemperatureProfile = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusT.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusT[i] /= physicalParam.mantleThickness;
-      }
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusT,
+                                                  physicalParam.temperatureInputProfile,
+                                                  simulationParam.haveTemperatureProfile,
+                                                  physicalParam.mantleThickness );
    }
 
    if ( mainConf.isDefined( "viscosityProfile" ) )
    {
       simulationParam.fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
-      auto viscosityJson                   = io::readJsonFile( simulationParam.fileViscosityProfile );
+      const std::string profileKey         = "viscosityProfile";
 
-      const auto radiusKey    = "Radius (m)";
-      const auto viscosityKey = "Viscosity (Pa s)";
-
-      WALBERLA_CHECK_GREATER( viscosityJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
-      WALBERLA_CHECK_GREATER(
-          viscosityJson.count( viscosityKey ), 0, "No key '" << viscosityKey << "' in viscosity profile file." )
-
-      physicalParam.radius           = viscosityJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.viscosityProfile = viscosityJson[viscosityKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radius.size(), physicalParam.viscosityProfile.size() )
-
-      simulationParam.haveViscosityProfile = true;
-      simulationParam.radialProfile        = true;
-
-      for ( uint_t i = 0; i < physicalParam.radius.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radius[i] /= physicalParam.mantleThickness;
-      }
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radius,
+                                                  physicalParam.viscosityProfile,
+                                                  simulationParam.haveViscosityProfile,
+                                                  physicalParam.mantleThickness );
    }
 
-   else
-   {
-      physicalParam.viscosity = mainConf.getParameter< real_t >( "viscosity" );
-   }
    // Profile for thermal expansivity
    if ( mainConf.isDefined( "thermalExpansivityProfile" ) )
    {
       simulationParam.fileThermalExpProfile = mainConf.getParameter< std::string >( "thermalExpansivityProfile" );
-      auto thermalExpJson                   = io::readJsonFile( simulationParam.fileThermalExpProfile );
+      const std::string profileKey          = "thermalExpansivityProfile";
 
-      const auto radiusKey = "Radius (m)";
-      const auto valueKey  = simulationParam.getKeyValue( thermalExpJson );
-
-      physicalParam.radiusAlpha               = thermalExpJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.thermalExpansivityProfile = thermalExpJson[valueKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusAlpha.size(), physicalParam.thermalExpansivityProfile.size() )
-
-      simulationParam.haveThermalExpProfile = true;
-      simulationParam.radialProfile         = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusAlpha.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusAlpha[i] /= physicalParam.mantleThickness;
-      }
-   }
-
-   else
-   {
-      physicalParam.thermalExpansivity = mainConf.getParameter< real_t >( "thermalExpansivity" );
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusAlpha,
+                                                  physicalParam.thermalExpansivityProfile,
+                                                  simulationParam.haveThermalExpProfile,
+                                                  physicalParam.mantleThickness );
    }
 
    // Radial Profile for specific heat capacity at constant pressur
@@ -161,56 +160,27 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    if ( mainConf.isDefined( "specificHeatCapacityProfile" ) )
    {
       simulationParam.fileSpecificHeatCap = mainConf.getParameter< std::string >( "specificHeatCapacityProfile" );
-      auto specificHeatCapJson            = io::readJsonFile( simulationParam.fileSpecificHeatCap );
+      const std::string profileKey        = "specificHeatCapacityProfile";
 
-      const auto radiusKey = "Radius (m)";
-      const auto valueKey  = simulationParam.getKeyValue( specificHeatCapJson );
-
-      physicalParam.radiusCp                    = specificHeatCapJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.specificHeatCapacityProfile = specificHeatCapJson[valueKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusCp.size(), physicalParam.specificHeatCapacityProfile.size() )
-
-      simulationParam.haveSpecificHeatCapProfile = true;
-      simulationParam.radialProfile              = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusCp.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusCp[i] /= physicalParam.mantleThickness;
-      }
-   }
-   else
-   {
-      physicalParam.specificHeatCapacity = mainConf.getParameter< real_t >( "specificHeatCapacity" );
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusCp,
+                                                  physicalParam.specificHeatCapacityProfile,
+                                                  simulationParam.haveSpecificHeatCapProfile,
+                                                  physicalParam.mantleThickness );
    }
 
-   // Profile for grueneisen parameter
-   if ( mainConf.isDefined( "grueneisenParameterProfile" ) )
+   if ( mainConf.isDefined( "densityProfile" ) )
    {
-      simulationParam.fileGrueneisenProfile = mainConf.getParameter< std::string >( "grueneisenParameterProfile" );
-      auto grueneisenProfileJson            = io::readJsonFile( simulationParam.fileGrueneisenProfile );
+      simulationParam.fileDensityProfile = mainConf.getParameter< std::string >( "densityProfile" );
+      const std::string profileKey       = "densityProfile";
 
-      const auto radiusKey = "Radius (m)";
-      const auto valueKey  = simulationParam.getKeyValue( grueneisenProfileJson );
-
-      physicalParam.radiusGamma       = grueneisenProfileJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.grueneisenProfile = grueneisenProfileJson[valueKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusGamma.size(), physicalParam.grueneisenProfile.size() )
-
-      simulationParam.haveGrueneisenProfile = true;
-      simulationParam.radialProfile         = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusGamma.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusGamma[i] /= physicalParam.mantleThickness;
-      }
-   }
-   else
-   {
-      physicalParam.grueneisenParameter = mainConf.getParameter< real_t >( "grueneisenParameter" );
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusDensity,
+                                                  physicalParam.densityProfile,
+                                                  simulationParam.haveDensityProfile,
+                                                  physicalParam.mantleThickness );
    }
 
    physicalParam.cmbTemp                     = mainConf.getParameter< real_t >( "cmbTemp" );
@@ -224,6 +194,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.characteristicVelocity      = mainConf.getParameter< real_t >( "characteristicVelocity" );
    physicalParam.surfaceDensity              = mainConf.getParameter< real_t >( "surfaceDensity" );
    physicalParam.referenceDensity            = mainConf.getParameter< real_t >( "referenceDensity" );
+   physicalParam.viscosity                   = mainConf.getParameter< real_t >( "viscosity" );
+
+   // Set all radial varying parameters to input reference values to avoid inconsistent calculations on non-dim numbers
+   physicalParam.specificHeatCapacityRadial = physicalParam.specificHeatCapacity;
+   physicalParam.thermalExpansivityRadial   = physicalParam.thermalExpansivity;
 
    //used to calculate non-D numbers
    physicalParam.thermalDiffusivity =
@@ -238,9 +213,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    physicalParam.pecletNumber =
        ( physicalParam.characteristicVelocity * physicalParam.mantleThickness ) / physicalParam.thermalDiffusivity;
+
    physicalParam.dissipationNumber =
        ( physicalParam.thermalExpansivity * physicalParam.gravity * physicalParam.mantleThickness ) /
        physicalParam.specificHeatCapacity;
+
    physicalParam.hNumber = ( physicalParam.internalHeatingRate * physicalParam.mantleThickness ) /
                            ( physicalParam.specificHeatCapacity * physicalParam.characteristicVelocity *
                              ( physicalParam.cmbTemp - physicalParam.surfaceTemp ) );
@@ -446,14 +423,11 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Surface Temperature          : " << physicalParam.surfaceTemp );
    WALBERLA_LOG_INFO_ON_ROOT( "Temperature CMB              : " << physicalParam.cmbTemp );
    WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << physicalParam.initialTemperatureSteepness );
-   WALBERLA_LOG_INFO_ON_ROOT( "Thermal Expansivity          : " << physicalParam.thermalExpansivity );
    WALBERLA_LOG_INFO_ON_ROOT( "Thermal Conductivity         : " << physicalParam.thermalConductivity );
-   WALBERLA_LOG_INFO_ON_ROOT( "Specific Heat Capacity       : " << physicalParam.specificHeatCapacity );
+   WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter         : " << physicalParam.grueneisenParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "Internal Heating Rate        : " << physicalParam.internalHeatingRate );
    WALBERLA_LOG_INFO_ON_ROOT( "Thermal Diffusivity          : " << physicalParam.thermalDiffusivity );
    WALBERLA_LOG_INFO_ON_ROOT( "Characteristic Velocity      : " << physicalParam.characteristicVelocity );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Reference density            : " << physicalParam.referenceDensity );
 
    if ( simulationParam.haveTemperatureProfile )
    {
@@ -484,13 +458,14 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "speicific heat capacity      : " << physicalParam.specificHeatCapacity );
    }
-   if ( simulationParam.haveGrueneisenProfile )
+
+   if ( simulationParam.haveDensityProfile )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter profile : " << simulationParam.fileGrueneisenProfile );
+      WALBERLA_LOG_INFO_ON_ROOT( "Density profile              : " << simulationParam.fileDensityProfile );
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter         : " << physicalParam.grueneisenParameter );
+      WALBERLA_LOG_INFO_ON_ROOT( "Reference Density            : " << physicalParam.referenceDensity );
    }
 
    if ( simulationParam.tempDependentViscosity )

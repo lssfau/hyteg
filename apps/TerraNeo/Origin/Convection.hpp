@@ -122,8 +122,6 @@ class ConvectionSimulation
    real_t                      referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
-   void updateNonDimParameters( const Point3D& x );
-
  private:
    typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunction;
    typedef P2Function< real_t >                                                        ScalarFunction;
