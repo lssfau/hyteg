@@ -173,6 +173,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    {
       simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
       const std::string profileKey                = "temperatureInputProfile";
+      simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
+      const std::string profileKey                = "temperatureInputProfile";
 
       loadRadialProfile< std::vector< real_t > >( mainConf,
                                                   profileKey,
@@ -300,13 +302,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.internalHeating  = mainConf.getParameter< bool >( "internalHeating" );
    simulationParam.boundaryCond     = mainConf.getParameter< uint_t >( "boundaryCond" );
    simulationParam.timingAnalysis   = mainConf.getParameter< bool >( "timingAnalysis" );
-
-   simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
-   simulationParam.fileDensityProfile          = mainConf.getParameter< std::string >( "densityProfile" );
-   simulationParam.fileGrueneisenProfile       = mainConf.getParameter< std::string >( "grueneisenParameterProfile" );
-   simulationParam.fileSpecificHeatCap         = mainConf.getParameter< std::string >( "specificHeatCapacityProfile" );
-   simulationParam.fileThermalExpProfile       = mainConf.getParameter< std::string >( "thermalExpansivityProfile" );
-   simulationParam.fileViscosityProfile        = mainConf.getParameter< std::string >( "viscosityProfile" );
 
    if ( simulationParam.tempDependentViscosity )
    {
@@ -608,10 +603,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "speicific heat capacity      : " << physicalParam.specificHeatCapacity );
    }
-   if ( simulationParam.haveGrueneisenProfile )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter profile : " << simulationParam.fileGrueneisenProfile );
-   }
+
    if ( simulationParam.haveDensityProfile )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Density profile              : " << simulationParam.fileDensityProfile );

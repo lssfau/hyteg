@@ -347,12 +347,19 @@ void ConvectionSimulation::solveEnergy()
                                    ( TN.physicalParameters.rayleighNumber * density[0] ) );
           }
 
-          if ( TN.simulationParameters.haveGrueneisenProfile && TN.simulationParameters.haveDensityProfile )
+          if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
           {
+             TN.physicalParameters.specificHeatCapacityRadial =
+                 terraneo::interpolateDataValues( x,
+                                                  TN.physicalParameters.radiusCp,
+                                                  TN.physicalParameters.specificHeatCapacityProfile,
+                                                  TN.domainParameters.rMin,
+                                                  TN.domainParameters.rMax );
+
              shearHeatingCoeff = ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
-                                     ( TN.physicalParameters.rayleighNumber ) *
-                                     ( TN.physicalParameters.specificHeatCapacity /
-                                       ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) ) );
+                                     TN.physicalParameters.rayleighNumber ) *
+                                   ( TN.physicalParameters.specificHeatCapacity /
+                                     ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) );
           }
           else
           {
