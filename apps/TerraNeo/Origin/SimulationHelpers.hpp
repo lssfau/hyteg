@@ -37,17 +37,24 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
 {
    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
    real_t retVal;
+   real_t rho;
 
-   if ( TN.simulationParameters.radialProfile )
+   if ( TN.simulationParameters.haveDensityProfile )
    {
-      updateNonDimParameters( x );
+      // Interpolate density values from given profile
+      rho = interpolateDataValues( x,
+                                   TN.physicalParameters.radiusDensity,
+                                   TN.physicalParameters.densityProfile,
+                                   TN.domainParameters.rMin,
+                                   TN.domainParameters.rMax );
    }
-
-   //implement adiabatic compression, determined by dissipation number and gruneisen parameter
-   real_t rho = TN.physicalParameters.surfaceDensity *
-                std::exp( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) /
-                          TN.physicalParameters.grueneisenParameter );
-
+   else
+   {
+      //implement adiabatic compression, determined by dissipation number and gruneisen parameter
+      rho = TN.physicalParameters.surfaceDensity *
+            std::exp( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) /
+                      TN.physicalParameters.grueneisenParameter );
+   }
    retVal = rho / TN.physicalParameters.referenceDensity;
 
    return retVal;
@@ -55,30 +62,68 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
 
 real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
 {
-   if ( TN.simulationParameters.radialProfile )
+   if ( TN.simulationParameters.haveSpecificHeatCapProfile )
    {
-      updateNonDimParameters( x );
+      TN.physicalParameters.specificHeatCapacityRadial =
+          terraneo::interpolateDataValues( x,
+                                           TN.physicalParameters.radiusCp,
+                                           TN.physicalParameters.specificHeatCapacityProfile,
+                                           TN.domainParameters.rMin,
+                                           TN.domainParameters.rMax );
+      return ( ( real_c( 1.0 ) / ( densityFunction( x ) * TN.physicalParameters.pecletNumber ) *
+                 ( TN.physicalParameters.specificHeatCapacity / TN.physicalParameters.specificHeatCapacityRadial ) ) );
    }
-   return ( real_c( 1.0 ) ) / ( densityFunction( x ) * TN.physicalParameters.pecletNumber );
+   else
+   {
+      return ( real_c( 1.0 ) ) / ( densityFunction( x ) * TN.physicalParameters.pecletNumber );
+   }
 }
 
 real_t ConvectionSimulation::adiabaticCoefficientFunction( const Point3D& x )
 {
-   if ( TN.simulationParameters.radialProfile )
+   if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveThermalExpProfile )
    {
-      updateNonDimParameters( x );
+      TN.physicalParameters.thermalExpansivityRadial =
+          terraneo::interpolateDataValues( x,
+                                           TN.physicalParameters.radiusAlpha,
+                                           TN.physicalParameters.thermalExpansivityProfile,
+                                           TN.domainParameters.rMin,
+                                           TN.domainParameters.rMax );
+      TN.physicalParameters.specificHeatCapacityRadial =
+          terraneo::interpolateDataValues( x,
+                                           TN.physicalParameters.radiusCp,
+                                           TN.physicalParameters.specificHeatCapacityProfile,
+                                           TN.domainParameters.rMin,
+                                           TN.domainParameters.rMax );
+
+      return ( TN.physicalParameters.dissipationNumber *
+               ( TN.physicalParameters.thermalExpansivityRadial / TN.physicalParameters.thermalExpansivity ) *
+               ( TN.physicalParameters.specificHeatCapacity / TN.physicalParameters.specificHeatCapacityRadial ) );
    }
-   return TN.physicalParameters.dissipationNumber;
+   else
+   {
+      return TN.physicalParameters.dissipationNumber;
+   }
 }
 
 real_t ConvectionSimulation::constantEnergyCoefficientFunction( const Point3D& x )
 {
    real_t intHeatingFactor = 1.0;
-   if ( TN.simulationParameters.radialProfile )
+   if ( TN.simulationParameters.haveSpecificHeatCapProfile )
    {
-      updateNonDimParameters( x );
+      TN.physicalParameters.specificHeatCapacityRadial =
+          terraneo::interpolateDataValues( x,
+                                           TN.physicalParameters.radiusCp,
+                                           TN.physicalParameters.specificHeatCapacityProfile,
+                                           TN.domainParameters.rMin,
+                                           TN.domainParameters.rMax );
+      return ( TN.physicalParameters.hNumber * intHeatingFactor *
+               ( TN.physicalParameters.specificHeatCapacity / TN.physicalParameters.specificHeatCapacityRadial ) );
    }
-   return TN.physicalParameters.hNumber * intHeatingFactor;
+   else
+   {
+      return TN.physicalParameters.hNumber * intHeatingFactor;
+   }
 }
 
 real_t ConvectionSimulation::surfaceTempCoefficientFunction( const Point3D& )
@@ -136,12 +181,10 @@ void ConvectionSimulation::updateViscosity()
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
        [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
-          updateNonDimParameters( x );
           return terraneo::viscosityFunction( x, Temperature[0], TN );
        };
 
    auto viscosityInitInv = [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
-      updateNonDimParameters( x );
       return ( 1.0 / ( terraneo::viscosityFunction( x, Temperature[0], TN ) ) );
    };
 
@@ -153,8 +196,10 @@ void ConvectionSimulation::updateViscosity()
 
    real_t maxViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMaxDoFValue( TN.domainParameters.maxLevel ) *
                          TN.physicalParameters.referenceViscosity;
+
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity [Pa s]: " << maxViscosity );
+
    real_t minRefViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMinDoFValue( TN.domainParameters.maxLevel ) *
                             TN.physicalParameters.referenceViscosity;
    WALBERLA_LOG_INFO_ON_ROOT( "New update reference viscosity [Pa s]: " << minRefViscosity );
@@ -221,11 +266,6 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
    }
    else
    {
-      if ( TN.simulationParameters.radialProfile )
-      {
-         updateNonDimParameters( x );
-      }
-
       real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
                     std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
 
@@ -233,64 +273,6 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 
       return retVal;
    }
-}
-
-void ConvectionSimulation::updateNonDimParameters( const Point3D& x )
-{
-   // This function updates the Rayleigh Number, Dissipation number, Peclet number or
-   // h Number if any corresponding radial profile for thermal expansivity, specific heat capacity,
-   // grueneisen Parameter or viscosity is provided.
-
-   if ( TN.simulationParameters.haveThermalExpProfile )
-   {
-      // update Thermal Expansivity parameter
-      TN.physicalParameters.thermalExpansivity = terraneo::interpolateDataValues( x,
-                                                                                  TN.physicalParameters.radiusAlpha,
-                                                                                  TN.physicalParameters.thermalExpansivityProfile,
-                                                                                  TN.domainParameters.rMin,
-                                                                                  TN.domainParameters.rMax );
-   }
-
-   if ( TN.simulationParameters.haveSpecificHeatCapProfile )
-   {
-      // update Specific Heat Capacity (at const. pressure)
-      TN.physicalParameters.specificHeatCapacity =
-          terraneo::interpolateDataValues( x,
-                                           TN.physicalParameters.radiusCp,
-                                           TN.physicalParameters.specificHeatCapacityProfile,
-                                           TN.domainParameters.rMin,
-                                           TN.domainParameters.rMax );
-   }
-
-   if ( TN.simulationParameters.haveGrueneisenProfile )
-   {
-      // update Grueneisen parameter
-      TN.physicalParameters.grueneisenParameter = terraneo::interpolateDataValues( x,
-                                                                                   TN.physicalParameters.radiusGamma,
-                                                                                   TN.physicalParameters.grueneisenProfile,
-                                                                                   TN.domainParameters.rMin,
-                                                                                   TN.domainParameters.rMax );
-   }
-
-   TN.physicalParameters.thermalDiffusivity =
-       TN.physicalParameters.thermalConductivity /
-       ( TN.physicalParameters.referenceDensity * TN.physicalParameters.specificHeatCapacity );
-
-   TN.physicalParameters.rayleighNumber =
-       ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
-         TN.physicalParameters.mantleThickness * TN.physicalParameters.mantleThickness * TN.physicalParameters.mantleThickness *
-         ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
-       ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
-
-   TN.physicalParameters.pecletNumber = ( TN.physicalParameters.characteristicVelocity * TN.physicalParameters.mantleThickness ) /
-                                        TN.physicalParameters.thermalDiffusivity;
-   TN.physicalParameters.dissipationNumber =
-       ( TN.physicalParameters.thermalExpansivity * TN.physicalParameters.gravity * TN.physicalParameters.mantleThickness ) /
-       TN.physicalParameters.specificHeatCapacity;
-
-   TN.physicalParameters.hNumber = ( TN.physicalParameters.internalHeatingRate * TN.physicalParameters.mantleThickness ) /
-                                   ( TN.physicalParameters.specificHeatCapacity * TN.physicalParameters.characteristicVelocity *
-                                     ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) );
 }
 
 void ConvectionSimulation::outputTimingTree()

@@ -301,37 +301,43 @@ void ConvectionSimulation::solveEnergy()
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc =
        [this]( const Point3D& x, const std::vector< real_t >& density ) {
           real_t radius = x.norm();
-          if ( TN.simulationParameters.radialProfile )
-          {
-             updateNonDimParameters( x );
-          }
+          real_t shearHeatingCoeff;
+
           if ( TN.simulationParameters.shearHeatingScaling > 1 )
           {
              WALBERLA_ABORT( "Shear heating scaling factor > 1 not allowed! --- Abort simulation ---" );
           }
 
-          if ( radius > TN.domainParameters.rMax -
-                            ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
+          if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
           {
-             return ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
-                        ( TN.physicalParameters.rayleighNumber * density[0] ) ) *
-                      TN.simulationParameters.shearHeatingScaling );
+             TN.physicalParameters.specificHeatCapacityRadial =
+                 terraneo::interpolateDataValues( x,
+                                                  TN.physicalParameters.radiusCp,
+                                                  TN.physicalParameters.specificHeatCapacityProfile,
+                                                  TN.domainParameters.rMin,
+                                                  TN.domainParameters.rMax );
+
+             shearHeatingCoeff = ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                     TN.physicalParameters.rayleighNumber ) *
+                                   ( TN.physicalParameters.specificHeatCapacity /
+                                     ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) );
           }
           else
           {
-             return TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
-                    ( TN.physicalParameters.rayleighNumber * density[0] );
+             shearHeatingCoeff = ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                   ( TN.physicalParameters.rayleighNumber * density[0] ) );
+          }
+
+          if ( radius > TN.domainParameters.rMax -
+                            ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
+          {
+             return ( shearHeatingCoeff * TN.simulationParameters.shearHeatingScaling );
+          }
+          else
+          {
+             return shearHeatingCoeff;
           }
        };
-
-   std::function< real_t( const Point3D& ) > internalHeatingCoeffCalc = [this]( const Point3D& x ) {
-      real_t intHeatingFactor = 1.0;
-      if ( TN.simulationParameters.radialProfile )
-      {
-         updateNonDimParameters( x );
-      }
-      return TN.physicalParameters.hNumber * intHeatingFactor;
-   };
 
    p2ScalarFunctionContainer["ShearHeatingTermCoeff"]->interpolate(
        shearHeatingCoeffCalc, { *( p2ScalarFunctionContainer["DensityFE"] ) }, TN.domainParameters.maxLevel, All );
@@ -407,12 +413,23 @@ void ConvectionSimulation::setupStokesRHS()
       // Multiply current RHS with rho and non-dimensionalised numbers
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > momentumFactors =
           [&]( const Point3D& x, const std::vector< real_t >& deltaT ) {
-             if ( TN.simulationParameters.radialProfile )
+             if ( TN.simulationParameters.haveThermalExpProfile )
              {
-                updateNonDimParameters( x );
+                TN.physicalParameters.thermalExpansivityRadial =
+                    terraneo::interpolateDataValues( x,
+                                                     TN.physicalParameters.radiusAlpha,
+                                                     TN.physicalParameters.thermalExpansivityProfile,
+                                                     TN.domainParameters.rMin,
+                                                     TN.domainParameters.rMax );
+                return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) *
+                         ( TN.physicalParameters.thermalExpansivityRadial / TN.physicalParameters.thermalExpansivity ) *
+                         densityFunction( x ) * deltaT[0] );
              }
-             return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) * densityFunction( x ) *
-                      deltaT[0] );
+             else
+             {
+                return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) * densityFunction( x ) *
+                         deltaT[0] );
+             }
           };
 
       // Interpolate functions to RHS

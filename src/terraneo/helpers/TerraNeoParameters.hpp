@@ -218,13 +218,12 @@ struct SimulationParameters
    bool        haveViscosityProfile        = false;
    bool        haveThermalExpProfile       = false;
    bool        haveSpecificHeatCapProfile  = false;
-   bool        haveGrueneisenProfile       = false;
-   bool        radialProfile               = false;
+   bool        haveDensityProfile          = false;
    std::string fileTemperatureInputProfile = std::string( "TemperatureInputProfile.json" );
    std::string fileViscosityProfile        = std::string( "ViscosityProfile.json" );
    std::string fileThermalExpProfile       = std::string( "ThermalExpProfile.json" );
    std::string fileSpecificHeatCap         = std::string( "SpecificHeatCapProfile.json" );
-   std::string fileGrueneisenProfile       = std::string( "GrueneisenProfile.json" );
+   std::string fileDensityProfile          = std::string( "DensityProfile.json" );
 
    //needed for conversions in the simulation
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
@@ -261,13 +260,13 @@ struct PhysicalParameters
    std::vector< real_t > radiusT;
    std::vector< real_t > radiusCp;
    std::vector< real_t > radiusAlpha;
-   std::vector< real_t > radiusGamma;
+   std::vector< real_t > radiusDensity;
    std::vector< real_t > temperatureProfile;
    std::vector< real_t > viscosityProfile;
    std::vector< real_t > temperatureInputProfile;
    std::vector< real_t > thermalExpansivityProfile;
    std::vector< real_t > specificHeatCapacityProfile;
-   std::vector< real_t > grueneisenProfile;
+   std::vector< real_t > densityProfile;
    real_t                initialTemperatureSteepness = real_c( 10 );
 
    //temperature
@@ -277,20 +276,23 @@ struct PhysicalParameters
    real_t cmbTemp     = real_c( 4200 );
 
    //material parameters
-   real_t thermalExpansivity   = real_c( 2.238 * 1e-5 );
-   real_t thermalConductivity  = real_c( 3 );
-   real_t specificHeatCapacity = real_c( 1260 );
-   real_t internalHeatingRate  = real_c( 1e-12 );
-   real_t referenceDensity     = real_c( 4500 );
-   real_t surfaceDensity       = real_c( 3300 );
-   real_t referenceViscosity   = real_c( 1e22 );
-   real_t viscosity            = real_c( 1e22 );
-   real_t grueneisenParameter  = real_c( 1.1 );
-   real_t adiabatSurfaceTemp   = real_c( 1600 );
-   real_t activationEnergy     = real_c( 5 );
-   real_t depthViscosityFactor = real_c( 3 );
-   real_t viscosityLowerBound  = real_c( 1e19 );
-   real_t viscosityUpperBound  = real_c( 1e24 );
+   real_t thermalExpansivity         = real_c( 2.238 * 1e-5 );
+   real_t thermalExpansivityRadial   = real_c( 2.238 * 1e-5 );
+   real_t thermalConductivity        = real_c( 3 );
+   real_t specificHeatCapacity       = real_c( 1260 );
+   real_t specificHeatCapacityRadial = real_c( 1260 );
+   real_t internalHeatingRate        = real_c( 1e-12 );
+   real_t density                    = real_c( 0 );
+   real_t referenceDensity           = real_c( 4500 );
+   real_t surfaceDensity             = real_c( 3300 );
+   real_t referenceViscosity         = real_c( 1e22 );
+   real_t viscosity                  = real_c( 1e22 );
+   real_t grueneisenParameter        = real_c( 1.1 );
+   real_t adiabatSurfaceTemp         = real_c( 1600 );
+   real_t activationEnergy           = real_c( 5 );
+   real_t depthViscosityFactor       = real_c( 3 );
+   real_t viscosityLowerBound        = real_c( 1e19 );
+   real_t viscosityUpperBound        = real_c( 1e24 );
 
    //gravity
 

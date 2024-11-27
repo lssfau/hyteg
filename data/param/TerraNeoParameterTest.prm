@@ -33,7 +33,7 @@ Parameters
 
    tempInit 1;
 
-   //temperatureInputProfile TempForEugenio.json;
+   //temperatureInputProfile TestTemperatureProfile.json;
 
    // Steepness of temperature filtering
 
@@ -126,7 +126,7 @@ Parameters
    viscosityProfile ../../data/terraneo/viscosityProfiles/tests/ViscosityProfileTest.json;
    //thermalExpansivityProfile alpha_radial.json;
    //specificHeatCapacityProfile cp_radial.json;
-   //grueneisenParameterProfile gamma_radial.json;
+   //densityProfile density_radial.json;
 
    characteristicVelocity 1e-8;
 
@@ -263,11 +263,11 @@ Parameters
    ADIOS2OutputConfig ADIOS2config.xml;
    
    ADIOS2StoreCheckpointPath ./output/checkpoint;
-   ADIOS2StoreCheckpointFilename 3d_convection_checkpoint;
+   ADIOS2StoreCheckpointFilename TerraNeo_checkpoint;
    ADIOS2StoreCheckpoint false;
 
    ADIOS2StartCheckpointPath ./output/checkpoint;
-   ADIOS2StartCheckpointFilename 3d_convection_checkpoint;
+   ADIOS2StartCheckpointFilename TerraNeo_checkpoint;
    ADIOS2StartFromCheckpoint false;
 
    // In steps
@@ -279,7 +279,7 @@ Parameters
    ADIOS2Value 4;
 
    outputDirectory ../../output;
-   outputBaseName 3d_convection;
+   outputBaseName TerraNeo;
 
    // Output of a. json file containing timing tree information
 
