@@ -374,6 +374,8 @@ void ConvectionSimulation::setupSolversAndOperators()
    projectionOperator = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
+   p2ProlongationOperator = std::make_shared< P2toP2QuadraticProlongation >();
+
    stokesOperator = std::make_shared< StokesOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["ViscosityFE"] ) );
 
@@ -583,16 +585,15 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
 
-   transportOperator->setP1Evaluate(true);
-   transportOperator->setParticleLocalRadiusTolerance(1e-3);
+   transportOperator->setP1Evaluate( true );
+   transportOperator->setParticleLocalRadiusTolerance( 1e-3 );
 
-   std::function< void(const Point3D&, Point3D&) > projectBack = [](const Point3D& x, Point3D& xProj)
-   {
+   std::function< void( const Point3D&, Point3D& ) > projectBack = []( const Point3D& x, Point3D& xProj ) {
       // WALBERLA_ABORT("x = " << x);
       xProj = x;
    };
 
-   transportOperator->setProjectPointsBackOutsideDomainFunction(projectBack);
+   transportOperator->setProjectPointsBackOutsideDomainFunction( projectBack );
 
    transportSolverTALA = std::make_shared< CGSolver< P2TransportIcosahedralShellMapOperator > >(
        storage,
