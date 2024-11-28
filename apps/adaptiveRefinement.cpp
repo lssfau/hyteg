@@ -629,7 +629,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 {
    // timing
    real_t t0, t1;
-   real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
+   real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve, t_callback;
 
    // load balancing
    auto lb_scheme = ( loadbalancing ) ? adaptiveRefinement::GREEDY : adaptiveRefinement::ROUND_ROBIN;
@@ -781,6 +781,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // error indicator
    t_error_indicator = 0.0;
+   t_callback        = 0.0;
    std::unique_ptr< adaptiveRefinement::ErrorEstimator< P1Function< real_t > > > errorEstimator;
    uint_t j_max = global_error_estimate ? l_max - l_min - 1 : 0;
    if ( error_indicator || global_error_estimate )
@@ -797,7 +798,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          real_t my_t0 = walberla::timing::getWcTime();
          errorEstimator->fmg_callback()( lvl );
          real_t my_t1 = walberla::timing::getWcTime();
-         t_error_indicator += my_t1 - my_t0;
+         t_callback += my_t1 - my_t0;
       };
       fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
    };
@@ -898,6 +899,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          WALBERLA_LOG_WARNING_ON_ROOT( " ->  Low reliability! Above estimates may be inaccurate!" )
       }
    }
+
+   t_error_indicator += t_callback;
+   t_solve -= t_callback;
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "system solve", t_solve ) );
