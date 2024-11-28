@@ -547,41 +547,6 @@ void ConvectionSimulation::solveStokes()
       storage->getTimingTree()->stop( "TerraNeo update viscosity" );
    }
 
-   if ( TN.simulationParameters.tempDependentViscosity && TN.simulationParameters.resetSolver &&
-        ( TN.simulationParameters.timeStep != 0 ) &&
-        ( TN.simulationParameters.timeStep % TN.simulationParameters.resetSolverFrequency == 0 ) )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "------ Resetting Solvers and Operators ------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------" );
-
-      std::function< real_t( const Point3D& ) > zeros = []( const Point3D& ) { return real_c( 0 ); };
-
-      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
-      {
-         //save current velocity in temorary, as U and F must be altered for solver setup
-         p2p1StokesFunctionContainer["StokesTmp1"]->assign(
-             { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, l, All );
-         p2p1StokesFunctionContainer["StokesRHS"]->interpolate( { zeros, zeros, zeros }, l, All );
-      }
-
-      // for temperature dependent viscosity the spectral radius might change after several solving
-      // iterations -> resetting solvers and operators
-
-      setupSolversAndOperators();
-
-      //after setup, reset velocity to values stored in temporary
-      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
-      {
-         p2p1StokesFunctionContainer["VelocityFE"]->assign(
-             { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["StokesTmp1"] ) }, l, All );
-      }
-
-      WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "------ Resetting Solvers and Operators: Finished ------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------------" );
-   }
-
    localTimer.start();
    storage->getTimingTree()->start( "TerraNeo setup Stokes RHS" );
    setupStokesRHS();

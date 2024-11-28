@@ -198,8 +198,6 @@ struct SimulationParameters
    uint_t      timestep                   = 0;
    std::string simulationType             = std::string( "ConvectionModel" );
    uint_t      maxNumTimesteps            = 100;
-   bool        resetSolver                = false;
-   uint_t      resetSolverFrequency       = 100;
    bool        adaptiveRefTemp            = false;
    bool        tempDependentViscosity     = false;
    uint_t      tempDependentViscosityType = 0;

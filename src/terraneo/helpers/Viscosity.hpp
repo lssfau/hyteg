@@ -94,7 +94,9 @@ real_t viscosityFunction( const hyteg::Point3D& x, real_t Temperature, const Ter
          break;
       }
       }
-
+   }
+   if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.haveViscosityProfile )
+   {
       //impose min viscosity
       if ( retVal < TN.physicalParameters.viscosityLowerBound )
       {

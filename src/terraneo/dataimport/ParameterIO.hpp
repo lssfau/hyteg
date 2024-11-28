@@ -303,11 +303,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.boundaryCond     = mainConf.getParameter< uint_t >( "boundaryCond" );
    simulationParam.timingAnalysis   = mainConf.getParameter< bool >( "timingAnalysis" );
 
-   if ( simulationParam.tempDependentViscosity )
+   if ( simulationParam.tempDependentViscosity || simulationParam.haveViscosityProfile )
    {
       simulationParam.tempDependentViscosityType = mainConf.getParameter< uint_t >( "tempDependentViscosityType" );
-      simulationParam.resetSolver                = mainConf.getParameter< bool >( "resetSolver" );
-      simulationParam.resetSolverFrequency       = mainConf.getParameter< uint_t >( "resetSolverFrequency" );
       physicalParam.activationEnergy             = mainConf.getParameter< real_t >( "activationEnergy" );
       physicalParam.depthViscosityFactor         = mainConf.getParameter< real_t >( "depthViscosityFactor" );
       physicalParam.viscosityLowerBound          = mainConf.getParameter< real_t >( "viscosityLowerBound" );
@@ -613,16 +611,18 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
       WALBERLA_LOG_INFO_ON_ROOT( "Reference Density            : " << physicalParam.referenceDensity );
    }
 
-   if ( simulationParam.tempDependentViscosity )
+   if ( simulationParam.haveViscosityProfile || simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "T dependent Viscosity type: " << simulationParam.tempDependentViscosityType );
-      WALBERLA_LOG_INFO_ON_ROOT( "Activation Energy         : " << physicalParam.activationEnergy );
-      WALBERLA_LOG_INFO_ON_ROOT( "Depth Viscosity Factor    : " << physicalParam.depthViscosityFactor );
-      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity lower bound     : " << physicalParam.viscosityLowerBound );
-      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity upper bound     : " << physicalParam.viscosityUpperBound );
-      WALBERLA_LOG_INFO_ON_ROOT( "reset Solver              : " << ( simulationParam.resetSolver ? "true" : "false" ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "reset Solver Frequency    : " << ( simulationParam.resetSolverFrequency ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity lower bound        : " << physicalParam.viscosityLowerBound );
+      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity upper bound        : " << physicalParam.viscosityUpperBound );
+      if ( simulationParam.tempDependentViscosity )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "T dependent Viscosity type: " << simulationParam.tempDependentViscosityType );
+         WALBERLA_LOG_INFO_ON_ROOT( "Activation Energy         : " << physicalParam.activationEnergy );
+         WALBERLA_LOG_INFO_ON_ROOT( "Depth Viscosity Factor    : " << physicalParam.depthViscosityFactor );
+      }
    }
+
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Non-dimensial Numbers    ----" )

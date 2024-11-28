@@ -69,7 +69,6 @@ Parameters
    tempInit 0;
 
    temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
-   temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
 
    // Steepness of temperature filtering
    initialTemperatureSteepness 4;
@@ -122,9 +121,6 @@ Parameters
    viscosityUpperBound 1e25;
 
    //setup solvers again due to changing spectral bounds of stokes operator
-
-   resetSolver false;
-   resetSolverFrequency 100; 
 
    /////////////////////////
    //  Model parameters   //
