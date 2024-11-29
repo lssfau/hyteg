@@ -311,7 +311,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.ABlockCoarseGridTolerance  = mainConf.getParameter< real_t >( "ABlockCoarseGridTolerance" );
 
    solverParam.SchurMGIterations         = mainConf.getParameter< uint_t >( "SchurMGIterations" );
-   solverParam.SchurMGTolerance          = mainConf.getParameter< uint_t >( "SchurMGTolerance" );
+   solverParam.SchurMGTolerance          = mainConf.getParameter< real_t >( "SchurMGTolerance" );
    solverParam.SchurMGPreSmooth          = mainConf.getParameter< uint_t >( "SchurMGPreSmooth" );
    solverParam.SchurMGPostSmooth         = mainConf.getParameter< uint_t >( "SchurMGPostSmooth" );
    solverParam.SchurCoarseGridIterations = mainConf.getParameter< uint_t >( "SchurCoarseGridIterations" );
