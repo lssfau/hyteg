@@ -967,81 +967,116 @@ PrimitiveStorage::CellMap PrimitiveStorage::getNeighborCells() const
 
 const Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID& id ) const
 {
-   if ( vertexExistsLocally( id ) || vertexExistsInNeighborhood( id ) )
-      return getVertex( id );
-   if ( edgeExistsLocally( id ) || edgeExistsInNeighborhood( id ) )
-      return getEdge( id );
-   if ( faceExistsLocally( id ) || faceExistsInNeighborhood( id ) )
-      return getFace( id );
-   if ( cellExistsLocally( id ) || cellExistsInNeighborhood( id ) )
-      return getCell( id );
+   auto vertexPtr = getVertex( id );
+   if ( vertexPtr != nullptr )
+   {
+      return vertexPtr;
+   }
+
+   auto edgePtr = getEdge( id );
+   if ( edgePtr != nullptr )
+   {
+      return edgePtr;
+   }
+
+   auto facePtr = getFace( id );
+   if ( facePtr != nullptr )
+   {
+      return facePtr;
+   }
+
+   auto cellPtr = getCell( id );
+   if ( cellPtr != nullptr )
+   {
+      return cellPtr;
+   }
+
    return nullptr;
 }
 
 Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID& id )
 {
-   if ( vertexExistsLocally( id ) || vertexExistsInNeighborhood( id ) )
-      return getVertex( id );
-   if ( edgeExistsLocally( id ) || edgeExistsInNeighborhood( id ) )
-      return getEdge( id );
-   if ( faceExistsLocally( id ) || faceExistsInNeighborhood( id ) )
-      return getFace( id );
-   if ( cellExistsLocally( id ) || cellExistsInNeighborhood( id ) )
-      return getCell( id );
+   auto vertexPtr = getVertex( id );
+   if ( vertexPtr != nullptr )
+   {
+      return vertexPtr;
+   }
+
+   auto edgePtr = getEdge( id );
+   if ( edgePtr != nullptr )
+   {
+      return edgePtr;
+   }
+
+   auto facePtr = getFace( id );
+   if ( facePtr != nullptr )
+   {
+      return facePtr;
+   }
+
+   auto cellPtr = getCell( id );
+   if ( cellPtr != nullptr )
+   {
+      return cellPtr;
+   }
+
    return nullptr;
 }
 
 const Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id ) const
 {
-   if ( vertexExistsLocally( id ) )
+   for ( const auto& [level, primitives] : vertices_ )
    {
-      for ( const auto& [level, primitives] : vertices_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( vertexExistsInNeighborhood( id ) )
+
+   for ( const auto& [level, primitives] : neighborVertices_ )
    {
-      for ( const auto& [level, primitives] : neighborVertices_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
 }
 
+const Vertex* PrimitiveStorage::getLocalVertex( const PrimitiveID& id ) const
+{
+   for ( const auto& [level, primitives] : vertices_ )
+   {
+      if ( primitives.count( id ) > 0 )
+      {
+         return primitives.at( id ).get();
+      }
+      WALBERLA_UNUSED( level );
+   }
+   return nullptr;
+}
+
 Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
 {
-   if ( vertexExistsLocally( id ) )
+   for ( auto& [level, primitives] : vertices_ )
    {
-      for ( auto& [level, primitives] : vertices_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( vertexExistsInNeighborhood( id ) )
+
+   for ( auto& [level, primitives] : neighborVertices_ )
    {
-      for ( auto& [level, primitives] : neighborVertices_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
@@ -1049,27 +1084,36 @@ Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
 
 const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
 {
-   if ( edgeExistsLocally( id ) )
+   for ( const auto& [level, primitives] : edges_ )
    {
-      for ( const auto& [level, primitives] : edges_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( edgeExistsInNeighborhood( id ) )
+
+   for ( const auto& [level, primitives] : neighborEdges_ )
    {
-      for ( const auto& [level, primitives] : neighborEdges_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
+      WALBERLA_UNUSED( level );
+   }
+
+   return nullptr;
+}
+
+const Edge* PrimitiveStorage::getLocalEdge( const PrimitiveID& id ) const
+{
+   for ( const auto& [level, primitives] : edges_ )
+   {
+      if ( primitives.count( id ) > 0 )
+      {
+         return primitives.at( id ).get();
+      }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
@@ -1077,27 +1121,22 @@ const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
 
 Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
 {
-   if ( edgeExistsLocally( id ) )
+   for ( auto& [level, primitives] : edges_ )
    {
-      for ( auto& [level, primitives] : edges_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( edgeExistsInNeighborhood( id ) )
+
+   for ( auto& [level, primitives] : neighborEdges_ )
    {
-      for ( auto& [level, primitives] : neighborEdges_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
@@ -1105,27 +1144,36 @@ Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
 
 const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
 {
-   if ( faceExistsLocally( id ) )
+   for ( const auto& [level, primitives] : faces_ )
    {
-      for ( const auto& [level, primitives] : faces_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( faceExistsInNeighborhood( id ) )
+
+   for ( const auto& [level, primitives] : neighborFaces_ )
    {
-      for ( const auto& [level, primitives] : neighborFaces_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
+      WALBERLA_UNUSED( level );
+   }
+
+   return nullptr;
+}
+
+const Face* PrimitiveStorage::getLocalFace( const PrimitiveID& id ) const
+{
+   for ( const auto& [level, primitives] : faces_ )
+   {
+      if ( primitives.count( id ) > 0 )
+      {
+         return primitives.at( id ).get();
+      }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
@@ -1133,27 +1181,22 @@ const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
 
 Face* PrimitiveStorage::getFace( const PrimitiveID& id )
 {
-   if ( faceExistsLocally( id ) )
+   for ( auto& [level, primitives] : faces_ )
    {
-      for ( auto& [level, primitives] : faces_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( faceExistsInNeighborhood( id ) )
+
+   for ( auto& [level, primitives] : neighborFaces_ )
    {
-      for ( auto& [level, primitives] : neighborFaces_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
@@ -1161,55 +1204,57 @@ Face* PrimitiveStorage::getFace( const PrimitiveID& id )
 
 const Cell* PrimitiveStorage::getCell( const PrimitiveID& id ) const
 {
-   if ( cellExistsLocally( id ) )
+   for ( const auto& [level, primitives] : cells_ )
    {
-      for ( const auto& [level, primitives] : cells_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives.at( id ).get();
       }
-   }
-   else if ( cellExistsInNeighborhood( id ) )
-   {
-      for ( const auto& [level, primitives] : neighborCells_ )
-      {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives.at( id ).get();
-         }
-         WALBERLA_UNUSED( level );
-      }
+      WALBERLA_UNUSED( level );
    }
 
+   for ( const auto& [level, primitives] : neighborCells_ )
+   {
+      if ( primitives.count( id ) > 0 )
+      {
+         return primitives.at( id ).get();
+      }
+      WALBERLA_UNUSED( level );
+   }
+   return nullptr;
+}
+
+const Cell* PrimitiveStorage::getLocalCell( const PrimitiveID& id ) const
+{
+   for ( const auto& [level, primitives] : cells_ )
+   {
+      if ( primitives.count( id ) > 0 )
+      {
+         return primitives.at( id ).get();
+      }
+      WALBERLA_UNUSED( level );
+   }
    return nullptr;
 }
 
 Cell* PrimitiveStorage::getCell( const PrimitiveID& id )
 {
-   if ( cellExistsLocally( id ) )
+   for ( auto& [level, primitives] : cells_ )
    {
-      for ( auto& [level, primitives] : cells_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
-   else if ( cellExistsInNeighborhood( id ) )
+
+   for ( auto& [level, primitives] : neighborCells_ )
    {
-      for ( auto& [level, primitives] : neighborCells_ )
+      if ( primitives.count( id ) > 0 )
       {
-         if ( primitives.count( id ) > 0 )
-         {
-            return primitives[id].get();
-         }
-         WALBERLA_UNUSED( level );
+         return primitives[id].get();
       }
+      WALBERLA_UNUSED( level );
    }
 
    return nullptr;
