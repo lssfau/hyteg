@@ -43,35 +43,35 @@ void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
                                        DoFType                     flag ) const
 {
    this->startTiming( "Project" );
-   dst_u.communicate< Vertex, Edge >( level );
-   dst_u.communicate< Edge, Face >( level );
-   dst_u.communicate< Face, Cell >( level );
-
-   dst_v.communicate< Vertex, Edge >( level );
-   dst_v.communicate< Edge, Face >( level );
-   dst_v.communicate< Face, Cell >( level );
-
-   if ( storage_->hasGlobalCells() )
-   {
-      dst_w.communicate< Vertex, Edge >( level );
-      dst_w.communicate< Edge, Face >( level );
-      dst_w.communicate< Face, Cell >( level );
-   }
-
-   dst_u.communicate< Cell, Face >( level );
-   dst_u.communicate< Face, Edge >( level );
-   dst_u.communicate< Edge, Vertex >( level );
-
-   dst_v.communicate< Cell, Face >( level );
-   dst_v.communicate< Face, Edge >( level );
-   dst_v.communicate< Edge, Vertex >( level );
-
-   if ( storage_->hasGlobalCells() )
-   {
-      dst_w.communicate< Cell, Face >( level );
-      dst_w.communicate< Face, Edge >( level );
-      dst_w.communicate< Edge, Vertex >( level );
-   }
+   // dst_u.communicate< Vertex, Edge >( level );
+   // dst_u.communicate< Edge, Face >( level );
+   // dst_u.communicate< Face, Cell >( level );
+   //
+   // dst_v.communicate< Vertex, Edge >( level );
+   // dst_v.communicate< Edge, Face >( level );
+   // dst_v.communicate< Face, Cell >( level );
+   //
+   // if ( storage_->hasGlobalCells() )
+   // {
+   //    dst_w.communicate< Vertex, Edge >( level );
+   //    dst_w.communicate< Edge, Face >( level );
+   //    dst_w.communicate< Face, Cell >( level );
+   // }
+   //
+   // dst_u.communicate< Cell, Face >( level );
+   // dst_u.communicate< Face, Edge >( level );
+   // dst_u.communicate< Edge, Vertex >( level );
+   //
+   // dst_v.communicate< Cell, Face >( level );
+   // dst_v.communicate< Face, Edge >( level );
+   // dst_v.communicate< Edge, Vertex >( level );
+   //
+   // if ( storage_->hasGlobalCells() )
+   // {
+   //    dst_w.communicate< Cell, Face >( level );
+   //    dst_w.communicate< Face, Edge >( level );
+   //    dst_w.communicate< Edge, Vertex >( level );
+   // }
 
    this->timingTree_->start( "Macro-Vertex" );
 
