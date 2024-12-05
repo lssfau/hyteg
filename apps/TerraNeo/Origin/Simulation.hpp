@@ -104,12 +104,6 @@ void ConvectionSimulation::step()
           { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
    } //end timestep0 stokes
 
-   else
-   {
-      solveStokes();
-      dataOutput();
-   }
-
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "-------- Time step: " << TN.simulationParameters.timeStep << " --------" );
 
