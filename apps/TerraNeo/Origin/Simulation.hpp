@@ -88,21 +88,19 @@ void ConvectionSimulation::step()
 #else
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
 #endif
+         solveStokes();
+         dataOutput();
       }
-
-      dataOutput();
-      solveStokes();
+      else
+      {
+         dataOutput();
+         solveStokes();
+      }
 
       ++TN.simulationParameters.timeStep;
       p2p1StokesFunctionContainer["VelocityFEPrev"]->assign(
           { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
    } //end timestep0 stokes
-
-   else
-   {
-      solveStokes();
-      dataOutput();
-   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "-------- Time step: " << TN.simulationParameters.timeStep << " --------" );
