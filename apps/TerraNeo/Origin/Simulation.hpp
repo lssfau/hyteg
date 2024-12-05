@@ -259,6 +259,22 @@ void ConvectionSimulation::step()
 
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
+   // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
+   for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
+   {
+      // Redimensionalise temperature
+      real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+      if ( ( temperatureProfiles->min[i] ) <= 0 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
+                                                             << " detected at shell radii: "
+                                                             << temperatureProfiles->shellRadii[i] );
+         WALBERLA_LOG_INFO_ON_ROOT( "Dump data" );
+         dataOutput();
+         WALBERLA_ABORT( "Aborting simulation run" );
+      }
+   }
+
    solveStokes();
 
    // update viscosity Profiles for logging
@@ -273,14 +289,13 @@ void ConvectionSimulation::step()
    //######################################################//
    //                  DUMP OUTPUT                         //
    //######################################################//
-   real_t timerDataOutput = real_c( 0 );
 
    if ( TN.outputParameters.outputMyr && ( ( TN.simulationParameters.modelRunTimeMa - TN.outputParameters.prevOutputTime ) >=
                                            real_c( TN.outputParameters.outputIntervalMyr ) ) )
    {
       dataOutput();
    }
-
+   real_t timerDataOutput;
    if ( !TN.outputParameters.outputMyr )
    {
       localTimerStep.start();
@@ -577,6 +592,10 @@ void ConvectionSimulation::solveStokes()
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes residual (initial): " << stokesResidual );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "Stokes_residual_initial", stokesResidual );
+   }
 
    if ( stokesResidual > TN.solverParameters.stokesKillTolerance && ( TN.simulationParameters.timeStep != 0 ) )
    {
@@ -610,7 +629,6 @@ void ConvectionSimulation::solveStokes()
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes residual (final): " << stokesResidual );
    if ( TN.outputParameters.createTimingDB )
    {
-      db->setVariableEntry( "Stokes_residual_initial", stokesResidual );
       db->setVariableEntry( "Stokes_residual_final", stokesResidual );
       db->setVariableEntry( "Time_setup_Stokes_RHS", setupStokesTimer );
       db->setVariableEntry( "Time_solve_Stokes", timeStokesSolve );

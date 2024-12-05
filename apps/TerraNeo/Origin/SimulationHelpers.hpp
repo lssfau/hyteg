@@ -216,6 +216,11 @@ void ConvectionSimulation::updateViscosity()
    {
       // Update reference viscosity with new min Viscosity value
       TN.physicalParameters.referenceViscosity = minRefViscosity;
+      TN.physicalParameters.rayleighNumber =
+          ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
+            std::pow( TN.physicalParameters.mantleThickness, 3 ) *
+            ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
+          ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
    }
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
