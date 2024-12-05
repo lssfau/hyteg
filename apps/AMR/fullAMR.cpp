@@ -136,7 +136,6 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
                                        uint_t                                     max_iter,
                                        uint_t                                     n1,
                                        uint_t                                     n2,
-                                       real_t                                     tol,
                                        real_t                                     cg_tol,
                                        std::string                                vtkname,
                                        bool                                       writePartitioning,
@@ -271,9 +270,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
       t_solve += t1 - t0;
       norm_r = compute_residual() / norm_0;
 
-      bool converged = norm_r <= tol;
-
-      if ( error_freq > 0 && ( converged || iter % error_freq == 0 ) )
+      if ( error_freq > 0 && iter % error_freq == 0 )
       {
          auto eL2 = compute_L2error();
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |%12.2e", iter, norm_r, eL2 ) );
@@ -282,9 +279,6 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |", iter, norm_r ) );
       }
-
-      if ( converged )
-         break;
    }
 
    // apply error indicator
@@ -413,7 +407,6 @@ void solve_for_each_refinement( uint_t      dim,
                                 uint_t      max_iter,
                                 uint_t      n1,
                                 uint_t      n2,
-                                real_t      tol,
                                 real_t      cg_tol,
                                 std::string vtkname,
                                 bool        writePartitioning,
@@ -443,7 +436,7 @@ void solve_for_each_refinement( uint_t      dim,
       }
       else
       {
-         auto ref_strat  = adaptiveRefinement::Strategy::doerfler( p_ref );
+         auto ref_strat  = adaptiveRefinement::Strategy::percentile( p_ref );
          auto cors_strat = adaptiveRefinement::Strategy::multiple_of_R( p_cors );
          mesh.refineRG( local_errors, ref_strat, cors_strat, true );
       }
@@ -531,7 +524,6 @@ void solve_for_each_refinement( uint_t      dim,
                             max_iter,
                             n1,
                             n2,
-                            tol,
                             cg_tol,
                             vtkname,
                             writePartitioning,
@@ -574,24 +566,23 @@ int main( int argc, char* argv[] )
 
    const uint_t dim = parameters.getParameter< uint_t >( "dim", 0 );
 
-   const uint_t n_regref = parameters.getParameter< uint_t >( "n_regular_refinement", 3 );
-   const uint_t n_amr    = parameters.getParameter< uint_t >( "n_amr", 0 );
-   const real_t p_refinement =
-       parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.5 : 0.5 ); // todo optimize default value
-   const real_t p_coarsen             = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 4.0 : 12.0 );
-   const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
-   bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
-   uint_t       l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
+   const uint_t n_amr        = parameters.getParameter< uint_t >( "n_amr", 0 );
+   const uint_t n_regref     = parameters.getParameter< uint_t >( "n_regular_refinement", n_amr );
+   const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", (dim == 2) ? 0.1 : 0.02 );
+   const real_t p_coarsen    = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 4.0 : 16.0 );
 
-   const uint_t l_min = parameters.getParameter< uint_t >( "cg_level", 0 );
-   const uint_t l_max = parameters.getParameter< uint_t >( "fg_level", 3 );
+   const bool error_indicator       = parameters.getParameter< bool >( "error_indicator", true );
+   bool       global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
+   uint_t     l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
 
-   const uint_t max_iter = parameters.getParameter< uint_t >( "n_iterations", 1 );
-   const uint_t n_cycles = parameters.getParameter< uint_t >( "n_cycles", 1 );
-   const uint_t n1       = parameters.getParameter< uint_t >( "presmooth", 2 );
-   const uint_t n2       = parameters.getParameter< uint_t >( "postsmooth", 2 );
-   const real_t tol      = parameters.getParameter< real_t >( "tolerance", 1e-10 );
-   const real_t cg_tol   = parameters.getParameter< real_t >( "cg_tolerance", 1e-10 );
+   const uint_t l_min        = parameters.getParameter< uint_t >( "l_min", 0 );
+   const uint_t l_max        = parameters.getParameter< uint_t >( "l_max", 2 );
+   const uint_t inner_cycles = parameters.getParameter< uint_t >( "inner_cycles", 1 );
+   const uint_t n1           = parameters.getParameter< uint_t >( "presmooth", 2 );
+   const uint_t n2           = parameters.getParameter< uint_t >( "postsmooth", 1 );
+   const real_t cg_tol       = parameters.getParameter< real_t >( "cg_tolerance", 1e-10 );
+   const uint_t post_cycles  = parameters.getParameter< uint_t >( "additional_v_cycles", 0 );
+   const uint_t max_iter     = 1 + post_cycles;
 
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -635,9 +626,8 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "regular refinement steps", n_regref ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "adaptive refinement steps", n_amr ) );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( " %30s: %3.1f (%s)", "refinement parameter p_r for Dörfler marking", p_refinement ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %3.1f (%s)", "coarsening parameter p_c", p_coarsen ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %3.3f", "refinement parameter p_r", p_refinement ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %3.1f", "coarsening parameter p_c", p_coarsen ) );
    if ( error_indicator )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: u_%d - u_%d", "error estimate for refinement", l_max - 1, l_max ) );
@@ -650,11 +640,12 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "compute global error estimate", global_error_estimate ) );
    }
+
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d / %d", "level (min/max)", l_min, l_max ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations", max_iter ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", n_cycles ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d/%d", "number of (gs) smoothing steps", n1, n2 ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e / %2.1e", "tolerance (CG/MG)", cg_tol, tol ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles in FMG", inner_cycles ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d/%d", "number of smoothing steps", n1, n2 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "CG tolerance", cg_tol ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "V-cycles after FMG", post_cycles ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write vtk output", ( vtkname != "" ) ) );
    if ( vtkname != "" )
@@ -673,11 +664,10 @@ int main( int argc, char* argv[] )
                               p_coarsen,
                               l_min,
                               l_max,
-                              n_cycles,
+                              inner_cycles,
                               max_iter,
                               n1,
                               n2,
-                              tol,
                               cg_tol,
                               vtkname,
                               writePartitioning,
