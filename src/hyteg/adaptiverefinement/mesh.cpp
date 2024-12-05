@@ -296,19 +296,6 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       return e_mean_w /= sum_w;
    };
 
-   // todo remove this lambda
-   // auto compute_sum = [&]() {
-   //    auto sum = real_t( 0.0 );
-   //    auto n   = err_glob.size();
-   //    // iterate in reverse order to add smallest contribution first, reducing round off error
-   //    for ( uint_t n_i = 1; n_i <= n; ++n_i )
-   //    {
-   //       auto i = n - n_i; // n - (n-i) = i
-   //       sum += err_glob[i].first;
-   //    }
-   //    return sum;
-   // };
-
    std::function< bool( real_t, uint_t ) > crit_r;
    std::function< bool( real_t, uint_t ) > crit_c;
 
@@ -330,16 +317,6 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
       }
    }
-   // else if ( ref_strat.t == Strategy::DOERFLER )
-   // {
-   //    auto e_sum = compute_sum();
-   //    crit_r     = [=]( real_t e_i, uint_t ) -> bool { return e_i >= ref_strat.p * e_sum; };
-   //    if ( verbose )
-   //    {
-   //       WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << ref_strat.p * e_sum );
-   //    }
-   // }
-   // todo replace with this
    else if ( ref_strat.t == Strategy::DOERFLER )
    {
       // compute sum of all errors
@@ -474,19 +451,17 @@ void K_Mesh< K_Simplex >::gatherGlobalError( const ErrorVector& err_loc, ErrorVe
 template < class K_Simplex >
 std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_storage()
 {
-   std::map< PrimitiveID, VertexData > vtxs;
-   std::map< PrimitiveID, EdgeData >   edges;
-   std::map< PrimitiveID, FaceData >   faces;
-   std::map< PrimitiveID, CellData >   cells;
+   std::map< PrimitiveID, EdgeData > edges;
+   std::map< PrimitiveID, FaceData > faces;
+   std::map< PrimitiveID, CellData > cells;
 
-   extract_data( vtxs, edges, faces, cells );
+   extract_data( edges, faces, cells );
 
-   walberla::mpi::broadcastObject( vtxs );
    walberla::mpi::broadcastObject( edges );
    walberla::mpi::broadcastObject( faces );
    walberla::mpi::broadcastObject( cells );
 
-   return make_localPrimitives( vtxs, edges, faces, cells );
+   return make_localPrimitives( edges, faces, cells );
 }
 
 template < class K_Simplex >
@@ -865,10 +840,9 @@ std::vector< uint_t > K_Mesh< K_Simplex >::loadbalancing_greedy( const Neighborh
 }
 
 template < class K_Simplex >
-std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
-                                                                               std::map< PrimitiveID, EdgeData >&   edges,
-                                                                               std::map< PrimitiveID, FaceData >&   faces,
-                                                                               std::map< PrimitiveID, CellData >&   cells )
+std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( std::map< PrimitiveID, EdgeData >& edges,
+                                                                               std::map< PrimitiveID, FaceData >& faces,
+                                                                               std::map< PrimitiveID, CellData >& cells )
 {
    auto rank = uint_t( walberla::mpi::MPIManager::instance()->rank() );
 
@@ -894,9 +868,8 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
    hyteg::MigrationMap_T nbrRanks;
 
-   for ( auto& [_, vtx] : vtxs )
+   for ( auto& [_, vtx] : _V )
    {
-      WALBERLA_ASSERT( _ == vtx.getPrimitiveID() );
       vtx.setLocality( ( vtx.getTargetRank() == rank ) ? LOCAL : NONE );
    }
 
@@ -909,8 +882,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         // todo remove redundant evaluation
-         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
+         auto& vtx = _V[vtxIdx];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( edge.isLocal() && !vtx.isLocal() )
@@ -935,8 +907,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         // todo remove redundant evaluation
-         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
+         auto& vtx = _V[vtxIdx];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( face.isLocal() && !vtx.isLocal() )
@@ -978,8 +949,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         // todo remove redundant evaluation
-         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
+         auto& vtx = _V[vtxIdx];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( cell.isLocal() && !vtx.isLocal() )
@@ -1059,8 +1029,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i <= K; ++i )
       {
-         auto id = _V[v[i]].getPrimitiveID();
-         WALBERLA_ASSERT( vtxs[id].get_vertices()[0] == v[i] );
+         auto id      = _V[v[i]].getPrimitiveID();
          vertexIDs[i] = id;
       }
 
@@ -1083,8 +1052,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       std::array< PrimitiveID, K + 1 > vertexIDs;
       for ( uint_t i = 0; i <= K; ++i )
       {
-         auto id = _V[v[i]].getPrimitiveID();
-         WALBERLA_ASSERT( vtxs[id].get_vertices()[0] == v[i] );
+         auto id      = _V[v[i]].getPrimitiveID();
          vertexIDs[i] = id;
       }
 
@@ -1123,8 +1091,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       std::vector< PrimitiveID > vertexIDs( K + 1 );
       for ( uint_t i = 0; i <= K; ++i )
       {
-         auto id = _V[v[i]].getPrimitiveID();
-         WALBERLA_ASSERT( vtxs[id].get_vertices()[0] == v[i] );
+         auto id      = _V[v[i]].getPrimitiveID();
          vertexIDs[i] = id;
       }
 
@@ -1185,9 +1152,8 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
    // create local and halo vertices
    PrimitiveStorage::VertexMap vtxs_ps, nbrVtxs_ps;
-   for ( auto& [_, vtx] : vtxs )
+   for ( auto& [_, vtx] : _V )
    {
-      WALBERLA_ASSERT( _ == vtx.getPrimitiveID() );
       if ( vtx.isLocal() )
       {
          add_vertex( vtxs_ps, vtx );
@@ -1258,8 +1224,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         // todo remove redundant evaluation
-         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
+         auto& vtx = _V[vtxIdx];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( vtx.isLocal() )
@@ -1280,8 +1245,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         // todo remove redundant evaluation
-         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
+         auto& vtx = _V[vtxIdx];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( vtx.isLocal() )
@@ -1317,8 +1281,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
 
       for ( auto& vtxIdx : v )
       {
-         // todo remove redundant evaluation
-         auto& vtx = vtxs[_V[vtxIdx].getPrimitiveID()];
+         auto& vtx = _V[vtxIdx];
          WALBERLA_ASSERT( vtx.get_vertices()[0] == vtxIdx );
 
          if ( vtx.isLocal() )
@@ -1506,10 +1469,9 @@ void K_Mesh< K_Simplex >::check_integrity( uint_t hanging_nodes_allowed, bool un
 }
 
 template < class K_Simplex >
-void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtxData,
-                                        std::map< PrimitiveID, EdgeData >&   edgeData,
-                                        std::map< PrimitiveID, FaceData >&   faceData,
-                                        std::map< PrimitiveID, CellData >&   cellData ) const
+void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, EdgeData >& edgeData,
+                                        std::map< PrimitiveID, FaceData >& faceData,
+                                        std::map< PrimitiveID, CellData >& cellData ) const
 {
    if ( walberla::mpi::MPIManager::instance()->rank() != 0 )
       return;
@@ -1544,12 +1506,6 @@ void K_Mesh< K_Simplex >::extract_data( std::map< PrimitiveID, VertexData >& vtx
       }
    }
 
-   // collect vertex data // todo check if we can use _V directly
-   for ( auto& [_, vtx] : _V )
-   {
-      WALBERLA_UNUSED( _ );
-      vtxData[vtx.getPrimitiveID()] = vtx;
-   }
    // collect edge data
    for ( auto& edge : edges )
    {

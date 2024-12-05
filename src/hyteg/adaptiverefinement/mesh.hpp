@@ -265,16 +265,14 @@ class K_Mesh
    void check_integrity( uint_t hanging_nodes_allowed, bool unassigned_nodes_allowed = false ) const;
 
    /* extract geometryMap, boundaryFlags, etc. from all elements*/
-   void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
-                      std::map< PrimitiveID, EdgeData >&   edgeData,
-                      std::map< PrimitiveID, FaceData >&   faceData,
-                      std::map< PrimitiveID, CellData >&   cellData ) const;
+   void extract_data( std::map< PrimitiveID, EdgeData >& edgeData,
+                      std::map< PrimitiveID, FaceData >& faceData,
+                      std::map< PrimitiveID, CellData >& cellData ) const;
 
    /* create PrimitiveStorage from SimplexData */
-   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
-                                                             std::map< PrimitiveID, EdgeData >&   edges,
-                                                             std::map< PrimitiveID, FaceData >&   faces,
-                                                             std::map< PrimitiveID, CellData >&   cells );
+   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, EdgeData >& edges,
+                                                             std::map< PrimitiveID, FaceData >& faces,
+                                                             std::map< PrimitiveID, CellData >& cells );
 
    /// @brief create sorted global error vector from local error vectors
    /// @param err_loc         local error vectors
