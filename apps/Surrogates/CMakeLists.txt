@@ -17,3 +17,7 @@ waLBerla_add_executable( NAME Stokes2d_Surrogates
 waLBerla_add_executable( NAME jumpCoefficient
       FILES jumpCoefficient.cpp
       DEPENDS hyteg mixed_operator)
+
+waLBerla_add_executable( NAME lsqtst
+      FILES lsqtst.cpp
+      DEPENDS hyteg)
