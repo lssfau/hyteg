@@ -36,53 +36,53 @@ static constexpr uint_t binom< n, 0 > = 1;
 template < uint_t n >
 static constexpr uint_t binom< n, n > = 1;
 
-// dimension of polynomial space
-template < uint_t dim, uint_t degree >
-static constexpr uint_t dimP = binom< dim + degree, dim >;
+// dimension of polynomial space of degree Q over R^D
+template < uint_t D, uint_t Q >
+static constexpr uint_t dimP = binom< D + Q, D >;
 
-// basis of polynomial space, given by the exponents of the monomials
-template < uint8_t dim, uint8_t degree >
-struct Basis : public std::array< std::array< uint8_t, 3 >, dimP< dim, degree > >
+// monomial basis of polynomial space, given by the exponents of the monomials
+template < uint8_t D, uint8_t Q >
+struct Basis : public std::array< std::array< uint8_t, 3 >, dimP< D, Q > >
 {
    constexpr Basis()
-   : std::array< std::array< uint8_t, 3 >, dimP< dim, degree > >
+   : std::array< std::array< uint8_t, 3 >, dimP< D, Q > >{}
    {
       // 1d basis
-      for ( uint8_t i = 0; i <= degree; ++i )
+      for ( uint8_t i = 0; i <= Q; ++i )
       {
          ( *this )[i] = { i, 0, 0 };
       }
-      if constexpr ( dim == 1 )
+      if constexpr ( D == 1 )
       {
          return;
       }
       // extend to 2d
-      auto ij = dimP< 1, degree >;
-      for ( uint8_t i = 0; i < degree; ++i )
+      auto ij = dimP< 1, Q >;
+      for ( uint8_t i = 0; i < Q; ++i )
       {
-         for ( uint8_t j = 1; i + j <= degree; ++j )
+         for ( uint8_t j = 1; i + j <= Q; ++j )
          {
             ( *this )[ij++] = { i, j, 0 };
          }
       }
-      if constexpr ( dim == 2 )
+      if constexpr ( D == 2 )
       {
          return;
       }
       // extend to 3d
-      auto ijk = dimP< 2, degree >;
-      for ( uint8_t i = 0; i < degree; ++i )
+      auto ijk = dimP< 2, Q >;
+      for ( uint8_t i = 0; i < Q; ++i )
       {
-         for ( uint8_t k = 1; i + k <= degree; ++k )
+         for ( uint8_t k = 1; i + k <= Q; ++k )
          {
             ( *this )[ijk++] = { i, 0, k };
          }
       }
-      for ( uint8_t i = 0; i < degree; ++i )
+      for ( uint8_t i = 0; i < Q; ++i )
       {
-         for ( uint8_t j = 1; i + j < degree; ++j )
+         for ( uint8_t j = 1; i + j < Q; ++j )
          {
-            for ( uint8_t k = 1; i + j + k <= degree; ++k )
+            for ( uint8_t k = 1; i + j + k <= Q; ++k )
             {
                ( *this )[ijk++] = { i, j, k };
             }
@@ -94,7 +94,7 @@ struct Basis : public std::array< std::array< uint8_t, 3 >, dimP< dim, degree > 
    constexpr double eval( uint_t i, const std::array< double, 3 >& x ) const
    {
       double val = 1.0;
-      for ( uint8_t d = 0; d < dim; ++d )
+      for ( uint8_t d = 0; d < D; ++d )
       {
          for ( uint8_t p = 0; p < ( *this )[i][d]; ++p )
          {
@@ -104,6 +104,14 @@ struct Basis : public std::array< std::array< uint8_t, 3 >, dimP< dim, degree > 
       return val;
    }
 };
+
+static constexpr uint8_t d = 2;
+static constexpr uint8_t q = 2;
+
+static constexpr auto basis = Basis< d, q >();
+static constexpr auto n     = basis.size();
+static constexpr auto b0    = basis[0];
+static constexpr auto b5    = basis[5];
 
 /* Coordinate system for polynomial evaluation.
  ! Different from the coordinates of PDE domain !
@@ -122,7 +130,8 @@ struct Coordinates
    const double scaling;
 };
 
-template < uint8_t dim, uint8_t degree >
+// polynomials of degree Q over R^D
+template < uint8_t D, uint8_t Q >
 class Polynomial
 {
  public:
@@ -130,7 +139,7 @@ class Polynomial
    static constexpr uint8_t Y = 1;
    static constexpr uint8_t Z = 2;
 
-   static constexpr uint_t nc = dimP< 1, degree >; // number of coefficients
+   static constexpr uint_t nc = dimP< 1, Q >; // number of coefficients
 
    inline constexpr Polynomial()
    : c{ 0.0 }
@@ -148,8 +157,8 @@ class Polynomial
       static_assert( YorZ == Y || YorZ == Z );
       if constexpr ( YorZ == Y )
       {
-         static_assert( dim >= 2 );
-         if constexpr ( dim == 2 )
+         static_assert( D >= 2 );
+         if constexpr ( D == 2 )
          {
             // todo restrict polynomial to lower dimensional subset
             // starting index of 2d-part of basis
@@ -170,7 +179,7 @@ class Polynomial
       }
       else
       {
-         static_assert( dim == 3 );
+         static_assert( D == 3 );
          // todo restrict polynomial to lower dimensional subset
       }
    }
@@ -178,7 +187,7 @@ class Polynomial
    // evaluate 1d polynomial using Horner's method
    inline constexpr double eval( const double x ) const
    {
-      if constexpr ( dim == 1 )
+      if constexpr ( D == 1 )
       {
          auto val = c[nc - 1];
          for ( int i = nc - 2; i >= 0; --i )
@@ -193,20 +202,20 @@ class Polynomial
       }
    }
 
- private:
-   static constexpr Basis< dim, degree > basis;
+//  private:
+   static constexpr Basis< D, Q > basis;
 
    std::array< double, nc > c; // coefficients
 
-   Polynomial< dim - 1, degree > restriction; // restriction to lower dimension
+   Polynomial< D - 1, Q > restriction; // restriction to lower dimension
 };
 
-template < uint8_t degree >
-class Polynomial< 0, degree >
+template < uint8_t Q >
+class Polynomial< 0, Q >
 {};
 
-static constexpr Polynomial< 1, 2 > p( { 1.0, 2.0, 3.0 } );
-static constexpr auto               val = p.eval( 2 );
+// static constexpr Polynomial< 1, 2 > p( { 1.0, 2.0, 3.0 } );
+// static constexpr auto               val = p.eval( 2 );
 
 // static constexpr Coordinates coords( 2 );
 // static constexpr auto x = coords.x( 2 );

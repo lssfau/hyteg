@@ -54,7 +54,7 @@ static constexpr uint_t n_cell_var = n_cell_int< l_cell > + 4 * n_face_int< l_fa
 
 using walberla::uint_t;
 
-template < uint8_t dim, uint8_t degree, uint8_t lvl, bool reduced_sample_size = false, bool precomputed = true >
+template < uint8_t D, uint8_t Q, uint8_t lvl, bool reduced_sample_size = false, bool precomputed = true >
 class LeastSquares
 {
  private:
@@ -62,14 +62,14 @@ class LeastSquares
    // reduced number of interpolation points for higher levels
    static constexpr uint8_t face_lvl_red = ( lvl > 5 ) ? 5 : lvl;
    static constexpr uint8_t cell_lvl_red = ( lvl > 4 ) ? 4 : lvl;
-   static constexpr int     rows_reduced = ( dim == 2 ) ? interpolation::n_face_var< face_lvl_red, lvl > :
+   static constexpr int     rows_reduced = ( D == 2 ) ? interpolation::n_face_var< face_lvl_red, lvl > :
                                                           interpolation::n_cell_var< cell_lvl_red, face_lvl_red, lvl >;
 
  public:
    // number of interpolation points
    static constexpr int rows = reduced_sample_size ? rows_reduced : interpolation::n_cell< lvl >;
    // dimension of polynomial space
-   static constexpr int cols = polynomial::dimP< dim, degree >;
+   static constexpr int cols = polynomial::dimP< D, Q >;
 
    struct Iterator
    {
@@ -201,7 +201,7 @@ class LeastSquares
              "For the specified template arguments, surrogate::LeasSquares has not been precomputed.\nComputing SVD now." );
       }
       WALBERLA_LOG_INFO_ON_ROOT( "Setup Vandermonde matrix" );
-      constexpr polynomial::Basis< dim, degree > phi;
+      constexpr polynomial::Basis< D, Q > phi;
       constexpr polynomial::Coordinates          coords( lvl );
 
       Iterator it;
