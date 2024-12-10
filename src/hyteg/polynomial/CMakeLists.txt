@@ -6,6 +6,7 @@ target_sources( hyteg
     PolynomialEvaluator.cpp
     LSQPInterpolator.hpp
     MonomialBasis2D.hpp
-    MonomialBasis3D.hpp     
+    MonomialBasis3D.hpp
 )
 
+add_subdirectory(elementwise)
