@@ -43,57 +43,41 @@ static constexpr uint_t dimP = binom< D + Q, D >;
 // store x^i*y^j*z^k by exponents i,j,k compressed into 16 bit
 struct Compression
 {
-   // todo using basis_t = uint16_t;
-   using basis_t = int;
+   using basis_t = uint16_t;
 
    // return compressed basis function phi = x^i*y^j*z^k
    static constexpr inline basis_t compress( const basis_t i, const basis_t j, const basis_t k ) { return I * i | J * j | K * k; }
+
    // extract exponents i,j,k from compressed basis function phi
    static constexpr inline std::array< basis_t, 3 > expand( const basis_t phi ) { return { i( phi ), j( phi ), k( phi ) }; }
-
    // extract exponent i of x^i*y^j*z^k
    static constexpr inline basis_t i( const basis_t phi ) { return phi & basis_t( J - 1 ); }
    // extract exponent j of x^i*y^j*z^k
    static constexpr inline basis_t j( const basis_t phi ) { return ( phi & basis_t( K - 1 ) ) >> 5; }
    // extract exponent k of x^i*y^j*z^k
    static constexpr inline basis_t k( const basis_t phi ) { return phi >> 10; }
-   // extract the Nth exponent i,j,or k, i.e., N=0,1,2
-   template < uint8_t N >
-   static constexpr inline basis_t ijk( const basis_t phi )
-   {
-      static_assert( N < 3 );
-      if constexpr ( N == 0 )
-      {
-         return i( phi );
-      }
-      else if constexpr ( N == 1 )
-      {
-         return j( phi );
-      }
-      else
-      {
-         return k( phi );
-      }
-   }
 
+   // polynomial degree of this basis function
+   static constexpr inline basis_t degree( const basis_t phi ) { return i( phi ) + j( phi ) + k( phi ); }
+
+   // evaluate phi at x
    static constexpr inline double eval( const basis_t phi, const std::array< double, 3 >& x )
    {
-      const auto ijk = expand( phi );
+      const auto [i, j, k] = expand( phi );
 
       double val = 1.0;
 
-      for ( uint8_t d = 0; d < 3; ++d )
-      {
-         // compute x[d]^i[d]
-         for ( uint8_t p = 0; p < ijk[d]; ++p )
-         {
-            val *= x[d];
-         }
-      }
+      for ( uint8_t p = 0; p < i; ++p )
+         val *= x[0]; // compute x^i
+      for ( uint8_t p = 0; p < j; ++p )
+         val *= x[1]; // compute y^j
+      for ( uint8_t p = 0; p < k; ++p )
+         val *= x[2]; // compute z^k
 
       return val;
    }
 
+   // bit masks for exponents
    static constexpr basis_t I = 1;
    static constexpr basis_t J = 1 << 5;
    static constexpr basis_t K = 1 << 10;
@@ -152,32 +136,17 @@ struct Basis : public std::array< Compression::basis_t, dimP< D, Q > >
    }
 
    // evaluate the n-th basis function at x
-   constexpr inline double eval( uint_t n, const std::array< double, 3 >& x ) const { return Compression::eval( ( *this )[n] ); }
+   constexpr inline double eval( uint_t n, const std::array< double, 3 >& x ) const
+   {
+      return Compression::eval( ( *this )[n], x );
+   }
 
    // return the n-th basis function as array of exponents [i,j,k]
-   constexpr inline std::array< basis_t, 3 > operator()( uint_t n ) const { return Compression::expand( ( *this )[n] ); }
+   constexpr inline auto operator()( uint_t n ) const { return Compression::expand( ( *this )[n] ); }
+
+   // compute the degree of the n-th basis function
+   constexpr inline basis_t degree( uint_t n ) const { return Compression::degree( ( *this )[n] ); }
 };
-
-// static constexpr auto phi = Compression::compress( 2, 1, 3 );
-// static constexpr auto ijk = Compression::expand( phi );
-// static constexpr auto px  = Compression::eval( phi, { 2.5, 1.5, 5.0 } );
-// static constexpr auto y   = 2.5 * 2.5 * 1.5 * 5 * 5 * 5;
-
-// static constexpr uint8_t d = 3;
-// static constexpr uint8_t q = 2;
-
-// static constexpr auto basis = Basis< d, q >();
-// static constexpr auto n     = basis.size();
-// static constexpr auto b0    = basis( 0 );
-// static constexpr auto b1 = basis( 1 );
-// static constexpr auto b2 = basis( 2 );
-// static constexpr auto b3 = basis( 3 );
-// static constexpr auto b4 = basis( 4 );
-// static constexpr auto b5 = basis( 5 );
-// static constexpr auto b6 = basis( 6 );
-// static constexpr auto b7 = basis( 7 );
-// static constexpr auto b8 = basis( 8 );
-// static constexpr auto b9 = basis( 9 );
 
 /* Coordinate system for polynomial evaluation.
  ! Different from the coordinates of PDE domain !
@@ -205,7 +174,7 @@ class Polynomial
    static constexpr uint8_t Y = 1;
    static constexpr uint8_t Z = 2;
 
-   static constexpr uint_t nc = dimP< 1, Q >; // number of coefficients
+   static constexpr uint_t nc = dimP< D, Q >; // number of coefficients
 
    inline constexpr Polynomial()
    : c{ 0.0 }
@@ -217,46 +186,62 @@ class Polynomial
    , restriction()
    {}
 
-   template < uint8_t YorZ >
-   inline constexpr void fix_coordinate( const double val )
+   void fix_z( const double z, bool use_for_y = false ) const
    {
-      static_assert( YorZ == Y || YorZ == Z );
-      if constexpr ( YorZ == Y )
+      if constexpr ( D == 2 )
       {
-         static_assert( D >= 2 );
-         if constexpr ( D == 2 )
+         WALBERLA_ASSERT( use_for_y, "fix_z can only be used in 3d" );
+      }
+      else if constexpr ( D != 3 )
+      {
+         WALBERLA_ABORT( "fix_z can only be used in 3d" );
+      }
+
+      // z^k for k=0,...,Q
+      std::array< double, Q + 1 > z_pow{ 1.0 };
+      for ( uint_t k = 0; k < Q; ++k )
+      {
+         z_pow[k + 1] = z_pow[k] * z;
+      }
+
+      // first index where the 3d extension starts
+      uint_t ijk = restriction.nc;
+      // iterate over coefficients of 2d polynomial
+      for ( uint_t ij = 0; ij < restriction.nc; ++ij )
+      {
+         const auto d = basis.degree( ij );
+
+         restriction.c[ij] = c[ij]; // k=0
+         for ( uint_t k = 1; k <= Q - d; ++k )
          {
-            // todo restrict polynomial to lower dimensional subset
-            // starting index of 2d-part of basis
-            double yn = 1.0; // y^n
-            for ( uint_t ij = restriction.nc; ij < nc; ++ij )
-            {
-               if ( basis[ij][Y] > basis[ij - 1][Y] )
-               {
-                  yn *= val;
-               }
-               c[d] = 0.0;
-            }
+            restriction.c[ij] += c[ijk++] * z_pow[k];
          }
-         else
-         {
-            restriction.fix_coordinate< Y >( val );
-         }
+      }
+   }
+
+   void fix_y( const double y ) const
+   {
+      if constexpr ( D == 2 )
+      {
+         return fix_z( y, true );
+      }
+      else if constexpr ( D == 3 )
+      {
+         return restriction.fix_y( y );
       }
       else
       {
-         static_assert( D == 3 );
-         // todo restrict polynomial to lower dimensional subset
+         WALBERLA_ABORT( "fix_y can only be used in 2d and 3d" );
       }
    }
 
    // evaluate 1d polynomial using Horner's method
-   inline constexpr double eval( const double x ) const
+   inline double eval( const double x ) const
    {
       if constexpr ( D == 1 )
       {
          auto val = c[nc - 1];
-         for ( int i = nc - 2; i >= 0; --i )
+         for ( int i = int( nc - 2 ); i >= 0; --i )
          {
             val = val * x + c[i];
          }
@@ -268,33 +253,32 @@ class Polynomial
       }
    }
 
-   //  private:
-   static constexpr Basis< D, Q > basis;
+   // evaluate polynomial by summing up basis functions, only use for debugging or testing
+   double eval_naive( const std::array< double, 3 >& x ) const
+   {
+      double val = 0.0;
+      for ( uint_t i = 0; i < nc; ++i )
+      {
+         std::cout << "eval_naive: i = " << i << std::endl;
+         val += c[i] * basis.eval( i, x );
+      }
+      return val;
+   }
 
-   std::array< double, nc > c; // coefficients
+   static constexpr auto basis = Basis< D, Q >();
 
-   Polynomial< D - 1, Q > restriction; // restriction to lower dimension
+ private:
+   std::array< double, nc >       c;           // coefficients
+   mutable Polynomial< D - 1, Q > restriction; // restriction to lower dimension
+
+   // make all polynomials friends
+   template < uint8_t d, uint8_t q >
+   friend class Polynomial;
 };
 
 template < uint8_t Q >
 class Polynomial< 0, Q >
 {};
-
-// static constexpr Polynomial< 1, 2 > p( { 1.0, 2.0, 3.0 } );
-// static constexpr auto               val = p.eval( 2 );
-
-// static constexpr Coordinates coords( 2 );
-// static constexpr auto x = coords.x( 2 );
-
-// static constexpr uint8_t d = 1;
-// static constexpr uint8_t q = 2;
-
-// static constexpr auto basis = Basis< d, q >();
-// static constexpr auto n     = basis.size();
-// static constexpr auto b0    = basis[0];
-// static constexpr auto b5    = basis[17];
-// static constexpr std::array<double,3> xyz{2.0, 3.0, 4.0};
-// static constexpr auto p = basis.eval( 17, xyz );
 
 } // namespace polynomial
 } // namespace surrogate
