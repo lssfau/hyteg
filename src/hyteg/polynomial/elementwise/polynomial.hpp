@@ -259,7 +259,6 @@ class Polynomial
       double val = 0.0;
       for ( uint_t i = 0; i < nc; ++i )
       {
-         std::cout << "eval_naive: i = " << i << std::endl;
          val += c[i] * basis.eval( i, x );
       }
       return val;
