@@ -177,11 +177,11 @@ class Polynomial
    static constexpr uint_t nc = dimP< D, Q >; // number of coefficients
 
    inline constexpr Polynomial()
-   : c{ 0.0 }
+   : c{}
    , restriction()
    {}
 
-   inline constexpr Polynomial( const std::array< double, nc >& coeffs )
+   inline constexpr Polynomial( const Eigen::Matrix< double, nc, 1, Eigen::ColMajor >& coeffs )
    : c{ coeffs }
    , restriction()
    {}
@@ -211,10 +211,10 @@ class Polynomial
       {
          const auto d = basis.degree( ij );
 
-         restriction.c[ij] = c[ij]; // k=0
+         restriction.c( ij ) = c( ij ); // k=0
          for ( uint_t k = 1; k <= Q - d; ++k )
          {
-            restriction.c[ij] += c[ijk++] * z_pow[k];
+            restriction.c( ij ) += c[ijk++] * z_pow[k];
          }
       }
    }
@@ -243,7 +243,7 @@ class Polynomial
          auto val = c[nc - 1];
          for ( int i = int( nc - 2 ); i >= 0; --i )
          {
-            val = val * x + c[i];
+            val = val * x + c( i );
          }
          return val;
       }
@@ -259,7 +259,7 @@ class Polynomial
       double val = 0.0;
       for ( uint_t i = 0; i < nc; ++i )
       {
-         val += c[i] * basis.eval( i, x );
+         val += c( i ) * basis.eval( i, x );
       }
       return val;
    }
@@ -267,9 +267,10 @@ class Polynomial
    static constexpr auto basis = Basis< D, Q >();
 
  private:
-   std::array< double, nc >       c;           // coefficients
-   mutable Polynomial< D - 1, Q > restriction; // restriction to lower dimension
-
+   // coefficients
+   Eigen::Matrix< double, nc, 1, Eigen::ColMajor > c;
+   // restriction to lower dimension
+   mutable Polynomial< D - 1, Q > restriction;
    // make all polynomials friends
    template < uint8_t d, uint8_t q >
    friend class Polynomial;
