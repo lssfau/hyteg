@@ -29,159 +29,131 @@ namespace hyteg {
 namespace surrogate {
 
 namespace interpolation {
-template < uint8_t lvl >
-static constexpr uint_t n_edge = 1 << lvl;
-template < uint8_t lvl >
-static constexpr uint_t n_edge_int = ( lvl > 1 ) ? n_edge< lvl > - 2 : 0;
-template < uint8_t lvl >
-static constexpr uint_t n_face = n_edge< lvl > * ( n_edge< lvl > + 1 ) / 2;
-template < uint8_t lvl >
-static constexpr uint_t n_face_int = ( lvl > 1 ) ? n_face< lvl > - 3 * n_edge_int< lvl > - 3 : 0;
-template < uint8_t lvl >
-static constexpr uint_t n_cell = polynomial::dimP< 3, n_edge< lvl > - 1 >;
-template < uint8_t lvl >
-static constexpr uint_t n_cell_int = ( lvl > 2 ) ? n_cell< lvl > - 4 * n_face_int< lvl > - 6 * n_edge_int< lvl > - 4 : 0;
-// use different level for each primitive type
-template < uint8_t l_face, uint8_t l_edge >
-static constexpr uint_t n_face_var = n_face_int< l_face > + 3 * n_edge_int< l_edge > + 3;
-template < uint8_t l_cell, uint8_t l_face, uint8_t l_edge >
-static constexpr uint_t n_cell_var = n_cell_int< l_cell > + 4 * n_face_int< l_face > + 6 * n_edge_int< l_edge > + 4;
+
+/**
+ * @brief Computes the number of vertices in a triangle with edge length n
+ *
+ * @param n number of vertices along an edge
+ * @return The triangular number of n.
+ */
+static constexpr inline uint_t tri( uint_t n )
+{
+   return n * ( n + 1 ) / 2;
+}
+
+/**
+ * @brief Computes the number of vertices in a tetrahedron with edge length n
+ *
+ * @param n number of vertices along an edge
+ * @return The tetrahedral number of n.
+ */
+static constexpr inline uint_t tet( uint_t n )
+{
+   return n * ( n + 1 ) * ( n + 2 ) / 6;
+}
+
+/**
+ * @brief Computes the downsampled number of vertices along an edge on a given level
+ *
+ * @param lvl The level of refinement.
+ * @param downsampling The downsampling factor.
+ * @return The number of downsampled vertices along the edge.
+ */
+static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling )
+{
+   return ( ( ( 1 << lvl ) - 1 ) / downsampling ) + 1; // ceil(n/d) with n = 2^lvl, d = downsampling
+}
+
+/**
+ * @brief Computes the downsampled number of vertices in a volume element
+ *
+ * @tparam D The dimension (2 for 2D, 3 for 3D).
+ * @param lvl The level of refinement.
+ * @param downsampling The downsampling factor.
+ * @return The number of vertices in the volume.
+ */
+template < uint8_t D >
+static constexpr inline uint_t n_volume( uint_t n_edge )
+{
+   return ( D == 2 ) ? tri( n_edge ) : tet( n_edge );
+}
+
+/**
+ * @brief Computes the number of vertices in a volume element with given edge length
+ *
+ * @tparam D The dimension (2 for 2D, 3 for 3D).
+ * @param n_edge The number of vertices along an edge.
+ * @return The number of vertices in the volume.
+ */
+template < uint8_t D >
+static constexpr inline uint_t n_volume( uint_t lvl, uint_t downsampling )
+{
+   return n_volume< D >( n_edge( lvl, downsampling ) );
+}
+
 } // namespace interpolation
 
 using walberla::uint_t;
 
-template < uint8_t D, uint8_t Q, uint8_t lvl, bool reduced_sample_size = false, bool precomputed = true >
+// todo change lvl and l_sample to runtime args
+template < uint8_t D, uint8_t Q, uint8_t lvl, uint8_t downsampling = 1, bool precomputed = true >
 class LeastSquares
 {
  private:
-   static constexpr uint_t n_edge = interpolation::n_edge< lvl >;
-   // reduced number of interpolation points for higher levels
-   static constexpr uint8_t face_lvl_red = ( lvl > 5 ) ? 5 : lvl;
-   static constexpr uint8_t cell_lvl_red = ( lvl > 4 ) ? 4 : lvl;
-   static constexpr int     rows_reduced =
-       ( D == 2 ) ? interpolation::n_face_var< face_lvl_red, lvl > : interpolation::n_cell_var< cell_lvl_red, face_lvl_red, lvl >;
-
- public:
-   // number of interpolation points
-   static constexpr int rows = reduced_sample_size ? rows_reduced : interpolation::n_cell< lvl >;
-   // dimension of polynomial space
-   static constexpr int cols = polynomial::dimP< D, Q >;
-
-   struct Iterator
+   class Iterator
    {
-      uint_t n; // index of interpolation point
-      uint_t i; // index of x-coordinate
-      uint_t j; // index of y-coordinate
-      uint_t k; // index of z-coordinate
-
-      inline Iterator()
-      : n( 0 )
-      , i( 0 )
-      , j( 0 )
-      , k( 0 )
-      , di( 1 )
-      , dj( 1 )
+    public:
+      inline Iterator( uint_t mylvl, uint_t d )
+      : _n( 0 )
+      , _i( 0 )
+      , _j( 0 )
+      , _k( 0 )
+      , _ijk_max( interpolation::n_edge( mylvl, 1 ) )
+      , _n_max( interpolation::n_volume< D >( mylvl, d ) )
+      , _stride( d )
       {}
 
       inline Iterator& operator++()
       {
-         if constexpr ( reduced_sample_size )
+         _i += _stride;
+         if ( _i >= _ijk_max - _j - _k )
          {
-            increment_ijk_reduced();
+            _i = 0;
+            _j += _stride;
+            if ( _j >= _ijk_max - _k )
+            {
+               _j = 0;
+               _k += _stride;
+            }
          }
-         else
-         {
-            increment_ijk();
-         }
-         ++n;
+         ++_n;
          return *this;
       }
 
+      inline constexpr uint_t i() const { return _i; }
+      inline constexpr uint_t j() const { return _j; }
+      inline constexpr uint_t k() const { return _k; }
+      inline constexpr uint_t operator()() const { return _n; }
+      inline constexpr uint_t end() const { return _n_max; }
+      inline constexpr bool   operator!=( const uint_t other ) const { return _n != other; }
+      inline constexpr bool   operator==( const uint_t other ) const { return _n == other; }
+
     private:
-      inline constexpr void increment_ijk()
-      {
-         ++i;
-         if ( i >= n_edge - j - k )
-         {
-            i = 0;
-            ++j;
-            if ( j >= n_edge - k )
-            {
-               j = 0;
-               ++k;
-            }
-         }
-      }
+      uint_t _n; // index of sample point (row in A)
+      uint_t _i; // index of x-coordinate
+      uint_t _j; // index of y-coordinate
+      uint_t _k; // index of z-coordinate
 
-      inline constexpr void increment_ijk_reduced()
-      {
-         i += di;
-         if ( i >= n_edge - j - k ) // leaving triangle in x direction
-         {
-            if ( i - di < n_edge - j - k - 1 ) // jumped over 1-2-3 face
-            {
-               // add point on the 1-2-3 face (or 1-3 edge)
-               i = n_edge - j - k - 1;
-            }
-            else
-            {
-               // increment j
-               i = 0;
-               j += dj;
-               // adjust di
-               if ( k == 0 && j % f_stride == 0 )
-               {
-                  // 0-1-2 face interior
-                  di = f_stride; // reduced number of points on face
-               }
-               else if ( j % c_stride == 0 && k % c_stride == 0 )
-               {
-                  // cell interior
-                  di = c_stride; // reduced number of points in cell
-               }
-               else
-               {
-                  // skip these lines
-                  di = n_edge;
-               }
-            }
-            if ( j >= n_edge - k ) // leaving triangle in y direction
-            {
-               if ( j - dj < n_edge - k - 1 ) // jumped over 2-3 edge
-               {
-                  // add point on the 2-3 edge
-                  j = n_edge - k - 1;
-               }
-               else
-               {
-                  // increment k
-                  j = 0;
-                  ++k;
-                  // adjust di and dj
-                  if ( k % f_stride == 0 )
-                  {
-                     // 0-1-2 face interior
-                     di = f_stride; // reduced number of points on face
-                     // 0-1-3 face interior
-                     dj = f_stride; // reduced number of points on face
-                  }
-                  else
-                  {
-                     // skip these planes
-                     di = n_edge;
-                     dj = n_edge;
-                  }
-               }
-            }
-         }
-      }
-
-      int di;
-      int dj;
-
-      static constexpr uint_t f_stride = 1 << ( lvl - face_lvl_red );
-      static constexpr uint_t c_stride = 1 << ( lvl - cell_lvl_red );
+      uint_t _ijk_max; // number of microedges along an edge (only coincides with sample points along edge if downsampling=1)
+      uint_t _n_max;   // number of sample points
+      uint_t _stride;  // downsampling factor
    };
+
+ public:
+   // number of interpolation points
+   static constexpr int rows = interpolation::n_volume< D >( lvl, downsampling );
+   // dimension of polynomial space
+   static constexpr int cols = polynomial::dimP< D, Q >;
 
    LeastSquares()
    : A( rows, cols )
@@ -191,6 +163,7 @@ class LeastSquares
    , b( rows )
    , c( cols )
    {
+      // todo change to runtime check
       if constexpr ( precomputed )
       {
          WALBERLA_LOG_WARNING_ON_ROOT(
@@ -200,14 +173,14 @@ class LeastSquares
       constexpr polynomial::Basis< D, Q > phi;
       constexpr polynomial::Coordinates   coords( lvl );
 
-      Iterator it;
-      while ( it.n < rows )
+      auto it = samplingIterator();
+      while ( it != it.end() )
       {
-         auto x = coords.x( it.i, it.j, it.k );
+         auto x = coords.x( it.i(), it.j(), it.k() );
 
          for ( uint_t col = 0; col < cols; ++col )
          {
-            A( it.n, col ) = phi.eval( col, x );
+            A( it(), col ) = phi.eval( col, x );
          }
          ++it;
       }
@@ -221,14 +194,13 @@ class LeastSquares
       V  = svd.matrixV();
    }
 
-   void     setRHS( const Eigen::Matrix< double, rows, 1 >& rhs ) { b = rhs; }
-   Iterator samplingIterator() const { return Iterator(); }
+   Iterator samplingIterator() const { return Iterator( lvl, downsampling ); }
    void     setRHS( const uint_t n, const double val ) { b( n ) = val; }
 
-   const auto& solve()
+   const polynomial::Polynomial< D, Q > solve()
    {
-      c = V * ( Si * ( Uh * b ) );
-      return c;
+      c = V * ( Si.cwiseProduct( Uh * b ) );
+      return polynomial::Polynomial< D, Q >( c );
    }
 
    using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
