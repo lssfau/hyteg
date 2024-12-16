@@ -24,6 +24,8 @@ void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator )
    auto t1 = walberla::timing::getWcTime();
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Time for Vander+SVD: %f", t1 - t0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "n_samples = %d; dim(P) = %d", lsq.rows, lsq.cols ) );
+
 
    // define smooth function
    auto f = []( const std::array< double, 3 >& x ) {
@@ -249,15 +251,17 @@ int main( int argc, char* argv[] )
    // lsqtst< 3, 8, 6, false >( 0 );
    // lsqtst< 3, 8, 6, 2 >( 0 );
    // lsqtst< 3, 9, 6, false >( 0 );
-   lsqtst< 3, 12 >( 6, 1, 0 );
-   lsqtst< 3, 12 >( 6, 2, 0 );
-   lsqtst< 3, 12 >( 6, 3, 0 );
-   lsqtst< 3, 12 >( 6, 4, 0 );
+   // lsqtst< 3, 12 >( 6, 1, 0 );
+   lsqtst< 3, 9 >( 4, 1, 0 );
+   lsqtst< 3, 9 >( 4, 2, 0 );
+   lsqtst< 3, 9 >( 4, 3, 0 );
+   lsqtst< 3, 9 >( 4, 4, 0 );
+   lsqtst< 3, 9 >( 4, 0, 0 );
    // lsqtst< 3, 9, 4, 1 >( 0 );
    // lsqtst< 3, 9, 5, 1 >( 0 );
-   // lsqtst< 3, 9, 6, 1 >( 0 );
+   // lsqtst< 3, 9, 6, 1 >( 0 );1
 
-   // lsqtst< 3, 10, 5, true >( 0 );
+   // lsqtst< 3, 10, 5, true >( 0 );1
    // lsqtst< 3, 10, 8, true >( 0 );
 
    // polytst< 1, 1 >();

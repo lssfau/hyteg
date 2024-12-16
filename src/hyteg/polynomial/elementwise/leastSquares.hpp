@@ -189,23 +189,33 @@ class LeastSquares
       uint_t _stride;  // downsampling factor
    };
 
- public:
-   // number of interpolation points
-   const int rows;
-   // dimension of polynomial space
-   static constexpr int cols = polynomial::dimP< D, Q >;
+   // compute downsampling factor s.th. number of sample points exceeds number of coefficients
+   static constexpr uint_t compute_automatic_downsampling( uint_t lvl )
+   {
+      uint_t d = 3;
+      for ( ; d > 1; --d )
+      {
+         if ( interpolation::n_volume< D >( lvl, d ) > cols )
+         {
+            break;
+         }
+      }
+      return d;
+   }
 
+ public:
    /**
     * @brief Constructs a LeastSquares object.
     *
     * @param lvl The level of refinement.
     * @param downsampling The downsampling factor.
+    * (0: choose automatically, 1: no downsampling, n: only use every n-th vertex in each direction)
     * @param precomputed Flag to indicate if a precomputed SVD should be used
     */
    LeastSquares( uint_t lvl, uint_t downsampling = 1, bool precomputed = true )
    : _lvl( lvl )
-   , _downsampling( downsampling )
-   , rows( interpolation::n_volume< D >( lvl, downsampling ) )
+   , _downsampling( ( downsampling == 0 ) ? compute_automatic_downsampling( _lvl ) : downsampling )
+   , rows( interpolation::n_volume< D >( _lvl, _downsampling ) )
    , A( rows, cols )
    , Uh( cols, rows )
    , Si( cols )
@@ -282,6 +292,14 @@ class LeastSquares
    const uint_t _lvl;
    // downsampling factor
    const uint_t _downsampling;
+
+ public:
+   // number of interpolation points
+   const int rows;
+   // dimension of polynomial space
+   static constexpr int cols = polynomial::dimP< D, Q >;
+
+ private:
    // Vandermonde matrix
    Matrix A;
    // SVD of Vandermonde matrix
