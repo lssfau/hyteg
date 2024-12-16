@@ -11,15 +11,15 @@ using walberla::uint_t;
 using walberla::math::pi;
 using walberla::math::realRandom;
 
-template < uint8_t dim, uint8_t degree, uint8_t lvl, uint8_t downsampling >
-void lsqtst( int print_iterator )
+template < uint8_t dim, uint8_t degree >
+void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator )
 {
    WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( "LeastSquares< dim=%d, degree=%d, lvl=%d, downsampling=%d >", dim, degree, lvl, downsampling ) );
+       walberla::format( "LeastSquares: dim=%d, degree=%d, lvl=%d, downsampling=%d", dim, degree, lvl, downsampling ) );
 
    auto t0 = walberla::timing::getWcTime();
 
-   hyteg::surrogate::LeastSquares< dim, degree, lvl, downsampling, false > lsq;
+   hyteg::surrogate::LeastSquares< dim, degree > lsq( lvl, downsampling, false );
 
    auto t1 = walberla::timing::getWcTime();
 
@@ -42,8 +42,9 @@ void lsqtst( int print_iterator )
    // solve least squares problem
    auto p = lsq.solve();
    // evaluate polynomial and compute error
-   double error = 0.0;
-   uint_t k_max = ( dim == 3 ) ? ( 1 << lvl ) : 1;
+   uint_t len_edge = ( uint_t( 1 ) << lvl );
+   double error    = 0.0;
+   uint_t k_max    = ( dim == 3 ) ? len_edge : 1;
    for ( uint_t k = 0; k < k_max; ++k )
    {
       auto z = coords.x( k );
@@ -51,14 +52,14 @@ void lsqtst( int print_iterator )
       {
          p.fix_z( z );
       }
-      for ( uint_t j = 0; j < ( 1 << lvl ) - k; ++j )
+      for ( uint_t j = 0; j < len_edge - k; ++j )
       {
          auto y = coords.x( j );
          if ( dim >= 2 )
          {
             p.fix_y( y );
          }
-         for ( uint_t i = 0; i < ( 1 << lvl ) - k - j; ++i )
+         for ( uint_t i = 0; i < len_edge - k - j; ++i )
          {
             auto x = coords.x( i );
             auto e = f( { x, y, z } ) - p.eval( x );
@@ -66,7 +67,7 @@ void lsqtst( int print_iterator )
          }
       }
    }
-   auto h  = 1.0 / double( 1 << lvl );
+   auto h  = 1.0 / double( len_edge );
    auto dV = std::pow( h, dim );
    error   = std::sqrt( error * dV );
 
@@ -95,7 +96,7 @@ void lsqtst( int print_iterator )
          if ( k < it.k() )
          {
             std::cout << "\n\n";
-            for ( i = 0; i < ( 1 << lvl ); ++i )
+            for ( i = 0; i < len_edge; ++i )
             {
                std::cout << "-";
             }
@@ -106,7 +107,7 @@ void lsqtst( int print_iterator )
          }
          for ( ; j < it.j(); ++j )
          {
-            for ( i = 0; i < ( 1 << lvl ); ++i )
+            for ( i = 0; i < len_edge; ++i )
             {
                std::cout << " ";
             }
@@ -126,7 +127,7 @@ void lsqtst( int print_iterator )
          ++it;
       }
       std::cout << "\n\n";
-      for ( i = 0; i < ( 1 << lvl ); ++i )
+      for ( i = 0; i < len_edge; ++i )
       {
          std::cout << "-";
       }
@@ -248,10 +249,10 @@ int main( int argc, char* argv[] )
    // lsqtst< 3, 8, 6, false >( 0 );
    // lsqtst< 3, 8, 6, 2 >( 0 );
    // lsqtst< 3, 9, 6, false >( 0 );
-   lsqtst< 3, 12, 6, 1 >( 0 );
-   lsqtst< 3, 12, 6, 2 >( 0);
-   lsqtst< 3, 12, 6, 3 >( 0 );
-   lsqtst< 3, 12, 6, 4 >( 0 );
+   lsqtst< 3, 12 >( 6, 1, 0 );
+   lsqtst< 3, 12 >( 6, 2, 0 );
+   lsqtst< 3, 12 >( 6, 3, 0 );
+   lsqtst< 3, 12 >( 6, 4, 0 );
    // lsqtst< 3, 9, 4, 1 >( 0 );
    // lsqtst< 3, 9, 5, 1 >( 0 );
    // lsqtst< 3, 9, 6, 1 >( 0 );

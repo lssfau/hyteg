@@ -28,6 +28,8 @@
 namespace hyteg {
 namespace surrogate {
 
+using walberla::uint_t;
+
 namespace interpolation {
 
 /**
@@ -93,26 +95,38 @@ static constexpr inline uint_t n_volume( uint_t lvl, uint_t downsampling )
 
 } // namespace interpolation
 
-using walberla::uint_t;
-
-// todo change lvl and l_sample to runtime args
-template < uint8_t D, uint8_t Q, uint8_t lvl, uint8_t downsampling = 1, bool precomputed = true >
+template < uint8_t D, uint8_t Q >
 class LeastSquares
 {
  private:
+   /**
+    * @class Iterator
+    * @brief Iterator class to iterate over sample points
+    */
    class Iterator
    {
     public:
-      inline Iterator( uint_t mylvl, uint_t d )
+      /**
+       * @brief Constructs an Iterator object.
+       *
+       * @param lvl The level of refinement.
+       * @param downsampling The downsampling factor.
+       */
+      inline Iterator( uint_t lvl, uint_t downsampling )
       : _n( 0 )
       , _i( 0 )
       , _j( 0 )
       , _k( 0 )
-      , _ijk_max( interpolation::n_edge( mylvl, 1 ) )
-      , _n_max( interpolation::n_volume< D >( mylvl, d ) )
-      , _stride( d )
+      , _ijk_max( interpolation::n_edge( lvl, 1 ) )
+      , _n_max( interpolation::n_volume< D >( lvl, downsampling ) )
+      , _stride( downsampling )
       {}
 
+      /**
+       * @brief Prefix increment operator.
+       *
+       * @return Iterator& Reference to the incremented iterator.
+       */
       inline Iterator& operator++()
       {
          _i += _stride;
@@ -130,10 +144,36 @@ class LeastSquares
          return *this;
       }
 
+      /**
+       * @brief Getter for vertex index in x direction.
+       *
+       * @return uint_t Vertex index in x direction.
+       */
       inline constexpr uint_t i() const { return _i; }
+      /**
+       * @brief Getter for vertex index in y direction.
+       *
+       * @return uint_t Vertex index in y direction.
+       */
       inline constexpr uint_t j() const { return _j; }
+      /**
+       * @brief Getter for vertex index in z direction.
+       *
+       * @return uint_t Vertex index in z direction.
+       */
       inline constexpr uint_t k() const { return _k; }
+      /**
+       * @brief Getter for index of sample point.
+       *
+       * @return uint_t Index of sample point = row of Vandermonde matrix.
+       */
       inline constexpr uint_t operator()() const { return _n; }
+      /**
+       * @brief end of this iterator. Useage:
+       * while ( it != it.end() ) { ... }
+       *
+       * @return uint_t end of iterator.
+       */
       inline constexpr uint_t end() const { return _n_max; }
       inline constexpr bool   operator!=( const uint_t other ) const { return _n != other; }
       inline constexpr bool   operator==( const uint_t other ) const { return _n == other; }
@@ -151,52 +191,83 @@ class LeastSquares
 
  public:
    // number of interpolation points
-   static constexpr int rows = interpolation::n_volume< D >( lvl, downsampling );
+   const int rows;
    // dimension of polynomial space
    static constexpr int cols = polynomial::dimP< D, Q >;
 
-   LeastSquares()
-   : A( rows, cols )
+   /**
+    * @brief Constructs a LeastSquares object.
+    *
+    * @param lvl The level of refinement.
+    * @param downsampling The downsampling factor.
+    * @param precomputed Flag to indicate if a precomputed SVD should be used
+    */
+   LeastSquares( uint_t lvl, uint_t downsampling = 1, bool precomputed = true )
+   : _lvl( lvl )
+   , _downsampling( downsampling )
+   , rows( interpolation::n_volume< D >( lvl, downsampling ) )
+   , A( rows, cols )
    , Uh( cols, rows )
    , Si( cols )
    , V( cols, cols )
    , b( rows )
    , c( cols )
    {
-      // todo change to runtime check
-      if constexpr ( precomputed )
+      // todo use precomputed flag
+      if ( precomputed )
       {
          WALBERLA_LOG_WARNING_ON_ROOT(
              "For the specified template arguments, surrogate::LeasSquares has not been precomputed.\nComputing SVD now." );
       }
-      WALBERLA_LOG_INFO_ON_ROOT( "Setup Vandermonde matrix" );
-      constexpr polynomial::Basis< D, Q > phi;
-      constexpr polynomial::Coordinates   coords( lvl );
-
-      auto it = samplingIterator();
-      while ( it != it.end() )
+      else
       {
-         auto x = coords.x( it.i(), it.j(), it.k() );
+         // todo remove log_info
+         WALBERLA_LOG_INFO_ON_ROOT( "Setup Vandermonde matrix" );
+         constexpr polynomial::Basis< D, Q > phi;
+         const polynomial::Coordinates       coords( lvl );
 
-         for ( uint_t col = 0; col < cols; ++col )
+         auto it = samplingIterator();
+         while ( it != it.end() )
          {
-            A( it(), col ) = phi.eval( col, x );
-         }
-         ++it;
-      }
+            auto x = coords.x( it.i(), it.j(), it.k() );
 
-      // SVD
-      WALBERLA_LOG_INFO_ON_ROOT( "Compute SVD" );
-      Eigen::JacobiSVD< Matrix > svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
-      WALBERLA_LOG_INFO_ON_ROOT( "Store SVD" );
-      Uh = svd.matrixU().adjoint();
-      Si = svd.singularValues().cwiseInverse();
-      V  = svd.matrixV();
+            for ( uint_t col = 0; col < cols; ++col )
+            {
+               A( it(), col ) = phi.eval( col, x );
+            }
+            ++it;
+         }
+
+         // SVD
+         WALBERLA_LOG_INFO_ON_ROOT( "Compute SVD" );
+         Eigen::JacobiSVD< Matrix > svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
+         WALBERLA_LOG_INFO_ON_ROOT( "Store SVD" );
+         Uh = svd.matrixU().adjoint();
+         Si = svd.singularValues().cwiseInverse();
+         V  = svd.matrixV();
+      }
    }
 
-   Iterator samplingIterator() const { return Iterator( lvl, downsampling ); }
-   void     setRHS( const uint_t n, const double val ) { b( n ) = val; }
+   /**
+    * @brief Getter for sampling iterator.
+    *
+    * @return An iterator over all sampling points. Use to set right-hand side.
+    */
+   Iterator samplingIterator() const { return Iterator( _lvl, _downsampling ); }
 
+   /**
+    * @brief Set n-th coefficient of right hand side vector.
+    *
+    * @param n Index of the coefficient. Useage: n=it() with auto it = samplingIterator()
+    * @param val Value of the coefficient, i.e. f(it.i(), it.j(), it.k()), where f is the function to be approximated.
+    */
+   void setRHS( const uint_t n, const double val ) { b( n ) = val; }
+
+   /**
+    * @brief Solve the least squares problem. Use after setting all right-hand side coefficients.
+    *
+    * @return The polynomial object with the computed coefficients.
+    */
    const polynomial::Polynomial< D, Q > solve()
    {
       c = V * ( Si.cwiseProduct( Uh * b ) );
@@ -207,6 +278,10 @@ class LeastSquares
    using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
 
  private:
+   // level of refinement
+   const uint_t _lvl;
+   // downsampling factor
+   const uint_t _downsampling;
    // Vandermonde matrix
    Matrix A;
    // SVD of Vandermonde matrix

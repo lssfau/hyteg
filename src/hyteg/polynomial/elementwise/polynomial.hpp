@@ -186,6 +186,7 @@ class Polynomial
    , restriction()
    {}
 
+   // fix z coordinate s.th. only 2d polynomial must be evaluated
    void fix_z( const double z, bool use_for_y = false ) const
    {
       if constexpr ( D == 2 )
@@ -219,6 +220,7 @@ class Polynomial
       }
    }
 
+   // fix y coordinate s.th. only 1d polynomial must be evaluated
    void fix_y( const double y ) const
    {
       if constexpr ( D == 2 )
@@ -236,6 +238,14 @@ class Polynomial
    }
 
    // evaluate 1d polynomial using Horner's method
+
+   /** @brief Evaluate the 1d polynomial at x using Horner's method.
+    *
+    * Usage: p.fix_z(z); p.fix_y(y); p.eval(x);
+    *
+    * @param x The x-coordinate.
+    * @return p(x)
+    */
    inline double eval( const double x ) const
    {
       if constexpr ( D == 1 )
