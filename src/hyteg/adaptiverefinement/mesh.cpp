@@ -241,18 +241,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
 
    if ( verbose )
    {
-      auto info = [&]( const std::string& which, const Strategy& strat ) {
-         if ( strat.t == Strategy::WEIGHTED_MEAN )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( which << " strategy: weighted mean with weights w_i = (n-i)^(" << strat.p << ")" );
-         }
-         if ( strat.t == Strategy::PERCENTILE )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( which << " strategy: percentile with p = " << strat.p * 100 << "%" );
-         }
-      };
-      info( "refinement", ref_strat );
-      info( "coarsening", cors_strat );
+      WALBERLA_LOG_INFO_ON_ROOT( "Adaptive refinement:" );
       WALBERLA_LOG_INFO_ON_ROOT( " -> min_i e_i = " << err_glob.back().first );
       WALBERLA_LOG_INFO_ON_ROOT( " -> max_i e_i = " << err_glob.front().first );
    }
@@ -305,6 +294,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       crit_r      = [e_mean]( real_t e_i, uint_t ) -> bool { return e_i >= e_mean; };
       if ( verbose )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refinemnt strategy: weighted mean with weights w_i = (n-i)^(" << ref_strat.p << ")" );
          WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << e_mean );
       }
    }
@@ -314,6 +304,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       crit_r     = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
       if ( verbose )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refinemnt strategy: percentile with p = " << ref_strat.p * 100 << "%" );
          WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
       }
    }
@@ -339,6 +330,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       crit_r = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
       if ( verbose )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( " -> refinemnt strategy: Dörfler marking with p = " << ref_strat.p );
          WALBERLA_LOG_INFO_ON_ROOT( " -> refining all elements i where e_i >= " << err_glob[sizeR - 1].first );
       }
    }
@@ -370,7 +362,8 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       crit_c      = [e_mean]( real_t e_i, uint_t ) -> bool { return e_i < e_mean; };
       if ( verbose )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i < " << e_mean );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening strategy: weighted mean with weights w_i = (n-i)^(" << cors_strat.p << ")" );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> unrefine all elements i where e_i < " << e_mean );
       }
    }
    else if ( cors_strat.t == Strategy::PERCENTILE )
@@ -379,7 +372,8 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       crit_c     = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
       if ( verbose )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening strategy: percentile with p = " << cors_strat.p * 100 << "%" );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> unrefine all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
       }
    }
    else if ( cors_strat.t == Strategy::MULTIPLE_OF_R )
@@ -394,7 +388,8 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
       crit_c = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
       if ( verbose )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsen all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening strategy: coarsen p*|R| elements where p = " << cors_strat.p );
+         WALBERLA_LOG_INFO_ON_ROOT( " -> unrefine all elements i where e_i <= " << err_glob[_n_elements - sizeC].first );
       }
    }
    else

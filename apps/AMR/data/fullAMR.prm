@@ -1,36 +1,36 @@
 Parameters
 {
-  dim 3;
+  dim 2;
 
   // adaptive refinement:
-  n_amr 4; // number of refinement steps; default: 0
-  n_regular_refinement 4; //number of initial regular refinement steps (to enable coarsening); default: n_amr
-  p_refinement 0.02; // refinement parameter [0,1]
+  n_amr 5; // number of refinement steps; default: 0
+  n_regular_refinement 5; //number of initial regular refinement steps (to enable coarsening); default: n_amr
+  p_refinement 0.1; // refinement parameter [0,1]
                     // refine the p*n_el elements with the largest error,
                     // where n_el is the number of elements
                     // default: 0.1 for 2D, 0.02 for 3D
-  p_coarsen 16; // mark p*n_R elements for coarsening,
+  p_coarsen 4; // mark p*n_R elements for coarsening,
               // where n_R is the number of elements marked for refinement
               // should be adjusted s.th. the n_el is roughly constant;
               // default: 4 for 2D, 16 for 3D
 
   // error estimation
-  error_indicator 0; // else refine based on actual L2 error (using analytic solution); default: 1
-  global_error_estimate 0; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4); default: 0
-  l2error 1; // compute actual L2 error after every n-th iteration; default: 0 (never)
+  error_indicator 1; // else refine based on actual L2 error (using analytic solution); default: 1
+  global_error_estimate 1; // estimate global L2 error (requires at least 3 MG levels, e.g. lvl 0-2); default: 1
+  l2error 1; // compute actual L2 error after every n-th iteration; default: 1
 
   // linear solver (FMG)
   l_min 0; // default: 0
-  l_max 0; // default: 2
+  l_max 4; // default: 4
   inner_cycles 1; // number of V-cycles on each level in FMG (including l_max); default: 1
   presmooth 2; // number of gs iterations for presmoothing; default: 2
   postsmooth 1; // number of gs iterations for presmoothing; default: 1
-  cg_tolerance 1e-4; // stopping criterion for coarse grid solver (CG); default 1e-10
+  cg_tolerance 1e-10; // stopping criterion for coarse grid solver (CG); default 1e-10
   additional_v_cycles 0; // number of additional V-cycles to be applied after FMG; default: 0
 
   // misc
   // vtkName auto;
-  // writeDomainPartitioning 1;
+  // writeDomainPartitioning 0;
   // writeMeshfile 0;
   // printMeshData 0;
 }

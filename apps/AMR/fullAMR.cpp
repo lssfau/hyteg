@@ -315,16 +315,13 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
          auto theta = errorEstimator->theta( j );
          auto q     = -log( theta ) / log( 2.0 );
 
-         if ( j > 1 ) // for j=1, the estimates tend to be inaccurate
-         {
-            theta_min = std::min( theta, theta_min );
-            theta_max = std::max( theta, theta_max );
-         }
+         theta_min = std::min( theta, theta_min );
+         theta_max = std::max( theta, theta_max );
 
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " ->  j=%d: η_j = %1.2e, θ_j ≈ %1.2f ⇒ ||e||_L2 ≈ O(h^%1.2f)", j, eta, theta, q ) );
       }
-      auto rho = ( j_max < 3 ) ? 0.0 : theta_min / theta_max;
+      auto rho = theta_min / theta_max;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  reliability: ϱ = %1.2f", rho ) );
       if ( rho < 0.9 )
       {
@@ -566,17 +563,22 @@ int main( int argc, char* argv[] )
 
    const uint_t dim = parameters.getParameter< uint_t >( "dim", 0 );
 
+   if ( dim != 2 && dim != 3 )
+   {
+      WALBERLA_ABORT( "Invalid dimension: " << dim );
+   }
+
    const uint_t n_amr        = parameters.getParameter< uint_t >( "n_amr", 0 );
    const uint_t n_regref     = parameters.getParameter< uint_t >( "n_regular_refinement", n_amr );
-   const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", (dim == 2) ? 0.1 : 0.02 );
+   const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", ( dim == 2 ) ? 0.1 : 0.02 );
    const real_t p_coarsen    = parameters.getParameter< real_t >( "p_coarsen", ( dim == 2 ) ? 4.0 : 16.0 );
 
    const bool error_indicator       = parameters.getParameter< bool >( "error_indicator", true );
-   bool       global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
-   uint_t     l2error               = parameters.getParameter< uint_t >( "l2error", 0 );
+   bool       global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", true );
+   uint_t     l2error               = parameters.getParameter< uint_t >( "l2error", 1 );
 
    const uint_t l_min        = parameters.getParameter< uint_t >( "l_min", 0 );
-   const uint_t l_max        = parameters.getParameter< uint_t >( "l_max", 2 );
+   const uint_t l_max        = parameters.getParameter< uint_t >( "l_max", 4 );
    const uint_t inner_cycles = parameters.getParameter< uint_t >( "inner_cycles", 1 );
    const uint_t n1           = parameters.getParameter< uint_t >( "presmooth", 2 );
    const uint_t n2           = parameters.getParameter< uint_t >( "postsmooth", 1 );
@@ -591,15 +593,13 @@ int main( int argc, char* argv[] )
 
    if ( error_indicator && l_max - l_min < 1 )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT(
-          "Local error indicator requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 1." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Local error indicator requires at least 2 multigrid levels, i.e., l_max - l_min >= 1." )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.error_indicator=0" );
       global_error_estimate = 0;
    }
-   if ( global_error_estimate && l_max - l_min < 3 )
+   if ( global_error_estimate && l_max - l_min < 2 )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT(
-          "Global error estimation requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 3." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Global error estimation requires at least 3 multigrid levels, i.e., l_max - l_min >= 2." )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
       global_error_estimate = 0;
    }
