@@ -32,6 +32,8 @@
 
 #include "core/DataTypes.h"
 
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
+
 namespace terraneo {
 
 using walberla::real_c;
@@ -237,19 +239,27 @@ struct SimulationParameters
    bool timingAnalysis = true;
 };
 
-struct InitialisationParameters
+enum INITIAL_TEMPERATURE_DEVIATION_METHOD : unsigned int
 {
-   uint_t                tempInit                     = 3;
-   uint_t                deg                          = 4;
-   int                   ord                          = 2;
-   uint_t                lmax                         = 4;
-   uint_t                lmin                         = 0;
-   bool                  superposition                = false;
-   bool                  temperatureNoise             = true;
-   bool                  temperatureSphericalHarmonic = false;
-   real_t                noiseFactor                  = real_c( 0.1 );
-   std::vector< real_t > superpositionRand;
-   real_t                buoyancyFactor = real_c( 0.01 );
+   WHITE_NOISE              = 0,
+   SINGLE_SPH               = 1,
+   RANDOM_SUPERPOSITION_SPH = 2,
+};
+struct TemperatureDeivationInitialisationParameters
+{
+   uint_t tempInit                          = 3;
+   uint_t initialTemperatureDeviationMethod = 0;
+   real_t buoyancyFactor                    = real_c( 0.01 );
+   // Single SPH
+   uint_t deg = 4;
+   int    ord = 2;
+   // Superposition SPH
+   uint_t                                    lmax                        = 4;
+   uint_t                                    lmin                        = 0;
+   uint_t                                    superpositionSPHRandomSeed  = 42;
+   real_t                                    initialTemperatureSteepness = real_c( 10 );
+   std::vector< real_t >                     superpositionRand;
+   std::shared_ptr< SphericalHarmonicsTool > sphTool;
 };
 
 struct PhysicalParameters
@@ -267,7 +277,6 @@ struct PhysicalParameters
    std::vector< real_t > thermalExpansivityProfile;
    std::vector< real_t > specificHeatCapacityProfile;
    std::vector< real_t > densityProfile;
-   real_t                initialTemperatureSteepness = real_c( 10 );
 
    //temperature
    //physical versions used to calculate non-D numbers, others used in simulation
@@ -318,12 +327,12 @@ struct PhysicalParameters
 
 struct TerraNeoParameters
 {
-   DomainParameters         domainParameters;
-   SolverParameters         solverParameters;
-   OutputParameters         outputParameters;
-   SimulationParameters     simulationParameters;
-   InitialisationParameters initialisationParameters;
-   PhysicalParameters       physicalParameters;
+   DomainParameters                             domainParameters;
+   SolverParameters                             solverParameters;
+   OutputParameters                             outputParameters;
+   SimulationParameters                         simulationParameters;
+   TemperatureDeivationInitialisationParameters initialisationParameters;
+   PhysicalParameters                           physicalParameters;
 };
 
 } // namespace terraneo

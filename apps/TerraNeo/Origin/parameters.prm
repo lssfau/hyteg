@@ -24,48 +24,48 @@ Parameters
    //////////////////////////////////
 
    // Temperature Initialisation 
+   
+   // Reference Temperature
+   temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
 
+   // Steepness of temperature filtering
+   initialTemperatureSteepness 4;
+
+   /************************************************************/
+   // Temperature noise (deviation) 
+   // temperatureDeviationMethod: determine the method of creating noise (deviation) at initialisation
+   // 0: White noise
+   // 1: Single SPH
+   // 2: Random superposition SPH
+   initialTemperatureDeviationMethod 2;
+   
+   // buoyancyFactor: scaling temperature anomalies
+   buoyancyFactor 0.01;
+
+   // Method 0: White Noise
+   // No extra param
+
+   // Method 1: Single SPH
+   // degree, order: Degree and order of the Single SPH
+   degree 4;
+   order 8;
+
+   // Method 2: Random Superposition SPH
+   // lmin, lmax: min and max of l
+   lmin 2;
+   lmax 8;
+   superpositionSPHRandomSeed 42;
+
+   // Method 1 & 2: Single / Random Superposition SPH
    // tempInit: determine a filter for the initial sperical harmonics (default: no filtering)
    // tempInit = 0: keep anomalies near CMB
    // tempInit = 1: keep anomalies near the surface
    // tempInit = 2: keep anomalies near both boundaries 
-
+   // tempInit = 3: no filtering
    tempInit 0;
 
-   temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
-
-   // Steepness of temperature filtering
-
-   initialTemperatureSteepness 4;
-
    /************************************************************/
-   // Temperature noise 
-   // generate random Gaussian noise to replce spherical harmonics 
-   // false: generate spherical harmonics 
-
-   temperatureNoise false;
-   temperatureSphericalHarmonic true;
-
-   // the default value of noiseFactor is set to 0.05
-   noiseFactor 0.02; 
-   /************************************************************/
-
-   // Spherical Harmonics parameters
-
-   degree 4;
-   order 8;
-   lmin 2;
-   lmax 8;
-
-   // Spherical Harmonics superposition
-   // generate random superposition of spherical harmonics (lmin -> lmax)
-   // false: generate a single spherical harmonic (degree and order defined above)
-
-   superposition true;
-
-   // scaling temperature anomalies in the initial state
-
-   buoyancyFactor 0.01;
+   
    ////////////////////////////
    //  Material parameters   //
    ////////////////////////////
@@ -122,7 +122,7 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile TestCase2ViscositiyProfile.json;
+   viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
    thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
    specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;

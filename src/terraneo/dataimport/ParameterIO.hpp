@@ -29,6 +29,7 @@
 #include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/plates/PlateVelocityProvider.hpp"
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 namespace terraneo {
 
@@ -93,12 +94,12 @@ std::shared_ptr< terraneo::plates::PlateVelocityProvider > oracle;
 
 inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
-   DomainParameters         domainParam;
-   SolverParameters         solverParam;
-   OutputParameters         outputParam;
-   SimulationParameters     simulationParam;
-   PhysicalParameters       physicalParam;
-   InitialisationParameters initialisationParam;
+   DomainParameters                             domainParam;
+   SolverParameters                             solverParam;
+   OutputParameters                             outputParam;
+   SimulationParameters                         simulationParam;
+   PhysicalParameters                           physicalParam;
+   TemperatureDeivationInitialisationParameters initialisationParam;
 
    /*############ DOMAIN PARAMETERS ############*/
 
@@ -183,18 +184,17 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
                                                   physicalParam.mantleThickness );
    }
 
-   physicalParam.cmbTemp                     = mainConf.getParameter< real_t >( "cmbTemp" );
-   physicalParam.surfaceTemp                 = mainConf.getParameter< real_t >( "surfaceTemp" );
-   physicalParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-   physicalParam.thermalExpansivity          = mainConf.getParameter< real_t >( "thermalExpansivity" );
-   physicalParam.thermalConductivity         = mainConf.getParameter< real_t >( "thermalConductivity" );
-   physicalParam.grueneisenParameter         = mainConf.getParameter< real_t >( "grueneisenParameter" );
-   physicalParam.specificHeatCapacity        = mainConf.getParameter< real_t >( "specificHeatCapacity" );
-   physicalParam.internalHeatingRate         = mainConf.getParameter< real_t >( "internalHeatingRate" );
-   physicalParam.characteristicVelocity      = mainConf.getParameter< real_t >( "characteristicVelocity" );
-   physicalParam.surfaceDensity              = mainConf.getParameter< real_t >( "surfaceDensity" );
-   physicalParam.referenceDensity            = mainConf.getParameter< real_t >( "referenceDensity" );
-   physicalParam.viscosity                   = mainConf.getParameter< real_t >( "viscosity" );
+   physicalParam.cmbTemp                = mainConf.getParameter< real_t >( "cmbTemp" );
+   physicalParam.surfaceTemp            = mainConf.getParameter< real_t >( "surfaceTemp" );
+   physicalParam.thermalExpansivity     = mainConf.getParameter< real_t >( "thermalExpansivity" );
+   physicalParam.thermalConductivity    = mainConf.getParameter< real_t >( "thermalConductivity" );
+   physicalParam.grueneisenParameter    = mainConf.getParameter< real_t >( "grueneisenParameter" );
+   physicalParam.specificHeatCapacity   = mainConf.getParameter< real_t >( "specificHeatCapacity" );
+   physicalParam.internalHeatingRate    = mainConf.getParameter< real_t >( "internalHeatingRate" );
+   physicalParam.characteristicVelocity = mainConf.getParameter< real_t >( "characteristicVelocity" );
+   physicalParam.surfaceDensity         = mainConf.getParameter< real_t >( "surfaceDensity" );
+   physicalParam.referenceDensity       = mainConf.getParameter< real_t >( "referenceDensity" );
+   physicalParam.viscosity              = mainConf.getParameter< real_t >( "viscosity" );
 
    // Set all radial varying parameters to input reference values to avoid inconsistent calculations on non-dim numbers
    physicalParam.specificHeatCapacityRadial = physicalParam.specificHeatCapacity;
@@ -279,17 +279,36 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ INITIALISATION PARAMETERS ############*/
 
-   initialisationParam.tempInit       = mainConf.getParameter< uint_t >( "tempInit" );
-   initialisationParam.deg            = mainConf.getParameter< uint_t >( "degree" );
-   initialisationParam.ord            = mainConf.getParameter< int >( "order" );
-   initialisationParam.lmax           = mainConf.getParameter< uint_t >( "lmax" );
-   initialisationParam.lmin           = mainConf.getParameter< uint_t >( "lmin" );
-   initialisationParam.superposition  = mainConf.getParameter< bool >( "superposition" );
-   initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "buoyancyFactor" );
+   initialisationParam.initialTemperatureDeviationMethod = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
+   initialisationParam.buoyancyFactor                    = mainConf.getParameter< real_t >( "buoyancyFactor" );
+   initialisationParam.tempInit                          = mainConf.getParameter< uint_t >( "tempInit" );
 
-   initialisationParam.temperatureNoise             = mainConf.getParameter< bool >( "temperatureNoise" );
-   initialisationParam.temperatureSphericalHarmonic = mainConf.getParameter< bool >( "temperatureSphericalHarmonic" );
-   initialisationParam.noiseFactor                  = mainConf.getParameter< real_t >( "noiseFactor" );
+   initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+   initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+   initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+
+   initialisationParam.lmax                       = mainConf.getParameter< uint_t >( "lmax" );
+   initialisationParam.lmin                       = mainConf.getParameter< uint_t >( "lmin" );
+   initialisationParam.superpositionSPHRandomSeed = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
+
+   if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH )
+   {
+      initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+
+      uint_t numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
+                            ( initialisationParam.lmin ) * ( initialisationParam.lmin );
+      initialisationParam.superpositionRand.reserve( numHarmonics );
+      walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
+
+      for ( uint_t i = 0; i < numHarmonics; i++ )
+      {
+         initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+      }
+   }
+   else if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH )
+   {
+      initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+   }
 
    /*############ SOLVER PARAMETERS ############*/
    solverParam.solverFlag  = mainConf.getParameter< uint_t >( "solverFlag" );
@@ -320,7 +339,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
 
    solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
-   solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
+   solverParam.stokesRelativeResidualUTolerance  = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
    solverParam.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
 
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
@@ -422,7 +441,6 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Surface Temperature          : " << physicalParam.surfaceTemp );
    WALBERLA_LOG_INFO_ON_ROOT( "Temperature CMB              : " << physicalParam.cmbTemp );
-   WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << physicalParam.initialTemperatureSteepness );
    WALBERLA_LOG_INFO_ON_ROOT( "Thermal Conductivity         : " << physicalParam.thermalConductivity );
    WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter         : " << physicalParam.grueneisenParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "Internal Heating Rate        : " << physicalParam.internalHeatingRate );
@@ -492,14 +510,29 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "----    Init Parameters   ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "tempInit       : " << initialisationParam.tempInit );
-   WALBERLA_LOG_INFO_ON_ROOT( "degree         : " << initialisationParam.deg );
-   WALBERLA_LOG_INFO_ON_ROOT( "order          : " << initialisationParam.ord );
-   WALBERLA_LOG_INFO_ON_ROOT( "lmin           : " << initialisationParam.lmin );
-   WALBERLA_LOG_INFO_ON_ROOT( "lmax           : " << initialisationParam.lmax );
-   WALBERLA_LOG_INFO_ON_ROOT( "Superposition  : " << initialisationParam.superposition );
+   switch ( initialisationParam.initialTemperatureDeviationMethod )
+   {
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+      WALBERLA_LOG_INFO_ON_ROOT( "Single SPH" );
+      WALBERLA_LOG_INFO_ON_ROOT( "tempInit                     : " << initialisationParam.tempInit );
+      WALBERLA_LOG_INFO_ON_ROOT( "degree                       : " << initialisationParam.deg );
+      WALBERLA_LOG_INFO_ON_ROOT( "order                        : " << initialisationParam.ord );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << initialisationParam.initialTemperatureSteepness );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+      WALBERLA_LOG_INFO_ON_ROOT( "Random Superposition SPH" );
+      WALBERLA_LOG_INFO_ON_ROOT( "tempInit                     : " << initialisationParam.tempInit );
+      WALBERLA_LOG_INFO_ON_ROOT( "lmin                         : " << initialisationParam.lmin );
+      WALBERLA_LOG_INFO_ON_ROOT( "lmax                         : " << initialisationParam.lmax );
+      WALBERLA_LOG_INFO_ON_ROOT( "Random Seed                  : " << initialisationParam.superpositionSPHRandomSeed );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << initialisationParam.initialTemperatureSteepness );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+   default:
+      WALBERLA_LOG_INFO_ON_ROOT( "White Noise" );
+      break;
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "Buoyancy factor: " << initialisationParam.buoyancyFactor );
-   WALBERLA_LOG_INFO_ON_ROOT( "Noise Factor   : " << initialisationParam.noiseFactor );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Simulation Parameters    ----" )
@@ -550,8 +583,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.vtkOutputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
    }
    else
    {
@@ -565,8 +597,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

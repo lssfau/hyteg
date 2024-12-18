@@ -125,21 +125,20 @@ void runTest( const uint_t nTan,
    real_t Tcmb     = 4200;
    real_t Tadb     = 1600;
 
-   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, real_c( 0.68 ), rMin, rMax );
+   terraneo::TemperatureDeivationInitialisationParameters devParams;
+   devParams.tempInit                    = 3;
+   devParams.buoyancyFactor              = real_c( 0.05 );
+   devParams.initialTemperatureSteepness = 10;
+   devParams.deg                         = 4;
+   devParams.ord                         = 2;
+   devParams.lmax                        = 25;
+   devParams.lmin                        = 10;
 
-   real_t noiseFactor                 = real_c( 0.05 );
-   uint_t tempInit                    = 10;
-   uint_t deg                         = 4;
-   int    ord                         = 2;
-   uint_t lmax                        = 25;
-   uint_t lmin                        = 10;
-   bool   superposition               = true;
-   real_t buoyancyFactor              = real_c( 0.01 );
-   real_t initialTemperatureSteepness = 10;
+   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, real_c( 0.68 ), rMin, rMax, &devParams);   
 
    auto temperatureReference = terraneo::temperatureReferenceExponential( tempInitParams );
 
-   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference, noiseFactor );
+   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + white noise" )
    temperature.interpolate( initTemperatureWhiteNoise, level );
@@ -147,18 +146,17 @@ void runTest( const uint_t nTan,
    // This is pretty slow. Just here to be noticed by the compiler.
    if ( false )
    {
-      auto initTemperatureSPH = terraneo::temperatureSPH( tempInitParams,
-                                                          temperatureReference,
-                                                          tempInit,
-                                                          deg,
-                                                          ord,
-                                                          lmax,
-                                                          lmin,
-                                                          superposition,
-                                                          buoyancyFactor,
-                                                          initialTemperatureSteepness );
+      auto initTemperatureSPH = terraneo::temperatureSingleSPH( tempInitParams, temperatureReference );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + SPH" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + Single SPH" )
+      temperature.interpolate( initTemperatureSPH, level );
+   }
+
+   if ( false )
+   {
+      auto initTemperatureSPH = terraneo::temperatureRandomSuperpositioneSPH( tempInitParams, temperatureReference );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + Random Superposition SPH" )
       temperature.interpolate( initTemperatureSPH, level );
    }
 
@@ -236,21 +234,20 @@ void runTest( const uint_t& nTan, std::vector< real_t > layers, const uint_t& le
    real_t Tcmb     = 4200;
    real_t Tadb     = 1600;
 
-   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, 0.68, rMin, rMax );
+   terraneo::TemperatureDeivationInitialisationParameters devParams;
+   devParams.tempInit                    = 3;
+   devParams.buoyancyFactor              = real_c( 0.05 );
+   devParams.initialTemperatureSteepness = 10;
+   devParams.deg                         = 4;
+   devParams.ord                         = 2;
+   devParams.lmax                        = 25;
+   devParams.lmin                        = 10;
 
-   real_t noiseFactor                 = 0.05;
-   uint_t tempInit                    = 10;
-   uint_t deg                         = 4;
-   int    ord                         = 2;
-   uint_t lmax                        = 25;
-   uint_t lmin                        = 10;
-   bool   superposition               = true;
-   real_t buoyancyFactor              = 0.01;
-   real_t initialTemperatureSteepness = 10;
+   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, real_c( 0.68 ), rMin, rMax, &devParams);   
 
    auto temperatureReference = terraneo::temperatureReferenceExponential( tempInitParams );
 
-   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference, noiseFactor );
+   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + white noise" )
    temperature.interpolate( initTemperatureWhiteNoise, level );
@@ -258,18 +255,17 @@ void runTest( const uint_t& nTan, std::vector< real_t > layers, const uint_t& le
    // This is pretty slow. Just here to be noticed by the compiler.
    if ( false )
    {
-      auto initTemperatureSPH = terraneo::temperatureSPH( tempInitParams,
-                                                          temperatureReference,
-                                                          tempInit,
-                                                          deg,
-                                                          ord,
-                                                          lmax,
-                                                          lmin,
-                                                          superposition,
-                                                          buoyancyFactor,
-                                                          initialTemperatureSteepness );
+      auto initTemperatureSPH = terraneo::temperatureSingleSPH( tempInitParams, temperatureReference );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + SPH" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + Single SPH" )
+      temperature.interpolate( initTemperatureSPH, level );
+   }
+
+   if ( false )
+   {
+      auto initTemperatureSPH = terraneo::temperatureRandomSuperpositioneSPH( tempInitParams, temperatureReference );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + Random Superposition SPH" )
       temperature.interpolate( initTemperatureSPH, level );
    }
 
@@ -347,21 +343,20 @@ void runTest( const uint_t& nTan, std::vector< real_t > layers, const uint_t& le
    real_t Tcmb     = 4200;
    real_t Tadb     = 1600;
 
-   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, 0.68, rMin, rMax );
+   terraneo::TemperatureDeivationInitialisationParameters devParams;
+   devParams.tempInit                    = 3;
+   devParams.buoyancyFactor              = real_c( 0.05 );
+   devParams.initialTemperatureSteepness = 10;
+   devParams.deg                         = 4;
+   devParams.ord                         = 2;
+   devParams.lmax                        = 25;
+   devParams.lmin                        = 10;
 
-   real_t noiseFactor                 = 0.05;
-   uint_t tempInit                    = 10;
-   uint_t deg                         = 4;
-   int    ord                         = 2;
-   uint_t lmax                        = 25;
-   uint_t lmin                        = 10;
-   bool   superposition               = true;
-   real_t buoyancyFactor              = 0.01;
-   real_t initialTemperatureSteepness = 10;
+   terraneo::TemperatureInitializationParameters tempInitParams( Tcmb, Tsurface, Tadb, real_c( 0.68 ), rMin, rMax, &devParams);   
 
    auto temperatureReference = terraneo::temperatureReferenceExponential( tempInitParams );
 
-   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference, noiseFactor );
+   auto initTemperatureWhiteNoise = terraneo::temperatureWhiteNoise( tempInitParams, temperatureReference );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + white noise" )
    temperature.interpolate( initTemperatureWhiteNoise, level );
@@ -369,18 +364,17 @@ void runTest( const uint_t& nTan, std::vector< real_t > layers, const uint_t& le
    // This is pretty slow. Just here to be noticed by the compiler.
    if ( false )
    {
-      auto initTemperatureSPH = terraneo::temperatureSPH( tempInitParams,
-                                                          temperatureReference,
-                                                          tempInit,
-                                                          deg,
-                                                          ord,
-                                                          lmax,
-                                                          lmin,
-                                                          superposition,
-                                                          buoyancyFactor,
-                                                          initialTemperatureSteepness );
+      auto initTemperatureSPH = terraneo::temperatureSingleSPH( tempInitParams, temperatureReference );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + SPH" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + Single SPH" )
+      temperature.interpolate( initTemperatureSPH, level );
+   }
+
+   if ( false )
+   {
+      auto initTemperatureSPH = terraneo::temperatureRandomSuperpositioneSPH( tempInitParams, temperatureReference );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ref + Random Superposition SPH" )
       temperature.interpolate( initTemperatureSPH, level );
    }
 
