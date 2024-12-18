@@ -203,16 +203,82 @@ class LeastSquares
       return d;
    }
 
- public:
-   /**
-    * @brief Constructs a LeastSquares object.
-    *
-    * @param lvl The level of refinement.
-    * @param downsampling The downsampling factor.
-    * (0: choose automatically, 1: no downsampling, n: only use every n-th vertex in each direction)
-    * @param precomputed Flag to indicate if a precomputed SVD should be used
-    */
-   LeastSquares( uint_t lvl, uint_t downsampling = 1, bool precomputed = true )
+   // load matrix from file
+   template < typename MatrixType >
+   static bool load_matrix( const std::string& filename, MatrixType& M )
+   {
+      std::ofstream out( filename, std::ios::binary );
+      if ( out.is_open() )
+      {
+         out.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( double ) );
+         out.close();
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   // store matrix in file
+   template < typename MatrixType >
+   static bool store_matrix( const std::string& filename, const MatrixType& M )
+   {
+      std::ofstream out( filename, std::ios::binary );
+      if ( out.is_open() )
+      {
+         out.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( double ) );
+         out.close();
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   void compute_svd()
+   {
+      // Setup Vandermonde matrix
+      constexpr polynomial::Basis< D, Q > phi;
+      const polynomial::Coordinates       coords( _lvl );
+
+      auto it = samplingIterator();
+      while ( it != it.end() )
+      {
+         auto x = coords.x( it.i(), it.j(), it.k() );
+
+         for ( uint_t col = 0; col < cols; ++col )
+         {
+            A( it(), col ) = phi.eval( col, x );
+         }
+         ++it;
+      }
+
+      // compute SVD
+      Eigen::JacobiSVD< Matrix > svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
+      Uh = svd.matrixU().adjoint();
+      Si = svd.singularValues().cwiseInverse();
+      V  = svd.matrixV();
+   }
+
+   bool load_svd( const std::string& path )
+   {
+      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", D, Q, _lvl, _downsampling );
+      std::string d   = "/";
+      return load_matrix( path + d + "A" + ext, A ) && load_matrix( path + d + "Uh" + ext, Uh ) &&
+             load_matrix( path + d + "Si" + ext, Si ) && load_matrix( path + d + "V" + ext, V );
+   }
+
+   bool store_svd( const std::string& path ) const
+   {
+      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", D, Q, _lvl, _downsampling );
+      std::string d   = "/";
+      return store_matrix( path + d + "A" + ext, A ) && store_matrix( path + d + "Uh" + ext, Uh ) &&
+             store_matrix( path + d + "Si" + ext, Si ) && store_matrix( path + d + "V" + ext, V );
+   }
+
+   LeastSquares( uint_t lvl, uint_t downsampling, bool use_precomputed, const std::string& path_to_svd = "" )
    : _lvl( lvl )
    , _downsampling( ( downsampling == 0 ) ? compute_automatic_downsampling( _lvl ) : downsampling )
    , rows( interpolation::n_volume< D >( _lvl, _downsampling ) )
@@ -223,38 +289,49 @@ class LeastSquares
    , b( rows )
    , c( cols )
    {
-      // todo use precomputed flag
-      if ( precomputed )
+      if ( use_precomputed )
       {
-         WALBERLA_LOG_WARNING_ON_ROOT(
-             "For the specified template arguments, surrogate::LeasSquares has not been precomputed.\nComputing SVD now." );
-      }
-      else
-      {
-         // todo remove log_info
-         WALBERLA_LOG_INFO_ON_ROOT( "Setup Vandermonde matrix" );
-         constexpr polynomial::Basis< D, Q > phi;
-         const polynomial::Coordinates       coords( lvl );
-
-         auto it = samplingIterator();
-         while ( it != it.end() )
+         if ( load_svd( path_to_svd ) )
          {
-            auto x = coords.x( it.i(), it.j(), it.k() );
-
-            for ( uint_t col = 0; col < cols; ++col )
-            {
-               A( it(), col ) = phi.eval( col, x );
-            }
-            ++it;
+            return;
          }
+         else
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "Could not load SVD. Compute SVD instead." );
+         }
+      }
+      compute_svd();
+   }
 
-         // SVD
-         WALBERLA_LOG_INFO_ON_ROOT( "Compute SVD" );
-         Eigen::JacobiSVD< Matrix > svd( A, Eigen::ComputeThinU | Eigen::ComputeThinV );
-         WALBERLA_LOG_INFO_ON_ROOT( "Store SVD" );
-         Uh = svd.matrixU().adjoint();
-         Si = svd.singularValues().cwiseInverse();
-         V  = svd.matrixV();
+ public:
+   /**
+    * @brief Constructs a LeastSquares object.
+    *
+    * @param lvl The level of refinement.
+    * @param downsampling The downsampling factor.
+    * (0: choose automatically, 1: no downsampling, n: only use every n-th vertex in each direction)
+    */
+   LeastSquares( uint_t lvl, uint_t downsampling = 1 )
+   : LeastSquares( lvl, downsampling, false, "" )
+   {}
+
+   /**
+    * @brief Constructs a LeastSquares object using a precomputed SVD.
+    *
+    * @param path_to_svd Path to a the files containing the SVD of the Vandermonde matrix.
+    * @param lvl The level of refinement.
+    * @param downsampling The downsampling factor.
+    * (0: choose automatically, 1: no downsampling, n: only use every n-th vertex in each direction)
+    */
+   LeastSquares( const std::string& path_to_svd, uint_t lvl, uint_t downsampling = 1 )
+   : LeastSquares( lvl, downsampling, true, path_to_svd )
+   {}
+
+   void write_to_file( const std::string& path ) const
+   {
+      if ( !store_svd( path ) )
+      {
+         WALBERLA_LOG_WARNING_ON_ROOT( "Could not open files for writing. SVD not stored" );
       }
    }
 
