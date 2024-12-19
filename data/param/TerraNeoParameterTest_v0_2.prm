@@ -1,5 +1,7 @@
 Parameters
 {
+   version 0.2;
+
    //////////////////////////
    //  Domain parameters   //
    //////////////////////////

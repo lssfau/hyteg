@@ -37,6 +37,54 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
+struct ParameterFileVersion
+{
+   uint_t major = 0;
+   uint_t minor = 1;
+
+   ParameterFileVersion( uint_t major, uint_t minor )
+   : major( major )
+   , minor( minor )
+   {}
+
+   ParameterFileVersion( const std::string& version )
+   {
+      size_t dotPos = version.find( '.' );
+
+      if ( dotPos == std::string::npos )
+      {
+         WALBERLA_ABORT( "Invalid Parameter File Version string: " << version );
+      }
+
+      try
+      {
+         major = std::stoi( version.substr( 0, dotPos ) );
+         minor = std::stoi( version.substr( dotPos + 1 ) );
+      } catch ( const std::invalid_argument& e )
+      {
+         WALBERLA_ABORT( "Invalid Parameter File Version string: " << version << ". Error: " << e.what() );
+      } catch ( const std::out_of_range& e )
+      {
+         WALBERLA_ABORT( "Parameter File Version number out of range: " << version << ". Error: " << e.what() );
+      }
+   }
+
+   bool operator==( const ParameterFileVersion& other ) const { return major == other.major && minor == other.minor; }
+
+   bool operator!=( const ParameterFileVersion& other ) const { return !( *this == other ); }
+
+   bool operator<( const ParameterFileVersion& other ) const
+   {
+      return ( major < other.major ) || ( major == other.major && minor < other.minor );
+   }
+
+   bool operator<=( const ParameterFileVersion& other ) const { return *this < other || *this == other; }
+
+   bool operator>( const ParameterFileVersion& other ) const { return !( *this <= other ); }
+
+   bool operator>=( const ParameterFileVersion& other ) const { return !( *this < other ); }
+};
+
 /**
  * @brief Loads the radial profiles if provided via the main configuration block.
  *
@@ -94,6 +142,11 @@ std::shared_ptr< terraneo::plates::PlateVelocityProvider > oracle;
 
 inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
+   /* ParameterFileVersion */
+   const ParameterFileVersion parameterFileVerion =
+       mainConf.isDefined( "version" ) ? ParameterFileVersion( mainConf.getParameter< std::string >( "version" ) ) :
+                                         ParameterFileVersion( 0, 1 );
+
    DomainParameters                             domainParam;
    SolverParameters                             solverParam;
    OutputParameters                             outputParam;
@@ -279,48 +332,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ INITIALISATION PARAMETERS ############*/
 
-   // Check parameter file version
+   // Check parameter file ParameterFileVersion
    uint_t numHarmonics;
-   if ( mainConf.isDefined( "initialTemperatureDeviationMethod" ) ) // New Version
+   if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
    {
-      uint_t initialTemperatureDeviationMethodUint_t = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
-      initialisationParam.initialTemperatureDeviationMethod =
-          static_cast< INITIAL_TEMPERATURE_DEVIATION_METHOD >( initialTemperatureDeviationMethodUint_t );
-
-      initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "buoyancyFactor" );
-
-      switch ( initialisationParam.initialTemperatureDeviationMethod )
-      {
-      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
-         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
-         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-         initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
-         initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
-         initialisationParam.superpositionSPHRandomSeed  = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
-
-         initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
-
-         numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
-                        ( initialisationParam.lmin ) * ( initialisationParam.lmin );
-         initialisationParam.superpositionRand.reserve( numHarmonics );
-         walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
-
-         for ( uint_t i = 0; i < numHarmonics; i++ )
-         {
-            initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
-         }
-         break;
-      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
-         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
-         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-         initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
-         initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
-         initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
-         break;
-      }
-   }
-   else
-   { // Old Version
       bool temperatureNoise = mainConf.getParameter< bool >( "temperatureNoise" );
       bool superposition    = mainConf.getParameter< bool >( "superposition" );
 
@@ -368,6 +383,44 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          break;
       case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
          initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "noiseFactor" );
+         break;
+      }
+   }
+   else
+   {
+      uint_t initialTemperatureDeviationMethodUint_t = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
+      initialisationParam.initialTemperatureDeviationMethod =
+          static_cast< INITIAL_TEMPERATURE_DEVIATION_METHOD >( initialTemperatureDeviationMethodUint_t );
+
+      initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "buoyancyFactor" );
+
+      switch ( initialisationParam.initialTemperatureDeviationMethod )
+      {
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
+         initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
+         initialisationParam.superpositionSPHRandomSeed  = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
+
+         initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+
+         numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
+                        ( initialisationParam.lmin ) * ( initialisationParam.lmin );
+         initialisationParam.superpositionRand.reserve( numHarmonics );
+         walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
+
+         for ( uint_t i = 0; i < numHarmonics; i++ )
+         {
+            initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+         }
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+         initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+         initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
          break;
       }
    }

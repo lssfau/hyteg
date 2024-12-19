@@ -40,7 +40,7 @@ int main( int argc, char** argv )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      auto defaultFile = "../../data/param/TerraNeoParameterTest.prm";
+      auto defaultFile = "../../data/param/TerraNeoParameterTest_v0_2.prm";
       WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
    }
