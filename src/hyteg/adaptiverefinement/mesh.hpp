@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Benjamin Mann
+ * Copyright (c) 2021-2024 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,16 +29,6 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-// number of elements in the refined mesh by type of origin
-struct RefinedElements
-{
-   uint_t n_U; // unrefined elements w.r.t. previous mesh
-   uint_t n_R; // resulting from red refinement step
-   uint_t n_G; // resulting from green refinement step (including green elements from the previous mesh)
-   // return n_el = n_U + n_R + n_G
-   inline uint_t n_el() const { return n_U + n_R + n_G; }
-};
-
 enum Loadbalancing
 {
    ROUND_ROBIN,  // cheap loadbalancer
@@ -47,12 +37,84 @@ enum Loadbalancing
    SFC_VISUALIZE // use space filling curve for loadbalancing. Also export the sfc to vtk (NOT IMPLEMENTED YET)
 };
 
-enum RefinementStrategy
+struct Strategy
 {
-   /* refine all elements j where e_j >= (∑_i w_i e_i)/(∑_i w_i) with w_i = (n-i)^p,
-      i.e., p=0: standard mean, p→∞: refine T_0, p→-∞: refine all elements */
-   WEIGHTED_MEAN,
-   PERCENTILE // refine the p*n elements where the error is largest
+   enum Type
+   {
+      /* e_mean(p) = (∑_i (n-i)^p e_i) / (∑_i (n-i)^p)
+         e.g. e_mean(0) = (∑_i e_i)/n (arithmetic mean),
+            e_mean(∞) = e_0 (greatest error),
+            e_mean(-∞) = e_{n-1} (smallest error)
+         Refinement:
+            refine all elements j where e_j >= e_mean(p)
+            fewer elements are refined as p gets larger
+         Coarsening:
+            coarsen all elements j where e_j < e_mean(p_c)
+            more elements are coarsened as p gets larger
+      */
+      WEIGHTED_MEAN,
+      /* Refinement:
+            refine the p*n elements with largest error
+         Coarsening:
+            coarsen the p*n elements with smallest error
+      */
+      PERCENTILE,
+      /* refine smallest subset R of T where ∑_t∈R e_t >= p ∑_t∈T e_t (p=0 ⇒ R=∅; p=1 ⇒ R=T)
+         (when providing a list of squared errors, this is the classic Dörfler marking)
+      */
+      DOERFLER,
+      /* coarsen a number of elements equal to p*|R|
+         should be chosen to keep the number of elements approximately constant
+      */
+      MULTIPLE_OF_R
+   };
+
+   constexpr Strategy( Type type, real_t param )
+   : t( type )
+   , p( param )
+   {}
+
+   /* e_mean(p) = (∑_i (n-i)^p e_i) / (∑_i (n-i)^p)
+      e.g. e_mean(0) = (∑_i e_i)/n (arithmetic mean),
+         e_mean(∞) = e_0 (greatest error),
+         e_mean(-∞) = e_{n-1} (smallest error)
+      Refinement:
+         refine all elements j where e_j >= e_mean(p)
+         fewer elements are refined as p gets larger
+      Coarsening:
+         coarsen all elements j where e_j < e_mean(p_c)
+         more elements are coarsened as p gets larger
+      @param p weighting parameter; (-∞, ∞)
+   */
+   constexpr static Strategy mean( real_t p = real_t( 0.0 ) ) { return { WEIGHTED_MEAN, p }; }
+
+   /* Refinement:
+         refine the p*n elements with largest error
+      Coarsening:
+         coarsen the p*n elements with smallest error
+      @param p proportion of elements to be marked; [0,1]
+   */
+   constexpr static Strategy percentile( real_t p ) { return { PERCENTILE, p }; }
+
+   /* refine all elements j where e_j <= p*∑_j e_j
+      (when providing a list of squared errors, this is the classic Dörfler marking)
+      @param p proportion of total error; [0,1]
+   */
+   constexpr static Strategy doerfler( real_t p ) { return { DOERFLER, p }; }
+
+   /* coarsen a number of elements p*|R| to enable keeping the number
+      of elements approximately constant
+   */
+   constexpr static Strategy multiple_of_R( real_t p ) { return { MULTIPLE_OF_R, p }; }
+
+   /* refine/coarsen all elements */
+   constexpr static Strategy all() { return { PERCENTILE, real_t( 1.0 ) }; }
+
+   /* refine/coarsen no elements */
+   constexpr static Strategy none() { return { PERCENTILE, real_t( 0.0 ) }; }
+
+   Type   t;
+   real_t p;
 };
 
 // local error for each macro-cell
@@ -77,44 +139,35 @@ class K_Mesh
    */
    K_Mesh( const SetupPrimitiveStorage& setupStorage );
 
+   /* apply k steps of regular refinement
+      @param k    number of refinement steps
+   */
+   void refine_uniform( uint_t k );
+
    /* apply red-green refinement to this mesh
       @param el_to_refine     subset of elements that shall be refined (red)
                               given by primitiveIDs w.r.t. K_Mesh::make_storage()
-      @param n_el_max         upper bound for number of elements in refined mesh
-      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
-                              remain unrefined, respectively. Note that the result will be 1
-                              unless n_el_max has been reached.
+      @param el_to_coarsen    subset of elements that shall be coarsened. Note that
+                              only previously refined elements can be coarsened this way
    */
-   real_t refineRG( const std::vector< PrimitiveID >& el_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() );
+   void refineRG( const std::vector< PrimitiveID >& el_to_refine, const std::vector< PrimitiveID >& el_to_coarsen = {} );
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param criterion        criterion w.r.t. sorted (greatest first) global error list whether an element should be refined
-      @param n_el_max         upper bound for number of elements in refined mesh
-      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
-                              remain unrefined, respectively. Note that the result will be 1
-                              unless n_el_max has been reached.
+      @param crit_r           criterion w.r.t. sorted (greatest first) global error list whether an element should be refined
+      @param crit_c           criterion w.r.t. sorted (greatest first) global error list whether an element should be coarsened
    */
-   real_t refineRG( const ErrorVector&                                         local_errors,
-                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                    uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() );
+   void refineRG( const ErrorVector&                                         local_errors,
+                  const std::function< bool( const ErrorVector&, uint_t ) >& crit_r,
+                  const std::function< bool( const ErrorVector&, uint_t ) >& crit_c );
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param strategy         predefined refinement strategy
-      @param p                parameter for refinement strategy
-                              ratio*n_elements elements with the largest error will be refined
-      @param n_el_max         upper bound for number of elements in refined mesh
+      @param refinement       refinement strategy
+      @param coarsening       coarsening strategy
       @param verbose          print information about refinement
-      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
-                              remain unrefined, respectively. Note that the result will be 1
-                              unless n_el_max has been reached.
    */
-   real_t refineRG( const ErrorVector& local_errors,
-                    RefinementStrategy strategy,
-                    real_t             p,
-                    bool               verbose  = false,
-                    uint_t             n_el_max = std::numeric_limits< uint_t >::max() );
+   void refineRG( const ErrorVector& local_errors, Strategy refinement, Strategy coarsening, bool verbose = false );
 
    // get minimum and maximum angle of the elements of T
    std::pair< real_t, real_t > min_max_angle() const;
@@ -150,7 +203,7 @@ class K_Mesh
    // reference to set of volume elements corresponding to current refinement
    const std::set< std::shared_ptr< K_Simplex > >& get_elements() const { return _T; }
    // reference to list of vertex coordinates corresponding to current refinement
-   const std::vector< Point3D >& get_vertices() const { return _vertices; }
+   const EnumeratedList< Point3D >& get_vertices() const { return _coords; }
    // export mesh to gmsh file
    void exportMesh( const std::string& filename ) const;
 
@@ -163,58 +216,63 @@ class K_Mesh
    */
    std::vector< uint_t > loadbalancing_greedy( const NeighborhoodMap& nbrHood, const bool allow_split_siblings );
 
-   /* remove green edges from _T and replace them with their parents
+   /* remove green edges from _T and replace them with their parents.
+      Also remove green children from all elements.
    */
    void remove_green_edges();
 
-   /* find all elements in U which require a red refinement step
-      @param U set of unprocessed elements
-      @param vtxs_added Flag that will be set to true if any new vertices are added during this step
+   /* refine all faces with more than one hanging node on their edges (3d only)
+      @return true if any face was refined
+   */
+   bool refine_faces();
+
+   /* find all elements which require a red refinement step
       @return set R of elements requiring red refinement
    */
-   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement( const std::set< std::shared_ptr< K_Simplex > >& U,
-                                                                              bool& vtxs_added );
+   std::set< std::shared_ptr< K_Simplex > > find_elements_for_red_refinement() const;
 
    /*
-      apply red refinement to all elements in R and remove them from U
+      apply red refinement to all elements in R
       @param R set of elements marked for refinement
-      @param U set of elements which have not been subject to refinement yet
-      @return R_refined
    */
-   std::set< std::shared_ptr< K_Simplex > > refine_red( const std::set< std::shared_ptr< K_Simplex > >& R,
-                                                        std::set< std::shared_ptr< K_Simplex > >&       U );
+   void refine_red( const std::set< std::shared_ptr< K_Simplex > >& R );
 
-   /* apply green refinement to all elements in U which
-      have a new vertex on one of their edges,
-      remove these elements from U and
-      add the new elements to _T
-      @param U set of elements which have not been subject to refinement yet
-      @return U_refined = set newly refined elements
+   /* apply green refinement to all elements in T with hanging nodes
    */
-   std::set< std::shared_ptr< K_Simplex > > refine_green( std::set< std::shared_ptr< K_Simplex > >& U );
+   void refine_green();
 
-   /* predict the number of additional elements that will be
-      added during green refinement step
+   /* unrefine all elements in P
+      @param C set of elements marked for unrefinement, i.e.,
+               each el in P should be a parent of an element in T
    */
-   uint_t predict_n_el_green( const std::set< std::shared_ptr< K_Simplex > >& U ) const;
+   void unrefine( const std::set< std::shared_ptr< K_Simplex > >& P );
 
-   /* find elements in _T corresponding to primitiveIDs
-      @param primitiveIDs  set of primitiveIDs w.r.t. this->make_storage
-      @return subset of _T for red refinement
+   /* generate sets R and Pc of elements marked for refinement and un-refinement, respectively
+      @param id_r set of primitiveIDs of elements in T that shall be refined
+      @param id_c set of primitiveIDs of elements in T that shall be coarsened
+      @return [R,Pc] where R is a subset of T and Pc the set of parent elements of a subset C of T
    */
-   std::vector< std::shared_ptr< K_Simplex > > init_R( const std::vector< PrimitiveID >& primitiveIDs ) const;
+   std::pair< std::set< std::shared_ptr< K_Simplex > >, std::set< std::shared_ptr< K_Simplex > > >
+       init_R_Pc( const std::vector< PrimitiveID >& id_r, const std::vector< PrimitiveID >& id_c ) const;
+
+   /* check whether
+      * all required vertices and only those are stored
+      * elements in T have no children
+      * all faces/edges of elements in T exist and have no children
+      @param hanging_nodes_allowed  number of hanging nodes allowed on an edge
+      @param unassigned_nodes_allowed  allow vertices which aren't part of any element
+   */
+   void check_integrity( uint_t hanging_nodes_allowed, bool unassigned_nodes_allowed = false ) const;
 
    /* extract geometryMap, boundaryFlags, etc. from all elements*/
-   void extract_data( std::map< PrimitiveID, VertexData >& vtxData,
-                      std::map< PrimitiveID, EdgeData >&   edgeData,
-                      std::map< PrimitiveID, FaceData >&   faceData,
-                      std::map< PrimitiveID, CellData >&   cellData ) const;
+   void extract_data( std::map< PrimitiveID, EdgeData >& edgeData,
+                      std::map< PrimitiveID, FaceData >& faceData,
+                      std::map< PrimitiveID, CellData >& cellData ) const;
 
    /* create PrimitiveStorage from SimplexData */
-   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, VertexData >& vtxs,
-                                                             std::map< PrimitiveID, EdgeData >&   edges,
-                                                             std::map< PrimitiveID, FaceData >&   faces,
-                                                             std::map< PrimitiveID, CellData >&   cells );
+   std::shared_ptr< PrimitiveStorage > make_localPrimitives( std::map< PrimitiveID, EdgeData >& edges,
+                                                             std::map< PrimitiveID, FaceData >& faces,
+                                                             std::map< PrimitiveID, CellData >& cells );
 
    /// @brief create sorted global error vector from local error vectors
    /// @param err_loc         local error vectors
@@ -226,9 +284,9 @@ class K_Mesh
    uint_t                                                  _n_vertices;
    uint_t                                                  _n_elements;
    uint_t                                                  _n_processes; // number of processes
-   std::vector< Point3D >                                  _vertices;    // vertex coordinates
-   std::vector< VertexData >                               _V;           // set of vertices of current refinement
-   std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement level
+   EnumeratedList< Point3D >                               _coords;      // vertex coordinates
+   EnumeratedList< VertexData >                            _V;           // set of vertices of current refinement
+   std::set< std::shared_ptr< K_Simplex > >                _T;           // set of elements of current refinement
    std::map< PrimitiveID, std::shared_ptr< GeometryMap > > _geometryMap; // geometryMaps of original mesh
 
    PrimitiveID _invalidID;
@@ -264,72 +322,77 @@ class Mesh
       }
    }
 
-   /* apply red-green refinement to this mesh
-      @param elements_to_refine  subset of elements that shall be refined (red)
-                                 given by primitiveIDs w.r.t. K_Mesh::make_storage()
-      @param n_el_max            upper bound for number of elements in refined mesh
-      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
-                              remain unrefined, respectively. Note that the result will be 1
-                              unless n_el_max has been reached.
+   /* apply k steps of regular refinement
+      @param k    number of refinement steps
    */
-   real_t refineRG( const std::vector< PrimitiveID >& elements_to_refine, uint_t n_el_max = std::numeric_limits< uint_t >::max() )
+   void refine_uniform( uint_t k )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->refineRG( elements_to_refine, n_el_max );
+         _mesh3D->refine_uniform( k );
       }
       else
       {
-         return _mesh2D->refineRG( elements_to_refine, n_el_max );
+         _mesh2D->refine_uniform( k );
+      }
+   }
+
+   /* apply red-green refinement to this mesh
+      @param el_to_refine     subset of elements that shall be refined (red)
+                              given by primitiveIDs w.r.t. K_Mesh::make_storage()
+      @param el_to_coarsen    subset of elements that shall be coarsened. Note that
+                              only previously refined elements can be coarsened this way
+   */
+   void refineRG( const std::vector< PrimitiveID >& el_to_refine, const std::vector< PrimitiveID >& el_to_coarsen = {} )
+   {
+      if ( _DIM == 3 )
+      {
+         _mesh3D->refineRG( el_to_refine, el_to_coarsen );
+      }
+      else
+      {
+         _mesh2D->refineRG( el_to_refine, el_to_coarsen );
       }
    }
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param criterion        criterion whether an element should be refined
-      @param n_el_max         upper bound for number of elements in refined mesh
-      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
-                              remain unrefined, respectively. Note that the result will be 1
-                              unless n_el_max has been reached.
+      @param crit_r           criterion w.r.t. sorted (greatest first) global error list whether an element should be refined
+      @param crit_c           criterion w.r.t. sorted (greatest first) global error list whether an element should be coarsened
    */
-   real_t refineRG( const ErrorVector&                                         local_errors,
-                    const std::function< bool( const ErrorVector&, uint_t ) >& criterion,
-                    uint_t                                                     n_el_max = std::numeric_limits< uint_t >::max() )
+   void refineRG(
+       const ErrorVector&                                         local_errors,
+       const std::function< bool( const ErrorVector&, uint_t ) >& crit_r,
+       const std::function< bool( const ErrorVector&, uint_t ) >& crit_c = []( const ErrorVector&, uint_t ) { return false; } )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->refineRG( local_errors, criterion, n_el_max );
+         _mesh3D->refineRG( local_errors, crit_r, crit_c );
       }
       else
       {
-         return _mesh2D->refineRG( local_errors, criterion, n_el_max );
+         _mesh2D->refineRG( local_errors, crit_r, crit_c );
       }
    }
 
    /* apply red-green refinement to this mesh
       @param local_errors     list of elementwise errors for all local macro cells/faces
-      @param strategy         predefined refinement strategy
-      @param p                parameter for refinement strategy
-                              ratio*n_elements elements with the largest error will be refined
-      @param n_el_max         upper bound for number of elements in refined mesh
+      @param refinement       refinement strategy
+      @param coarsening       coarsening strategy
       @param verbose          print information about refinement
-      @return |R\U|/|R| where R and U are the subsets of T which are marked for refinement and
-                              remain unrefined, respectively. Note that the result will be 1
-                              unless n_el_max has been reached.
    */
-   real_t refineRG( const ErrorVector& local_errors,
-                    RefinementStrategy strategy,
-                    real_t             p,
-                    bool               verbose  = false,
-                    uint_t             n_el_max = std::numeric_limits< uint_t >::max() )
+   void refineRG( const ErrorVector& local_errors,
+                  Strategy           refinement,
+                  Strategy           coarsening = Strategy::none(),
+                  bool               verbose    = false )
    {
       if ( _DIM == 3 )
       {
-         return _mesh3D->refineRG( local_errors, strategy, p, verbose, n_el_max );
+         _mesh3D->refineRG( local_errors, refinement, coarsening, verbose );
       }
       else
       {
-         return _mesh2D->refineRG( local_errors, strategy, p, verbose, n_el_max );
+         _mesh2D->refineRG( local_errors, refinement, coarsening, verbose );
       }
    }
 
@@ -469,7 +532,7 @@ class Mesh
    const std::set< std::shared_ptr< Simplex3 > >& get_elements3d() const { return _mesh3D->get_elements(); }
 
    // get vertex coordinates
-   const std::vector< Point3D >& get_vertices() const
+   const EnumeratedList< Point3D >& get_vertices() const
    {
       if ( _DIM == 3 )
       {

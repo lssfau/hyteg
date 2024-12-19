@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann
+ * Copyright (c) 2021-2024 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,30 +26,21 @@
 namespace hyteg {
 namespace adaptiveRefinement {
 
-/* apply red refinement to cell and add required vertices to vertices
-   @param vertices      global coordinates of all vertices in the mesh
-   @param geometryMap   geometrymap ID of all vertices in the mesh
-   @param boundaryFlag  boundaryFlag of all vertices in the mesh
-   @param targetRank    targetRank of all vertices in the mesh
+/* apply red refinement to cell and add required vertices
+   @param coords     global coordinates of all vertices in the mesh
+   @param vtxs       geometrymap, boundaryflag etc. of all vertices in the mesh
    @param cell          subject to refinement
    @return sub-elements
 */
 inline std::set< std::shared_ptr< Simplex3 > >
-    refine_cell_red( std::vector< Point3D >& vertices, std::vector< VertexData >& vtxData, std::shared_ptr< Simplex3 > cell )
+    refine_cell_red( EnumeratedList< Point3D >& coords, EnumeratedList< VertexData >& vtxs, std::shared_ptr< Simplex3 > cell )
 {
    // === split faces ===
    for ( auto& face : cell->get_faces() )
    {
-      if ( face->get_children().size() == 2 )
-      {
-         // remove green edge from face
-         face->kill_children();
-      }
-
       if ( !face->has_children() )
       {
-         // apply red refinement to face
-         refine_face_red( vertices, vtxData, face );
+         refine_face_red( coords, vtxs, face );
       }
    }
 
