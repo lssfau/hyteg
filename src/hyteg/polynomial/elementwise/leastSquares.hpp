@@ -343,12 +343,12 @@ class LeastSquares
    Iterator samplingIterator() const { return Iterator( _lvl, _downsampling ); }
 
    /**
-    * @brief Set n-th coefficient of right hand side vector.
+    * @brief Set n-th coefficient of right hand side vector. Should be used together with it = samplingIterator().
     *
-    * @param n Index of the coefficient. Useage: n=it() with auto it = samplingIterator()
-    * @param val Value of the coefficient, i.e. f(it.i(), it.j(), it.k()), where f is the function to be approximated.
+    * @param n Index of the coefficient, ie, n = it()
+    * @param f_xyz f( it.i(), it.j(), it.k() ), where f is the function to be approximated.
     */
-   void setRHS( const uint_t n, const double val ) { b( n ) = val; }
+   void setRHS( const uint_t n, const double f_xyz ) { b( n ) = f_xyz; }
 
    /**
     * @brief Solve the least squares problem. Use after setting all right-hand side coefficients.
@@ -360,6 +360,13 @@ class LeastSquares
       c = V * ( Si.cwiseProduct( Uh * b ) );
       return polynomial::Polynomial< D, Q >( c );
    }
+
+   /**
+    * @brief Compute the residual of the least squares problem.
+    *
+    * @return weighted residual norm ||r|| = sqrt(∑_{n=1}^N r_n^2 / N)
+    */
+   const double residual() const { return ( A * c - b ).norm() / std::sqrt( rows ); }
 
    using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
    using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
