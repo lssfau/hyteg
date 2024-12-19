@@ -279,37 +279,97 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ INITIALISATION PARAMETERS ############*/
 
-   uint_t initialTemperatureDeviationMethodUint_t = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
-   initialisationParam.initialTemperatureDeviationMethod = static_cast< INITIAL_TEMPERATURE_DEVIATION_METHOD >( initialTemperatureDeviationMethodUint_t );
-   initialisationParam.buoyancyFactor                    = mainConf.getParameter< real_t >( "buoyancyFactor" );
-
-   if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH )
+   // Check parameter file version
+   uint_t numHarmonics;
+   if ( mainConf.isDefined( "initialTemperatureDeviationMethod" ) ) // New Version
    {
-      initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
-      initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-      initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
-      initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
-      initialisationParam.superpositionSPHRandomSeed  = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
+      uint_t initialTemperatureDeviationMethodUint_t = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
+      initialisationParam.initialTemperatureDeviationMethod =
+          static_cast< INITIAL_TEMPERATURE_DEVIATION_METHOD >( initialTemperatureDeviationMethodUint_t );
 
-      initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+      initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "buoyancyFactor" );
 
-      uint_t numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
-                            ( initialisationParam.lmin ) * ( initialisationParam.lmin );
-      initialisationParam.superpositionRand.reserve( numHarmonics );
-      walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
-
-      for ( uint_t i = 0; i < numHarmonics; i++ )
+      switch ( initialisationParam.initialTemperatureDeviationMethod )
       {
-         initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
+         initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
+         initialisationParam.superpositionSPHRandomSeed  = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
+
+         initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+
+         numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
+                        ( initialisationParam.lmin ) * ( initialisationParam.lmin );
+         initialisationParam.superpositionRand.reserve( numHarmonics );
+         walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
+
+         for ( uint_t i = 0; i < numHarmonics; i++ )
+         {
+            initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+         }
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+         initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+         initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+         break;
       }
    }
-   else if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH )
-   {
-      initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
-      initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-      initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
-      initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
-      initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+   else
+   { // Old Version
+      bool temperatureNoise = mainConf.getParameter< bool >( "temperatureNoise" );
+      bool superposition    = mainConf.getParameter< bool >( "superposition" );
+
+      if ( temperatureNoise )
+      {
+         initialisationParam.initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE;
+      }
+      else if ( superposition )
+      {
+         initialisationParam.initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH;
+      }
+      else
+      {
+         initialisationParam.initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH;
+      }
+
+      switch ( initialisationParam.initialTemperatureDeviationMethod )
+      {
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
+         initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
+         initialisationParam.buoyancyFactor              = mainConf.getParameter< real_t >( "buoyancyFactor" );
+
+         initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+
+         numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
+                        ( initialisationParam.lmin ) * ( initialisationParam.lmin );
+         initialisationParam.superpositionRand.reserve( numHarmonics );
+         walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
+
+         for ( uint_t i = 0; i < numHarmonics; i++ )
+         {
+            initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+         }
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+         initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+         initialisationParam.buoyancyFactor              = mainConf.getParameter< real_t >( "buoyancyFactor" );
+         initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+         initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "noiseFactor" );
+         break;
+      }
    }
 
    /*############ SOLVER PARAMETERS ############*/
