@@ -19,7 +19,7 @@
  */
 
 #pragma once
-#include "core/DataTypes.h"
+#include <core/DataTypes.h>
 
 namespace hyteg {
 namespace surrogate {

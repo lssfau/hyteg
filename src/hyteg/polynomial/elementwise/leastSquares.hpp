@@ -95,6 +95,16 @@ static constexpr inline uint_t n_volume( uint_t lvl, uint_t downsampling )
 
 } // namespace interpolation
 
+/**
+ * @class LeastSquares
+ * @brief Class to compute polynomial approximations p ∈ P_Q(T) of functions f:T→ℝ,
+ *          where T is the reference macro element of dimension D (triangle or tetrahedron).
+ *          The approximation is computed by solving a least squares problem using the Vandermonde matrix.
+ *          The Sample points are a subset of the micro vertices corresponding to a given level.
+ *
+ * @tparam D spactial dimension, D=2,3
+ * @tparam Q polynomial degree
+ */
 template < uint8_t D, uint8_t Q >
 class LeastSquares
 {
@@ -207,11 +217,11 @@ class LeastSquares
    template < typename MatrixType >
    static bool load_matrix( const std::string& filename, MatrixType& M )
    {
-      std::ofstream out( filename, std::ios::binary );
-      if ( out.is_open() )
+      std::ifstream file( filename, std::ios::binary );
+      if ( file.is_open() )
       {
-         out.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( double ) );
-         out.close();
+         file.read( reinterpret_cast< char* >( M.data() ), M.size() * sizeof( double ) );
+         file.close();
          return true;
       }
       else
@@ -224,11 +234,11 @@ class LeastSquares
    template < typename MatrixType >
    static bool store_matrix( const std::string& filename, const MatrixType& M )
    {
-      std::ofstream out( filename, std::ios::binary );
-      if ( out.is_open() )
+      std::ofstream file( filename, std::ios::binary );
+      if ( file.is_open() )
       {
-         out.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( double ) );
-         out.close();
+         file.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( double ) );
+         file.close();
          return true;
       }
       else
@@ -278,7 +288,7 @@ class LeastSquares
              store_matrix( path + d + "Si" + ext, Si ) && store_matrix( path + d + "V" + ext, V );
    }
 
-   LeastSquares( uint_t lvl, uint_t downsampling, bool use_precomputed, const std::string& path_to_svd = "" )
+   LeastSquares( uint_t lvl, uint_t downsampling, bool use_precomputed, const std::string& path_to_svd )
    : _lvl( lvl )
    , _downsampling( ( downsampling == 0 ) ? compute_automatic_downsampling( _lvl ) : downsampling )
    , rows( interpolation::n_volume< D >( _lvl, _downsampling ) )
@@ -305,11 +315,12 @@ class LeastSquares
 
  public:
    /**
-    * @brief Constructs a LeastSquares object.
+    * @brief Constructs a LeastSquares object by setting up the Vandermonde matrix and computing an SVD.
     *
-    * @param lvl The level of refinement.
-    * @param downsampling The downsampling factor.
-    * (0: choose automatically, 1: no downsampling, n: only use every n-th vertex in each direction)
+    * @param lvl The level of refinement determining the mapping T→ℝ
+    * @param downsampling The downsampling factor determining the number of sample points:
+    *          0: choose automatically, 1: use all vertices, n: only use every n-th vertex in each direction
+    *          ⇒ downsampling reduces the number of sample points by a factor of n^D
     */
    LeastSquares( uint_t lvl, uint_t downsampling = 1 )
    : LeastSquares( lvl, downsampling, false, "" )
@@ -318,15 +329,21 @@ class LeastSquares
    /**
     * @brief Constructs a LeastSquares object using a precomputed SVD.
     *
-    * @param path_to_svd Path to a the files containing the SVD of the Vandermonde matrix.
-    * @param lvl The level of refinement.
-    * @param downsampling The downsampling factor.
-    * (0: choose automatically, 1: no downsampling, n: only use every n-th vertex in each direction)
+    * @param path_to_svd Path to the directory where the files are stored.
+    * @param lvl The level of refinement determining the mapping T→ℝ
+    * @param downsampling The downsampling factor determining the number of sample points:
+    *          0: choose automatically, 1: use all vertices, n: only use every n-th vertex in each direction
+    *          ⇒ downsampling reduces the number of sample points by a factor of n^D
     */
    LeastSquares( const std::string& path_to_svd, uint_t lvl, uint_t downsampling = 1 )
    : LeastSquares( lvl, downsampling, true, path_to_svd )
    {}
 
+   /**
+    * @brief Store Vandermonde matrix and SVD, such that they can be used for `LeastSquares(path, lvl, downsampling)`.
+    *
+    * @param path Path to the directory where the files should be stored.
+    */
    void write_to_file( const std::string& path ) const
    {
       if ( !store_svd( path ) )
@@ -343,9 +360,9 @@ class LeastSquares
    Iterator samplingIterator() const { return Iterator( _lvl, _downsampling ); }
 
    /**
-    * @brief Set n-th coefficient of right hand side vector. Should be used together with it = samplingIterator().
+    * @brief Set n-th coefficient of right hand side vector. Should be used together with `it = samplingIterator()`.
     *
-    * @param n Index of the coefficient, ie, n = it()
+    * @param n Index of the coefficient, ie, `n = it()`
     * @param f_xyz f( it.i(), it.j(), it.k() ), where f is the function to be approximated.
     */
    void setRHS( const uint_t n, const double f_xyz ) { b( n ) = f_xyz; }
