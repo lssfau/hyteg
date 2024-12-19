@@ -35,7 +35,7 @@ class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
    /// \brief Forces the number of OpenMP threads to 1 after this call.
    void forceSerial()
    {
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #ifdef HYTEG_BUILD_WITH_OPENMP
       omp_set_num_threads(1);
       #endif
    }
@@ -44,7 +44,7 @@ class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
    ///        during construction of this manager.
    void resetToParallel()
    {
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #ifdef HYTEG_BUILD_WITH_OPENMP
       omp_set_num_threads(maxNumThreads_);
       #endif
    }
@@ -52,7 +52,7 @@ class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
    /// \brief Returns the current (maximum) number of threads.
    int numThreads() const
    {
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #ifdef HYTEG_BUILD_WITH_OPENMP
       return omp_get_max_threads();
       #else
       return 1;
@@ -63,7 +63,7 @@ class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
 
    OpenMPManager()
    : maxNumThreads_(
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
          omp_get_max_threads()
 #else
          1

@@ -227,7 +227,7 @@ int main( int argc, char* argv[] )
    P1Function< real_t > original( "original function", storage, level, level );
    initSrcFunction( original, level );
 
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
    adios2::ADIOS adios( walberla::MPIManager::instance()->comm() );
 #else
    adios2::ADIOS adios;

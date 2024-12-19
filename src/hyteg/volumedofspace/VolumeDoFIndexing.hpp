@@ -611,9 +611,6 @@ class ElementNeighborInfo
    DoFType neighborBoundaryType( uint_t neighbor ) const { return neighborBoundaryType_[neighbor]; }
 
  private:
-   /// Dimensionality of the volume element.
-   int dim_;
-
    /// Logical index of the element.
    Index elementIdx_;
 
@@ -1056,7 +1053,7 @@ inline void getVolumeIdxOnCoarseMacro( const PrimitiveStorage&       storage,
 
    const auto& coarseFace = *storage.getFace( coarseMacroPID );
 
-   uint_t            fineMacroId;
+   uint_t            fineMacroId( 4 );
    celldof::CellType macroType = celldof::CellType::WHITE_UP;
    for ( uint_t i = 0; i < 4; i++ )
    {
@@ -1065,6 +1062,10 @@ inline void getVolumeIdxOnCoarseMacro( const PrimitiveStorage&       storage,
          fineMacroId = i;
          break;
       }
+   }
+   if ( fineMacroId == 4 )
+   {
+      WALBERLA_ABORT( "Could not find micro index" )
    }
 
    if ( fineMacroId == 3 )

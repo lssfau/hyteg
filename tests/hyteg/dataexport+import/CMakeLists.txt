@@ -27,7 +27,7 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
     set_tests_properties( AdiosWriterTest-Sequential PROPERTIES FIXTURES_SETUP AdiosOutput-Sequential )
     set_tests_properties( AdiosWriterVerifyTest-Sequential PROPERTIES FIXTURES_REQUIRED AdiosOutput-Sequential )
 
-    if( WALBERLA_BUILD_WITH_MPI )
+    if( HYTEG_BUILD_WITH_MPI )
       waLBerla_execute_test(NAME AdiosWriterTest-Parallel COMMAND $<TARGET_FILE:AdiosWriterTest> PROCESSES 3)
       waLBerla_execute_test( NAME AdiosWriterVerifyTest-Parallel
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py --num-writers 3 --fp-bits ${WALBERLA_FP_BITS} )
@@ -47,7 +47,7 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
 
   waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential COMMAND $<TARGET_FILE:CheckpointRestoreTest> PROCESSES 1)
 
-  if( WALBERLA_BUILD_WITH_MPI )
+  if( HYTEG_BUILD_WITH_MPI )
     waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Same-Communicator COMMAND $<TARGET_FILE:CheckpointRestoreTest> PROCESSES 3)
 
     set_tests_properties( CheckpointRestoreTest-Sequential                 PROPERTIES FIXTURES_SETUP CheckPointRestore )

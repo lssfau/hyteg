@@ -120,7 +120,7 @@ class P2ToP1FenicsForm : public Form
       computeLocalStiffnessMatrix( coords, elMat );
    }
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) override { WALBERLA_UNUSED( map ); }
 
  private:
    void computeLocalStiffnessMatrix( const std::array< Point3D, 3 >& coords, Matrixr< 3, 6 >& localStiffnessMatrix ) const

@@ -84,11 +84,11 @@ public:
 
     if ( backwards )
     {
-      coordinates_.x() = width - 1 - offsetToCenter;
+       coordinates_.x() = static_cast< idx_t >( width - 1 - offsetToCenter );
     }
     else
     {
-      coordinates_.x() = offsetToCenter;
+       coordinates_.x() = static_cast< idx_t >( offsetToCenter );
     }
 
 

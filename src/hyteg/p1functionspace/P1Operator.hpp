@@ -108,8 +108,6 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
    std::map< indexing::Index, vertexdof::macrocell::StencilMap_T > computeStencilsForCell( Cell& cell ) const
    {
-      typedef stencilDirection sd;
-
       auto level = this->maxLevel_;
 
       auto& operatorData = cell.getData( cellStencilID_ )->getData( level );
@@ -118,22 +116,22 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       assemble_stencil_cell_init( cell, level );
 
-      const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
-      uint_t       rowsizeY, rowsizeX;
+      const idx_t rowsizeZ = static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) );
+      idx_t       rowsizeY, rowsizeX;
 
-      for ( int k = 1; k < rowsizeZ - 3; ++k )
+      for ( idx_t k = 1; k < rowsizeZ - 3; ++k )
       {
          assemble_stencil_cell_init_z( k );
 
          rowsizeY = rowsizeZ - k;
 
-         for ( int j = 1; j < rowsizeY - 2; ++j )
+         for ( idx_t j = 1; j < rowsizeY - 2; ++j )
          {
             assemble_stencil_cell_init_y( j );
 
             rowsizeX = rowsizeY - j;
 
-            for ( int i = 1; i < rowsizeX - 1; ++i )
+            for ( idx_t i = 1; i < rowsizeX - 1; ++i )
             {
                indexing::Index idx{ i, j, k };
 
@@ -153,8 +151,6 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       {
          WALBERLA_ABORT( "Only available for 2D domains!" );
       }
-
-      typedef stencilDirection sd;
 
       auto level = this->maxLevel_;
 
@@ -525,7 +521,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
             for ( uint_t i = 0; i < stencilSize; i++ )
             {
-               stencilMemory[i] = stencil[i];
+               stencilMemory[i] = static_cast< ValueType >( stencil[i] );
             }
 
             if constexpr ( Lumped )
@@ -555,7 +551,6 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    void assemble_stencil_vertices()
    {
       using namespace P1Elements::P1Elements2D;
-      typedef stencilDirection sD;
 
       for ( uint_t level = this->minLevel_; level <= this->maxLevel_; ++level )
       {
@@ -571,9 +566,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
             Point3D d0;
             Point3D d2;
 
-            ValueType h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
-
-            uint_t neighborId = 0;
+            ValueType h = static_cast< ValueType >( 1.0 / ( walberla::real_c( rowsize - 1 ) ) );
 
             for ( auto& faceId : vertex.neighborFaces() )
             {
@@ -603,14 +596,12 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                {
                   uint_t edge_idx = vertex.edge_index( edgeId ) + 1;
 
-                  vertex_stencil[edge_idx] += matrixRow( 0, i );
+                  vertex_stencil[edge_idx] += static_cast< ValueType >( matrixRow( 0, i ) );
                   i += 1;
                }
 
                // add contribution of center vertex
-               vertex_stencil[0] += matrixRow( 0, 0 );
-
-               ++neighborId;
+               vertex_stencil[0] += static_cast< ValueType >( matrixRow( 0, 0 ) );
             }
 
             if constexpr ( Lumped )
@@ -1129,7 +1120,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
             assemble_stencil_face3D( opr_data, idxIt.x(), idxIt.y() );
          }
 
-         ValueType tmp = real_c( 0 );
+         ValueType tmp = static_cast< ValueType >( 0 );
 
          for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
          {
@@ -1139,7 +1130,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
             for ( auto stencilIt : opr_data[neighborCellIdx] )
             {
-               auto weight               = stencilIt.second;
+               auto weight               = static_cast< ValueType >( stencilIt.second );
                auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
                auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
                    leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), *storage_, level );
@@ -1267,26 +1258,26 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       ValueType tmp;
 
-      const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
-      uint_t       rowsizeY, rowsizeX;
+      const idx_t rowsizeZ = static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) );
+      idx_t       rowsizeY, rowsizeX;
 
       // skip level 0 (no interior points)
       if ( level == 0 )
          return;
 
-      for ( int k = 1; k < rowsizeZ - 3; ++k )
+      for ( idx_t k = 1; k < rowsizeZ - 3; ++k )
       {
          assemble_stencil_cell_init_z( k );
 
          rowsizeY = rowsizeZ - k;
 
-         for ( int j = 1; j < rowsizeY - 2; ++j )
+         for ( idx_t j = 1; j < rowsizeY - 2; ++j )
          {
             assemble_stencil_cell_init_y( j );
 
             rowsizeX = rowsizeY - j;
 
-            for ( int i = 1; i < rowsizeX - 1; ++i )
+            for ( idx_t i = 1; i < rowsizeX - 1; ++i )
             {
                if ( variableStencil() )
                {
@@ -1378,9 +1369,9 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       const int stop  = backwards ? 0 : (int) rowsize - 1;
       const int incr  = backwards ? -1 : 1;
 
-      for ( int ii = start; ii != stop; ii += incr )
+      for ( idx_t ii = start; ii != stop; ii += incr )
       {
-         const uint_t i = uint_c( ii );
+         const idx_t i = ii;
 
          if ( variableStencil() )
          {
@@ -1437,11 +1428,11 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       assemble_stencil_face_init( face, level );
 
-      ValueType centerWeight = real_c( 0 );
+      auto centerWeight = static_cast< ValueType >( 0 );
 
       for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
-         centerWeight += opr_data[neighborCellIdx][{ 0, 0, 0 }];
+         centerWeight += static_cast< ValueType >( opr_data[neighborCellIdx][{ 0, 0, 0 }] );
       }
 
       auto invCenterWeight = 1.0 / centerWeight;
@@ -1454,11 +1445,11 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
          if ( variableStencil() )
          {
             assemble_stencil_face3D( opr_data, idxIt.x(), idxIt.y() );
-            centerWeight = real_c( 0 );
+            centerWeight = static_cast< ValueType >( 0 );
 
             for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
             {
-               centerWeight += opr_data[neighborCellIdx][{ 0, 0, 0 }];
+               centerWeight += static_cast< ValueType >( opr_data[neighborCellIdx][{ 0, 0, 0 }] );
             }
 
             invCenterWeight = 1.0 / centerWeight;
@@ -1598,8 +1589,8 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       auto inverseCenterWeight = 1.0 / operatorData[{ 0, 0, 0 }];
 
-      const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
-      uint_t       rowsizeY, rowsizeX;
+      const idx_t rowsizeZ = static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) );
+      idx_t       rowsizeY, rowsizeX;
 
       // skip level 0 (no interior points)
       if ( level == 0 )
@@ -1750,7 +1741,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    */
    inline void assemble_variableStencil_edge_init( Edge& edge, const uint_t level ) const
    {
-      h_           = 1.0 / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
+      h_           = static_cast< ValueType >( 1.0 / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) ) );
       level_       = level;
       stencilSize_ = edge.getData( edgeStencilID_ )->getSize( level );
       edge_        = &edge;
@@ -1807,7 +1798,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
          for ( uint_t j = 0; j < stencilSize_; j++ )
          {
-            edge_stencil[j] = stencil[j];
+            edge_stencil[j] = static_cast< ValueType >( stencil[j] );
          }
 
          if constexpr ( Lumped )
@@ -1975,7 +1966,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    */
    inline void assemble_variableStencil_face_init( Face& face, const uint_t level ) const
    {
-      h_           = 1.0 / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
+      h_           = static_cast< ValueType >( 1.0 / real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
       level_       = level;
       stencilSize_ = face.getData( faceStencilID_ )->getSize( level );
       face_        = &face;
@@ -2123,7 +2114,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    */
    inline void assemble_variableStencil_cell_init( Cell& cell, const uint_t level ) const
    {
-      h_ = 1.0 / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
+      h_ = static_cast< ValueType >( 1.0 / real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
       form_.setGeometryMap( cell.getGeometryMap() );
       level_ = level;
       cell_  = &cell;

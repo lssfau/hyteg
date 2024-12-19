@@ -765,9 +765,6 @@ template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_to_p2_te
 template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
 template class P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
 
-template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise > >;
-template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise > >;
-
 template class P1ConstantOperator<
     P1WrapperForm< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > > >;
 template class P1ConstantOperator<

@@ -108,9 +108,9 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
 
    void apply( const FunctionType& src,
                const FunctionType& dst,
-               const uint_t&       level,
-               const DoFType&      flag,
-               const UpdateType&   updateType = Replace ) const
+               const uint_t        level,
+               const DoFType       flag,
+               const UpdateType    updateType = Replace ) const override
    {
       unsteadyDiffusionOperator_->apply( src, dst, level, flag, updateType );
    }

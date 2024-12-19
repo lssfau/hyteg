@@ -133,34 +133,34 @@ private:
 };
 
 
-/// \brief Iterator to iterate over a face-boundary of a macro-cell.
-///
-/// Using this iterator, each face with corner-coordinates a, b and c can be iterated over in six ways:
-///
-/// c
-/// +
-/// |\
-/// | \
-/// |  \
-/// +---+
-/// a    b
-///
-/// - a -> b -> c (bottom to top in row-wise fashion)
-/// - b -> a -> c (bottom to tip in row-wise fashion (backwards))
-/// - a -> c -> b (left to right in column-wise fashion (columns bottom to top))
-/// - c -> a -> b (left to right in column-wise fashion (columns top to bottom))
-/// - b -> c -> a (top-right to bottom-left (diagonal rows from bottom right to top left))
-/// - c -> b -> a (top-right to bottom-left (diagonal rows from top left to bottom right))
-///
-/// a, b and c can be set to three distinct cell-vertices (combinations of [0, 1, 2, 3], no repetition)
-///
-/// The cell vertices are at the following logical indices (also refer to the documentation):
-///
-/// 0: (      0,       0,       0)
-/// 1: (width-1,       0,       0)
-/// 2: (      0, width-1,       0)
-/// 3: (      0,       0, width-1)
-///
+/** \brief Iterator to iterate over a face-boundary of a macro-cell.
+ *
+ *  Using this iterator, each face with corner-coordinates a, b and c can be iterated over in six ways:
+ *
+ *  c
+ *  +
+ *  |\
+ *  | \
+ *  |  \
+ *  +---+
+ *  a    b
+ *
+ *  - a -> b -> c (bottom to top in row-wise fashion)
+ *  - b -> a -> c (bottom to tip in row-wise fashion (backwards))
+ *  - a -> c -> b (left to right in column-wise fashion (columns bottom to top))
+ *  - c -> a -> b (left to right in column-wise fashion (columns top to bottom))
+ *  - b -> c -> a (top-right to bottom-left (diagonal rows from bottom right to top left))
+ *  - c -> b -> a (top-right to bottom-left (diagonal rows from top left to bottom right))
+ *
+ *  a, b and c can be set to three distinct cell-vertices (combinations of [0, 1, 2, 3], no repetition)
+ *
+ *  The cell vertices are at the following logical indices (also refer to the documentation):
+ *
+ *  0: (      0,       0,       0)
+ *  1: (width-1,       0,       0)
+ *  2: (      0, width-1,       0)
+ *  3: (      0,       0, width-1)
+**/
 class CellBoundaryIterator
 {
 public:

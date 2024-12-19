@@ -393,7 +393,7 @@ void exportRefinedMesh( std::shared_ptr< PrimitiveStorage >& storage, uint_t exp
       WALBERLA_ABORT( "gmsh::exportRefinedMesh(): Failed to open '" << exportFileName << "'" );
    }
 
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
    if ( walberla::mpi::MPIManager::instance()->numProcesses() > 1 )
    {
       WALBERLA_LOG_WARNING_ON_ROOT(

@@ -218,53 +218,54 @@ class SphericalHarmonicsTool
 
    /// Method for evaluating vector spherical harmonics
 
-   /// We use vector spherical harmonics given by
-   /// \f[ \begin{split}
-   ///   \mathcal{Y}_{lm}^0(\theta,\phi) &= \nu_0 \vec{e}_r \\
-  ///   \mathcal{Y}_{lm}^1(\theta,\phi) &= \nu_1 \vec{e}_\theta +
-   ///                                      \nu_2 \vec{e}_\phi \\
-  ///   \mathcal{Y}_{lm}^2(\theta,\phi) &= - \nu_2 \vec{e}_\theta
-   ///                                      + \nu_1 \vec{e}_\phi
-   /// \end{split} \f]
-   /// where \f$\{\vec{e}_r,\vec{e}_\theta,\vec{e}_\phi\}\f$ is the local
-   /// triad at the point \f$(\theta,\phi)\f$ on the unit sphere and the
-   /// coefficient functions are given by
-   /// \f[ \begin{split}
-   /// \nu_0(\theta,\phi) &= Y_{lm}(\theta,\phi) \\
-  /// \nu_1(\theta,\phi) &= \frac{1}{\sqrt{l(l+1)}}\cdot
-   ///          \frac{\partial}{\partial \theta} Y_{lm}(\theta,\phi) \\
-  /// \nu_2(\theta,\phi) &= \frac{1}{\sqrt{l(l+1)}}\cdot
-   ///           \frac{1}{\sin\theta}\frac{\partial}{\partial \phi}
-   ///           Y_{lm}(\theta,\phi)
-   /// \end{split} \f]
-   /// Here \f$Y_{lm}\f$ is the scalar spherical harmonics function.
-   ///
-   /// \param  deg    degree l
-   /// \param  ord    order  m
-   /// \param  x      x-coordinate of evaluation node
-   /// \param  y      y-coordinate of evaluation node
-   /// \param  z      z-coordinate of evaluation node
-   /// \param  ind    index for choosing vector from \f$\{\mathcal{Y}_{lm}^0,
-   ///                \mathcal{Y}_{lm}^1,\mathcal{Y}_{lm}^2\}\f$
-   /// \param  comp   choosing 0th, 1st or 2nd vector component
-   ///
-   /// \note
-   /// - For positive order we use scalar spherical harmonics with a
-   ///   \f$\sin(m\theta)\f$ factor, otherwise with \f$\cos(m\theta)\f$.
-   /// - If \f$p=(x,y,z)\f$ is a point on the unit sphere, then we can
-   ///   express the vectors of the local triad by
-   /// - As all methods of this class, also this one employs Geodesy style
-   ///   normalisation.
-   /// \f[
-   /// \vec{e}_r = \begin{pmatrix} x \\ y \\ z \end{pmatrix}
-   /// \enspace,\quad
-   /// \vec{e}_\theta = \begin{pmatrix} zx/\varrho \\ zy/\varrho \\
-    /// -\varrho \end{pmatrix}
-   /// \enspace,\quad
-   /// \vec{e}_\phi = \begin{pmatrix} -y/\varrho \\ x/\varrho \\ 0 \end{pmatrix}
-   /// \enspace,\quad
-   /// \varrho = \sqrt{x^2 + y^2}
-   /// \f]
+   /** We use vector spherical harmonics given by
+    *  \f[ \begin{split}
+    *    \mathcal{Y}_{lm}^0(\theta,\phi) &= \nu_0 \vec{e}_r \\
+    *   \mathcal{Y}_{lm}^1(\theta,\phi) &= \nu_1 \vec{e}_\theta +
+    *                                       \nu_2 \vec{e}_\phi \\
+    *   \mathcal{Y}_{lm}^2(\theta,\phi) &= - \nu_2 \vec{e}_\theta
+    *                                       + \nu_1 \vec{e}_\phi
+    *  \end{split} \f]
+    *  where \f$\{\vec{e}_r,\vec{e}_\theta,\vec{e}_\phi\}\f$ is the local
+    *  triad at the point \f$(\theta,\phi)\f$ on the unit sphere and the
+    *  coefficient functions are given by
+    *  \f[ \begin{split}
+    *  \nu_0(\theta,\phi) &= Y_{lm}(\theta,\phi) \\
+    *  \nu_1(\theta,\phi) &= \frac{1}{\sqrt{l(l+1)}}\cdot
+    *           \frac{\partial}{\partial \theta} Y_{lm}(\theta,\phi) \\
+    *  \nu_2(\theta,\phi) &= \frac{1}{\sqrt{l(l+1)}}\cdot
+    *            \frac{1}{\sin\theta}\frac{\partial}{\partial \phi}
+    *            Y_{lm}(\theta,\phi)
+    *  \end{split} \f]
+    *  Here \f$Y_{lm}\f$ is the scalar spherical harmonics function.
+    *
+    *  \param  deg    degree l
+    *  \param  ord    order  m
+    *  \param  x      x-coordinate of evaluation node
+    *  \param  y      y-coordinate of evaluation node
+    *  \param  z      z-coordinate of evaluation node
+    *  \param  ind    index for choosing vector from \f$\{\mathcal{Y}_{lm}^0,
+    *                 \mathcal{Y}_{lm}^1,\mathcal{Y}_{lm}^2\}\f$
+    *  \param  comp   choosing 0th, 1st or 2nd vector component
+    *
+    *  \note
+    *  - For positive order we use scalar spherical harmonics with a
+    *    \f$\sin(m\theta)\f$ factor, otherwise with \f$\cos(m\theta)\f$.
+    *  - If \f$p=(x,y,z)\f$ is a point on the unit sphere, then we can
+    *    express the vectors of the local triad by
+    *  - As all methods of this class, also this one employs Geodesy style
+    *    normalisation.
+    *  \f[
+    *  \vec{e}_r = \begin{pmatrix} x \\ y \\ z \end{pmatrix}
+    *  \enspace,\quad
+    *  \vec{e}_\theta = \begin{pmatrix} zx/\varrho \\ zy/\varrho \\
+    *  -\varrho \end{pmatrix}
+    *  \enspace,\quad
+    *  \vec{e}_\phi = \begin{pmatrix} -y/\varrho \\ x/\varrho \\ 0 \end{pmatrix}
+    *  \enspace,\quad
+    *  \varrho = \sqrt{x^2 + y^2}
+    *  \f]
+   **/
    real_t evalVSH( uint_t deg, int ord, real_t x, real_t y, real_t z, uint_t ind, uint_t comp );
 };
 

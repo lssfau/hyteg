@@ -379,25 +379,26 @@ inline Eigen::DiagonalMatrix< real_t, 6 >
    // An invalid edge id.
    const Eigen::Index X = 42;
 
-   // The index of the DoF (in the local element matrix/vector) with the same
-   // direction as the macro edge with the given local index (HyTeG ordering).
-   // Note that every element type misses one of the seven edge types (marked
-   // by X).
-   //
-   // Example:
-   //
-   //   3                    3                         .3
-   //   |\`\.                |\`\.                  ,/' |\
-   //   | 5 `\.              | 0 `\.              .1    | 0
-   //   |  \   4             |  \   1          ,/'      3  \
-   //   3  2 _  `\.     -->  3  2 _  `\.      1------2--|--2
-   //   |  /  `-2 `\.        |  /  `-2 `\.      `-5     | /
-   //   | 1      `\_`\       | 4      `\_`\        `\_  |4
-   //   0------0------1      0------5------1          `-0
-   //
-   //   Macro-cell           Micro-cell
-   //   always WHITE UP      e.g. WHITE UP         BLUE UP
-   //   HyTeG edge indices   FEniCS edge indices / DoF indices
+   /** The index of the DoF (in the local element matrix/vector) with the same
+    * direction as the macro edge with the given local index (HyTeG ordering).
+    * Note that every element type misses one of the seven edge types (marked
+    * by X).
+    *
+    * Example:
+    *
+    *   3                    3                         .3
+    *   |\`\.                |\`\.                  ,/' |\
+    *   | 5 `\.              | 0 `\.              .1    | 0
+    *   |  \   4             |  \   1          ,/'      3  \
+    *   3  2 _  `\.     -->  3  2 _  `\.      1------2--|--2
+    *   |  /  `-2 `\.        |  /  `-2 `\.      `-5     | /
+    *   | 1      `\_`\       | 4      `\_`\        `\_  |4
+    *   0------0------1      0------5------1          `-0
+    *
+    *   Macro-cell           Micro-cell
+    *   always WHITE UP      e.g. WHITE UP         BLUE UP
+    *   HyTeG edge indices   FEniCS edge indices / DoF indices
+   **/
    static const std::map< celldof::CellType, std::array< Eigen::Index, 6 > > dofIdx{
        { celldof::CellType::WHITE_UP, { 5, 4, 2, 3, 1, 0 } },
        { celldof::CellType::WHITE_DOWN, { 0, 1, 2, 3, 4, 5 } }, // unused, only for completeness

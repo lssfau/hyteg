@@ -133,9 +133,11 @@ class PrimitiveID
    }
 
    template < typename UINT = uint64_t >
-   inline const std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) >& asIntArray() const
+   inline const std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) > asIntArray() const
    {
-      return *( reinterpret_cast< std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) > const* >( &id_ ) );
+      std::array<UINT, BITS_TOTAL / (sizeof(UINT) * 8)> result;
+      std::memcpy(&result, &id_, sizeof(result));
+      return result;
    }
    ///@}
 

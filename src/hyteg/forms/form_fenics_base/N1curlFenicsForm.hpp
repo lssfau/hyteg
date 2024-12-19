@@ -66,7 +66,7 @@ class N1curlFenicsForm : public Form
       elMat = tmp.cast< real_t >();
    }
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap > ) const {}
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& ) override {}
 };
 
 } // namespace hyteg

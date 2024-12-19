@@ -156,13 +156,13 @@ class VolumeDoFPackInfo : public communication::PackInfo
 /// @name Face to Face
 ///@{
 
-static void
+static inline void
     startAndIncrm2D( uint_t idx0, uint_t idx1, uint_t width, hyteg::indexing::Index& start, hyteg::indexing::Index& incrX )
 {
    using hyteg::indexing::Index;
    using hyteg::indexing::tup4;
 
-   const idx_t w( width );
+   const idx_t w( static_cast< idx_t >( width ) );
 
    switch ( tup4( idx0, idx1 ) )
    {
@@ -339,8 +339,7 @@ void VolumeDoFPackInfo< ValueType >::prepareFaceToFaceIterators(
 
    WALBERLA_ASSERT_LESS_EQUAL( receiverLocalEdgeID, 2, "Couldn't find sender face in neighborhood." );
 
-   const auto ndofs = numScalarsPerPrimitive_.at( sender->getID() );
-   uint_t     width, widthGl, levelIdxRecv;
+   uint_t     width, widthGl;
 
    ValueType* faceData = nullptr;
    if ( packType == communication::PackType::PACK || packType == communication::PackType::DIRECT )
@@ -385,7 +384,6 @@ void VolumeDoFPackInfo< ValueType >::prepareFaceToFaceIterators(
       levelGl      = level_;
       width        = levelinfo::num_microedges_per_edge( level_ );
       widthGl      = levelinfo::num_microedges_per_edge( levelGl );
-      levelIdxRecv = level_;
       WALBERLA_DEBUG_SECTION()
       {
          if ( width > 1 )
@@ -457,7 +455,6 @@ void VolumeDoFPackInfo< ValueType >::prepareFaceToFaceIterators(
       levelGl      = level_ + 1;
       width        = levelinfo::num_microedges_per_edge( level_ );
       widthGl      = levelinfo::num_microedges_per_edge( levelGl );
-      levelIdxRecv = levelGl;
       WALBERLA_ASSERT_EQUAL( width % 2, 0, "Number of micro edges per edge better be even." );
 
       faceIteratorSenderPtr   = std::make_shared< hyteg::indexing::FaceBoundaryIterator >( width, 0, 1 );
@@ -483,15 +480,15 @@ void VolumeDoFPackInfo< ValueType >::prepareFaceToFaceIterators(
       // We collect the PrimitiveIDs of the vertices that span the interface on the receiver side.
       auto receiverLocalVertexIDsSet = hyteg::indexing::faceLocalEdgeIDsToSpanningVertexIDs.at( receiverLocalEdgeID );
       std::vector< uint_t >      receiverLocalVertexIDs;
-      std::vector< PrimitiveID > vertexPIDs;
+      std::vector< PrimitiveID > vertexPIDs2;
       for ( auto rlvid : receiverLocalVertexIDsSet )
       {
          receiverLocalVertexIDs.push_back( rlvid );
-         vertexPIDs.push_back( receiver->neighborVertices().at( rlvid ) );
+         vertexPIDs2.push_back( receiver->neighborVertices().at( rlvid ) );
       }
 
       std::vector< uint_t > senderLocalPseudoVertexIDs;
-      for ( auto vpid : vertexPIDs )
+      for ( auto vpid : vertexPIDs2 )
       {
          // On the sender side the macro is coarser, so the PID of the fine neighbor are children of some locally neighboring
          // PIDs.
@@ -579,7 +576,6 @@ void VolumeDoFPackInfo< ValueType >::packFaceForFace( const Face*               
    while ( faceIteratorSender != faceIteratorSender.end() )
    {
       const auto senderIdx   = startSend + faceIteratorSender->x() * incrmSend;
-      const auto receiverIdx = startRecv + faceIteratorReceiver->x() * incrmRecv;
 
       for ( uint_t dof = 0; dof < ndofs; dof++ )
       {
@@ -642,7 +638,6 @@ void VolumeDoFPackInfo< ValueType >::unpackFaceFromFace( Face*                  
 
    while ( faceIteratorSender != faceIteratorSender.end() )
    {
-      const auto senderIdx   = startSend + faceIteratorSender->x() * incrmSend;
       const auto receiverIdx = startRecv + faceIteratorReceiver->x() * incrmRecv;
 
       for ( uint_t dof = 0; dof < ndofs; dof++ )

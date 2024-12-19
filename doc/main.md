@@ -69,7 +69,7 @@ A kind of "GUI" to edit the CMake options is available by using
 Additional options are available via waLBerla.
 MPI is enabled by default but can be disabled using:
 
-    -DWALBERLA_BUILD_WITH_MPI=OFF
+    -DHYTEG_BUILD_WITH_MPI=OFF
     
     
 ### Additional components
@@ -124,7 +124,7 @@ whole application.
 These markers are available through LikwidWrapper.hpp and are enabled
 using:
 
-    -DWALBERLA_BUILD_WITH_LIKWID=ON
+    -DHYTEG_BUILD_WITH_LIKWID=ON
 
 ## Framework overview
 

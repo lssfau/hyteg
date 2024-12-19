@@ -6,13 +6,21 @@ if (HYTEG_BUILD_WITH_PETSC)
    target_link_libraries(hyteg PUBLIC PETSc::PETSc)
 endif ()
 
+if ( HYTEG_BUILD_WITH_MPI )
+   target_link_libraries( hyteg PUBLIC MPI::MPI_CXX )
+endif ()
+
 if ( HYTEG_BUILD_WITH_ADIOS2 )
-  if ( WALBERLA_BUILD_WITH_MPI )
+  if ( HYTEG_BUILD_WITH_MPI )
     target_link_libraries( hyteg PUBLIC adios2::cxx11_mpi )
   else()
     target_link_libraries( hyteg PUBLIC adios2::cxx11 )
   endif()
 endif()
+
+if ( HYTEG_BUILD_WITH_OPENMP )
+   target_link_libraries( hyteg PUBLIC OpenMP::OpenMP_CXX )
+endif ()
 
 if(HYTEG_BUILD_WITH_PYTHON3)
     target_include_directories(hyteg PUBLIC ${Python3_INCLUDE_DIRS})
@@ -22,6 +30,10 @@ endif()
 if ( HYTEG_BUILD_WITH_MPFR )
     target_link_libraries(hyteg PUBLIC MPFR::MPFR)
 endif ()
+
+if ( HYTEG_BUILD_WITH_LIKWID )
+   target_link_libraries(hyteg PUBLIC LIKWID_LIB LIKWID_INCLUDE_DIR)
+endif ( )
 
 set_target_properties(hyteg PROPERTIES CXX_EXTENSIONS OFF)
 # There seem to be spurious warnings in gcc 12.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366

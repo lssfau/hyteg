@@ -36,10 +36,6 @@ class GmshReaderForMSH22
    {
       MeshInfo meshInfo;
 
-      using Edge = MeshInfo::Edge;
-      using Face = MeshInfo::Face;
-      using Cell = MeshInfo::Cell;
-
       std::ifstream meshFile;
       meshFile.open( meshFileName.c_str() );
 
@@ -112,7 +108,7 @@ class GmshReaderForMSH22
             meshFile >> edgeVertices[0];
             meshFile >> edgeVertices[1];
 
-            parsedEdges[edgeVertices] = Edge( edgeVertices, boundaryFlag );
+            parsedEdges[edgeVertices] = MeshInfo::Edge( edgeVertices, boundaryFlag );
          }
 
          else if ( primitiveType == 2 ) // triangle

@@ -242,7 +242,7 @@ int main( int argc, char* argv[] )
    // --------------
    std::string filename{ "output/mesh.bp" };
 
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
    adios2::ADIOS adios( "ADIOS2config.xml", walberla::MPIManager::instance()->comm() );
 #else
    adios2::ADIOS adios( "ADIOS2config.xml" );

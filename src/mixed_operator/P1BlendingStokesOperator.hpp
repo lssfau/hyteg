@@ -49,7 +49,8 @@ class P1BlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1
    void apply( const P1StokesFunction< real_t >& src,
                const P1StokesFunction< real_t >& dst,
                const uint_t                      level,
-               const DoFType                     flag ) const
+               const DoFType                     flag,
+               UpdateType                        updateType = Replace ) const override
    {
       WALBERLA_CHECK( !src.uvw()[0].getStorage()->hasGlobalCells(), "P1BlendingStokesOperator not implemented for 3D." );
 
@@ -71,7 +72,7 @@ class P1BlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1
                   const P1StokesFunction< idx_t >&            src,
                   const P1StokesFunction< idx_t >&            dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       WALBERLA_CHECK( !src.uvw()[0].getStorage()->hasGlobalCells(), "P1BlendingStokesOperator not implemented for 3D." );
 

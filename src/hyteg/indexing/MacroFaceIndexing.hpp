@@ -25,10 +25,11 @@
 
 #include "hyteg/indexing/Common.hpp"
 
+using walberla::uint_t;
+using walberla::uint_c;
+
 namespace hyteg {
 namespace indexing {
-
-using walberla::uint_t;
 
 /// Array access layouts - wrapped by general access function.
 /// The general memory layout can thus be switched globally by setting
@@ -84,8 +85,8 @@ class FaceIterator
 
       coordinates_.z() = 0;
 
-      coordinates_.x() = offsetToCenter;
-      coordinates_.y() = offsetToCenter;
+      coordinates_.x() = static_cast< idx_t >( offsetToCenter );
+      coordinates_.y() = static_cast< idx_t >( offsetToCenter );
 
       if ( end )
       {
@@ -109,8 +110,8 @@ class FaceIterator
 
       step_++;
 
-      const uint_t currentRow = coordinates_.y();
-      const uint_t currentCol = coordinates_.x();
+      const uint_t currentRow = uint_c( coordinates_.y() );
+      const uint_t currentCol = uint_c( coordinates_.x() );
 
       const uint_t lengthOfCurrentRowWithoutOffset = width_ - currentRow;
 
@@ -121,7 +122,7 @@ class FaceIterator
       else
       {
          coordinates_.y()++;
-         coordinates_.x() = offsetToCenter_;
+         coordinates_.x() = static_cast< idx_t >( offsetToCenter_ );
       }
 
       return *this;
@@ -280,28 +281,28 @@ class FaceBoundaryIterator
       switch ( direction )
       {
       case FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT:
-         coordinates_.x() = 0 + offsetFromVertices;
-         coordinates_.y() = 0 + offsetToCenter;
+         coordinates_.x() = static_cast< idx_t >( 0 + offsetFromVertices );
+         coordinates_.y() = static_cast< idx_t >( 0 + offsetToCenter );
          break;
       case FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT:
-         coordinates_.x() = width - 1 - offsetToCenter - offsetFromVertices;
-         coordinates_.y() = 0 + offsetToCenter;
+         coordinates_.x() = static_cast< idx_t >( width - 1 - offsetToCenter - offsetFromVertices );
+         coordinates_.y() = static_cast< idx_t >( 0 + offsetToCenter );
          break;
       case FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP:
-         coordinates_.x() = 0 + offsetToCenter;
-         coordinates_.y() = 0 + offsetFromVertices;
+         coordinates_.x() = static_cast< idx_t >( 0 + offsetToCenter );
+         coordinates_.y() = static_cast< idx_t >( 0 + offsetFromVertices );
          break;
       case FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM:
-         coordinates_.x() = 0 + offsetToCenter;
-         coordinates_.y() = width - 1 - offsetToCenter - offsetFromVertices;
+         coordinates_.x() = static_cast< idx_t >( 0 + offsetToCenter );
+         coordinates_.y() = static_cast< idx_t >( width - 1 - offsetToCenter - offsetFromVertices );
          break;
       case FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP:
-         coordinates_.x() = width - 1 - offsetToCenter - offsetFromVertices;
-         coordinates_.y() = 0 + offsetFromVertices;
+         coordinates_.x() = static_cast< idx_t >( width - 1 - offsetToCenter - offsetFromVertices );
+         coordinates_.y() = static_cast< idx_t >( 0 + offsetFromVertices );
          break;
       case FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM:
-         coordinates_.x() = 0 + offsetFromVertices;
-         coordinates_.y() = width - 1 - offsetToCenter - offsetFromVertices;
+         coordinates_.x() = static_cast< idx_t >( 0 + offsetFromVertices );
+         coordinates_.y() = static_cast< idx_t >( width - 1 - offsetToCenter - offsetFromVertices );
          break;
       default:
          WALBERLA_ASSERT( false, "Invalid direction in face border iterator" );

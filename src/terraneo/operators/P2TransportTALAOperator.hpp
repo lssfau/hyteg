@@ -508,10 +508,10 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
    void incrementTimestep()
    {
       iTimestep++;
-      for ( uint l = minLevel_; l <= maxLevel_; l++ )
+      for ( uint_t l = minLevel_; l <= maxLevel_; l++ )
          velocityPrev_.assign( { 1.0 }, { *velocity_ }, l, hyteg::All );
 
-      for ( uint l = minLevel_; l <= maxLevel_; l++ )
+      for ( uint_t l = minLevel_; l <= maxLevel_; l++ )
          temperaturePrev_.assign( { 1.0 }, { *temperature_ }, l, hyteg::All );
    }
 

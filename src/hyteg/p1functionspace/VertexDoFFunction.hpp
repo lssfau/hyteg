@@ -425,8 +425,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
       }
       if ( zeroOutDestination )
       {
-         interpolateByPrimitiveType< ReceiverType >(
-             real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
+         interpolateByPrimitiveType< ReceiverType >( 0, level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
       }
       WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
                             1,

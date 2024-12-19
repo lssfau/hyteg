@@ -20,7 +20,7 @@
 
 #pragma once
 
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
 #include <mpi.h>
 #endif
 
@@ -52,7 +52,7 @@ inline std::string systemEndianess()
 
 inline std::string mpiVersion()
 {
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
 
    // We need to do some C-style string handling here
    char mpiLibraryVersion[MPI_MAX_LIBRARY_VERSION_STRING];

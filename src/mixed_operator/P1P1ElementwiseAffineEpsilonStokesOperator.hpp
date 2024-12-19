@@ -57,7 +57,8 @@ class P1P1ElementwiseAffineEpsilonStokesOperator : public Operator< P1StokesFunc
    void apply( const P1StokesFunction< real_t >& src,
                const P1StokesFunction< real_t >& dst,
                const uint_t                      level,
-               const DoFType                     flag ) const
+               const DoFType                     flag,
+               UpdateType                        updateType = Replace ) const override
    {
       viscOp.apply( src.uvw(), dst.uvw(), level, flag );
 
@@ -71,7 +72,7 @@ class P1P1ElementwiseAffineEpsilonStokesOperator : public Operator< P1StokesFunc
                   const P1StokesFunction< idx_t >&            src,
                   const P1StokesFunction< idx_t >&            dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       viscOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
 

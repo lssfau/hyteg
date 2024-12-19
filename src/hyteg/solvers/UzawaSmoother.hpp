@@ -117,9 +117,9 @@ class UzawaSmoother : public Solver< OperatorType >
    , numGSIterationsVelocity_( numGSIterationsVelocity )
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
-   , r_( tmpFunction )
    , rhsZero_( rhsZero )
    , rhsZeroLevels_( rhsZeroLevels )
+   , r_( tmpFunction )
 #if UZAWA_OLD_VARIANT
    , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
 #endif

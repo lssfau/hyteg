@@ -185,7 +185,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
       edgeIDs.push_back( it.first );
    }
 
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -257,7 +257,7 @@ void smooth_sor_macro_faces_impl(
       faceIDs.push_back( it.first );
    }
 
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -893,7 +893,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
       cellIDs.push_back( it.first );
    }
 
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )

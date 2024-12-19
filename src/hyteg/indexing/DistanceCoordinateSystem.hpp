@@ -22,6 +22,8 @@
 
 #include "hyteg/indexing/Common.hpp"
 
+using walberla::uint_c;
+
 namespace hyteg {
 namespace indexing {
 
@@ -114,10 +116,10 @@ inline DistanceIndex toDistanceIndex( const Index & index, const std::array< uin
   WALBERLA_ASSERT_NOT_IDENTICAL( basis[2], basis[3] );
 
   DistanceIndex distanceIndex;
-  distanceIndex[ basis[0] ] = index.x() + index.y() + index.z();
-  distanceIndex[ basis[1] ] = cellWidth - 1 - index.x();
-  distanceIndex[ basis[2] ] = cellWidth - 1 - index.y();
-  distanceIndex[ basis[3] ] = cellWidth - 1 - index.z();
+  distanceIndex[static_cast< int >( basis[0] )] = uint_c( index.x() + index.y() + index.z() );
+  distanceIndex[static_cast< int >( basis[1] )] = cellWidth - 1 - uint_c( index.x() );
+  distanceIndex[static_cast< int >( basis[2] )] = cellWidth - 1 - uint_c( index.y() );
+  distanceIndex[static_cast< int >( basis[3] )] = cellWidth - 1 - uint_c( index.z() );
   return distanceIndex;
 }
 
@@ -135,10 +137,9 @@ inline Index fromDistanceIndex( const DistanceIndex & dstIndex, const std::array
   WALBERLA_ASSERT_NOT_IDENTICAL( basis[1], basis[3] );
   WALBERLA_ASSERT_NOT_IDENTICAL( basis[2], basis[3] );
 
-  return Index( cellWidth - 1 - dstIndex[basis[1]],
-                cellWidth - 1 - dstIndex[basis[2]],
-                cellWidth - 1 - dstIndex[basis[3]]
-              );
+  return Index( static_cast< idx_t >( cellWidth - 1 - dstIndex[static_cast< int >( basis[1] )] ),
+                static_cast< idx_t >( cellWidth - 1 - dstIndex[static_cast< int >( basis[2] )] ),
+                static_cast< idx_t >( cellWidth - 1 - dstIndex[static_cast< int >( basis[3] )] ) );
 }
 
 inline Index basisConversion( const Index & index, const std::array< uint_t, 4 > & srcBasis,

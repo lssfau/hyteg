@@ -28,38 +28,39 @@ using walberla::real_c;
 
 namespace hyteg {
 
-/// Class describing a geometrical mapping from reference to physical space
-///
-/// An object of type GeometryMap describes a blending map, i.e. a local
-/// coordinate transformation, given by
-/// \f[
-/// \Psi(\xi_0,\xi_1,\ldots,\xi_{d-1}) = \left(\begin{array}{c}
-/// x_0(\xi_0,\xi_1,\ldots,\xi_{d-1})\\
-/// x_1(\xi_0,\xi_1,\ldots,\xi_{d-1})\\
-/// \vdots\\
-/// x_{d-1}(\xi_0,\xi_1,\ldots,\xi_{d-1})
-/// \end{array}\right)
-/// \f]
-/// Blending maps are HyTeG's approach to work with domains whose boundary
-/// is not polyhedral. In this case we distinguish between a computational
-/// domain \f$T\f$ and a physical domain \f$\hat{T}\f$. The latter two are
-/// connected via a blending map:
-///
-/// <center>
-/// <img src="BlendingMaps.png" width="600" height="600"/>
-/// </center>
-///
-/// In order to allow integral transformations to the reference element
-/// \f$T_0\f$ the requirements on a blending map are:
-/// - The local mapping \f$\Psi\Bigm|_{M} : M \rightarrow \hat{T}\f$ must be
-///   a diffeomorphism for every macro element \f$M\in T\f$.
-/// - The global mapping \f$\Psi : T \rightarrow \hat{T}\f$ must be a
-///   homeomorphism.
-///
-/// Note that this allows to construct \f$\Psi\f$ in a piecewise fashion.
-///
-/// If you want to use the method evalDFinvDF(), then, obviously, higher
-/// local smoothness requirements apply.
+/** Class describing a geometrical mapping from reference to physical space
+ *
+ *  An object of type GeometryMap describes a blending map, i.e. a local
+ *  coordinate transformation, given by
+ *  \f[
+ *  \Psi(\xi_0,\xi_1,\ldots,\xi_{d-1}) = \left(\begin{array}{c}
+ *  x_0(\xi_0,\xi_1,\ldots,\xi_{d-1})\\
+ *  x_1(\xi_0,\xi_1,\ldots,\xi_{d-1})\\
+ *  \vdots\\
+ *  x_{d-1}(\xi_0,\xi_1,\ldots,\xi_{d-1})
+ *  \end{array}\right)
+ *  \f]
+ *  Blending maps are HyTeG's approach to work with domains whose boundary
+ *  is not polyhedral. In this case we distinguish between a computational
+ *  domain \f$T\f$ and a physical domain \f$\hat{T}\f$. The latter two are
+ *  connected via a blending map:
+ *
+ *  <center>
+ *  <img src="BlendingMaps.png" width="600" height="600"/>
+ *  </center>
+ *
+ *  In order to allow integral transformations to the reference element
+ *  \f$T_0\f$ the requirements on a blending map are:
+ *  - The local mapping \f$\Psi\Bigm|_{M} : M \rightarrow \hat{T}\f$ must be
+ *    a diffeomorphism for every macro element \f$M\in T\f$.
+ *  - The global mapping \f$\Psi : T \rightarrow \hat{T}\f$ must be a
+ *    homeomorphism.
+ *
+ *  Note that this allows to construct \f$\Psi\f$ in a piecewise fashion.
+ *
+ *  If you want to use the method evalDFinvDF(), then, obviously, higher
+ *  local smoothness requirements apply.
+**/
 class GeometryMap
 {
  public:
@@ -117,31 +118,33 @@ class GeometryMap
    };
 
    ///@{
-   /// \brief Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
-   ///
-   /// Denote by
-   /// \f[
-   /// J_{\Psi} =  \left(\begin{array}{ccc}
-   /// \displaystyle\frac{\partial x_0}{\partial \xi_0} & \cdots &
-   /// \displaystyle\frac{\partial x_0}{\partial \xi_{d-1}} \\
-   /// \vdots & \ddots & \vdots \\
-   /// \displaystyle\frac{\partial x_{d-1}}{\partial \xi_0} & \cdots &
-   /// \displaystyle\frac{\partial x_{d-1}}{\partial \xi_{d-1}}
-   /// \end{array}\right)
-   /// \f]
-   /// the Jacobian matrix of the blending map. The method evalDFinvDF() computes the derivative
-   /// of the inverse of this Jacobian. The returned array DFinvDFx is of dimension \f$(d \times d^2)\f$,
-   /// where \f$d\f$ is the spatial dimension, and has entries given by
-   ///
-   /// \f[
-   /// \left(\text{DFinvDFx}\right)_{i,k} = \frac{\partial \left(J^{-1}_{\Psi}\right)_{i,k\bmod d}}{\partial \xi_j}
-   /// \f]
-   ///
-   /// for \f$i\in\{0,\ldots,d-1\}, k\in\{0,\ldots,d^2-1\}\f$ with
-   /// \f$j = \displaystyle\left\lfloor \frac{k}{d} \right\rfloor\f$.
-   ///
-   /// \param x Reference input coordinates
-   /// \param DFinvDFx Result matrix of size dim x dim*dim
+   /**
+    *  \brief Evaluation of the derivatives of the inverse Jacobian matrix at reference position \p x
+    *
+    *  Denote by
+    *  \f[
+    *  J_{\Psi} =  \left(\begin{array}{ccc}
+    *  \displaystyle\frac{\partial x_0}{\partial \xi_0} & \cdots &
+    *  \displaystyle\frac{\partial x_0}{\partial \xi_{d-1}} \\
+    *  \vdots & \ddots & \vdots \\
+    *  \displaystyle\frac{\partial x_{d-1}}{\partial \xi_0} & \cdots &
+    *  \displaystyle\frac{\partial x_{d-1}}{\partial \xi_{d-1}}
+    *  \end{array}\right)
+    *  \f]
+    *  the Jacobian matrix of the blending map. The method evalDFinvDF() computes the derivative
+    *  of the inverse of this Jacobian. The returned array DFinvDFx is of dimension \f$(d \times d^2)\f$,
+    *  where \f$d\f$ is the spatial dimension, and has entries given by
+    *
+    *  \f[
+    *  \left(\text{DFinvDFx}\right)_{i,k} = \frac{\partial \left(J^{-1}_{\Psi}\right)_{i,k\bmod d}}{\partial \xi_j}
+    *  \f]
+    *
+    *  for \f$i\in\{0,\ldots,d-1\}, k\in\{0,\ldots,d^2-1\}\f$ with
+    *  \f$j = \displaystyle\left\lfloor \frac{k}{d} \right\rfloor\f$.
+    *
+    *  \param x Reference input coordinates
+    *  \param DFinvDFx Result matrix of size dim x dim*dim
+   **/
    virtual void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const
    {
       WALBERLA_UNUSED( x );

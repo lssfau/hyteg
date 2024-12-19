@@ -57,7 +57,6 @@ class PlateStorage
    template < typename ImportStrategy >
    PlateStorage( std::string nameOfPlateTopologiesFile, real_t sphereRadius, ImportStrategy readJsonfile )
    : srcFile_( nameOfPlateTopologiesFile )
-   , sphereRadius_( sphereRadius )
    {
       // import topology data
       nlohmann::json rootNode = readJsonfile( nameOfPlateTopologiesFile )["ages"];
@@ -159,9 +158,6 @@ class PlateStorage
 
    /// name of datafile from which object obtained information
    std::string srcFile_;
-
-   /// radius of sphere on which the plates are located
-   real_t sphereRadius_;
 
    /// map to allow retrieving all plates of a certain age stage by giving that age
    ageToPlatesMap_t ageToPlatesMap_;

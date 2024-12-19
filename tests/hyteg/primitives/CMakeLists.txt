@@ -20,7 +20,7 @@ waLBerla_execute_test(NAME PrimitiveStorageTest8 COMMAND $<TARGET_FILE:Primitive
 waLBerla_compile_test(FILES PrimitiveRelativeOrderingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveRelativeOrderingTest)
 
-if (WALBERLA_BUILD_WITH_MPI)
+if (HYTEG_BUILD_WITH_MPI)
     waLBerla_compile_test(FILES PrimitiveStorageParallelSetupTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest1 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest>)
     waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest2 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 2)

@@ -19,31 +19,34 @@
  */
 #pragma once
 
-#include "hyteg/types/PointND.hpp"
-#include "hyteg/types/Matrix.hpp"
-
-#include "core/DataTypes.h"
 #include "core/Abort.h"
+#include "core/DataTypes.h"
+
+#include "hyteg/forms/P1Form.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 
 // wrapper to enable combining P1 operators with higher order forms
 template < class WrappedForm >
-class P1WrapperForm : public WrappedForm
+class P1WrapperForm : public Form
 {
  public:
    // use Ctor from WrappedForm
-   using WrappedForm::WrappedForm;
+   using Form::Form;
 
    // conversion WrappedForm -> P1Wrapper
    P1WrapperForm( const WrappedForm& wf )
-   : WrappedForm( wf )
+   : wrappedForm_( wf )
    {}
    // conversion WrappedForm -> P1Wrapper
    P1WrapperForm( WrappedForm&& wf )
-   : WrappedForm( wf )
+   : wrappedForm_( wf )
    {}
 
+   //   template < typename T = WrappedForm >
+   //   typename std::enable_if< std::is_same< T, P1Form >::value, void >::type
    void integrateRow( const walberla::uint_t& row, const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const
    {
       switch ( row )
@@ -56,6 +59,8 @@ class P1WrapperForm : public WrappedForm
       }
    }
 
+   //   template < typename T = WrappedForm >
+   //   typename std::enable_if< std::is_same< T, P1Form >::value, void >::type
    void integrateRow( const walberla::uint_t& row, const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const
    {
       switch ( row )
@@ -69,11 +74,13 @@ class P1WrapperForm : public WrappedForm
    }
 
  private:
+   WrappedForm wrappedForm_;
+
    // extract vertex to vertex DoF part of WrappedForm
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const
    {
       Point3D row;
-      this->integrate( coords, row );
+      wrappedForm_.integrate( coords, row );
       for ( int i = 0; i < 3; ++i )
       {
          elMat( 0, i ) = row[i];
@@ -84,7 +91,7 @@ class P1WrapperForm : public WrappedForm
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const
    {
       Point4D row;
-      this->integrate( coords, row );
+      wrappedForm_.integrate( coords, row );
       for ( int i = 0; i < 4; ++i )
       {
          elMat( 0, i ) = row[i];

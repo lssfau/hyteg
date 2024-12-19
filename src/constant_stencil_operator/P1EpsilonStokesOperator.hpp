@@ -42,7 +42,11 @@ class P1EpsilonStokesOperator : public Operator< P1StokesFunction< real_t >, P1S
    , pspg( storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
+   void apply( const P1StokesFunction< real_t >& src,
+               const P1StokesFunction< real_t >& dst,
+               size_t                            level,
+               DoFType                           flag,
+               UpdateType                        updateType = Replace ) const override
    {
       WALBERLA_CHECK( !src.uvw()[0].getStorage()->hasGlobalCells(), "P1EpsilonStokesOperator not implemented for 3D." );
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
@@ -62,7 +66,7 @@ class P1EpsilonStokesOperator : public Operator< P1StokesFunction< real_t >, P1S
                   const P1StokesFunction< idx_t >&            src,
                   const P1StokesFunction< idx_t >&            dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       WALBERLA_CHECK( !src.uvw()[0].getStorage()->hasGlobalCells(), "P1EpsilonStokesOperator not implemented for 3D." );
 

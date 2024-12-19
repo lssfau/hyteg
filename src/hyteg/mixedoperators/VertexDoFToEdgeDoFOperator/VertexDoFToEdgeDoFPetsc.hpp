@@ -45,7 +45,7 @@ inline void saveEdgeOperator( const uint_t&                                     
    idx_t srcInt;
    idx_t dstInt;
 
-   for ( const auto it : edgedof::macroedge::Iterator( Level, 0 ) )
+   for ( const auto &it : edgedof::macroedge::Iterator( Level, 0 ) )
    {
       dstInt = dst[edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C )];
 

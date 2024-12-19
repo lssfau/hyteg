@@ -189,7 +189,7 @@ inline void interpolate( const uint_t&                                          
 
    for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
    {
-      const uint_t xyz = it.x() + it.y() + it.z();
+      const idx_t xyz = it.x() + it.y() + it.z();
 
       if ( it.y() != 0 && it.z() != 0 )
       {
@@ -562,8 +562,6 @@ inline void multElementwise( const uint_t&                                      
 
       for ( uint_t i = 1; i < srcIds.size(); i++ )
       {
-         const auto srcData = cell.getData( srcIds[i] )->getPointer( level );
-
          tmpX *= srcPtr[i][idxX];
          tmpY *= srcPtr[i][idxY];
          tmpZ *= srcPtr[i][idxZ];

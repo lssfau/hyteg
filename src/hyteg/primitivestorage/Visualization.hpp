@@ -49,7 +49,6 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
                                         const std::map< std::string, std::map< PrimitiveID, real_t > >& realData )
 {
    const uint_t rank              = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-   const uint_t numberOfProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
    std::vector< PrimitiveID > primitiveIDs;
    uint_t                     numLocalPrimitives   = 0;

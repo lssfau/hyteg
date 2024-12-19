@@ -73,7 +73,8 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
                const uint_t                            level,
-               const DoFType                           flag ) const
+               const DoFType                           flag,
+               UpdateType                              updateType = Replace ) const override
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -86,7 +87,7 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
                   const P2P1TaylorHoodFunction< idx_t >&      src,
                   const P2P1TaylorHoodFunction< idx_t >&      dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );

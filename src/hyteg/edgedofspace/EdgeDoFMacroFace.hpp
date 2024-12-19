@@ -110,13 +110,14 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
                                                       Matrix2r& transform,
                                                       Point3D&  dofs )
 {
-   // Get the element local coordinates and DoFs from physical coordinates
-   // The local DoFs are sorted in following order
-   // x
-   // | \
-  // 1  0
-   // |    \
-  // x--2--x
+   /** Get the element local coordinates and DoFs from physical coordinates
+    *  The local DoFs are sorted in following order
+    *  x
+    *  | \
+    *  1  0
+    *  |    \
+    *  x--2--x
+   **/
 
    // Transform absolute coordinates to macro element relative coordinates
    Matrix2r A;

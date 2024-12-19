@@ -962,7 +962,7 @@ inline void
    }
 
    // Set up initialization, serialization and deserialization callbacks
-   auto initCallback = [this, dataID, dataHandling]( const std::shared_ptr< PrimitiveType >& primitive ) -> void {
+   auto initCallback = [dataID, dataHandling]( const std::shared_ptr< PrimitiveType >& primitive ) -> void {
       primitive->data_[dataID] = std::make_shared< internal::PrimitiveData >( dataHandling->initialize( primitive.get() ) );
    };
 

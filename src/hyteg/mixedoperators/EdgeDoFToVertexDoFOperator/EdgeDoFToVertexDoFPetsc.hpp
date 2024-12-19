@@ -160,7 +160,7 @@ inline void saveEdgeOperator( const uint_t&                                     
    idx_t srcInt;
    idx_t dstInt;
 
-   for ( const auto it : vertexdof::macroedge::Iterator( Level, 1 ) )
+   for ( const auto &it : vertexdof::macroedge::Iterator( Level, 1 ) )
    {
       dstInt = dst[vertexdof::macroedge::indexFromVertex( Level, it.x(), stencilDirection::VERTEX_C )];
 

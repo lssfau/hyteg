@@ -62,7 +62,7 @@ real_t L2Space< Quad, Discr, Codomain >::dot( const std::function< Codomain( con
    {
       // 3D: integrate over all cells
       std::vector< PrimitiveID > cellIDs = _storage->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for reduction( + : localsum )
 #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
@@ -78,7 +78,7 @@ real_t L2Space< Quad, Discr, Codomain >::dot( const std::function< Codomain( con
    {
       // 2D: integrate over all faces
       std::vector< PrimitiveID > faceIDs = _storage->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for reduction( + : localsum )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
