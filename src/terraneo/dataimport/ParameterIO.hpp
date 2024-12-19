@@ -279,7 +279,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ INITIALISATION PARAMETERS ############*/
 
-   initialisationParam.initialTemperatureDeviationMethod = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
+   uint_t initialTemperatureDeviationMethodUint_t = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
+   initialisationParam.initialTemperatureDeviationMethod = static_cast< INITIAL_TEMPERATURE_DEVIATION_METHOD >( initialTemperatureDeviationMethodUint_t );
    initialisationParam.buoyancyFactor                    = mainConf.getParameter< real_t >( "buoyancyFactor" );
 
    if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH )

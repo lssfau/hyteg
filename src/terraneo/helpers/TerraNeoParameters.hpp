@@ -239,7 +239,7 @@ struct SimulationParameters
    bool timingAnalysis = true;
 };
 
-enum INITIAL_TEMPERATURE_DEVIATION_METHOD : unsigned int
+enum class INITIAL_TEMPERATURE_DEVIATION_METHOD : uint_t
 {
    WHITE_NOISE              = 0,
    SINGLE_SPH               = 1,
@@ -247,9 +247,9 @@ enum INITIAL_TEMPERATURE_DEVIATION_METHOD : unsigned int
 };
 struct TemperatureDeivationInitialisationParameters
 {
-   uint_t tempInit                          = 3;
-   uint_t initialTemperatureDeviationMethod = 0;
-   real_t buoyancyFactor                    = real_c( 0.01 );
+   uint_t                               tempInit                          = 3;
+   INITIAL_TEMPERATURE_DEVIATION_METHOD initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE;
+   real_t                               buoyancyFactor                    = real_c( 0.01 );
    // Single SPH
    uint_t deg = 4;
    int    ord = 2;
