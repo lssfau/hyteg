@@ -281,18 +281,15 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    initialisationParam.initialTemperatureDeviationMethod = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
    initialisationParam.buoyancyFactor                    = mainConf.getParameter< real_t >( "buoyancyFactor" );
-   initialisationParam.tempInit                          = mainConf.getParameter< uint_t >( "tempInit" );
-
-   initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-   initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
-   initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
-
-   initialisationParam.lmax                       = mainConf.getParameter< uint_t >( "lmax" );
-   initialisationParam.lmin                       = mainConf.getParameter< uint_t >( "lmin" );
-   initialisationParam.superpositionSPHRandomSeed = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
 
    if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH )
    {
+      initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+      initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+      initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
+      initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
+      initialisationParam.superpositionSPHRandomSeed  = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
+
       initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
 
       uint_t numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
@@ -307,7 +304,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    }
    else if ( initialisationParam.initialTemperatureDeviationMethod == INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH )
    {
-      initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+      initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+      initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+      initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+      initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+      initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
    }
 
    /*############ SOLVER PARAMETERS ############*/
@@ -339,7 +340,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
 
    solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
-   solverParam.stokesRelativeResidualUTolerance  = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
+   solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
    solverParam.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
 
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
