@@ -232,7 +232,7 @@ struct SimulationParameters
 
    // Shear heating scaling for mantle ciruclation model with
    // predifned Lithosphere thickness in km
-   real_t shearHeatingScaling  = 1e-5;
+   real_t lithosphereShearHeatingScaling  = 1e-5;
    real_t lithosphereThickness = real_c( 100 );
 
    // Needed for timing analysis of the simulation run

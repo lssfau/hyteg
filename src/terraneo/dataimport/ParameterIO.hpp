@@ -288,7 +288,12 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.shearHeating           = mainConf.getParameter< bool >( "shearHeating" );
    if ( simulationParam.shearHeating )
    {
-      simulationParam.shearHeatingScaling  = mainConf.getParameter< real_t >( "shearHeatingScaling" );
+      if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
+      {
+      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "shearHeatingScaling" );
+      } else {
+      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "lithosphereShearHeatingScaling" );
+      }
       simulationParam.lithosphereThickness = mainConf.getParameter< real_t >( "lithosphereThickness" );
    }
    simulationParam.adiabaticHeating = mainConf.getParameter< bool >( "adiabaticHeating" );
@@ -666,7 +671,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.shearHeating ? "true" : "false" ) );
    if ( simulationParam.shearHeating )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Shear heating scaling factor : " << simulationParam.shearHeatingScaling );
+      WALBERLA_LOG_INFO_ON_ROOT( "Shear heating scaling factor : " << simulationParam.lithosphereShearHeatingScaling );
       WALBERLA_LOG_INFO_ON_ROOT( "Lithosphere thickness [km]   : " << simulationParam.lithosphereThickness );
    }
 

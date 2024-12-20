@@ -159,7 +159,7 @@ Parameters
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
 
-   shearHeatingScaling 1;
+   lithosphereShearHeatingScaling 1;
    lithosphereThickness 100;
 
    // Time steps 

@@ -295,9 +295,9 @@ void ConvectionSimulation::solveEnergy()
           real_t radius = x.norm();
           real_t shearHeatingCoeff;
 
-          if ( TN.simulationParameters.shearHeatingScaling > 1 )
+          if ( TN.simulationParameters.lithosphereShearHeatingScaling > 1 )
           {
-             WALBERLA_ABORT( "Shear heating scaling factor > 1 not allowed! --- Abort simulation ---" );
+             WALBERLA_ABORT( "Shear heating scaling factor at Lithosphere > 1 not allowed! --- Abort simulation ---" );
           }
 
           if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
@@ -323,7 +323,7 @@ void ConvectionSimulation::solveEnergy()
           if ( radius > TN.domainParameters.rMax -
                             ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
           {
-             return ( shearHeatingCoeff * TN.simulationParameters.shearHeatingScaling );
+             return ( shearHeatingCoeff * TN.simulationParameters.lithosphereShearHeatingScaling );
           }
           else
           {
