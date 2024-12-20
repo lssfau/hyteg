@@ -186,29 +186,23 @@ void ConvectionSimulation::step()
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      if ( TN.initialisationParameters.temperatureNoise )
+      std::function< real_t( const Point3D& ) > initTemperature;
+      switch ( TN.initialisationParameters.initialTemperatureDeviationMethod )
       {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate(
-             temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct, TN.initialisationParameters.noiseFactor ),
-             l,
-             DirichletBoundary );
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initTemperature = temperatureSingleSPH( *temperatureInitParams, *temperatureReferenceFct );
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initTemperature = temperatureRandomSuperpositioneSPH( *temperatureInitParams, *temperatureReferenceFct );
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+         initTemperature = temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct );
+         break;
+      default:
+         WALBERLA_ABORT( "Unknown initial temperature deviation method" );
       }
-      else
-      {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate(
-             temperatureSPH( *temperatureInitParams,
-                             *temperatureReferenceFct,
-                             TN.initialisationParameters.tempInit,
-                             TN.initialisationParameters.deg,
-                             TN.initialisationParameters.ord,
-                             TN.initialisationParameters.lmax,
-                             TN.initialisationParameters.lmin,
-                             TN.initialisationParameters.superposition,
-                             TN.initialisationParameters.buoyancyFactor,
-                             TN.physicalParameters.initialTemperatureSteepness ),
-             l,
-             DirichletBoundary );
-      }
+
+      p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperature, l, DirichletBoundary );
    }
 
    /*############ ENERGY STEP ############*/
@@ -301,9 +295,9 @@ void ConvectionSimulation::solveEnergy()
           real_t radius = x.norm();
           real_t shearHeatingCoeff;
 
-          if ( TN.simulationParameters.shearHeatingScaling > 1 )
+          if ( TN.simulationParameters.lithosphereShearHeatingScaling > 1 )
           {
-             WALBERLA_ABORT( "Shear heating scaling factor > 1 not allowed! --- Abort simulation ---" );
+             WALBERLA_ABORT( "Shear heating scaling factor at Lithosphere > 1 not allowed! --- Abort simulation ---" );
           }
 
           if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
@@ -329,7 +323,7 @@ void ConvectionSimulation::solveEnergy()
           if ( radius > TN.domainParameters.rMax -
                             ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
           {
-             return ( shearHeatingCoeff * TN.simulationParameters.shearHeatingScaling );
+             return ( shearHeatingCoeff * TN.simulationParameters.lithosphereShearHeatingScaling );
           }
           else
           {

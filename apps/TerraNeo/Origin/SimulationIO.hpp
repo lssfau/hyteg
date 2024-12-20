@@ -173,7 +173,7 @@ void ConvectionSimulation::setupOutput()
       _output->addAttribute( "boundaryCondFreeSlip", TN.simulationParameters.boundaryCondFreeSlip );
       _output->addAttribute( "haveViscosityProfile", TN.simulationParameters.haveViscosityProfile );
       _output->addAttribute( "fileViscosityProfile", TN.simulationParameters.fileViscosityProfile );
-      _output->addAttribute( "shearHeatingScaling", TN.simulationParameters.shearHeatingScaling );
+      _output->addAttribute( "lithosphereShearHeatingScaling", TN.simulationParameters.lithosphereShearHeatingScaling );
       _output->addAttribute( "lithosphereThickness", TN.simulationParameters.lithosphereThickness );
 
       _output->addAttribute( "surfaceTemp", TN.physicalParameters.surfaceTemp );

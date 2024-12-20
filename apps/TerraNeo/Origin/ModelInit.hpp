@@ -235,56 +235,47 @@ void ConvectionSimulation::initialiseFunctions()
    };
    std::function< real_t( const Point3D& ) > zeros = []( const Point3D& ) { return real_c( 0 ); };
 
-   TemperatureInitializationParameters tempInitParams( TN.physicalParameters.cmbTemp,
-                                                       TN.physicalParameters.surfaceTemp,
-                                                       TN.physicalParameters.adiabatSurfaceTemp,
-                                                       TN.physicalParameters.dissipationNumber,
-                                                       TN.domainParameters.rMin,
-                                                       TN.domainParameters.rMax );
-
-   temperatureInitParams = std::make_shared< TemperatureInitializationParameters >( tempInitParams );
+   temperatureInitParams = std::make_shared< TemperatureInitializationParameters >( TN.physicalParameters.cmbTemp,
+                                                                                    TN.physicalParameters.surfaceTemp,
+                                                                                    TN.physicalParameters.adiabatSurfaceTemp,
+                                                                                    TN.physicalParameters.dissipationNumber,
+                                                                                    TN.domainParameters.rMin,
+                                                                                    TN.domainParameters.rMax,
+                                                                                    &TN.initialisationParameters );
 
    if ( TN.simulationParameters.haveTemperatureProfile )
    {
       temperatureReferenceFct =
           std::make_shared< std::function< real_t( const Point3D& ) > >( terraneo::temperatureReferenceProfile(
-              tempInitParams, TN.physicalParameters.radiusT, TN.physicalParameters.temperatureInputProfile ) );
+              *temperatureInitParams, TN.physicalParameters.radiusT, TN.physicalParameters.temperatureInputProfile ) );
    }
    else
    {
       temperatureReferenceFct = std::make_shared< std::function< real_t( const Point3D& ) > >(
-          terraneo::temperatureReferenceExponential( tempInitParams ) );
+          terraneo::temperatureReferenceExponential( *temperatureInitParams ) );
    }
-   //auto referenceTemperature = temperatureReferenceExponential( *temperatureInitParams );
 
-   if ( TN.initialisationParameters.temperatureNoise )
+   // Temperature Deivation
+   std::function< real_t( const Point3D& ) > initTemperature;
+   switch ( TN.initialisationParameters.initialTemperatureDeviationMethod )
    {
-      auto initTemperatureWhiteNoise =
-          temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct, TN.initialisationParameters.noiseFactor );
-
-      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-      {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperatureWhiteNoise, l, All );
-      }
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+      initTemperature = temperatureSingleSPH( *temperatureInitParams, *temperatureReferenceFct );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+      initTemperature = temperatureRandomSuperpositioneSPH( *temperatureInitParams, *temperatureReferenceFct );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+      initTemperature = temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct );
+      break;
+   default:
+      WALBERLA_ABORT( "Unknown initial temperature deviation method" );
    }
-   else
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      auto initTemperatureSPH = temperatureSPH( *temperatureInitParams,
-                                                *temperatureReferenceFct,
-                                                TN.initialisationParameters.tempInit,
-                                                TN.initialisationParameters.deg,
-                                                TN.initialisationParameters.ord,
-                                                TN.initialisationParameters.lmax,
-                                                TN.initialisationParameters.lmin,
-                                                TN.initialisationParameters.superposition,
-                                                TN.initialisationParameters.buoyancyFactor,
-                                                TN.physicalParameters.initialTemperatureSteepness );
-
-      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-      {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperatureSPH, l, All );
-      }
+      p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperature, l, All );
    }
+
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       // initialise plate velocity oracle
