@@ -12,8 +12,14 @@ using walberla::uint_t;
 using walberla::math::pi;
 using walberla::math::realRandom;
 
-template < uint8_t dim, uint8_t degree >
-void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator, bool use_precomputed, bool save_svd, bool delete_svd )
+void lsqtst( uint8_t dim,
+             uint8_t degree,
+             uint_t  lvl,
+             uint_t  downsampling,
+             int     print_iterator,
+             bool    use_precomputed,
+             bool    save_svd,
+             bool    delete_svd )
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "LeastSquares: dim=%d, degree=%d, lvl=%d, downsampling=%d, use_precomputed=%d",
                                                 dim,
@@ -22,18 +28,18 @@ void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator, bool use_preco
                                                 downsampling,
                                                 use_precomputed ) );
 
-   std::unique_ptr< hyteg::surrogate::LeastSquares< dim, degree > > lsq;
+   std::unique_ptr< hyteg::surrogate::LeastSquares > lsq;
    std::string path_to_svd = walberla::format( "svd_%d_%d_%d_%d", dim, degree, lvl, downsampling );
 
    auto t0 = walberla::timing::getWcTime();
 
    if ( use_precomputed )
    {
-      lsq = std::make_unique< hyteg::surrogate::LeastSquares< dim, degree > >( path_to_svd, lvl, downsampling );
+      lsq = std::make_unique< hyteg::surrogate::LeastSquares >( path_to_svd, dim, degree, lvl, downsampling );
    }
    else
    {
-      lsq = std::make_unique< hyteg::surrogate::LeastSquares< dim, degree > >( lvl, downsampling );
+      lsq = std::make_unique< hyteg::surrogate::LeastSquares >( dim, degree, lvl, downsampling );
    }
 
    auto t1 = walberla::timing::getWcTime();
@@ -62,7 +68,7 @@ void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator, bool use_preco
 
    // define smooth function
    auto f = []( const std::array< double, 3 >& x ) {
-      return std::sin( pi / 2.0 * x[0] ) * std::cos( pi / 2.0 * x[1] ) * std::sin( pi / 2.0 * x[2] );
+      return std::sin( pi / 4.0 * x[0] ) * std::cos( pi / 4.0 * x[1] ) * std::sin( pi / 4.0 * x[2] );
    };
    // coordinates on tetrahedron
    hyteg::surrogate::polynomial::Coordinates coords( lvl );
@@ -75,7 +81,8 @@ void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator, bool use_preco
       ++it;
    }
    // solve least squares problem
-   auto p = lsq->solve();
+   hyteg::surrogate::polynomial::Polynomial p( dim, degree );
+   p = lsq->solve();
    // evaluate polynomial and compute error
    uint_t len_edge = ( uint_t( 1 ) << lvl );
    double error    = 0.0;
@@ -172,53 +179,51 @@ void lsqtst( uint_t lvl, uint_t downsampling, int print_iterator, bool use_preco
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
-template < uint8_t D, uint8_t Q >
-void polytst()
+void polytst( uint8_t d, uint8_t q )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial< D=%d, Q=%d >", D, Q ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", d, q ) );
    // setup polynomial
-   std::array< double, hyteg::surrogate::polynomial::dimP< D, Q > > c;
-   for ( uint32_t i = 0; i < c.size(); ++i )
+   hyteg::surrogate::polynomial::Polynomial p( d, q );
+   for ( uint32_t i = 0; i < p.size(); ++i )
    {
-      c[i] = realRandom();
+      p[i] = realRandom();
    }
-   hyteg::surrogate::polynomial::Polynomial< D, Q > p( c );
 
    // coordinates
    std::array< double, 3 > x{ realRandom(), realRandom(), realRandom() };
 
    // evaluate polynomial using Horner's method
-   if constexpr ( D == 3 )
+   if ( d == 3 )
    {
       p.fix_z( x[2] );
    }
-   if constexpr ( D >= 2 )
+   if ( d >= 2 )
    {
       p.fix_y( x[1] );
    }
-   auto split = p.eval( x[0] );
+   auto horner = p.eval( x[0] );
 
    // evaluate polynomial by summing up basis functions
    auto naive = p.eval_naive( x );
 
    // reference evaluation
-   std::array< double, Q + 1 > x_pow{ 1.0 };
-   std::array< double, Q + 1 > y_pow{ 1.0 };
-   std::array< double, Q + 1 > z_pow{ 1.0 };
-   for ( uint8_t q = 0; q < Q; ++q )
+   std::vector< double > x_pow( q + 1, 1.0 );
+   std::vector< double > y_pow( q + 1, 1.0 );
+   std::vector< double > z_pow( q + 1, 1.0 );
+   for ( uint8_t i = 0; i < q; ++i )
    {
-      x_pow[q + 1] = x_pow[q] * x[0];
-      y_pow[q + 1] = y_pow[q] * x[1];
-      z_pow[q + 1] = z_pow[q] * x[2];
+      x_pow[i + 1] = x_pow[i] * x[0];
+      y_pow[i + 1] = y_pow[i] * x[1];
+      z_pow[i + 1] = z_pow[i] * x[2];
    }
    auto ref = 0.0;
-   for ( uint32_t ijk = 0; ijk < c.size(); ++ijk )
+   for ( uint32_t ijk = 0; ijk < p.size(); ++ijk )
    {
-      auto [i, j, k] = p.basis( ijk );
-      ref += c[ijk] * x_pow[i] * y_pow[j] * z_pow[k];
+      auto [i, j, k] = p.basis()[ijk].expand();
+      ref += p[ijk] * x_pow[i] * y_pow[j] * z_pow[k];
    }
    WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( "relative error; split %e; naive %e", ( split - ref ) / ref, ( naive - ref ) / ref ) );
+       walberla::format( "relative error; split %e; naive %e", ( horner - ref ) / ref, ( naive - ref ) / ref ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
@@ -240,13 +245,32 @@ int main( int argc, char* argv[] )
    //    {
    //       cfg = walberla::config::create( argc, argv );
    //    }
-   lsqtst< 2, 5 >( 4, 1, 0, 0, 1, 0 );
-   lsqtst< 2, 5 >( 4, 1, 0, 1, 0, 1 );
-   lsqtst< 3, 5 >( 4, 1, 0, 0, 1, 0 );
-   lsqtst< 3, 5 >( 4, 1, 0, 1, 0, 1 );
-   lsqtst< 3, 10 >( 7, 1, 0, 1, 0, 0 );
 
-   // polytst< 3, 15 >();
+   for ( uint8_t dim = 2; dim <= 3; ++dim )
+   {
+      for ( uint8_t deg = 0; deg <= 12; ++deg )
+      {
+         polytst( dim, deg );
+      }
+   }
+
+   for ( uint8_t dim = 2; dim <= 3; ++dim )
+   {
+      for ( uint8_t deg = 0; deg <= 10; ++deg )
+      {
+         for ( uint_t lvl = 4; lvl <= 5; ++lvl )
+         {
+            for ( uint_t ds = 1; ds <= 3; ++ds )
+            {
+               if ( deg <= hyteg::surrogate::LeastSquares::max_degree( lvl, ds ) )
+               {
+                  lsqtst( dim, deg, lvl, ds, 0, 0, 1, 0 );
+                  lsqtst( dim, deg, lvl, ds, 0, 1, 0, 1 );
+               }
+            }
+         }
+      }
+   }
 
    return 0;
 }

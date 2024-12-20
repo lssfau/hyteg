@@ -67,47 +67,45 @@ static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling )
 }
 
 /**
+ * @brief Computes the number of vertices in a volume element with given edge length
+ *
+ * @param d The dimension (2 for 2D, 3 for 3D).
+ * @param n The number of vertices along an edge.
+ * @return The number of vertices in the volume.
+ */
+static constexpr inline uint_t n_volume( uint_t d, uint_t n )
+{
+   return ( d == 2 ) ? tri( n ) : tet( n );
+}
+
+/**
  * @brief Computes the downsampled number of vertices in a volume element
  *
- * @tparam D The dimension (2 for 2D, 3 for 3D).
+ * @param d The dimension (2 for 2D, 3 for 3D).
  * @param lvl The level of refinement.
  * @param downsampling The downsampling factor.
  * @return The number of vertices in the volume.
  */
-template < uint8_t D >
-static constexpr inline uint_t n_volume( uint_t n_edge )
+static constexpr inline uint_t n_volume( uint_t d, uint_t lvl, uint_t downsampling )
 {
-   return ( D == 2 ) ? tri( n_edge ) : tet( n_edge );
-}
-
-/**
- * @brief Computes the number of vertices in a volume element with given edge length
- *
- * @tparam D The dimension (2 for 2D, 3 for 3D).
- * @param n_edge The number of vertices along an edge.
- * @return The number of vertices in the volume.
- */
-template < uint8_t D >
-static constexpr inline uint_t n_volume( uint_t lvl, uint_t downsampling )
-{
-   return n_volume< D >( n_edge( lvl, downsampling ) );
+   return n_volume( d, n_edge( lvl, downsampling ) );
 }
 
 } // namespace interpolation
 
 /**
  * @class LeastSquares
- * @brief Class to compute polynomial approximations p ∈ P_Q(T) of functions f:T→ℝ,
- *          where T is the reference macro element of dimension D (triangle or tetrahedron).
+ * @brief Class to compute polynomial approximations p ∈ P_q(T) of functions f:T→ℝ,
+ *          where T is the reference macro element of dimension d (triangle or tetrahedron).
  *          The approximation is computed by solving a least squares problem using the Vandermonde matrix.
  *          The Sample points are a subset of the micro vertices corresponding to a given level.
- *
- * @tparam D spactial dimension, D=2,3
- * @tparam Q polynomial degree
  */
-template < uint8_t D, uint8_t Q >
 class LeastSquares
 {
+ public:
+   using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
+   using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
+
  private:
    /**
     * @class Iterator
@@ -122,13 +120,13 @@ class LeastSquares
        * @param lvl The level of refinement.
        * @param downsampling The downsampling factor.
        */
-      inline Iterator( uint_t lvl, uint_t downsampling )
+      inline Iterator( uint_t d, uint_t lvl, uint_t downsampling )
       : _n( 0 )
       , _i( 0 )
       , _j( 0 )
       , _k( 0 )
       , _ijk_max( interpolation::n_edge( lvl, 1 ) )
-      , _n_max( interpolation::n_volume< D >( lvl, downsampling ) )
+      , _n_max( interpolation::n_volume( d, lvl, downsampling ) )
       , _stride( downsampling )
       {}
 
@@ -200,17 +198,17 @@ class LeastSquares
    };
 
    // compute downsampling factor s.th. number of sample points exceeds number of coefficients
-   static constexpr uint_t compute_automatic_downsampling( uint_t lvl )
+   constexpr uint_t compute_automatic_downsampling() const
    {
-      uint_t d = 3;
-      for ( ; d > 1; --d )
+      uint_t downsampling = 3;
+      for ( ; downsampling > 1; --downsampling )
       {
-         if ( interpolation::n_volume< D >( lvl, d ) > cols )
+         if ( interpolation::n_volume( _dim, _lvl, downsampling ) > polynomial::dimP( _dim, _q ) )
          {
             break;
          }
       }
-      return d;
+      return downsampling;
    }
 
    // load matrix from file
@@ -250,8 +248,8 @@ class LeastSquares
    void compute_svd()
    {
       // Setup Vandermonde matrix
-      constexpr polynomial::Basis< D, Q > phi;
-      const polynomial::Coordinates       coords( _lvl );
+      const polynomial::Basis       phi( _q );
+      const polynomial::Coordinates coords( _lvl );
 
       auto it = samplingIterator();
       while ( it != it.end() )
@@ -260,7 +258,7 @@ class LeastSquares
 
          for ( uint_t col = 0; col < cols; ++col )
          {
-            A( it(), col ) = phi.eval( col, x );
+            A( it(), col ) = phi[col].eval( x );
          }
          ++it;
       }
@@ -274,7 +272,7 @@ class LeastSquares
 
    bool load_svd( const std::string& path )
    {
-      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", D, Q, _lvl, _downsampling );
+      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", _dim, _q, _lvl, _downsampling );
       std::string d   = "/";
       return load_matrix( path + d + "A" + ext, A ) && load_matrix( path + d + "Uh" + ext, Uh ) &&
              load_matrix( path + d + "Si" + ext, Si ) && load_matrix( path + d + "V" + ext, V );
@@ -282,16 +280,24 @@ class LeastSquares
 
    bool store_svd( const std::string& path ) const
    {
-      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", D, Q, _lvl, _downsampling );
+      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", _dim, _q, _lvl, _downsampling );
       std::string d   = "/";
       return store_matrix( path + d + "A" + ext, A ) && store_matrix( path + d + "Uh" + ext, Uh ) &&
              store_matrix( path + d + "Si" + ext, Si ) && store_matrix( path + d + "V" + ext, V );
    }
 
-   LeastSquares( uint_t lvl, uint_t downsampling, bool use_precomputed, const std::string& path_to_svd )
-   : _lvl( lvl )
-   , _downsampling( ( downsampling == 0 ) ? compute_automatic_downsampling( _lvl ) : downsampling )
-   , rows( interpolation::n_volume< D >( _lvl, _downsampling ) )
+   LeastSquares( uint_t             dim,
+                 uint_t             degree,
+                 uint_t             lvl,
+                 uint_t             downsampling,
+                 bool               use_precomputed,
+                 const std::string& path_to_svd )
+   : _dim( dim )
+   , _q( degree )
+   , _lvl( lvl )
+   , _downsampling( ( downsampling == 0 ) ? compute_automatic_downsampling() : downsampling )
+   , rows( interpolation::n_volume( _dim, _lvl, _downsampling ) )
+   , cols( polynomial::dimP( _dim, _q ) )
    , A( rows, cols )
    , Uh( cols, rows )
    , Si( cols )
@@ -299,6 +305,7 @@ class LeastSquares
    , b( rows )
    , c( cols )
    {
+      WALBERLA_ASSERT( rows >= cols, "Not enough sample points for given polynomial degree!" )
       if ( use_precomputed )
       {
          if ( load_svd( path_to_svd ) )
@@ -315,28 +322,42 @@ class LeastSquares
 
  public:
    /**
+    * @brief Compute the maximum polynomial degree to approximate a function using all micro vertices as sample points.
+    * Using a higher degree leads to an overdetermined system and should be avoided!
+    */
+   static constexpr uint8_t max_degree( uint_t lvl, uint_t downsampling = 1 )
+   {
+      downsampling = ( downsampling == 0 ) ? uint_t( 1 ) : downsampling;
+      return interpolation::n_edge( lvl, downsampling ) - 1;
+   }
+
+   /**
     * @brief Constructs a LeastSquares object by setting up the Vandermonde matrix and computing an SVD.
     *
+    * @param dim The spatial dimension of the domain T
+    * @param degree The degree q of the polynomial space P_q(T)
     * @param lvl The level of refinement determining the mapping T→ℝ
     * @param downsampling The downsampling factor determining the number of sample points:
     *          0: choose automatically, 1: use all vertices, n: only use every n-th vertex in each direction
-    *          ⇒ downsampling reduces the number of sample points by a factor of n^D
+    *          ⇒ downsampling reduces the number of sample points by a factor of n^dim
     */
-   LeastSquares( uint_t lvl, uint_t downsampling = 1 )
-   : LeastSquares( lvl, downsampling, false, "" )
+   LeastSquares( uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1 )
+   : LeastSquares( dim, degree, lvl, downsampling, false, "" )
    {}
 
    /**
     * @brief Constructs a LeastSquares object using a precomputed SVD.
     *
     * @param path_to_svd Path to the directory where the files are stored.
+    * @param dim The spatial dimension of the domain T
+    * @param degree The degree q of the polynomial space P_q(T)
     * @param lvl The level of refinement determining the mapping T→ℝ
     * @param downsampling The downsampling factor determining the number of sample points:
     *          0: choose automatically, 1: use all vertices, n: only use every n-th vertex in each direction
-    *          ⇒ downsampling reduces the number of sample points by a factor of n^D
+    *          ⇒ downsampling reduces the number of sample points by a factor of n^dim
     */
-   LeastSquares( const std::string& path_to_svd, uint_t lvl, uint_t downsampling = 1 )
-   : LeastSquares( lvl, downsampling, true, path_to_svd )
+   LeastSquares( const std::string& path_to_svd, uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1 )
+   : LeastSquares( dim, degree, lvl, downsampling, true, path_to_svd )
    {}
 
    /**
@@ -357,7 +378,7 @@ class LeastSquares
     *
     * @return An iterator over all sampling points. Use to set right-hand side.
     */
-   Iterator samplingIterator() const { return Iterator( _lvl, _downsampling ); }
+   Iterator samplingIterator() const { return Iterator( _dim, _lvl, _downsampling ); }
 
    /**
     * @brief Set n-th coefficient of right hand side vector. Should be used together with `it = samplingIterator()`.
@@ -368,14 +389,14 @@ class LeastSquares
    void setRHS( const uint_t n, const double f_xyz ) { b( n ) = f_xyz; }
 
    /**
-    * @brief Solve the least squares problem. Use after setting all right-hand side coefficients.
-    *
-    * @return The polynomial object with the computed coefficients.
+    * @brief Solve the least squares problem.
+    *     !Use after setting all right-hand side coefficients!
+    * @return The coefficients of the polynomial p minimizing ||p(S) - f(S)||.
     */
-   const polynomial::Polynomial< D, Q > solve()
+   const Vector& solve()
    {
       c = V * ( Si.cwiseProduct( Uh * b ) );
-      return polynomial::Polynomial< D, Q >( c );
+      return c;
    }
 
    /**
@@ -385,10 +406,11 @@ class LeastSquares
     */
    const double residual() const { return ( A * c - b ).norm() / std::sqrt( rows ); }
 
-   using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
-   using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
-
  private:
+   // spacial dimension
+   const uint_t _dim;
+   // polynomial degree
+   const uint_t _q;
    // level of refinement
    const uint_t _lvl;
    // downsampling factor
@@ -398,7 +420,7 @@ class LeastSquares
    // number of interpolation points
    const int rows;
    // dimension of polynomial space
-   static constexpr int cols = polynomial::dimP< D, Q >;
+   const int cols;
 
  private:
    // Vandermonde matrix
