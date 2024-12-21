@@ -184,11 +184,11 @@ inline std::function< real_t( const Point3D& ) >
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return ( tempInitParams.Tcmb() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+         return ( Tcmb ) / ( Tcmb - Tsurface );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return ( tempInitParams.Tsurface() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+         return ( Tsurface ) / ( Tcmb - Tsurface );
       }
       else
       {
@@ -236,7 +236,7 @@ inline std::function< real_t( const Point3D& ) >
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return ( Tsurface ) / ( Tcmb - Tsurface );
+         return ( Tcmb ) / ( Tcmb - Tsurface );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
@@ -304,7 +304,7 @@ inline std::function< real_t( const Point3D& ) >
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return ( Tsurface ) / ( Tcmb - Tsurface );
+         return ( Tcmb ) / ( Tcmb - Tsurface );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
