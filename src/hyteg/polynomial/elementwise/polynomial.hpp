@@ -295,6 +295,11 @@ const std::vector< Basis > Polynomial::basis_q = { Basis( 0 ),
                                                    Basis( 11 ),
                                                    Basis( 12 ) };
 
+
+// RxC matrix of polynomials
+template <uint_t R, uint_t C=R>
+using Matrix = std::array<std::array<Polynomial, C>, R>;
+
 } // namespace polynomial
 } // namespace surrogate
 } // namespace hyteg
