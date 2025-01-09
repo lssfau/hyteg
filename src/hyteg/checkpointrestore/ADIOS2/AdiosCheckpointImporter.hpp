@@ -238,6 +238,11 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       return timestepInfo;
    }
 
+   void readAllUserAttributes( std::map< std::string, adiosHelpers::adiostype_t >& userAttributes )
+   {
+      adiosHelpers::readAllAttributes(io_, userAttributes);
+   }
+
  private:
    /// central ADIOS2 interface objects
    ///@{

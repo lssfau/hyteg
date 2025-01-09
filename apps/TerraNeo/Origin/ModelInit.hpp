@@ -62,6 +62,50 @@ void ConvectionSimulation::init()
    TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
 
    printConfig( TN );
+   
+   attributeList_["rCMB"] = TN.domainParameters.rCMB;
+   attributeList_["rSurface"] = TN.domainParameters.rSurface;
+   attributeList_["nTan"] = TN.domainParameters.nTan;
+   attributeList_["nRad"] = TN.domainParameters.nRad;
+   attributeList_["minLevel"] = TN.domainParameters.minLevel;
+   attributeList_["maxLevel"] = TN.domainParameters.maxLevel;
+
+   attributeList_["simulationType"] = TN.simulationParameters.simulationType;
+   attributeList_["adaptiveRefTemp"] = TN.simulationParameters.adaptiveRefTemp;
+   attributeList_["tempDependentViscosity"] = TN.simulationParameters.tempDependentViscosity;
+   attributeList_["tempDependentViscosityType"] = TN.simulationParameters.tempDependentViscosityType;
+
+   attributeList_["fnameTopologies"] = TN.simulationParameters.fnameTopologies;
+   attributeList_["fnameReconstructions"] = TN.simulationParameters.fnameReconstructions;
+   attributeList_["plateVelocityScaling"] = TN.simulationParameters.plateVelocityScaling;
+   attributeList_["plateSmoothingDistance"] = TN.simulationParameters.plateSmoothingDistance;
+   attributeList_["compressible"] = TN.simulationParameters.compressible;
+   attributeList_["shearHeating"] = TN.simulationParameters.shearHeating;
+   attributeList_["adiabaticHeating"] = TN.simulationParameters.adiabaticHeating;
+   attributeList_["internalHeating"] = TN.simulationParameters.internalHeating;
+   attributeList_["boundaryCond"] = TN.simulationParameters.boundaryCond;
+   attributeList_["boundaryCondFreeSlip"] = TN.simulationParameters.boundaryCondFreeSlip;
+   attributeList_["haveViscosityProfile"] = TN.simulationParameters.haveViscosityProfile;
+   attributeList_["fileViscosityProfile"] = TN.simulationParameters.fileViscosityProfile;
+   attributeList_["shearHeatingScaling"] = TN.simulationParameters.shearHeatingScaling;
+   attributeList_["lithosphereThickness"] = TN.simulationParameters.lithosphereThickness;
+
+   attributeList_["surfaceTemp"] = TN.physicalParameters.surfaceTemp;
+   attributeList_["cmbTemp"] = TN.physicalParameters.cmbTemp;
+   attributeList_["thermalExpansivity"] = TN.physicalParameters.thermalExpansivity;
+   attributeList_["thermalConductivity"] = TN.physicalParameters.thermalConductivity;
+   attributeList_["specificHeatCapacity"] = TN.physicalParameters.specificHeatCapacity;
+   attributeList_["internalHeatingRate"] = TN.physicalParameters.internalHeatingRate;
+   attributeList_["referenceDensity"] = TN.physicalParameters.referenceDensity;
+   attributeList_["surfaceDensity"] = TN.physicalParameters.surfaceDensity;
+   attributeList_["referenceViscosity"] = TN.physicalParameters.referenceViscosity;
+   attributeList_["viscosity"] = TN.physicalParameters.viscosity;
+   attributeList_["grueneisenParameter"] = TN.physicalParameters.grueneisenParameter;
+   attributeList_["adiabatSurfaceTemp"] = TN.physicalParameters.adiabatSurfaceTemp;
+   attributeList_["activationEnergy"] = TN.physicalParameters.activationEnergy;
+   attributeList_["depthViscosityFactor"] = TN.physicalParameters.depthViscosityFactor;
+   attributeList_["viscosityLowerBound"] = TN.physicalParameters.viscosityLowerBound;
+   attributeList_["viscosityUpperBound"] = TN.physicalParameters.viscosityUpperBound;
 
    setupBoundaryConditions();
    setupFunctions();

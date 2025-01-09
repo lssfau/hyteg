@@ -65,6 +65,7 @@ auto exportCheckpoint( const std::string&                         filePath,
                        const std::shared_ptr< PrimitiveStorage >& storage,
                        const uint_t                               minLevel,
                        const uint_t                               maxLevel,
+                       const std::map< std::string, adiosHelpers::adiostype_t >& userAttributes = {},
                        bool                                       verbose = false )
 {
    WALBERLA_UNUSED( verbose );
@@ -84,7 +85,7 @@ auto exportCheckpoint( const std::string&                         filePath,
 
    AdiosCheckpointExporter checkpointer( "" );
    checkpointer.registerFunction( feFunc, minLevel, maxLevel );
-   checkpointer.storeCheckpoint( filePath, fileName );
+   checkpointer.storeCheckpoint( filePath, fileName, userAttributes );
 
    return feFunc;
 }
@@ -149,6 +150,7 @@ auto importCheckpoint( const std::string&                         filePath,
                        const std::shared_ptr< PrimitiveStorage >& storage,
                        const uint_t                               minLevel,
                        const uint_t                               maxLevel,
+                       std::map< std::string, adiosHelpers::adiostype_t >& userAttributes,
                        bool                                       verbose = false )
 {
    WALBERLA_UNUSED( verbose );
@@ -159,6 +161,8 @@ auto importCheckpoint( const std::string&                         filePath,
    // {
    restorer.printCheckpointInfo();
    // }
+
+   restorer.readAllUserAttributes( userAttributes );
 
    auto& funcDescr = restorer.getFunctionDetails();
    WALBERLA_CHECK_EQUAL( funcDescr[0].minLevel, minLevel );
@@ -268,19 +272,38 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
 
    auto storage = generateStorage( meshFileName );
 
+   std::map< std::string, adiosHelpers::adiostype_t > userAttributes = {};
+   std::map< std::string, adiosHelpers::adiostype_t > userAttributesToImport = {};
+
+
+   userAttributes["Test1"] = 1.0;
+   userAttributes["Test2"] = static_cast< uint_t >(12u);
+   userAttributes["Test3"] = true;
+
+   userAttributesToImport["Test1"] = 0.0;
+   userAttributesToImport["Test2"] = static_cast< uint_t >(102u);
+   userAttributesToImport["Test3"] = false;
+
    //  Create Checkpoint
    if ( verbose )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * exporting checkpoint" );
    }
-   func_t< value_t > funcOriginal = exportCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
+   func_t< value_t > funcOriginal = exportCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel, userAttributes );
 
    //  Import Checkpoint
    if ( verbose )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint" );
    }
-   func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
+
+   func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel, userAttributesToImport );
+
+   // std::cout << std::get< real_t >(userAttributesToImport["Test1"]) << ", " << std::get< uint_t >(userAttributesToImport["Test2"]) << ", " << std::get< bool >(userAttributesToImport["Test3"]) << std::endl;
+
+   WALBERLA_CHECK( userAttributes["Test1"] == userAttributesToImport["Test1"] );
+   WALBERLA_CHECK( userAttributes["Test2"] == userAttributesToImport["Test2"] );
+   WALBERLA_CHECK( userAttributes["Test3"] == userAttributesToImport["Test3"] );
 
    func_t< value_t > difference( "Difference", storage, minLevel, maxLevel );
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
@@ -403,7 +426,10 @@ void runTestWithOtherCommunicator( const std::string& filePath,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * importing checkpoint from '" << filePath << "/" << fileName << "'" );
    }
-   func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel );
+
+   std::map< std::string, adiosHelpers::adiostype_t > userAttributes = {};
+
+   func_t< value_t > funcRestored = importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel, userAttributes );
 
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
