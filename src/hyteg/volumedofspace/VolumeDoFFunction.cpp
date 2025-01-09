@@ -912,7 +912,7 @@ ValueType VolumeDoFFunction< ValueType >::getMaxDoFValue( uint_t level, bool mpi
    }
 
    return globalMax;
-};
+}
 
 // Return the minimal value of the degrees of freedom of the function
 template < typename ValueType >
@@ -930,7 +930,7 @@ ValueType VolumeDoFFunction< ValueType >::getMinDoFValue( uint_t level, bool mpi
    }
 
    return globalMin;
-};
+}
 
 // Return the maximal magnitude of the degrees of freedom of the function
 template < typename ValueType >
@@ -948,7 +948,7 @@ ValueType VolumeDoFFunction< ValueType >::getMaxDoFMagnitude( uint_t level, bool
    }
 
    return globalMax;
-};
+}
 
 // explicit instantiation
 template class VolumeDoFFunction< double >;
