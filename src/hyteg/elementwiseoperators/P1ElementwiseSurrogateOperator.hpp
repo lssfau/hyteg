@@ -50,34 +50,32 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                        public WeightedJacobiSmoothable< P1Function< real_t > >,
                                        public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
+   static constexpr uint_t n_loc( uint_t dim ) { return ( D == 2 ) ? 3 : 4; }
+
    using Polynomial = surrogate::polynomial::Polynomial;
    template < size_t D >
-   using P_matrix = surrogate::polynomial::Matrix< ( D == 2 ) ? 3 : 4 >;
+   using P_matrix = surrogate::polynomial::Matrix< n_loc( D ) >;
+   template < size_t D >
+   using RHS_matrix = std::array< std::array< surrogate::LeastSquares::Vector, n_loc( D ) >, n_loc( D ) >;
 
  public:
+   P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                    size_t                                     minLevel,
                                    size_t                                     maxLevel,
-                                   size_t                                     poly_degree,
-                                   size_t                                     downsampling = 1,
-                                   const std::string&                         path_to_svd  = "" );
+                                   const P1Form&                              form );
 
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                    size_t                                     minLevel,
                                    size_t                                     maxLevel,
                                    const P1Form&                              form,
-                                   size_t                                     poly_degree,
-                                   size_t                                     downsampling = 1,
-                                   const std::string&                         path_to_svd  = "" );
+                                   bool                                       needsInverseDiagEntries );
 
-   P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                   size_t                                     minLevel,
-                                   size_t                                     maxLevel,
-                                   const P1Form&                              form,
-                                   bool                                       needsInverseDiagEntries,
-                                   size_t                                     poly_degree,
-                                   size_t                                     downsampling = 1,
-                                   const std::string&                         path_to_svd  = "" );
+   void init( size_t             poly_degree,
+              size_t             downsampling            = 1,
+              const std::string& path_to_svd             = "",
+              bool               needsInverseDiagEntries = true );
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
@@ -211,6 +209,11 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                              const celldof::CellType cType,
                                              real_t* const           vertexData );
 
+   void precompute_local_stiffness_2d( uint_t lvl );
+   void precompute_local_stiffness_3d( uint_t lvl );
+   void compute_local_surrogates_2d( uint_t lvl );
+   void compute_local_surrogates_3d( uint_t lvl );
+
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
@@ -234,62 +237,27 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    /// \param invert if true, assembles the function carrying the inverse of the diagonal
    void computeDiagonalOperatorValues( bool invert );
 
+   bool is_initialized_;
+
    std::shared_ptr< P1Function< real_t > > diagonalValues_;
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
 
    P1Form form_;
 
-   /// \brief Returns a reference to the a precomputed element matrix of the specified micro face.
-   /// Probably crashes if local element matrices have not been precomputed.
-   Matrix3r& localElementMatrix2D( const Face& face, uint_t level, const indexing::Index& microFace, facedof::FaceType fType )
-   {
-      WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
-      const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
-      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( !localElementMatrices2D_.at( face.getID() ).at( level ).empty() )
-      return localElementMatrices2D_[face.getID()][level][idx];
-   }
+   // least squares approximator for each level
+   std::vector< std::shared_ptr< surrogate::LeastSquares > > lsq_;
+   std::vector<uint_t> downsampling_;
 
-   /// \brief Returns a const reference to the a precomputed element matrix of the specified micro face.
-   /// Probably crashes if local element matrices have not been precomputed.
-   const Matrix3r&
-       localElementMatrix2D( const Face& face, uint_t level, const indexing::Index& microFace, facedof::FaceType fType ) const
-   {
-      WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
-      const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
-      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( !localElementMatrices2D_.at( face.getID() ).at( level ).empty() )
-      return localElementMatrices2D_.at( face.getID() ).at( level ).at( idx );
-   }
-
-   /// \brief Returns a reference to the a precomputed element matrix of the specified micro cell.
-   /// Probably crashes if local element matrices have not been precomputed.
-   Matrix4r& localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType )
-   {
-      WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
-      const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
-      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
-      return localElementMatrices3D_[cell.getID()][level][idx];
-   }
-
-   /// \brief Returns a const reference to the a precomputed element matrix of the specified micro cell.
-   /// Probably crashes if local element matrices have not been precomputed.
-   const Matrix4r&
-       localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType ) const
-   {
-      WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
-      const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
-      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( !localElementMatrices3D_.at( cell.getID() ).at( level ).empty() )
-      return localElementMatrices3D_.at( cell.getID() ).at( level ).at( idx );
-   }
+   // polynomial degree for each level
+   std::vector<uint_t> poly_degree_;
 
 
+   // memory IDs of local stiffness matrices for level 1-3
+   PrimitiveDataID< LevelWiseMemory< Matrix3r >, Face > stiffnessID_2d_;
+   PrimitiveDataID< LevelWiseMemory< Matrix4r >, Cell > stiffnessID_2d_;
+   // memory IDs of surrogates for level 4+ (one poly matrix for each element type)
+   PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > surrogateID_2d_;
+   PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 6 > >, Cell > surrogateID_3d_;
 };
 
 template < class P1Form >

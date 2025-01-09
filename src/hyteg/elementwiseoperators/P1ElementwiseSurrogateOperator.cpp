@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "P1ElementwiseOperator.hpp"
+#include "P1ElementwiseSurrogateOperator.hpp"
 
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
@@ -31,52 +31,249 @@ namespace hyteg {
 
 template < class P1Form >
 P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                        size_t                                     minLevel,
-                                                        size_t                                     maxLevel )
-: P1ElementwiseSurrogateOperator< P1Form >( storage, minLevel, maxLevel, P1Form(), true )
+                                                                          size_t                                     minLevel,
+                                                                          size_t                                     maxLevel )
+: P1ElementwiseSurrogateOperator< P1Form >( storage, minLevel, maxLevel, P1Form() )
+,
 {}
 
 template < class P1Form >
 P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                        size_t                                     minLevel,
-                                                        size_t                                     maxLevel,
-                                                        const P1Form&                              form )
-: P1ElementwiseSurrogateOperator< P1Form >( storage, minLevel, maxLevel, form, true )
-{}
-
-template < class P1Form >
-P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                        size_t                                     minLevel,
-                                                        size_t                                     maxLevel,
-                                                        const P1Form&                              form,
-                                                        bool                                       needsInverseDiagEntries )
+                                                                          size_t                                     minLevel,
+                                                                          size_t                                     maxLevel,
+                                                                          const P1Form&                              form )
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
-, localElementMatricesPrecomputed_( false )
+, is_initialized_( false )
+, lsq_( maxLevel_ + 1 )
+, downsampling_( maxLevel_ + 1 )
+, poly_degree_( maxLevel_ + 1 )
 {
+   // // memory of local stiffness matrices for level 1-3
+   // auto maxLvl = std::min( maxLevel_, 3 );
+   // auto dataHandling_stiffness_2d =
+   //     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< Matrix3r >, Face > >( minLevel_, maxLvl );
+   // auto dataHandling_stiffness_3d =
+   //     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< Matrix4r >, Cell > >( minLevel_, maxLvl );
+
+   // memory of surrogates for level 4+ (one poly matrix for each element type)
+   auto minLvl = std::max( minLevel_, 4 );
+   auto dataHandling_surrogate_2d =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > >( minLvl,
+                                                                                                                   maxLevel_ );
+   auto dataHandling_surrogate_3d =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 2 >, 6 > >, Cell > >( minLvl,
+                                                                                                                   maxLevel_ );
+
+   if ( storage->hasGlobalCells() )
+   {
+      // storage->addCellData( stiffnessID_3d_, dataHandling_stiffness_3d, "P1SurrogateOperator_stiffness_3d" );
+      storage->addCellData( surrogateID_3d_, dataHandling_surrogate_3d, "P1SurrogateOperator_surrogate_3d" );
+   }
+   else
+   {
+      // storage->addFaceData( stiffnessID_2d_, dataHandling_stiffness_2d, "P1SurrogateOperator_stiffness_2d" );
+      storage->addFaceData( surrogateID_2d_, dataHandling_surrogate_2d, "P1SurrogateOperator_surrogate_2d" );
+   }
+}
+
+template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::init( size_t             poly_degree,
+                                                     size_t             downsampling,
+                                                     const std::string& path_to_svd,
+                                                     bool               needsInverseDiagEntries )
+{
+   uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
+
+   // // precompute and store local stiffness matrices for level 1-3
+   // auto maxLvl = std::min( maxLevel_, 3 );
+   // for ( uint_t lvl = 0; lvl <= maxLvl; ++lvl )
+   // {
+   //    if ( dim == 2 )
+   //    {
+   //       precompute_local_stiffness_2d( lvl );
+   //    }
+   //    else
+   //    {
+   //       precompute_local_stiffness_3d( lvl );
+   //    }
+   // }
+
+   // approximate local stiffness matrices for level 4+ by polynomials
+   auto minLvl = std::max( minLevel_, 4 );
+   for ( uint_t lvl = minLvl; lvl <= maxLevel_; ++lvl )
+   {
+      // adjust downsampling for this level
+      auto ds = downsampling;
+      while ( surrogate::LeastSquares::max_degree( lvl, ds ) < poly_degree && ds > 1 )
+      {
+         --ds;
+      }
+      // adjust polynomial degree for this level
+      auto q = surrogate::LeastSquares::max_degree( lvl, ds );
+
+      // initialize least squares approximation
+      if ( lsq_[lvl] == nullptr || downsampling_[lvl] != ds || poly_degree_[lvl] != q )
+      {
+         if ( path_to_svd == "" )
+         {
+            lsq_[lvl] = std::make_shared< surrogate::LeastSquares >( dim, q, lvl, ds )
+         }
+         else
+         {
+            lsq_[lvl] = std::make_shared< surrogate::LeastSquares >( path_to_svd, dim, q, lvl, ds )
+         }
+         downsampling_[lvl] = ds;
+         poly_degree_[lvl]  = q;
+      }
+
+      if ( dim == 2 )
+      {
+         compute_local_surrogates_2d( lvl );
+      }
+      else
+      {
+         compute_local_surrogates_3d( lvl );
+      }
+   }
+
    if ( needsInverseDiagEntries )
    {
       computeInverseDiagonalOperatorValues();
+   }
+
+   is_initialized_ = true;
+}
+
+template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint_t lvl )
+{
+   auto  q   = poly_degree_[lvl];
+   auto& lsq = *lsq_[lvl];
+   // initialize rhs vectors for lsq
+   RHS_matrix< 2 > rhs;
+   for ( uint_t i = 0; i < rhs.size(); ++i )
+   {
+      for ( uint_t j = 0; j < rhs[i].size(); ++j )
+      {
+         rhs[i][j] = surrogate::LeastSquares::Vector( lsq.rows );
+      }
+   }
+
+   for ( auto& it : storage_->getFaces() )
+   {
+      Face& face = *it.second;
+
+      auto& all_surrogates = face.getData( surrogateID_2d_ )->getData( lvl );
+
+      Matrix3r elMat( Matrix3r::Zero() );
+
+      for ( const auto& fType : facedof::allFaceTypes )
+      {
+         // set up rhs vectors for each entry of the local stiffness matrix
+         auto it = lsq.samplingIterator();
+         while ( it != it.end() )
+         {
+            assembleLocalElementMatrix2D( face, lvl, it.ijk(), fType, form_, elMat );
+            for ( uint_t i = 0; i < rhs.size(); ++i )
+            {
+               for ( uint_t j = 0; j < rhs[i].size(); ++j )
+               {
+                  rhs[i][j]( it() ) = elMat( i, j );
+               }
+            }
+            ++it;
+         }
+         // fit polynomials for each entry of the local stiffness matrix
+         auto& surrogate = all_surrogates[fType];
+         for ( uint_t i = 0; i < rhs.size(); ++i )
+         {
+            for ( uint_t j = 0; j < rhs[i].size(); ++j )
+            {
+               // initialize with correct polynomial degree
+               surrogate[i][j] = surrogate::polynomial::Polynomial( 2, q );
+               // apply least squares fit
+               lsq.setRHS( rhs[i][j] );
+               surrogate[i][j] = lsq.solve();
+            }
+         }
+      }
+   }
+}
+
+template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint_t lvl )
+{
+   auto  q   = poly_degree_[lvl];
+   auto& lsq = *lsq_[lvl];
+   // initialize rhs vectors for lsq
+   RHS_matrix< 3 > rhs;
+   for ( uint_t i = 0; i < rhs.size(); ++i )
+   {
+      for ( uint_t j = 0; j < rhs[i].size(); ++j )
+      {
+         rhs[i][j] = surrogate::LeastSquares::Vector( lsq.rows );
+      }
+   }
+
+   for ( auto& it : storage_->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      auto& all_surrogates = cell.getData( surrogateID_3d_ )->getData( lvl );
+
+      Matrix3r elMat( Matrix3r::Zero() );
+
+      for ( const auto& cType : celldof::allCellTypes )
+      {
+         // set up rhs vectors for each entry of the local stiffness matrix
+         auto it = lsq.samplingIterator();
+         while ( it != it.end() )
+         {
+            assembleLocalElementMatrix3D( cell, level, it.ijk(), cType, form_, elMat );
+            for ( uint_t i = 0; i < rhs.size(); ++i )
+            {
+               for ( uint_t j = 0; j < rhs[i].size(); ++j )
+               {
+                  rhs[i][j]( it() ) = elMat( i, j );
+               }
+            }
+            ++it;
+         }
+         // fit polynomials for each entry of the local stiffness matrix
+         auto& surrogate = all_surrogates[cType];
+         for ( uint_t i = 0; i < rhs.size(); ++i )
+         {
+            for ( uint_t j = 0; j < rhs[i].size(); ++j )
+            {
+               // initialize with correct polynomial degree
+               surrogate[i][j] = surrogate::polynomial::Polynomial( 3, q );
+               // apply least squares fit
+               lsq.setRHS( rhs[i][j] );
+               surrogate[i][j] = lsq.solve();
+            }
+         }
+      }
    }
 }
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::apply( const P1Function< real_t >& src,
-                                             const P1Function< real_t >& dst,
-                                             size_t                      level,
-                                             DoFType                     flag,
-                                             UpdateType                  updateType ) const
+                                                      const P1Function< real_t >& dst,
+                                                      size_t                      level,
+                                                      DoFType                     flag,
+                                                      UpdateType                  updateType ) const
 {
    return gemv( real_c( 1 ), src, ( updateType == Replace ? real_c( 0 ) : real_c( 1 ) ), dst, level, flag );
 }
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&               alpha,
-                                            const P1Function< real_t >& src,
-                                            const real_t&               beta,
-                                            const P1Function< real_t >& dst,
-                                            size_t                      level,
-                                            DoFType                     flag ) const
+                                                     const P1Function< real_t >& src,
+                                                     const real_t&               beta,
+                                                     const P1Function< real_t >& dst,
+                                                     size_t                      level,
+                                                     DoFType                     flag ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -240,11 +437,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::smooth_jac( const P1Function< real_t >& dst,
-                                                  const P1Function< real_t >& rhs,
-                                                  const P1Function< real_t >& src,
-                                                  real_t                      omega,
-                                                  size_t                      level,
-                                                  DoFType                     flag ) const
+                                                           const P1Function< real_t >& rhs,
+                                                           const P1Function< real_t >& src,
+                                                           real_t                      omega,
+                                                           size_t                      level,
+                                                           DoFType                     flag ) const
 {
    this->startTiming( "smooth_jac" );
 
@@ -261,12 +458,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::smooth_jac( const P1Function< rea
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply2D( const uint_t           level,
-                                                                   const indexing::Index& microFace,
-                                                                   facedof::FaceType      fType,
-                                                                   const real_t* const    srcVertexData,
-                                                                   real_t* const          dstVertexData,
-                                                                   const Matrix3r&        elMat,
-                                                                   const real_t&          alpha ) const
+                                                                            const indexing::Index& microFace,
+                                                                            facedof::FaceType      fType,
+                                                                            const real_t* const    srcVertexData,
+                                                                            real_t* const          dstVertexData,
+                                                                            const Matrix3r&        elMat,
+                                                                            const real_t&          alpha ) const
 {
    WALBERLA_ASSERT_UNEQUAL( srcVertexData, dstVertexData );
 
@@ -293,12 +490,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply2D( cons
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply3D( const uint_t            level,
-                                                                   const indexing::Index&  microCell,
-                                                                   const celldof::CellType cType,
-                                                                   const real_t* const     srcVertexData,
-                                                                   real_t* const           dstVertexData,
-                                                                   const Matrix4r&         elMat,
-                                                                   const real_t&           alpha ) const
+                                                                            const indexing::Index&  microCell,
+                                                                            const celldof::CellType cType,
+                                                                            const real_t* const     srcVertexData,
+                                                                            real_t* const           dstVertexData,
+                                                                            const Matrix4r&         elMat,
+                                                                            const real_t&           alpha ) const
 {
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -501,12 +698,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeAndStoreLocalElementMatric
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions2D( const Face&                                face,
-                                                                           const uint_t                               level,
-                                                                           const idx_t                                xIdx,
-                                                                           const idx_t                                yIdx,
-                                                                           const P1Elements::P1Elements2D::P1Element& element,
-                                                                           real_t* const dstVertexData )
+void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions2D(
+    const Face&                                face,
+    const uint_t                               level,
+    const idx_t                                xIdx,
+    const idx_t                                yIdx,
+    const P1Elements::P1Elements2D::P1Element& element,
+    real_t* const                              dstVertexData )
 {
    Matrix3r                elMat( Matrix3r::Zero() );
    indexing::Index         nodeIdx;
@@ -540,10 +738,10 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions3D( const Cell&             cell,
-                                                                           const uint_t            level,
-                                                                           const indexing::Index&  microCell,
-                                                                           const celldof::CellType cType,
-                                                                           real_t* const           vertexData )
+                                                                                    const uint_t            level,
+                                                                                    const indexing::Index&  microCell,
+                                                                                    const celldof::CellType cType,
+                                                                                    real_t* const           vertexData )
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -573,10 +771,10 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions
 // Assemble operator as sparse matrix
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                const P1Function< idx_t >&                  src,
-                                                const P1Function< idx_t >&                  dst,
-                                                uint_t                                      level,
-                                                DoFType                                     flag ) const
+                                                         const P1Function< idx_t >&                  src,
+                                                         const P1Function< idx_t >&                  dst,
+                                                         uint_t                                      level,
+                                                         DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );
@@ -657,13 +855,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< 
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                             const Face&                                 face,
-                                                             const uint_t                                level,
-                                                             const idx_t                                 xIdx,
-                                                             const idx_t                                 yIdx,
-                                                             const P1Elements::P1Elements2D::P1Element&  element,
-                                                             const idx_t* const                          srcIdx,
-                                                             const idx_t* const                          dstIdx ) const
+                                                                      const Face&                                 face,
+                                                                      const uint_t                                level,
+                                                                      const idx_t                                 xIdx,
+                                                                      const idx_t                                 yIdx,
+                                                                      const P1Elements::P1Elements2D::P1Element&  element,
+                                                                      const idx_t* const                          srcIdx,
+                                                                      const idx_t* const                          dstIdx ) const
 {
    Matrix3r                elMat( Matrix3r::Zero() );
    indexing::Index         nodeIdx;
@@ -712,12 +910,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly2D( const std:
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                             const Cell&                                 cell,
-                                                             const uint_t                                level,
-                                                             const indexing::Index&                      microCell,
-                                                             const celldof::CellType                     cType,
-                                                             const idx_t* const                          srcIdx,
-                                                             const idx_t* const                          dstIdx ) const
+                                                                      const Cell&                                 cell,
+                                                                      const uint_t                                level,
+                                                                      const indexing::Index&                      microCell,
+                                                                      const celldof::CellType                     cType,
+                                                                      const idx_t* const                          srcIdx,
+                                                                      const idx_t* const                          dstIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -764,7 +962,8 @@ template class P1ElementwiseSurrogateOperator<
 template class P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
 
 // P1ElementwiseMassOperator
-template class P1ElementwiseSurrogateOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 
 // P1ElementwisePSPGOperator
 template class P1ElementwiseSurrogateOperator<
