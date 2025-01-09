@@ -155,7 +155,7 @@ class Polynomial : public std::vector< double >
    static constexpr uint8_t Y = 1;
    static constexpr uint8_t Z = 2;
 
-   inline Polynomial( uint8_t d, uint8_t q )
+   inline Polynomial( uint8_t d=0, uint8_t q=0 )
    : std::vector< double >( dimP( d, q ) )
    , _d( d )
    , _q( q )
@@ -266,13 +266,13 @@ class Polynomial : public std::vector< double >
    }
 
    // dimension of domain
-   const uint8_t _d;
+   uint8_t _d;
    // degree of polynomial
-   const uint8_t _q;
+   uint8_t _q;
    // restriction to lower dimension
    std::unique_ptr< Polynomial > _restriction;
    // basis functions
-   const Basis& _basis;
+   Basis& _basis;
 
    // basis functions for q = 0,1,...
    static const std::vector< Basis > basis_q;

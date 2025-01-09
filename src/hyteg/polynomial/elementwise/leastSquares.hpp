@@ -22,6 +22,7 @@
 
 #include <core/logging/Logging.h>
 #include <hyteg/eigen/EigenWrapper.hpp>
+#include <hyteg/indexing/Common.hpp>
 
 #include "polynomial.hpp"
 
@@ -106,6 +107,10 @@ class LeastSquares
    using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
    using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
 
+   // RxC matrix of right-hand-side vectors
+   template < uint_t R, uint_t C = R >
+   using RHS_matrix = std::array< std::array< Vector, C >, R >;
+
  private:
    /**
     * @class Iterator
@@ -170,6 +175,12 @@ class LeastSquares
        * @return uint_t Vertex index in z direction.
        */
       inline constexpr uint_t k() const { return _k; }
+      /**
+       * @brief Getter for vertex index in x,y,z direction.
+       *
+       * @return Index
+       */
+      inline indexing::Index ijk() const { return { _i, _j, _k }; }
       /**
        * @brief Getter for index of sample point.
        *
@@ -387,6 +398,13 @@ class LeastSquares
     * @param f_xyz f( it.i(), it.j(), it.k() ), where f is the function to be approximated.
     */
    void setRHS( const uint_t n, const double f_xyz ) { b( n ) = f_xyz; }
+
+   /**
+    * @brief Set right hand side vector in one step.
+    *    !Only use if you know what you are doing!
+    * @param rhs Should have been set up using `samplingIterator()`.
+    */
+   void setRHS( const Vector& rhs ) { b = rhs; }
 
    /**
     * @brief Solve the least squares problem.
