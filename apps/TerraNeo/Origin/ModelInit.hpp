@@ -87,7 +87,7 @@ void ConvectionSimulation::init()
    attributeList_["boundaryCondFreeSlip"] = TN.simulationParameters.boundaryCondFreeSlip;
    attributeList_["haveViscosityProfile"] = TN.simulationParameters.haveViscosityProfile;
    attributeList_["fileViscosityProfile"] = TN.simulationParameters.fileViscosityProfile;
-   attributeList_["shearHeatingScaling"] = TN.simulationParameters.shearHeatingScaling;
+   attributeList_["lithosphereShearHeatingScaling"] = TN.simulationParameters.lithosphereShearHeatingScaling;
    attributeList_["lithosphereThickness"] = TN.simulationParameters.lithosphereThickness;
 
    attributeList_["surfaceTemp"] = TN.physicalParameters.surfaceTemp;
