@@ -13,7 +13,7 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.27.0")
 endif()
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.30.0")
-   cmake_policy(SET CMP0167 NEW)
+   cmake_policy(SET CMP0167 OLD)
 endif()
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
@@ -90,15 +90,14 @@ if(WALBERLA_CXX_COMPILER_IS_GNU)
     endif()
 endif()
 
-include(FetchContent)
-FetchContent_Declare(
-      boost
-      URL      https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2
-      URL_HASH SHA256=475d589d51a7f8b3ba2ba4eda022b170e562ca3b760ee922c146b6c65856ef39
-)
-
 if( HYTEG_DOWNLOAD_BOOST )
-   FetchContent_Populate( boost )
+   include(FetchContent)
+   FetchContent_Declare(
+           boost
+           URL      https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2
+           URL_HASH SHA256=af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89
+   )
+   FetchContent_MakeAvailable( boost )
    set(BOOST_ROOT ${hyteg_BINARY_DIR}/_deps/boost-src/ CACHE PATH "Path to boost root")
 endif()
 
