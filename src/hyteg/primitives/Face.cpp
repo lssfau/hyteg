@@ -216,6 +216,6 @@ real_t Face::getIncircleRadius() const
    real_t len1 = ( coords[0] - coords[2] ).norm();
    real_t len2 = ( coords[0] - coords[1] ).norm();
    return real_c( 2 ) * area_ / ( len0 + len1 + len2 );
-};
+}
 
 } // namespace hyteg
