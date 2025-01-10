@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann
+ * Copyright (c) 2021-2024 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -67,6 +67,32 @@ class Idx : public std::array< uint_t, K >
    }
 };
 
+// vector that allows removing items
+template < typename T >
+class EnumeratedList : public std::map< uint_t, T >
+{
+ public:
+   EnumeratedList()
+   : std::map< uint_t, T >()
+   , next_idx( 0 )
+   {}
+
+   void append( const T& val )
+   {
+      this->insert( this->end(), { next_idx, val } );
+      // ( *this )[next_idx] = val;
+      ++next_idx;
+   }
+
+   const uint_t& get_next_idx() const { return next_idx; }
+
+   T&       operator[]( uint_t idx ) { return this->at( idx ); }
+   const T& operator[]( uint_t idx ) const { return this->at( idx ); }
+
+ private:
+   uint_t next_idx;
+};
+
 // CRTP-base class for K-simplices
 template < uint_t K, class K_Simplex >
 class Simplex
@@ -93,6 +119,10 @@ class Simplex
 
    // return true if this has been refined
    bool has_children() const { return !_children.empty(); }
+
+   // return true if one of the children has been refined
+   bool has_grandkids() const;
+
    /* check whether idx is a vertex of this element
       @param idx global vertex-id
       @return (idx \\in Simplex::_vertices)
@@ -129,21 +159,21 @@ class Simplex
       @param nodes  coordinates of the global vertices
       @return vertex coordinates
    */
-   std::array< Point3D, K + 1 > coordinates( const std::vector< Point3D >& nodes ) const;
+   std::array< Point3D, K + 1 > coordinates( const EnumeratedList< Point3D >& nodes ) const;
    /* compute the barycenter of a simplex
       @param nodes  coordinates of the global vertices
    */
-   Point3D barycenter( const std::vector< Point3D >& nodes ) const;
+   Point3D barycenter( const EnumeratedList< Point3D >& nodes ) const;
    /* compute the radius of the smallest ball B centered at the
       barycenter of a K simplex S, s.th. S ⊂ B.
       @param nodes  coordinates of the global vertices
       @return max_i||vertices[i] - barycenter(vertices)||
    */
-   real_t radius( const std::vector< Point3D >& nodes ) const;
+   real_t radius( const EnumeratedList< Point3D >& nodes ) const;
    /* compute the volme of a simplex
       @param nodes  coordinates of the global vertices
    */
-   real_t volume( const std::vector< Point3D >& nodes ) const;
+   real_t volume( const EnumeratedList< Point3D >& nodes ) const;
 
    /* remove all children
       @return true if any children have been killed
@@ -208,6 +238,7 @@ class Simplex1 : public Simplex< EDGE, Simplex1 >
       WALBERLA_CHECK_GREATER( _midpoint, -1 );
       return uint_t( _midpoint );
    }
+   void reset_midpoint_idx() { _midpoint = int64_t( -1 ); }
 
    /* count number of vertices in the interior of this edge
       @return number of vertices on the interior of *this
@@ -257,7 +288,7 @@ class Simplex2 : public Simplex< FACE, Simplex2 >
       @nodes  coordinates of the global vertices
       @return {min_φ, max_φ}
    */
-   std::pair< real_t, real_t > min_max_angle( const std::vector< Point3D >& nodes ) const;
+   std::pair< real_t, real_t > min_max_angle( const EnumeratedList< Point3D >& nodes ) const;
 
    const std::array< std::shared_ptr< Simplex1 >, 3 >& get_edges() const { return _edges; }
    // @returns edges of this face, ordered s.th. vertices[j] \\subset edges[j] for all j < 3
@@ -318,7 +349,7 @@ class Simplex3 : public Simplex< CELL, Simplex3 >
       @nodes  coordinates of the global vertices
       @return {min_φ, max_φ}
    */
-   std::pair< real_t, real_t > min_max_angle( const std::vector< Point3D >& nodes ) const;
+   std::pair< real_t, real_t > min_max_angle( const EnumeratedList< Point3D >& nodes ) const;
 
    const std::array< std::shared_ptr< Simplex1 >, 6 >& get_edges() const { return _edges; }
    const std::array< std::shared_ptr< Simplex2 >, 4 >& get_faces() const { return _faces; }

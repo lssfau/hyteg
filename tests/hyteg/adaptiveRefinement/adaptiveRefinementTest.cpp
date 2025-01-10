@@ -45,7 +45,7 @@ void adaptiveRefinementTest()
    if ( K == 2 )
    {
       meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
-      barycenter_0 = ( 1. / 3. ) * hyteg::Point3D(  1, 1, 0  );
+      barycenter_0 = ( 1. / 3. ) * hyteg::Point3D( 1, 1, 0 );
       volume       = 1. / 2.;
       n_el_1       = 4;
       n_el_2       = 8;
@@ -54,7 +54,7 @@ void adaptiveRefinementTest()
    else
    {
       meshInfo     = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/tet_1el.msh" ) );
-      barycenter_0 = ( 1. / 4. ) * hyteg::Point3D(  1, 1, 1  );
+      barycenter_0 = ( 1. / 4. ) * hyteg::Point3D( 1, 1, 1 );
       volume       = 1. / 6.;
       n_el_1       = 8;
       n_el_2       = 20;
@@ -74,14 +74,19 @@ void adaptiveRefinementTest()
    WALBERLA_CHECK( !simplex_0->has_children() );
 
    // test Simplex::has_vertex()
-   for ( uint_t vtx = 0; vtx < vertices_0.size(); ++vtx )
-      WALBERLA_CHECK( simplex_0->has_vertex( vtx ) );
+   for ( auto& [idx, _] : vertices_0 )
+   {
+      WALBERLA_UNUSED( _ );
+      WALBERLA_CHECK( simplex_0->has_vertex( idx ) );
+   }
    WALBERLA_CHECK( !simplex_0->has_vertex( 17 ) );
 
    // test Simplex::barycenter()
    auto barycenter = simplex_0->barycenter( vertices_0 );
    for ( int i = 0; i < 3; ++i )
+   {
       WALBERLA_CHECK_FLOAT_EQUAL( barycenter[i], barycenter_0[i] );
+   }
 
    // test Simplex::volume()
    WALBERLA_CHECK_FLOAT_EQUAL( simplex_0->volume( vertices_0 ), volume );
@@ -106,16 +111,18 @@ void adaptiveRefinementTest()
 
    // test Simplex::has_green_edge()
    for ( auto& el : mesh.get_elements() )
+   {
       WALBERLA_CHECK( !el->has_green_edge() );
+   }
 
    //=== refine mesh at simplex_1 (the element sitting at the origin) ===
 
    uint_t origin = 0; // (0, 0, 0)
-   for ( uint_t i = 0; i < vertices_0.size(); ++i )
+   for ( auto& [idx, vtx] : vertices_0 )
    {
-      if ( vertices_0[i].squaredNorm() <= 0.0 )
+      if ( vtx.squaredNorm() <= 0.0 )
       {
-         origin = i;
+         origin = idx;
          break;
       }
    }

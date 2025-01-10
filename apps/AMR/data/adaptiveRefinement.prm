@@ -25,7 +25,7 @@ Parameters
 
   // adaptive refinement:
   error_indicator 1; // else refine based on actual L2 error (using analytic solution)
-  global_error_estimate 0; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
+  global_error_estimate 1; // estimate global L2 error (requires at least 5 MG levels, e.g. lvl 0-4)
   //  In each step, all elements where the error is greater than 0.5*err_p
   //  will be refined, where err_p is the specified percentile over all errors.
   //  The iteration stops when the resulting mesh exceeds the given maximum of allowed elements.
@@ -34,7 +34,6 @@ Parameters
   p_refinement 0.125; // additional parameter for refinement (default=0):
                     // MEAN_SQUARED_ERROR: use weighted mean with polynomial weighting of order p, e.g, p=0 is standard mean; p in [-∞,∞]
                     // PROPORTION: proportion of elements that will be marked for refinement, p in [0,1]
-  // n_el_max 22000; // max number of macro elements
 
   // local regular refinement
   microlevel 8;
@@ -60,8 +59,8 @@ Parameters
   // vtkName auto;
   // vtkName err_ex;
   // writeDomainPartitioning 1;
-  writeMeshfile 0;
-  printMeshData 0;
+  // writeMeshfile 0;
+  // printMeshData 0;
   // initialMesh output/_mesh_6.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/reentrant_corner_2D_mesh_25.msh; // use custom initial mesh e.g. written from previous run
   // initialMesh output/jump_coeff_2D_mesh_20.msh; // use custom initial mesh e.g. written from previous run

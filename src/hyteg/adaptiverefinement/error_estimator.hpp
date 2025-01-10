@@ -228,7 +228,7 @@ class ErrorEstimator
 
    /// @brief get convergence estimate theta_j
    /// @param j
-   /// @return theta_j = ||e_L - e_(L-j)|| / ||e_L - e_(L-j-1)||
+   /// @return theta_j = \tilde{θ}_{L-j} = ||e_L - e_(L-j)|| / ||e_L - e_(L-j-1)||
    valueType theta( uint_t j ) const
    {
       if ( check_j_exists( j ) )
@@ -261,7 +261,7 @@ class ErrorEstimator
       for ( auto& e : _eta )
       {
          walberla::mpi::allReduceInplace( e, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-         e = std::sqrt( e );
+         e = std::sqrt( e ); // = \tilde{e}_{L-j} = ||e_L - e_(L-j)||
       }
 
       for ( uint_t i = 0; i < _j_max; ++i )
@@ -270,7 +270,7 @@ class ErrorEstimator
          if ( _eta[i] <= valueType( 1e-20 ) )
             _theta[i] = valueType( 0.0 );
          else
-            _theta[i] = _eta[i] / _eta[i + 1];
+            _theta[i] = _eta[i] / _eta[i + 1]; // = \tilde{θ}_{L-j} = \tilde{e}_{L-j} / \tilde{e}_{L-j-1}
       }
       for ( uint_t i = 0; i < _j_max; ++i )
       {
@@ -280,7 +280,7 @@ class ErrorEstimator
          auto theta_p_j1 = theta_p_j * _theta[i];        // θ^(j+1)
 
          // error estimate
-         _eta[i] = _eta[i] * theta_p_j;
+         _eta[i] = theta_p_j * _eta[i]; // = η_j = \tilde{θ}_{L-j}^j * \tilde{e}_{L-j}
 
          // error constants
          _C1[i] = std::pow( 1.0 - theta_p_j, i + 2 ) / std::pow( 1.0 + theta_p_j1, i + 1 );

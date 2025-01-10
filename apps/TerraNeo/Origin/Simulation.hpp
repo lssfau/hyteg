@@ -46,23 +46,57 @@ void ConvectionSimulation::step()
          walberla::logging::Logging::instance()->includeLoggingToFile( TN.outputParameters.outputDirectory + "/" +
                                                                        TN.outputParameters.outputBaseName + ".out" );
       }
-
-      // setupStokesRHS();
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-         checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ) );
-         solveStokes();
-         dataOutput();
+         WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 load Temperature field from Checkpoint" );
+         // Get Information about checkpoint data
+         std::vector< AdiosCheckpointImporter::FunctionDescription > checkpointDataInfo =
+             checkpointImporter->getFunctionDetails();
+         // Import temperature field from checkpoint
+         // restore function will only work out of the box at the same level -> if new level is higher -> prolongate, if lower -> restrict
+         // Check if current simulation max Level is compatible with checkpoint data maxLevel
+         if ( TN.domainParameters.maxLevel > checkpointDataInfo[0].maxLevel )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT(
+                "Restore Temperature field from checkpoint data maxLevel: " << checkpointDataInfo[0].maxLevel );
+            checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                 TN.domainParameters.minLevel,
+                                                 checkpointDataInfo[0].maxLevel,
+                                                 0,
+                                                 true );
+
+            WALBERLA_LOG_INFO_ON_ROOT( "Prolongate Temperature field checkpoint data from level: "
+                                       << checkpointDataInfo[0].maxLevel
+                                       << " to new maxLevel: " << TN.domainParameters.maxLevel );
+            for ( uint_t l = checkpointDataInfo[0].maxLevel; l < TN.domainParameters.maxLevel; l++ )
+            {
+               p2ProlongationOperator->prolongate( *( p2ScalarFunctionContainer["TemperatureFE"] ), l, All );
+               WALBERLA_LOG_INFO_ON_ROOT( "Temperatuer field prolongated from level:  " << l << " to level: " << l + 1 );
+            }
+         }
+         else
+         {
+            WALBERLA_LOG_INFO_ON_ROOT(
+                "Restore Temperature field from checkpoint data at level: " << checkpointDataInfo[0].maxLevel );
+            checkpointImporter->restoreFunction( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                 TN.domainParameters.minLevel,
+                                                 TN.domainParameters.maxLevel,
+                                                 0,
+                                                 true );
+         }
 #else
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
 #endif
+         solveStokes();
+         dataOutput();
       }
       else
       {
          dataOutput();
          solveStokes();
       }
+
       ++TN.simulationParameters.timeStep;
       p2p1StokesFunctionContainer["VelocityFEPrev"]->assign(
           { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
@@ -141,7 +175,9 @@ void ConvectionSimulation::step()
                             hyteg::Inner,
                             TN.simulationParameters.dt,
                             1,
-                            true, true, false );
+                            true,
+                            true,
+                            false );
 
    // Reset temperature on boundary to initial values
 
@@ -150,29 +186,23 @@ void ConvectionSimulation::step()
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      if ( TN.initialisationParameters.temperatureNoise )
+      std::function< real_t( const Point3D& ) > initTemperature;
+      switch ( TN.initialisationParameters.initialTemperatureDeviationMethod )
       {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate(
-             temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct, TN.initialisationParameters.noiseFactor ),
-             l,
-             DirichletBoundary );
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initTemperature = temperatureSingleSPH( *temperatureInitParams, *temperatureReferenceFct );
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initTemperature = temperatureRandomSuperpositioneSPH( *temperatureInitParams, *temperatureReferenceFct );
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+         initTemperature = temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct );
+         break;
+      default:
+         WALBERLA_ABORT( "Unknown initial temperature deviation method" );
       }
-      else
-      {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate(
-             temperatureSPH( *temperatureInitParams,
-                             *temperatureReferenceFct,
-                             TN.initialisationParameters.tempInit,
-                             TN.initialisationParameters.deg,
-                             TN.initialisationParameters.ord,
-                             TN.initialisationParameters.lmax,
-                             TN.initialisationParameters.lmin,
-                             TN.initialisationParameters.superposition,
-                             TN.initialisationParameters.buoyancyFactor,
-                             TN.physicalParameters.initialTemperatureSteepness ),
-             l,
-             DirichletBoundary );
-      }
+
+      p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperature, l, DirichletBoundary );
    }
 
    /*############ ENERGY STEP ############*/
@@ -263,37 +293,43 @@ void ConvectionSimulation::solveEnergy()
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc =
        [this]( const Point3D& x, const std::vector< real_t >& density ) {
           real_t radius = x.norm();
-          if ( TN.simulationParameters.radialProfile )
+          real_t shearHeatingCoeff;
+
+          if ( TN.simulationParameters.lithosphereShearHeatingScaling > 1 )
           {
-             updateNonDimParameters( x );
+             WALBERLA_ABORT( "Shear heating scaling factor at Lithosphere > 1 not allowed! --- Abort simulation ---" );
           }
-          if ( TN.simulationParameters.shearHeatingScaling > 1 )
+
+          if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
           {
-             WALBERLA_ABORT( "Shear heating scaling factor > 1 not allowed! --- Abort simulation ---" );
+             TN.physicalParameters.specificHeatCapacityRadial =
+                 terraneo::interpolateDataValues( x,
+                                                  TN.physicalParameters.radiusCp,
+                                                  TN.physicalParameters.specificHeatCapacityProfile,
+                                                  TN.domainParameters.rMin,
+                                                  TN.domainParameters.rMax );
+
+             shearHeatingCoeff = ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                     TN.physicalParameters.rayleighNumber ) *
+                                   ( TN.physicalParameters.specificHeatCapacity /
+                                     ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) );
+          }
+          else
+          {
+             shearHeatingCoeff = ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                   ( TN.physicalParameters.rayleighNumber * density[0] ) );
           }
 
           if ( radius > TN.domainParameters.rMax -
                             ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
           {
-             return ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
-                        ( TN.physicalParameters.rayleighNumber * density[0] ) ) *
-                      TN.simulationParameters.shearHeatingScaling );
+             return ( shearHeatingCoeff * TN.simulationParameters.lithosphereShearHeatingScaling );
           }
           else
           {
-             return TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
-                    ( TN.physicalParameters.rayleighNumber * density[0] );
+             return shearHeatingCoeff;
           }
        };
-
-   std::function< real_t( const Point3D& ) > internalHeatingCoeffCalc = [this]( const Point3D& x ) {
-      real_t intHeatingFactor = 1.0;
-      if ( TN.simulationParameters.radialProfile )
-      {
-         updateNonDimParameters( x );
-      }
-      return TN.physicalParameters.hNumber * intHeatingFactor;
-   };
 
    p2ScalarFunctionContainer["ShearHeatingTermCoeff"]->interpolate(
        shearHeatingCoeffCalc, { *( p2ScalarFunctionContainer["DensityFE"] ) }, TN.domainParameters.maxLevel, All );
@@ -369,12 +405,23 @@ void ConvectionSimulation::setupStokesRHS()
       // Multiply current RHS with rho and non-dimensionalised numbers
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > momentumFactors =
           [&]( const Point3D& x, const std::vector< real_t >& deltaT ) {
-             if ( TN.simulationParameters.radialProfile )
+             if ( TN.simulationParameters.haveThermalExpProfile )
              {
-                updateNonDimParameters( x );
+                TN.physicalParameters.thermalExpansivityRadial =
+                    terraneo::interpolateDataValues( x,
+                                                     TN.physicalParameters.radiusAlpha,
+                                                     TN.physicalParameters.thermalExpansivityProfile,
+                                                     TN.domainParameters.rMin,
+                                                     TN.domainParameters.rMax );
+                return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) *
+                         ( TN.physicalParameters.thermalExpansivityRadial / TN.physicalParameters.thermalExpansivity ) *
+                         densityFunction( x ) * deltaT[0] );
              }
-             return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) * densityFunction( x ) *
-                      deltaT[0] );
+             else
+             {
+                return ( -( TN.physicalParameters.rayleighNumber / TN.physicalParameters.pecletNumber ) * densityFunction( x ) *
+                         deltaT[0] );
+             }
           };
 
       // Interpolate functions to RHS

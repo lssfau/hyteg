@@ -122,8 +122,6 @@ class ConvectionSimulation
    real_t                      referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
-   void updateNonDimParameters( const Point3D& x );
-
  private:
    typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunction;
    typedef P2Function< real_t >                                                        ScalarFunction;
@@ -245,6 +243,7 @@ class ConvectionSimulation
    std::shared_ptr< DiffusionOperator >                 diffusionOperator;
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
+   std::shared_ptr< P2toP2QuadraticProlongation >       p2ProlongationOperator;
 
    std::shared_ptr< P2toP2QuadraticInjection > p2InjectionOperator;
 

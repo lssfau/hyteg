@@ -235,56 +235,47 @@ void ConvectionSimulation::initialiseFunctions()
    };
    std::function< real_t( const Point3D& ) > zeros = []( const Point3D& ) { return real_c( 0 ); };
 
-   TemperatureInitializationParameters tempInitParams( TN.physicalParameters.cmbTemp,
-                                                       TN.physicalParameters.surfaceTemp,
-                                                       TN.physicalParameters.adiabatSurfaceTemp,
-                                                       TN.physicalParameters.dissipationNumber,
-                                                       TN.domainParameters.rMin,
-                                                       TN.domainParameters.rMax );
-
-   temperatureInitParams = std::make_shared< TemperatureInitializationParameters >( tempInitParams );
+   temperatureInitParams = std::make_shared< TemperatureInitializationParameters >( TN.physicalParameters.cmbTemp,
+                                                                                    TN.physicalParameters.surfaceTemp,
+                                                                                    TN.physicalParameters.adiabatSurfaceTemp,
+                                                                                    TN.physicalParameters.dissipationNumber,
+                                                                                    TN.domainParameters.rMin,
+                                                                                    TN.domainParameters.rMax,
+                                                                                    &TN.initialisationParameters );
 
    if ( TN.simulationParameters.haveTemperatureProfile )
    {
       temperatureReferenceFct =
           std::make_shared< std::function< real_t( const Point3D& ) > >( terraneo::temperatureReferenceProfile(
-              tempInitParams, TN.physicalParameters.radiusT, TN.physicalParameters.temperatureInputProfile ) );
+              *temperatureInitParams, TN.physicalParameters.radiusT, TN.physicalParameters.temperatureInputProfile ) );
    }
    else
    {
       temperatureReferenceFct = std::make_shared< std::function< real_t( const Point3D& ) > >(
-          terraneo::temperatureReferenceExponential( tempInitParams ) );
+          terraneo::temperatureReferenceExponential( *temperatureInitParams ) );
    }
-   //auto referenceTemperature = temperatureReferenceExponential( *temperatureInitParams );
 
-   if ( TN.initialisationParameters.temperatureNoise )
+   // Temperature Deivation
+   std::function< real_t( const Point3D& ) > initTemperature;
+   switch ( TN.initialisationParameters.initialTemperatureDeviationMethod )
    {
-      auto initTemperatureWhiteNoise =
-          temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct, TN.initialisationParameters.noiseFactor );
-
-      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-      {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperatureWhiteNoise, l, All );
-      }
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+      initTemperature = temperatureSingleSPH( *temperatureInitParams, *temperatureReferenceFct );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+      initTemperature = temperatureRandomSuperpositioneSPH( *temperatureInitParams, *temperatureReferenceFct );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+      initTemperature = temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct );
+      break;
+   default:
+      WALBERLA_ABORT( "Unknown initial temperature deviation method" );
    }
-   else
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      auto initTemperatureSPH = temperatureSPH( *temperatureInitParams,
-                                                *temperatureReferenceFct,
-                                                TN.initialisationParameters.tempInit,
-                                                TN.initialisationParameters.deg,
-                                                TN.initialisationParameters.ord,
-                                                TN.initialisationParameters.lmax,
-                                                TN.initialisationParameters.lmin,
-                                                TN.initialisationParameters.superposition,
-                                                TN.initialisationParameters.buoyancyFactor,
-                                                TN.physicalParameters.initialTemperatureSteepness );
-
-      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-      {
-         p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperatureSPH, l, All );
-      }
+      p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperature, l, All );
    }
+
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       // initialise plate velocity oracle
@@ -373,6 +364,8 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    projectionOperator = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
+
+   p2ProlongationOperator = std::make_shared< P2toP2QuadraticProlongation >();
 
    stokesOperator = std::make_shared< StokesOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["ViscosityFE"] ) );
@@ -583,16 +576,15 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
 
-   transportOperator->setP1Evaluate(true);
-   transportOperator->setParticleLocalRadiusTolerance(1e-3);
+   transportOperator->setP1Evaluate( true );
+   transportOperator->setParticleLocalRadiusTolerance( 1e-3 );
 
-   std::function< void(const Point3D&, Point3D&) > projectBack = [](const Point3D& x, Point3D& xProj)
-   {
+   std::function< void( const Point3D&, Point3D& ) > projectBack = []( const Point3D& x, Point3D& xProj ) {
       // WALBERLA_ABORT("x = " << x);
       xProj = x;
    };
 
-   transportOperator->setProjectPointsBackOutsideDomainFunction(projectBack);
+   transportOperator->setProjectPointsBackOutsideDomainFunction( projectBack );
 
    transportSolverTALA = std::make_shared< CGSolver< P2TransportIcosahedralShellMapOperator > >(
        storage,

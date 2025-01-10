@@ -66,79 +66,6 @@ using Laplace = P1ConstantLaplaceOperator;
 using DivkGradForm = forms::p1_div_k_grad_affine_q3;
 using DivkGrad     = P1VariableOperator< DivkGradForm >;
 
-struct RefinementStrategy
-{
-   enum Strategy
-   {
-      MEAN_SQUARED_ERROR, // refine T_j if e_j^2 > (∑_i w_i e_i^2)/(∑_i w_i), w_i = (n-i)^p
-      PROPORTION,         // refine the p*n elements where the error is largest
-      SINGULARITY,        // only refine those elements with a vertex at (0,0,0)
-      __NOT_AVAILABLE
-   };
-
-   RefinementStrategy( uint_t strategy, real_t param )
-   : s( Strategy( strategy ) )
-   , p( param )
-   {
-      if ( strategy >= Strategy::__NOT_AVAILABLE )
-      {
-         WALBERLA_ABORT( "Invalid argument for refinement strategy: Must be less than " << Strategy::__NOT_AVAILABLE );
-      }
-   }
-
-   real_t refineRG( const adaptiveRefinement::ErrorVector& local_errors, adaptiveRefinement::Mesh& mesh, uint_t n_el_max ) const
-   {
-      if ( s == MEAN_SQUARED_ERROR )
-      {
-         return mesh.refineRG( local_errors, adaptiveRefinement::WEIGHTED_MEAN, this->p, true );
-      }
-      if ( s == PROPORTION )
-      {
-         return mesh.refineRG( local_errors, adaptiveRefinement::PERCENTILE, this->p, true );
-      }
-      if ( s == SINGULARITY )
-      {
-         auto vertices = mesh.get_vertices();
-
-         std::set< hyteg::PrimitiveID > center_elements;
-         if ( mesh.dim() == 2 )
-         {
-            for ( auto& el : mesh.get_elements2d() )
-            {
-               for ( auto& vtx : el->coordinates( vertices ) )
-               {
-                  if ( vtx.norm() < 1e-10 )
-                     center_elements.insert( el->getPrimitiveID() );
-               }
-            }
-         }
-         if ( mesh.dim() == 3 )
-         {
-            for ( auto& el : mesh.get_elements3d() )
-            {
-               for ( auto& vtx : el->coordinates( vertices ) )
-               {
-                  if ( vtx.norm() < 1e-10 )
-                     center_elements.insert( el->getPrimitiveID() );
-               }
-            }
-         }
-
-         auto crit = [center_elements]( const adaptiveRefinement::ErrorVector& err_global, uint_t i ) -> bool {
-            return ( center_elements.count( err_global[i].second ) > 0 );
-         };
-         return mesh.refineRG( local_errors, crit, n_el_max );
-      }
-      else
-      {
-         WALBERLA_ABORT( "Invalid argument for refinement strategy: Must be less than " << Strategy::__NOT_AVAILABLE );
-      }
-   }
-
-   Strategy s;
-   real_t   p;
-};
-
 // representation of a model problem
 struct ModelProblem
 {
@@ -534,7 +461,7 @@ SetupPrimitiveStorage domain( const ModelProblem& problem, uint_t N, const std::
             WALBERLA_ABORT( "Initial resolution for reentrant corner must be an even number with 2 <= N <= 10!" );
          }
          uint_t n_el     = N * N * 3 / 2;
-         auto   filename = "../hyteg/data/meshes/2D/LShape_" + std::to_string( n_el ) + "el.msh";
+         auto   filename = "data/LShape_" + std::to_string( n_el ) + "el.msh";
          meshInfo        = MeshInfo::fromGmshFile( filename );
       }
       else if ( problem.type == ModelProblem::WAVES || problem.type == ModelProblem::WAVES_K ||
@@ -1108,9 +1035,9 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_old = " << n_el_old );
 
       // apply refinement
-      auto t0    = walberla::timing::getWcTime();
-      auto ratio = ref_strat.refineRG( local_errors, mesh, n_el_max );
-      auto t1    = walberla::timing::getWcTime();
+      auto t0 = walberla::timing::getWcTime();
+      mesh.refineRG( local_errors, ref_strat, adaptiveRefinement::Strategy::none(), true );
+      auto t1 = walberla::timing::getWcTime();
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> Time spent for refinement: %12.3e", t1 - t0 ) );
       WALBERLA_LOG_INFO_ON_ROOT( " -> n_el_new = " << mesh.n_elements() );
       // compute mesh quality
@@ -1123,13 +1050,6 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
       WALBERLA_LOG_INFO_ON_ROOT( " -> angle (min, max) over all elements: " << a_minmax.first << ", " << a_minmax.second );
       WALBERLA_LOG_INFO_ON_ROOT( " -> angle (min, max) mean over all elements: " << a_meanminmax.first << ", "
                                                                                  << a_meanminmax.second );
-
-      if ( ratio < 0.95 )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT(
-             "* refinement could not be applied to all required elements\n  without exceeding the max number of elements!" );
-         break;
-      }
    }
 
    if ( l_final > l_max || max_iter_final > max_iter || tol_final < tol )
@@ -1216,7 +1136,7 @@ int main( int argc, char* argv[] )
    if ( argc == 1 )
    {
       walberla::shared_ptr< walberla::config::Config > cfg_( new walberla::config::Config );
-      cfg_->readParameterFile( "../hyteg/data/param/adaptiveRefinement.prm" );
+      cfg_->readParameterFile( "data/adaptiveRefinement.prm" );
       cfg = cfg_;
    }
    else
@@ -1241,9 +1161,9 @@ int main( int argc, char* argv[] )
        ( ModelProblem::Type( mp ) == ModelProblem::SLIT || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER ) ? 2 : 1;
    const uint_t N             = parameters.getParameter< uint_t >( "initial_resolution", N_default );
    const uint_t n_refinements = parameters.getParameter< uint_t >( "n_refinements" );
-   const uint_t n_el_max      = parameters.getParameter< uint_t >( "n_el_max", std::numeric_limits< uint_t >::max() );
-   const uint_t ref_strat    = parameters.getParameter< uint_t >( "refinement_strategy", RefinementStrategy::MEAN_SQUARED_ERROR );
-   const real_t p_refinement = parameters.getParameter< real_t >( "p_refinement", 0.0 );
+   const uint_t ref_type =
+       parameters.getParameter< uint_t >( "refinement_strategy", adaptiveRefinement::Strategy::WEIGHTED_MEAN );
+   const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", 0.0 );
    const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
 
@@ -1271,7 +1191,7 @@ int main( int argc, char* argv[] )
    const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
    const bool  printMeshData     = parameters.getParameter< bool >( "printMeshData", false );
 
-   const RefinementStrategy refinementStrategy( ref_strat, p_refinement );
+   const adaptiveRefinement::Strategy ref_strat{ adaptiveRefinement::Strategy::Type( ref_type ), p_refinement };
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
@@ -1338,28 +1258,16 @@ int main( int argc, char* argv[] )
    // todo: add output for new parameters when adding problems
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "number of refinements", n_refinements ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max. number of coarse elements", n_el_max ) );
-   if ( refinementStrategy.s == RefinementStrategy::MEAN_SQUARED_ERROR )
+   if ( ref_strat.t == adaptiveRefinement::Strategy::WEIGHTED_MEAN )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " mark all elements for refinement where ||e_T||^2 > mean_T ||e_T||^2" );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           "    with weighted mean μ(x) = (∑_i i^%1.1f x_i)/(∑_i i^%1.1f) for x_1 <= x_2 <= ...", p_refinement, p_refinement ) );
    }
-   if ( refinementStrategy.s == RefinementStrategy::PROPORTION )
+   if ( ref_strat.t == adaptiveRefinement::Strategy::PERCENTILE )
    {
       WALBERLA_LOG_INFO_ON_ROOT(
           walberla::format( " %30s: %3.1f%%", "proportion of elements marked for refinement", p_refinement * 100.0 ) );
-   }
-   if ( refinementStrategy.s == RefinementStrategy::SINGULARITY )
-   {
-      if ( ModelProblem::Type( mp ) == ModelProblem::DIRAC || ModelProblem::Type( mp ) == ModelProblem::REENTRANT_CORNER )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( " mark elements for refinement that are located at singularity" );
-      }
-      else
-      {
-         WALBERLA_ABORT( "Refinement strategy SINGULARITY only applicable for model problems 'dirac' and 'reentrant corner'!" );
-      }
    }
    if ( error_indicator )
    {
@@ -1396,8 +1304,7 @@ int main( int argc, char* argv[] )
    solve_for_each_refinement( setupStorage,
                               problem,
                               n_refinements,
-                              n_el_max,
-                              refinementStrategy,
+                              ref_strat,
                               l_min,
                               l_max,
                               l_final,

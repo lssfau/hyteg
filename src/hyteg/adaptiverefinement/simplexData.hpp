@@ -106,7 +106,7 @@ class SimplexData
       recvBuffer >> _targetRank;
    }
 
-   inline std::array< Point3D, J + 1 > get_coordinates( const std::vector< Point3D >& global_coordinates ) const
+   inline std::array< Point3D, J + 1 > get_coordinates( const EnumeratedList< Point3D >& global_coordinates ) const
    {
       std::array< Point3D, J + 1 > coords;
       for ( uint_t i = 0; i <= J; ++i )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann
+ * Copyright (c) 2021-2024 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -45,6 +45,7 @@ const std::vector< std::shared_ptr< K_Simplex > >
    {
       for ( auto& child : _children )
       {
+         WALBERLA_ASSERT( child != nullptr );
          if ( child->has_vertex( vertices[uint_t( i )] ) )
          {
             sorted[i] = child;
@@ -81,6 +82,19 @@ bool Simplex< K, K_Simplex >::kill_children()
       _children.clear();
       return true;
    }
+}
+
+template < uint_t K, class K_Simplex >
+bool Simplex< K, K_Simplex >::has_grandkids() const
+{
+   for ( auto& child : _children )
+   {
+      if ( child->has_children() )
+      {
+         return true;
+      }
+   }
+   return false;
 }
 
 template < uint_t K, class K_Simplex >
@@ -149,7 +163,7 @@ inline real_t Simplex< K, K_Simplex >::volume( const std::array< Point3D, K + 1 
 }
 
 template < uint_t K, class K_Simplex >
-inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const std::vector< Point3D >& nodes ) const
+inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const EnumeratedList< Point3D >& nodes ) const
 {
    std::array< Point3D, K + 1 > vertices;
    for ( uint_t i = 0; i < K + 1; ++i )
@@ -160,19 +174,19 @@ inline std::array< Point3D, K + 1 > Simplex< K, K_Simplex >::coordinates( const 
 }
 
 template < uint_t K, class K_Simplex >
-Point3D Simplex< K, K_Simplex >::barycenter( const std::vector< Point3D >& nodes ) const
+Point3D Simplex< K, K_Simplex >::barycenter( const EnumeratedList< Point3D >& nodes ) const
 {
    return barycenter( this->coordinates( nodes ) );
 }
 
 template < uint_t K, class K_Simplex >
-real_t Simplex< K, K_Simplex >::radius( const std::vector< Point3D >& nodes ) const
+real_t Simplex< K, K_Simplex >::radius( const EnumeratedList< Point3D >& nodes ) const
 {
    return radius( this->coordinates( nodes ) );
 }
 
 template < uint_t K, class K_Simplex >
-real_t Simplex< K, K_Simplex >::volume( const std::vector< Point3D >& nodes ) const
+real_t Simplex< K, K_Simplex >::volume( const EnumeratedList< Point3D >& nodes ) const
 {
    return volume( this->coordinates( nodes ) );
 }
@@ -211,6 +225,8 @@ Simplex2::Simplex2( const std::array< uint_t, 3 >&                      vertices
 {
    for ( uint_t i = 0; i < 3; ++i )
    {
+      WALBERLA_ASSERT( _edges[i] != nullptr );
+
       WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[i] ) );
       WALBERLA_ASSERT( _edges[i]->has_vertex( _vertices[( i + 1 ) % 3] ) );
    }
@@ -248,6 +264,7 @@ std::array< std::shared_ptr< Simplex1 >, 3 > Simplex2::get_edges_sorted( const s
    {
       for ( auto& edge : _edges )
       {
+         WALBERLA_ASSERT( edge != nullptr );
          if ( edge->has_vertex( vertices[i] ) && edge->has_vertex( vertices[( i + 1 ) % 3] ) )
          {
             sorted[i] = edge;
@@ -264,6 +281,7 @@ std::shared_ptr< Simplex1 > Simplex2::get_Edge( uint_t a, uint_t b ) const
 {
    for ( auto& edge : _edges )
    {
+      WALBERLA_ASSERT( edge != nullptr );
       if ( edge->has_vertex( a ) && edge->has_vertex( b ) )
       {
          return edge;
@@ -273,7 +291,7 @@ std::shared_ptr< Simplex1 > Simplex2::get_Edge( uint_t a, uint_t b ) const
    return nullptr;
 }
 
-std::pair< real_t, real_t > Simplex2::min_max_angle( const std::vector< Point3D >& nodes ) const
+std::pair< real_t, real_t > Simplex2::min_max_angle( const EnumeratedList< Point3D >& nodes ) const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
 
@@ -321,12 +339,14 @@ Simplex3::Simplex3( const std::array< uint_t, 4 >&                      vertices
    {
       for ( uint_t j = i + 1; j < 4; ++j )
       {
+         WALBERLA_ASSERT( _edges[e] != nullptr );
          WALBERLA_ASSERT( _edges[e]->has_vertex( _vertices[i] ) );
          WALBERLA_ASSERT( _edges[e]->has_vertex( _vertices[j] ) );
          ++e;
 
          for ( uint_t k = j + 1; k < 4; ++k )
          {
+            WALBERLA_ASSERT( _faces[f] != nullptr );
             WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[i] ) );
             WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[j] ) );
             WALBERLA_ASSERT( _faces[f]->has_vertex( _vertices[k] ) );
@@ -381,7 +401,7 @@ uint_t Simplex3::vertices_on_edges() const
    return n;
 }
 
-std::pair< real_t, real_t > Simplex3::min_max_angle( const std::vector< Point3D >& nodes ) const
+std::pair< real_t, real_t > Simplex3::min_max_angle( const EnumeratedList< Point3D >& nodes ) const
 {
    std::pair< real_t, real_t > mm{ 10, 0 };
 
@@ -400,6 +420,7 @@ std::shared_ptr< Simplex1 > Simplex3::get_Edge( uint_t a, uint_t b ) const
 {
    for ( auto& edge : _edges )
    {
+      WALBERLA_ASSERT( edge != nullptr );
       if ( edge->has_vertex( a ) && edge->has_vertex( b ) )
       {
          return edge;
@@ -413,6 +434,7 @@ std::shared_ptr< Simplex2 > Simplex3::get_Face( uint_t a, uint_t b, uint_t c ) c
 {
    for ( auto& face : _faces )
    {
+      WALBERLA_ASSERT( face != nullptr );
       if ( face->has_vertex( a ) && face->has_vertex( b ) && face->has_vertex( c ) )
       {
          return face;

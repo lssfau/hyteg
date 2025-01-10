@@ -32,6 +32,8 @@
 
 #include "core/DataTypes.h"
 
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
+
 namespace terraneo {
 
 using walberla::real_c;
@@ -218,39 +220,46 @@ struct SimulationParameters
    bool        haveViscosityProfile        = false;
    bool        haveThermalExpProfile       = false;
    bool        haveSpecificHeatCapProfile  = false;
-   bool        haveGrueneisenProfile       = false;
-   bool        radialProfile               = false;
+   bool        haveDensityProfile          = false;
    std::string fileTemperatureInputProfile = std::string( "TemperatureInputProfile.json" );
    std::string fileViscosityProfile        = std::string( "ViscosityProfile.json" );
    std::string fileThermalExpProfile       = std::string( "ThermalExpProfile.json" );
    std::string fileSpecificHeatCap         = std::string( "SpecificHeatCapProfile.json" );
-   std::string fileGrueneisenProfile       = std::string( "GrueneisenProfile.json" );
+   std::string fileDensityProfile          = std::string( "DensityProfile.json" );
 
    //needed for conversions in the simulation
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
 
    // Shear heating scaling for mantle ciruclation model with
    // predifned Lithosphere thickness in km
-   real_t shearHeatingScaling  = 1e-5;
+   real_t lithosphereShearHeatingScaling  = 1e-5;
    real_t lithosphereThickness = real_c( 100 );
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
 };
 
-struct InitialisationParameters
+enum class INITIAL_TEMPERATURE_DEVIATION_METHOD : uint_t
 {
-   uint_t                tempInit                     = 3;
-   uint_t                deg                          = 4;
-   int                   ord                          = 2;
-   uint_t                lmax                         = 4;
-   uint_t                lmin                         = 0;
-   bool                  superposition                = false;
-   bool                  temperatureNoise             = true;
-   bool                  temperatureSphericalHarmonic = false;
-   real_t                noiseFactor                  = real_c( 0.1 );
-   std::vector< real_t > superpositionRand;
-   real_t                buoyancyFactor = real_c( 0.01 );
+   WHITE_NOISE              = 0,
+   SINGLE_SPH               = 1,
+   RANDOM_SUPERPOSITION_SPH = 2,
+};
+struct TemperatureDeivationInitialisationParameters
+{
+   uint_t                               tempInit                          = 3;
+   INITIAL_TEMPERATURE_DEVIATION_METHOD initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE;
+   real_t                               buoyancyFactor                    = real_c( 0.01 );
+   // Single SPH
+   uint_t deg = 4;
+   int    ord = 2;
+   // Superposition SPH
+   uint_t                                    lmax                        = 4;
+   uint_t                                    lmin                        = 0;
+   uint_t                                    superpositionSPHRandomSeed  = 42;
+   real_t                                    initialTemperatureSteepness = real_c( 10 );
+   std::vector< real_t >                     superpositionRand;
+   std::shared_ptr< SphericalHarmonicsTool > sphTool;
 };
 
 struct PhysicalParameters
@@ -261,14 +270,13 @@ struct PhysicalParameters
    std::vector< real_t > radiusT;
    std::vector< real_t > radiusCp;
    std::vector< real_t > radiusAlpha;
-   std::vector< real_t > radiusGamma;
+   std::vector< real_t > radiusDensity;
    std::vector< real_t > temperatureProfile;
    std::vector< real_t > viscosityProfile;
    std::vector< real_t > temperatureInputProfile;
    std::vector< real_t > thermalExpansivityProfile;
    std::vector< real_t > specificHeatCapacityProfile;
-   std::vector< real_t > grueneisenProfile;
-   real_t                initialTemperatureSteepness = real_c( 10 );
+   std::vector< real_t > densityProfile;
 
    //temperature
    //physical versions used to calculate non-D numbers, others used in simulation
@@ -277,20 +285,23 @@ struct PhysicalParameters
    real_t cmbTemp     = real_c( 4200 );
 
    //material parameters
-   real_t thermalExpansivity   = real_c( 2.238 * 1e-5 );
-   real_t thermalConductivity  = real_c( 3 );
-   real_t specificHeatCapacity = real_c( 1260 );
-   real_t internalHeatingRate  = real_c( 1e-12 );
-   real_t referenceDensity     = real_c( 4500 );
-   real_t surfaceDensity       = real_c( 3300 );
-   real_t referenceViscosity   = real_c( 1e22 );
-   real_t viscosity            = real_c( 1e22 );
-   real_t grueneisenParameter  = real_c( 1.1 );
-   real_t adiabatSurfaceTemp   = real_c( 1600 );
-   real_t activationEnergy     = real_c( 5 );
-   real_t depthViscosityFactor = real_c( 3 );
-   real_t viscosityLowerBound  = real_c( 1e19 );
-   real_t viscosityUpperBound  = real_c( 1e24 );
+   real_t thermalExpansivity         = real_c( 2.238 * 1e-5 );
+   real_t thermalExpansivityRadial   = real_c( 2.238 * 1e-5 );
+   real_t thermalConductivity        = real_c( 3 );
+   real_t specificHeatCapacity       = real_c( 1260 );
+   real_t specificHeatCapacityRadial = real_c( 1260 );
+   real_t internalHeatingRate        = real_c( 1e-12 );
+   real_t density                    = real_c( 0 );
+   real_t referenceDensity           = real_c( 4500 );
+   real_t surfaceDensity             = real_c( 3300 );
+   real_t referenceViscosity         = real_c( 1e22 );
+   real_t viscosity                  = real_c( 1e22 );
+   real_t grueneisenParameter        = real_c( 1.1 );
+   real_t adiabatSurfaceTemp         = real_c( 1600 );
+   real_t activationEnergy           = real_c( 5 );
+   real_t depthViscosityFactor       = real_c( 3 );
+   real_t viscosityLowerBound        = real_c( 1e19 );
+   real_t viscosityUpperBound        = real_c( 1e24 );
 
    //gravity
 
@@ -316,12 +327,12 @@ struct PhysicalParameters
 
 struct TerraNeoParameters
 {
-   DomainParameters         domainParameters;
-   SolverParameters         solverParameters;
-   OutputParameters         outputParameters;
-   SimulationParameters     simulationParameters;
-   InitialisationParameters initialisationParameters;
-   PhysicalParameters       physicalParameters;
+   DomainParameters                             domainParameters;
+   SolverParameters                             solverParameters;
+   OutputParameters                             outputParameters;
+   SimulationParameters                         simulationParameters;
+   TemperatureDeivationInitialisationParameters initialisationParameters;
+   PhysicalParameters                           physicalParameters;
 };
 
 } // namespace terraneo

@@ -29,12 +29,106 @@
 #include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/plates/PlateVelocityProvider.hpp"
+#include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 namespace terraneo {
 
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
+
+struct ParameterFileVersion
+{
+   uint_t major = 0;
+   uint_t minor = 1;
+
+   ParameterFileVersion( uint_t major, uint_t minor )
+   : major( major )
+   , minor( minor )
+   {}
+
+   ParameterFileVersion( const std::string& version )
+   {
+      size_t dotPos = version.find( '.' );
+
+      if ( dotPos == std::string::npos )
+      {
+         WALBERLA_ABORT( "Invalid Parameter File Version string: " << version );
+      }
+
+      try
+      {
+         major = std::stoi( version.substr( 0, dotPos ) );
+         minor = std::stoi( version.substr( dotPos + 1 ) );
+      } catch ( const std::invalid_argument& e )
+      {
+         WALBERLA_ABORT( "Invalid Parameter File Version string: " << version << ". Error: " << e.what() );
+      } catch ( const std::out_of_range& e )
+      {
+         WALBERLA_ABORT( "Parameter File Version number out of range: " << version << ". Error: " << e.what() );
+      }
+   }
+
+   bool operator==( const ParameterFileVersion& other ) const { return major == other.major && minor == other.minor; }
+
+   bool operator!=( const ParameterFileVersion& other ) const { return !( *this == other ); }
+
+   bool operator<( const ParameterFileVersion& other ) const
+   {
+      return ( major < other.major ) || ( major == other.major && minor < other.minor );
+   }
+
+   bool operator<=( const ParameterFileVersion& other ) const { return *this < other || *this == other; }
+
+   bool operator>( const ParameterFileVersion& other ) const { return !( *this <= other ); }
+
+   bool operator>=( const ParameterFileVersion& other ) const { return !( *this < other ); }
+};
+
+/**
+ * @brief Loads the radial profiles if provided via the main configuration block.
+ *
+ * This function reads and extracts radial profile data from the main configuration block.
+ * It parses the radial profiles and stores the values in the correpsonding std::vectors. 
+ * These vectors are later populated to the application where the corresponding value can be 
+ * extracted for each radial layer and be further processed. 
+ */
+
+template < typename T >
+inline void loadRadialProfile( const walberla::Config::BlockHandle& mainConf,
+                               const std::string&                   profileKey,
+                               T&                                   radiusData,
+                               T&                                   profileData,
+                               bool&                                haveProfileFlag,
+                               const real_t                         mantleThickness )
+{
+   SimulationParameters simulationParam;
+
+   if ( mainConf.isDefined( profileKey ) )
+   {
+      const std::string filePath = mainConf.getParameter< std::string >( profileKey );
+      auto              jsonData = io::readJsonFile( filePath );
+
+      const auto radiusKey = "Radius (m)";
+      const auto valueKey  = simulationParam.getKeyValue( jsonData );
+
+      WALBERLA_CHECK_GREATER( jsonData.count( radiusKey ), 0, "No key '" << radiusKey << "' in " << profileKey << " file." );
+      WALBERLA_CHECK_GREATER( jsonData.count( valueKey ), 0, "No key '" << valueKey << "' in " << profileKey << " file." );
+
+      radiusData  = jsonData[radiusKey].get< std::vector< real_t > >();
+      profileData = jsonData[valueKey].get< std::vector< real_t > >();
+
+      WALBERLA_CHECK_EQUAL(
+          radiusData.size(), profileData.size(), "Mismatch in size for " << profileKey << " radius and values." );
+
+      for ( auto& radius : radiusData )
+      {
+         radius /= mantleThickness; // Non-dimensionalize radius
+      }
+
+      haveProfileFlag = true;
+   }
+}
 
 /**
  * @brief Parses the configuration parameters from the main configuration block.
@@ -48,12 +142,17 @@ std::shared_ptr< terraneo::plates::PlateVelocityProvider > oracle;
 
 inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
-   DomainParameters         domainParam;
-   SolverParameters         solverParam;
-   OutputParameters         outputParam;
-   SimulationParameters     simulationParam;
-   PhysicalParameters       physicalParam;
-   InitialisationParameters initialisationParam;
+   /* ParameterFileVersion */
+   const ParameterFileVersion parameterFileVerion =
+       mainConf.isDefined( "version" ) ? ParameterFileVersion( mainConf.getParameter< std::string >( "version" ) ) :
+                                         ParameterFileVersion( 0, 1 );
+
+   DomainParameters                             domainParam;
+   SolverParameters                             solverParam;
+   OutputParameters                             outputParam;
+   SimulationParameters                         simulationParam;
+   PhysicalParameters                           physicalParam;
+   TemperatureDeivationInitialisationParameters initialisationParam;
 
    /*############ DOMAIN PARAMETERS ############*/
 
@@ -73,87 +172,41 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    if ( mainConf.isDefined( "temperatureInputProfile" ) )
    {
       simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
-      auto temperatureJson                        = io::readJsonFile( simulationParam.fileTemperatureInputProfile );
+      const std::string profileKey                = "temperatureInputProfile";
 
-      const auto radiusKey      = "Radius (m)";
-      const auto temperatureKey = "Temperature (K)";
-
-      WALBERLA_CHECK_GREATER( temperatureJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
-      WALBERLA_CHECK_GREATER(
-          temperatureJson.count( temperatureKey ), 0, "No key '" << temperatureKey << "' in viscosity profile file." )
-
-      physicalParam.radiusT                 = temperatureJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.temperatureInputProfile = temperatureJson[temperatureKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusT.size(), physicalParam.temperatureInputProfile.size() )
-
-      simulationParam.haveTemperatureProfile = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusT.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusT[i] /= physicalParam.mantleThickness;
-      }
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusT,
+                                                  physicalParam.temperatureInputProfile,
+                                                  simulationParam.haveTemperatureProfile,
+                                                  physicalParam.mantleThickness );
    }
 
    if ( mainConf.isDefined( "viscosityProfile" ) )
    {
       simulationParam.fileViscosityProfile = mainConf.getParameter< std::string >( "viscosityProfile" );
-      auto viscosityJson                   = io::readJsonFile( simulationParam.fileViscosityProfile );
+      const std::string profileKey         = "viscosityProfile";
 
-      const auto radiusKey    = "Radius (m)";
-      const auto viscosityKey = "Viscosity (Pa s)";
-
-      WALBERLA_CHECK_GREATER( viscosityJson.count( radiusKey ), 0, "No key '" << radiusKey << "' in viscosity profile file." )
-      WALBERLA_CHECK_GREATER(
-          viscosityJson.count( viscosityKey ), 0, "No key '" << viscosityKey << "' in viscosity profile file." )
-
-      physicalParam.radius           = viscosityJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.viscosityProfile = viscosityJson[viscosityKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radius.size(), physicalParam.viscosityProfile.size() )
-
-      simulationParam.haveViscosityProfile = true;
-      simulationParam.radialProfile        = true;
-
-      for ( uint_t i = 0; i < physicalParam.radius.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radius[i] /= physicalParam.mantleThickness;
-      }
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radius,
+                                                  physicalParam.viscosityProfile,
+                                                  simulationParam.haveViscosityProfile,
+                                                  physicalParam.mantleThickness );
    }
 
-   else
-   {
-      physicalParam.viscosity = mainConf.getParameter< real_t >( "viscosity" );
-   }
    // Profile for thermal expansivity
    if ( mainConf.isDefined( "thermalExpansivityProfile" ) )
    {
       simulationParam.fileThermalExpProfile = mainConf.getParameter< std::string >( "thermalExpansivityProfile" );
-      auto thermalExpJson                   = io::readJsonFile( simulationParam.fileThermalExpProfile );
+      const std::string profileKey          = "thermalExpansivityProfile";
 
-      const auto radiusKey = "Radius (m)";
-      const auto valueKey  = simulationParam.getKeyValue( thermalExpJson );
-
-      physicalParam.radiusAlpha               = thermalExpJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.thermalExpansivityProfile = thermalExpJson[valueKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusAlpha.size(), physicalParam.thermalExpansivityProfile.size() )
-
-      simulationParam.haveThermalExpProfile = true;
-      simulationParam.radialProfile         = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusAlpha.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusAlpha[i] /= physicalParam.mantleThickness;
-      }
-   }
-
-   else
-   {
-      physicalParam.thermalExpansivity = mainConf.getParameter< real_t >( "thermalExpansivity" );
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusAlpha,
+                                                  physicalParam.thermalExpansivityProfile,
+                                                  simulationParam.haveThermalExpProfile,
+                                                  physicalParam.mantleThickness );
    }
 
    // Radial Profile for specific heat capacity at constant pressur
@@ -161,69 +214,44 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    if ( mainConf.isDefined( "specificHeatCapacityProfile" ) )
    {
       simulationParam.fileSpecificHeatCap = mainConf.getParameter< std::string >( "specificHeatCapacityProfile" );
-      auto specificHeatCapJson            = io::readJsonFile( simulationParam.fileSpecificHeatCap );
+      const std::string profileKey        = "specificHeatCapacityProfile";
 
-      const auto radiusKey = "Radius (m)";
-      const auto valueKey  = simulationParam.getKeyValue( specificHeatCapJson );
-
-      physicalParam.radiusCp                    = specificHeatCapJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.specificHeatCapacityProfile = specificHeatCapJson[valueKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusCp.size(), physicalParam.specificHeatCapacityProfile.size() )
-
-      simulationParam.haveSpecificHeatCapProfile = true;
-      simulationParam.radialProfile              = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusCp.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusCp[i] /= physicalParam.mantleThickness;
-      }
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusCp,
+                                                  physicalParam.specificHeatCapacityProfile,
+                                                  simulationParam.haveSpecificHeatCapProfile,
+                                                  physicalParam.mantleThickness );
    }
-   else
+
+   if ( mainConf.isDefined( "densityProfile" ) )
    {
-      physicalParam.specificHeatCapacity = mainConf.getParameter< real_t >( "specificHeatCapacity" );
+      simulationParam.fileDensityProfile = mainConf.getParameter< std::string >( "densityProfile" );
+      const std::string profileKey       = "densityProfile";
+
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusDensity,
+                                                  physicalParam.densityProfile,
+                                                  simulationParam.haveDensityProfile,
+                                                  physicalParam.mantleThickness );
    }
 
-   // Profile for grueneisen parameter
-   if ( mainConf.isDefined( "grueneisenParameterProfile" ) )
-   {
-      simulationParam.fileGrueneisenProfile = mainConf.getParameter< std::string >( "grueneisenParameterProfile" );
-      auto grueneisenProfileJson            = io::readJsonFile( simulationParam.fileGrueneisenProfile );
+   physicalParam.cmbTemp                = mainConf.getParameter< real_t >( "cmbTemp" );
+   physicalParam.surfaceTemp            = mainConf.getParameter< real_t >( "surfaceTemp" );
+   physicalParam.thermalExpansivity     = mainConf.getParameter< real_t >( "thermalExpansivity" );
+   physicalParam.thermalConductivity    = mainConf.getParameter< real_t >( "thermalConductivity" );
+   physicalParam.grueneisenParameter    = mainConf.getParameter< real_t >( "grueneisenParameter" );
+   physicalParam.specificHeatCapacity   = mainConf.getParameter< real_t >( "specificHeatCapacity" );
+   physicalParam.internalHeatingRate    = mainConf.getParameter< real_t >( "internalHeatingRate" );
+   physicalParam.characteristicVelocity = mainConf.getParameter< real_t >( "characteristicVelocity" );
+   physicalParam.surfaceDensity         = mainConf.getParameter< real_t >( "surfaceDensity" );
+   physicalParam.referenceDensity       = mainConf.getParameter< real_t >( "referenceDensity" );
+   physicalParam.viscosity              = mainConf.getParameter< real_t >( "viscosity" );
 
-      const auto radiusKey = "Radius (m)";
-      const auto valueKey  = simulationParam.getKeyValue( grueneisenProfileJson );
-
-      physicalParam.radiusGamma       = grueneisenProfileJson[radiusKey].get< std::vector< real_t > >();
-      physicalParam.grueneisenProfile = grueneisenProfileJson[valueKey].get< std::vector< real_t > >();
-
-      WALBERLA_CHECK_EQUAL( physicalParam.radiusGamma.size(), physicalParam.grueneisenProfile.size() )
-
-      simulationParam.haveGrueneisenProfile = true;
-      simulationParam.radialProfile         = true;
-
-      for ( uint_t i = 0; i < physicalParam.radiusGamma.size(); i++ )
-      {
-         // non-dimensionalise radius
-         physicalParam.radiusGamma[i] /= physicalParam.mantleThickness;
-      }
-   }
-   else
-   {
-      physicalParam.grueneisenParameter = mainConf.getParameter< real_t >( "grueneisenParameter" );
-   }
-
-   physicalParam.cmbTemp                     = mainConf.getParameter< real_t >( "cmbTemp" );
-   physicalParam.surfaceTemp                 = mainConf.getParameter< real_t >( "surfaceTemp" );
-   physicalParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
-   physicalParam.thermalExpansivity          = mainConf.getParameter< real_t >( "thermalExpansivity" );
-   physicalParam.thermalConductivity         = mainConf.getParameter< real_t >( "thermalConductivity" );
-   physicalParam.grueneisenParameter         = mainConf.getParameter< real_t >( "grueneisenParameter" );
-   physicalParam.specificHeatCapacity        = mainConf.getParameter< real_t >( "specificHeatCapacity" );
-   physicalParam.internalHeatingRate         = mainConf.getParameter< real_t >( "internalHeatingRate" );
-   physicalParam.characteristicVelocity      = mainConf.getParameter< real_t >( "characteristicVelocity" );
-   physicalParam.surfaceDensity              = mainConf.getParameter< real_t >( "surfaceDensity" );
-   physicalParam.referenceDensity            = mainConf.getParameter< real_t >( "referenceDensity" );
+   // Set all radial varying parameters to input reference values to avoid inconsistent calculations on non-dim numbers
+   physicalParam.specificHeatCapacityRadial = physicalParam.specificHeatCapacity;
+   physicalParam.thermalExpansivityRadial   = physicalParam.thermalExpansivity;
 
    //used to calculate non-D numbers
    physicalParam.thermalDiffusivity =
@@ -238,9 +266,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    physicalParam.pecletNumber =
        ( physicalParam.characteristicVelocity * physicalParam.mantleThickness ) / physicalParam.thermalDiffusivity;
+
    physicalParam.dissipationNumber =
        ( physicalParam.thermalExpansivity * physicalParam.gravity * physicalParam.mantleThickness ) /
        physicalParam.specificHeatCapacity;
+
    physicalParam.hNumber = ( physicalParam.internalHeatingRate * physicalParam.mantleThickness ) /
                            ( physicalParam.specificHeatCapacity * physicalParam.characteristicVelocity *
                              ( physicalParam.cmbTemp - physicalParam.surfaceTemp ) );
@@ -258,7 +288,12 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.shearHeating           = mainConf.getParameter< bool >( "shearHeating" );
    if ( simulationParam.shearHeating )
    {
-      simulationParam.shearHeatingScaling  = mainConf.getParameter< real_t >( "shearHeatingScaling" );
+      if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
+      {
+      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "shearHeatingScaling" );
+      } else {
+      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "lithosphereShearHeatingScaling" );
+      }
       simulationParam.lithosphereThickness = mainConf.getParameter< real_t >( "lithosphereThickness" );
    }
    simulationParam.adiabaticHeating = mainConf.getParameter< bool >( "adiabaticHeating" );
@@ -302,17 +337,98 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ INITIALISATION PARAMETERS ############*/
 
-   initialisationParam.tempInit       = mainConf.getParameter< uint_t >( "tempInit" );
-   initialisationParam.deg            = mainConf.getParameter< uint_t >( "degree" );
-   initialisationParam.ord            = mainConf.getParameter< int >( "order" );
-   initialisationParam.lmax           = mainConf.getParameter< uint_t >( "lmax" );
-   initialisationParam.lmin           = mainConf.getParameter< uint_t >( "lmin" );
-   initialisationParam.superposition  = mainConf.getParameter< bool >( "superposition" );
-   initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "buoyancyFactor" );
+   // Check parameter file ParameterFileVersion
+   uint_t numHarmonics;
+   if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
+   {
+      bool temperatureNoise = mainConf.getParameter< bool >( "temperatureNoise" );
+      bool superposition    = mainConf.getParameter< bool >( "superposition" );
 
-   initialisationParam.temperatureNoise             = mainConf.getParameter< bool >( "temperatureNoise" );
-   initialisationParam.temperatureSphericalHarmonic = mainConf.getParameter< bool >( "temperatureSphericalHarmonic" );
-   initialisationParam.noiseFactor                  = mainConf.getParameter< real_t >( "noiseFactor" );
+      if ( temperatureNoise )
+      {
+         initialisationParam.initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE;
+      }
+      else if ( superposition )
+      {
+         initialisationParam.initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH;
+      }
+      else
+      {
+         initialisationParam.initialTemperatureDeviationMethod = INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH;
+      }
+
+      switch ( initialisationParam.initialTemperatureDeviationMethod )
+      {
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
+         initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
+         initialisationParam.buoyancyFactor              = mainConf.getParameter< real_t >( "buoyancyFactor" );
+
+         initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+
+         numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
+                        ( initialisationParam.lmin ) * ( initialisationParam.lmin );
+         initialisationParam.superpositionRand.reserve( numHarmonics );
+         walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
+
+         for ( uint_t i = 0; i < numHarmonics; i++ )
+         {
+            initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+         }
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+         initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+         initialisationParam.buoyancyFactor              = mainConf.getParameter< real_t >( "buoyancyFactor" );
+         initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+         initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "noiseFactor" );
+         break;
+      }
+   }
+   else
+   {
+      uint_t initialTemperatureDeviationMethodUint_t = mainConf.getParameter< uint_t >( "initialTemperatureDeviationMethod" );
+      initialisationParam.initialTemperatureDeviationMethod =
+          static_cast< INITIAL_TEMPERATURE_DEVIATION_METHOD >( initialTemperatureDeviationMethodUint_t );
+
+      initialisationParam.buoyancyFactor = mainConf.getParameter< real_t >( "buoyancyFactor" );
+
+      switch ( initialisationParam.initialTemperatureDeviationMethod )
+      {
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.lmax                        = mainConf.getParameter< uint_t >( "lmax" );
+         initialisationParam.lmin                        = mainConf.getParameter< uint_t >( "lmin" );
+         initialisationParam.superpositionSPHRandomSeed  = mainConf.getParameter< uint_t >( "superpositionSPHRandomSeed" );
+
+         initialisationParam.sphTool = std::make_shared< SphericalHarmonicsTool >( initialisationParam.lmax );
+
+         numHarmonics = ( ( initialisationParam.lmax + 1 ) * ( initialisationParam.lmax + 1 ) ) -
+                        ( initialisationParam.lmin ) * ( initialisationParam.lmin );
+         initialisationParam.superpositionRand.reserve( numHarmonics );
+         walberla::math::seedRandomGenerator( initialisationParam.superpositionSPHRandomSeed );
+
+         for ( uint_t i = 0; i < numHarmonics; i++ )
+         {
+            initialisationParam.superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
+         }
+         break;
+      case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+         initialisationParam.tempInit                    = mainConf.getParameter< uint_t >( "tempInit" );
+         initialisationParam.initialTemperatureSteepness = mainConf.getParameter< real_t >( "initialTemperatureSteepness" );
+         initialisationParam.deg                         = mainConf.getParameter< uint_t >( "degree" );
+         initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
+         initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
+         break;
+      }
+   }
 
    /*############ SOLVER PARAMETERS ############*/
    solverParam.solverFlag  = mainConf.getParameter< uint_t >( "solverFlag" );
@@ -334,7 +450,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.ABlockCoarseGridTolerance  = mainConf.getParameter< real_t >( "ABlockCoarseGridTolerance" );
 
    solverParam.SchurMGIterations         = mainConf.getParameter< uint_t >( "SchurMGIterations" );
-   solverParam.SchurMGTolerance          = mainConf.getParameter< uint_t >( "SchurMGTolerance" );
+   solverParam.SchurMGTolerance          = mainConf.getParameter< real_t >( "SchurMGTolerance" );
    solverParam.SchurMGPreSmooth          = mainConf.getParameter< uint_t >( "SchurMGPreSmooth" );
    solverParam.SchurMGPostSmooth         = mainConf.getParameter< uint_t >( "SchurMGPostSmooth" );
    solverParam.SchurCoarseGridIterations = mainConf.getParameter< uint_t >( "SchurCoarseGridIterations" );
@@ -445,15 +561,11 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Surface Temperature          : " << physicalParam.surfaceTemp );
    WALBERLA_LOG_INFO_ON_ROOT( "Temperature CMB              : " << physicalParam.cmbTemp );
-   WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << physicalParam.initialTemperatureSteepness );
-   WALBERLA_LOG_INFO_ON_ROOT( "Thermal Expansivity          : " << physicalParam.thermalExpansivity );
    WALBERLA_LOG_INFO_ON_ROOT( "Thermal Conductivity         : " << physicalParam.thermalConductivity );
-   WALBERLA_LOG_INFO_ON_ROOT( "Specific Heat Capacity       : " << physicalParam.specificHeatCapacity );
+   WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter         : " << physicalParam.grueneisenParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "Internal Heating Rate        : " << physicalParam.internalHeatingRate );
    WALBERLA_LOG_INFO_ON_ROOT( "Thermal Diffusivity          : " << physicalParam.thermalDiffusivity );
    WALBERLA_LOG_INFO_ON_ROOT( "Characteristic Velocity      : " << physicalParam.characteristicVelocity );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Reference density            : " << physicalParam.referenceDensity );
 
    if ( simulationParam.haveTemperatureProfile )
    {
@@ -484,13 +596,14 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "speicific heat capacity      : " << physicalParam.specificHeatCapacity );
    }
-   if ( simulationParam.haveGrueneisenProfile )
+
+   if ( simulationParam.haveDensityProfile )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter profile : " << simulationParam.fileGrueneisenProfile );
+      WALBERLA_LOG_INFO_ON_ROOT( "Density profile              : " << simulationParam.fileDensityProfile );
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter         : " << physicalParam.grueneisenParameter );
+      WALBERLA_LOG_INFO_ON_ROOT( "Reference Density            : " << physicalParam.referenceDensity );
    }
 
    if ( simulationParam.tempDependentViscosity )
@@ -517,14 +630,29 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "----    Init Parameters   ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "tempInit       : " << initialisationParam.tempInit );
-   WALBERLA_LOG_INFO_ON_ROOT( "degree         : " << initialisationParam.deg );
-   WALBERLA_LOG_INFO_ON_ROOT( "order          : " << initialisationParam.ord );
-   WALBERLA_LOG_INFO_ON_ROOT( "lmin           : " << initialisationParam.lmin );
-   WALBERLA_LOG_INFO_ON_ROOT( "lmax           : " << initialisationParam.lmax );
-   WALBERLA_LOG_INFO_ON_ROOT( "Superposition  : " << initialisationParam.superposition );
+   switch ( initialisationParam.initialTemperatureDeviationMethod )
+   {
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
+      WALBERLA_LOG_INFO_ON_ROOT( "Single SPH" );
+      WALBERLA_LOG_INFO_ON_ROOT( "tempInit                     : " << initialisationParam.tempInit );
+      WALBERLA_LOG_INFO_ON_ROOT( "degree                       : " << initialisationParam.deg );
+      WALBERLA_LOG_INFO_ON_ROOT( "order                        : " << initialisationParam.ord );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << initialisationParam.initialTemperatureSteepness );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
+      WALBERLA_LOG_INFO_ON_ROOT( "Random Superposition SPH" );
+      WALBERLA_LOG_INFO_ON_ROOT( "tempInit                     : " << initialisationParam.tempInit );
+      WALBERLA_LOG_INFO_ON_ROOT( "lmin                         : " << initialisationParam.lmin );
+      WALBERLA_LOG_INFO_ON_ROOT( "lmax                         : " << initialisationParam.lmax );
+      WALBERLA_LOG_INFO_ON_ROOT( "Random Seed                  : " << initialisationParam.superpositionSPHRandomSeed );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << initialisationParam.initialTemperatureSteepness );
+      break;
+   case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
+   default:
+      WALBERLA_LOG_INFO_ON_ROOT( "White Noise" );
+      break;
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "Buoyancy factor: " << initialisationParam.buoyancyFactor );
-   WALBERLA_LOG_INFO_ON_ROOT( "Noise Factor   : " << initialisationParam.noiseFactor );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Simulation Parameters    ----" )
@@ -543,7 +671,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.shearHeating ? "true" : "false" ) );
    if ( simulationParam.shearHeating )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Shear heating scaling factor : " << simulationParam.shearHeatingScaling );
+      WALBERLA_LOG_INFO_ON_ROOT( "Shear heating scaling factor : " << simulationParam.lithosphereShearHeatingScaling );
       WALBERLA_LOG_INFO_ON_ROOT( "Lithosphere thickness [km]   : " << simulationParam.lithosphereThickness );
    }
 
@@ -575,8 +703,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.vtkOutputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
    }
    else
    {
@@ -590,8 +717,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

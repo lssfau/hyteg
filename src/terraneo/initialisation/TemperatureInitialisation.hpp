@@ -53,36 +53,41 @@ struct TemperatureInitializationParameters
    /// \param dissipationNumber  Physical, non-dimensional dissipation number.
    /// \param rMin               Minimal radius.
    /// \param rMax               Maximal radius.
-   TemperatureInitializationParameters( real_t Tcmb,
-                                        real_t Tsurface,
-                                        real_t TsurfaceAdb,
-                                        real_t dissipationNumber,
-                                        real_t rMin,
-                                        real_t rMax )
+   /// \param devParams          Parameters for the deviation from the reference profile.
+   TemperatureInitializationParameters( real_t                                        Tcmb,
+                                        real_t                                        Tsurface,
+                                        real_t                                        TsurfaceAdb,
+                                        real_t                                        dissipationNumber,
+                                        real_t                                        rMin,
+                                        real_t                                        rMax,
+                                        TemperatureDeivationInitialisationParameters* devParams )
    : Tcmb_( Tcmb )
    , Tsurface_( Tsurface )
    , TsurfaceAdb_( TsurfaceAdb )
    , dissipationNumber_( dissipationNumber )
    , rMin_( rMin )
    , rMax_( rMax )
+   , deviationParameters_( devParams )
    {
       WALBERLA_CHECK_LESS_EQUAL( rMin, rMax );
    }
 
-   real_t Tcmb() const { return Tcmb_; }
-   real_t Tsurface() const { return Tsurface_; }
-   real_t TsurfaceAdb() const { return TsurfaceAdb_; }
-   real_t dissipationNumber() const { return dissipationNumber_; }
-   real_t rMin() const { return rMin_; }
-   real_t rMax() const { return rMax_; }
+   real_t                                        Tcmb() const { return Tcmb_; }
+   real_t                                        Tsurface() const { return Tsurface_; }
+   real_t                                        TsurfaceAdb() const { return TsurfaceAdb_; }
+   real_t                                        dissipationNumber() const { return dissipationNumber_; }
+   real_t                                        rMin() const { return rMin_; }
+   real_t                                        rMax() const { return rMax_; }
+   TemperatureDeivationInitialisationParameters* deviationParameters() const { return deviationParameters_; }
 
  private:
-   real_t Tcmb_;
-   real_t Tsurface_;
-   real_t TsurfaceAdb_;
-   real_t dissipationNumber_;
-   real_t rMin_;
-   real_t rMax_;
+   real_t                                        Tcmb_;
+   real_t                                        Tsurface_;
+   real_t                                        TsurfaceAdb_;
+   real_t                                        dissipationNumber_;
+   real_t                                        rMin_;
+   real_t                                        rMax_;
+   TemperatureDeivationInitialisationParameters* deviationParameters_;
 };
 
 /// Constructs a std::function that initializes the exponential reference profile
@@ -134,6 +139,7 @@ inline std::function< real_t( const Point3D& ) >
       return retVal;
    };
 }
+
 /// Constructs a std::function that adds white noise to a reference profile as
 ///
 ///   refProfile + noiseFactor * rand( -1, 1 )
@@ -148,7 +154,7 @@ inline std::function< real_t( const Point3D& ) >
 ///
 ///     TemperatureInitializationParameters tempInitParams( /* ... */ );
 ///     auto referenceTemp  = temperatureReferenceExponential( tempInitParams );
-///     auto whiteNoiseTemp = temperatureWhiteNoise( tempInitParams, referenceTemp, noiseFactor );
+///     auto whiteNoiseTemp = temperatureWhiteNoise( tempInitParams, referenceTemp );
 ///
 ///     temperature.interpolate( whiteNoiseTemp, level );
 ///
@@ -160,8 +166,7 @@ inline std::function< real_t( const Point3D& ) >
 ///
 inline std::function< real_t( const Point3D& ) >
     temperatureWhiteNoise( const TemperatureInitializationParameters&       tempInitParams,
-                           const std::function< real_t( const Point3D& ) >& referenceTemp,
-                           real_t                                           noiseFactor )
+                           const std::function< real_t( const Point3D& ) >& referenceTemp )
 {
    return [=]( const hyteg::Point3D& x ) {
       auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
@@ -173,53 +178,41 @@ inline std::function< real_t( const Point3D& ) >
       const auto Tcmb     = tempInitParams.Tcmb();
       const auto Tsurface = tempInitParams.Tsurface();
 
+      const auto tempDevInitParams = tempInitParams.deviationParameters();
+      const auto buoyancyFactor    = tempDevInitParams->buoyancyFactor;
+
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return ( tempInitParams.Tcmb() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+         return ( Tcmb ) / ( Tcmb - Tsurface );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return ( tempInitParams.Tsurface() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+         return ( Tsurface ) / ( Tcmb - Tsurface );
       }
       else
       {
          retVal = referenceTemp( x );
 
          // Random generator for Temperature initialisation ( Gaussian White Noise (GWN))
-         retVal += noiseFactor * retVal * walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
+         retVal += buoyancyFactor * retVal * walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
       }
       return retVal;
    };
 }
 
-/// Constructs a std::function that initializes a temperature profile based on spherical harmonics.
+/// Constructs a std::function that initializes a temperature profile with deviation of a single spherical harmonic.
 ///
 /// The returned std::function can be used for interpolation of a HyTeG FE function. See documentation of
 /// terraneo::temperatureWhiteNoise for a similar usage example.
 ///
 /// \param tempInitParams               TemperatureInitializationParameters struct initialized with suitable parameters
 /// \param referenceTemp                A std::function that represents a some reference temperature profile
-/// \param tempInit                     Used to define where the anomalies are located in the domain.
-/// \param deg                          Spherical Harmonics degree.
-/// \param ord                          Spherical Harmonics order.
-/// \param lmax                         Largest spherical harmonics degree.
-/// \param lmin                         Smallest spherical harmonics degree.
-/// \param superposition                Defines a random superposition of spherical harmonics up to a specific degree lmax.
-/// \param buoyancyFactor               Factor to scale up or down the temperature anomalies.
-/// \param initialTemperatureSteepness  Factor for filtering anomalies.
 /// \return std::function that can be passed to HyTeG's FE function interpolate() method
 ///
-inline std::function< real_t( const Point3D& ) > temperatureSPH( const TemperatureInitializationParameters&       tempInitParams,
-                                                                 const std::function< real_t( const Point3D& ) >& referenceTemp,
-                                                                 const uint_t                                     tempInit,
-                                                                 const uint_t                                     deg,
-                                                                 const int                                        ord,
-                                                                 const uint_t                                     lmax,
-                                                                 const uint_t                                     lmin,
-                                                                 const bool                                       superposition,
-                                                                 const real_t                                     buoyancyFactor,
-                                                                 const real_t initialTemperatureSteepness )
+inline std::function< real_t( const Point3D& ) >
+    temperatureSingleSPH( const TemperatureInitializationParameters&       tempInitParams,
+                          const std::function< real_t( const Point3D& ) >& referenceTemp )
 {
    return [=]( const hyteg::Point3D& x ) {
       const auto rMin     = tempInitParams.rMin();
@@ -229,84 +222,127 @@ inline std::function< real_t( const Point3D& ) > temperatureSPH( const Temperatu
 
       auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
 
+      const auto tempDevInitParams           = tempInitParams.deviationParameters();
+      const auto initialTemperatureSteepness = tempDevInitParams->initialTemperatureSteepness;
+      const auto tempInit                    = tempDevInitParams->tempInit;
+
+      const auto  deg            = tempDevInitParams->deg;
+      const auto  ord            = tempDevInitParams->ord;
+      const auto  buoyancyFactor = tempDevInitParams->buoyancyFactor;
+      const auto& sphTool        = tempDevInitParams->sphTool;
+
       real_t retVal = referenceTemp( x );
 
       // Boundaries
       if ( ( radius - rMin ) < real_c( 1e-10 ) )
       {
-         return ( tempInitParams.Tcmb() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+         return ( Tcmb ) / ( Tcmb - Tsurface );
       }
       else if ( ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return ( tempInitParams.Tsurface() ) / ( tempInitParams.Tcmb() - tempInitParams.Tsurface() );
+         return ( Tsurface ) / ( Tcmb - Tsurface );
       }
 
-      std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
-      real_t                                    filter;
+      real_t filter;
 
       switch ( tempInit )
       {
-      // Anomalies near the CMB
-      case 0:
-
+      case 0: // Anomalies near the CMB
          filter = std::exp( -initialTemperatureSteepness * ( ( radius - rMin ) / ( rMax - rMin ) ) );
-
          break;
-         // Anomalies near the surface
-      case 1:
-
+      case 1: // Anomalies near the surface
          filter = std::exp( initialTemperatureSteepness * ( ( radius - rMax ) / ( rMax - rMin ) ) );
-
          break;
-      // Anomalies near the surface and CMB
-      case 2:
-
+      case 2: // Anomalies near the surface and CMB
          filter = std::exp( -initialTemperatureSteepness * ( ( radius - rMin ) / ( rMax - rMin ) ) ) +
                   std::exp( initialTemperatureSteepness * ( ( radius - rMax ) / ( rMax - rMin ) ) );
-
          break;
-
-      // No filtering
-      default:
-
+      default: // No filtering
          filter = real_c( 1 );
-
          break;
       }
 
-      if ( superposition )
-      {
-         uint_t                numHarmonics = ( ( lmax + 1 ) * ( lmax + 1 ) ) - ( lmin ) * ( lmin );
-         std::vector< real_t > superpositionRand{};
-         superpositionRand.reserve( numHarmonics );
-         walberla::math::seedRandomGenerator( 42 );
-         for ( uint_t i = 0; i < numHarmonics; i++ )
-         {
-            superpositionRand.push_back( walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ) );
-         }
-         uint_t count = 0;
+      retVal += ( buoyancyFactor * filter * std::sin( walberla::math::pi * ( radius - rMin ) / ( rMax - rMin ) ) *
+                  sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) / std::sqrt( real_c( 4 ) * walberla::math::pi ) );
 
-         for ( uint_t deg = lmin; deg <= lmax; ++deg )
-         {
-            for ( int ord = -walberla::int_c( deg ); ord <= walberla::int_c( deg ); ++ord )
-            {
-               // Normalisation of 1/sqrt(4*pi) for non-dimensional temperature range [0,1]
-               retVal +=
-                   ( buoyancyFactor * superpositionRand[count] * filter * sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) /
-                     std::sqrt( real_c( 4 ) * walberla::math::pi ) );
-               ++count;
-            }
-         }
-      }
-
-      else
-      {
-         // Single spherical harmonic for the initialisation.
-         retVal += ( buoyancyFactor * filter * std::sin( walberla::math::pi * ( radius - rMin ) / ( rMax - rMin ) ) *
-                     sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) / std::sqrt( real_c( 4 ) * walberla::math::pi ) );
-      }
       return retVal;
    };
 }
 
+/// Constructs a std::function that initializes a temperature profile with superposition of spherical harmonics.
+///
+/// The returned std::function can be used for interpolation of a HyTeG FE function. See documentation of
+/// terraneo::temperatureWhiteNoise for a similar usage example.
+///
+/// \param tempInitParams               TemperatureInitializationParameters struct initialized with suitable parameters
+/// \param referenceTemp                A std::function that represents a some reference temperature profile
+/// \return std::function that can be passed to HyTeG's FE function interpolate() method
+inline std::function< real_t( const Point3D& ) >
+    temperatureRandomSuperpositioneSPH( const TemperatureInitializationParameters&       tempInitParams,
+                                       const std::function< real_t( const Point3D& ) >& referenceTemp )
+{
+   return [=]( const hyteg::Point3D& x ) {
+      const auto rMin     = tempInitParams.rMin();
+      const auto rMax     = tempInitParams.rMax();
+      const auto Tcmb     = tempInitParams.Tcmb();
+      const auto Tsurface = tempInitParams.Tsurface();
+
+      auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+
+      const auto tempDevInitParams           = tempInitParams.deviationParameters();
+      const auto initialTemperatureSteepness = tempDevInitParams->initialTemperatureSteepness;
+      const auto tempInit                    = tempDevInitParams->tempInit;
+
+      const auto  lmax              = tempDevInitParams->lmax;
+      const auto  lmin              = tempDevInitParams->lmin;
+      const auto  buoyancyFactor    = tempDevInitParams->buoyancyFactor;
+      const auto  superpositionRand = tempDevInitParams->superpositionRand;
+      const auto& sphTool           = tempDevInitParams->sphTool;
+
+      real_t retVal = referenceTemp( x );
+
+      // Boundaries
+      if ( ( radius - rMin ) < real_c( 1e-10 ) )
+      {
+         return ( Tcmb ) / ( Tcmb - Tsurface );
+      }
+      else if ( ( rMax - radius ) < real_c( 1e-10 ) )
+      {
+         return ( Tsurface ) / ( Tcmb - Tsurface );
+      }
+
+      real_t filter;
+
+      switch ( tempInit )
+      {
+      case 0: // Anomalies near the CMB
+         filter = std::exp( -initialTemperatureSteepness * ( ( radius - rMin ) / ( rMax - rMin ) ) );
+         break;
+      case 1: // Anomalies near the surface
+         filter = std::exp( initialTemperatureSteepness * ( ( radius - rMax ) / ( rMax - rMin ) ) );
+         break;
+      case 2: // Anomalies near the surface and CMB
+         filter = std::exp( -initialTemperatureSteepness * ( ( radius - rMin ) / ( rMax - rMin ) ) ) +
+                  std::exp( initialTemperatureSteepness * ( ( radius - rMax ) / ( rMax - rMin ) ) );
+         break;
+      default: // No filtering
+         filter = real_c( 1 );
+         break;
+      }
+
+      uint_t count = 0;
+      for ( uint_t deg = lmin; deg <= lmax; ++deg )
+      {
+         for ( int ord = -walberla::int_c( deg ); ord <= walberla::int_c( deg ); ++ord )
+         {
+            // Normalisation of 1/sqrt(4*pi) for non-dimensional temperature range [0,1]
+            retVal += ( buoyancyFactor * superpositionRand[count] * filter *
+                        sphTool->shconvert_eval( deg, ord, x[0], x[1], x[2] ) / std::sqrt( real_c( 4 ) * walberla::math::pi ) );
+            ++count;
+         }
+      }
+
+      return retVal;
+   };
+}
 } // namespace terraneo
