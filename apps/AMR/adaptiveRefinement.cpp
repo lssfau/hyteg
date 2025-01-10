@@ -697,7 +697,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    // smoother
    auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
-   // auto   smoother = std::make_shared< WeightedJacobiSmoother< A_t > >( storage, l_min, l_max, 0.66 );
    // coarse grid solver
    auto cgIter = std::max( uint_t( 50 ), 2 * n_dof_coarse );
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -936,32 +935,31 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    return err_2_elwise_loc;
 }
 
-void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
-                                const ModelProblem&          problem,
-                                uint_t                       n_ref,
-                                uint_t                       n_el_max,
-                                const RefinementStrategy&    ref_strat,
-                                uint_t                       l_min,
-                                uint_t                       l_max,
-                                uint_t                       l_final,
-                                uint_t                       u0,
-                                uint_t                       n_cycles,
-                                uint_t                       max_iter,
-                                uint_t                       n1,
-                                uint_t                       n2,
-                                real_t                       tol,
-                                uint_t                       max_iter_final,
-                                real_t                       tol_final,
-                                real_t                       cg_tol,
-                                std::string                  vtkname,
-                                bool                         writePartitioning,
-                                bool                         writeMeshfile,
-                                bool                         printMeshData,
-                                bool                         error_indicator,
-                                bool                         global_error_estimate,
-                                uint_t                       error_freq,
-                                uint_t                       error_lvl,
-                                bool                         loadbalancing )
+void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage,
+                                const ModelProblem&                 problem,
+                                uint_t                              n_ref,
+                                const adaptiveRefinement::Strategy& ref_strat,
+                                uint_t                              l_min,
+                                uint_t                              l_max,
+                                uint_t                              l_final,
+                                uint_t                              u0,
+                                uint_t                              n_cycles,
+                                uint_t                              max_iter,
+                                uint_t                              n1,
+                                uint_t                              n2,
+                                real_t                              tol,
+                                uint_t                              max_iter_final,
+                                real_t                              tol_final,
+                                real_t                              cg_tol,
+                                std::string                         vtkname,
+                                bool                                writePartitioning,
+                                bool                                writeMeshfile,
+                                bool                                printMeshData,
+                                bool                                error_indicator,
+                                bool                                global_error_estimate,
+                                uint_t                              error_freq,
+                                uint_t                              error_lvl,
+                                bool                                loadbalancing )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -1116,13 +1114,6 @@ void solve_for_each_refinement( const SetupPrimitiveStorage& setupStorage,
                             loadbalancing );
       }
    }
-
-   // auto& timingTree = *( u_old->getStorage()->getTimingTree() );
-
-   // if ( walberla::mpi::MPIManager::instance()->rank() == 0 && u_old )
-   // {
-   //    std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
-   // }
 }
 
 int main( int argc, char* argv[] )
