@@ -13,7 +13,7 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.27.0")
 endif()
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.30.0")
-   cmake_policy(SET CMP0167 NEW)
+   cmake_policy(SET CMP0167 OLD)
 endif()
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
@@ -89,9 +89,6 @@ if(WALBERLA_CXX_COMPILER_IS_GNU)
        add_flag ( CMAKE_CXX_FLAGS "-Wno-error=float-conversion" )
     endif()
 endif()
-
-# set policy to preserve the deprecated findPackage(boost)
-cmake_policy( SET CMP0167 OLD )
 
 if( HYTEG_DOWNLOAD_BOOST )
    include(FetchContent)
