@@ -50,7 +50,8 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                        public WeightedJacobiSmoothable< P1Function< real_t > >,
                                        public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
-   static constexpr uint_t n_loc( uint_t dim ) { return ( D == 2 ) ? 3 : 4; }
+   static constexpr uint_t n_loc( uint_t dim ) { return ( dim == 2 ) ? 3 : 4; }
+   static constexpr uint_t min_lvl_for_surrogate = 4;
 
    using Polynomial = surrogate::polynomial::Polynomial;
    template < size_t D >
@@ -72,7 +73,7 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                    const P1Form&                              form,
                                    bool                                       needsInverseDiagEntries );
 
-   void init( size_t             poly_degree,
+   void init( uint8_t            poly_degree,
               size_t             downsampling            = 1,
               const std::string& path_to_svd             = "",
               bool               needsInverseDiagEntries = true );
@@ -237,24 +238,23 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    /// \param invert if true, assembles the function carrying the inverse of the diagonal
    void computeDiagonalOperatorValues( bool invert );
 
+   P1Form form_;
+
    bool is_initialized_;
 
    std::shared_ptr< P1Function< real_t > > diagonalValues_;
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
 
-   P1Form form_;
-
    // least squares approximator for each level
    std::vector< std::shared_ptr< surrogate::LeastSquares > > lsq_;
-   std::vector<uint_t> downsampling_;
+   std::vector< uint_t >                                     downsampling_;
 
    // polynomial degree for each level
-   std::vector<uint_t> poly_degree_;
-
+   std::vector< uint8_t > poly_degree_;
 
    // memory IDs of local stiffness matrices for level 1-3
    PrimitiveDataID< LevelWiseMemory< Matrix3r >, Face > stiffnessID_2d_;
-   PrimitiveDataID< LevelWiseMemory< Matrix4r >, Cell > stiffnessID_2d_;
+   PrimitiveDataID< LevelWiseMemory< Matrix4r >, Cell > stiffnessID_3d_;
    // memory IDs of surrogates for level 4+ (one poly matrix for each element type)
    PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > surrogateID_2d_;
    PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 6 > >, Cell > surrogateID_3d_;

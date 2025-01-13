@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <core/Format.hpp>
 #include <core/logging/Logging.h>
 #include <hyteg/eigen/EigenWrapper.hpp>
 #include <hyteg/indexing/Common.hpp>
@@ -416,6 +417,14 @@ class LeastSquares
       c = V * ( Si.cwiseProduct( Uh * b ) );
       return c;
    }
+
+   /**
+    * @brief Get the coefficients of the polynomial.
+    *       ! call after `solve` !
+    *
+    * @return The coefficients of the polynomial.
+    */
+   const Vector& solution() const { return c; }
 
    /**
     * @brief Compute the residual of the least squares problem.

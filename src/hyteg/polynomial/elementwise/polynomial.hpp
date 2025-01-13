@@ -155,25 +155,54 @@ class Polynomial : public std::vector< double >
    static constexpr uint8_t Y = 1;
    static constexpr uint8_t Z = 2;
 
-   inline Polynomial( uint8_t d=0, uint8_t q=0 )
+   inline Polynomial( uint8_t d = 0, uint8_t q = 0 )
    : std::vector< double >( dimP( d, q ) )
    , _d( d )
    , _q( q )
    , _restriction( ( d > 1 ) ? std::make_unique< Polynomial >( d - 1, q ) : nullptr )
-   , _basis( basis_q[q] )
+   , _basis( &basis_q[q] )
    {}
 
-   // set coefficients
-   inline Polynomial& operator=( const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
+   inline Polynomial( uint8_t d, uint8_t q, const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
+   : Polynomial( d, q )
    {
-      WALBERLA_ASSERT( coeffs.size() == size(), "Number of coefficients must match dimension of polynomial space" );
+      set_coefficients( coeffs );
+   }
+
+   // copy constructor
+   inline Polynomial( const Polynomial& other )
+   : std::vector< double >( other )
+   , _d( other._d )
+   , _q( other._q )
+   , _restriction( other._restriction ? std::make_unique< Polynomial >( *other._restriction ) : nullptr )
+   , _basis( other._basis )
+   {}
+   inline Polynomial( Polynomial&& other ) = default;
+
+   // copy assignment
+   inline Polynomial& operator=( const Polynomial& other )
+   {
+      std::vector< double >::operator=( other );
+      _d           = other._d;
+      _q           = other._q;
+      _restriction = other._restriction ? std::make_unique< Polynomial >( *other._restriction ) : nullptr;
+      _basis       = other._basis;
+      return *this;
+   }
+   inline Polynomial& operator=( Polynomial&& other ) = default;
+
+   // set coefficients
+   inline void set_coefficients( const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
+   {
+      if ( coeffs.size() != size() )
+      {
+         WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
+      }
 
       for ( uint_t i = 0; i < size(); ++i )
       {
          ( *this )[i] = coeffs( i );
       }
-
-      return *this;
    }
 
    // fix z coordinate s.th. only 2d polynomial must be evaluated
@@ -232,12 +261,15 @@ class Polynomial : public std::vector< double >
       double p_xyz = 0.0;
       for ( uint_t i = 0; i < size(); ++i )
       {
-         p_xyz += ( *this )[i] * _basis[i].eval( x );
+         p_xyz += ( *this )[i] * phi( i ).eval( x );
       }
       return p_xyz;
    }
 
-   const Basis& basis() const { return _basis; }
+   // get basis of polynomial space
+   const Basis& basis() const { return *_basis; }
+   // get i-th basis function
+   const Monomial& phi( uint_t i ) const { return basis()[i]; }
 
  private:
    // fix coordinate s.th. only lower dimensional polynomial must be evaluated
@@ -255,7 +287,7 @@ class Polynomial : public std::vector< double >
       // iterate over coefficients of 2d polynomial
       for ( uint_t ij = 0; ij < _restriction->size(); ++ij )
       {
-         const auto d = _basis[ij].degree();
+         const auto d = phi(ij).degree();
 
          ( *_restriction )[ij] = ( *this )[ij]; // k=0
          for ( uint_t k = 1; k <= _q - d; ++k )
@@ -271,8 +303,8 @@ class Polynomial : public std::vector< double >
    uint8_t _q;
    // restriction to lower dimension
    std::unique_ptr< Polynomial > _restriction;
-   // basis functions
-   Basis& _basis;
+   // basis of the this polynomial's space
+   const Basis* _basis;
 
    // basis functions for q = 0,1,...
    static const std::vector< Basis > basis_q;
@@ -295,10 +327,9 @@ const std::vector< Basis > Polynomial::basis_q = { Basis( 0 ),
                                                    Basis( 11 ),
                                                    Basis( 12 ) };
 
-
 // RxC matrix of polynomials
-template <uint_t R, uint_t C=R>
-using Matrix = std::array<std::array<Polynomial, C>, R>;
+template < uint_t R, uint_t C = R >
+using Matrix = std::array< std::array< Polynomial, C >, R >;
 
 } // namespace polynomial
 } // namespace surrogate

@@ -219,7 +219,7 @@ void polytst( uint8_t d, uint8_t q )
    auto ref = 0.0;
    for ( uint32_t ijk = 0; ijk < p.size(); ++ijk )
    {
-      auto [i, j, k] = p.basis()[ijk].expand();
+      auto [i, j, k] = p.phi( ijk ).expand();
       ref += p[ijk] * x_pow[i] * y_pow[j] * z_pow[k];
    }
    WALBERLA_LOG_INFO_ON_ROOT(
