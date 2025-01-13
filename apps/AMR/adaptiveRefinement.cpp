@@ -301,18 +301,17 @@ struct ModelProblem
 
       if ( type == WAVES )
       {
-         // v(t) = t * (1 - cos(1/squeeze * (2π * n_waves * squeeze)^t))
-         auto v = [*this]( const real_t& t ) {
-            auto x0 = 1.0 / p_w;
-            auto x1 = 2 * n_w * p_w * pi;
-            return t * ( 1 - cos( x0 * pow( x1, t ) ) );
-         };
-         auto d2v = [*this]( const real_t& t ) {
-            auto x0 = 1.0 / p_w;
-            auto x1 = 2 * n_w * p_w * pi;
-            auto x2 = x0 * pow( x1, t );
-            auto x3 = log( x1 );
-            return x2 * x3 * ( x2 * t * cos( x2 ) * x3 + ( 2 + t * x3 ) * sin( x2 ) );
+         auto omega = 2.0 * pi * n_w;
+         auto alpha = p_w;
+         // v(t) = 1 - cos(φ(t)), φ(t) = ωte^(α(t-1))
+         auto v = [=]( const real_t& t ) { return 1 - std::cos( omega * t * std::exp( alpha * ( t - 1.0 ) ) ); };
+         // v''(t) = sin(φ)φ'' + cos(φ)φ'φ'
+         auto d2v = [=]( const real_t& t ) {
+            auto weat1 = omega * std::exp( alpha * ( t - 1.0 ) );     // ωe^(α(t-1))
+            auto phi   = t * weat1;                                   // φ = ωte^(α(t-1))
+            auto dphi  = weat1 * ( 1.0 + alpha * t );                 // φ' = ωe^(α(t-1))(1+αt)
+            auto d2phi = weat1 * ( 2.0 * alpha + alpha * alpha * t ); // φ'' = ωe^(α(t-1))(2α+α^2t)
+            return std::sin( phi ) * d2phi + std::cos( phi ) * dphi * dphi;
          };
 
          if ( dim == 3 )
@@ -552,11 +551,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     error_indicator,
                                        bool                                     global_error_estimate,
                                        uint_t                                   error_freq,
+                                       uint_t                                   error_lvl,
                                        bool                                     loadbalancing )
 {
    // timing
    real_t t0, t1;
-   real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve;
+   real_t t_loadbalancing, t_primitivestorage, t_init, t_residual, t_error, t_interpolate, t_error_indicator, t_solve, t_callback;
 
    // load balancing
    auto lb_scheme = ( loadbalancing ) ? adaptiveRefinement::GREEDY : adaptiveRefinement::ROUND_ROBIN;
@@ -632,7 +632,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t_residual = 0;
    t_error    = 0;
 
-   L2Space< 5, P1Function< real_t > > L2( storage, l_max );
+   L2Space< 5, P1Function< real_t > > L2( storage, std::max( l_max, error_lvl ) );
    std::map< PrimitiveID, real_t >    err_el;
 
    t0 = walberla::timing::getWcTime();
@@ -697,7 +697,6 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t0 = walberla::timing::getWcTime();
    // smoother
    auto smoother = std::make_shared< GaussSeidelSmoother< A_t > >();
-   // auto   smoother = std::make_shared< WeightedJacobiSmoother< A_t > >( storage, l_min, l_max, 0.66 );
    // coarse grid solver
    auto cgIter = std::max( uint_t( 50 ), 2 * n_dof_coarse );
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -708,6 +707,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // error indicator
    t_error_indicator = 0.0;
+   t_callback        = 0.0;
    std::unique_ptr< adaptiveRefinement::ErrorEstimator< P1Function< real_t > > > errorEstimator;
    uint_t j_max = global_error_estimate ? l_max - l_min - 1 : 0;
    if ( error_indicator || global_error_estimate )
@@ -724,7 +724,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          real_t my_t0 = walberla::timing::getWcTime();
          errorEstimator->fmg_callback()( lvl );
          real_t my_t1 = walberla::timing::getWcTime();
-         t_error_indicator += my_t1 - my_t0;
+         t_callback += my_t1 - my_t0;
       };
       fmg = std::make_shared< FullMultigridSolver< A_t > >( storage, gmg, P, l_min, l_max, n_cycles, []( uint_t ) {}, callback );
    };
@@ -825,6 +825,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          WALBERLA_LOG_WARNING_ON_ROOT( " ->  Low reliability! Above estimates may be inaccurate!" )
       }
    }
+
+   t_error_indicator += t_callback;
+   t_solve -= t_callback;
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> Time spent to ...  " );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> %20s: %12.3e", "system solve", t_solve ) );
@@ -955,6 +958,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                 bool                                error_indicator,
                                 bool                                global_error_estimate,
                                 uint_t                              error_freq,
+                                uint_t                              error_lvl,
                                 bool                                loadbalancing )
 {
    // construct adaptive mesh
@@ -988,6 +992,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                           error_indicator,
                                           global_error_estimate,
                                           error_freq,
+                                          error_lvl,
                                           loadbalancing );
       else
          local_errors = solve< DivkGrad >( mesh,
@@ -1011,6 +1016,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                            error_indicator,
                                            global_error_estimate,
                                            error_freq,
+                                           error_lvl,
                                            loadbalancing );
 
       if ( refinement >= n_ref )
@@ -1078,6 +1084,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                            error_indicator,
                            global_error_estimate,
                            error_freq,
+                           error_lvl,
                            loadbalancing );
       }
       else
@@ -1103,15 +1110,9 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                             error_indicator,
                             global_error_estimate,
                             error_freq,
+                            error_lvl,
                             loadbalancing );
       }
-   }
-
-   auto& timingTree = *( u_old->getStorage()->getTimingTree() );
-
-   if ( walberla::mpi::MPIManager::instance()->rank() == 0 && u_old )
-   {
-      std::cout << "\nTiming tree final iteration:\n" << timingTree << "\n";
    }
 }
 
@@ -1171,8 +1172,10 @@ int main( int argc, char* argv[] )
    const real_t tol_final      = parameters.getParameter< real_t >( "tolerance_final", tol );
    const real_t cg_tol         = parameters.getParameter< real_t >( "cg_tolerance", tol );
 
-   const bool  loadbalancing     = parameters.getParameter< bool >( "loadbalancing", false );
-   uint_t      l2error           = parameters.getParameter< uint_t >( "l2error", 0 );
+   const bool   loadbalancing = parameters.getParameter< bool >( "loadbalancing", false );
+   uint_t       l2error       = parameters.getParameter< uint_t >( "l2error", 0 );
+   const uint_t l2_err_lvl    = parameters.getParameter< uint_t >( "l2error_lvl", l_max );
+
    std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
    std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
@@ -1312,6 +1315,7 @@ int main( int argc, char* argv[] )
                               error_indicator,
                               global_error_estimate,
                               l2error,
+                              l2_err_lvl,
                               loadbalancing );
 
    return 0;
