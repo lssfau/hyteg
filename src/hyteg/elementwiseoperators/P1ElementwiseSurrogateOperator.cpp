@@ -191,8 +191,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
             {
                // apply least squares fit
                lsq.setRHS( rhs[i][j] );
-               lsq.solve();
-               surrogate[i][j] = surrogate::polynomial::Polynomial( 2, q, lsq.solution() );
+               auto& coeffs    = lsq.solve();
+               surrogate[i][j] = surrogate::polynomial::Polynomial( 2, q, coeffs );
             }
          }
       }
@@ -246,8 +246,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
             {
                // apply least squares fit
                lsq.setRHS( rhs[i][j] );
-               lsq.solve();
-               surrogate[i][j] = surrogate::polynomial::Polynomial( 3, q, lsq.solution() );
+               auto& coeffs    = lsq.solve();
+               surrogate[i][j] = surrogate::polynomial::Polynomial( 3, q, coeffs );
             }
          }
       }
@@ -310,7 +310,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
    }
 
    // domain of surrogate polynomials
-   surrogate::polynomial::Coordinates X( level );
+   surrogate::polynomial::Coordinates poly_domain( level );
 
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
@@ -368,7 +368,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
                }
                else
                {
-                  auto x = X.x( micro.x(), micro.y(), micro.z() );
+                  auto x = poly_domain( micro);
 
                   for ( uint_t i = 0; i < surrogate.size(); ++i )
                   {
@@ -453,8 +453,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
                }
                else
                {
-                  auto x = X.x( micro.x(), micro.y(), micro.z() );
-                  x[2]   = 0.0;
+                  auto x = poly_domain(micro);
+
                   for ( uint_t i = 0; i < surrogate.size(); ++i )
                   {
                      for ( uint_t j = 0; j < surrogate[i].size(); ++j )
@@ -681,14 +681,14 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeAndStoreLocalElementMatric
 {
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
+      // todo: implement
       // For 3D we work on cells and for 2D on faces
       if ( storage_->hasGlobalCells() )
       {
-         const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
+         // const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
 
-         for ( const auto& it : storage_->getCells() )
-         {
-            // todo: implement
+         // for ( const auto& it : storage_->getCells() )
+         // {
             // auto cellID = it.first;
             // auto cell   = it.second;
 
@@ -708,11 +708,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeAndStoreLocalElementMatric
             //       assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
             //    }
             // }
-         }
+         // }
       }
       else
       {
-         const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( level );
+         // const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( level );
 
          // for ( const auto& it : storage_->getFaces() )
          // {

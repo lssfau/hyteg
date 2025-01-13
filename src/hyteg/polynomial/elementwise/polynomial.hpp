@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Benjamin Mann.
+ * Copyright (c) 2024-2025 Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -62,7 +62,7 @@ struct Monomial
    constexpr inline compression_t degree() const { return i() + j() + k(); }
 
    // evaluate basis function at x
-   constexpr inline double eval( const std::array< double, 3 >& x ) const
+   constexpr inline double eval( const PointND< double, 3 >& x ) const
    {
       const auto [i, j, k] = expand();
 
@@ -140,11 +140,14 @@ struct Coordinates
    : scaling( 4.0 / double( ( 1 << lvl ) - 1 ) )
    {}
    // convert index i to coordinate x ∈ [-1,3]
-   constexpr double x( uint_t i ) const { return scaling * i - 1.0; }
-   // convert indices i,j,k to coordinate x ∈ [-1,3]^3
-   constexpr std::array< double, 3 > x( uint_t i, uint_t j, uint_t k ) const { return { x( i ), x( j ), x( k ) }; }
+   inline constexpr double operator()( idx_t i ) const { return scaling * i - 1.0; }
+   // convert index [i,j,k] to coordinate x ∈ [-1,3]^3
+   inline PointND< double, 3 > operator()( const indexing::Index& idx ) const
+   {
+      return { ( *this )( idx.x() ), ( *this )( idx.y() ), ( *this )( idx.z() ) };
+   }
 
-   // convert index i ∈ {0,..., 2^lvl - 1} to coordinate x ∈ [-1,3]
+   // scaling factor to convert index i ∈ {0,..., 2^lvl - 1} to coordinate x ∈ [-1,3]
    const double scaling;
 };
 
@@ -256,7 +259,7 @@ class Polynomial : public std::vector< double >
    }
 
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
-   double eval_naive( const std::array< double, 3 >& x ) const
+   double eval_naive( const PointND< double, 3 >& x ) const
    {
       double p_xyz = 0.0;
       for ( uint_t i = 0; i < size(); ++i )
@@ -287,7 +290,7 @@ class Polynomial : public std::vector< double >
       // iterate over coefficients of 2d polynomial
       for ( uint_t ij = 0; ij < _restriction->size(); ++ij )
       {
-         const auto d = phi(ij).degree();
+         const auto d = phi( ij ).degree();
 
          ( *_restriction )[ij] = ( *this )[ij]; // k=0
          for ( uint_t k = 1; k <= _q - d; ++k )

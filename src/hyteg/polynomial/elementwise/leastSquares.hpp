@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Benjamin Mann.
+ * Copyright (c) 2024-2025 Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -108,7 +108,7 @@ class LeastSquares
    using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
    using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
 
-   // RxC matrix of right-hand-side vectors
+   // RxC matrix of right-hand-side vectors (required for surrogate stiffness matrix)
    template < uint_t R, uint_t C = R >
    using RHS_matrix = std::array< std::array< Vector, C >, R >;
 
@@ -127,11 +127,11 @@ class LeastSquares
        * @param downsampling The downsampling factor.
        */
       inline Iterator( uint_t d, uint_t lvl, uint_t downsampling )
-      : _n( 0 )
-      , _i( 0 )
-      , _j( 0 )
-      , _k( 0 )
-      , _ijk_max( interpolation::n_edge( lvl, 1 ) )
+      : _n( uint_t( 0 ) )
+      , _i( idx_t( 0 ) )
+      , _j( idx_t( 0 ) )
+      , _k( idx_t( 0 ) )
+      , _ijk_max( idx_t( interpolation::n_edge( lvl, 1 ) ) )
       , _n_max( interpolation::n_volume( d, lvl, downsampling ) )
       , _stride( downsampling )
       {}
@@ -161,21 +161,21 @@ class LeastSquares
       /**
        * @brief Getter for vertex index in x direction.
        *
-       * @return uint_t Vertex index in x direction.
+       * @return idx_t Vertex index in x direction.
        */
-      inline constexpr uint_t i() const { return _i; }
+      inline constexpr idx_t i() const { return _i; }
       /**
        * @brief Getter for vertex index in y direction.
        *
-       * @return uint_t Vertex index in y direction.
+       * @return idx_t Vertex index in y direction.
        */
-      inline constexpr uint_t j() const { return _j; }
+      inline constexpr idx_t j() const { return _j; }
       /**
        * @brief Getter for vertex index in z direction.
        *
-       * @return uint_t Vertex index in z direction.
+       * @return idx_t Vertex index in z direction.
        */
-      inline constexpr uint_t k() const { return _k; }
+      inline constexpr idx_t k() const { return _k; }
       /**
        * @brief Getter for vertex index in x,y,z direction.
        *
@@ -200,11 +200,11 @@ class LeastSquares
 
     private:
       uint_t _n; // index of sample point (row in A)
-      uint_t _i; // index of x-coordinate
-      uint_t _j; // index of y-coordinate
-      uint_t _k; // index of z-coordinate
+      idx_t  _i; // index of x-coordinate
+      idx_t  _j; // index of y-coordinate
+      idx_t  _k; // index of z-coordinate
 
-      uint_t _ijk_max; // number of microedges along an edge (only coincides with sample points along edge if downsampling=1)
+      idx_t  _ijk_max; // number of microedges along an edge (only coincides with sample points along edge if downsampling=1)
       uint_t _n_max;   // number of sample points
       uint_t _stride;  // downsampling factor
    };
@@ -266,7 +266,7 @@ class LeastSquares
       auto it = samplingIterator();
       while ( it != it.end() )
       {
-         auto x = coords.x( it.i(), it.j(), it.k() );
+         auto x = coords( it.ijk() );
 
          for ( uint_t col = 0; col < cols; ++col )
          {

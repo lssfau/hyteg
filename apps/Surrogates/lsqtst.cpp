@@ -67,7 +67,7 @@ void lsqtst( uint8_t dim,
    }
 
    // define smooth function
-   auto f = []( const std::array< double, 3 >& x ) {
+   auto f = []( const hyteg::Point3D& x ) {
       return std::sin( pi / 4.0 * x[0] ) * std::cos( pi / 4.0 * x[1] ) * std::sin( pi / 4.0 * x[2] );
    };
    // coordinates on tetrahedron
@@ -76,34 +76,35 @@ void lsqtst( uint8_t dim,
    auto it = lsq->samplingIterator();
    while ( it != it.end() )
    {
-      auto x = coords.x( it.i(), it.j(), it.k() );
+      auto x = coords( it.ijk() );
       lsq->setRHS( it(), f( x ) );
       ++it;
    }
    // solve least squares problem
-   hyteg::surrogate::polynomial::Polynomial p( dim, degree );
-   p = lsq->solve();
+   auto& coeffs = lsq->solve();
+   // initialize polynomial
+   hyteg::surrogate::polynomial::Polynomial p( dim, degree, coeffs );
    // evaluate polynomial and compute error
-   uint_t len_edge = ( uint_t( 1 ) << lvl );
-   double error    = 0.0;
-   uint_t k_max    = ( dim == 3 ) ? len_edge : 1;
-   for ( uint_t k = 0; k < k_max; ++k )
+   hyteg::idx_t len_edge = ( hyteg::idx_t( 1 ) << lvl );
+   double       error    = 0.0;
+   hyteg::idx_t k_max    = ( dim == 3 ) ? len_edge : 1;
+   for ( hyteg::idx_t k = 0; k < k_max; ++k )
    {
-      auto z = coords.x( k );
+      auto z = coords( k );
       if ( dim == 3 )
       {
          p.fix_z( z );
       }
-      for ( uint_t j = 0; j < len_edge - k; ++j )
+      for ( hyteg::idx_t j = 0; j < len_edge - k; ++j )
       {
-         auto y = coords.x( j );
+         auto y = coords( j );
          if ( dim >= 2 )
          {
             p.fix_y( y );
          }
-         for ( uint_t i = 0; i < len_edge - k - j; ++i )
+         for ( hyteg::idx_t i = 0; i < len_edge - k - j; ++i )
          {
-            auto x = coords.x( i );
+            auto x = coords( i );
             auto e = f( { x, y, z } ) - p.eval( x );
             error += e * e;
          }
@@ -131,7 +132,7 @@ void lsqtst( uint8_t dim,
       WALBERLA_LOG_INFO_ON_ROOT( "Sample points:" );
       it = lsq->samplingIterator();
 
-      walberla::uint_t i = 0, j = 0, k = 0;
+      hyteg::idx_t i = 0, j = 0, k = 0;
       std::cout << "\n";
       while ( it != it.end() )
       {
@@ -190,7 +191,7 @@ void polytst( uint8_t d, uint8_t q )
    }
 
    // coordinates
-   std::array< double, 3 > x{ realRandom(), realRandom(), realRandom() };
+   hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };
 
    // evaluate polynomial using Horner's method
    if ( d == 3 )
