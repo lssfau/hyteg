@@ -10,6 +10,10 @@ waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 waLBerla_compile_test(FILES P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1SurrogateOperatorTest)
 
+waLBerla_compile_test(FILES P1ElementwiseSurrogateOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1ElementwiseSurrogateOperatorTest)
+waLBerla_execute_test(NAME P1ElementwiseSurrogateOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 3)
+
 waLBerla_compile_test(FILES DivergenceOperatorTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-divergence)
 waLBerla_execute_test(NAME DivergenceOperatorTest)
 
