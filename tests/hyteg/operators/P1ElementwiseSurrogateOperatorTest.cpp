@@ -44,7 +44,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
                               const uint8_t                                     q,
                               const uint_t                                      level )
 {
-   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 2e-10 : 5e-4 );
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 2e-12 : 5e-4 );
 
    // operators
    forms::p1_div_k_grad_affine_q3               form( k, k );
@@ -71,7 +71,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    // compute error
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
    auto errorMax = err.getMaxDoFMagnitude( level );
-   WALBERLA_LOG_INFO( walberla::format( "error ||(A - A_q)u||_inf = %e", errorMax ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "error ||(A - A_q)u||_inf = %e", errorMax ) )
    WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q)u||_inf" );
 }
 
@@ -127,9 +127,9 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run tests
    // -------------------
-   for ( uint8_t q = 1; q <= 4; ++q )
+   for ( uint_t lvl = 3; lvl <= 5; ++lvl )
    {
-      for ( uint_t lvl = 3; lvl <= 5; ++lvl )
+      for ( uint8_t q = 1; q <= 4; ++q )
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, q=p=%d, level=%d", q, lvl ) );
          P1SurrogateOperatorTest( storage, k[q], q, lvl );

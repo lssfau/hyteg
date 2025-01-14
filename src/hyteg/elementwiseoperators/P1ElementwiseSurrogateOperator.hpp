@@ -51,18 +51,55 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
    using Polynomial = surrogate::polynomial::Polynomial;
+
    /**
-     * @brief Alias template for a matrix of polynomials
+     * @brief container for surrogate polynomials
      * @tparam DIM spacial dimension
      */
    template < size_t DIM >
-   using P_matrix = surrogate::polynomial::Matrix< DIM + 1 >;
+   using P_data = std::array< surrogate::polynomial::Matrix< DIM + 1 >, ( DIM == 2 ) ? 2 : 6 >;
+
    /**
      * @brief Alias template for a matrix of right-hand-side vectors for the lsq-fit
      * @tparam DIM spacial dimension
      */
    template < size_t DIM >
    using RHS_matrix = surrogate::LeastSquares::RHS_matrix< DIM + 1 >;
+
+   /**
+    * @brief container for precomputed local stiffness matrices
+    *           A_loc[idx] = local stiffness matrix at idx
+    * @tparam DIM spacial dimension
+    */
+   template < size_t DIM >
+   using A_loc = std::vector< Matrixr< DIM + 1, DIM + 1 >, Eigen::aligned_allocator< Matrixr< DIM + 1, DIM + 1 > > >;
+
+   /**
+    * @brief container for level wise data on each primitive
+    *       usage: ElementDataMap[primitiveID][lvl] = T
+    */
+   template < typename T >
+   struct ElementDataMap : public std::map< PrimitiveID, std::vector< T > >
+   {
+      ElementDataMap( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max )
+      {
+         uint_t dim = ( storage->hasGlobalCells() ) ? 3 : 2;
+         if ( dim == 2 )
+         {
+            for ( auto& id : storage->getFaceIDs() )
+            {
+               ( *this )[id] = std::vector< T >( l_max + 1 );
+            }
+         }
+         else
+         {
+            for ( auto& id : storage->getCellIDs() )
+            {
+               ( *this )[id] = std::vector< T >( l_max + 1 );
+            }
+         }
+      }
+   };
 
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -295,12 +332,12 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    // polynomial degree for each level
    std::vector< uint8_t > poly_degree_;
 
-   // memory IDs of local stiffness matrices for level 1-3
-   PrimitiveDataID< LevelWiseMemory< Matrix3r >, Face > stiffnessID_2d_;
-   PrimitiveDataID< LevelWiseMemory< Matrix4r >, Cell > stiffnessID_3d_;
-   // memory IDs of surrogates for level 4+ (one poly matrix for each element type)
-   PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > surrogateID_2d_;
-   PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 3 >, 6 > >, Cell > surrogateID_3d_;
+   // precomputed local stiffness matrices for level 1-3
+   ElementDataMap< A_loc< 2 > > a_loc_2d_;
+   ElementDataMap< A_loc< 3 > > a_loc_3d_;
+   // surrogates for level 4+ (one poly matrix for each element type)
+   ElementDataMap< P_data< 2 > > surrogate_2d_;
+   ElementDataMap< P_data< 3 > > surrogate_3d_;
 };
 
 // template < class P1Form >

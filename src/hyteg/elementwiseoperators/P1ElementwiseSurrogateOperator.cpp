@@ -46,37 +46,14 @@ P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const 
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
 , is_initialized_( false )
-, lsq_( maxLevel_ + 1 )
-, downsampling_( maxLevel_ + 1 )
-, poly_degree_( maxLevel_ + 1 )
-{
-   // // memory of local stiffness matrices for level 1-3
-   // auto maxLvl = std::min( maxLevel_, 3 );
-   // auto dataHandling_stiffness_2d =
-   //     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< Matrix3r >, Face > >( minLevel_, maxLvl );
-   // auto dataHandling_stiffness_3d =
-   //     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< Matrix4r >, Cell > >( minLevel_, maxLvl );
-
-   // memory of surrogates for level 4+ (one poly matrix for each element type)
-   auto minLvl = std::max( minLevel_, min_lvl_for_surrogate );
-   auto dataHandling_surrogate_2d =
-       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > >( minLvl,
-                                                                                                                   maxLevel_ );
-   auto dataHandling_surrogate_3d =
-       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 3 >, 6 > >, Cell > >( minLvl,
-                                                                                                                   maxLevel_ );
-
-   if ( storage->hasGlobalCells() )
-   {
-      // storage->addCellData( stiffnessID_3d_, dataHandling_stiffness_3d, "P1SurrogateOperator_stiffness_3d" );
-      storage->addCellData( surrogateID_3d_, dataHandling_surrogate_3d, "P1SurrogateOperator_surrogate_3d" );
-   }
-   else
-   {
-      // storage->addFaceData( stiffnessID_2d_, dataHandling_stiffness_2d, "P1SurrogateOperator_stiffness_2d" );
-      storage->addFaceData( surrogateID_2d_, dataHandling_surrogate_2d, "P1SurrogateOperator_surrogate_2d" );
-   }
-}
+, lsq_( maxLevel + 1 )
+, downsampling_( maxLevel + 1 )
+, poly_degree_( maxLevel + 1 )
+, a_loc_2d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+, a_loc_3d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+, surrogate_2d_( storage, maxLevel )
+, surrogate_3d_( storage, maxLevel )
+{}
 
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_degree,
@@ -86,19 +63,19 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
 {
    uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
-   // // precompute and store local stiffness matrices for level 1-3
-   // auto maxLvl = std::min( maxLevel_, 3 );
-   // for ( uint_t lvl = 0; lvl <= maxLvl; ++lvl )
-   // {
-   //    if ( dim == 2 )
-   //    {
-   //       precompute_local_stiffness_2d( lvl );
-   //    }
-   //    else
-   //    {
-   //       precompute_local_stiffness_3d( lvl );
-   //    }
-   // }
+   // precompute and store local stiffness matrices for level 1-3
+   const auto maxLvl = std::min( maxLevel_, min_lvl_for_surrogate - 1u );
+   for ( uint_t lvl = 0; lvl <= maxLvl; ++lvl )
+   {
+      if ( dim == 2 )
+      {
+         precompute_local_stiffness_2d( lvl );
+      }
+      else
+      {
+         precompute_local_stiffness_3d( lvl );
+      }
+   }
 
    // approximate local stiffness matrices for level 4+ by polynomials
    const auto minLvl = std::max( minLevel_, min_lvl_for_surrogate );
@@ -147,6 +124,51 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
 }
 
 template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( uint_t lvl )
+{
+   const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( lvl );
+
+   for ( const auto& [id, face] : storage_->getFaces() )
+   {
+      auto& a_loc = a_loc_2d_[id][lvl];
+
+      a_loc.resize( numMicroFacesPerMacroFace );
+
+      for ( const auto& fType : facedof::allFaceTypes )
+      {
+         for ( const auto& micro : facedof::macroface::Iterator( lvl, fType, 0 ) )
+         {
+            const auto idx = facedof::macroface::index( lvl, micro.x(), micro.y(), fType );
+            a_loc[idx].setZero();
+            assembleLocalElementMatrix2D( *face, lvl, micro, fType, form_, a_loc[idx] );
+         }
+      }
+   }
+}
+
+template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_3d( uint_t lvl )
+{
+   const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( lvl );
+
+   for ( const auto& [id, cell] : storage_->getCells() )
+   {
+      auto& a_loc = a_loc_3d_[id][lvl];
+      a_loc.resize( numMicroCellsPerMacroCell );
+
+      for ( const auto& cType : celldof::allCellTypes )
+      {
+         for ( const auto& micro : celldof::macrocell::Iterator( lvl, cType, 0 ) )
+         {
+            const auto idx = celldof::macrocell::index( lvl, micro.x(), micro.y(), micro.z(), cType );
+            a_loc[idx].setZero();
+            assembleLocalElementMatrix3D( *cell, lvl, micro, cType, form_, a_loc[idx] );
+         }
+      }
+   }
+}
+
+template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint_t lvl )
 {
    auto  q   = poly_degree_[lvl];
@@ -161,20 +183,15 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
       }
    }
 
-   for ( auto& [_, face] : storage_->getFaces() )
+   for ( auto& [id, face] : storage_->getFaces() )
    {
-      WALBERLA_UNUSED( _ );
-
-      auto& all_surrogates = face->getData( surrogateID_2d_ )->getData( lvl );
-
-      Matrix3r elMat( Matrix3r::Zero() );
-
       for ( const auto& fType : facedof::allFaceTypes )
       {
          // set up rhs vectors for each entry of the local stiffness matrix
          auto it = lsq.samplingIterator();
          while ( it != it.end() )
          {
+            Matrix3r elMat( Matrix3r::Zero() );
             assembleLocalElementMatrix2D( *face, lvl, it.ijk(), fType, form_, elMat );
             for ( uint_t i = 0; i < rhs.size(); ++i )
             {
@@ -186,7 +203,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
-         auto& surrogate = all_surrogates[uint_t( fType )];
+         auto& surrogate = surrogate_2d_[id][lvl][uint_t( fType )];
          for ( uint_t i = 0; i < rhs.size(); ++i )
          {
             for ( uint_t j = 0; j < rhs[i].size(); ++j )
@@ -216,20 +233,15 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
       }
    }
 
-   for ( auto& [_, cell] : storage_->getCells() )
+   for ( auto& [id, cell] : storage_->getCells() )
    {
-      WALBERLA_UNUSED( _ );
-
-      auto& all_surrogates = cell->getData( surrogateID_3d_ )->getData( lvl );
-
-      Matrix4r elMat( Matrix4r::Zero() );
-
       for ( const auto& cType : celldof::allCellTypes )
       {
          // set up rhs vectors for each entry of the local stiffness matrix
          auto it = lsq.samplingIterator();
          while ( it != it.end() )
          {
+            Matrix4r elMat( Matrix4r::Zero() );
             assembleLocalElementMatrix3D( *cell, lvl, it.ijk(), cType, form_, elMat );
             for ( uint_t i = 0; i < rhs.size(); ++i )
             {
@@ -241,7 +253,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
-         auto& surrogate = all_surrogates[uint_t( cType )];
+         auto& surrogate = surrogate_3d_[id][lvl][uint_t( cType )];
          for ( uint_t i = 0; i < rhs.size(); ++i )
          {
             for ( uint_t j = 0; j < rhs[i].size(); ++j )
@@ -419,12 +431,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::smooth_jac( const P1Function< rea
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&         face,
-                                                         const uint_t        level,
-                                                         const facedof::FaceType   fType,
-                                                         const real_t* const srcVertexData,
-                                                         real_t* const       dstVertexData,
-                                                         const real_t&       alpha ) const
+void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&             face,
+                                                         const uint_t            level,
+                                                         const facedof::FaceType fType,
+                                                         const real_t* const     srcVertexData,
+                                                         real_t* const           dstVertexData,
+                                                         const real_t&           alpha ) const
 {
    Matrix3r elMat( Matrix3r::Zero() );
 
@@ -441,7 +453,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&         fac
    else
    {
       // surrogate polynomials
-      auto& surrogate = face.getData( surrogateID_2d_ )->getData( level )[uint_t( fType )];
+      auto& surrogate = surrogate_2d_.at( face.getID() )[level][uint_t( fType )];
       // domain of surrogates
       surrogate::polynomial::Coordinates poly_domain( level );
 
@@ -463,12 +475,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&         fac
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&         cell,
-                                                         const uint_t        level,
-                                                         const celldof::CellType   cType,
-                                                         const real_t* const srcVertexData,
-                                                         real_t* const       dstVertexData,
-                                                         const real_t&       alpha ) const
+void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&             cell,
+                                                         const uint_t            level,
+                                                         const celldof::CellType cType,
+                                                         const real_t* const     srcVertexData,
+                                                         real_t* const           dstVertexData,
+                                                         const real_t&           alpha ) const
 {
    Matrix4r elMat( Matrix4r::Zero() );
 
@@ -485,7 +497,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&         cel
    else
    {
       // surrogate polynomials
-      auto& surrogate = cell.getData( surrogateID_3d_ )->getData( level )[uint_t( cType )];
+      auto& surrogate = surrogate_3d_.at( cell.getID() )[level][uint_t( cType )];
       // domain of surrogates
       surrogate::polynomial::Coordinates poly_domain( level );
 
@@ -571,6 +583,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply3D( cons
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bool invert )
 {
+   // todo
    std::shared_ptr< P1Function< real_t > > targetFunction;
    if ( invert )
    {
@@ -683,72 +696,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::computeAndStoreLocalElementMatrices()
-{
-   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-   {
-      // todo: implement
-      // For 3D we work on cells and for 2D on faces
-      if ( storage_->hasGlobalCells() )
-      {
-         // const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
-
-         // for ( const auto& it : storage_->getCells() )
-         // {
-         // auto cellID = it.first;
-         // auto cell   = it.second;
-
-         // auto& elementMatrices = localElementMatrices3D_[cellID][level];
-
-         // // if ( !localElementMatricesPrecomputed_ )
-         // {
-         //    elementMatrices.resize( numMicroCellsPerMacroCell );
-         // }
-
-         // for ( const auto& cType : celldof::allCellTypes )
-         // {
-         //    for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-         //    {
-         //       Matrix4r& elMat = localElementMatrix3D( *cell, level, micro, cType );
-         //       elMat.setZero();
-         //       assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
-         //    }
-         // }
-         // }
-      }
-      else
-      {
-         // const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( level );
-
-         // for ( const auto& it : storage_->getFaces() )
-         // {
-         //    auto faceID = it.first;
-         //    auto face   = it.second;
-
-         //    auto& elementMatrices = localElementMatrices2D_[faceID][level];
-
-         //    // if ( !localElementMatricesPrecomputed_ )
-         //    {
-         //       elementMatrices.resize( numMicroFacesPerMacroFace );
-         //    }
-
-         //    for ( const auto& fType : facedof::allFaceTypes )
-         //    {
-         //       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
-         //       {
-         //          Matrix3r& elMat = localElementMatrix2D( *face, level, micro, fType );
-         //          elMat.setZero();
-         //          assembleLocalElementMatrix2D( *face, level, micro, fType, form_, elMat );
-         //       }
-         //    }
-         // }
-      }
-   }
-
-   // localElementMatricesPrecomputed_ = true;
-}
-
-template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions2D(
     const Face&                                face,
     const uint_t                               level,
@@ -757,6 +704,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions
     const P1Elements::P1Elements2D::P1Element& element,
     real_t* const                              dstVertexData )
 {
+   // todo
    Matrix3r                elMat( Matrix3r::Zero() );
    indexing::Index         nodeIdx;
    indexing::Index         offset;
@@ -794,6 +742,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions
                                                                                     const celldof::CellType cType,
                                                                                     real_t* const           vertexData )
 {
+   // todo
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
    std::array< Point3D, 4 >         coords;
@@ -827,6 +776,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< 
                                                          uint_t                                      level,
                                                          DoFType                                     flag ) const
 {
+   // todo
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );
    if ( flag != All )
@@ -914,6 +864,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly2D( const std:
                                                                       const idx_t* const                          srcIdx,
                                                                       const idx_t* const                          dstIdx ) const
 {
+   // todo
    Matrix3r                elMat( Matrix3r::Zero() );
    indexing::Index         nodeIdx;
    indexing::Index         offset;
@@ -968,6 +919,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly3D( const std:
                                                                       const idx_t* const                          srcIdx,
                                                                       const idx_t* const                          dstIdx ) const
 {
+   // todo
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
    std::array< Point3D, 4 >         coords;
