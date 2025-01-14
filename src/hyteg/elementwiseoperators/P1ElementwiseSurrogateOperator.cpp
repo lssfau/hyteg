@@ -20,12 +20,14 @@
 
 #include "P1ElementwiseSurrogateOperator.hpp"
 
-#include "hyteg/forms/P1RowSumForm.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
-#include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
+#include <hyteg/forms/P1RowSumForm.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp>
+#include <hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp>
+
+#include "P1ElementwiseOperator.hpp"
 
 namespace hyteg {
 
@@ -61,7 +63,7 @@ P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const 
        std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > >( minLvl,
                                                                                                                    maxLevel_ );
    auto dataHandling_surrogate_3d =
-       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 2 >, 6 > >, Cell > >( minLvl,
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::array< P_matrix< 3 >, 6 > >, Cell > >( minLvl,
                                                                                                                    maxLevel_ );
 
    if ( storage->hasGlobalCells() )
@@ -281,7 +283,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
    {
       // Note that the order of communication is important, since the face -> cell communication may overwrite
       // parts of the halos that carry the macro-vertex and macro-edge unknowns.
-
       src.communicate< Face, Cell >( level );
       src.communicate< Edge, Cell >( level );
       src.communicate< Vertex, Cell >( level );
@@ -309,9 +310,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
       dst.assign( { beta }, { dst }, level, flag );
    }
 
-   // domain of surrogate polynomials
-   surrogate::polynomial::Coordinates poly_domain( level );
-
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
    {
@@ -331,7 +329,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
          //
          // This is also necessary when using update type == Add.
          // During additive comm we then skip zeroing the data on the lower-dim primitives.
-
          for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
          {
             if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
@@ -341,49 +338,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
             }
          }
 
-         auto& all_surrogates = cell.getData( surrogateID_3d_ )->getData( level );
-
-         Matrix4r elMat( Matrix4r::Zero() );
-
-         // loop over micro-cells
+         // local mat-vec
          for ( const auto& cType : celldof::allCellTypes )
          {
-            auto& surrogate = all_surrogates[uint_t( cType )];
-
-            // todo: use optimized polynomial evaluation
-
-            for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-            {
-               if ( level < min_lvl_for_surrogate )
-               {
-                  // todo: use precomputed matrices for lower levels
-                  // if ( localElementMatricesPrecomputed_ )
-                  // {
-                  //    elMat = localElementMatrix3D( cell, level, micro, cType );
-                  // }
-                  // else
-                  {
-                     assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
-                  }
-               }
-               else
-               {
-                  auto x = poly_domain( micro);
-
-                  for ( uint_t i = 0; i < surrogate.size(); ++i )
-                  {
-                     for ( uint_t j = 0; j < surrogate[i].size(); ++j )
-                     {
-                        elMat( i, j ) = surrogate[i][j].eval_naive( x );
-                     }
-                  }
-               }
-
-               localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
-            }
+            apply_3d( cell, level, cType, srcVertexData, dstVertexData, alpha );
          }
       }
-
       // Push result to lower-dimensional primitives
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
@@ -400,10 +360,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
       {
          Face& face = *it.second;
 
-         Point3D         v0, v1, v2;
-         indexing::Index nodeIdx;
-         indexing::Index offset;
-
          // get hold of the actual numerical data in the two functions
          PrimitiveDataID< FunctionMemory< real_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
          PrimitiveDataID< FunctionMemory< real_t >, Face > srcVertexDoFIdx = src.getFaceDataID();
@@ -415,7 +371,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
          //
          // This is also necessary when using update type == Add.
          // During additive comm we then skip zeroing the data on the lower-dim primitives.
-
          for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
          {
             if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
@@ -425,49 +380,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
             }
          }
 
-         auto& all_surrogates = face.getData( surrogateID_2d_ )->getData( level );
-
-         Matrix3r elMat( Matrix3r::Zero() );
-
-         // loop over micro-faces
+         // local mat-vec
          for ( const auto& fType : facedof::allFaceTypes )
          {
-            auto& surrogate = all_surrogates[uint_t( fType )];
-
-            // todo: use optimized polynomial evaluation
-
-            for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
-            {
-               if ( level < min_lvl_for_surrogate )
-               {
-                  // todo: use precomputed matrices for lower levels
-
-                  // if ( localElementMatricesPrecomputed_ )
-                  // {
-                  //    elMat = localElementMatrix2D( face, level, micro, fType );
-                  // }
-                  // else
-                  {
-                     assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
-                  }
-               }
-               else
-               {
-                  auto x = poly_domain(micro);
-
-                  for ( uint_t i = 0; i < surrogate.size(); ++i )
-                  {
-                     for ( uint_t j = 0; j < surrogate[i].size(); ++j )
-                     {
-                        elMat( i, j ) = surrogate[i][j].eval_naive( x );
-                     }
-                  }
-               }
-               localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
-            }
+            apply_2d( face, level, fType, srcVertexData, dstVertexData, alpha );
          }
       }
-
       // Push result to lower-dimensional primitives
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
@@ -498,6 +416,94 @@ void P1ElementwiseSurrogateOperator< P1Form >::smooth_jac( const P1Function< rea
    dst.assign( { 1.0, omega }, { src, dst }, level, flag );
 
    this->stopTiming( "smooth_jac" );
+}
+
+template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&         face,
+                                                         const uint_t        level,
+                                                         const facedof::FaceType   fType,
+                                                         const real_t* const srcVertexData,
+                                                         real_t* const       dstVertexData,
+                                                         const real_t&       alpha ) const
+{
+   Matrix3r elMat( Matrix3r::Zero() );
+
+   if ( level < min_lvl_for_surrogate )
+   {
+      for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+      {
+         // todo: use precomputed matrices
+         //    elMat = localElementMatrix2D( face, level, micro, fType );
+         assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
+         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+      }
+   }
+   else
+   {
+      // surrogate polynomials
+      auto& surrogate = face.getData( surrogateID_2d_ )->getData( level )[uint_t( fType )];
+      // domain of surrogates
+      surrogate::polynomial::Coordinates poly_domain( level );
+
+      // todo: use optimized polynomial evaluation
+      for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+      {
+         auto x = poly_domain( micro );
+
+         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         {
+            for ( uint_t j = 0; j < surrogate[i].size(); ++j )
+            {
+               elMat( i, j ) = surrogate[i][j].eval_naive( x );
+            }
+         }
+         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+      }
+   }
+}
+
+template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&         cell,
+                                                         const uint_t        level,
+                                                         const celldof::CellType   cType,
+                                                         const real_t* const srcVertexData,
+                                                         real_t* const       dstVertexData,
+                                                         const real_t&       alpha ) const
+{
+   Matrix4r elMat( Matrix4r::Zero() );
+
+   if ( level < min_lvl_for_surrogate )
+   {
+      for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+      {
+         // todo: use precomputed matrices
+         //    elMat = localElementMatrix2D( face, level, micro, fType );
+         assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
+         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+      }
+   }
+   else
+   {
+      // surrogate polynomials
+      auto& surrogate = cell.getData( surrogateID_3d_ )->getData( level )[uint_t( cType )];
+      // domain of surrogates
+      surrogate::polynomial::Coordinates poly_domain( level );
+
+      // todo: use optimized polynomial evaluation
+      for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+      {
+         auto x = poly_domain( micro );
+
+         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         {
+            for ( uint_t j = 0; j < surrogate[i].size(); ++j )
+            {
+               elMat( i, j ) = surrogate[i][j].eval_naive( x );
+            }
+         }
+         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+      }
+   }
 }
 
 template < class P1Form >
@@ -689,25 +695,25 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeAndStoreLocalElementMatric
 
          // for ( const auto& it : storage_->getCells() )
          // {
-            // auto cellID = it.first;
-            // auto cell   = it.second;
+         // auto cellID = it.first;
+         // auto cell   = it.second;
 
-            // auto& elementMatrices = localElementMatrices3D_[cellID][level];
+         // auto& elementMatrices = localElementMatrices3D_[cellID][level];
 
-            // // if ( !localElementMatricesPrecomputed_ )
-            // {
-            //    elementMatrices.resize( numMicroCellsPerMacroCell );
-            // }
+         // // if ( !localElementMatricesPrecomputed_ )
+         // {
+         //    elementMatrices.resize( numMicroCellsPerMacroCell );
+         // }
 
-            // for ( const auto& cType : celldof::allCellTypes )
-            // {
-            //    for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-            //    {
-            //       Matrix4r& elMat = localElementMatrix3D( *cell, level, micro, cType );
-            //       elMat.setZero();
-            //       assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
-            //    }
-            // }
+         // for ( const auto& cType : celldof::allCellTypes )
+         // {
+         //    for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+         //    {
+         //       Matrix4r& elMat = localElementMatrix3D( *cell, level, micro, cType );
+         //       elMat.setZero();
+         //       assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
+         //    }
+         // }
          // }
       }
       else
@@ -1026,7 +1032,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly3D( const std:
 // // Needed for P1Blending(Inverse)DiagonalOperator
 // template class P1ElementwiseSurrogateOperator< P1RowSumForm >;
 
-// template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >;
 // template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
 
 // template class P1ElementwiseSurrogateOperator<

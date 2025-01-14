@@ -19,27 +19,25 @@
  */
 #pragma once
 
+#include <hyteg/communication/Syncing.hpp>
+#include <hyteg/forms/P1LinearCombinationForm.hpp>
+#include <hyteg/forms/form_fenics_base/P1FenicsForm.hpp>
+#include <hyteg/forms/form_fenics_generated/p1_polar_laplacian.h>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q2.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp>
+#include <hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp>
+#include <hyteg/operators/Operator.hpp>
+#include <hyteg/p1functionspace/P1Elements.hpp>
+#include <hyteg/p1functionspace/P1Function.hpp>
+#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/polynomial/elementwise/leastSquares.hpp>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
-
-#include "hyteg/communication/Syncing.hpp"
-#include "hyteg/forms/P1LinearCombinationForm.hpp"
-#include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
-#include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
-#include "hyteg/operators/Operator.hpp"
-#include "hyteg/p1functionspace/P1Elements.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/polynomial/elementwise/leastSquares.hpp"
-#include "hyteg/solvers/Smoothables.hpp"
-#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
-#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
+#include <hyteg/solvers/Smoothables.hpp>
+#include <hyteg/sparseassembly/SparseMatrixProxy.hpp>
+#include <hyteg/volumedofspace/CellDoFIndexing.hpp>
 
 namespace hyteg {
 
@@ -50,14 +48,21 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                        public WeightedJacobiSmoothable< P1Function< real_t > >,
                                        public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
-   static constexpr uint_t n_loc( uint_t dim ) { return ( dim == 2 ) ? 3 : 4; }
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
    using Polynomial = surrogate::polynomial::Polynomial;
-   template < size_t D >
-   using P_matrix = surrogate::polynomial::Matrix< n_loc( D ) >;
-   template < size_t D >
-   using RHS_matrix = std::array< std::array< surrogate::LeastSquares::Vector, n_loc( D ) >, n_loc( D ) >;
+   /**
+     * @brief Alias template for a matrix of polynomials
+     * @tparam DIM spacial dimension
+     */
+   template < size_t DIM >
+   using P_matrix = surrogate::polynomial::Matrix< DIM + 1 >;
+   /**
+     * @brief Alias template for a matrix of right-hand-side vectors for the lsq-fit
+     * @tparam DIM spacial dimension
+     */
+   template < size_t DIM >
+   using RHS_matrix = surrogate::LeastSquares::RHS_matrix< DIM + 1 >;
 
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -73,8 +78,16 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                    const P1Form&                              form,
                                    bool                                       needsInverseDiagEntries );
 
+   /**
+     * @brief Initializes the surrogate polynomials using an lsq-fit
+     *
+     * @param poly_degree The polynomial degree to be used.
+     * @param downsampling The downsampling factor to be applied. Default is 0 (auto).
+     * @param path_to_svd The file path to the SVD data. Default is an empty string (compute SVD on first call).
+     * @param needsInverseDiagEntries Flag indicating whether inverse diagonal entries are needed. Default is true.
+     */
    void init( uint8_t            poly_degree,
-              size_t             downsampling            = 1,
+              size_t             downsampling            = 0,
               const std::string& path_to_svd             = "",
               bool               needsInverseDiagEntries = true );
 
@@ -144,6 +157,36 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    };
 
  private:
+   /// compute matrix vector product in 2d
+   ///
+   /// \param face           macro face
+   /// \param level          level on which we operate in mesh hierarchy
+   /// \param fType          type of micro-face (GRAY or BLUE)
+   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
+   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
+   /// \param alpha          scaling factor that is applied to the local result vector
+   void apply_2d( const Face&             face,
+                  const uint_t            level,
+                  const facedof::FaceType ftype,
+                  const real_t* const     srcVertexData,
+                  real_t* const           dstVertexData,
+                  const real_t&           alpha ) const;
+
+   /// compute matrix vector product in 3d
+   ///
+   /// \param cell           macro cell
+   /// \param level          level on which we operate in mesh hierarchy
+   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
+   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
+   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
+   /// \param alpha          scaling factor that is applied to the local result vector
+   void apply_3d( const Cell&             cell,
+                  const uint_t            level,
+                  const celldof::CellType cType,
+                  const real_t* const     srcVertexData,
+                  real_t* const           dstVertexData,
+                  const real_t&           alpha ) const;
+
    /// compute product of element local vector with element matrix
    ///
    /// \param level          level on which we operate in mesh hierarchy
@@ -257,93 +300,93 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    PrimitiveDataID< LevelWiseMemory< Matrix4r >, Cell > stiffnessID_3d_;
    // memory IDs of surrogates for level 4+ (one poly matrix for each element type)
    PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 2 > >, Face > surrogateID_2d_;
-   PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 2 >, 6 > >, Cell > surrogateID_3d_;
+   PrimitiveDataID< LevelWiseMemory< std::array< P_matrix< 3 >, 6 > >, Cell > surrogateID_3d_;
 };
 
-template < class P1Form >
-void assembleLocalElementMatrix2D( const Face&            face,
-                                   uint_t                 level,
-                                   const indexing::Index& microFace,
-                                   facedof::FaceType      fType,
-                                   P1Form                 form,
-                                   Matrix3r&              elMat )
-{
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
-   std::array< Point3D, 3 >         coords;
-   for ( uint_t k = 0; k < 3; ++k )
-   {
-      coords[k] = vertexdof::macroface::coordinateFromIndex( level, face, verts[k] );
-   }
+// template < class P1Form >
+// void assembleLocalElementMatrix2D( const Face&            face,
+//                                    uint_t                 level,
+//                                    const indexing::Index& microFace,
+//                                    facedof::FaceType      fType,
+//                                    P1Form                 form,
+//                                    Matrix3r&              elMat )
+// {
+//    // determine coordinates of vertices of micro-element
+//    std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
+//    std::array< Point3D, 3 >         coords;
+//    for ( uint_t k = 0; k < 3; ++k )
+//    {
+//       coords[k] = vertexdof::macroface::coordinateFromIndex( level, face, verts[k] );
+//    }
 
-   // assemble local element matrix
-   form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-}
+//    // assemble local element matrix
+//    form.setGeometryMap( face.getGeometryMap() );
+//    form.integrateAll( coords, elMat );
+// }
 
-template < class P1Form >
-void assembleLocalElementMatrix3D( const Cell&            cell,
-                                   uint_t                 level,
-                                   const indexing::Index& microCell,
-                                   celldof::CellType      cType,
-                                   P1Form                 form,
-                                   Matrix4r&              elMat )
-{
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-   std::array< Point3D, 4 >         coords;
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
-   }
+// template < class P1Form >
+// void assembleLocalElementMatrix3D( const Cell&            cell,
+//                                    uint_t                 level,
+//                                    const indexing::Index& microCell,
+//                                    celldof::CellType      cType,
+//                                    P1Form                 form,
+//                                    Matrix4r&              elMat )
+// {
+//    // determine coordinates of vertices of micro-element
+//    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
+//    std::array< Point3D, 4 >         coords;
+//    for ( uint_t k = 0; k < 4; ++k )
+//    {
+//       coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+//    }
 
-   // assemble local element matrix
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-}
+//    // assemble local element matrix
+//    form.setGeometryMap( cell.getGeometryMap() );
+//    form.integrateAll( coords, elMat );
+// }
 
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
-    P1ElementwiseLaplaceOperator;
+    P1ElementwiseSurrogateLaplaceOperator;
 
 typedef P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >
-    P1ElementwisePolarLaplaceOperator;
+    P1ElementwiseSurrogatePolarLaplaceOperator;
 
 typedef P1ElementwiseSurrogateOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
-    P1ElementwiseMassOperator;
+    P1ElementwiseSurrogateMassOperator;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 > P1ElementwiseBlendingMassOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 > P1ElementwiseSurrogateBlendingMassOperator;
 
-typedef P1ElementwiseSurrogateOperator< P1LinearCombinationForm > P1ElementwiseLinearCombinationOperator;
+typedef P1ElementwiseSurrogateOperator< P1LinearCombinationForm > P1ElementwiseSurrogateLinearCombinationOperator;
 
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
-    P1ElementwisePSPGOperator;
+    P1ElementwiseSurrogatePSPGOperator;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 > P1ElementwiseBlendingLaplaceOperator;
-typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 > P1ElementwiseBlendingLaplaceOperatorQ2;
+typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 > P1ElementwiseSurrogateBlendingLaplaceOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 > P1ElementwiseSurrogateBlendingLaplaceOperatorQ2;
 
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >
-    P1ElementwiseDivXOperator;
+    P1ElementwiseSurrogateDivXOperator;
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >
-    P1ElementwiseDivYOperator;
+    P1ElementwiseSurrogateDivYOperator;
 typedef P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >
-    P1ElementwiseDivZOperator;
+    P1ElementwiseSurrogateDivZOperator;
 
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >
-    P1ElementwiseDivTXOperator;
+    P1ElementwiseSurrogateDivTXOperator;
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >
-    P1ElementwiseDivTYOperator;
+    P1ElementwiseSurrogateDivTYOperator;
 typedef P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >
-    P1ElementwiseDivTZOperator;
+    P1ElementwiseSurrogateDivTZOperator;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseAffineDivKGradOperator;
-typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseSurrogateAffineDivKGradOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseSurrogateBlendingDivKGradOperator;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseKMassOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseSurrogateKMassOperator;
 
 } // namespace hyteg

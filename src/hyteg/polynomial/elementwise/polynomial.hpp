@@ -19,7 +19,11 @@
  */
 
 #pragma once
+#include <core/Abort.h>
 #include <core/DataTypes.h>
+#include <hyteg/indexing/Common.hpp>
+#include <hyteg/types/PointND.hpp>
+#include <vector>
 
 namespace hyteg {
 namespace surrogate {
@@ -59,7 +63,7 @@ struct Monomial
    constexpr inline compression_t k() const { return ijk_compressed >> 10; }
 
    // polynomial degree of this basis function
-   constexpr inline compression_t degree() const { return i() + j() + k(); }
+   constexpr inline int degree() const { return i() + j() + k(); }
 
    // evaluate basis function at x
    constexpr inline double eval( const PointND< double, 3 >& x ) const
@@ -140,7 +144,7 @@ struct Coordinates
    : scaling( 4.0 / double( ( 1 << lvl ) - 1 ) )
    {}
    // convert index i to coordinate x ∈ [-1,3]
-   inline constexpr double operator()( idx_t i ) const { return scaling * i - 1.0; }
+   inline constexpr double operator()( idx_t i ) const { return scaling * double( i ) - 1.0; }
    // convert index [i,j,k] to coordinate x ∈ [-1,3]^3
    inline PointND< double, 3 > operator()( const indexing::Index& idx ) const
    {
@@ -197,7 +201,7 @@ class Polynomial : public std::vector< double >
    // set coefficients
    inline void set_coefficients( const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
    {
-      if ( coeffs.size() != size() )
+      if ( size_t( coeffs.size() ) != size() )
       {
          WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
       }
@@ -293,7 +297,7 @@ class Polynomial : public std::vector< double >
          const auto d = phi( ij ).degree();
 
          ( *_restriction )[ij] = ( *this )[ij]; // k=0
-         for ( uint_t k = 1; k <= _q - d; ++k )
+         for ( int k = 1; k <= _q - d; ++k )
          {
             ( *_restriction )[ij] += ( *this )[ijk++] * z_pow[k];
          }
@@ -312,23 +316,6 @@ class Polynomial : public std::vector< double >
    // basis functions for q = 0,1,...
    static const std::vector< Basis > basis_q;
 };
-
-/** Initialization of bases
- *  todo: add bases for higher degree spaces if needed
- */
-const std::vector< Basis > Polynomial::basis_q = { Basis( 0 ),
-                                                   Basis( 1 ),
-                                                   Basis( 2 ),
-                                                   Basis( 3 ),
-                                                   Basis( 4 ),
-                                                   Basis( 5 ),
-                                                   Basis( 6 ),
-                                                   Basis( 7 ),
-                                                   Basis( 8 ),
-                                                   Basis( 9 ),
-                                                   Basis( 10 ),
-                                                   Basis( 11 ),
-                                                   Basis( 12 ) };
 
 // RxC matrix of polynomials
 template < uint_t R, uint_t C = R >
