@@ -65,53 +65,53 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
 
    // precompute and store local stiffness matrices for level 1-3
    const auto maxLvl = std::min( maxLevel_, min_lvl_for_surrogate - 1u );
-   for ( uint_t lvl = 0; lvl <= maxLvl; ++lvl )
+   for ( uint_t level = 0; level <= maxLvl; ++level )
    {
       if ( dim == 2 )
       {
-         precompute_local_stiffness_2d( lvl );
+         precompute_local_stiffness_2d( level );
       }
       else
       {
-         precompute_local_stiffness_3d( lvl );
+         precompute_local_stiffness_3d( level );
       }
    }
 
    // approximate local stiffness matrices for level 4+ by polynomials
    const auto minLvl = std::max( minLevel_, min_lvl_for_surrogate );
-   for ( uint_t lvl = minLvl; lvl <= maxLevel_; ++lvl )
+   for ( uint_t level = minLvl; level <= maxLevel_; ++level )
    {
       // adjust downsampling for this level
       auto ds = downsampling;
-      while ( surrogate::LeastSquares::max_degree( lvl, ds ) < poly_degree && ds > 1 )
+      while ( surrogate::LeastSquares::max_degree( level, ds ) < poly_degree && ds > 1 )
       {
          --ds;
       }
       // adjust polynomial degree for this level
-      auto q = std::min( surrogate::LeastSquares::max_degree( lvl, ds ), poly_degree );
+      auto q = std::min( surrogate::LeastSquares::max_degree( level, ds ), poly_degree );
 
       // initialize least squares approximation
-      if ( lsq_[lvl] == nullptr || downsampling_[lvl] != ds || poly_degree_[lvl] != q )
+      if ( lsq_[level] == nullptr || downsampling_[level] != ds || poly_degree_[level] != q )
       {
          if ( path_to_svd == "" )
          {
-            lsq_[lvl] = std::make_shared< surrogate::LeastSquares >( dim, q, lvl, ds );
+            lsq_[level] = std::make_shared< surrogate::LeastSquares >( dim, q, level, ds );
          }
          else
          {
-            lsq_[lvl] = std::make_shared< surrogate::LeastSquares >( path_to_svd, dim, q, lvl, ds );
+            lsq_[level] = std::make_shared< surrogate::LeastSquares >( path_to_svd, dim, q, level, ds );
          }
-         downsampling_[lvl] = ds;
-         poly_degree_[lvl]  = q;
+         downsampling_[level] = ds;
+         poly_degree_[level]  = q;
       }
 
       if ( dim == 2 )
       {
-         compute_local_surrogates_2d( lvl );
+         compute_local_surrogates_2d( level );
       }
       else
       {
-         compute_local_surrogates_3d( lvl );
+         compute_local_surrogates_3d( level );
       }
    }
 
@@ -124,55 +124,55 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( uint_t lvl )
+void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( uint_t level )
 {
-   const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( lvl );
+   const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( level );
 
    for ( const auto& [id, face] : storage_->getFaces() )
    {
-      auto& a_loc = a_loc_2d_[id][lvl];
+      auto& a_loc = a_loc_2d_[id][level];
 
       a_loc.resize( numMicroFacesPerMacroFace );
 
       for ( const auto& fType : facedof::allFaceTypes )
       {
-         for ( const auto& micro : facedof::macroface::Iterator( lvl, fType, 0 ) )
+         for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
          {
-            const auto idx = facedof::macroface::index( lvl, micro.x(), micro.y(), fType );
+            const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
             a_loc[idx].setZero();
-            assembleLocalElementMatrix2D( *face, lvl, micro, fType, form_, a_loc[idx] );
+            assembleLocalElementMatrix2D( *face, level, micro, fType, form_, a_loc[idx] );
          }
       }
    }
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_3d( uint_t lvl )
+void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_3d( uint_t level )
 {
-   const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( lvl );
+   const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
 
    for ( const auto& [id, cell] : storage_->getCells() )
    {
-      auto& a_loc = a_loc_3d_[id][lvl];
+      auto& a_loc = a_loc_3d_[id][level];
       a_loc.resize( numMicroCellsPerMacroCell );
 
       for ( const auto& cType : celldof::allCellTypes )
       {
-         for ( const auto& micro : celldof::macrocell::Iterator( lvl, cType, 0 ) )
+         for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
          {
-            const auto idx = celldof::macrocell::index( lvl, micro.x(), micro.y(), micro.z(), cType );
+            const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
             a_loc[idx].setZero();
-            assembleLocalElementMatrix3D( *cell, lvl, micro, cType, form_, a_loc[idx] );
+            assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, a_loc[idx] );
          }
       }
    }
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint_t lvl )
+void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint_t level )
 {
-   auto  q   = poly_degree_[lvl];
-   auto& lsq = *lsq_[lvl];
+   auto  q   = poly_degree_[level];
+   auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 2 > rhs;
    for ( uint_t i = 0; i < rhs.size(); ++i )
@@ -192,7 +192,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
          while ( it != it.end() )
          {
             Matrix3r elMat( Matrix3r::Zero() );
-            assembleLocalElementMatrix2D( *face, lvl, it.ijk(), fType, form_, elMat );
+            assembleLocalElementMatrix2D( *face, level, it.ijk(), fType, form_, elMat );
             for ( uint_t i = 0; i < rhs.size(); ++i )
             {
                for ( uint_t j = 0; j < rhs[i].size(); ++j )
@@ -203,7 +203,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
-         auto& surrogate = surrogate_2d_[id][lvl][uint_t( fType )];
+         auto& surrogate = surrogate_2d_[id][level][uint_t( fType )];
          for ( uint_t i = 0; i < rhs.size(); ++i )
          {
             for ( uint_t j = 0; j < rhs[i].size(); ++j )
@@ -219,10 +219,10 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint_t lvl )
+void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint_t level )
 {
-   auto  q   = poly_degree_[lvl];
-   auto& lsq = *lsq_[lvl];
+   auto  q   = poly_degree_[level];
+   auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 3 > rhs;
    for ( uint_t i = 0; i < rhs.size(); ++i )
@@ -242,7 +242,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
          while ( it != it.end() )
          {
             Matrix4r elMat( Matrix4r::Zero() );
-            assembleLocalElementMatrix3D( *cell, lvl, it.ijk(), cType, form_, elMat );
+            assembleLocalElementMatrix3D( *cell, level, it.ijk(), cType, form_, elMat );
             for ( uint_t i = 0; i < rhs.size(); ++i )
             {
                for ( uint_t j = 0; j < rhs[i].size(); ++j )
@@ -253,7 +253,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
-         auto& surrogate = surrogate_3d_[id][lvl][uint_t( cType )];
+         auto& surrogate = surrogate_3d_[id][level][uint_t( cType )];
          for ( uint_t i = 0; i < rhs.size(); ++i )
          {
             for ( uint_t j = 0; j < rhs[i].size(); ++j )
@@ -438,25 +438,27 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
                                                          real_t* const           dstVertexData,
                                                          const real_t&           alpha ) const
 {
-   Matrix3r elMat( Matrix3r::Zero() );
+   auto& id = face.getID();
 
    if ( level < min_lvl_for_surrogate )
    {
+      auto& a_loc = a_loc_2d_.at( id )[level];
+
       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
       {
-         // todo: use precomputed matrices
-         //    elMat = localElementMatrix2D( face, level, micro, fType );
-         assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
-         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+         // assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
+         const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
+         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, a_loc[idx], alpha );
       }
    }
    else
    {
       // surrogate polynomials
-      auto& surrogate = surrogate_2d_.at( face.getID() )[level][uint_t( fType )];
+      auto& surrogate = surrogate_2d_.at( id )[level][uint_t( fType )];
       // domain of surrogates
       surrogate::polynomial::Coordinates poly_domain( level );
-
+      // local stiffness matrix
+      Matrix3r elMat( Matrix3r::Zero() );
       // todo: use optimized polynomial evaluation
       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
       {
@@ -482,25 +484,27 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                                                          real_t* const           dstVertexData,
                                                          const real_t&           alpha ) const
 {
-   Matrix4r elMat( Matrix4r::Zero() );
+   auto& id = cell.getID();
 
    if ( level < min_lvl_for_surrogate )
    {
+      auto& a_loc = a_loc_3d_.at( id )[level];
+
       for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
       {
-         // todo: use precomputed matrices
-         //    elMat = localElementMatrix2D( face, level, micro, fType );
-         assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
-         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+         // assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
+         const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
+         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, a_loc[idx], alpha );
       }
    }
    else
    {
       // surrogate polynomials
-      auto& surrogate = surrogate_3d_.at( cell.getID() )[level][uint_t( cType )];
+      auto& surrogate = surrogate_3d_.at( id )[level][uint_t( cType )];
       // domain of surrogates
       surrogate::polynomial::Coordinates poly_domain( level );
-
+      // local stiffness matrix
+      Matrix4r elMat( Matrix4r::Zero() );
       // todo: use optimized polynomial evaluation
       for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
       {
@@ -743,6 +747,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions
                                                                                     real_t* const           vertexData )
 {
    // todo
+
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
    std::array< Point3D, 4 >         coords;
