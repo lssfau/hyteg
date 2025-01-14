@@ -179,12 +179,11 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
    {
       std::visit(
           [&io, &entry]( const auto& arg ) {
-             using T = std::decay_t< decltype( arg ) >;
+             using T                = std::decay_t< decltype( arg ) >;
              const std::string& key = entry.first;
 
              if ( isAdiosDataType< T, adiostype_t >::value )
              {
-
                 // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
                 if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
                    writeAttribute( io, key, static_cast< intData_t >( arg ) );
@@ -206,10 +205,14 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
 #endif
 }
 
-/// Write all user-defined single-value attributes from a map to ADIOS2 ouptut
+/// Read all user-defined attributes into the user-passed map from ADIOS2 importer
+/// \param io                     ADIOS2 IO object
+/// \param userDefinedAttributes  std::map with
+///                               [key, value] = [attribute name(std::string), attribute value(adiostype_t = std::variant)]
+///                               which must be demo initialized by the user including correct variable type
 inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_t >& userDefinedAttributes )
 {
-   // integer datatype for output
+   // integer datatype for input
    using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
 
    if ( userDefinedAttributes.empty() )
@@ -230,18 +233,18 @@ inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_
                 // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
                 if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
                 {
-                   adios2::Attribute< intData_t > data = readAttribute<intData_t>( io, key );
-                   entry.second = static_cast< T >( data.Data()[0] );
+                   adios2::Attribute< intData_t > data = readAttribute< intData_t >( io, key );
+                   entry.second                        = static_cast< T >( data.Data()[0] );
                 }
                 else if constexpr ( std::is_same_v< T, bool > )
                 {
-                   adios2::Attribute< std::string > data = readAttribute<std::string>( io, key );
-                   entry.second = (data.Data()[0] == std::string("true"));
+                   adios2::Attribute< std::string > data = readAttribute< std::string >( io, key );
+                   entry.second                          = ( data.Data()[0] == std::string( "true" ) );
                 }
                 else
                 {
-                  adios2::Attribute< T > data = readAttribute<T>( io, key );
-                  entry.second = data.Data()[0];
+                   adios2::Attribute< T > data = readAttribute< T >( io, key );
+                   entry.second                = data.Data()[0];
                 }
              }
              else
@@ -256,7 +259,7 @@ inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_
    {
       std::visit(
           [&io, &entry]( const auto& arg ) {
-             using T = std::decay_t< decltype( arg ) >;
+             using T                = std::decay_t< decltype( arg ) >;
              const std::string& key = entry.first;
 
              if ( isAdiosDataType< T, adiostype_t >::value )
@@ -264,18 +267,18 @@ inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_
                 // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
                 if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
                 {
-                   adios2::Attribute< intData_t > data = readAttribute<intData_t>( io, key );
-                   entry.second = static_cast< T >( data.Data()[0] );
+                   adios2::Attribute< intData_t > data = readAttribute< intData_t >( io, key );
+                   entry.second                        = static_cast< T >( data.Data()[0] );
                 }
                 else if constexpr ( std::is_same_v< T, bool > )
                 {
-                   adios2::Attribute< std::string > data = readAttribute<std::string>( io, key );
-                   entry.second = (data.Data()[0] == std::string("true"));
+                   adios2::Attribute< std::string > data = readAttribute< std::string >( io, key );
+                   entry.second                          = ( data.Data()[0] == std::string( "true" ) );
                 }
                 else
                 {
-                  adios2::Attribute< T > data = readAttribute<T>( io, key );
-                  entry.second = data.Data()[0];
+                   adios2::Attribute< T > data = readAttribute< T >( io, key );
+                   entry.second                = data.Data()[0];
                 }
              }
              else

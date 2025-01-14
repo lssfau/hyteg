@@ -112,10 +112,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// - string describing its data-type (aka value-type), such as e.g. "double"
    /// - the minimum refinement level for which data are present in the checkpoint
    /// - the maximum refinement level for which data are present in the checkpoint
-   const std::vector< FunctionDescription >& getFunctionDetails() const
-   {
-      return funcDescr_;
-   }
+   const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
 
    /// On the root process print information on the checkoint file (format, contents, ...) to standard output
    void printCheckpointInfo()
@@ -238,9 +235,13 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       return timestepInfo;
    }
 
+   /// Read all user-defined attributes into the user-passed map from ADIOS2 importer
+   /// \param userAttributes std::map with
+   ///                       [key, value] = [attribute name(std::string), attribute value(adiostype_t = std::variant)]
+   ///                       which must be demo initialized by the user including correct variable type
    void readAllUserAttributes( std::map< std::string, adiosHelpers::adiostype_t >& userAttributes )
    {
-      adiosHelpers::readAllAttributes(io_, userAttributes);
+      adiosHelpers::readAllAttributes( io_, userAttributes );
    }
 
  private:

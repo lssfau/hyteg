@@ -168,8 +168,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
    inline void storeCheckpoint( std::string filePath, std::string fileName )
    {
-      std::vector< std::string > userAttributeNames;
-      std::vector< std::string > userAttributeValues;
+      std::vector< std::string >                         userAttributeNames;
+      std::vector< std::string >                         userAttributeValues;
       std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes;
       storeCheckpoint( filePath, fileName, userDefinedAttributes );
    }
@@ -180,8 +180,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
    /// \param userAttributeNames   list of names for additional attributes
    /// \param userAttributeValues  list of strings with data for the additional attributes
-   inline void storeCheckpoint( std::string                       filePath,
-                                std::string                       fileName,
+   inline void storeCheckpoint( std::string                                              filePath,
+                                std::string                                              fileName,
                                 const std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes )
    {
       // create the writer and engine for the export
@@ -215,7 +215,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       defineAndOrExportVariables< P2VectorFunction, int64_t >( io, engine );
 
       // add user defined attributes
-      adiosHelpers::writeAllAttributes(io, userDefinedAttributes);
+      adiosHelpers::writeAllAttributes( io, userDefinedAttributes );
       // WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
       // for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
       // {

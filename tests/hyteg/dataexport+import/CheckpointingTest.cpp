@@ -130,7 +130,7 @@ void storeCheckpoint( std::string filePath, std::string fileName )
    checkpointer.registerFunction( funcP2Vec, minLevel, maxLevel );
    checkpointer.registerFunction( stokesFunc, maxLevel, maxLevel );
 
-   std::map< std::string, adiosHelpers::adiostype_t > userAttributes = {{"MeshFile", meshFileName}};
+   std::map< std::string, adiosHelpers::adiostype_t > userAttributes = { { "MeshFile", meshFileName } };
 
    checkpointer.storeCheckpoint( filePath, fileName, userAttributes );
 }
