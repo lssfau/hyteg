@@ -66,6 +66,7 @@ list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}
 
 # mark walberla include as system to prevent warning from walberla code
 target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
+target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
 
 add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
 add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable -Wno-implicit-float-conversion -Wno-unused-local-typedef")
@@ -168,6 +169,16 @@ if ( HYTEG_BUILD_WITH_PETSC )
     include(CheckSymbolExists)
     unset(HYTEG_PETSC_BUILT_WITH_HDF5 CACHE)
     check_symbol_exists(PETSC_HAVE_HDF5 petscconf.h  HYTEG_PETSC_BUILT_WITH_HDF5)
+    if ( HYTEG_PETSC_BUILT_WITH_HDF5 )
+       find_path( HDF5_PATH hdf5.h )
+       if ( HDF5_PATH )
+          message( STATUS ${HDF5_PATH} )
+          target_include_directories( PETSc::PETSc SYSTEM INTERFACE "${HDF5_PATH}" )
+       else ()
+          message( WARNING "PETSc was build with hdf5 support but hdf5.h could not be found.\
+          Add the path to hdf5.h with e.g. -DCMAKE_PREFIX_PATH=\${HDF5_INCLUDE_DIR}" )
+       endif ()
+    endif ()
 endif()
 
 if ( HYTEG_BUILD_WITH_TRILINOS )

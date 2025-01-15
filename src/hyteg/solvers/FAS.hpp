@@ -58,6 +58,8 @@ class FASSolver : public Solver< OperatorType >
    , preSmoothSteps_( preSmoothSteps )
    , postSmoothSteps_( postSmoothSteps )
    , smoothIncrement_( smoothIncrementOnCoarserGrids )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , cycleType_( cycleType )
    , smoother_( smoother )
    , coarseSolver_( coarseSolver )
    , restrictionOperator_( restrictionOperator )

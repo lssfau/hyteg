@@ -34,6 +34,8 @@ class PETScVectorProxy : public VectorProxy
    : vec_( vec )
    {}
 
+   virtual ~PETScVectorProxy() = default;
+
 #ifndef PETSC_USE_COMPLEX
    /// \brief Sets the passed value in the vector.
    virtual void setValue( uint_t idx, real_t value )
