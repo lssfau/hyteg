@@ -20,12 +20,14 @@
  */
 
 #include "Simulation.hpp"
+#include "hyteg/Git.hpp"
 
 int main( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    walberla::WcTimer timeStepTimer;
+   hyteg::printGitInfo();
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    hyteg::PETScManager manager( &argc, &argv );

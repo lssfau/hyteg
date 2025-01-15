@@ -86,6 +86,11 @@ void ConvectionSimulation::setupDomain()
    IcosahedralShellMap::setMap( *setupStorage );
 
    storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
+   auto storageInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( "--- PrimitiveStorage Info ----" )
+   WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
 }
 
 // Setup boundary conditions
