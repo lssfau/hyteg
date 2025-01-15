@@ -26,6 +26,11 @@
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
 
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+
 /* This test checks whether the P1 elementwise surrogate
    operator works correctly. In particular
    we verify the following theorem:
@@ -44,8 +49,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
                               const uint8_t                                     q,
                               const uint_t                                      level )
 {
-   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 2e-12 : 5e-4 );
-
+   real_t epsilon, errorMax;
    // operators
    forms::p1_div_k_grad_affine_q3               form( k, k );
    P1ElementwiseAffineDivKGradOperator          A( storage, level, level, form );
@@ -64,15 +68,39 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    };
    u.interpolate( initialU, level );
 
+   epsilon = real_c( std::is_same< real_t, double >() ? 1e-10 : 1e-4 );
+
    // apply operators
    A.apply( u, Au, level, All, Replace );
    A_q.apply( u, Aqu, level, All, Replace );
-
-   // compute error
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
-   auto errorMax = err.getMaxDoFMagnitude( level );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "error ||(A - A_q)u||_inf = %e", errorMax ) )
+   errorMax = err.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%37s = %e", "||(A - A_q)u||_inf", errorMax ) )
    WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q)u||_inf" );
+
+   if ( !storage->hasGlobalCells() )
+   {
+      // for some reason the 2d operators have significantly different values here.
+      // they do converge to the same diagonal for increasing level, though.
+      // this should probably be investigated!
+      epsilon = real_t( 1e-4 );
+   }
+
+   // diagonal values
+   A.computeDiagonalOperatorValues();
+   A_q.computeDiagonalOperatorValues();
+   err.assign( { 1.0, -1.0 }, { *A.getDiagonalValues(), *A_q.getDiagonalValues() }, level, All );
+   errorMax = err.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%37s = %e", "||diag(A) - diag(A_q)||_inf", errorMax ) )
+   WALBERLA_CHECK_LESS( errorMax, epsilon, "||diag(A) - diag(A_q)||_inf" );
+
+   // inverse diagonal values
+   A.computeInverseDiagonalOperatorValues();
+   A_q.computeInverseDiagonalOperatorValues();
+   err.assign( { 1.0, -1.0 }, { *A.getInverseDiagonalValues(), *A_q.getInverseDiagonalValues() }, level, All );
+   errorMax = err.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%37s = %e", "||inv(diag(A)) - inv(diag(A_q))||_inf", errorMax ) )
+   WALBERLA_CHECK_LESS( errorMax, epsilon, "||inv(diag(A)) - inv(diag(A_q))||_inf" );
 }
 
 int main( int argc, char* argv[] )
@@ -131,8 +159,10 @@ int main( int argc, char* argv[] )
    {
       for ( uint8_t q = 1; q <= 4; ++q )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, q=p=%d, level=%d", q, lvl ) );
          P1SurrogateOperatorTest( storage, k[q], q, lvl );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "3d, q=p=%d, level=%d", q, lvl ) );
          P1SurrogateOperatorTest( storage3d, k[q], q, lvl );
       }

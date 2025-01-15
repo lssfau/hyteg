@@ -163,12 +163,6 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                   uint_t                                      level,
                   DoFType                                     flag ) const override;
 
-   /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
-   ///
-   /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
-   /// If the local element matrices need to be recomputed again, simply call this method again.
-   void computeAndStoreLocalElementMatrices();
-
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
    void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
@@ -194,7 +188,7 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    };
 
  private:
-   /// compute matrix vector product in 2d
+   /// compute matrix vector product on all micro faces of given type
    ///
    /// \param face           macro face
    /// \param level          level on which we operate in mesh hierarchy
@@ -209,7 +203,7 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                   real_t* const           dstVertexData,
                   const real_t&           alpha ) const;
 
-   /// compute matrix vector product in 3d
+   /// compute matrix vector product on all micro cells of given type
    ///
    /// \param cell           macro cell
    /// \param level          level on which we operate in mesh hierarchy
@@ -262,33 +256,28 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                      const Matrix4r&         elMat,
                                      const real_t&           alpha ) const;
 
-   /// Compute contributions to operator diagonal for given micro-face
+   /// compute contributions to diagonal of on all micro faces of given type
    ///
-   /// \param face           face primitive we operate on
+   /// \param face           macro face
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param xIdx           column index of vertex specifying micro-element
-   /// \param yIdx           row index of vertex specifying micro-element
-   /// \param element        element specification w.r.t. to micro-vertex
+   /// \param fType          type of micro-face (GRAY or BLUE)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   void computeLocalDiagonalContributions2D( const Face&                                face,
-                                             const uint_t                               level,
-                                             const idx_t                                xIdx,
-                                             const idx_t                                yIdx,
-                                             const P1Elements::P1Elements2D::P1Element& element,
-                                             real_t* const                              dstVertexData );
+   void diagonal_contributions_2d( const Face&             face,
+                                   const uint_t            level,
+                                   const facedof::FaceType fType,
+                                   real_t* const           dstVertexData );
 
-   /// Compute contributions to operator diagonal for given micro-face
+   /// compute contributions to diagonal of on all micro cells of given type
    ///
-   /// \param cell           cell primitive we operate on
+   /// \param cell           macro cell
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param microCell      index associated with the current element = micro-cell
    /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
-   /// \param vertexData     pointer to DoF data for storing diagonal values for vertex DoF stencils
-   void computeLocalDiagonalContributions3D( const Cell&             cell,
-                                             const uint_t            level,
-                                             const indexing::Index&  microCell,
-                                             const celldof::CellType cType,
-                                             real_t* const           vertexData );
+   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
+   void diagonal_contributions_3d( const Cell&             cell,
+                                   const uint_t            level,
+                                   const celldof::CellType cType,
+                                   real_t* const           dstVertexData );
+
 
    void precompute_local_stiffness_2d( uint_t lvl );
    void precompute_local_stiffness_3d( uint_t lvl );

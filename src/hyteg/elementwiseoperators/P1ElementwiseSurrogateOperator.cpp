@@ -441,19 +441,17 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
    auto& id = face.getID();
 
    if ( level < min_lvl_for_surrogate )
-   {
+   { // use precomputed local matrices
       auto& a_loc = a_loc_2d_.at( id )[level];
 
       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
       {
-         // assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
          const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
          localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, a_loc[idx], alpha );
       }
    }
    else
-   {
-      // surrogate polynomials
+   { // use surrogate polynomials to approximate local matrices
       auto& surrogate = surrogate_2d_.at( id )[level][uint_t( fType )];
       // domain of surrogates
       surrogate::polynomial::Coordinates poly_domain( level );
@@ -487,19 +485,17 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
    auto& id = cell.getID();
 
    if ( level < min_lvl_for_surrogate )
-   {
+   { // use precomputed local matrices
       auto& a_loc = a_loc_3d_.at( id )[level];
 
       for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
       {
-         // assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
          const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
          localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, a_loc[idx], alpha );
       }
    }
    else
    {
-      // surrogate polynomials
       auto& surrogate = surrogate_3d_.at( id )[level][uint_t( cType )];
       // domain of surrogates
       surrogate::polynomial::Coordinates poly_domain( level );
@@ -587,7 +583,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply3D( cons
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bool invert )
 {
-   // todo
    std::shared_ptr< P1Function< real_t > > targetFunction;
    if ( invert )
    {
@@ -624,16 +619,17 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
             Cell& cell = *macroIter.second;
 
             // get hold of the actual numerical data
-            PrimitiveDataID< FunctionMemory< real_t >, Cell > diagVertexDoFIdx = targetFunction->getCellDataID();
-            real_t* diagVertexData = cell.getData( diagVertexDoFIdx )->getPointer( level );
+            auto    vertexDoFIdx = targetFunction->getCellDataID();
+            real_t* vertexData   = cell.getData( vertexDoFIdx )->getPointer( level );
 
             // loop over micro-cells
             for ( const auto& cType : celldof::allCellTypes )
             {
-               for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-               {
-                  computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData );
-               }
+               diagonal_contributions_3d( cell, level, cType, vertexData );
+               // for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+               // {
+               //    computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData );
+               // }
             }
          }
 
@@ -642,7 +638,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
          targetFunction->communicateAdditively< Cell, Edge >( level );
          targetFunction->communicateAdditively< Cell, Vertex >( level );
       }
-
       else
       {
          // we only perform computations on face primitives
@@ -650,45 +645,43 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
          {
             Face& face = *it.second;
 
-            uint_t          rowsize       = levelinfo::num_microvertices_per_edge( level );
-            uint_t          inner_rowsize = rowsize;
-            idx_t           xIdx, yIdx;
-            Point3D         v0, v1, v2;
-            indexing::Index nodeIdx;
-            indexing::Index offset;
-
             // get hold of the actual numerical data in the two functions
-            PrimitiveDataID< FunctionMemory< real_t >, Face > vertexDoFIdx = targetFunction->getFaceDataID();
-            real_t*                                           vertexData   = face.getData( vertexDoFIdx )->getPointer( level );
+            auto    vertexDoFIdx = targetFunction->getFaceDataID();
+            real_t* vertexData   = face.getData( vertexDoFIdx )->getPointer( level );
 
-            // now loop over micro-faces of macro-face
-            for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
+            for ( const auto& fType : facedof::allFaceTypes )
             {
-               // loop over vertices in row with two associated triangles
-               for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
-               {
-                  // we associate two elements with current micro-vertex
-                  computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementN, vertexData );
-                  computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
-               }
-               --inner_rowsize;
-
-               // final micro-vertex in row has only one associated micro-face
-               computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
+               diagonal_contributions_2d( face, level, fType, vertexData );
             }
 
-            // top north-west micro-element not treated, yet
-            computeLocalDiagonalContributions2D( face, level, 1, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
+            // // now loop over micro-faces of macro-face
+            // for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
+            // {
+            //    // loop over vertices in row with two associated triangles
+            //    for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
+            //    {
+            //       // we associate two elements with current micro-vertex
+            //       computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementN, vertexData );
+            //       computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
+            //    }
+            //    --inner_rowsize;
+
+            //    // final micro-vertex in row has only one associated micro-face
+            //    computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
+            // }
+
+            // // top north-west micro-element not treated, yet
+            // computeLocalDiagonalContributions2D( face, level, 1, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
          }
 
          // Push result to lower-dimensional primitives
          targetFunction->communicateAdditively< Face, Edge >( level );
          targetFunction->communicateAdditively< Face, Vertex >( level );
-
-         // Retrieve assembled data values
-         targetFunction->communicate< Vertex, Edge >( level );
-         targetFunction->communicate< Edge, Face >( level );
       }
+      // Retrieve assembled data values
+      targetFunction->communicate< Vertex, Edge >( level );
+      targetFunction->communicate< Edge, Face >( level );
+      targetFunction->communicate< Face, Cell >( level );
 
       // Invert values if desired (note: using false below means we only invert in the interior of the primitives,
       // the values in the halos are untouched; should be okay for using diagonalValue_ in smoothers)
@@ -700,76 +693,106 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions2D(
-    const Face&                                face,
-    const uint_t                               level,
-    const idx_t                                xIdx,
-    const idx_t                                yIdx,
-    const P1Elements::P1Elements2D::P1Element& element,
-    real_t* const                              dstVertexData )
+void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const Face&             face,
+                                                                          const uint_t            level,
+                                                                          const facedof::FaceType fType,
+                                                                          real_t* const           dstVertexData )
 {
-   // todo
-   Matrix3r                elMat( Matrix3r::Zero() );
-   indexing::Index         nodeIdx;
-   indexing::Index         offset;
-   Point3D                 v0, v1, v2;
-   std::array< uint_t, 6 > dofDataIdx;
-   P1Form                  form( form_ );
+   // add local contributions of micro to global diagonal
+   auto extract_diagonal_values = [&]( const indexing::Index& micro, const Matrix3r& elMat ) {
+      // obtain data indices of dofs associated with micro-face
+      std::array< uint_t, 3 > vertexDoFIndices;
+      vertexdof::getVertexDoFDataIndicesFromMicroFace( micro, fType, level, vertexDoFIndices );
+      // extract matrix diagonal
+      for ( int k = 0; k < 3; ++k )
+      {
+         dstVertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
+      }
+   };
 
-   // determine vertices of micro-element
-   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
-   v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
-   offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
-   offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+   auto& id = face.getID();
 
-   // assemble local element matrix
-   form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( { v0, v1, v2 }, elMat );
+   if ( level < min_lvl_for_surrogate )
+   { // use precomputed local matrices
+      auto& a_loc = a_loc_2d_.at( id )[level];
 
-   // get global indices for local dofs
-   dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
-   dofDataIdx[1] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[1] );
-   dofDataIdx[2] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[2] );
+      for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+      {
+         const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
 
-   // add local contributions to diagonal entries
-   dstVertexData[dofDataIdx[0]] += elMat( 0, 0 );
-   dstVertexData[dofDataIdx[1]] += elMat( 1, 1 );
-   dstVertexData[dofDataIdx[2]] += elMat( 2, 2 );
+         extract_diagonal_values( micro, a_loc[idx] );
+      }
+   }
+   else
+   { // use surrogate polynomials to approximate local matrices
+      auto& surrogate = surrogate_2d_.at( id )[level][uint_t( fType )];
+      // domain of surrogates
+      surrogate::polynomial::Coordinates poly_domain( level );
+      // local stiffness matrix
+      Matrix3r elMat( Matrix3r::Zero() );
+      // todo: use optimized polynomial evaluation
+      for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+      {
+         auto x = poly_domain( micro );
+
+         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         {
+            elMat( i, i ) = surrogate[i][i].eval_naive( x );
+         }
+         extract_diagonal_values( micro, elMat );
+      }
+   }
 }
 
 template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::computeLocalDiagonalContributions3D( const Cell&             cell,
-                                                                                    const uint_t            level,
-                                                                                    const indexing::Index&  microCell,
-                                                                                    const celldof::CellType cType,
-                                                                                    real_t* const           vertexData )
+void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const Cell&             cell,
+                                                                          const uint_t            level,
+                                                                          const celldof::CellType cType,
+                                                                          real_t* const           dstVertexData )
 {
-   // todo
+   // add local contributions of micro to global diagonal
+   auto extract_diagonal_values = [&]( const indexing::Index& micro, const Matrix4r& elMat ) {
+      // obtain data indices of dofs associated with micro-cell
+      std::array< uint_t, 4 > vertexDoFIndices;
+      vertexdof::getVertexDoFDataIndicesFromMicroCell( micro, cType, level, vertexDoFIndices );
+      // extract matrix diagonal
+      for ( int k = 0; k < 4; ++k )
+      {
+         dstVertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
+      }
+   };
 
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-   std::array< Point3D, 4 >         coords;
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+   auto& id = cell.getID();
+
+   if ( level < min_lvl_for_surrogate )
+   { // use precomputed local matrices
+      auto& a_loc = a_loc_3d_.at( id )[level];
+
+      for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+      {
+         const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
+
+         extract_diagonal_values( micro, a_loc[idx] );
+      }
    }
+   else
+   { // use surrogate polynomials to approximate local matrices
+      auto& surrogate = surrogate_3d_.at( id )[level][uint_t( cType )];
+      // domain of surrogates
+      surrogate::polynomial::Coordinates poly_domain( level );
+      // local stiffness matrix
+      Matrix4r elMat( Matrix4r::Zero() );
+      // todo: use optimized polynomial evaluation
+      for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+      {
+         auto x = poly_domain( micro );
 
-   // assemble local element matrix
-   Matrix4r elMat( Matrix4r::Zero() );
-   P1Form   form( form_ );
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-
-   // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 4 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
-
-   // add contributions for central stencil weights
-   for ( int k = 0; k < 4; ++k )
-   {
-      vertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
+         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         {
+            elMat( i, i ) = surrogate[i][i].eval_naive( x );
+         }
+         extract_diagonal_values( micro, elMat );
+      }
    }
 }
 
