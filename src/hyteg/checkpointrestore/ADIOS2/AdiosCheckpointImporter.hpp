@@ -215,24 +215,31 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       return true;
    }
 
-   std::vector< real_t > getTimestepInfo()
+   const std::vector< real_t >& getTimestepInfo()
    {
-      auto varTimestepInfo = io_.InquireVariable< real_t >( "TIME" );
-      auto nSteps          = varTimestepInfo.Steps();
-
-      std::vector< real_t > timestepInfo;
-
-      timestepInfo.resize( nSteps );
-
-      for ( uint_t idx = 0u; idx < nSteps; ++idx )
+      if ( isTimestepInfoReadIn )
       {
-         varTimestepInfo.SetStepSelection( { idx, 1u } );
-         engine_.Get( varTimestepInfo, timestepInfo[idx] );
+         return timestepInfo;
       }
+      else
+      {
+         auto varTimestepInfo = io_.InquireVariable< real_t >( "TIME" );
+         auto nSteps          = varTimestepInfo.Steps();
 
-      engine_.PerformGets();
+         timestepInfo.resize( nSteps );
 
-      return timestepInfo;
+         for ( uint_t idx = 0u; idx < nSteps; ++idx )
+         {
+            varTimestepInfo.SetStepSelection( { idx, 1u } );
+            engine_.Get( varTimestepInfo, timestepInfo[idx] );
+         }
+
+         engine_.PerformGets();
+
+         isTimestepInfoReadIn = true;
+
+         return timestepInfo;
+      }
    }
 
    /// Read all user-defined attributes into the user-passed map from ADIOS2 importer
@@ -253,6 +260,8 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    ///@}
 
    std::vector< real_t > timestepInfo;
+
+   bool isTimestepInfoReadIn = false;
 
    /// meta information on the FE functions stored in the checkpoint
    std::vector< FunctionDescription > funcDescr_;

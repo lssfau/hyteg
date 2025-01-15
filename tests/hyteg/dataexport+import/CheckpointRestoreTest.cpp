@@ -197,6 +197,8 @@ auto importCheckpointContinuous( const std::string&                         file
    func_t< value_t > feFunc( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
 
    std::vector< real_t > timestepInfo = restorer.getTimestepInfo();
+   timestepInfo = restorer.getTimestepInfo();
+   timestepInfo = restorer.getTimestepInfo();
 
    uint_t checkpointSteps = timestepInfo.size();
 
