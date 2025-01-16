@@ -47,11 +47,11 @@ struct Monomial
    using compression_t = int16_t;
 
    // bit masks for exponents
-   static constexpr int           SHIFT_J = 5;
-   static constexpr int           SHIFT_K = 10;
-   static constexpr compression_t I       = 1;
-   static constexpr compression_t J       = 1 << SHIFT_J;
-   static constexpr compression_t K       = 1 << SHIFT_K;
+   static constexpr int SHIFT_J = 5;
+   static constexpr int SHIFT_K = 10;
+   static constexpr int I       = 1;
+   static constexpr int J       = 1 << SHIFT_J;
+   static constexpr int K       = 1 << SHIFT_K;
 
    // internal data
    compression_t ijk_compressed;
@@ -66,15 +66,15 @@ struct Monomial
    {}
 
    // extract exponent i of x^i*y^j*z^k
-   constexpr inline uint_t i() const { return ijk_compressed & compression_t( J - 1 ); }
+   constexpr inline int i() const { return ijk_compressed & ( J - 1 ); }
    // extract exponent j of x^i*y^j*z^k
-   constexpr inline uint_t j() const { return ( ijk_compressed & compression_t( K - 1 ) ) >> SHIFT_J; }
+   constexpr inline int j() const { return ( ijk_compressed & ( K - 1 ) ) >> SHIFT_J; }
    // extract exponent k of x^i*y^j*z^k
-   constexpr inline uint_t k() const { return ijk_compressed >> SHIFT_K; }
+   constexpr inline int k() const { return ijk_compressed >> SHIFT_K; }
    // extract exponents i,j,k from compressed basis function
-   constexpr inline std::array< uint_t, 3 > expand() const { return { i(), j(), k() }; }
+   constexpr inline std::array< int, 3 > expand() const { return { i(), j(), k() }; }
    // total polynomial degree of this basis function
-   constexpr inline uint_t degree() const { return i() + j() + k(); }
+   constexpr inline int degree() const { return i() + j() + k(); }
 
    // evaluate basis function at x
    constexpr inline double eval( const PointND< double, 3 >& x ) const
@@ -83,11 +83,11 @@ struct Monomial
 
       double val = 1.0;
 
-      for ( uint_t p = 0; p < i; ++p )
+      for ( int p = 0; p < i; ++p )
          val *= x[0]; // compute x^i
-      for ( uint_t p = 0; p < j; ++p )
+      for ( int p = 0; p < j; ++p )
          val *= x[1]; // compute y^j
-      for ( uint_t p = 0; p < k; ++p )
+      for ( int p = 0; p < k; ++p )
          val *= x[2]; // compute z^k
 
       return val;
@@ -287,7 +287,7 @@ class Polynomial : public std::vector< double >
    // get basis of polynomial space
    const Basis& basis() const { return *_basis; }
    // get i-th basis function
-   const Monomial& phi( uint_t i ) const { return basis()[i]; }
+   const Monomial& phi( idx_t i ) const { return basis()[i]; }
 
  private:
    // fix coordinate s.th. only lower dimensional polynomial must be evaluated
@@ -308,7 +308,7 @@ class Polynomial : public std::vector< double >
          const auto max_k = _q - phi( ij ).degree();
 
          _restriction->c( ij ) = c( ij ); // k=0
-         for ( uint_t k = 1; k <= max_k; ++k )
+         for ( int k = 1; k <= max_k; ++k )
          {
             _restriction->c( ij ) += c( ijk++ ) * z_pow[k];
          }

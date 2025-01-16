@@ -21,11 +21,11 @@
 #include <core/Environment.h>
 #include <core/Format.hpp>
 #include <core/config/Create.h>
+#include <core/logging/Logging.h>
 #include <core/math/Constants.h>
 #include <core/math/Random.h>
 #include <core/timing/Timer.h>
 #include <filesystem>
-#include <hyteg/polynomial/elementwise/leastSquares.hpp>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
 
 using walberla::uint_t;
@@ -33,12 +33,13 @@ using walberla::math::pi;
 using walberla::math::realRandom;
 
 // test correctness of basis functions
-void MonomialBasisTest( uint_t i, uint_t j, uint_t k )
+void MonomialBasisTest( int i, int j, int k )
 {
    // ---------------------------------------------------------
    /// initialize polynomial p(x,y,z) = x^i * y^j * z^k
    // ---------------------------------------------------------
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Monomial(%d, %d, %d)", i, j, k ) );
+   // auto p = hyteg::surrogate::polynomial::Monomial( uint_t( i ), uint_t( j ), uint_t( k ) );
    hyteg::surrogate::polynomial::Monomial p( i, j, k );
 
    // ---------------------------------------------------------
@@ -96,10 +97,10 @@ void PolynomialTest( uint8_t d, uint8_t q )
       z_pow[i + 1] = z_pow[i] * x[2];
    }
    // sum up contributions of each basis function φ_n, i.e., p(x) = ∑_n c_n φ_n(x)
-   for ( size_t n = 0; n < p.size(); ++n )
+   for ( hyteg::idx_t n = 0; n < p.n_coefficients(); ++n )
    {
-      auto [i, j, k] = p.phi( n ).expand();               // φ_n = x^i y^j z^k
-      px_manual += p[n] * x_pow[i] * y_pow[j] * z_pow[k]; // c_n = p[n]
+      auto [i, j, k] = p.phi( n ).expand(); // φ_n = x^i y^j z^k
+      px_manual += p.c( n ) * x_pow[i] * y_pow[j] * z_pow[k];
    }
 
    // ---------------------------------------------------------
@@ -145,11 +146,11 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run tests
    // -------------------
-   for ( uint_t i = 0; i < 5; ++i )
+   for ( int i = 0; i < 5; ++i )
    {
-      for ( uint_t j = 0; j < 5; ++j )
+      for ( int j = 0; j < 5; ++j )
       {
-         for ( uint_t k = 0; k < 5; ++k )
+         for ( int k = 0; k < 5; ++k )
          {
             MonomialBasisTest( i, j, k );
          }

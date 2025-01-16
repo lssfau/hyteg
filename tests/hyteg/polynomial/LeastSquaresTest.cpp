@@ -26,7 +26,6 @@
 #include <core/timing/Timer.h>
 #include <filesystem>
 #include <hyteg/polynomial/elementwise/leastSquares.hpp>
-#include <hyteg/polynomial/elementwise/polynomial.hpp>
 
 using walberla::uint_t;
 using walberla::math::pi;
