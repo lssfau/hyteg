@@ -300,10 +300,12 @@ void P2PlusBubbleFunction< ValueType >::interpolate( const std::function< ValueT
 
                   // evaluate expression at this center and add the correction
                   bubbleData[volumedofspace::indexing::index( microFace.x(), microFace.y(), faceType, 0, 1, level, memLayout )] =
-                    expr( barycenter ) + correction;
+                      expr( barycenter ) + correction;
+
                   // WALBERLA_LOG_INFO_ON_ROOT( " - x(x_b) = " << barycenter[0] << "\n - f(x_b) = " << expr( barycenter )
                   //                                           << "\n - correction = " << -correction << "\n - vertexDoFsum = "
-                  //                                           << vertexDoFsum << "\n - edgeDoFsum = " << edgeDoFsum );
+                  //                                           << vertexDoFsum << "\n - edgeDoFsum = " << edgeDoFsum
+                  //                                           << "\n - bubbleDoF = " << expr( barycenter ) + correction );
                }
             }
          }
