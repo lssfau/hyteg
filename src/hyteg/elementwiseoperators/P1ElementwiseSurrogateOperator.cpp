@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Marcus Mohr, Nils Kohl, Benjamin Mann.
+ * Copyright (c) 2025 Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
