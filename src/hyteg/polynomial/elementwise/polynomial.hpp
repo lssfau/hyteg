@@ -202,17 +202,24 @@ class Polynomial : public std::vector< double >
    }
    inline Polynomial& operator=( Polynomial&& other ) = default;
 
+   // get i-th coefficient w.r.t. monomial basis
+   inline double& c( idx_t i ) { return ( *this )[uint_t( i )]; }
+   // get i-th coefficient w.r.t. monomial basis
+   inline const double& c( idx_t i ) const { return ( *this )[uint_t( i )]; }
+   // get number of coefficients ( = dimension of polynomial space )
+   inline idx_t n_coefficients() const { return idx_t( size() ); }
+
    // set coefficients
    inline void set_coefficients( const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
    {
-      if ( size_t( coeffs.size() ) != size() )
+      if ( coeffs.size() != n_coefficients() )
       {
          WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
       }
 
-      for ( uint_t i = 0; i < size(); ++i )
+      for ( idx_t i = 0; i < n_coefficients(); ++i )
       {
-         ( *this )[i] = coeffs( i );
+         c( i ) = coeffs( i );
       }
    }
 
@@ -249,10 +256,10 @@ class Polynomial : public std::vector< double >
    {
       if ( _d == 1 )
       {
-         auto px = ( *this )[size() - 1];
-         for ( int i = int( size() - 2 ); i >= 0; --i )
+         auto px = c( n_coefficients() - 1 );
+         for ( idx_t i = n_coefficients() - 2; i >= 0; --i )
          {
-            px = px * x + ( *this )[i];
+            px = px * x + c( i );
          }
          return px;
       }
@@ -270,9 +277,9 @@ class Polynomial : public std::vector< double >
    double eval_naive( const PointND< double, 3 >& x ) const
    {
       double p_xyz = 0.0;
-      for ( uint_t i = 0; i < size(); ++i )
+      for ( idx_t i = 0; i < n_coefficients(); ++i )
       {
-         p_xyz += ( *this )[i] * phi( i ).eval( x );
+         p_xyz += c( i ) * phi( i ).eval( x );
       }
       return p_xyz;
    }
@@ -294,16 +301,16 @@ class Polynomial : public std::vector< double >
       }
 
       // first index where the 3d extension starts
-      uint_t ijk = _restriction->size();
+      auto ijk = _restriction->n_coefficients();
       // iterate over coefficients of 2d polynomial
-      for ( uint_t ij = 0; ij < _restriction->size(); ++ij )
+      for ( idx_t ij = 0; ij < _restriction->n_coefficients(); ++ij )
       {
          const auto max_k = _q - phi( ij ).degree();
 
-         ( *_restriction )[ij] = ( *this )[ij]; // k=0
+         _restriction->c( ij ) = c( ij ); // k=0
          for ( uint_t k = 1; k <= max_k; ++k )
          {
-            ( *_restriction )[ij] += ( *this )[ijk++] * z_pow[k];
+            _restriction->c( ij ) += c( ijk++ ) * z_pow[k];
          }
       }
    }

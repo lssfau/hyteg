@@ -35,23 +35,34 @@ using walberla::math::realRandom;
 // test correctness of basis functions
 void MonomialBasisTest( uint_t i, uint_t j, uint_t k )
 {
+   // ---------------------------------------------------------
+   /// initialize polynomial p(x,y,z) = x^i * y^j * z^k
+   // ---------------------------------------------------------
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Monomial(%d, %d, %d)", i, j, k ) );
-
    hyteg::surrogate::polynomial::Monomial p( i, j, k );
 
+   // ---------------------------------------------------------
+   /// test compression
+   // ---------------------------------------------------------
    WALBERLA_ASSERT_EQUAL( i, p.i(), "p.i" );
    WALBERLA_ASSERT_EQUAL( j, p.j(), "p.j" );
    WALBERLA_ASSERT_EQUAL( k, p.k(), "p.k" );
-
    WALBERLA_ASSERT_EQUAL( i, p.expand()[0], "p.expand" );
    WALBERLA_ASSERT_EQUAL( j, p.expand()[1], "p.expand" );
    WALBERLA_ASSERT_EQUAL( k, p.expand()[2], "p.expand" );
-
    WALBERLA_ASSERT_EQUAL( i + j + k, p.degree(), "p.degree" );
 
+   // ---------------------------------------------------------
+   /// test p.eval
+   // ---------------------------------------------------------
+   // choose random point x in R^3
    hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };
-   auto           px = std::pow( x[0], i ) * std::pow( x[1], j ) * std::pow( x[2], k );
-   WALBERLA_ASSERT_FLOAT_EQUAL( px, p.eval( x ), "p.eval" );
+   // evaluate p manually
+   auto px_manual = std::pow( x[0], i ) * std::pow( x[1], j ) * std::pow( x[2], k );
+   // evaluate p using built-in function
+   auto p_eval_x = p.eval( x );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "px_manual - p.eval(x) = %e", px_manual - p_eval_x ) );
+   WALBERLA_ASSERT_FLOAT_EQUAL( px_manual, p_eval_x, "p.eval" );
 }
 
 // test different algorithms to evaluate polynomials
@@ -63,9 +74,9 @@ void PolynomialTest( uint8_t d, uint8_t q )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", d, q ) );
    // choose random element p from P_q(R^d)
    hyteg::surrogate::polynomial::Polynomial p( d, q );
-   for ( size_t i = 0; i < p.size(); ++i )
+   for ( hyteg::idx_t i = 0; i < p.n_coefficients(); ++i )
    {
-      p[i] = realRandom();
+      p.c( i ) = realRandom();
    }
    // choose random point x from R^3
    hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };

@@ -626,10 +626,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
             for ( const auto& cType : celldof::allCellTypes )
             {
                diagonal_contributions_3d( cell, level, cType, vertexData );
-               // for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-               // {
-               //    computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData );
-               // }
             }
          }
 
@@ -653,25 +649,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
             {
                diagonal_contributions_2d( face, level, fType, vertexData );
             }
-
-            // // now loop over micro-faces of macro-face
-            // for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
-            // {
-            //    // loop over vertices in row with two associated triangles
-            //    for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
-            //    {
-            //       // we associate two elements with current micro-vertex
-            //       computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementN, vertexData );
-            //       computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
-            //    }
-            //    --inner_rowsize;
-
-            //    // final micro-vertex in row has only one associated micro-face
-            //    computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
-            // }
-
-            // // top north-west micro-element not treated, yet
-            // computeLocalDiagonalContributions2D( face, level, 1, yIdx, P1Elements::P1Elements2D::elementNW, vertexData );
          }
 
          // Push result to lower-dimensional primitives
@@ -805,263 +782,90 @@ void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< 
                                                          DoFType                                     flag ) const
 {
    // todo
-   // We currently ignore the flag provided!
-   // WALBERLA_UNUSED( flag );
-   if ( flag != All )
-   {
-      WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in P1ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
-   }
-
-   // For 3D we work on cells and for 2D on faces
-   if ( storage_->hasGlobalCells() )
-   {
-      // we only perform computations on cell primitives
-      for ( auto& macroIter : storage_->getCells() )
-      {
-         Cell& cell = *macroIter.second;
-
-         // get hold of the actual numerical data in the two indexing functions
-         PrimitiveDataID< FunctionMemory< idx_t >, Cell > dstVertexDoFIdx = dst.getCellDataID();
-         PrimitiveDataID< FunctionMemory< idx_t >, Cell > srcVertexDoFIdx = src.getCellDataID();
-
-         idx_t* srcIdx = cell.getData( srcVertexDoFIdx )->getPointer( level );
-         idx_t* dstIdx = cell.getData( dstVertexDoFIdx )->getPointer( level );
-
-         // loop over micro-cells
-         for ( const auto& cType : celldof::allCellTypes )
-         {
-            for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-            {
-               localMatrixAssembly3D( mat, cell, level, micro, cType, srcIdx, dstIdx );
-            }
-         }
-      }
-   }
-
-   else
-   {
-      // we only perform computations on face primitives
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         uint_t          rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t          inner_rowsize = rowsize;
-         idx_t           xIdx, yIdx;
-         Point3D         v0, v1, v2;
-         indexing::Index nodeIdx;
-         indexing::Index offset;
-
-         // get hold of the actual numerical data in the two functions
-         PrimitiveDataID< FunctionMemory< idx_t >, Face > dstVertexDoFIdx = dst.getFaceDataID();
-         PrimitiveDataID< FunctionMemory< idx_t >, Face > srcVertexDoFIdx = src.getFaceDataID();
-
-         idx_t* srcIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
-         idx_t* dstIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
-
-         // the explicit uint_c cast prevents a segfault in intel compiler 2018.4
-         // now loop over micro-faces of macro-face
-         for ( yIdx = 0; yIdx < idx_t( rowsize ) - 2; ++yIdx )
-         {
-            // loop over vertices in row with two associated triangles
-            for ( xIdx = 1; xIdx < idx_t( inner_rowsize ) - 1; ++xIdx )
-            {
-               // we associate two elements with current micro-vertex
-               localMatrixAssembly2D( mat, face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementN, srcIndices, dstIndices );
-               localMatrixAssembly2D( mat, face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, srcIndices, dstIndices );
-            }
-            --inner_rowsize;
-
-            // final micro-vertex in row has only one associated micro-face
-            localMatrixAssembly2D( mat, face, level, xIdx, yIdx, P1Elements::P1Elements2D::elementNW, srcIndices, dstIndices );
-         }
-
-         // top north-west micro-element not treated, yet
-         localMatrixAssembly2D( mat, face, level, 1, yIdx, P1Elements::P1Elements2D::elementNW, srcIndices, dstIndices );
-      }
-   }
+   WALBERLA_UNUSED( mat );
+   WALBERLA_UNUSED( src );
+   WALBERLA_UNUSED( dst );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( flag );
+   WALBERLA_ABORT( "Not implemented!" );
 }
+// P1ElementwiseLaplaceOperator
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                      const Face&                                 face,
-                                                                      const uint_t                                level,
-                                                                      const idx_t                                 xIdx,
-                                                                      const idx_t                                 yIdx,
-                                                                      const P1Elements::P1Elements2D::P1Element&  element,
-                                                                      const idx_t* const                          srcIdx,
-                                                                      const idx_t* const                          dstIdx ) const
-{
-   // todo
-   Matrix3r                elMat( Matrix3r::Zero() );
-   indexing::Index         nodeIdx;
-   indexing::Index         offset;
-   Point3D                 v0, v1, v2;
-   std::array< uint_t, 3 > dofDataIdx;
-   P1Form                  form( form_ );
+// P1ElementwisePolarLaplaceOperator
+template class P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
 
-   // determine vertices of micro-element
-   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
-   v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
-   offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
-   offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+// P1ElementwiseMassOperator
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 
-   // assemble local element matrix
-   form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( { v0, v1, v2 }, elMat );
+// P1ElementwisePSPGOperator
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-   // determine global indices of our local DoFs
-   dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
-   dofDataIdx[1] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[1] );
-   dofDataIdx[2] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[2] );
+template class P1ElementwiseSurrogateOperator< P1LinearCombinationForm >;
 
-   std::vector< uint_t > rowIdx( 3 );
-   rowIdx[0] = uint_c( dstIdx[dofDataIdx[0]] );
-   rowIdx[1] = uint_c( dstIdx[dofDataIdx[1]] );
-   rowIdx[2] = uint_c( dstIdx[dofDataIdx[2]] );
+// P1ElementwiseBlendingMassOperator3D
+template class P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 >;
 
-   std::vector< uint_t > colIdx( 3 );
-   colIdx[0] = uint_c( srcIdx[dofDataIdx[0]] );
-   colIdx[1] = uint_c( srcIdx[dofDataIdx[1]] );
-   colIdx[2] = uint_c( srcIdx[dofDataIdx[2]] );
+// P1ElementwiseBlendingLaplaceOperator
+template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 >;
 
-   const uint_t          elMatSize = 9;
-   std::vector< real_t > blockMatData( elMatSize );
-   for ( uint_t i = 0; i < elMatSize; i++ )
-   {
-      blockMatData[i] = elMat.data()[i];
-   }
-
-   // add local matrix into global matrix
-   mat->addValues( rowIdx, colIdx, blockMatData );
-}
-
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                      const Cell&                                 cell,
-                                                                      const uint_t                                level,
-                                                                      const indexing::Index&                      microCell,
-                                                                      const celldof::CellType                     cType,
-                                                                      const idx_t* const                          srcIdx,
-                                                                      const idx_t* const                          dstIdx ) const
-{
-   // todo
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-   std::array< Point3D, 4 >         coords;
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
-   }
-
-   // assemble local element matrix
-   Matrix4r elMat( Matrix4r::Zero() );
-   P1Form   form( form_ );
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-
-   // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 4 > vertexDoFDataIdx;
-   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFDataIdx );
-
-   std::vector< uint_t > rowIdx( 4 );
-   std::vector< uint_t > colIdx( 4 );
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      rowIdx[k] = uint_c( dstIdx[vertexDoFDataIdx[k]] );
-      colIdx[k] = uint_c( srcIdx[vertexDoFDataIdx[k]] );
-   }
-
-   const uint_t          elMatSize = 16;
-   std::vector< real_t > blockMatData( elMatSize );
-   for ( uint_t i = 0; i < elMatSize; i++ )
-   {
-      blockMatData[i] = elMat.data()[i];
-   }
-
-   // add local matrix into global matrix
-   mat->addValues( rowIdx, colIdx, blockMatData );
-}
-
-// // P1ElementwiseLaplaceOperator
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
-
-// // P1ElementwisePolarLaplaceOperator
-// template class P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
-
-// // P1ElementwiseMassOperator
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
-
-// // P1ElementwisePSPGOperator
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
-
-// template class P1ElementwiseSurrogateOperator< P1LinearCombinationForm >;
-
-// // P1ElementwiseBlendingMassOperator3D
-// template class P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 >;
-
-// // P1ElementwiseBlendingLaplaceOperator
-// template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 >;
-
-// // Needed for P1Blending(Inverse)DiagonalOperator
-// template class P1ElementwiseSurrogateOperator< P1RowSumForm >;
+// Needed for P1Blending(Inverse)DiagonalOperator
+template class P1ElementwiseSurrogateOperator< P1RowSumForm >;
 
 template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
 
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >;
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >;
-// template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >;
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >;
+template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >;
 
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >;
-// template class P1ElementwiseSurrogateOperator<
-//     P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
-// template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseSurrogateOperator<
+    P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
+template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
 
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_0_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_1_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_2_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_0_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_1_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_2_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_0_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_1_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_2_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_0_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_1_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_2_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_0_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_1_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_2_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_0_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_1_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_2_affine_q2 >;
 
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
 
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
-// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
 
 template class P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 >;
 
 // This is a slight misuse of the P1ElementwiseOperator class, since the spherical
 // elements are not P1. However, the SphericalElementFunction, like the P1Function
 // is only an alias for the VertexDoFFunction, so we can re-use this operator.
-// template class P1ElementwiseSurrogateOperator< SphericalElementFormMass >;
+template class P1ElementwiseSurrogateOperator< SphericalElementFormMass >;
 
 } // namespace hyteg

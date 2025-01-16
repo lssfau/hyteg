@@ -278,28 +278,10 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                    const celldof::CellType cType,
                                    real_t* const           dstVertexData );
 
-
    void precompute_local_stiffness_2d( uint_t lvl );
    void precompute_local_stiffness_3d( uint_t lvl );
    void compute_local_surrogates_2d( uint_t lvl );
    void compute_local_surrogates_3d( uint_t lvl );
-
-   void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                               const Face&                                 face,
-                               const uint_t                                level,
-                               const idx_t                                 xIdx,
-                               const idx_t                                 yIdx,
-                               const P1Elements::P1Elements2D::P1Element&  element,
-                               const idx_t* const                          srcIdx,
-                               const idx_t* const                          dstIdx ) const;
-
-   void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
-                               const Cell&                                 cell,
-                               const uint_t                                level,
-                               const indexing::Index&                      microCell,
-                               const celldof::CellType                     cType,
-                               const idx_t* const                          srcIdx,
-                               const idx_t* const                          dstIdx ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
@@ -328,48 +310,6 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    ElementDataMap< P_data< 2 > > surrogate_2d_;
    ElementDataMap< P_data< 3 > > surrogate_3d_;
 };
-
-// template < class P1Form >
-// void assembleLocalElementMatrix2D( const Face&            face,
-//                                    uint_t                 level,
-//                                    const indexing::Index& microFace,
-//                                    facedof::FaceType      fType,
-//                                    P1Form                 form,
-//                                    Matrix3r&              elMat )
-// {
-//    // determine coordinates of vertices of micro-element
-//    std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
-//    std::array< Point3D, 3 >         coords;
-//    for ( uint_t k = 0; k < 3; ++k )
-//    {
-//       coords[k] = vertexdof::macroface::coordinateFromIndex( level, face, verts[k] );
-//    }
-
-//    // assemble local element matrix
-//    form.setGeometryMap( face.getGeometryMap() );
-//    form.integrateAll( coords, elMat );
-// }
-
-// template < class P1Form >
-// void assembleLocalElementMatrix3D( const Cell&            cell,
-//                                    uint_t                 level,
-//                                    const indexing::Index& microCell,
-//                                    celldof::CellType      cType,
-//                                    P1Form                 form,
-//                                    Matrix4r&              elMat )
-// {
-//    // determine coordinates of vertices of micro-element
-//    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-//    std::array< Point3D, 4 >         coords;
-//    for ( uint_t k = 0; k < 4; ++k )
-//    {
-//       coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
-//    }
-
-//    // assemble local element matrix
-//    form.setGeometryMap( cell.getGeometryMap() );
-//    form.integrateAll( coords, elMat );
-// }
 
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
