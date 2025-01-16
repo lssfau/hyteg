@@ -26,11 +26,6 @@
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
 
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScSparseMatrix.hpp"
-#include "hyteg/petsc/PETScVector.hpp"
-#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
-
 /* This test checks whether the P1 elementwise surrogate
    operator works correctly. In particular
    we verify the following theorem:
