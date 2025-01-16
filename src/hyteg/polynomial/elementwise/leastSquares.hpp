@@ -110,7 +110,8 @@ class LeastSquares
 
    // RxC matrix of right-hand-side vectors (required for surrogate stiffness matrix)
    template < uint_t R, uint_t C = R >
-   using RHS_matrix = std::array< std::array< Vector, C >, R >;
+   using RHS_matrix = Eigen::Matrix< Vector, R, C, Eigen::RowMajor >;
+   // using RHS_matrix = std::array< std::array< Vector, C >, R >;
 
  private:
    /**
@@ -127,7 +128,7 @@ class LeastSquares
        * @param downsampling The downsampling factor.
        */
       inline Iterator( uint_t d, uint_t lvl, uint_t downsampling )
-      : _n( uint_t( 0 ) )
+      : _n( idx_t( 0 ) )
       , _i( idx_t( 0 ) )
       , _j( idx_t( 0 ) )
       , _k( idx_t( 0 ) )
@@ -187,7 +188,7 @@ class LeastSquares
        *
        * @return uint_t Index of sample point = row of Vandermonde matrix.
        */
-      inline constexpr uint_t operator()() const { return _n; }
+      inline constexpr idx_t operator()() const { return _n; }
       /**
        * @brief end of this iterator. Useage:
        * while ( it != it.end() ) { ... }
@@ -199,10 +200,10 @@ class LeastSquares
       inline constexpr bool   operator==( const uint_t other ) const { return _n == other; }
 
     private:
-      uint_t _n; // index of sample point (row in A)
-      idx_t  _i; // index of x-coordinate
-      idx_t  _j; // index of y-coordinate
-      idx_t  _k; // index of z-coordinate
+      idx_t _n; // index of sample point (row in A)
+      idx_t _i; // index of x-coordinate
+      idx_t _j; // index of y-coordinate
+      idx_t _k; // index of z-coordinate
 
       idx_t  _ijk_max; // number of microedges along an edge (only coincides with sample points along edge if downsampling=1)
       uint_t _n_max;   // number of sample points
@@ -398,7 +399,7 @@ class LeastSquares
     * @param n Index of the coefficient, ie, `n = it()`
     * @param f_xyz f( it.i(), it.j(), it.k() ), where f is the function to be approximated.
     */
-   void setRHS( const uint_t n, const double f_xyz ) { b( n ) = f_xyz; }
+   void setRHS( const idx_t n, const double f_xyz ) { b( n ) = f_xyz; }
 
    /**
     * @brief Set right hand side vector in one step.

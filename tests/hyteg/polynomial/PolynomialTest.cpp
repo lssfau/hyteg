@@ -32,6 +32,28 @@ using walberla::uint_t;
 using walberla::math::pi;
 using walberla::math::realRandom;
 
+// test correctness of basis functions
+void MonomialBasisTest( uint_t i, uint_t j, uint_t k )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Monomial(%d, %d, %d)", i, j, k ) );
+
+   hyteg::surrogate::polynomial::Monomial p( i, j, k );
+
+   WALBERLA_ASSERT_EQUAL( i, p.i(), "p.i" );
+   WALBERLA_ASSERT_EQUAL( j, p.j(), "p.j" );
+   WALBERLA_ASSERT_EQUAL( k, p.k(), "p.k" );
+
+   WALBERLA_ASSERT_EQUAL( i, p.expand()[0], "p.expand" );
+   WALBERLA_ASSERT_EQUAL( j, p.expand()[1], "p.expand" );
+   WALBERLA_ASSERT_EQUAL( k, p.expand()[2], "p.expand" );
+
+   WALBERLA_ASSERT_EQUAL( i + j + k, p.degree(), "p.degree" );
+
+   hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };
+   auto           px = std::pow( x[0], i ) * std::pow( x[1], j ) * std::pow( x[2], k );
+   WALBERLA_ASSERT_FLOAT_EQUAL( px, p.eval( x ), "p.eval" );
+}
+
 // test different algorithms to evaluate polynomials
 void PolynomialTest( uint8_t d, uint8_t q )
 {
@@ -112,6 +134,19 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run tests
    // -------------------
+   for ( uint_t i = 0; i < 5; ++i )
+   {
+      for ( uint_t j = 0; j < 5; ++j )
+      {
+         for ( uint_t k = 0; k < 5; ++k )
+         {
+            MonomialBasisTest( i, j, k );
+         }
+      }
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "=======================================================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
    for ( uint8_t d = 1; d <= 3; ++d )
    {
       for ( uint8_t deg = 0; deg <= 12; ++deg )

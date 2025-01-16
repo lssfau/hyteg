@@ -175,11 +175,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
    auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 2 > rhs;
-   for ( uint_t i = 0; i < rhs.size(); ++i )
+   for ( idx_t i = 0; i < rhs.rows(); ++i )
    {
-      for ( uint_t j = 0; j < rhs[i].size(); ++j )
+      for ( idx_t j = 0; j < rhs.cols(); ++j )
       {
-         rhs[i][j] = surrogate::LeastSquares::Vector( lsq.rows );
+         rhs( i, j ) = surrogate::LeastSquares::Vector( lsq.rows );
       }
    }
 
@@ -193,25 +193,25 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
          {
             Matrix3r elMat( Matrix3r::Zero() );
             assembleLocalElementMatrix2D( *face, level, it.ijk(), fType, form_, elMat );
-            for ( uint_t i = 0; i < rhs.size(); ++i )
+            for ( idx_t i = 0; i < elMat.rows(); ++i )
             {
-               for ( uint_t j = 0; j < rhs[i].size(); ++j )
+               for ( idx_t j = 0; j < elMat.cols(); ++j )
                {
-                  rhs[i][j]( it() ) = elMat( i, j );
+                  rhs( i, j )( it() ) = elMat( i, j );
                }
             }
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
          auto& surrogate = surrogate_2d_[id][level][uint_t( fType )];
-         for ( uint_t i = 0; i < rhs.size(); ++i )
+         for ( idx_t i = 0; i < rhs.rows(); ++i )
          {
-            for ( uint_t j = 0; j < rhs[i].size(); ++j )
+            for ( idx_t j = 0; j < rhs.cols(); ++j )
             {
                // apply least squares fit
-               lsq.setRHS( rhs[i][j] );
-               auto& coeffs    = lsq.solve();
-               surrogate[i][j] = surrogate::polynomial::Polynomial( 2, q, coeffs );
+               lsq.setRHS( rhs( i, j ) );
+               auto& coeffs      = lsq.solve();
+               surrogate( i, j ) = surrogate::polynomial::Polynomial( 2, q, coeffs );
             }
          }
       }
@@ -225,11 +225,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
    auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 3 > rhs;
-   for ( uint_t i = 0; i < rhs.size(); ++i )
+   for ( idx_t i = 0; i < rhs.rows(); ++i )
    {
-      for ( uint_t j = 0; j < rhs[i].size(); ++j )
+      for ( idx_t j = 0; j < rhs.cols(); ++j )
       {
-         rhs[i][j] = surrogate::LeastSquares::Vector( lsq.rows );
+         rhs( i, j ) = surrogate::LeastSquares::Vector( lsq.rows );
       }
    }
 
@@ -243,25 +243,25 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
          {
             Matrix4r elMat( Matrix4r::Zero() );
             assembleLocalElementMatrix3D( *cell, level, it.ijk(), cType, form_, elMat );
-            for ( uint_t i = 0; i < rhs.size(); ++i )
+            for ( idx_t i = 0; i < rhs.rows(); ++i )
             {
-               for ( uint_t j = 0; j < rhs[i].size(); ++j )
+               for ( idx_t j = 0; j < rhs.cols(); ++j )
                {
-                  rhs[i][j]( it() ) = elMat( i, j );
+                  rhs( i, j )( it() ) = elMat( i, j );
                }
             }
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
          auto& surrogate = surrogate_3d_[id][level][uint_t( cType )];
-         for ( uint_t i = 0; i < rhs.size(); ++i )
+         for ( idx_t i = 0; i < rhs.rows(); ++i )
          {
-            for ( uint_t j = 0; j < rhs[i].size(); ++j )
+            for ( idx_t j = 0; j < rhs.cols(); ++j )
             {
                // apply least squares fit
-               lsq.setRHS( rhs[i][j] );
-               auto& coeffs    = lsq.solve();
-               surrogate[i][j] = surrogate::polynomial::Polynomial( 3, q, coeffs );
+               lsq.setRHS( rhs( i, j ) );
+               auto& coeffs      = lsq.solve();
+               surrogate( i, j ) = surrogate::polynomial::Polynomial( 3, q, coeffs );
             }
          }
       }
@@ -462,11 +462,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
       {
          auto x = poly_domain( micro );
 
-         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
-            for ( uint_t j = 0; j < surrogate[i].size(); ++j )
+            for ( idx_t j = 0; j < surrogate.cols(); ++j )
             {
-               elMat( i, j ) = surrogate[i][j].eval_naive( x );
+               elMat( i, j ) = surrogate( i, j ).eval_naive( x );
             }
          }
          localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
@@ -506,11 +506,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
       {
          auto x = poly_domain( micro );
 
-         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
-            for ( uint_t j = 0; j < surrogate[i].size(); ++j )
+            for ( idx_t j = 0; j < surrogate.cols(); ++j )
             {
-               elMat( i, j ) = surrogate[i][j].eval_naive( x );
+               elMat( i, j ) = surrogate( i, j ).eval_naive( x );
             }
          }
          localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
@@ -535,7 +535,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply2D( cons
 
    // assemble local element vector
    Point3D elVecOld, elVecNew;
-   for ( int k = 0; k < 3; ++k )
+   for ( idx_t k = 0; k < 3; ++k )
    {
       elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
@@ -544,7 +544,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply2D( cons
    elVecNew = alpha * ( elMat * elVecOld );
 
    // redistribute result from "local" to "global vector"
-   for ( int k = 0; k < 3; ++k )
+   for ( idx_t k = 0; k < 3; ++k )
    {
       dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
@@ -565,7 +565,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply3D( cons
 
    // assemble local element vector
    Point4D elVecOld, elVecNew;
-   for ( int k = 0; k < 4; ++k )
+   for ( idx_t k = 0; k < 4; ++k )
    {
       elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
@@ -574,7 +574,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::localMatrixVectorMultiply3D( cons
    elVecNew = alpha * ( elMat * elVecOld );
 
    // redistribute result from "local" to "global vector"
-   for ( int k = 0; k < 4; ++k )
+   for ( idx_t k = 0; k < 4; ++k )
    {
       dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
@@ -704,7 +704,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const 
       std::array< uint_t, 3 > vertexDoFIndices;
       vertexdof::getVertexDoFDataIndicesFromMicroFace( micro, fType, level, vertexDoFIndices );
       // extract matrix diagonal
-      for ( int k = 0; k < 3; ++k )
+      for ( idx_t k = 0; k < 3; ++k )
       {
          dstVertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
       }
@@ -735,9 +735,9 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const 
       {
          auto x = poly_domain( micro );
 
-         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
-            elMat( i, i ) = surrogate[i][i].eval_naive( x );
+            elMat( i, i ) = surrogate( i, i ).eval_naive( x );
          }
          extract_diagonal_values( micro, elMat );
       }
@@ -756,7 +756,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const 
       std::array< uint_t, 4 > vertexDoFIndices;
       vertexdof::getVertexDoFDataIndicesFromMicroCell( micro, cType, level, vertexDoFIndices );
       // extract matrix diagonal
-      for ( int k = 0; k < 4; ++k )
+      for ( idx_t k = 0; k < 4; ++k )
       {
          dstVertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
       }
@@ -787,9 +787,9 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const 
       {
          auto x = poly_domain( micro );
 
-         for ( uint_t i = 0; i < surrogate.size(); ++i )
+         for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
-            elMat( i, i ) = surrogate[i][i].eval_naive( x );
+            elMat( i, i ) = surrogate( i, i ).eval_naive( x );
          }
          extract_diagonal_values( micro, elMat );
       }
