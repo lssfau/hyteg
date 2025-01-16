@@ -457,19 +457,36 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
       surrogate::polynomial::Coordinates poly_domain( level );
       // local stiffness matrix
       Matrix3r elMat( Matrix3r::Zero() );
-      // todo: use optimized polynomial evaluation
-      for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+      // iterate over all micro-faces
+      indexing::Index micro;
+      const auto      row_end = idx_t( facedof::macroface::numFacesPerRowByType( level, fType ) );
+      for ( micro.y() = 0; micro.y() < row_end; micro.y()++ )
       {
-         auto x = poly_domain( micro );
-
+         // restrict to 1d polynomial
+         auto y = poly_domain( micro.y() );
          for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
             for ( idx_t j = 0; j < surrogate.cols(); ++j )
             {
-               elMat( i, j ) = surrogate( i, j ).eval_naive( x );
+               surrogate( i, j ).fix_y( y );
             }
          }
-         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+
+         for ( micro.x() = 0; micro.x() < row_end - micro.y(); micro.x()++ )
+         {
+            // evaluate p(x) using Horner's method
+            auto x = poly_domain( micro.x() );
+            for ( idx_t i = 0; i < surrogate.rows(); ++i )
+            {
+               for ( idx_t j = 0; j < surrogate.cols(); ++j )
+               {
+                  elMat( i, j ) = surrogate( i, j ).eval( x );
+               }
+            }
+
+            // local matvec
+            localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+         }
       }
    }
 }
@@ -501,19 +518,49 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
       surrogate::polynomial::Coordinates poly_domain( level );
       // local stiffness matrix
       Matrix4r elMat( Matrix4r::Zero() );
-      // todo: use optimized polynomial evaluation
-      for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+      // iterate over all micro-cells
+      indexing::Index micro;
+      const auto      row_end = idx_t( celldof::macrocell::numCellsPerRowByType( level, cType ) );
+      for ( micro.z() = 0; micro.z() < row_end; micro.z()++ )
       {
-         auto x = poly_domain( micro );
-
+         // restrict to 2d polynomial
+         auto z = poly_domain( micro.z() );
          for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
             for ( idx_t j = 0; j < surrogate.cols(); ++j )
             {
-               elMat( i, j ) = surrogate( i, j ).eval_naive( x );
+               surrogate( i, j ).fix_z( z );
             }
          }
-         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+
+         for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
+         {
+            // restrict to 1d polynomial
+            auto y = poly_domain( micro.y() );
+            for ( idx_t i = 0; i < surrogate.rows(); ++i )
+            {
+               for ( idx_t j = 0; j < surrogate.cols(); ++j )
+               {
+                  surrogate( i, j ).fix_y( y );
+               }
+            }
+
+            for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
+            {
+               // evaluate p(x) using Horner's method
+               auto x = poly_domain( micro.x() );
+               for ( idx_t i = 0; i < surrogate.rows(); ++i )
+               {
+                  for ( idx_t j = 0; j < surrogate.cols(); ++j )
+                  {
+                     elMat( i, j ) = surrogate( i, j ).eval( x );
+                  }
+               }
+
+               // local matvec
+               localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+            }
+         }
       }
    }
 }
