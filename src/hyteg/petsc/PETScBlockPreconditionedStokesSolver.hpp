@@ -91,10 +91,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , velocityPreconditionerType_( velocityPreconditionerType )
    , pressurePreconditionerType_( pressurePreconditionerType )
    , krylovSolverType_( krylovSolverType )
+   , disableApplicationBC_( false )
    , verbose_( false )
    , reassembleMatrix_( true )
    , matrixWasAssembledOnce_( false )
-   , disableApplicationBC_( false )
    , setFromOptions_( false )
    {
       num.enumerate( level );
