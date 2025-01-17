@@ -287,17 +287,18 @@ class Polynomial : public std::vector< double >
    // get basis of polynomial space
    const Basis& basis() const { return *_basis; }
    // get i-th basis function
-   const Monomial& phi( idx_t i ) const { return basis()[i]; }
+   const Monomial& phi( idx_t i ) const { return basis()[uint_t( i )]; }
 
  private:
    // fix coordinate s.th. only lower dimensional polynomial must be evaluated
    inline void fix_coord( const double z ) const
    {
       // z^k for k=0,...,q
-      std::vector< double > z_pow( _q + 1, 1.0 );
-      for ( uint_t k = 0; k < _q; ++k )
+      Eigen::Vector< double, -1 > z_pow( _q + 1 );
+      z_pow[0] = 1.0;
+      for ( int k = 1; k <= _q; ++k )
       {
-         z_pow[k + 1] = z_pow[k] * z;
+         z_pow[k] = z_pow[k - 1] * z;
       }
 
       // first index where the 3d extension starts
@@ -331,7 +332,6 @@ class Polynomial : public std::vector< double >
 // RxC matrix of polynomials
 template < uint_t R, uint_t C = R >
 using Matrix = Eigen::Matrix< Polynomial, R, C, Eigen::RowMajor >;
-// using Matrix = std::array< std::array< Polynomial, C >, R >;
 
 } // namespace polynomial
 } // namespace surrogate

@@ -39,8 +39,7 @@ void MonomialBasisTest( int i, int j, int k )
    /// initialize polynomial p(x,y,z) = x^i * y^j * z^k
    // ---------------------------------------------------------
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Monomial(%d, %d, %d)", i, j, k ) );
-   // auto p = hyteg::surrogate::polynomial::Monomial( uint_t( i ), uint_t( j ), uint_t( k ) );
-   hyteg::surrogate::polynomial::Monomial p( i, j, k );
+   auto p = hyteg::surrogate::polynomial::Monomial( uint_t( i ), uint_t( j ), uint_t( k ) );
 
    // ---------------------------------------------------------
    /// test compression
@@ -87,14 +86,15 @@ void PolynomialTest( uint8_t d, uint8_t q )
    // ---------------------------------------------------------
    double px_manual = 0.0;
    // initialize powers of x,y,z
-   std::vector< double > x_pow( q + 1, 1.0 ); // x^0, x^1, ...
-   std::vector< double > y_pow( q + 1, 1.0 ); // y^0, y^1, ...
-   std::vector< double > z_pow( q + 1, 1.0 ); // z^0, z^1, ...
-   for ( uint8_t i = 0; i < q; ++i )
+   Eigen::Vector< double, -1 > x_pow( q + 1 ); // x^0, x^1, ...
+   Eigen::Vector< double, -1 > y_pow( q + 1 ); // y^0, y^1, ...
+   Eigen::Vector< double, -1 > z_pow( q + 1 ); // z^0, z^1, ...
+   x_pow[0] = y_pow[0] = z_pow[0] = 1.0;
+   for ( int i = 1; i <= q; ++i )
    {
-      x_pow[i + 1] = x_pow[i] * x[0];
-      y_pow[i + 1] = y_pow[i] * x[1];
-      z_pow[i + 1] = z_pow[i] * x[2];
+      x_pow[i] = x_pow[i - 1] * x[0];
+      y_pow[i] = y_pow[i - 1] * x[1];
+      z_pow[i] = z_pow[i - 1] * x[2];
    }
    // sum up contributions of each basis function φ_n, i.e., p(x) = ∑_n c_n φ_n(x)
    for ( hyteg::idx_t n = 0; n < p.n_coefficients(); ++n )
