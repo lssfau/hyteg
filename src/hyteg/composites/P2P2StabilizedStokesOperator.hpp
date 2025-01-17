@@ -48,7 +48,7 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
                const P2P2StokesFunction< real_t >& dst,
                const size_t                        level,
                DoFType                             flag,
-               UpdateType                          updateType ) const override
+               UpdateType                          updateType = Replace ) const override
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
