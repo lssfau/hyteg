@@ -58,37 +58,6 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    template < uint_t DIM >
    using SurrogateData = surrogate::SurrogateData< DIM, 1, 1 >;
 
-   //    using Polynomial = surrogate::polynomial::Polynomial;
-
-   //    /**
-   //      * @brief matrix of polynomials with same dimensions as local stiffness matrix
-   //      * @tparam DIM spacial dimension
-   //      */
-   //    template < size_t DIM >
-   //    using SurrogateMatrix = Eigen::Matrix< Polynomial, DIM + 1, DIM + 1, Eigen::RowMajor >;
-
-   //    /**
-   //      * @brief container for surrogate polynomials of each element-type
-   //      * @tparam DIM spacial dimension
-   //      */
-   //    template < size_t DIM >
-   //    using P_data = std::array< SurrogateMatrix< DIM + 1,1>, ( DIM == 2 ) ? 2 : 6 >;
-
-   //    /**
-   //      * @brief container for right-hand-side vectors for the lsq-fit
-   //      * @tparam DIM spacial dimension
-   //      */
-   //    template < size_t DIM >
-   //    using RHS_matrix = Eigen::Matrix< surrogate::LeastSquares::Vector, DIM + 1, DIM + 1, Eigen::RowMajor >;
-
-   //    /**
-   //     * @brief container for precomputed local stiffness matrices
-   //     *           A_loc[idx] = local stiffness matrix at idx
-   //     * @tparam DIM spacial dimension
-   //     */
-   //    template < size_t DIM >
-   //    using A_loc = std::vector< Matrixr< DIM + 1, DIM + 1,1>, Eigen::aligned_allocator< Matrixr< DIM + 1, DIM + 1,1> > >;
-
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
