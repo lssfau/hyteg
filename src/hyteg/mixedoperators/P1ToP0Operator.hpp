@@ -536,26 +536,26 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                     // If the DoF is not on the ghost-layer (i.e. it is on the interface) we need to obtain the
                                     // logical index on the local macro volume. This is done via index "basis trafo".
 
-                                    std::array< uint_t, 4 > srcBasis;
+                                    std::array< uint_t, 4 > srcBasis2;
                                     for ( uint_t ii = 0; ii < 3; ii++ )
                                     {
                                        if ( algorithms::contains( face->neighborVertices(),
                                                                   neighborFace->neighborVertices().at( ii ) ) )
                                        {
-                                          srcBasis[ii] = face->vertex_index( neighborFace->neighborVertices().at( ii ) );
+                                          srcBasis2[ii] = face->vertex_index( neighborFace->neighborVertices().at( ii ) );
                                        }
                                        else
                                        {
-                                          srcBasis[ii] = face->vertex_index( face->get_vertex_opposite_to_edge(
+                                          srcBasis2[ii] = face->vertex_index( face->get_vertex_opposite_to_edge(
                                               face->neighborEdges().at( neighborInfo.macroBoundaryID( n ) ) ) );
                                        }
                                     }
-                                    srcBasis[3] = 3;
+                                    srcBasis2[3] = 3;
 
                                     // Basis trafo to local macro.
                                     const auto localIndex =
                                         indexing::basisConversion( nElementVertexIdx,
-                                                                   srcBasis,
+                                                                   srcBasis2,
                                                                    { 0, 1, 2, 3 },
                                                                    levelinfo::num_microvertices_per_edge( level ) );
                                     nSrcDoFArrIndices[i] = vertexdof::macroface::index( level, localIndex.x(), localIndex.y() );
@@ -613,17 +613,17 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                     // If the DoF is not on the ghost-layer (i.e. it is on the interface) we need to obtain the
                                     // logical index on the local macro volume. This is done via index "basis trafo".
 
-                                    std::array< uint_t, 4 > srcBasis;
+                                    std::array< uint_t, 4 > srcBasis2;
                                     for ( uint_t ii = 0; ii < 4; ii++ )
                                     {
                                        if ( algorithms::contains( cell->neighborVertices(),
                                                                   neighborCell->neighborVertices().at( ii ) ) )
                                        {
-                                          srcBasis[ii] = cell->getLocalVertexID( neighborCell->neighborVertices().at( ii ) );
+                                          srcBasis2[ii] = cell->getLocalVertexID( neighborCell->neighborVertices().at( ii ) );
                                        }
                                        else
                                        {
-                                          srcBasis[ii] = cell->getLocalVertexID( cell->getOppositeVertexID(
+                                          srcBasis2[ii] = cell->getLocalVertexID( cell->getOppositeVertexID(
                                               cell->neighborFaces().at( neighborInfo.macroBoundaryID( n ) ) ) );
                                        }
                                     }
@@ -631,7 +631,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                     // Basis trafo to local macro.
                                     const auto localIndex =
                                         indexing::basisConversion( nElementVertexIdx,
-                                                                   srcBasis,
+                                                                   srcBasis2,
                                                                    { 0, 1, 2, 3 },
                                                                    levelinfo::num_microvertices_per_edge( level ) );
 
@@ -672,8 +672,8 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                        break;
                                     }
 
-                                    std::array< uint_t, 4 > srcBasis = { 0, 1, 2, 3 };
-                                    std::array< uint_t, 4 > dstBasis;
+                                    std::array< uint_t, 4 > srcBasis2 = { 0, 1, 2, 3 };
+                                    std::array< uint_t, 4 > dstBasis{};
                                     for ( uint_t ii = 0; ii < 3; ii++ )
                                     {
                                        auto tmp1    = cell->neighborVertices();
@@ -683,7 +683,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
                                     dstBasis[3] = 6 - ( dstBasis[0] + dstBasis[1] + dstBasis[2] );
 
                                     const auto pseudoLocalIndex = indexing::basisConversion(
-                                        nElementVertexIdx, srcBasis, dstBasis, levelinfo::num_microvertices_per_edge( level ) );
+                                        nElementVertexIdx, srcBasis2, dstBasis, levelinfo::num_microvertices_per_edge( level ) );
 
                                     WALBERLA_ASSERT_EQUAL( pseudoLocalIndex.z(), 1 );
 

@@ -69,9 +69,8 @@ target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
 target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
 
 add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
-add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable -Wno-implicit-float-conversion -Wno-unused-local-typedef")
+add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable -Wno-implicit-float-conversion -Wno-unused-local-typedef -Wno-delete-non-abstract-non-virtual-dtor")
 add_flag( CMAKE_CXX_FLAGS "-Wno-sign-compare -Wno-unused-local-typedefs -Wno-conversion -Wno-unused-but-set-variable -Wno-comment" )
-
 
 # Treat warnings as errors
 if ( WARNING_ERROR )

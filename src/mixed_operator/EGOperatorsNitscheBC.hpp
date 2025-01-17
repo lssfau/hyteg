@@ -126,7 +126,6 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
                                uint_t                                     maxLevel,
                                std::function< real_t( const Point3D& ) >  viscosity )
    : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
-   , viscosity_( viscosity )
    , cg_00( storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_00 >( viscosity ) )
    , cg_01( storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_01 >( viscosity ) )
    , cg_02( storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_02 >( viscosity ) )
@@ -136,12 +135,6 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
    , cg_20( storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_20 >( viscosity ) )
    , cg_21( storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_21 >( viscosity ) )
    , cg_22( storage, minLevel, maxLevel, std::make_shared< eg::EGEpsilonFormNitscheBC_P1P1_22 >( viscosity ) )
-   , tmp_(std::make_shared< P1VectorFunction< real_t > >( "tmp",
-                                                             storage,
-                                                             minLevel,
-                                                             maxLevel,
-                                                             BoundaryCondition::create0123BC(),
-                                                             true ) )
    , cg_to_dg_coupling_( storage,
                          minLevel,
                          maxLevel,
@@ -155,6 +148,13 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
                                           std::make_shared< typename DGToCGOperatorType::OperY_T::FormType >( viscosity ),
                                           std::make_shared< typename DGToCGOperatorType::OperZ_T::FormType >( viscosity ) ) )
    , dg_to_dg_coupling_( storage, minLevel, maxLevel, std::make_shared< EGEpsilonFormNitscheBC_EE >( viscosity ) )
+   , viscosity_( viscosity )
+   , tmp_( std::make_shared< P1VectorFunction< real_t > >( "tmp",
+                                                           storage,
+                                                           minLevel,
+                                                           maxLevel,
+                                                           BoundaryCondition::create0123BC(),
+                                                           true ) )
    {}
 
    void apply( const EGFunction< real_t >& src,
@@ -399,16 +399,17 @@ class EGP0StokesOperatorNitscheBC : public Operator< EGP0StokesFunction< real_t 
    EGP0StokesOperatorNitscheBC( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , velocityBlockOp( storage, minLevel, maxLevel )
+   , energyNormOp( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , energyNormOp( storage, minLevel, maxLevel )
    , blockPrec( storage, minLevel, maxLevel )
    {}
 
    void apply( const EGP0StokesFunction< real_t >& src,
                const EGP0StokesFunction< real_t >& dst,
                const uint_t                        level,
-               const DoFType                       flag ) const
+               const DoFType                       flag,
+               UpdateType                          updateType ) const override
    {
       velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -419,7 +420,7 @@ class EGP0StokesOperatorNitscheBC : public Operator< EGP0StokesFunction< real_t 
                   const EGP0StokesFunction< idx_t >&          src,
                   const EGP0StokesFunction< idx_t >&          dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
@@ -475,16 +476,17 @@ class EGP0EpsilonOperatorStokesNitscheBC : public Operator< EGP0StokesFunction< 
                                        std::function< real_t( const Point3D& ) >  viscosity )
    : Operator( storage, minLevel, maxLevel )
    , velocityBlockOp( storage, minLevel, maxLevel, viscosity )
+   , energyNormOp( storage, minLevel, maxLevel, viscosity )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , energyNormOp( storage, minLevel, maxLevel, viscosity )
    , blockPrec( storage, minLevel, maxLevel, viscosity )
    {}
 
    void apply( const EGP0StokesFunction< real_t >& src,
                const EGP0StokesFunction< real_t >& dst,
                const uint_t                        level,
-               const DoFType                       flag ) const
+               const DoFType                       flag,
+               UpdateType                          updateType = Replace ) const override
    {
       velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -495,7 +497,7 @@ class EGP0EpsilonOperatorStokesNitscheBC : public Operator< EGP0StokesFunction< 
                   const EGP0StokesFunction< idx_t >&          src,
                   const EGP0StokesFunction< idx_t >&          dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
