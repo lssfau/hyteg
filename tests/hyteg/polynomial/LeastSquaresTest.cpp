@@ -58,12 +58,12 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
       return std::sin( pi / 4.0 * x[0] ) * std::cos( pi / 4.0 * x[1] ) * std::sin( pi / 4.0 * x[2] );
    };
    // coordinates on tetrahedron
-   hyteg::surrogate::polynomial::Coordinates coords( lvl );
+   hyteg::surrogate::polynomial::Domain X( lvl );
    // fill right-hand side
    auto it = lsq->samplingIterator();
    while ( it != it.end() )
    {
-      auto x = coords( it.ijk() );
+      auto x = X( it.ijk() );
       lsq->setRHS( it(), f( x ) );
       ++it;
    }
@@ -85,21 +85,21 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    hyteg::idx_t i_max    = len_edge;
    for ( hyteg::idx_t k = 0; k < k_max; ++k )
    {
-      auto z = coords( k );
+      auto z = X[k];
       if ( d == 3 )
       {
          p.fix_z( z );
       }
       for ( hyteg::idx_t j = 0; j < j_max - k; ++j )
       {
-         auto y = coords( j );
+         auto y = X[j];
          if ( d >= 2 )
          {
             p.fix_y( y );
          }
          for ( hyteg::idx_t i = 0; i < i_max - k - j; ++i )
          {
-            auto x = coords( i );
+            auto x = X[i];
             auto e = f( { x, y, z } ) - p.eval( x );
             error += e * e;
          }

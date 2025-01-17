@@ -33,6 +33,7 @@
 #include <hyteg/p1functionspace/P1Elements.hpp>
 #include <hyteg/p1functionspace/P1Function.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
+#include <hyteg/polynomial/elementwise/data.hpp>
 #include <hyteg/polynomial/elementwise/leastSquares.hpp>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
@@ -50,56 +51,43 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
 {
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
-   using Polynomial = surrogate::polynomial::Polynomial;
+   template < uint_t DIM >
+   using RHS_matrix = surrogate::RHS_matrix< DIM, 1, 1 >;
+   template < uint_t DIM >
+   using PrecomputedData = surrogate::PrecomputedData< real_t, DIM, 1, 1 >;
+   template < uint_t DIM >
+   using SurrogateData = surrogate::SurrogateData< DIM, 1, 1 >;
 
-   /**
-     * @brief container for surrogate polynomials
-     * @tparam DIM spacial dimension
-     */
-   template < size_t DIM >
-   using P_data = std::array< surrogate::polynomial::Matrix< DIM + 1 >, ( DIM == 2 ) ? 2 : 6 >;
+   //    using Polynomial = surrogate::polynomial::Polynomial;
 
-   /**
-     * @brief Alias template for a matrix of right-hand-side vectors for the lsq-fit
-     * @tparam DIM spacial dimension
-     */
-   template < size_t DIM >
-   using RHS_matrix = surrogate::LeastSquares::RHS_matrix< DIM + 1 >;
+   //    /**
+   //      * @brief matrix of polynomials with same dimensions as local stiffness matrix
+   //      * @tparam DIM spacial dimension
+   //      */
+   //    template < size_t DIM >
+   //    using SurrogateMatrix = Eigen::Matrix< Polynomial, DIM + 1, DIM + 1, Eigen::RowMajor >;
 
-   /**
-    * @brief container for precomputed local stiffness matrices
-    *           A_loc[idx] = local stiffness matrix at idx
-    * @tparam DIM spacial dimension
-    */
-   template < size_t DIM >
-   using A_loc = std::vector< Matrixr< DIM + 1, DIM + 1 >, Eigen::aligned_allocator< Matrixr< DIM + 1, DIM + 1 > > >;
+   //    /**
+   //      * @brief container for surrogate polynomials of each element-type
+   //      * @tparam DIM spacial dimension
+   //      */
+   //    template < size_t DIM >
+   //    using P_data = std::array< SurrogateMatrix< DIM + 1,1>, ( DIM == 2 ) ? 2 : 6 >;
 
-   /**
-    * @brief container for level wise data on each primitive
-    *       usage: ElementDataMap[primitiveID][lvl] = T
-    */
-   template < typename T >
-   struct ElementDataMap : public std::map< PrimitiveID, std::vector< T > >
-   {
-      ElementDataMap( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max )
-      {
-         uint_t dim = ( storage->hasGlobalCells() ) ? 3 : 2;
-         if ( dim == 2 )
-         {
-            for ( auto& id : storage->getFaceIDs() )
-            {
-               ( *this )[id] = std::vector< T >( l_max + 1 );
-            }
-         }
-         else
-         {
-            for ( auto& id : storage->getCellIDs() )
-            {
-               ( *this )[id] = std::vector< T >( l_max + 1 );
-            }
-         }
-      }
-   };
+   //    /**
+   //      * @brief container for right-hand-side vectors for the lsq-fit
+   //      * @tparam DIM spacial dimension
+   //      */
+   //    template < size_t DIM >
+   //    using RHS_matrix = Eigen::Matrix< surrogate::LeastSquares::Vector, DIM + 1, DIM + 1, Eigen::RowMajor >;
+
+   //    /**
+   //     * @brief container for precomputed local stiffness matrices
+   //     *           A_loc[idx] = local stiffness matrix at idx
+   //     * @tparam DIM spacial dimension
+   //     */
+   //    template < size_t DIM >
+   //    using A_loc = std::vector< Matrixr< DIM + 1, DIM + 1,1>, Eigen::aligned_allocator< Matrixr< DIM + 1, DIM + 1,1> > >;
 
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -304,11 +292,11 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    std::vector< uint8_t > poly_degree_;
 
    // precomputed local stiffness matrices for level 1-3
-   ElementDataMap< A_loc< 2 > > a_loc_2d_;
-   ElementDataMap< A_loc< 3 > > a_loc_3d_;
+   PrecomputedData< 2 > a_loc_2d_;
+   PrecomputedData< 3 > a_loc_3d_;
    // surrogates for level 4+ (one poly matrix for each element type)
-   ElementDataMap< P_data< 2 > > surrogate_2d_;
-   ElementDataMap< P_data< 3 > > surrogate_3d_;
+   SurrogateData< 2 > surrogate_2d_;
+   SurrogateData< 3 > surrogate_3d_;
 };
 
 typedef P1ElementwiseSurrogateOperator<

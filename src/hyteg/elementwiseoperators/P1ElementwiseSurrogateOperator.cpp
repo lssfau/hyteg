@@ -126,21 +126,19 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( uint_t level )
 {
-   const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( level );
-
    for ( const auto& [id, face] : storage_->getFaces() )
    {
       auto& a_loc = a_loc_2d_[id][level];
 
-      a_loc.resize( numMicroFacesPerMacroFace );
+      a_loc.set_level( level );
 
       for ( const auto& fType : facedof::allFaceTypes )
       {
          for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
          {
-            const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
-            a_loc[idx].setZero();
-            assembleLocalElementMatrix2D( *face, level, micro, fType, form_, a_loc[idx] );
+            auto& elMat = a_loc( fType, micro );
+            elMat.setZero();
+            assembleLocalElementMatrix2D( *face, level, micro, fType, form_, elMat );
          }
       }
    }
@@ -149,20 +147,18 @@ void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( ui
 template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_3d( uint_t level )
 {
-   const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
-
    for ( const auto& [id, cell] : storage_->getCells() )
    {
       auto& a_loc = a_loc_3d_[id][level];
-      a_loc.resize( numMicroCellsPerMacroCell );
+      a_loc.set_level( level );
 
       for ( const auto& cType : celldof::allCellTypes )
       {
          for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
          {
-            const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
-            a_loc[idx].setZero();
-            assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, a_loc[idx] );
+            auto& elMat = a_loc( cType, micro );
+            elMat.setZero();
+            assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
          }
       }
    }
@@ -179,7 +175,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
    {
       for ( idx_t j = 0; j < rhs.cols(); ++j )
       {
-         rhs( i, j ) = surrogate::LeastSquares::Vector( lsq.rows );
+         rhs( i, j ).resize( lsq.rows );
       }
    }
 
@@ -197,13 +193,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
             {
                for ( idx_t j = 0; j < elMat.cols(); ++j )
                {
-                  rhs( i, j )( it() ) = elMat( i, j );
+                  rhs( i, j )[it()] = elMat( i, j );
                }
             }
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
-         auto& surrogate = surrogate_2d_[id][level][uint_t( fType )];
+         auto& surrogate = surrogate_2d_[id][level][fType];
          for ( idx_t i = 0; i < rhs.rows(); ++i )
          {
             for ( idx_t j = 0; j < rhs.cols(); ++j )
@@ -229,7 +225,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
    {
       for ( idx_t j = 0; j < rhs.cols(); ++j )
       {
-         rhs( i, j ) = surrogate::LeastSquares::Vector( lsq.rows );
+         rhs( i, j ).resize( lsq.rows );
       }
    }
 
@@ -247,13 +243,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
             {
                for ( idx_t j = 0; j < rhs.cols(); ++j )
                {
-                  rhs( i, j )( it() ) = elMat( i, j );
+                  rhs( i, j )[it()] = elMat( i, j );
                }
             }
             ++it;
          }
          // fit polynomials for each entry of the local stiffness matrix
-         auto& surrogate = surrogate_3d_[id][level][uint_t( cType )];
+         auto& surrogate = surrogate_3d_[id][level][cType];
          for ( idx_t i = 0; i < rhs.rows(); ++i )
          {
             for ( idx_t j = 0; j < rhs.cols(); ++j )
@@ -446,15 +442,14 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
 
       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
       {
-         const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
-         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, a_loc[idx], alpha );
+         localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, a_loc( fType, micro ), alpha );
       }
    }
    else
    { // use surrogate polynomials to approximate local matrices
-      auto& surrogate = surrogate_2d_.at( id )[level][uint_t( fType )];
+      auto& surrogate = surrogate_2d_.at( id )[level][fType];
       // domain of surrogates
-      surrogate::polynomial::Coordinates poly_domain( level );
+      surrogate::polynomial::Domain X( level );
       // local stiffness matrix
       Matrix3r elMat( Matrix3r::Zero() );
       // iterate over all micro-faces
@@ -463,7 +458,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
       for ( micro.y() = 0; micro.y() < row_end; micro.y()++ )
       {
          // restrict to 1d polynomial
-         auto y = poly_domain( micro.y() );
+         auto y = X[micro.y()];
          for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
             for ( idx_t j = 0; j < surrogate.cols(); ++j )
@@ -475,7 +470,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
          for ( micro.x() = 0; micro.x() < row_end - micro.y(); micro.x()++ )
          {
             // evaluate p(x) using Horner's method
-            auto x = poly_domain( micro.x() );
+            auto x = X[micro.x()];
             for ( idx_t i = 0; i < surrogate.rows(); ++i )
             {
                for ( idx_t j = 0; j < surrogate.cols(); ++j )
@@ -507,15 +502,14 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
 
       for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
       {
-         const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
-         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, a_loc[idx], alpha );
+         localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, a_loc( cType, micro ), alpha );
       }
    }
    else
    {
-      auto& surrogate = surrogate_3d_.at( id )[level][uint_t( cType )];
+      auto& surrogate = surrogate_3d_.at( id )[level][cType];
       // domain of surrogates
-      surrogate::polynomial::Coordinates poly_domain( level );
+      surrogate::polynomial::Domain X( level );
       // local stiffness matrix
       Matrix4r elMat( Matrix4r::Zero() );
       // iterate over all micro-cells
@@ -524,7 +518,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
       for ( micro.z() = 0; micro.z() < row_end; micro.z()++ )
       {
          // restrict to 2d polynomial
-         auto z = poly_domain( micro.z() );
+         auto z = X[micro.z()];
          for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
             for ( idx_t j = 0; j < surrogate.cols(); ++j )
@@ -536,7 +530,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
          for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
          {
             // restrict to 1d polynomial
-            auto y = poly_domain( micro.y() );
+            auto y = X[micro.y()];
             for ( idx_t i = 0; i < surrogate.rows(); ++i )
             {
                for ( idx_t j = 0; j < surrogate.cols(); ++j )
@@ -548,7 +542,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
             for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
             {
                // evaluate p(x) using Horner's method
-               auto x = poly_domain( micro.x() );
+               auto x = X[micro.x()];
                for ( idx_t i = 0; i < surrogate.rows(); ++i )
                {
                   for ( idx_t j = 0; j < surrogate.cols(); ++j )
@@ -742,22 +736,20 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const 
 
       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
       {
-         const auto idx = facedof::macroface::index( level, micro.x(), micro.y(), fType );
-
-         extract_diagonal_values( micro, a_loc[idx] );
+         extract_diagonal_values( micro, a_loc( fType, micro ) );
       }
    }
    else
    { // use surrogate polynomials to approximate local matrices
-      auto& surrogate = surrogate_2d_.at( id )[level][uint_t( fType )];
+      auto& surrogate = surrogate_2d_.at( id )[level][fType];
       // domain of surrogates
-      surrogate::polynomial::Coordinates poly_domain( level );
+      surrogate::polynomial::Domain X( level );
       // local stiffness matrix
       Matrix3r elMat( Matrix3r::Zero() );
       // todo: use optimized polynomial evaluation
       for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
       {
-         auto x = poly_domain( micro );
+         auto x = X( micro );
 
          for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
@@ -794,22 +786,20 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const 
 
       for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
       {
-         const auto idx = celldof::macrocell::index( level, micro.x(), micro.y(), micro.z(), cType );
-
-         extract_diagonal_values( micro, a_loc[idx] );
+         extract_diagonal_values( micro, a_loc( cType, micro ) );
       }
    }
    else
    { // use surrogate polynomials to approximate local matrices
-      auto& surrogate = surrogate_3d_.at( id )[level][uint_t( cType )];
+      auto& surrogate = surrogate_3d_.at( id )[level][cType];
       // domain of surrogates
-      surrogate::polynomial::Coordinates poly_domain( level );
+      surrogate::polynomial::Domain X( level );
       // local stiffness matrix
       Matrix4r elMat( Matrix4r::Zero() );
       // todo: use optimized polynomial evaluation
       for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
       {
-         auto x = poly_domain( micro );
+         auto x = X( micro );
 
          for ( idx_t i = 0; i < surrogate.rows(); ++i )
          {
@@ -836,83 +826,83 @@ void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< 
    WALBERLA_UNUSED( flag );
    WALBERLA_ABORT( "Not implemented!" );
 }
-// P1ElementwiseLaplaceOperator
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
+// // P1ElementwiseLaplaceOperator
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
 
-// P1ElementwisePolarLaplaceOperator
-template class P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
+// // P1ElementwisePolarLaplaceOperator
+// template class P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
 
-// P1ElementwiseMassOperator
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
+// // P1ElementwiseMassOperator
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 
-// P1ElementwisePSPGOperator
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
+// // P1ElementwisePSPGOperator
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-template class P1ElementwiseSurrogateOperator< P1LinearCombinationForm >;
+// template class P1ElementwiseSurrogateOperator< P1LinearCombinationForm >;
 
-// P1ElementwiseBlendingMassOperator3D
-template class P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 >;
+// // P1ElementwiseBlendingMassOperator3D
+// template class P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 >;
 
-// P1ElementwiseBlendingLaplaceOperator
-template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 >;
+// // P1ElementwiseBlendingLaplaceOperator
+// template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 >;
 
-// Needed for P1Blending(Inverse)DiagonalOperator
-template class P1ElementwiseSurrogateOperator< P1RowSumForm >;
+// // Needed for P1Blending(Inverse)DiagonalOperator
+// template class P1ElementwiseSurrogateOperator< P1RowSumForm >;
 
 template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
 
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >;
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >;
-template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >;
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >;
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >;
+// template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >;
 
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >;
-template class P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
-template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >;
+// template class P1ElementwiseSurrogateOperator<
+//     P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
+// template class P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
 
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_0_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_1_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_2_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_0_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_1_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_2_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_0_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_1_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_2_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_0_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_1_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_0_2_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_0_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_1_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_1_2_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_0_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_1_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsiloncc_2_2_affine_q2 >;
 
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
 
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
-template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_0_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_1_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_0_2_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_0_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_1_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_1_2_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_0_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_1_blending_q2 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_epsilonvar_2_2_blending_q2 >;
 
-template class P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 >;
+// template class P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 >;
 
-// This is a slight misuse of the P1ElementwiseOperator class, since the spherical
-// elements are not P1. However, the SphericalElementFunction, like the P1Function
-// is only an alias for the VertexDoFFunction, so we can re-use this operator.
-template class P1ElementwiseSurrogateOperator< SphericalElementFormMass >;
+// // This is a slight misuse of the P1ElementwiseOperator class, since the spherical
+// // elements are not P1. However, the SphericalElementFunction, like the P1Function
+// // is only an alias for the VertexDoFFunction, so we can re-use this operator.
+// template class P1ElementwiseSurrogateOperator< SphericalElementFormMass >;
 
 } // namespace hyteg

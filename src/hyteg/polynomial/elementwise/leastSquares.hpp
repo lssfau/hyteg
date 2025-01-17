@@ -108,11 +108,6 @@ class LeastSquares
    using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
    using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
 
-   // RxC matrix of right-hand-side vectors (required for surrogate stiffness matrix)
-   template < uint_t R, uint_t C = R >
-   using RHS_matrix = Eigen::Matrix< Vector, R, C, Eigen::RowMajor >;
-   // using RHS_matrix = std::array< std::array< Vector, C >, R >;
-
  private:
    /**
     * @class Iterator
@@ -261,13 +256,13 @@ class LeastSquares
    void compute_svd()
    {
       // Setup Vandermonde matrix
-      const polynomial::Basis       phi( _q );
-      const polynomial::Coordinates coords( _lvl );
+      const polynomial::Basis  phi( _q );
+      const polynomial::Domain X( _lvl );
 
       auto it = samplingIterator();
       while ( it != it.end() )
       {
-         auto x = coords( it.ijk() );
+         auto x = X( it.ijk() );
 
          for ( uint_t col = 0; col < cols; ++col )
          {

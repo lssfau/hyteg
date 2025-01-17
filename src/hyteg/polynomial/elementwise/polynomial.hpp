@@ -67,12 +67,16 @@ struct Monomial
 
    // extract exponent i of x^i*y^j*z^k
    constexpr inline int i() const { return ijk_compressed & ( J - 1 ); }
+
    // extract exponent j of x^i*y^j*z^k
    constexpr inline int j() const { return ( ijk_compressed & ( K - 1 ) ) >> SHIFT_J; }
+
    // extract exponent k of x^i*y^j*z^k
    constexpr inline int k() const { return ijk_compressed >> SHIFT_K; }
+
    // extract exponents i,j,k from compressed basis function
    constexpr inline std::array< int, 3 > expand() const { return { i(), j(), k() }; }
+
    // total polynomial degree of this basis function
    constexpr inline int degree() const { return i() + j() + k(); }
 
@@ -139,20 +143,21 @@ struct Basis : public std::vector< Monomial >
    }
 };
 
-/* Coordinate system for polynomial evaluation.
- ! Different from the coordinates of PDE domain !
-*/
-struct Coordinates
+/* Domain of polynomial space = [-1,3]
+ * @brief Affine mapping from {v}_v ∈ macro-edge to [-1,3]
+ */
+struct Domain
 {
-   constexpr Coordinates( uint_t lvl )
+   constexpr Domain( uint_t lvl )
    : scaling( 4.0 / double( ( 1 << lvl ) - 1 ) )
    {}
    // convert index i to coordinate x ∈ [-1,3]
-   inline constexpr double operator()( idx_t i ) const { return scaling * double( i ) - 1.0; }
+   inline constexpr double operator[]( idx_t i ) const { return scaling * double( i ) - 1.0; }
+
    // convert index [i,j,k] to coordinate x ∈ [-1,3]^3
    inline PointND< double, 3 > operator()( const indexing::Index& idx ) const
    {
-      return { ( *this )( idx.x() ), ( *this )( idx.y() ), ( *this )( idx.z() ) };
+      return { ( *this )[idx.x()], ( *this )[idx.y()], ( *this )[idx.z()] };
    }
 
    // scaling factor to convert index i ∈ {0,..., 2^lvl - 1} to coordinate x ∈ [-1,3]
@@ -204,8 +209,10 @@ class Polynomial : public std::vector< double >
 
    // get i-th coefficient w.r.t. monomial basis
    inline double& c( idx_t i ) { return ( *this )[uint_t( i )]; }
+
    // get i-th coefficient w.r.t. monomial basis
    inline const double& c( idx_t i ) const { return ( *this )[uint_t( i )]; }
+
    // get number of coefficients ( = dimension of polynomial space )
    inline idx_t n_coefficients() const { return idx_t( size() ); }
 
@@ -286,6 +293,7 @@ class Polynomial : public std::vector< double >
 
    // get basis of polynomial space
    const Basis& basis() const { return *_basis; }
+
    // get i-th basis function
    const Monomial& phi( idx_t i ) const { return basis()[uint_t( i )]; }
 
@@ -328,10 +336,6 @@ class Polynomial : public std::vector< double >
    // basis functions for q = 0,1,...
    static const std::vector< Basis > basis_q;
 };
-
-// RxC matrix of polynomials
-template < uint_t R, uint_t C = R >
-using Matrix = Eigen::Matrix< Polynomial, R, C, Eigen::RowMajor >;
 
 } // namespace polynomial
 } // namespace surrogate
