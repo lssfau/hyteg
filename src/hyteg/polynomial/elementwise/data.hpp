@@ -68,7 +68,7 @@ template < typename T, uint_t DIM >
 class ElementTypeWiseData
 {
  public:
-   using ElementType = std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
+   using ElementType = typename std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
 
    constexpr ElementTypeWiseData()
    : _data{}
@@ -98,8 +98,8 @@ class LocalMatrixExplicit
    static constexpr idx_t C_loc = polynomial::dimP( DIM, SRC_DEGREE );
 
  public:
-   using local_matrix_t = Matrix< float_t, R_loc, C_loc >;
-   using ElementType    = std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
+   using local_matrix_t = Matrix< Float, R_loc, C_loc >;
+   using ElementType    = typename std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
 
    LocalMatrixExplicit()
    : _data{}
