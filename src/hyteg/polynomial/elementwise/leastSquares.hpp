@@ -27,6 +27,8 @@
 
 #include "polynomial.hpp"
 
+// todo change from double to template <typename Float>
+
 namespace hyteg {
 namespace surrogate {
 

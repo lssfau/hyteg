@@ -25,6 +25,8 @@
 #include <hyteg/types/PointND.hpp>
 #include <vector>
 
+// todo change from double to template <typename Float>
+
 namespace hyteg {
 namespace surrogate {
 
@@ -33,11 +35,21 @@ using walberla::uint_t;
 namespace polynomial {
 
 /**
- * @brief Compute the dimension of a polynomial space of degree q over a d-dimensional domain
+ * @brief Compute the dimension of P_q(R^d)
  */
 static constexpr uint_t dimP( uint8_t d, uint8_t q )
 {
-   return ( d == 0 ) ? 0 : ( d == 1 ) ? q + 1 : ( d == 2 ) ? ( q + 1 ) * ( q + 2 ) / 2 : ( q + 1 ) * ( q + 2 ) * ( q + 3 ) / 6;
+   switch ( d )
+   {
+   case 1:
+      return q + 1;
+   case 2:
+      return ( q + 1 ) * ( q + 2 ) / 2;
+   case 3:
+      return ( q + 1 ) * ( q + 2 ) * ( q + 3 ) / 6;
+   default:
+      return 0;
+   }
 }
 
 // store x^i*y^j*z^k by exponents i,j,k compressed into 16 bit

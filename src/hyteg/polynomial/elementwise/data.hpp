@@ -35,26 +35,27 @@ namespace hyteg {
 namespace surrogate {
 
 /**
- * @class LocalMatrix
- * @brief A container class to store, e.g., surrogate polynomials for each entry of the element matrix.
+ * @class LocalMatrixLike
+ * @brief T^RxC matrix where R and C are the dimensions of the local element matrices for a given local polynomial degree
  * @tparam T The type of the elements stored in the matrix (e.g. polynomial::Polynomial).
  * @tparam DIM The spacial dimension of the PDE domain
  * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */
 template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-class LocalMatrix
+class LocalMatrixLike
 {
  public:
-   static constexpr idx_t R = polynomial::dimP( DIM, DST_DEGREE ); ///< Number of rows in the matrix.
-   static constexpr idx_t C = polynomial::dimP( DIM, SRC_DEGREE ); ///< Number of columns in the matrix.
+   static constexpr idx_t R = polynomial::dimP( DIM, DST_DEGREE );
+   static constexpr idx_t C = polynomial::dimP( DIM, SRC_DEGREE );
 
-   LocalMatrix()
+   LocalMatrixLike()
    : _data{}
    {}
 
    // get (i,j) entry of this
    inline T&       operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
+   // get (i,j) entry of this
    inline const T& operator()( idx_t i, idx_t j ) const { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
 
    inline constexpr idx_t rows() const { return R; }
@@ -81,18 +82,16 @@ class ElementTypeWiseData
    std::array< T, ( DIM == 2 ) ? 2 : 6 > _data;
 };
 
-static constexpr auto a = static_cast< ElementTypeWiseData< double, 2 >::ElementType >( 0 );
-
 /**
- * @class LocalMatrixExplicit
- * @brief A container class to store all local matrices of a given macro element
- * @tparam float_t The type of the elements stored in the matrix (e.g. double, real_t, ...)
+ * @class LocalMatrixMap
+ * @brief Map of local element matrices to store all local matrices of a given macro element.
+ * @tparam Float The type of the elements stored in the matrix (e.g. double, real_t, ...)
  * @tparam DIM The spacial dimension of the PDE domain
  * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */
-template < typename float_t, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-class LocalMatrixExplicit
+template < typename Float, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+class LocalMatrixMap
 {
    static constexpr idx_t R_loc = polynomial::dimP( DIM, DST_DEGREE );
    static constexpr idx_t C_loc = polynomial::dimP( DIM, SRC_DEGREE );
@@ -101,22 +100,24 @@ class LocalMatrixExplicit
    using local_matrix_t = Matrix< Float, R_loc, C_loc >;
    using ElementType    = typename std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
 
-   LocalMatrixExplicit()
+   LocalMatrixMap()
    : _data{}
    {}
 
-   LocalMatrixExplicit( uint_t level )
-   : LocalMatrixExplicit()
+   LocalMatrixMap( uint_t level )
+   : LocalMatrixMap()
    {
       set_level( level );
    }
 
+   // adjust size of the container such that all data of given `level` fits.
    void set_level( uint_t level )
    {
       _level = level;
       _data.resize( required_size( level ) );
    }
 
+   // retrieve local element matrix for the element at `Index` `micro` of `FaceType`/`CellType` `eType`.
    inline local_matrix_t& operator()( const ElementType& eType, const indexing::Index& micro )
    {
       if constexpr ( DIM == 2 )
@@ -128,7 +129,7 @@ class LocalMatrixExplicit
          return _data[celldof::macrocell::index( _level, micro.x(), micro.y(), micro.z(), eType )];
       }
    }
-
+   // retrieve local element matrix for the element at `Index` `micro` of `FaceType`/`CellType` `eType`.
    inline const local_matrix_t& operator()( const ElementType& eType, const indexing::Index& micro ) const
    {
       if constexpr ( DIM == 2 )
@@ -160,7 +161,7 @@ class LocalMatrixExplicit
 
 /**
  * @brief container for level wise data on each primitive
- *       usage: ElementDataMap[primitiveID][lvl] = T
+ *       usage: ElementWiseData[primitiveID][lvl] = T
  */
 template < typename T >
 struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
@@ -187,14 +188,14 @@ struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
 
 // container for RHS vectors for lsq-fit
 template < uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-using RHS_matrix = LocalMatrix< LeastSquares::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
+using RHS_matrix = LocalMatrixLike< LeastSquares::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
 // container for precomputed element matrices
-template < typename float_t, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-using PrecomputedData = ElementWiseData< LocalMatrixExplicit< float_t, DIM, SRC_DEGREE, DST_DEGREE > >;
+template < typename Float, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+using PrecomputedData = ElementWiseData< LocalMatrixMap< Float, DIM, SRC_DEGREE, DST_DEGREE > >;
 // container for surrogates
 template < uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using SurrogateData =
-    ElementWiseData< ElementTypeWiseData< LocalMatrix< polynomial::Polynomial, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
+    ElementWiseData< ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
 
 } // namespace surrogate
 } // namespace hyteg
