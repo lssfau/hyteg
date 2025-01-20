@@ -76,9 +76,9 @@ void PolynomialTest( uint8_t d, uint8_t q )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", d, q ) );
    // choose random element p from P_q(R^d)
    hyteg::surrogate::polynomial::Polynomial< real_t > p( d, q );
-   for ( idx_t i = 0; i < p.n_coefficients(); ++i )
+   for ( auto& c : p )
    {
-      p.c( i ) = realRandom();
+      c = realRandom();
    }
    // choose random point x from R^3
    hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };
