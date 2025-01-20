@@ -22,12 +22,11 @@
 
 #include <core/Format.hpp>
 #include <core/logging/Logging.h>
+#include <filesystem>
 #include <hyteg/eigen/EigenWrapper.hpp>
 #include <hyteg/indexing/Common.hpp>
 
 #include "polynomial.hpp"
-
-// todo change from double to template <typename Float>
 
 namespace hyteg {
 namespace surrogate {
@@ -222,11 +221,35 @@ class LeastSquares
       return downsampling;
    }
 
+   template < typename MatrixType >
+   inline std::filesystem::path matrix_file( const MatrixType& M ) const
+   {
+      std::string m;
+      if ( M.data() == A.data() )
+      {
+         m = "A";
+      }
+      if ( M.data() == Uh.data() )
+      {
+         m = "Uh";
+      }
+      if ( M.data() == Si.data() )
+      {
+         m = "Si";
+      }
+      if ( M.data() == V.data() )
+      {
+         m = "V";
+      }
+      auto suffix = walberla::format( "_d%d_q%d_l%d_s%d_f%d", _dim, _q, _lvl, _downsampling, 8 * sizeof( FLOAT ) );
+      return m + suffix + ".dat";
+   }
+
    // load matrix from file
    template < typename MatrixType >
-   static bool load_matrix( const std::string& filename, MatrixType& M )
+   bool load_matrix( const std::filesystem::path& dir, MatrixType& M )
    {
-      std::ifstream file( filename, std::ios::binary );
+      std::ifstream file( dir / matrix_file( M ), std::ios::binary );
       if ( file.is_open() )
       {
          file.read( reinterpret_cast< char* >( M.data() ), M.size() * sizeof( FLOAT ) );
@@ -241,9 +264,9 @@ class LeastSquares
 
    // store matrix in file
    template < typename MatrixType >
-   static bool store_matrix( const std::string& filename, const MatrixType& M )
+   bool store_matrix( const std::filesystem::path& dir, const MatrixType& M ) const
    {
-      std::ofstream file( filename, std::ios::binary );
+      std::ofstream file( dir / matrix_file( M ), std::ios::binary );
       if ( file.is_open() )
       {
          file.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( FLOAT ) );
@@ -283,18 +306,12 @@ class LeastSquares
 
    bool load_svd( const std::string& path )
    {
-      std::string ext = walberla::format( "_d%d_q%d_l%d_s%d_f%d.dat", _dim, _q, _lvl, _downsampling, 8*sizeof( FLOAT ) );
-      std::string d   = "/";
-      return load_matrix( path + d + "A" + ext, A ) && load_matrix( path + d + "Uh" + ext, Uh ) &&
-             load_matrix( path + d + "Si" + ext, Si ) && load_matrix( path + d + "V" + ext, V );
+      return load_matrix( path, A ) && load_matrix( path, Uh ) && load_matrix( path, Si ) && load_matrix( path, V );
    }
 
    bool store_svd( const std::string& path ) const
    {
-      std::string ext = walberla::format( "_d%d_q%d_l%d_s%d_f%d.dat", _dim, _q, _lvl, _downsampling, 8*sizeof( FLOAT ) );
-      std::string d   = "/";
-      return store_matrix( path + d + "A" + ext, A ) && store_matrix( path + d + "Uh" + ext, Uh ) &&
-             store_matrix( path + d + "Si" + ext, Si ) && store_matrix( path + d + "V" + ext, V );
+      return store_matrix( path, A ) && store_matrix( path, Uh ) && store_matrix( path, Si ) && store_matrix( path, V );
    }
 
    LeastSquares( uint_t             dim,
