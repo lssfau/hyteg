@@ -409,7 +409,7 @@ class EGP0StokesOperatorNitscheBC : public Operator< EGP0StokesFunction< real_t 
                const EGP0StokesFunction< real_t >& dst,
                const uint_t                        level,
                const DoFType                       flag,
-               UpdateType                          updateType ) const override
+               UpdateType                          updateType = Replace ) const override
    {
       velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
