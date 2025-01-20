@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -948,6 +948,142 @@ ValueType VolumeDoFFunction< ValueType >::getMaxDoFMagnitude( uint_t level, bool
    }
 
    return globalMax;
+}
+
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::toVector( const VolumeDoFFunction< idx_t >&     numerator,
+                                               const std::shared_ptr< VectorProxy >& vec,
+                                               uint_t                                level,
+                                               DoFType                               flag ) const
+{
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      // 3D
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto indices   = numerator.dofMemory( cellID, level );
+         const auto dofs      = this->dofMemory( cellID, level );
+         const auto memLayout = this->memoryLayout();
+         const auto numDofs   = this->numScalarsPerPrimitive_.at( cellID );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx = indices[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  const auto value     = dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  vec->setValue( uint_c( vectorIdx ), real_c( value ) );
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      // 2D
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto indices   = numerator.dofMemory( faceID, level );
+         const auto dofs      = this->dofMemory( faceID, level );
+         const auto memLayout = this->memoryLayout();
+         const auto numDofs   = this->numScalarsPerPrimitive_.at( faceID );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx =
+                      indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
+                  const auto value =
+                      dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
+                  vec->setValue( uint_c( vectorIdx ), real_c( value ) );
+               }
+            }
+         }
+      }
+   }
+
+   WALBERLA_UNUSED( flag );
+}
+
+template < typename ValueType >
+void VolumeDoFFunction< ValueType >::fromVector( const VolumeDoFFunction< idx_t >&     numerator,
+                                                 const std::shared_ptr< VectorProxy >& vec,
+                                                 uint_t                                level,
+                                                 DoFType                               flag ) const
+{
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      // 3D
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         const auto cellID = it.first;
+         const auto cell   = *it.second;
+
+         const auto indices   = numerator.dofMemory( cellID, level );
+         auto       dofs      = this->dofMemory( cellID, level );
+         const auto memLayout = this->memoryLayout();
+         const auto numDofs   = this->numScalarsPerPrimitive_.at( cellID );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx = indices[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )];
+                  const auto value     = vec->getValue( uint_c( vectorIdx ) );
+                  dofs[volumedofspace::indexing::index(
+                      idxIt.x(), idxIt.y(), idxIt.z(), cellType, i, numDofs, level, memLayout )] = ValueType( value );
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      // 2D
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         const auto faceID = it.first;
+         const auto face   = *it.second;
+
+         const auto indices   = numerator.dofMemory( faceID, level );
+         auto       dofs      = this->dofMemory( faceID, level );
+         const auto memLayout = this->memoryLayout();
+         const auto numDofs   = this->numScalarsPerPrimitive_.at( faceID );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               for ( uint_t i = 0; i < numDofs; i++ )
+               {
+                  const auto vectorIdx =
+                      indices[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )];
+                  const auto value = vec->getValue( uint_c( vectorIdx ) );
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, i, numDofs, level, memLayout )] =
+                      ValueType( value );
+               }
+            }
+         }
+      }
+   }
+
+   WALBERLA_UNUSED( flag );
 }
 
 // explicit instantiation
