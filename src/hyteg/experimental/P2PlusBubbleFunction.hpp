@@ -271,7 +271,6 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
                   uint_t                                level,
                   DoFType                               flag ) const
    {
-      WALBERLA_ABORT( "Member function not bubble ready!" );
       this->getVertexDoFFunction().toVector( numerator.getVertexDoFFunction(), vec, level, flag );
       this->getEdgeDoFFunction().toVector( numerator.getEdgeDoFFunction(), vec, level, flag );
    }
@@ -281,9 +280,9 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
                     uint_t                                level,
                     DoFType                               flag ) const
    {
-      WALBERLA_ABORT( "Member function not bubble ready!" );
       this->getVertexDoFFunction().fromVector( numerator.getVertexDoFFunction(), vec, level, flag );
       this->getEdgeDoFFunction().fromVector( numerator.getEdgeDoFFunction(), vec, level, flag );
+      this->getVolumeDoFFunction().fromVector( numerator.getVolumeDoFFunction(), vec, level, flag );
    };
    ///@}
 
@@ -297,7 +296,6 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                  const bool&     onRootOnly   = false ) const
    {
-      WALBERLA_ABORT( "Member function not bubble ready!" );
       return numberOfGlobalDoFs< P2PlusBubbleFunctionTag >( *this->storage_, level, communicator, onRootOnly );
    }
 

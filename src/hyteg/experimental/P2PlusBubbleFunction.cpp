@@ -202,7 +202,10 @@ void P2PlusBubbleFunction< ValueType >::interpolate( ValueType constant, uint_t 
    // constant value. The reason is that the other shape functions will not be zero at the barycenter
    // of the element. Thus, we need to correct for this. In the constant case, the bubble DoF is not
    // needed, as the P2 part already interpolates the constant function exactly.
-   volumeDoFFunction_.setToZero( level );
+   if ( flag == All || flag == Inner )
+   {
+      volumeDoFFunction_.setToZero( level );
+   }
 }
 
 template < typename ValueType >
@@ -229,7 +232,16 @@ void P2PlusBubbleFunction< ValueType >::interpolate( const std::function< ValueT
       vertexDoFFunction_.interpolate( expr, level, flag );
       edgeDoFFunction_.interpolate( expr, level, flag );
 
-      // Could likely be done more efficiently
+      // Do not interpolate faces/cells, if Inner is not part of the DoFType flag!
+      if ( flag != All && flag != Inner )
+      {
+         return;
+      }
+
+      // We need to communicate the values of vertex and edge dofs on the element boundaries,
+      // as we need this information to compute the bubble dof values on the attached faces/cells.
+      //
+      // Could likely be done more efficiently.
       syncFunctionBetweenPrimitives( vertexDoFFunction_, level, communication::syncDirection_t::BIDIRECTIONAL );
       syncFunctionBetweenPrimitives( edgeDoFFunction_, level, communication::syncDirection_t::BIDIRECTIONAL );
 
@@ -552,7 +564,10 @@ ValueType P2PlusBubbleFunction< ValueType >::getMaxDoFValue( uint_t level, DoFTy
    auto localMax = -std::numeric_limits< ValueType >::max();
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxDoFValue( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunction_.getMaxDoFValue( level, flag, false ) );
-   localMax      = std::max( localMax, volumeDoFFunction_.getMaxDoFValue( level, false ) );
+   if ( flag == All || flag == Inner )
+   {
+      localMax = std::max( localMax, volumeDoFFunction_.getMaxDoFValue( level, false ) );
+   }
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMax = localMax;
@@ -570,7 +585,10 @@ ValueType P2PlusBubbleFunction< ValueType >::getMaxDoFMagnitude( uint_t level, D
    auto localMax = ValueType( 0.0 );
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxDoFMagnitude( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunction_.getMaxDoFMagnitude( level, flag, false ) );
-   localMax      = std::max( localMax, volumeDoFFunction_.getMaxDoFMagnitude( level, false ) );
+   if ( flag == All || flag == Inner )
+   {
+      localMax = std::max( localMax, volumeDoFFunction_.getMaxDoFMagnitude( level, false ) );
+   }
 
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
@@ -589,7 +607,10 @@ ValueType P2PlusBubbleFunction< ValueType >::getMinDoFValue( uint_t level, DoFTy
    auto localMin = std::numeric_limits< ValueType >::max();
    localMin      = std::min( localMin, vertexDoFFunction_.getMinDoFValue( level, flag, false ) );
    localMin      = std::min( localMin, edgeDoFFunction_.getMinDoFValue( level, flag, false ) );
-   localMin      = std::min( localMin, volumeDoFFunction_.getMinDoFValue( level, false ) );
+   if ( flag == All || flag == Inner )
+   {
+      localMin = std::min( localMin, volumeDoFFunction_.getMinDoFValue( level, false ) );
+   }
 
    walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 

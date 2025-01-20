@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,11 +23,12 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"
-#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
+#include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -102,6 +103,12 @@ inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::ve
 }
 
 inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
+   applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
+}
+
+inline void applyDirichletBC( const P2PlusBubbleFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
    applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
