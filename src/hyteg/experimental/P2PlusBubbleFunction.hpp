@@ -273,6 +273,7 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
    {
       this->getVertexDoFFunction().toVector( numerator.getVertexDoFFunction(), vec, level, flag );
       this->getEdgeDoFFunction().toVector( numerator.getEdgeDoFFunction(), vec, level, flag );
+      this->getVolumeDoFFunction().toVector( numerator.getVolumeDoFFunction(), vec, level, flag );
    }
 
    void fromVector( const P2PlusBubbleFunction< idx_t >&  numerator,
@@ -311,23 +312,5 @@ extern template class P2PlusBubbleFunction< double >;
 extern template class P2PlusBubbleFunction< float >;
 extern template class P2PlusBubbleFunction< int32_t >;
 extern template class P2PlusBubbleFunction< idx_t >;
-
-// namespace p2function {
-//
-// void projectMean( const P2PlusBubbleFunction< real_t >& pressure, const uint_t& level );
-//
-// inline unsigned long long localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
-// {
-//    return vertexDoFLocalFunctionMemorySize( level, storage ) + edgedof::edgeDoFLocalFunctionMemorySize( level, storage );
-// }
-//
-// inline unsigned long long globalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
-// {
-//    const auto memLocal  = localFunctionMemorySize( level, storage );
-//    const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
-//    return memGlobal;
-// }
-//
-// } // namespace p2function
 
 } //namespace hyteg
