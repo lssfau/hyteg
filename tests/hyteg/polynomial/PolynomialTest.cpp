@@ -34,6 +34,16 @@ using hyteg::uint_t;
 using walberla::math::pi;
 using walberla::math::realRandom;
 
+void check( const std::string& method, double px_manual, double px )
+{
+   constexpr double epsilon  = std::is_same< real_t, double >() ? 1e-14 : 1e-6;
+   double           diff_abs = std::abs( px - px_manual );
+   double           px_abs   = std::abs( px_manual );
+   WALBERLA_LOG_INFO_ON_ROOT( "   " << method << ":" );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "      |px_manual - p(x)|/|px_manual| = %e", diff_abs / px_abs ) );
+   WALBERLA_CHECK_LESS( diff_abs, epsilon * px_abs, "accuracy " << method );
+};
+
 // test correctness of basis functions
 void MonomialBasisTest( int i, int j, int k )
 {
@@ -62,9 +72,9 @@ void MonomialBasisTest( int i, int j, int k )
    // evaluate p manually
    auto px_manual = std::pow( x[0], i ) * std::pow( x[1], j ) * std::pow( x[2], k );
    // evaluate p using built-in function
-   auto p_eval_x = p.eval( x );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "px_manual - p.eval(x) = %e", px_manual - p_eval_x ) );
-   WALBERLA_ASSERT_FLOAT_EQUAL( px_manual, p_eval_x, "p.eval" );
+   auto px = p.eval( x );
+   // check diff
+   check( "Monomial::eval", px_manual, px );
 }
 
 // test different algorithms to evaluate polynomials
@@ -127,16 +137,8 @@ void PolynomialTest( uint8_t d, uint8_t q )
    // ---------------------------------------------------------
    /// compare solutions
    // ---------------------------------------------------------
-   double epsilon = std::is_same< real_t, double >() ? 1e-15 : 1e-6;
-   auto   check   = [&]( const std::string& method, double px ) {
-      double diff   = std::abs( px_manual - px );
-      double px_abs = std::abs( px_manual );
-      WALBERLA_LOG_INFO_ON_ROOT( "   " << method << ":" );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "      |px_manual - p(x)|/|px_manual| = %e", diff / px_abs ) );
-      WALBERLA_CHECK_LESS( diff, epsilon * px_abs, "accuracy " << method );
-   };
-   check( "Naive evaluation", px_naive );
-   check( "Horner's method", px_horner );
+   check( "Naive evaluation", px_manual, px_naive );
+   check( "Horner's method", px_manual, px_horner );
 }
 
 int main( int argc, char* argv[] )

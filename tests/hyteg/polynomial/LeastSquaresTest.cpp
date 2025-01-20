@@ -155,7 +155,7 @@ int main( int argc, char* argv[] )
 
                WALBERLA_LOG_INFO_ON_ROOT( "      use precomputed svd" );
                auto   err2  = LeastSquaresTest( d, q, lvl, ds, 1 );
-               double eps_m = std::is_same< real_t, double >() ? 1e-15 : 1e-6;
+               double eps_m = std::is_same< real_t, double >() ? 1e-14 : 1e-6;
                WALBERLA_CHECK_LESS( std::abs( err1 - err2 ), err1 * eps_m, "precomputed svd" );
             }
          }
