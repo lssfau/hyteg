@@ -87,32 +87,31 @@ class GKBSolver : public Solver< SaddlePointOp >
               bool   resConvergence = false )
    : flag( hyteg::Inner | hyteg::NeumannBoundary )
    , printInfo( true )
-   , resTolerance( resTol )
+   , useResidualConvergence( resConvergence )
    , merrorTolerance( merrorTol )
+   , resTolerance( resTol )
    , maxIter( maxIt )
    , timingTree( storage->getTimingTree() )
-   , ALSolver( innerSolver )
    , nu( Nu )
    //, s(S)
    , delay( Delay )
-   , A( ConstraintOpT( storage, level, level ) )
    , AT( ConstraintOp( storage, level, level ) )
+   , A( ConstraintOpT( storage, level, level ) )
    , M( AugmentedLagrangianOp( storage, level, Nu ) )
+   , ALSolver( innerSolver )
    //TODO check for unnecessary auxiliary functions
    , u( "u", storage, level, level )
    , p( "p", storage, level, level )
-   , q( "q", storage, level, level )
    , v( "v", storage, level, level )
+   , q( "q", storage, level, level )
    , d( "d", storage, level, level )
-   , tmp_v( "tmp_v", storage, level, level )
-   , tmp_q( "tmp_q", storage, level, level )
-   , tmp_w( "tmp_w", storage, level, level )
-   , dualr( "dualr", storage, level, level )
+   , z( std::vector< real_t >( maxIt, 0 ) )
    , globalR( "globalR", storage, level, level )
    , globalX( "globalX", storage, level, level )
-   , globalTmp( "globalTmp", storage, level, level )
-   , z( std::vector< real_t >( maxIt, 0 ) )
-   , useResidualConvergence( resConvergence )
+   , tmp_v( "tmp_v", storage, level, level )
+   , tmp_w( "tmp_w", storage, level, level )
+   , tmp_q( "tmp_q", storage, level, level )
+   , dualr( "dualr", storage, level, level )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Mnorm error tolerance is set to " << merrorTol << ", inner solver tolerance should be at least "
                                                                     << merrorTol / 10 << "." );
@@ -325,7 +324,6 @@ class GKBSolver : public Solver< SaddlePointOp >
    // functions for global residual computation
    nmFunction globalR;
    nmFunction globalX;
-   nmFunction globalTmp;
 
    // temporary functions
    mFunction tmp_v;
