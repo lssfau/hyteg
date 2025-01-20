@@ -83,23 +83,23 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
    {
       // adjust downsampling for this level
       auto ds = downsampling;
-      while ( surrogate::LeastSquares::max_degree( level, ds ) < poly_degree && ds > 1 )
+      while ( LSQ::max_degree( level, ds ) < poly_degree && ds > 1 )
       {
          --ds;
       }
       // adjust polynomial degree for this level
-      auto q = std::min( surrogate::LeastSquares::max_degree( level, ds ), poly_degree );
+      auto q = std::min( LSQ::max_degree( level, ds ), poly_degree );
 
       // initialize least squares approximation
       if ( lsq_[level] == nullptr || downsampling_[level] != ds || poly_degree_[level] != q )
       {
          if ( path_to_svd == "" )
          {
-            lsq_[level] = std::make_shared< surrogate::LeastSquares >( dim, q, level, ds );
+            lsq_[level] = std::make_shared< LSQ >( dim, q, level, ds );
          }
          else
          {
-            lsq_[level] = std::make_shared< surrogate::LeastSquares >( path_to_svd, dim, q, level, ds );
+            lsq_[level] = std::make_shared< LSQ >( path_to_svd, dim, q, level, ds );
          }
          downsampling_[level] = ds;
          poly_degree_[level]  = q;
@@ -207,7 +207,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
                // apply least squares fit
                lsq.setRHS( rhs( i, j ) );
                auto& coeffs      = lsq.solve();
-               surrogate( i, j ) = surrogate::polynomial::Polynomial( 2, q, coeffs );
+               surrogate( i, j ) = Poly( 2, q, coeffs );
             }
          }
       }
@@ -257,7 +257,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
                // apply least squares fit
                lsq.setRHS( rhs( i, j ) );
                auto& coeffs      = lsq.solve();
-               surrogate( i, j ) = surrogate::polynomial::Polynomial( 3, q, coeffs );
+               surrogate( i, j ) = Poly( 3, q, coeffs );
             }
          }
       }
@@ -449,7 +449,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
    { // use surrogate polynomials to approximate local matrices
       auto& surrogate = surrogate_2d_.at( id )[level][fType];
       // domain of surrogates
-      surrogate::polynomial::Domain X( level );
+      PolyDomain X( level );
       // local stiffness matrix
       Matrix3r elMat( Matrix3r::Zero() );
       // iterate over all micro-faces
@@ -509,7 +509,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
    {
       auto& surrogate = surrogate_3d_.at( id )[level][cType];
       // domain of surrogates
-      surrogate::polynomial::Domain X( level );
+      PolyDomain X( level );
       // local stiffness matrix
       Matrix4r elMat( Matrix4r::Zero() );
       // iterate over all micro-cells
@@ -743,7 +743,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const 
    { // use surrogate polynomials to approximate local matrices
       auto& surrogate = surrogate_2d_.at( id )[level][fType];
       // domain of surrogates
-      surrogate::polynomial::Domain X( level );
+      PolyDomain X( level );
       // local stiffness matrix
       Matrix3r elMat( Matrix3r::Zero() );
       // todo: use optimized polynomial evaluation
@@ -793,7 +793,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const 
    { // use surrogate polynomials to approximate local matrices
       auto& surrogate = surrogate_3d_.at( id )[level][cType];
       // domain of surrogates
-      surrogate::polynomial::Domain X( level );
+      PolyDomain X( level );
       // local stiffness matrix
       Matrix4r elMat( Matrix4r::Zero() );
       // todo: use optimized polynomial evaluation

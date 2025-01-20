@@ -27,7 +27,9 @@
 #include <filesystem>
 #include <hyteg/polynomial/elementwise/leastSquares.hpp>
 
-using walberla::uint_t;
+using hyteg::idx_t;
+using hyteg::real_t;
+using hyteg::uint_t;
 using walberla::math::pi;
 using walberla::math::realRandom;
 
@@ -37,14 +39,14 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    // ---------------------------------------------------------
    /// initialize least squares system
    // ---------------------------------------------------------
-   std::unique_ptr< hyteg::surrogate::LeastSquares > lsq;
+   std::unique_ptr< hyteg::surrogate::LeastSquares< real_t > > lsq;
    if ( use_precomputed )
    {
-      lsq = std::make_unique< hyteg::surrogate::LeastSquares >( "svd", d, q, lvl, downsampling );
+      lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( "svd", d, q, lvl, downsampling );
    }
    else
    {
-      lsq = std::make_unique< hyteg::surrogate::LeastSquares >( d, q, lvl, downsampling );
+      lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( d, q, lvl, downsampling );
       // write svd to file to be used when calling the function again with `use_precomputed=true`
       lsq->write_to_file( "svd" );
    }
@@ -55,10 +57,10 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    // ---------------------------------------------------------
    // define smooth function
    auto f = []( const hyteg::Point3D& x ) {
-      return std::sin( pi / 4.0 * x[0] ) * std::cos( pi / 4.0 * x[1] ) * std::sin( pi / 4.0 * x[2] );
+      return real_t( std::sin( pi / 4.0 * x[0] ) * std::cos( pi / 4.0 * x[1] ) * std::sin( pi / 4.0 * x[2] ) );
    };
    // coordinates on tetrahedron
-   hyteg::surrogate::polynomial::Domain X( lvl );
+   hyteg::surrogate::polynomial::Domain< real_t > X( lvl );
    // fill right-hand side
    auto it = lsq->samplingIterator();
    while ( it != it.end() )
@@ -73,31 +75,31 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    // ---------------------------------------------------------
    auto& coeffs = lsq->solve();
    // initialize polynomial
-   hyteg::surrogate::polynomial::Polynomial p( uint8_t( d ), uint8_t( q ), coeffs );
+   hyteg::surrogate::polynomial::Polynomial< real_t > p( uint8_t( d ), uint8_t( q ), coeffs );
 
    // ---------------------------------------------------------
    /// evaluate polynomial and compute error
    // ---------------------------------------------------------
-   hyteg::idx_t len_edge = ( hyteg::idx_t( 1 ) << lvl );
-   double       error    = 0.0;
-   hyteg::idx_t k_max    = ( d == 3 ) ? len_edge : 1;
-   hyteg::idx_t j_max    = ( d >= 2 ) ? len_edge : 1;
-   hyteg::idx_t i_max    = len_edge;
-   for ( hyteg::idx_t k = 0; k < k_max; ++k )
+   idx_t  len_edge = ( idx_t( 1 ) << lvl );
+   double error    = 0.0;
+   idx_t  k_max    = ( d == 3 ) ? len_edge : 1;
+   idx_t  j_max    = ( d >= 2 ) ? len_edge : 1;
+   idx_t  i_max    = len_edge;
+   for ( idx_t k = 0; k < k_max; ++k )
    {
       auto z = X[k];
       if ( d == 3 )
       {
          p.fix_z( z );
       }
-      for ( hyteg::idx_t j = 0; j < j_max - k; ++j )
+      for ( idx_t j = 0; j < j_max - k; ++j )
       {
          auto y = X[j];
          if ( d >= 2 )
          {
             p.fix_y( y );
          }
-         for ( hyteg::idx_t i = 0; i < i_max - k - j; ++i )
+         for ( idx_t i = 0; i < i_max - k - j; ++i )
          {
             auto x = X[i];
             auto e = f( { x, y, z } ) - p.eval( x );
@@ -138,7 +140,7 @@ int main( int argc, char* argv[] )
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%dD, level %d, polynomial degree %d", d, lvl, q ) );
          for ( uint_t ds = 1; ds <= 3; ++ds )
          {
-            if ( q <= hyteg::surrogate::LeastSquares::max_degree( lvl, ds ) )
+            if ( q <= hyteg::surrogate::LeastSquares< real_t >::max_degree( lvl, ds ) )
             {
                WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   downsampling factor %d", ds ) );
 
@@ -154,7 +156,10 @@ int main( int argc, char* argv[] )
       }
       WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
-
+   for ( const auto& entry : std::filesystem::directory_iterator( "svd" ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( entry.path().string() );
+   }
    // cleanup
    std::filesystem::remove_all( "svd" );
 

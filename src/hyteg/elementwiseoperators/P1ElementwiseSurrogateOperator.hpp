@@ -51,12 +51,16 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
 {
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
+   using LSQ        = surrogate::LeastSquares< real_t >;
+   using Poly       = surrogate::polynomial::Polynomial< real_t >;
+   using PolyDomain = surrogate::polynomial::Domain< real_t >;
+
    template < uint_t DIM >
-   using RHS_matrix = surrogate::RHS_matrix< DIM, 1, 1 >;
+   using RHS_matrix = surrogate::RHS_matrix< real_t, DIM, 1, 1 >;
    template < uint_t DIM >
    using PrecomputedData = surrogate::PrecomputedData< real_t, DIM, 1, 1 >;
    template < uint_t DIM >
-   using SurrogateData = surrogate::SurrogateData< DIM, 1, 1 >;
+   using SurrogateData = surrogate::SurrogateData< real_t, DIM, 1, 1 >;
 
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -254,8 +258,8 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
 
    // least squares approximator for each level
-   std::vector< std::shared_ptr< surrogate::LeastSquares > > lsq_;
-   std::vector< uint_t >                                     downsampling_;
+   std::vector< std::shared_ptr< LSQ > > lsq_;
+   std::vector< uint_t >                 downsampling_;
 
    // polynomial degree for each level
    std::vector< uint8_t > poly_degree_;

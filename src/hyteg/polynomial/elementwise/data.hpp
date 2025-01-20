@@ -54,7 +54,7 @@ class LocalMatrixLike
    {}
 
    // get (i,j) entry of this
-   inline T&       operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
+   inline T& operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
    // get (i,j) entry of this
    inline const T& operator()( idx_t i, idx_t j ) const { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
 
@@ -85,19 +85,19 @@ class ElementTypeWiseData
 /**
  * @class LocalMatrixMap
  * @brief Map of local element matrices to store all local matrices of a given macro element.
- * @tparam Float The type of the elements stored in the matrix (e.g. double, real_t, ...)
+ * @tparam FLOAT The type of the elements stored in the matrix (e.g. double, real_t, ...)
  * @tparam DIM The spacial dimension of the PDE domain
  * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */
-template < typename Float, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 class LocalMatrixMap
 {
    static constexpr idx_t R_loc = polynomial::dimP( DIM, DST_DEGREE );
    static constexpr idx_t C_loc = polynomial::dimP( DIM, SRC_DEGREE );
 
  public:
-   using local_matrix_t = Matrix< Float, R_loc, C_loc >;
+   using local_matrix_t = Matrix< FLOAT, R_loc, C_loc >;
    using ElementType    = typename std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
 
    LocalMatrixMap()
@@ -187,15 +187,15 @@ struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
 };
 
 // container for RHS vectors for lsq-fit
-template < uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-using RHS_matrix = LocalMatrixLike< LeastSquares::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
+template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+using RHS_matrix = LocalMatrixLike< typename LeastSquares< FLOAT >::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
 // container for precomputed element matrices
-template < typename Float, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-using PrecomputedData = ElementWiseData< LocalMatrixMap< Float, DIM, SRC_DEGREE, DST_DEGREE > >;
+template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+using PrecomputedData = ElementWiseData< LocalMatrixMap< FLOAT, DIM, SRC_DEGREE, DST_DEGREE > >;
 // container for surrogates
-template < uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-using SurrogateData =
-    ElementWiseData< ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
+template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+using SurrogateData = ElementWiseData<
+    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT >, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
 
 } // namespace surrogate
 } // namespace hyteg

@@ -28,7 +28,9 @@
 #include <filesystem>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
 
-using walberla::uint_t;
+using hyteg::idx_t;
+using hyteg::real_t;
+using hyteg::uint_t;
 using walberla::math::pi;
 using walberla::math::realRandom;
 
@@ -73,8 +75,8 @@ void PolynomialTest( uint8_t d, uint8_t q )
    // ---------------------------------------------------------
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", d, q ) );
    // choose random element p from P_q(R^d)
-   hyteg::surrogate::polynomial::Polynomial p( d, q );
-   for ( hyteg::idx_t i = 0; i < p.n_coefficients(); ++i )
+   hyteg::surrogate::polynomial::Polynomial< real_t > p( d, q );
+   for ( idx_t i = 0; i < p.n_coefficients(); ++i )
    {
       p.c( i ) = realRandom();
    }
@@ -84,11 +86,11 @@ void PolynomialTest( uint8_t d, uint8_t q )
    // ---------------------------------------------------------
    /// evaluate p(x) manually
    // ---------------------------------------------------------
-   double px_manual = 0.0;
+   real_t px_manual = 0.0;
    // initialize powers of x,y,z
-   Eigen::Vector< double, -1 > x_pow( q + 1 ); // x^0, x^1, ...
-   Eigen::Vector< double, -1 > y_pow( q + 1 ); // y^0, y^1, ...
-   Eigen::Vector< double, -1 > z_pow( q + 1 ); // z^0, z^1, ...
+   Eigen::Vector< real_t, -1 > x_pow( q + 1 ); // x^0, x^1, ...
+   Eigen::Vector< real_t, -1 > y_pow( q + 1 ); // y^0, y^1, ...
+   Eigen::Vector< real_t, -1 > z_pow( q + 1 ); // z^0, z^1, ...
    x_pow[0] = y_pow[0] = z_pow[0] = 1.0;
    for ( int i = 1; i <= q; ++i )
    {
@@ -97,7 +99,7 @@ void PolynomialTest( uint8_t d, uint8_t q )
       z_pow[i] = z_pow[i - 1] * x[2];
    }
    // sum up contributions of each basis function φ_n, i.e., p(x) = ∑_n c_n φ_n(x)
-   for ( hyteg::idx_t n = 0; n < p.n_coefficients(); ++n )
+   for ( idx_t n = 0; n < p.n_coefficients(); ++n )
    {
       auto [i, j, k] = p.phi( n ).expand(); // φ_n = x^i y^j z^k
       px_manual += p.c( n ) * x_pow[i] * y_pow[j] * z_pow[k];
@@ -106,7 +108,7 @@ void PolynomialTest( uint8_t d, uint8_t q )
    // ---------------------------------------------------------
    /// use naive evaluation (should be equivalent to the above)
    // ---------------------------------------------------------
-   double px_naive = p.eval_naive( x );
+   real_t px_naive = p.eval_naive( x );
 
    // ---------------------------------------------------------
    /// evaluate p(x) using Horner's method
@@ -120,15 +122,15 @@ void PolynomialTest( uint8_t d, uint8_t q )
       p.fix_y( x[1] ); // restrict to P_q(R)
    }
    // evaluate 1d polynomial by Horner's method
-   double px_horner = p.eval( x[0] );
+   real_t px_horner = p.eval( x[0] );
 
    // ---------------------------------------------------------
    /// compare solutions
    // ---------------------------------------------------------
    double epsilon = 1e-14;
    auto   check   = [&]( const std::string& method, double px ) {
-      auto diff   = std::abs( px_manual - px );
-      auto px_abs = std::abs( px_manual );
+      double diff   = std::abs( px_manual - px );
+      double px_abs = std::abs( px_manual );
       WALBERLA_LOG_INFO_ON_ROOT( "   " << method << ":" );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "      |px_manual - p(x)|/|px_manual| = %e", diff / px_abs ) );
       WALBERLA_CHECK_LESS( diff, epsilon * px_abs, "accuracy " << method );

@@ -25,8 +25,6 @@
 #include <hyteg/types/PointND.hpp>
 #include <vector>
 
-// todo change from double to template <typename Float>
-
 namespace hyteg {
 namespace surrogate {
 
@@ -93,11 +91,12 @@ struct Monomial
    constexpr inline int degree() const { return i() + j() + k(); }
 
    // evaluate basis function at x
-   constexpr inline double eval( const PointND< double, 3 >& x ) const
+   template < typename FLOAT >
+   constexpr inline FLOAT eval( const PointND< FLOAT, 3 >& x ) const
    {
       const auto [i, j, k] = expand();
 
-      double val = 1.0;
+      FLOAT val = static_cast< FLOAT >( 1.0 );
 
       for ( int p = 0; p < i; ++p )
          val *= x[0]; // compute x^i
@@ -153,30 +152,35 @@ struct Basis : public std::vector< Monomial >
          }
       }
    }
+
+   // get i-th basis function
+   const inline Monomial& phi( const idx_t i ) const { return ( *this )[uint_t( i )]; }
 };
 
 /* Domain of polynomial space = [-1,3]
  * @brief Affine mapping from {v}_v ∈ macro-edge to [-1,3]
  */
+template < typename FLOAT >
 struct Domain
 {
    constexpr Domain( uint_t lvl )
-   : scaling( 4.0 / double( ( 1 << lvl ) - 1 ) )
+   : scaling( FLOAT( 4.0 ) / FLOAT( ( 1 << lvl ) - 1 ) )
    {}
    // convert index i to coordinate x ∈ [-1,3]
-   inline constexpr double operator[]( idx_t i ) const { return scaling * double( i ) - 1.0; }
+   inline constexpr FLOAT operator[]( idx_t i ) const { return scaling * FLOAT( i ) - FLOAT( 1.0 ); }
 
    // convert index [i,j,k] to coordinate x ∈ [-1,3]^3
-   inline PointND< double, 3 > operator()( const indexing::Index& idx ) const
+   inline PointND< FLOAT, 3 > operator()( const indexing::Index& idx ) const
    {
       return { ( *this )[idx.x()], ( *this )[idx.y()], ( *this )[idx.z()] };
    }
 
    // scaling factor to convert index i ∈ {0,..., 2^lvl - 1} to coordinate x ∈ [-1,3]
-   const double scaling;
+   const FLOAT scaling;
 };
 
-class Polynomial : public std::vector< double >
+template < typename FLOAT >
+class Polynomial : public std::vector< FLOAT >
 {
  public:
    static constexpr uint8_t X = 0;
@@ -184,14 +188,20 @@ class Polynomial : public std::vector< double >
    static constexpr uint8_t Z = 2;
 
    inline Polynomial( uint8_t d = 0, uint8_t q = 0 )
-   : std::vector< double >( dimP( d, q ) )
+   : std::vector< FLOAT >( dimP( d, q ) )
    , _d( d )
    , _q( q )
    , _restriction( ( d > 1 ) ? std::make_unique< Polynomial >( d - 1, q ) : nullptr )
-   , _basis( &basis_q[q] )
-   {}
+   {
+      // initialize basis of P_q
+      if ( q > 0 && _basis.count( q ) == 0 )
+      {
+         _basis.emplace( std::pair< uint8_t, Basis >{ q, Basis( q ) } );
+      }
+   }
 
-   inline Polynomial( uint8_t d, uint8_t q, const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
+   template < typename CoeffVector >
+   inline Polynomial( uint8_t d, uint8_t q, const CoeffVector& coeffs )
    : Polynomial( d, q )
    {
       set_coefficients( coeffs );
@@ -199,51 +209,57 @@ class Polynomial : public std::vector< double >
 
    // copy constructor
    inline Polynomial( const Polynomial& other )
-   : std::vector< double >( other )
+   : std::vector< FLOAT >( other )
    , _d( other._d )
    , _q( other._q )
    , _restriction( other._restriction ? std::make_unique< Polynomial >( *other._restriction ) : nullptr )
-   , _basis( other._basis )
    {}
    inline Polynomial( Polynomial&& other ) = default;
 
    // copy assignment
    inline Polynomial& operator=( const Polynomial& other )
    {
-      std::vector< double >::operator=( other );
+      std::vector< FLOAT >::operator=( other );
       _d           = other._d;
       _q           = other._q;
       _restriction = other._restriction ? std::make_unique< Polynomial >( *other._restriction ) : nullptr;
-      _basis       = other._basis;
       return *this;
    }
    inline Polynomial& operator=( Polynomial&& other ) = default;
 
    // get i-th coefficient w.r.t. monomial basis
-   inline double& c( idx_t i ) { return ( *this )[uint_t( i )]; }
+   inline FLOAT& c( idx_t i ) { return ( *this )[uint_t( i )]; }
 
    // get i-th coefficient w.r.t. monomial basis
-   inline const double& c( idx_t i ) const { return ( *this )[uint_t( i )]; }
+   inline const FLOAT& c( idx_t i ) const { return ( *this )[uint_t( i )]; }
 
    // get number of coefficients ( = dimension of polynomial space )
-   inline idx_t n_coefficients() const { return idx_t( size() ); }
+   inline idx_t n_coefficients() const { return idx_t( this->size() ); }
 
-   // set coefficients
-   inline void set_coefficients( const Eigen::Matrix< double, -1, 1, Eigen::ColMajor >& coeffs )
+   /**
+    * @brief Sets the coefficients of the polynomial.
+    *
+    * @param coeffs A vector containing the coefficients.
+    *          Must provide functions `size()` and `operator[]`
+    */
+   template < typename CoeffVector >
+   inline void set_coefficients( const CoeffVector& coeffs )
    {
-      if ( coeffs.size() != n_coefficients() )
+      if ( idx_t( coeffs.size() ) != n_coefficients() )
       {
          WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
       }
 
+      using coeff_idx_t = decltype( coeffs.size() );
+
       for ( idx_t i = 0; i < n_coefficients(); ++i )
       {
-         c( i ) = coeffs( i );
+         c( i ) = static_cast< FLOAT >( coeffs[static_cast< coeff_idx_t >( i )] );
       }
    }
 
    // fix z coordinate s.th. only 2d polynomial must be evaluated
-   void fix_z( const double z ) const
+   void fix_z( const FLOAT z ) const
    {
       WALBERLA_ASSERT( _d == 3, "fix_z can only be used in 3d" );
 
@@ -251,7 +267,7 @@ class Polynomial : public std::vector< double >
    }
 
    // fix y coordinate s.th. only 1d polynomial must be evaluated
-   void fix_y( const double y ) const
+   void fix_y( const FLOAT y ) const
    {
       WALBERLA_ASSERT( _d == 2 || _d == 3, "fix_z can only be used in 2d and 3d" );
       if ( _d == 2 )
@@ -271,7 +287,7 @@ class Polynomial : public std::vector< double >
     * @param x The x-coordinate.
     * @return p|_zy(x)
     */
-   inline double eval( const double x ) const
+   inline FLOAT eval( const FLOAT x ) const
    {
       if ( _d == 1 )
       {
@@ -293,9 +309,9 @@ class Polynomial : public std::vector< double >
    }
 
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
-   double eval_naive( const PointND< double, 3 >& x ) const
+   FLOAT eval_naive( const PointND< FLOAT, 3 >& x ) const
    {
-      double p_xyz = 0.0;
+      FLOAT p_xyz = 0.0;
       for ( idx_t i = 0; i < n_coefficients(); ++i )
       {
          p_xyz += c( i ) * phi( i ).eval( x );
@@ -303,18 +319,15 @@ class Polynomial : public std::vector< double >
       return p_xyz;
    }
 
-   // get basis of polynomial space
-   const Basis& basis() const { return *_basis; }
-
-   // get i-th basis function
-   const Monomial& phi( idx_t i ) const { return basis()[uint_t( i )]; }
+   // get i-th basis function of P_q
+   const inline Monomial& phi( const idx_t i ) const { return _basis[_q].phi( i ); }
 
  private:
    // fix coordinate s.th. only lower dimensional polynomial must be evaluated
-   inline void fix_coord( const double z ) const
+   inline void fix_coord( const FLOAT z ) const
    {
       // z^k for k=0,...,q
-      Eigen::Vector< double, -1 > z_pow( _q + 1 );
+      Eigen::Vector< FLOAT, -1 > z_pow( _q + 1 );
       z_pow[0] = 1.0;
       for ( int k = 1; k <= _q; ++k )
       {
@@ -342,12 +355,12 @@ class Polynomial : public std::vector< double >
    uint8_t _q;
    // restriction to lower dimension
    std::unique_ptr< Polynomial > _restriction;
-   // basis of the this polynomial's space
-   const Basis* _basis;
-
-   // basis functions for q = 0,1,...
-   static const std::vector< Basis > basis_q;
+   // basis functions of P_q for all required q
+   static std::map< uint8_t, Basis > _basis;
 };
+
+template < typename FLOAT >
+std::map< uint8_t, Basis > Polynomial< FLOAT >::_basis;
 
 } // namespace polynomial
 } // namespace surrogate

@@ -104,11 +104,12 @@ static constexpr inline uint_t n_volume( uint_t d, uint_t lvl, uint_t downsampli
  *          The approximation is computed by solving a least squares problem using the Vandermonde matrix.
  *          The Sample points are a subset of the micro vertices corresponding to a given level.
  */
+template < typename FLOAT >
 class LeastSquares
 {
  public:
-   using Matrix = Eigen::Matrix< double, -1, -1, Eigen::RowMajor >;
-   using Vector = Eigen::Matrix< double, -1, 1, Eigen::ColMajor >;
+   using Matrix = Eigen::Matrix< FLOAT, -1, -1, Eigen::RowMajor >;
+   using Vector = Eigen::Matrix< FLOAT, -1, 1, Eigen::ColMajor >;
 
  private:
    /**
@@ -228,7 +229,7 @@ class LeastSquares
       std::ifstream file( filename, std::ios::binary );
       if ( file.is_open() )
       {
-         file.read( reinterpret_cast< char* >( M.data() ), M.size() * sizeof( double ) );
+         file.read( reinterpret_cast< char* >( M.data() ), M.size() * sizeof( FLOAT ) );
          file.close();
          return true;
       }
@@ -245,7 +246,7 @@ class LeastSquares
       std::ofstream file( filename, std::ios::binary );
       if ( file.is_open() )
       {
-         file.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( double ) );
+         file.write( reinterpret_cast< const char* >( M.data() ), M.size() * sizeof( FLOAT ) );
          file.close();
          return true;
       }
@@ -258,8 +259,8 @@ class LeastSquares
    void compute_svd()
    {
       // Setup Vandermonde matrix
-      const polynomial::Basis  phi( _q );
-      const polynomial::Domain X( _lvl );
+      const polynomial::Basis           phi( _q );
+      const polynomial::Domain< FLOAT > X( _lvl );
 
       auto it = samplingIterator();
       while ( it != it.end() )
@@ -282,7 +283,7 @@ class LeastSquares
 
    bool load_svd( const std::string& path )
    {
-      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", _dim, _q, _lvl, _downsampling );
+      std::string ext = walberla::format( "_d%d_q%d_l%d_s%d_f%d.dat", _dim, _q, _lvl, _downsampling, 8*sizeof( FLOAT ) );
       std::string d   = "/";
       return load_matrix( path + d + "A" + ext, A ) && load_matrix( path + d + "Uh" + ext, Uh ) &&
              load_matrix( path + d + "Si" + ext, Si ) && load_matrix( path + d + "V" + ext, V );
@@ -290,7 +291,7 @@ class LeastSquares
 
    bool store_svd( const std::string& path ) const
    {
-      std::string ext = walberla::format( "_%d_%d_%d_%d.dat", _dim, _q, _lvl, _downsampling );
+      std::string ext = walberla::format( "_d%d_q%d_l%d_s%d_f%d.dat", _dim, _q, _lvl, _downsampling, 8*sizeof( FLOAT ) );
       std::string d   = "/";
       return store_matrix( path + d + "A" + ext, A ) && store_matrix( path + d + "Uh" + ext, Uh ) &&
              store_matrix( path + d + "Si" + ext, Si ) && store_matrix( path + d + "V" + ext, V );
@@ -332,8 +333,9 @@ class LeastSquares
 
  public:
    /**
-    * @brief Compute the maximum polynomial degree to approximate a function using all micro vertices as sample points.
-    * Using a higher degree leads to an overdetermined system and should be avoided!
+    * @brief Compute the maximum polynomial degree that should be used for approximation
+    *    when using sample points determined by `level` and `downsampling` factor.
+    *    Using a higher degree leads to an overdetermined system and should be avoided!
     */
    static constexpr uint8_t max_degree( uint_t lvl, uint_t downsampling = 1 )
    {
@@ -396,7 +398,7 @@ class LeastSquares
     * @param n Index of the coefficient, ie, `n = it()`
     * @param f_xyz f( it.i(), it.j(), it.k() ), where f is the function to be approximated.
     */
-   void setRHS( const idx_t n, const double f_xyz ) { b( n ) = f_xyz; }
+   void setRHS( const idx_t n, const FLOAT f_xyz ) { b( n ) = f_xyz; }
 
    /**
     * @brief Set right hand side vector in one step.
@@ -427,9 +429,9 @@ class LeastSquares
    /**
     * @brief Compute the residual of the least squares problem.
     *
-    * @return weighted residual norm ||r|| = sqrt(∑_{n=1}^N r_n^2 / N)
+    * @return discrete L^2 norm of the residual; ||r|| = sqrt(∑_{n=1}^N r_n^2 / N)
     */
-   const double residual() const { return ( A * c - b ).norm() / std::sqrt( rows ); }
+   const FLOAT residual() const { return ( A * c - b ).norm() / std::sqrt( rows ); }
 
  private:
    // spacial dimension
