@@ -44,7 +44,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
                               const uint8_t                                     q,
                               const uint_t                                      level )
 {
-   real_t epsilon, errorMax;
+   double epsilon, errorMax;
    // operators
    forms::p1_div_k_grad_affine_q3               form( k, k );
    P1ElementwiseAffineDivKGradOperator          A( storage, level, level, form );
@@ -63,7 +63,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    };
    u.interpolate( initialU, level );
 
-   epsilon = real_c( std::is_same< real_t, double >() ? 1e-10 : 1e-4 );
+   epsilon = std::is_same< real_t, double >() ? 1e-10 : 1e-4;
 
    // apply operators
    A.apply( u, Au, level, All, Replace );
@@ -78,7 +78,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
       // for some reason the 2d operators have significantly different values here.
       // they do converge to the same diagonal for increasing level, though.
       // this should probably be investigated!
-      epsilon = real_t( 1e-4 );
+      epsilon = std::is_same< real_t, double >() ? 1e-4 : 3e-4;
    }
 
    // diagonal values
@@ -155,10 +155,10 @@ int main( int argc, char* argv[] )
       for ( uint8_t q = 1; q <= 4; ++q )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "" );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, q=p=%d, level=%d", q, lvl ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, q=p=%d, 2d", lvl, q ) );
          P1SurrogateOperatorTest( storage, k[q], q, lvl );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "3d, q=p=%d, level=%d", q, lvl ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, q=p=%d, 3d", lvl, q ) );
          P1SurrogateOperatorTest( storage3d, k[q], q, lvl );
       }
    }

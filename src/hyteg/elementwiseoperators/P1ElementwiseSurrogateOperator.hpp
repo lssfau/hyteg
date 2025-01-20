@@ -49,9 +49,16 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                                        public WeightedJacobiSmoothable< P1Function< real_t > >,
                                        public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
+   /* On lower levels, storing and evaluating polynomials is significantly less performant.
+      Therefore, on levels 0-3 we precompute and store the system matrices, while we use
+      surrogates for levels 4+
+    */
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
-   using LSQ        = surrogate::LeastSquares< real_t >;
+   /* Single precision LSQ leads to very poor accuracy of the resulting polynomials. Therefore,
+      we use real_t for the polynomial evaluation only, while sticking to double precision LSQ.
+    */
+   using LSQ        = surrogate::LeastSquares< double >;
    using Poly       = surrogate::polynomial::Polynomial< real_t >;
    using PolyDomain = surrogate::polynomial::Domain< real_t >;
 

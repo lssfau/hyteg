@@ -134,32 +134,35 @@ int main( int argc, char* argv[] )
    const uint_t lvl = 4;
    for ( uint_t d = 2; d <= 3; ++d )
    {
-      auto& eps = ( d == 2 ) ? epsilon_2d : epsilon_3d;
+      auto& epsilon = ( d == 2 ) ? epsilon_2d : epsilon_3d;
       for ( uint_t q = 0; q <= 9; ++q )
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%dD, level %d, polynomial degree %d", d, lvl, q ) );
          for ( uint_t ds = 1; ds <= 3; ++ds )
          {
+            // with single precision, accuracy won't get better than 5e-4
+            if ( std::is_same< real_t, float >() && epsilon[q] < 5e-4 )
+            {
+               epsilon[q] = 5e-4;
+            }
             if ( q <= hyteg::surrogate::LeastSquares< real_t >::max_degree( lvl, ds ) )
             {
                WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   downsampling factor %d", ds ) );
 
                WALBERLA_LOG_INFO_ON_ROOT( "      compute svd" );
                auto err1 = LeastSquaresTest( d, q, lvl, ds, 0 );
-               WALBERLA_CHECK_LESS( err1, eps[q], "accuracy LSQ" );
+               WALBERLA_CHECK_LESS( err1, epsilon[q], "accuracy LSQ" );
 
                WALBERLA_LOG_INFO_ON_ROOT( "      use precomputed svd" );
-               auto err2 = LeastSquaresTest( d, q, lvl, ds, 1 );
-               WALBERLA_CHECK_LESS( err1 - err2, err1 * 1e-15, "precomputed svd" );
+               auto   err2  = LeastSquaresTest( d, q, lvl, ds, 1 );
+               double eps_m = std::is_same< real_t, double >() ? 1e-15 : 1e-6;
+               WALBERLA_CHECK_LESS( std::abs( err1 - err2 ), err1 * eps_m, "precomputed svd" );
             }
          }
       }
       WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
-   for ( const auto& entry : std::filesystem::directory_iterator( "svd" ) )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( entry.path().string() );
-   }
+
    // cleanup
    std::filesystem::remove_all( "svd" );
 

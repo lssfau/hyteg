@@ -415,14 +415,21 @@ class LeastSquares
     * @param n Index of the coefficient, ie, `n = it()`
     * @param f_xyz f( it.i(), it.j(), it.k() ), where f is the function to be approximated.
     */
-   void setRHS( const idx_t n, const FLOAT f_xyz ) { b( n ) = f_xyz; }
+   void setRHS( const idx_t n, const FLOAT f_xyz ) { b[n] = f_xyz; }
 
    /**
     * @brief Set right hand side vector in one step.
     *    !Only use if you know what you are doing!
     * @param rhs Should have been set up using `samplingIterator()`.
     */
-   void setRHS( const Vector& rhs ) { b = rhs; }
+   template < typename RHS_Vector >
+   void setRHS( const RHS_Vector& rhs )
+   {
+      for ( idx_t i = 0; i < b.size(); ++i )
+      {
+         b[i] = static_cast< FLOAT >( rhs[i] );
+      }
+   }
 
    /**
     * @brief Solve the least squares problem.

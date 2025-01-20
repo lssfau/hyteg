@@ -127,7 +127,7 @@ void PolynomialTest( uint8_t d, uint8_t q )
    // ---------------------------------------------------------
    /// compare solutions
    // ---------------------------------------------------------
-   double epsilon = 1e-14;
+   double epsilon = std::is_same< real_t, double >() ? 1e-15 : 1e-6;
    auto   check   = [&]( const std::string& method, double px ) {
       double diff   = std::abs( px_manual - px );
       double px_abs = std::abs( px_manual );
