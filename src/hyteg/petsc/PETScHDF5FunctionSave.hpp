@@ -124,7 +124,7 @@ PetscErrorCode saveMultipleFunctionsPETSc( uint_t level, std::string filename, f
    auto view = std::make_shared< PetscViewer >();
    PetscCall( PetscViewerHDF5Open( PETSC_COMM_WORLD, filename.c_str(), FILE_MODE_WRITE, view.get() ) );
 
-   auto saveFunctions = [&]( auto& fs ) { saveSingleFunction( fs, level, view ); };
+   auto saveFunctions = [&]( auto& fs2 ) { saveSingleFunction( fs2, level, view ); };
 
    // use fold expression to loop over parameter pack
    ( saveFunctions( fs ), ... );
@@ -168,7 +168,7 @@ PetscErrorCode loadMultipleFunctionsPETSc( uint_t level, std::string filename, f
    auto view = std::make_shared< PetscViewer >();
    PetscCall( PetscViewerHDF5Open( PETSC_COMM_WORLD, filename.c_str(), FILE_MODE_READ, view.get() ) );
 
-   auto loadFunctions = [&]( auto& fs ) { loadSingleFunction( fs, level, view ); };
+   auto loadFunctions = [&]( auto& fs2 ) { loadSingleFunction( fs2, level, view ); };
 
    // use fold expression to loop over parameter pack
    ( loadFunctions( fs ), ... );
