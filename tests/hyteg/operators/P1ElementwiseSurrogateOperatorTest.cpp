@@ -41,7 +41,6 @@ using namespace hyteg;
       q>=p => A_q = A.
 */
 void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        storage,
-                              // std::function< real_t( const hyteg::Point3D& ) >& k,
                               const uint8_t                                     q,
                               const uint_t                                      level )
 {
@@ -49,13 +48,13 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
 
    // setup pde coefficient k ∈ P_q
    uint8_t dim = storage->hasGlobalCells()? 3 : 2;
-   hyteg::surrogate::polynomial::Polynomial<real_t> k_data(dim, q);
-   for (auto& c : k_data)
+   hyteg::surrogate::polynomial::Polynomial<real_t> k_poly(dim, q);
+   for (auto& c : k_poly)
    {
       c = walberla::math::realRandom();
    }
    auto k = [&]( const hyteg::Point3D& x){
-      return k_data.eval_naive(x);
+      return k_poly.eval_naive(x);
    };
 
    // operators
