@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -284,6 +284,19 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const override final;
+
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const VolumeDoFFunction< idx_t >&     numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const VolumeDoFFunction< idx_t >&     numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+   /// @}
 
  private:
    using Function< VolumeDoFFunction< ValueType > >::communicators_;

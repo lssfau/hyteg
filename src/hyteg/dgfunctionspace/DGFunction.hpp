@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -311,12 +311,18 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    void toVector( const DGFunction< idx_t >&            numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
-                  DoFType                               flag ) const;
+                  DoFType                               flag ) const
+   {
+      volumeDoFFunction_->toVector( *numerator.volumeDoFFunction(), vec, level, flag );
+   }
 
    void fromVector( const DGFunction< idx_t >&            numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
-                    DoFType                               flag ) const;
+                    DoFType                               flag ) const
+   {
+      volumeDoFFunction_->fromVector( *numerator.volumeDoFFunction(), vec, level, flag );
+   }
    /// @}
 
    void copyFrom( const DGFunction< ValueType >&         other,
