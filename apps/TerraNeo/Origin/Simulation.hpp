@@ -463,6 +463,7 @@ void ConvectionSimulation::solveStokes()
    if ( TN.simulationParameters.tempDependentViscosity )
    {
       updateViscosity();
+      stokesOperatorFS->getA().computeInverseDiagonalOperatorValues();
    }
 
    if ( TN.simulationParameters.tempDependentViscosity && TN.simulationParameters.resetSolver &&
