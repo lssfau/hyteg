@@ -112,10 +112,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// - string describing its data-type (aka value-type), such as e.g. "double"
    /// - the minimum refinement level for which data are present in the checkpoint
    /// - the maximum refinement level for which data are present in the checkpoint
-   const std::vector< FunctionDescription >& getFunctionDetails() const
-   {
-      return funcDescr_;
-   }
+   const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
 
    /// On the root process print information on the checkoint file (format, contents, ...) to standard output
    void printCheckpointInfo()
@@ -218,24 +215,40 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       return true;
    }
 
-   std::vector< real_t > getTimestepInfo()
+   const std::vector< real_t >& getTimestepInfo()
    {
-      auto varTimestepInfo = io_.InquireVariable< real_t >( "TIME" );
-      auto nSteps          = varTimestepInfo.Steps();
-
-      std::vector< real_t > timestepInfo;
-
-      timestepInfo.resize( nSteps );
-
-      for ( uint_t idx = 0u; idx < nSteps; ++idx )
+      if ( isTimestepInfoReadIn )
       {
-         varTimestepInfo.SetStepSelection( { idx, 1u } );
-         engine_.Get( varTimestepInfo, timestepInfo[idx] );
+         return timestepInfo;
       }
+      else
+      {
+         auto varTimestepInfo = io_.InquireVariable< real_t >( "TIME" );
+         auto nSteps          = varTimestepInfo.Steps();
 
-      engine_.PerformGets();
+         timestepInfo.resize( nSteps );
 
-      return timestepInfo;
+         for ( uint_t idx = 0u; idx < nSteps; ++idx )
+         {
+            varTimestepInfo.SetStepSelection( { idx, 1u } );
+            engine_.Get( varTimestepInfo, timestepInfo[idx] );
+         }
+
+         engine_.PerformGets();
+
+         isTimestepInfoReadIn = true;
+
+         return timestepInfo;
+      }
+   }
+
+   /// Read all user-defined attributes into the user-passed map from ADIOS2 importer
+   /// \param userAttributes std::map with
+   ///                       [key, value] = [attribute name(std::string), attribute value(adiostype_t = std::variant)]
+   ///                       which must be demo initialized by the user including correct variable type
+   void readAllUserAttributes( std::map< std::string, adiosHelpers::adiostype_t >& userAttributes )
+   {
+      adiosHelpers::readAllAttributes( io_, userAttributes );
    }
 
  private:
@@ -247,6 +260,8 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    ///@}
 
    std::vector< real_t > timestepInfo;
+
+   bool isTimestepInfoReadIn = false;
 
    /// meta information on the FE functions stored in the checkpoint
    std::vector< FunctionDescription > funcDescr_;

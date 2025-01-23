@@ -108,6 +108,18 @@ inline void generateSoftwareMetaData( adios2::IO& io )
    }
 }
 
+/// auxilliary function to read attributes, will abort, if attribute is not found
+template < typename T >
+adios2::Attribute< T > readAttribute( adios2::IO& io, const std::string& name )
+{
+   adios2::Attribute< T > attribute = io.InquireAttribute< T >( name );
+   if ( !attribute )
+   {
+      WALBERLA_ABORT( "Attribute '" << name << "' seems to be missing from checkpoint!" );
+   }
+   return std::move( attribute );
+}
+
 /// Write a single value attribute to ADIOS2 ouptut
 template < typename T >
 inline void writeAttribute( adios2::IO& io, const std::string& key, const T& val )
@@ -167,12 +179,11 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
    {
       std::visit(
           [&io, &entry]( const auto& arg ) {
-             using T = std::decay_t< decltype( arg ) >;
+             using T                = std::decay_t< decltype( arg ) >;
              const std::string& key = entry.first;
 
              if ( isAdiosDataType< T, adiostype_t >::value )
              {
-
                 // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
                 if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
                    writeAttribute( io, key, static_cast< intData_t >( arg ) );
@@ -183,6 +194,92 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
                 }
                 else
                    writeAttribute( io, key, arg );
+             }
+             else
+             {
+                WALBERLA_LOG_WARNING_ON_ROOT( "The user-defined ADIOS2 attribute " << key << " does not hold a valid datatype" );
+             }
+          },
+          entry.second );
+   }
+#endif
+}
+
+/// Read all user-defined attributes into the user-passed map from ADIOS2 importer
+/// \param io                     ADIOS2 IO object
+/// \param userDefinedAttributes  std::map with
+///                               [key, value] = [attribute name(std::string), attribute value(adiostype_t = std::variant)]
+///                               which must be demo initialized by the user including correct variable type
+inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_t >& userDefinedAttributes )
+{
+   // integer datatype for input
+   using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
+
+   if ( userDefinedAttributes.empty() )
+   {
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "No additional user-defined attributes/metadata written to ADIOS2 output" );
+      return;
+   }
+
+// see issue #273
+#ifdef CPP2020
+   for ( auto& [key, val] : userDefinedAttributes )
+   {
+      std::visit(
+          [&io, key]( const auto& arg ) {
+             using T = std::decay_t< decltype( arg ) >;
+             if ( isAdiosDataType< T, adiostype_t >::value )
+             {
+                // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
+                if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
+                {
+                   adios2::Attribute< intData_t > data = readAttribute< intData_t >( io, key );
+                   entry.second                        = static_cast< T >( data.Data()[0] );
+                }
+                else if constexpr ( std::is_same_v< T, bool > )
+                {
+                   adios2::Attribute< std::string > data = readAttribute< std::string >( io, key );
+                   entry.second                          = ( data.Data()[0] == std::string( "true" ) );
+                }
+                else
+                {
+                   adios2::Attribute< T > data = readAttribute< T >( io, key );
+                   entry.second                = data.Data()[0];
+                }
+             }
+             else
+             {
+                WALBERLA_LOG_WARNING_ON_ROOT( "The user-defined ADIOS2 attribute " << key << " does not hold a valid datatype" );
+             }
+          },
+          val );
+   }
+#else
+   for ( auto& entry : userDefinedAttributes )
+   {
+      std::visit(
+          [&io, &entry]( const auto& arg ) {
+             using T                = std::decay_t< decltype( arg ) >;
+             const std::string& key = entry.first;
+
+             if ( isAdiosDataType< T, adiostype_t >::value )
+             {
+                // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
+                if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
+                {
+                   adios2::Attribute< intData_t > data = readAttribute< intData_t >( io, key );
+                   entry.second                        = static_cast< T >( data.Data()[0] );
+                }
+                else if constexpr ( std::is_same_v< T, bool > )
+                {
+                   adios2::Attribute< std::string > data = readAttribute< std::string >( io, key );
+                   entry.second                          = ( data.Data()[0] == std::string( "true" ) );
+                }
+                else
+                {
+                   adios2::Attribute< T > data = readAttribute< T >( io, key );
+                   entry.second                = data.Data()[0];
+                }
              }
              else
              {

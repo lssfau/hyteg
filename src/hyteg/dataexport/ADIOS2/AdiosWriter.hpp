@@ -200,6 +200,16 @@ class AdiosWriter : public FEFunctionWriter< AdiosWriter >
       }
    }
 
+   /// Set all attributes to be added to ADIOS2 output
+   ///
+   /// Attributes will be written at the first
+   /// invocation of write() on the AdiosWriter object
+   /// \param key               map of attributes
+   inline void setAllAttributes( std::map< std::string, adiostype_t > userDefinedAttributes )
+   {
+      userDefinedAttributes_ = userDefinedAttributes;
+   }
+
    /// Set parameter specified by string key to value specified by string value
    ///
    /// \note For consistency reasons the method will refuse to change parameter values after the first

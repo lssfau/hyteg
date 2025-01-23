@@ -19,7 +19,7 @@ Parameters
 
    // Refinement level
 
-   maxLevel 4;
+   maxLevel 3;
    minLevel 2;
    //////////////////////////////////
    //  Initialisation parameters   //
@@ -276,7 +276,7 @@ Parameters
    ADIOS2StartFromCheckpoint false;
 
    // In steps
-   ADIOS2StoreCheckpointFrequency 3;
+   ADIOS2StoreCheckpointFrequency 1;
 
    // ADIOS2 parameter keys and values for data output
 

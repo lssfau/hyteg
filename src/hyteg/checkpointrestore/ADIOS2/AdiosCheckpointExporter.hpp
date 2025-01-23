@@ -168,9 +168,10 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
    inline void storeCheckpoint( std::string filePath, std::string fileName )
    {
-      std::vector< std::string > userAttributeNames;
-      std::vector< std::string > userAttributeValues;
-      storeCheckpoint( filePath, fileName, userAttributeNames, userAttributeValues );
+      std::vector< std::string >                         userAttributeNames;
+      std::vector< std::string >                         userAttributeValues;
+      std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes;
+      storeCheckpoint( filePath, fileName, userDefinedAttributes );
    }
 
    /// Trigger storing of a single checkpoint
@@ -179,10 +180,9 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
    /// \param userAttributeNames   list of names for additional attributes
    /// \param userAttributeValues  list of strings with data for the additional attributes
-   inline void storeCheckpoint( std::string                       filePath,
-                                std::string                       fileName,
-                                const std::vector< std::string >& userAttributeNames,
-                                const std::vector< std::string >& userAttributeValues )
+   inline void storeCheckpoint( std::string                                              filePath,
+                                std::string                                              fileName,
+                                const std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes )
    {
       // create the writer and engine for the export
       std::string cpFileName = filePath + "/" + fileName;
@@ -215,11 +215,12 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       defineAndOrExportVariables< P2VectorFunction, int64_t >( io, engine );
 
       // add user defined attributes
-      WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
-      for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
-      {
-         io.DefineAttribute< std::string >( userAttributeNames[k], userAttributeValues[k] );
-      }
+      adiosHelpers::writeAllAttributes( io, userDefinedAttributes );
+      // WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
+      // for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
+      // {
+      //    io.DefineAttribute< std::string >( userAttributeNames[k], userAttributeValues[k] );
+      // }
 
       // add attributes with meta information on functions in the checkpoint
       io.DefineAttribute< std::string >( "FunctionNames", allFunctionNames_.data(), allFunctionNames_.size() );
