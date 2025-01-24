@@ -532,7 +532,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       // evaluate DG function
       auto dof_discontinuous =
           u_discontinuous_->getDGFunction()->volumeDoFFunction()->dof( faceID, elementIndex, 0, faceType, level );
-      real_t value_discontinuous = ValueType( dof_discontinuous ) * ( coordinates[componentIdx] - midpoint[componentIdx] );
+      real_t value_discontinuous = real_c(dof_discontinuous) * (coordinates[componentIdx] - midpoint[componentIdx]);
 
       value = ValueType( value_conforming + value_discontinuous );
    }
@@ -612,7 +612,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       // evaluate DG function
       auto dof_discontinuous =
           u_discontinuous_->getDGFunction()->volumeDoFFunction()->dof( cellID, elementIndex, 0, cellType, level );
-      real_t value_discontinuous = ValueType( dof_discontinuous ) * ( coordinates[componentIdx] - midpoint[componentIdx] );
+      real_t value_discontinuous = real_c( dof_discontinuous ) * ( coordinates[componentIdx] - midpoint[componentIdx] );
 
       value = ValueType( value_conforming + value_discontinuous );
    }

@@ -69,8 +69,14 @@ target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
 target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
 
 add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
-add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable -Wno-implicit-float-conversion -Wno-unused-local-typedef -Wno-delete-non-abstract-non-virtual-dtor")
-add_flag( CMAKE_CXX_FLAGS "-Wno-sign-compare -Wno-unused-local-typedefs -Wno-conversion -Wno-unused-but-set-variable -Wno-comment" )
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion -Wno-unused-local-typedef -Wno-delete-non-abstract-non-virtual-dtor" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-unused-but-set-variable -Wno-implicit-int-conversion" )
+elseif ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-conversion -Wno-float-conversion -Wno-sign-compare -Wno-sign-conversion -Wno-unused-function" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-but-set-variable -Wno-comment" )
+endif ()
 
 # Treat warnings as errors
 if ( WARNING_ERROR )
