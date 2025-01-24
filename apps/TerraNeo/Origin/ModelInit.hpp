@@ -61,6 +61,30 @@ void ConvectionSimulation::init()
    TN.simulationParameters.hMin = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
    TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
 
+   uint_t nLocalTets = storage->getNumberOfLocalCells();
+
+   std::function< bool(uint_t) > isSame = [](uint_t x)
+   {
+      signed long long p[2];
+      p[0] = -x;
+      p[1] = x;
+      MPI_Allreduce(MPI_IN_PLACE, p, 2, MPI_LONG_LONG, MPI_MIN, MPI_COMM_WORLD);
+      return (p[0] == -p[1]);
+   };
+
+   bool numTetsEqual = isSame(nLocalTets);
+
+   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("Number of Local Macro Tets = %d", nLocalTets));
+
+   if( !numTetsEqual )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "################################ ACHTUNG! ################################" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Every process DOES NOT have equal number of tets, this DOES NOT ensure load balancing" );
+      WALBERLA_LOG_INFO_ON_ROOT( "##########################################################################" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+   }
+
    printConfig( TN );
 
    setupBoundaryConditions();
