@@ -32,6 +32,8 @@
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
 #include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseDiffusion_float64.hpp"
+#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp"
+#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AnnulusMap_float64.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_float64.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
@@ -45,9 +47,22 @@ enum class MeshType
    SIMPLE_MESH,
    ANNULUS,
    UNIT_SQUARE,
-   UNIT_SQUARE_AFFINE_BLENDING,
+   OTHER_UNIT_SQUARE_AFFINE_BLENDING,
    QUADRATIC_MAPPED_SQUARE
 };
+
+// Define the matrix for the OTHER_UNIT_SQUARE_AFFINE_BLENDING meshing type
+Matrix2r getMatrix()
+{
+   Matrix2r mat;
+   real_t   phi = real_c( 2.0 / 9.0 ) * walberla::math::pi;
+   mat( 0, 0 )  = +std::cos( phi );
+   mat( 0, 1 )  = -std::sin( phi );
+   mat( 1, 0 ) = +std::sin( phi ) * real_c( 2.25 );
+   mat( 1, 1 ) = +std::cos( phi ) * real_c( 2.25 );
+
+   return mat;
+}
 
 std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
 {
@@ -81,20 +96,15 @@ std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
       break;
    }
 
-   case MeshType::UNIT_SQUARE_AFFINE_BLENDING: {
+   case MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING: {
       // unit square with affine blending
       MeshInfo mesh = MeshInfo::meshRectangle(
           Point2D( real_c( -1 ), real_c( -1 ) ), Point2D( real_c( +1 ), real_c( +1 ) ), MeshInfo::CRISSCROSS, 1, 1 );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
       // define our affine map (rotation + scaling + shift)
-      Matrix2r mat;
-      real_t   phi = real_c( 2.0 / 9.0 ) * walberla::math::pi;
-      mat( 0, 0 )  = +std::cos( phi );
-      mat( 0, 1 )  = -std::sin( phi );
-      mat( 1, 0 )  = +std::sin( phi ) * real_c( 2.25 );
-      mat( 1, 1 )  = +std::cos( phi ) * real_c( 2.25 );
-      Point2D vec( real_c( -7.0 ), real_c( 3.0 ) );
+      Matrix2r mat = getMatrix();
+      Point2D  vec( real_c( -7.0 ), real_c( 3.0 ) );
       AffineMap2D::setMap( setupStorage, mat, vec );
       storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
       break;
@@ -237,7 +247,7 @@ void runInterpolationTests()
 
    std::shared_ptr< PrimitiveStorage > storage1 = generateStorage( MeshType::SIMPLE_MESH );
    std::shared_ptr< PrimitiveStorage > storage2 = generateStorage( MeshType::ANNULUS );
-   std::shared_ptr< PrimitiveStorage > storage3 = generateStorage( MeshType::UNIT_SQUARE_AFFINE_BLENDING );
+   std::shared_ptr< PrimitiveStorage > storage3 = generateStorage( MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING );
    std::shared_ptr< PrimitiveStorage > storage4 = generateStorage( MeshType::QUADRATIC_MAPPED_SQUARE );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on unmodified mesh" );
@@ -324,13 +334,33 @@ real_t solveDiffusionProblem( bool doVTKOutput = false )
    return errorNorm;
 }
 
-void runMassTest( bool doVTKOutput = false )
+void runSingleMassTest( MeshType meshType )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "=========================================" );
-   WALBERLA_LOG_INFO_ON_ROOT( " P2PlusBubbleFunction: Mass Problem Test" );
-   WALBERLA_LOG_INFO_ON_ROOT( "=========================================" );
+   std::shared_ptr< PrimitiveStorage > storage;
+   real_t                              volumeCtrl{ real_c( 0 ) };
 
-   std::shared_ptr< PrimitiveStorage > storage = generateStorage( MeshType::UNIT_SQUARE );
+   if ( meshType == MeshType::UNIT_SQUARE )
+   {
+      storage    = generateStorage( meshType );
+      volumeCtrl = real_c( 1 );
+   }
+   else if ( meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
+   {
+      storage         = generateStorage( meshType );
+      volumeCtrl      = real_c( 4 );
+      Matrix2r mat    = getMatrix();
+      real_t   jacDet = std::abs( mat.determinant() );
+      volumeCtrl *= jacDet;
+   }
+   else if ( meshType == MeshType::ANNULUS )
+   {
+      storage    = generateStorage( meshType );
+      volumeCtrl = real_c( 3 ) * walberla::math::pi;
+   }
+   else
+   {
+      WALBERLA_ABORT( "Request for unsupported MeshType!" );
+   }
 
    uint_t level = 3;
 
@@ -338,16 +368,40 @@ void runMassTest( bool doVTKOutput = false )
    P2PlusBubbleFunction< real_t > vecOfOnes( "vecOfOnes", storage, level, level );
    P2PlusBubbleFunction< real_t > integrand( "integrand", storage, level, level );
 
-   using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_float64;
-   MassOperator massOp( storage, level, level );
-
-   // test 1: volume of square
+   // test 1: volume of the domain
    vecOfOnes.interpolate( real_c( 1 ), level, All );
-   massOp.apply( vecOfOnes, aux, level, All );
+
+   if ( meshType == MeshType::UNIT_SQUARE )
+   {
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_float64;
+      MassOperator massOp( storage, level, level );
+      massOp.apply( vecOfOnes, aux, level, All );
+   }
+   else if ( meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
+   {
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_AffineMap2D_float64;
+      MassOperator massOp( storage, level, level );
+      massOp.apply( vecOfOnes, aux, level, All );
+   }
+   else if ( meshType == MeshType::ANNULUS )
+   {
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_AnnulusMap_float64;
+      MassOperator massOp( storage, level, level );
+      massOp.apply( vecOfOnes, aux, level, All );
+   }
+
    real_t measure = vecOfOnes.dotGlobal( aux, level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( " - volume of unit square = " << measure );
-   WALBERLA_CHECK_FLOAT_EQUAL( measure, real_c( 1 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " - computed volume of physical domain = " << std::scientific << measure );
+   WALBERLA_LOG_INFO_ON_ROOT( " - analytic volume of physical domain = " << std::scientific << volumeCtrl );
+
+   if ( meshType == MeshType::UNIT_SQUARE || meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING ) {
+     WALBERLA_CHECK_FLOAT_EQUAL( measure, volumeCtrl );
+   }
+   else if ( meshType == MeshType::ANNULUS ) {
+     WALBERLA_CHECK_LESS_EQUAL( std::abs( measure - volumeCtrl ), real_c(1e-7) );
+     return;
+   }
 
    // test 2: "integrate" polynomial
    std::function< real_t( const hyteg::Point3D& ) > cubicPoly = []( const hyteg::Point3D& coords ) {
@@ -357,7 +411,20 @@ void runMassTest( bool doVTKOutput = false )
    };
    vecOfOnes.interpolate( real_c( 1 ), level, All );
    integrand.interpolate( cubicPoly, level, All );
-   massOp.apply( integrand, aux, level, All );
+
+   if ( meshType == MeshType::UNIT_SQUARE )
+   {
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_float64;
+      MassOperator massOp( storage, level, level );
+      massOp.apply( integrand, aux, level, All );
+   }
+   else if ( meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
+   {
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_AffineMap2D_float64;
+      MassOperator massOp( storage, level, level );
+      massOp.apply( integrand, aux, level, All );
+   }
+
    measure = vecOfOnes.dotGlobal( aux, level );
 
    const auto& bubbleFunc = integrand.getVolumeDoFFunction();
@@ -367,7 +434,36 @@ void runMassTest( bool doVTKOutput = false )
    WALBERLA_LOG_INFO_ON_ROOT( " - integral over cubic polynomial = " << measure );
    WALBERLA_LOG_INFO_ON_ROOT( " - control bubble dof (max/min) = (" << controlMax << ", " << controlMin << ")" );
 
-   WALBERLA_CHECK_FLOAT_EQUAL( measure, real_c( 79.0 / 12.0 ) );
+   if ( meshType == MeshType::UNIT_SQUARE )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " - check value = " << real_c( 79.0 / 12.0 ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( measure, real_c( 79.0 / 12.0 ) );
+   }
+   else if ( meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
+   {
+      Matrix2r mat  = getMatrix();
+      real_t   ctrl = real_c( 1447289930 ) / real_c( 2499997 ) * std::abs( mat.determinant() );
+      WALBERLA_LOG_INFO_ON_ROOT( " - check value = " << ctrl );
+      WALBERLA_CHECK_FLOAT_EQUAL( measure, ctrl );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+}
+
+void runMassTests()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "=========================================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " P2PlusBubbleFunction: Mass Problem Test" );
+   WALBERLA_LOG_INFO_ON_ROOT( "=========================================" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( " Executing test with unit square" );
+   runSingleMassTest( MeshType::UNIT_SQUARE );
+
+   WALBERLA_LOG_INFO_ON_ROOT( " Executing test with unit square + affine blending" );
+   runSingleMassTest( MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING );
+
+   WALBERLA_LOG_INFO_ON_ROOT( " Executing test with annulus" );
+   runSingleMassTest( MeshType::ANNULUS );
 }
 
 void runDiffusionTest( bool doVTKOutput = false )
@@ -379,6 +475,9 @@ void runDiffusionTest( bool doVTKOutput = false )
    real_t value1 =
        solveDiffusionProblem< P2PlusBubbleFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 >( doVTKOutput );
    real_t value2 = solveDiffusionProblem< P2Function, operatorgeneration::P2ElementwiseDiffusion >( doVTKOutput );
+
+   WALBERLA_CHECK_LESS( value1, 2e-9 );
+   WALBERLA_CHECK_LESS( value2, 0.5e-9 );
 }
 
 } // namespace hyteg
@@ -394,7 +493,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    runInterpolationTests();
-   runMassTest( true );
+   runMassTests();
    runDiffusionTest();
 
    return EXIT_SUCCESS;

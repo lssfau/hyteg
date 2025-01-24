@@ -5,6 +5,10 @@ target_sources( hyteg
     PRIVATE
     P2PlusBubbleElementwiseDiffusion_float64.cpp
     P2PlusBubbleElementwiseDiffusion_float64.hpp
+    P2PlusBubbleElementwiseMass_AffineMap2D_float64.cpp
+    P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp
+    P2PlusBubbleElementwiseMass_AnnulusMap_float64.cpp
+    P2PlusBubbleElementwiseMass_AnnulusMap_float64.hpp
     P2PlusBubbleElementwiseMass_float64.cpp
     P2PlusBubbleElementwiseMass_float64.hpp
 )
