@@ -158,6 +158,7 @@ class ConvectionSimulation
    void solveEnergy();
 
    void dataOutput();
+   void outputCheckpoint();
    void initTimingDB();
    void normalFunc( const Point3D& p, Point3D& n );
    void oppositeGravity( const Point3D& p, Point3D& n );

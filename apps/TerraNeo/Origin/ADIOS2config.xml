@@ -2,8 +2,8 @@
 <adios-config>
 
     <io name="BPWriter">
-        <engine type="BP4">
-	    <parameter key="AggregatorRatio" value="4"/>
+        <engine type="BP5">
+	    <parameter key="NumSubFiles" value="32"/>
         </engine>
     </io>
 

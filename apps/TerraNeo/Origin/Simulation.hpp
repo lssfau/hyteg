@@ -289,7 +289,12 @@ void ConvectionSimulation::step()
    {
       dataOutput();
    }
-   real_t timerDataOutput;
+   // Individually decide when checkpoint data is dumped
+   if ( TN.outputParameters.ADIOS2StoreCheckpoint )
+   {
+      outputCheckpoint();
+   }
+
    if ( !TN.outputParameters.outputMyr )
    {
       localTimerStep.start();
