@@ -148,6 +148,12 @@ class AffineMap2D : public GeometryMap
 
    bool isAffine() const override final { return true; }
 
+   /// provides read-only access to underlying matrix
+   const Matrix2r& getMatrix() const { return mat_; }
+
+   /// provides read-only access to underlying vector
+   const Point2D&  getVector() const { return vec_; }
+
  private:
    /// matrix using in affine mapping
    Matrix2r mat_;
