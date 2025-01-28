@@ -175,6 +175,5 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::runAllTestsP1();
-   WALBERLA_LOG_DEVEL(walberla::mpi::MPIManager::instance()->rank())
-   //hyteg::runAllTestsP2();
+   hyteg::runAllTestsP2();
 }

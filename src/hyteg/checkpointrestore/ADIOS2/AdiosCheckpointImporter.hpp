@@ -259,8 +259,6 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    adios2::Engine engine_;
    ///@}
 
-   std::vector< real_t > timestepInfo_;
-
    bool isTimestepInfoReadIn = false;
 
    /// meta information on the FE functions stored in the checkpoint
