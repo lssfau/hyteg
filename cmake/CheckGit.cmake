@@ -47,7 +47,7 @@ function( CheckGitVersion )
    CheckGitRead( GIT_CHECKSUM_CACHE )
 
    if ( NOT DEFINED GIT_CHECKSUM_CACHE )
-      set( GIT_HASH_CACHE "INVALID" )
+      set( GIT_CHECKSUM_CACHE "INVALID" )
    endif ()
 
    # Only update the git_version.cpp if the hash has changed. This will
