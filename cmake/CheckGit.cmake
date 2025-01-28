@@ -8,14 +8,14 @@ if ( NOT DEFINED hyteg_git_output )
    set( hyteg_git_output ${hyteg_BINARY_DIR}/src/hyteg/Git.hpp )
 endif ()
 
-function( CheckGitWrite git_hash git_diff )
-   file( WRITE ${CMAKE_BINARY_DIR}/git-state.txt ${git_hash} "\n" ${git_diff} )
+function( CheckGitWrite GIT_CHECKSUM )
+   file( WRITE ${CMAKE_BINARY_DIR}/git-state.txt ${GIT_CHECKSUM} )
 endfunction()
 
-function( CheckGitRead git_state_content )
+function( CheckGitRead GIT_CHECKSUM_CACHE )
    if ( EXISTS ${CMAKE_BINARY_DIR}/git-state.txt )
-      file( STRINGS ${CMAKE_BINARY_DIR}/git-state.txt file_content )
-      set( ${file_content} ${git_state_content} PARENT_SCOPE )
+      file( READ ${CMAKE_BINARY_DIR}/git-state.txt file_content )
+      set( GIT_CHECKSUM_CACHE ${file_content} PARENT_SCOPE )
    endif ()
 endfunction()
 
@@ -42,18 +42,18 @@ function( CheckGitVersion )
            OUTPUT_STRIP_TRAILING_WHITESPACE
    )
 
-   CheckGitRead( GIT_HASH_CACHE )
+   string(JOIN "\n" GIT_CHECKSUM ${GIT_COMMIT_HASH} ${GIT_BRANCH} ${GIT_DIFF})
 
-   if ( NOT DEFINED GIT_HASH_CACHE )
+   CheckGitRead( GIT_CHECKSUM_CACHE )
+
+   if ( NOT DEFINED GIT_CHECKSUM_CACHE )
       set( GIT_HASH_CACHE "INVALID" )
    endif ()
 
    # Only update the git_version.cpp if the hash has changed. This will
    # prevent us from rebuilding the project more than we need to.
-   if ( NOT ${GIT_COMMIT_HASH} STREQUAL ${GIT_HASH_CACHE} OR NOT EXISTS ${hyteg_git_output} )
-      # Set che GIT_HASH_CACHE variable the next build won't have
-      # to regenerate the source file.
-      CheckGitWrite( ${GIT_COMMIT_HASH} ${GIT_DIFF} )
+   if ( NOT ${GIT_CHECKSUM} STREQUAL ${GIT_CHECKSUM_CACHE} OR NOT EXISTS ${hyteg_git_output} )
+      CheckGitWrite( ${GIT_CHECKSUM} )
       configure_file( ${hyteg_git_input} ${hyteg_git_output} @ONLY )
    endif ()
 
