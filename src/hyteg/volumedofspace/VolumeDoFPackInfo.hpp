@@ -480,15 +480,15 @@ void VolumeDoFPackInfo< ValueType >::prepareFaceToFaceIterators(
       // We collect the PrimitiveIDs of the vertices that span the interface on the receiver side.
       auto receiverLocalVertexIDsSet = hyteg::indexing::faceLocalEdgeIDsToSpanningVertexIDs.at( receiverLocalEdgeID );
       std::vector< uint_t >      receiverLocalVertexIDs;
-      std::vector< PrimitiveID > vertexPIDs2;
+      std::vector< PrimitiveID > vertexPIDsFlipped;
       for ( auto rlvid : receiverLocalVertexIDsSet )
       {
          receiverLocalVertexIDs.push_back( rlvid );
-         vertexPIDs2.push_back( receiver->neighborVertices().at( rlvid ) );
+         vertexPIDsFlipped.push_back( receiver->neighborVertices().at( rlvid ) );
       }
 
       std::vector< uint_t > senderLocalPseudoVertexIDs;
-      for ( auto vpid : vertexPIDs2 )
+      for ( auto vpid : vertexPIDsFlipped )
       {
          // On the sender side the macro is coarser, so the PID of the fine neighbor are children of some locally neighboring
          // PIDs.
