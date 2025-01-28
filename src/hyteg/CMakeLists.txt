@@ -1,5 +1,5 @@
 add_library(hyteg)
-target_link_libraries(hyteg PUBLIC core vtk)
+target_link_libraries(hyteg PUBLIC core vtk git_version)
 if (HYTEG_BUILD_WITH_PETSC)
    target_link_libraries(hyteg PUBLIC PETSc::PETSc)
 endif ()
