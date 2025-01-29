@@ -752,7 +752,8 @@ void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons( dstStream_t&     
    // shape function. The cell includes a mid-edge node on each of the size edges of the tetrahedron. The ordering
    // of the ten points defining the cell is point ids (0-3,4-9) where ids 0-3 are the four tetra vertices;
    // and point ids 4-9 are the midedge nodes between (0,1), (1,2), (2,0), (0,3), (1,3), and (2,3).
-   const std::array< std::array< uint_t, 2 >, 6 > edgeByVertexIndices{ 0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3 };
+   const std::array< std::array< uint_t, 2 >, 6 > edgeByVertexIndices{
+       { { { 0, 1 } }, { { 1, 2 } }, { { 2, 0 } }, { { 0, 3 } }, { { 1, 3 } }, { { 2, 3 } } } };
 
    const auto macroCells = storage->getNumberOfLocalCells();
 

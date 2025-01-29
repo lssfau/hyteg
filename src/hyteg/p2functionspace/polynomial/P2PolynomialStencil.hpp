@@ -90,7 +90,10 @@ class P2PolynomialStencil
 {
  public:
    P2PolynomialStencil(const FacePolynomialMemory::FacePolynomials& poly)
-      : VtV_(poly.VtV), EtV_(poly.EtV), VtE_(poly.VtE), EtE_(poly.EtE)
+   : VtV_( poly.VtV )
+   , VtE_( poly.VtE )
+   , EtV_( poly.EtV )
+   , EtE_( poly.EtE )
    {}
 
    inline void setY(const real_t y)

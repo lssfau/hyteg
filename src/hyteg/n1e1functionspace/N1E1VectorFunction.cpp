@@ -183,7 +183,7 @@ void N1E1VectorFunction< ValueType >::add( VectorType vector, uint_t level, DoFT
       this->startTiming( "Add (vector)" );
 
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -197,7 +197,7 @@ void N1E1VectorFunction< ValueType >::add( VectorType vector, uint_t level, DoFT
       }
 
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -213,7 +213,7 @@ void N1E1VectorFunction< ValueType >::add( VectorType vector, uint_t level, DoFT
       if ( level >= 1 )
       {
          std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
          for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
@@ -267,7 +267,7 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       this->startTiming( "Interpolate" );
 
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -284,7 +284,7 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       }
 
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -301,7 +301,7 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       }
 
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
@@ -334,7 +334,7 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       this->startTiming( "Interpolate" );
 
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -351,7 +351,7 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       }
 
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -368,7 +368,7 @@ void N1E1VectorFunction< ValueType >::interpolate( VectorType constant, uint_t l
       }
 
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
@@ -433,7 +433,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
       }
 
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -450,7 +450,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
       }
 
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -469,7 +469,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
       if ( level >= 1 )
       {
          std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
          for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
@@ -514,7 +514,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
       }
 
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -531,7 +531,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
       }
 
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -550,7 +550,7 @@ void N1E1VectorFunction< ValueType >::interpolate(
       if ( level >= 1 )
       {
          std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
          for ( int i = 0; i < int_c( cellIDs.size() ); i++ )

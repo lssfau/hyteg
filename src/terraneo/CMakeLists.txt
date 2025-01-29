@@ -5,8 +5,7 @@
 ################################################################################
 
 add_library( terraneo )
-target_link_libraries(terraneo PUBLIC Boost::boost)
-# target_sources( terraneo )
+target_link_libraries(terraneo PUBLIC hyteg Boost::headers)
 
 add_subdirectory( dataimport )
 add_subdirectory( helpers )

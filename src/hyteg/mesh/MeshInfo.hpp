@@ -344,45 +344,45 @@ class MeshInfo
    /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
    static MeshInfo meshUnitSquare( uint_t level );
 
-   /// Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
-   ///
-   /// <b>Overview</b>
-   ///
-   /// This function generates a tetrahedral mesh for a thick spherical shell. It
-   /// is based on the icosahedral grid approach, i.e. one starts by mapping
-   /// an icosahedron onto the unit sphere, which results in 20 spherical
-   /// triangles. Pairs of these triangles are then conceptually combined resulting
-   /// in 10 spherical diamonds. These are then further subdivided and
-   /// scaled appropriately to obtain radial layers. This leads to
-   /// a mesh consisting of prismatoidal elements with spherical triangles on
-   /// top and bottom.
-   ///
-   /// This function uses the vertices of this mesh and from each prismatoid
-   /// generates 3 tetrahedrons. Given the following input parameters for the
-   /// constructor
-   ///
-   /// | parameter | constraints                                           | meaning                                  |
-   /// |:----------|:------------------------------------------------------|:-----------------------------------------|
-   /// | ntan      | (ntan-1) must be a power of 2 (for SHELLMESH_CLASSIC) | number of nodes along a diamond edge     |
-   /// | nrad      | nrad >= 2                                             | number of radial layers (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)                 |
-   /// | rmin      | rmin < rmax                                           | radius of interior boundary of the shell (innermost layer) |
-   /// | rmax      | rmin < rmax                                           | radius of exterior boundary of the shell (outermost layer) |
-   ///
-   /// this results in
-   ///
-   /// - no. of vertices: (10 * (ntan-1) * (ntan-1) + 2) * nrad
-   /// - no. of tetrahedrons: 60 * (ntan-1) * (ntan-1) * (nrad-1)
-   ///
-   /// <br/>
-   /*! \htmlonly
+   /** Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
+    *
+    *  <b>Overview</b>
+    *
+    *  This function generates a tetrahedral mesh for a thick spherical shell. It
+    *  is based on the icosahedral grid approach, i.e. one starts by mapping
+    *  an icosahedron onto the unit sphere, which results in 20 spherical
+    *  triangles. Pairs of these triangles are then conceptually combined resulting
+    *  in 10 spherical diamonds. These are then further subdivided and
+    *  scaled appropriately to obtain radial layers. This leads to
+    *  a mesh consisting of prismatoidal elements with spherical triangles on
+    *  top and bottom.
+    *
+    *  This function uses the vertices of this mesh and from each prismatoid
+    *  generates 3 tetrahedrons. Given the following input parameters for the
+    *  constructor
+    *
+    *  | parameter | constraints                                           | meaning                                  |
+    *  |:----------|:------------------------------------------------------|:-----------------------------------------|
+    *  | ntan      | (ntan-1) must be a power of 2 (for SHELLMESH_CLASSIC) | number of nodes along a diamond edge     |
+    *  | nrad      | nrad >= 2                                             | number of radial layers (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)                 |
+    *  | rmin      | rmin < rmax                                           | radius of interior boundary of the shell (innermost layer) |
+    *  | rmax      | rmin < rmax                                           | radius of exterior boundary of the shell (outermost layer) |
+    *
+    *  this results in
+    *
+    *  - no. of vertices: (10 * (ntan-1) * (ntan-1) + 2) * nrad
+    *  - no. of tetrahedrons: 60 * (ntan-1) * (ntan-1) * (nrad-1)
+    *
+    *  <br/>
+    * \htmlonly
    <center>
    <img src="SphericalShell_coarse_ntan_5_diamond.png" width="50%"/><br/>
    Surface of the spherical shell mesh for ntan = 5, highlighting the spherical diamond (split into two spherical triangles)
    and the ntan = 5 vertices along one of the edges of the diamond.
    </center>
-   \endhtmlonly */
-   ///
-   /*! \htmlonly
+   \endhtmlonly
+   *
+   * \htmlonly
    <center>
    <img src="SphericalShell_coarse_ntan_5_nrad_2_clip.png" width="30%"/>
    <img src="SphericalShell_coarse_ntan_5_nrad_3_clip.png" width="30%"/>
@@ -390,124 +390,125 @@ class MeshInfo
    <br/>
    Cut through spherical shell meshes with ntan = 5, rmin = 0.5, rmax = 1.0, and nrad = {2, 3, 4} (from left to right increasing).
    </center>
-   \endhtmlonly */
-   /// <br/>
-   ///
-   /// <b>Boundary flags</b>
-   ///
-   /// The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
-   /// #flagInnerBoundary or #flagInterior.
-   ///
-   /// <b>Details</b>
-   ///
-   /// We start by generating a mesh for the unit sphere. This mesh is generated
-   /// by first splitting the four outer arcs of each diamond into (ntan-1)
-   /// sections of equal arc length and then splitting the west-to-east arcs
-   /// connecting these new points into sections of equal arc length such that we
-   /// end up with ntan x ntan nodes on each diamond.
-   ///
-   /// The thick spherical shell is then meshed by scaling the spherical mesh to
-   /// obtain nrad radial layers whose radii split the interval [rmin,rmax] into
-   /// equidistant sub-intervals. Alternatively the radii of the layers can be
-   /// computed externally and provided to the class via the corresponding
-   /// constructor.
-   ///
-   /*! \htmlonly
+   \endhtmlonly
+    *  <br/>
+    *
+    *  <b>Boundary flags</b>
+    *
+    *  The boundaryFlags for the shell mesh are set to the appropriate values of #hollowFlag, i.e. #flagOuterBoundary,
+    *  #flagInnerBoundary or #flagInterior.
+    *
+    *  <b>Details</b>
+    *
+    *  We start by generating a mesh for the unit sphere. This mesh is generated
+    *  by first splitting the four outer arcs of each diamond into (ntan-1)
+    *  sections of equal arc length and then splitting the west-to-east arcs
+    *  connecting these new points into sections of equal arc length such that we
+    *  end up with ntan x ntan nodes on each diamond.
+    *
+    *  The thick spherical shell is then meshed by scaling the spherical mesh to
+    *  obtain nrad radial layers whose radii split the interval [rmin,rmax] into
+    *  equidistant sub-intervals. Alternatively the radii of the layers can be
+    *  computed externally and provided to the class via the corresponding
+    *  constructor.
+    *
+    * \htmlonly
    <center>
    <img src="Diamonds-and-SphericalIndices.png" width="50%"/><br/>
    Numbering of diamonds and direction of tangential indices depending on the hemisphere
    </center>
-   \endhtmlonly */
-   ///
-   /*! \htmlonly
+   \endhtmlonly
+    *
+    * \htmlonly
    <center>
    <img src="Tets-per-local-Cell.png" width="50%"/><br/>
    Splitting a local cell into six tetrahedra
    </center>
-   \endhtmlonly */
-   /// <br/>
-   ///
-   /// Every tetrahedron of the mesh can uniquely be addressed by a five-tuple
-   /// of indices \f$\Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. These
-   /// indices have the following meaning an (by our convention) the following
-   /// ranges:
-   ///
-   /// |      index       |                           range                 |             indicates              |
-   /// |:----------------:|:-----------------------------------------------:|:-----------------------------------|
-   /// | \f$i_t      \f$  | \f$\Big\{ 0, 1, \ldots, 5             \Big\}\f$ | index of tetrahedron in grid cell  |
-   /// | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | first spherical node index         |
-   /// | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | second spherical node index        |
-   /// | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9             \Big\}\f$ | index of diamond                   |
-   /// | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}-1\Big\}\f$ | index of radial layer (inside-out) |
-   ///
-   /// We denote by
-   ///
-   /// \f[ \mathcal{M}_\text{elem} : \Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{elem} \f]
-   ///
-   /// the mapping that assigns to each such five-tuple a unique one-dimensional
-   /// index. We construct the mapping by counting the tetrahedra starting at
-   /// zero and going through the indices in the given order, with \f$i_t\f$
-   /// being the fastest running and so on.
-   /// In a similar fashion each vertex of the grid can be addressed by
-   /// a four-tuple \f$\Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. Here the indices
-   /// have an identical meaning as before, but slightly different ranges:
-   ///
-   /// |      index       |                           range               |             indicates              |
-   /// |:----------------:|:---------------------------------------------:|:-----------------------------------|
-   /// | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | first spherical node index         |
-   /// | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | second spherical node index        |
-   /// | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9           \Big\}\f$ | index of diamond                   |
-   /// | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}\Big\}\f$ | index of radial layer (inside-out) |
-   ///
-   /// Additionally the representation of a vertex by such a four-tuple is
-   /// non-unique. Considering the spherical grid, we see that the north
-   /// and south pole belong to five diamonds each, while the remaining
-   /// ten points of the base icosahedron (pentagonal nodes) belong to
-   /// three diamonds each, and the remaining nodes along a diamond edge
-   /// always belong to two diamonds. To construct a unique mapping
-   ///
-   /// \f[ \mathcal{M}_\text{vert} : \Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{vert} \f]
-   ///
-   /// we introduce the following conventions:
-   ///
-   /// - The spherical indices of north and south pole are given by (0,0)
-   /// - A diamond with index \f$i_d\f$ owns all nodes, which satisfy
-   ///   \f{equation*}{\begin{split}
-   ///   i_s^{(1)} &\in \Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\\
-   ///   i_s^{(2)} &\in \Big\{ 1, \ldots, n_\text{tan}\Big\}
-   ///   \end{split}\f}
-   ///   on the northern hemisphere this excludes the upper and lower
-   ///   left edge of the diamond.
-   /// - The above assignment leads to the poles not belonging to any
-   ///   diamond. We assign the north pole to diamond #1 and the south
-   ///   pole to diamond #6.
-   ///
-   /// The mapping \f$\mathcal{M}_\text{vert}\f$ is then constructed as
-   /// follows:
-   ///
-   /// - We first index the north pole on each radial layer, going from
-   ///   \f$i_r=0\f$ up to \f$i_r=n_\text{rad}\f$.
-   /// - Then we do the same for all south poles.
-   /// - Then we go through all vertices assigning them indices
-   ///   \f$j_\text{vert}\f$ starting from \f$2\cdot n_\text{rad}\f$.
-   ///   The ordering again follows the given index ordering with,
-   ///   this time, \f$i_s^{(1)}\f$ being the fastest running index.
-   /*! \htmlonly
+   \endhtmlonly
+    *  <br/>
+    *
+    *  Every tetrahedron of the mesh can uniquely be addressed by a five-tuple
+    *  of indices \f$\Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. These
+    *  indices have the following meaning an (by our convention) the following
+    *  ranges:
+    *
+    *  |      index       |                           range                 |             indicates              |
+    *  |:----------------:|:-----------------------------------------------:|:-----------------------------------|
+    *  | \f$i_t      \f$  | \f$\Big\{ 0, 1, \ldots, 5             \Big\}\f$ | index of tetrahedron in grid cell  |
+    *  | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | first spherical node index         |
+    *  | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\f$ | second spherical node index        |
+    *  | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9             \Big\}\f$ | index of diamond                   |
+    *  | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}-1\Big\}\f$ | index of radial layer (inside-out) |
+    *
+    *  We denote by
+    *
+    *  \f[ \mathcal{M}_\text{elem} : \Big(i_t,i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{elem} \f]
+    *
+    *  the mapping that assigns to each such five-tuple a unique one-dimensional
+    *  index. We construct the mapping by counting the tetrahedra starting at
+    *  zero and going through the indices in the given order, with \f$i_t\f$
+    *  being the fastest running and so on.
+    *  In a similar fashion each vertex of the grid can be addressed by
+    *  a four-tuple \f$\Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big)\f$. Here the indices
+    *  have an identical meaning as before, but slightly different ranges:
+    *
+    *  |      index       |                           range               |             indicates              |
+    *  |:----------------:|:---------------------------------------------:|:-----------------------------------|
+    *  | \f$i_s^{(1)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | first spherical node index         |
+    *  | \f$i_s^{(2)}\f$  | \f$\Big\{ 0, 1, \ldots, n_\text{tan}\Big\}\f$ | second spherical node index        |
+    *  | \f$i_d      \f$  | \f$\Big\{ 0, 1, \ldots, 9           \Big\}\f$ | index of diamond                   |
+    *  | \f$i_r      \f$  | \f$\Big\{ 0, 1, \ldots, n_\text{rad}\Big\}\f$ | index of radial layer (inside-out) |
+    *
+    *  Additionally the representation of a vertex by such a four-tuple is
+    *  non-unique. Considering the spherical grid, we see that the north
+    *  and south pole belong to five diamonds each, while the remaining
+    *  ten points of the base icosahedron (pentagonal nodes) belong to
+    *  three diamonds each, and the remaining nodes along a diamond edge
+    *  always belong to two diamonds. To construct a unique mapping
+    *
+    *  \f[ \mathcal{M}_\text{vert} : \Big(i_s^{(1)},i_s^{(2)},i_d,i_r\Big) \mapsto j_\text{vert} \f]
+    *
+    *  we introduce the following conventions:
+    *
+    *  - The spherical indices of north and south pole are given by (0,0)
+    *  - A diamond with index \f$i_d\f$ owns all nodes, which satisfy
+    *    \f{equation*}{\begin{split}
+    *    i_s^{(1)} &\in \Big\{ 0, 1, \ldots, n_\text{tan}-1\Big\}\\
+    *    i_s^{(2)} &\in \Big\{ 1, \ldots, n_\text{tan}\Big\}
+    *    \end{split}\f}
+    *    on the northern hemisphere this excludes the upper and lower
+    *    left edge of the diamond.
+    *  - The above assignment leads to the poles not belonging to any
+    *    diamond. We assign the north pole to diamond #1 and the south
+    *    pole to diamond #6.
+    *
+    *  The mapping \f$\mathcal{M}_\text{vert}\f$ is then constructed as
+    *  follows:
+    *
+    *  - We first index the north pole on each radial layer, going from
+    *    \f$i_r=0\f$ up to \f$i_r=n_\text{rad}\f$.
+    *  - Then we do the same for all south poles.
+    *  - Then we go through all vertices assigning them indices
+    *    \f$j_\text{vert}\f$ starting from \f$2\cdot n_\text{rad}\f$.
+    *    The ordering again follows the given index ordering with,
+    *    this time, \f$i_s^{(1)}\f$ being the fastest running index.
+    * \htmlonly
    <center>
    <img src="tuple2VertIndex.png" width="50%"/><br/>
    Visualisation of vertex ownership convention; vertices marked yellow and
    green are owned by neighbouring diamonds in the indicated direction
    </center>
-   \endhtmlonly */
-   ///
-   ///
-   /// \param ntan      number of nodes along spherical diamond edge
-   /// \param nrad      number of radial layers (>= 2)
-   ///                  (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)
-   /// \param rmin      radius of innermost shell (core-mantle-boundary)
-   /// \param rmax      radius of outermost shell
-   /// \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you
-   ///                  are doing)
+   \endhtmlonly
+    *
+    *
+    *  \param ntan      number of nodes along spherical diamond edge
+    *  \param nrad      number of radial layers (>= 2)
+    *                   (a radial layer here is a 2D-manifold in 3D space such that each tet is enclosed by two layers)
+    *  \param rmin      radius of innermost shell (core-mantle-boundary)
+    *  \param rmax      radius of outermost shell
+    *  \param meshType  allows selecting meshing strategy, defaults to SHELLMESH_CLASSIC (only change this, if you know what you
+    *                  are doing)
+   **/
    static MeshInfo meshSphericalShell( uint_t        ntan,
                                        uint_t        nrad,
                                        real_t        rmin,
@@ -683,10 +684,10 @@ class MeshInfo
    /// it will be set to the value of the undecided argument.
    void deduceFaceFlagsFromVertices( uint_t flagInconsistent = 0 );
 
-   VertexContainer vertices_;
-   EdgeContainer   edges_;
-   FaceContainer   faces_;
-   CellContainer   cells_;
+   VertexContainer vertices_{};
+   EdgeContainer   edges_{};
+   FaceContainer   faces_{};
+   CellContainer   cells_{};
 
    /// Function for second pass over primitives in the MSH-readers
    ///

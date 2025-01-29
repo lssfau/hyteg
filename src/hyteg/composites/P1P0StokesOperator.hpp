@@ -45,7 +45,6 @@ class P1DivDivOperator : public VectorToVectorOperator< real_t, P1VectorFunction
  public:
    P1DivDivOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, real_t mu )
    : VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction >( storage, minLevel, maxLevel )
-   , mu_( mu )
    {
       divdiv_0_0 = std::make_shared< forms::p1_divdiv_0_0_affine_q2 >();
       divdiv_0_1 = std::make_shared< forms::p1_divdiv_0_1_affine_q2 >();
@@ -128,8 +127,6 @@ class P1DivDivOperator : public VectorToVectorOperator< real_t, P1VectorFunction
    std::shared_ptr< forms::p1_divdiv_2_0_affine_q2 > divdiv_2_0;
    std::shared_ptr< forms::p1_divdiv_2_1_affine_q2 > divdiv_2_1;
    std::shared_ptr< forms::p1_divdiv_2_2_affine_q2 > divdiv_2_2;
-
-   real_t mu_;
 };
 
 class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0StokesFunction< real_t > >
@@ -154,7 +151,8 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    void apply( const P1P0StokesFunction< real_t >& src,
                const P1P0StokesFunction< real_t >& dst,
                const uint_t                        level,
-               const DoFType                       flag ) const
+               const DoFType                       flag,
+               UpdateType                          updateType = Replace ) const override
    {
       Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       mudivdiv.apply( src.uvw(), dst.uvw(), level, flag, Add );
@@ -167,7 +165,7 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
                   const P1P0StokesFunction< idx_t >&          src,
                   const P1P0StokesFunction< idx_t >&          dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       mudivdiv.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );

@@ -371,7 +371,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
@@ -435,7 +435,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
@@ -605,7 +605,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    this->timingTree_->start( "Macro-Edge" );
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+#ifdef HYTEG_BUILD_WITH_OPENMP
 #pragma omp parallel for default( shared )
 #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )

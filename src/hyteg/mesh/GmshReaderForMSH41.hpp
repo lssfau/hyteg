@@ -124,7 +124,7 @@ class GmshReaderForMSH41
 
       WALBERLA_CHECK_EQUAL( token, "4.1", "[Mesh] Meshfile version should be 4.1" );
 
-      return std::move( meshFile );
+      return  meshFile ;
    }
 
    /// Determine the sections actually present in the MSH file

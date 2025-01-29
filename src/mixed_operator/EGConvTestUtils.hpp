@@ -123,52 +123,64 @@ namespace hyteg {
                 // datatype for check function on the numerical solution
                 typedef std::function<void(const StokesFunctionType &, real_t h)> checkFunctionType;
 
-                StokesConvergenceOrderTest(const std::string &testName,
-                                           LambdaTuple solTuple,
-                                           LambdaTuple rhsTuple,
-                                           const std::shared_ptr<StokesOperatorType> &Op,
-                                           const std::shared_ptr<PrimitiveStorage> &storage,
-                                           const uint_t minLevel,
-                                           const uint_t maxLevel,
-                                           const uint_t &solverType = 5,
-                                           const real_t residualTol = 1e-7,
-                                           bool writeVTK = false,
-                                           std::pair<bool, real_t> discrErrorThreshhold = std::make_pair(false, 0),
-                                           std::shared_ptr<checkFunctionType> checkSolution = nullptr,
-                                           real_t expectedL2VeloRate = 2.0
-                )
-                        : testName_(testName), maxLevel_(maxLevel), solTuple_(solTuple), rhsTuple_(rhsTuple), Op_(Op),
-                          storage_(storage), solverType_(solverType), residualTol_(residualTol), writeVTK_(writeVTK),
-                          checkSolution_(checkSolution), discrErrorThreshhold_(discrErrorThreshhold) {
-                    WALBERLA_LOG_INFO_ON_ROOT("Running " << testName);
-                    auto ratesCounter = EGConvRatesCounter(expectedL2VeloRate);
-                    ratesCounter.printHeader();
+                StokesConvergenceOrderTest( const std::string&                           testName,
+                                            LambdaTuple                                  solTuple,
+                                            LambdaTuple                                  rhsTuple,
+                                            const std::shared_ptr< StokesOperatorType >& Op,
+                                            const std::shared_ptr< PrimitiveStorage >&   storage,
+                                            const uint_t                                 minLevel,
+                                            const uint_t                                 maxLevel,
+                                            const uint_t&                                solverType  = 5,
+                                            const real_t                                 residualTol = 1e-7,
+                                            bool                                         writeVTK    = false,
+                                            std::pair< bool, real_t > discrErrorThreshhold           = std::make_pair( false, 0 ),
+                                            std::shared_ptr< checkFunctionType > checkSolution       = nullptr,
+                                            real_t                               expectedL2VeloRate  = 2.0 )
+                : testName_( testName )
+                , maxLevel_( maxLevel )
+                , solTuple_( solTuple )
+                , rhsTuple_( rhsTuple )
+                , Op_( Op )
+                , storage_( storage )
+                , solverType_( solverType )
+                , writeVTK_( writeVTK )
+                , residualTol_( residualTol )
+                , checkSolution_( checkSolution )
+                , discrErrorThreshhold_( discrErrorThreshhold )
+                {
+                   WALBERLA_LOG_INFO_ON_ROOT( "Running " << testName );
+                   auto ratesCounter = EGConvRatesCounter( expectedL2VeloRate );
+                   ratesCounter.printHeader();
 
-                    for (uint_t level = minLevel; level <= maxLevel; level++) {
-                        ratesCounter.update(RunStokesTestOnLevel(level),
-                                            MeshQuality::getMaximalEdgeLength(storage_, level), testName);
-                        ratesCounter.printCurrentRates(level);
-                        if (level > minLevel)
-                            ratesCounter.checkL2VeloRate(level);
-                    }
-                    ratesCounter.printMeanRates();
+                   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+                   {
+                      ratesCounter.update(
+                          RunStokesTestOnLevel( level ), MeshQuality::getMaximalEdgeLength( storage_, level ), testName );
+                      ratesCounter.printCurrentRates( level );
+                      if ( level > minLevel )
+                         ratesCounter.checkL2VeloRate( level );
+                   }
+                   ratesCounter.printMeanRates();
                 }
 
-            private:
+              private:
                 // subclass handling the computation of convergence rates
                 class EGConvRatesCounter {
                 public:
-                    EGConvRatesCounter(real_t expectedL2VeloRate)
-                            : h_old(std::numeric_limits<real_t>::max()), nUpdates_(0),
-                              expectedL2VeloRate_(expectedL2VeloRate) {
-                        errors_ = {0., 0., 0.};
-                        rates_ = {0., 0., 0.};
-                        sumRates_ = {0., 0., 0.};
-                    }
+                   EGConvRatesCounter( real_t expectedL2VeloRate )
+                   : nUpdates_( 0 )
+                   , h_old( std::numeric_limits< real_t >::max() )
+                   , expectedL2VeloRate_( expectedL2VeloRate )
+                   {
+                      errors_   = { 0., 0., 0. };
+                      rates_    = { 0., 0., 0. };
+                      sumRates_ = { 0., 0., 0. };
+                   }
 
-                    void update(const ErrorArray &newErrors, real_t h_new, const std::string &fname) {
-                        currentDoFs_ = newErrors[0];
-                        std::transform(newErrors.begin() + 1, newErrors.end(), errors_.begin(), rates_.begin(),
+                   void update( const ErrorArray& newErrors, real_t h_new, const std::string& fname )
+                   {
+                      currentDoFs_ = newErrors[0];
+                      std::transform(newErrors.begin() + 1, newErrors.end(), errors_.begin(), rates_.begin(),
                                        std::divides<real_t>());
                         std::transform(rates_.begin(), rates_.end(), rates_.begin(), [h_new, this](real_t x) {
                             return std::log(x) / std::log(h_new / h_old);

@@ -40,6 +40,8 @@ class EigenConstVectorProxy : public VectorProxy
    : vectorRef_( vectorRef )
    {}
 
+   virtual ~EigenConstVectorProxy() = default;
+
    /// \brief Sets the passed value in the vector.
    virtual void setValue( uint_t idx, real_t value )
    {
@@ -62,6 +64,8 @@ class EigenVectorProxy : public VectorProxy
    EigenVectorProxy( VectorXr& vectorRef )
    : vectorRef_( vectorRef )
    {}
+
+   virtual ~EigenVectorProxy() = default;
 
    /// \brief Sets the passed value in the vector.
    virtual void setValue( uint_t idx, real_t value ) { vectorRef_( static_cast< Eigen::Index >( idx ) ) = value; }

@@ -69,7 +69,7 @@ inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  v
 
 inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index )
 {
-   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
+   const real_t  stepFrequency = 1.0 / real_c(levelinfo::num_microedges_per_edge( Level ));
    const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
    return face.getCoordinates()[0] + xStep * real_c( index.x() ) + yStep * real_c( index.y() );
@@ -77,8 +77,8 @@ inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const
 
 template < typename ValueType >
 inline ValueType assembleLocal( const uint_t&                            Level,
-                                uint_t                                   i,
-                                uint_t                                   j,
+                                idx_t                                    i,
+                                idx_t                                    j,
                                 const Matrix3r&                          localMatrix,
                                 double*                                  src,
                                 double*                                  coeff,
@@ -99,8 +99,8 @@ inline ValueType assembleLocal( const uint_t&                            Level,
 
 template < typename ValueType >
 inline void assembleLocalStencil( uint_t                                   Level,
-                                  uint_t                                   i,
-                                  uint_t                                   j,
+                                  idx_t                                    i,
+                                  idx_t                                    j,
                                   const Matrix3r&                          localMatrix,
                                   double*                                  opr_data,
                                   double*                                  coeff,
@@ -142,12 +142,13 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
                                                       Matrix2r& transform,
                                                       Point3D&  dofs )
 {
-   // Get the element local coordinates and DoFs from physical coordinates
-   // The local DoFs are sorted in following order
-   // 2
-   // | \
-   // |  \
-   // 0 - 1
+   /** Get the element local coordinates and DoFs from physical coordinates
+    * The local DoFs are sorted in following order
+    * 2
+    * | \
+    * |  \
+    * 0 - 1
+   **/
 
    // Transform absolute coordinates to macro element relative coordinates
    Matrix2r A;
@@ -198,15 +199,15 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    }
 
    Index index;
-   index.x() = uint_c( binX );
-   index.y() = uint_c( binY );
+   index.x() = binX;
+   index.y() = binY;
 
    WALBERLA_ASSERT_LESS( index.x(), rowsize - 1 );
    WALBERLA_ASSERT_LESS( index.y(), rowsize - 1 );
    WALBERLA_ASSERT_LESS( index.x() + index.y(), rowsize - 1, "index.x(): " << index.x() << ", index.y()" << index.y() );
 
-   localCoordinates[0] = xRelMacro[0] - index.x() * h;
-   localCoordinates[1] = xRelMacro[1] - index.y() * h;
+   localCoordinates[0] = xRelMacro[0] - real_c( index.x() ) * h;
+   localCoordinates[1] = xRelMacro[1] - real_c( index.y() ) * h;
    localCoordinates *= hInv;
 
    auto srcData = face.getData( srcID )->getPointer( level );
@@ -439,9 +440,9 @@ inline void multElementwise( const uint_t&                                      
       srcPtr.push_back( face.getData( src )->getPointer( Level ) );
    }
 
-   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( idx_t j = 1; j < rowsize - 2; ++j )
    {
-      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( idx_t i = 1; i < inner_rowsize - 2; ++i )
       {
          const uint_t idx = vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C );
          ValueType    tmp = srcPtr[0][idx];
@@ -987,9 +988,9 @@ inline void saveOperator( const uint_t&                                         
    auto src      = face.getData( srcId )->getPointer( Level );
    auto dst      = face.getData( dstId )->getPointer( Level );
 
-   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   for ( idx_t i = 1; i < rowsize - 2; ++i )
    {
-      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      for ( idx_t j = 1; j < inner_rowsize - 2; ++j )
       {
          idx_t srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          idx_t dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
@@ -1035,9 +1036,9 @@ inline void saveIdentityOperator( const uint_t&                                 
 
    auto dst = face.getData( dstId )->getPointer( Level );
 
-   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   for ( idx_t i = 1; i < rowsize - 2; ++i )
    {
-      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      for ( idx_t j = 1; j < inner_rowsize - 2; ++j )
       {
          idx_t dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
@@ -1107,9 +1108,9 @@ inline void createVectorFromFunction( const uint_t&                             
    auto src       = face.getData( srcId )->getPointer( Level );
    auto numerator = face.getData( numeratorId )->getPointer( Level );
 
-   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   for ( idx_t i = 1; i < rowsize - 2; ++i )
    {
-      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      for ( idx_t j = 1; j < inner_rowsize - 2; ++j )
       {
          idx_t numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          vec->setValue( uint_c( numeratorInt ),
@@ -1132,9 +1133,9 @@ inline void createFunctionFromVector( const uint_t&                             
    auto src       = face.getData( srcId )->getPointer( Level );
    auto numerator = face.getData( numeratorId )->getPointer( Level );
 
-   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   for ( idx_t i = 1; i < rowsize - 2; ++i )
    {
-      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      for ( idx_t j = 1; j < inner_rowsize - 2; ++j )
       {
          idx_t numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] =

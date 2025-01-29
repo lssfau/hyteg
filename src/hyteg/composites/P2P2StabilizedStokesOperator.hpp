@@ -47,7 +47,8 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
    void apply( const P2P2StokesFunction< real_t >& src,
                const P2P2StokesFunction< real_t >& dst,
                const size_t                        level,
-               DoFType                             flag ) const
+               DoFType                             flag,
+               UpdateType                          updateType = Replace ) const override
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -62,7 +63,7 @@ class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t
                   const P2P2StokesFunction< idx_t >&          src,
                   const P2P2StokesFunction< idx_t >&          dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );

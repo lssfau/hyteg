@@ -543,7 +543,7 @@ inline void getLocalElementFromCoordinates( uint_t                  level,
 
          real_t distSum  = 0;
          bool   contains = true;
-         for ( uint_t i = 0; i < 4; i++ )
+         for ( idx_t i = 0; i < 4; i++ )
          {
             if ( rel[i] < 0 )
             {

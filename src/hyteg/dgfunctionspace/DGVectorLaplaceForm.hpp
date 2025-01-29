@@ -36,14 +36,14 @@ namespace dg {
 
 class DGVectorLaplaceFormP1P1_00 : public hyteg::dg::DGForm2D
 {
-public:
+ public:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
-                          MatrixXr&                     elMat ) const override
-  {
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
+                           MatrixXr&                     elMat ) const override
+   {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -101,15 +101,15 @@ public:
       elMat( 2, 2 ) = a_2_2;
    }
 
-  virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
-                                      const std::vector< Point3D >& coordsFacet,
-                                      const Point3D&                oppositeVertex,
-                                      const Point3D&                outwardNormal,
-                                      const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const
+   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+                                       const std::vector< Point3D >& coordsFacet,
+                                       const Point3D&                oppositeVertex,
+                                       const Point3D&                outwardNormal,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -266,11 +266,11 @@ public:
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -515,11 +515,11 @@ public:
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -635,8 +635,8 @@ public:
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -655,10 +655,10 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -696,11 +696,11 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -751,11 +751,11 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -816,11 +816,11 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -869,8 +869,8 @@ class DGVectorLaplaceFormP1P1_10 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -889,10 +889,10 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -930,11 +930,11 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -985,11 +985,11 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1050,11 +1050,11 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1103,8 +1103,8 @@ class DGVectorLaplaceFormP1P1_01 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -1123,10 +1123,10 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1190,11 +1190,11 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
+                                       MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1351,11 +1351,11 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1600,11 +1600,11 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -1720,8 +1720,8 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -1735,7 +1735,6 @@ class DGVectorLaplaceFormP1P1_11 : public hyteg::dg::DGForm2D
       // Does nothing.
    }
 };
-
 
 } // namespace dg
 } // namespace hyteg

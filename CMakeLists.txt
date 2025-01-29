@@ -3,6 +3,9 @@ cmake_minimum_required (VERSION 3.20)
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
   cmake_policy(SET CMP0135 NEW)
@@ -20,23 +23,29 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 include(DetectPlatformFeatures)
 
-option ( HYTEG_BUILD_WITH_MPFR           "Build with MPFR"                                OFF )
-option ( HYTEG_BUILD_WITH_PETSC          "Build with PETSc"                               OFF )
-option ( HYTEG_BUILD_WITH_TRILINOS       "Build with Trilinos"                            OFF )
-option ( HYTEG_BUILD_WITH_ADIOS2         "Build with ADIOS2"                              OFF )
-option ( HYTEG_BUILD_WITH_PYTHON3        "Build with PYTHON3"                             OFF )
-option ( HYTEG_BUILD_WITH_AVX            "Use AVX/AVX2 intrinsics (in generated code)" ${HYTEG_PLATFORM_SUPPORTS_AVX} )
-option ( HYTEG_USE_GENERATED_KERNELS     "Use generated pystencils kernels if available"   ON )
-option ( HYTEG_GIT_SUBMODULE_AUTO        "Check submodules during build"                   ON )
-option ( HYTEG_TERRANEO_MODULE           "Build TerraNeo module"                          OFF )
-option ( HYTEG_DOWNLOAD_BOOST            "Download boost library; required for plates"    OFF )
-option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for ParaView"  ON )
+option ( HYTEG_BUILD_WITH_MPI            "Build with MPI"                                                             ON )
+option ( HYETG_BUILD_WITH_OPENMP         "Build with OpenMP"                                                         OFF )
+option ( HYTEG_BUILD_WITH_PETSC          "Build with PETSc"                                                          OFF )
+option ( HYTEG_BUILD_WITH_MPFR           "Build with MPFR"                                                           OFF )
+option ( HYTEG_BUILD_WITH_TRILINOS       "Build with Trilinos"                                                       OFF )
+option ( HYTEG_BUILD_WITH_ADIOS2         "Build with ADIOS2"                                                         OFF )
+option ( HYTEG_BUILD_WITH_PYTHON3        "Build with PYTHON3"                                                        OFF )
+option ( HYTEG_BUILD_WITH_AVX            "Use AVX/AVX2 intrinsics (in generated code)"    ${HYTEG_PLATFORM_SUPPORTS_AVX} )
+option ( HYTEG_USE_GENERATED_KERNELS     "Use generated pystencils kernels if available"                              ON )
+option ( HYTEG_GIT_SUBMODULE_AUTO        "Check submodules during build"                                              ON )
+option ( HYTEG_TERRANEO_MODULE           "Build TerraNeo module"                                                     OFF )
+option ( HYTEG_DOWNLOAD_BOOST            "Download boost library; required for plates"                               OFF )
+option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for ParaView"                             ON )
+# option ( HYTEG_OPTIMIZE_FOR_LOCALHOST    "Enable compiler optimizations specific to localhost"                        ON )
 
 # Allow setting this value via CMake. Default should be 0, which is Doxygen's default, too.
 set ( DOXYGEN_LOOKUP_CACHE_SIZE 0 CACHE STRING "See Doxygen documentation LOOKUP_CACHE_SIZE" )
 mark_as_advanced( DOXYGEN_LOOKUP_CACHE_SIZE )
 
-set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
+if ( HYTEG_BUILD_WITH_MPI )
+   set(WALBERLA_BUILD_WITH_MPI ON)
+endif ()
+
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_BUILD_DOC              OFF )
 set(WALBERLA_BUILD_WITH_BOOST       OFF )
@@ -52,10 +61,34 @@ set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
 include_directories(SYSTEM ${EIGEN_DIR})
 link_directories(${EIGEN_DIR})
 
-include_directories(src)
+add_subdirectory( walberla EXCLUDE_FROM_ALL SYSTEM )
+list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}/tests" )
 
-unset(CMAKE_CXX_FLAGS_DEBUGOPTIMIZED CACHE)
-find_package(waLBerla QUIET)
+# mark walberla include as system to prevent warning from walberla code
+target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
+target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
+
+add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
+if ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion -Wno-unused-local-typedef -Wno-delete-non-abstract-non-virtual-dtor" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-unused-but-set-variable -Wno-implicit-int-conversion" )
+elseif ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-conversion -Wno-float-conversion -Wno-sign-compare -Wno-sign-conversion -Wno-unused-function" )
+   add_flag( CMAKE_CXX_FLAGS "-Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-but-set-variable -Wno-comment" )
+endif ()
+
+# Treat warnings as errors
+if ( WARNING_ERROR )
+   if( WALBERLA_CXX_COMPILER_IS_GNU OR WALBERLA_CXX_COMPILER_IS_INTEL OR WALBERLA_CXX_COMPILER_IS_CLANG )
+      add_flag ( CMAKE_CXX_FLAGS "-pedantic-errors -Werror" )
+   elseif( WALBERLA_CXX_COMPILER_IS_MSVC )
+      add_flag ( CMAKE_CXX_FLAGS "/WX" )
+   elseif ( WALBERLA_CXX_COMPILER_IS_CRAY )
+      add_flag ( CMAKE_CXX_FLAGS "-h error_on_warning" )
+   endif()
+endif ( )
+
 
 if ( HYTEG_BUILD_WITH_MPFR )
     # Extends cmake module path - so that FindMPFR.cmake in the current directory is found
@@ -82,14 +115,6 @@ else ()
    message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
 endif ()
 
-if(WALBERLA_CXX_COMPILER_IS_GNU)
-    add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
-    add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
-    if( NOT WALBERLA_DOUBLE_ACCURACY )
-       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=float-conversion" )
-    endif()
-endif()
-
 if( HYTEG_DOWNLOAD_BOOST )
    include(FetchContent)
    FetchContent_Declare(
@@ -108,12 +133,14 @@ endif()
 # Add flags and libraries required to build terraneo submodule
 if( HYTEG_TERRANEO_MODULE )
 
+
    find_package( Boost 1.48 )
-   if( NOT Boost_FOUND )
+   if ( NOT Boost_FOUND )
       message( FATAL_ERROR "Boost is required for geometric calculations on the sphere but was not found.
       Please define BOOST_ROOT (e.g. cmake -DBOOST_ROOT=/local/boost/)
-      or enable the cmake option HYTEG_DOWNLOAD_BOOST (e.g. cmake -DHYTEG_DOWNLOAD_BOOST=ON)")
-   endif()
+      or enable the cmake option HYTEG_DOWNLOAD_BOOST (e.g. cmake -DHYTEG_DOWNLOAD_BOOST=ON)" )
+   endif ()
+
 
    # Unpack plate topology file
    if( NOT EXISTS ${hyteg_SOURCE_DIR}/data/terraneo/plates/topologies0-100Ma.geojson )
@@ -133,23 +160,6 @@ if( HYTEG_TERRANEO_MODULE )
 
 endif()
 
-# Clang complains about braces in correct init list
-# see: https://stackoverflow.com/questions/31555584/why-is-clang-warning-suggest-braces-around-initialization-of-subobject-wmis
-if(WALBERLA_CXX_COMPILER_IS_CLANG)
-    add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
-    add_flag( CMAKE_CXX_FLAGS "-Wno-parentheses-equality" )
-    if( NOT WALBERLA_DOUBLE_ACCURACY )
-       add_flag ( CMAKE_CXX_FLAGS "-Wno-error=implicit-float-conversion" )
-    endif()
-endif()
-
-# MSVC generates so many warnings that the CI log gets too large to complete the job successfully
-# Therefore we suppress some warnings. This should be fixed at some point
-if(WALBERLA_CXX_COMPILER_IS_MSVC)
-    add_flag( CMAKE_CXX_FLAGS "/wd4100" )
-    #suppress warning about missing case labels which are not present in generated kernels
-    add_flag( CMAKE_CXX_FLAGS "/wd4065" )
-endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
     find_package(PETSc REQUIRED)
@@ -158,12 +168,22 @@ if ( HYTEG_BUILD_WITH_PETSC )
           INTERFACE_INCLUDE_DIRECTORIES "${PETSC_INCLUDES}"
           INTERFACE_LINK_LIBRARIES "${PETSC_LIBRARIES}"
           )
-    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
-    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
+    set(HYTEG_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
+    message(STATUS "HYTEG_BUILD_WITH_MPI was force set to ON")
     set(CMAKE_REQUIRED_INCLUDES ${PETSC_INCLUDES})
     include(CheckSymbolExists)
     unset(HYTEG_PETSC_BUILT_WITH_HDF5 CACHE)
     check_symbol_exists(PETSC_HAVE_HDF5 petscconf.h  HYTEG_PETSC_BUILT_WITH_HDF5)
+    if ( HYTEG_PETSC_BUILT_WITH_HDF5 )
+       find_path( HDF5_PATH hdf5.h )
+       if ( HDF5_PATH )
+          message( STATUS ${HDF5_PATH} )
+          target_include_directories( PETSc::PETSc SYSTEM INTERFACE "${HDF5_PATH}" )
+       else ()
+          message( WARNING "PETSc was build with hdf5 support but hdf5.h could not be found.\
+          Add the path to hdf5.h with e.g. -DCMAKE_PREFIX_PATH=\${HDF5_INCLUDE_DIR}" )
+       endif ()
+    endif ()
 endif()
 
 if ( HYTEG_BUILD_WITH_TRILINOS )
@@ -173,8 +193,16 @@ if ( HYTEG_BUILD_WITH_TRILINOS )
    list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
 endif()
 
+if ( HYTEG_BUILD_WITH_MPI )
+   find_package(MPI REQUIRED)
+endif ()
+
+if ( HYTEG_BUILD_WITH_OPENMP )
+   find_package(OpenMP REQUIRED)
+endif ()
+
 if ( HYTEG_BUILD_WITH_ADIOS2 )
-  if ( WALBERLA_BUILD_WITH_MPI )
+  if ( HYTEG_BUILD_WITH_MPI )
     find_package( ADIOS2 REQUIRED COMPONENTS CXX MPI )
   else()
     find_package( ADIOS2 REQUIRED COMPONENTS CXX )
@@ -185,55 +213,30 @@ if ( HYTEG_BUILD_WITH_ADIOS2 )
   endif()
 endif()
 
+if ( HYTEG_BUILD_WITH_LIKWID )
+   find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_LIBDIR} $ENV{LIKWID_ROOT}/lib )
+   find_path( LIKWID_INCLUDE_DIR likwid.h HINTS $ENV{LIKWID_INCDIR} $ENV{LIKWID_ROOT}/include )
+
+
+   if ( LIKWID_LIB AND LIKWID_INCLUDE_DIR)
+      add_definitions ( "-DLIKWID_PERFMON" )
+   else()
+      message(WARNING "likwid marker library not found. Set environment variable LIKWID_ROOT")
+      set ( HYTEG_BUILD_WITH_LIKWID OFF CACHE BOOL "Compile in markers for likwid-perfctr" FORCE )
+   endif()
+endif()
+
 configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
                  src/hyteg/HytegDefinitions.hpp )
 
-include_directories( ${hyteg_BINARY_DIR}/src )
+#include_directories( ${hyteg_BINARY_DIR}/src )
 
+list(APPEND ALL_DIRS data/meshes/2D data/meshes/3D data/param output doc/images data/kerncraftMachineFiles data/terraneo
+                     data/terraneo/plates data/terraneo/viscosityProfiles data/terraneo/viscosityProfiles/tests data/terraneo/radialProfiles )
 
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes/2D)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/meshes/2D")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/meshes/3D)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/meshes/3D")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/param)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/param")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/output)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/doc/images)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/images")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/kerncraftMachineFiles)
-   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/kerncraftMachineFiles")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/terraneo)
-   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/terraneo")
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data/terraneo/plates)
-   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data/terraneo/plates")
-endif()
-
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles)
-   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles")
-endif()
-
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles/tests)
-   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/viscosityProfiles/tests")
-endif()
-
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/terraneo/radialProfiles)
-   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/terraneo/radialProfiles")
-endif()
+foreach(DIR IN LISTS ALL_DIRS)
+   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${DIR}")
+endforeach ()
 
 # Determine if Gmsh executable is available for testing purposes
 find_program( GMSH_EXECUTABLE gmsh )
@@ -279,47 +282,22 @@ if ( DOXYGEN_FOUND )
   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
   set ( DOXYGEN_HTML_OUTPUT "html" )
 
+
   # The following checks all our "feature macros" and defines specific
   # variables for Doxygen, so that we can add the acitvated feature macros
   # to the list of PREDEFINED macros in Doxygen.
   #
   # Yepp, this looks akward. If you have any idea on how to solve this in
   # a more elegant fashion, please feel free to change this.
-  if( WALBERLA_BUILD_WITH_MPI )
-    set( DOXYGEN_WALBERLA_BUILD_WITH_MPI "WALBERLA_BUILD_WITH_MPI" )
-  endif()
+  list(APPEND ALL_OPTIONS BUILD_WITH_MPI BUILD_WITH_OPENMP BUILD_WITH_ADIOS2 BUILD_WITH_AVX BUILD_WITH_MPFR BUILD_WITH_PETSC BUILD_WITH_PYTHON3
+                          BUILD_WITH_TRILINOS USE_GENERATED_KERNELS TERRANEO_MODULE )
 
-  if ( HYTEG_BUILD_WITH_ADIOS2 )
-    set( DOXYGEN_HYTEG_BUILD_WITH_ADIOS2 "HYTEG_BUILD_WITH_ADIOS2" )
-  endif()
 
-  if ( HYTEG_BUILD_WITH_AVX )
-    set( DOXYGEN_HYTEG_BUILD_WITH_AVX "HYTEG_BUILD_WITH_AVX" )
-  endif()
-
-  if ( HYTEG_BUILD_WITH_MPFR )
-    set( DOXYGEN_HYTEG_BUILD_WITH_MPFR "HYTEG_BUILD_WITH_MPFR" )
-  endif()
-
-  if ( HYTEG_BUILD_WITH_PETSC )
-    set( DOXYGEN_HYTEG_BUILD_WITH_PETSC "HYTEG_BUILD_WITH_PETSC" )
-  endif()
-
-  if ( HYTEG_BUILD_WITH_PYTHON3 )
-    set( DOXYGEN_HYTEG_BUILD_WITH_PYTHON3 "HYTEG_BUILD_WITH_PYTHON3" )
-  endif()
-
-  if ( HYTEG_BUILD_WITH_TRILINOS )
-    set( DOXYGEN_HYTEG_BUILD_WITH_TRILINOS "HYTEG_BUILD_WITH_TRILINOS" )
-  endif()
-
-  if ( HYTEG_USE_GENERATED_KERNELS )
-    set( DOXYGEN_HYTEG_USE_GENERATED_KERNELS "HYTEG_USE_GENERATED_KERNELS" )
-  endif()
-
-  if ( HYTEG_TERRANEO_MODULE )
-    set( DOXYGEN_HYTEG_TERRANEO_MODULE "HYTEG_TERRANEO_MODULE" )
-  endif()
+  foreach(OPTION IN LISTS ALL_OPTIONS)
+     if( HYTEG_${OPTION} )
+        set( DOXYGEN_HYTEG_${OPTION} "HYTEG_${OPTION}" )
+     endif()
+  endforeach ( )
 
   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 

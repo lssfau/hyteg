@@ -169,7 +169,7 @@ void VertexDoFPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const 
 {
   ValueType* edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   //position in edge memory
-  uint_t pos;
+  uint_t pos = 2;
   if(receiver->vertex_index(sender) == 0){
     pos = 0;
   } else if(receiver->vertex_index(sender) == 1) {
@@ -185,7 +185,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *
 {
   ValueType *vertexData = sender->getData(dataIDVertex_)->getPointer( level_ );
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
-  uint_t pos;
+  uint_t pos = 3;
   if(receiver->vertex_index(sender->getID()) == 0){
     pos = 0;
   } else if(receiver->vertex_index(sender->getID()) == 1) {

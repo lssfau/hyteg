@@ -62,7 +62,11 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    , tmp_schur_( "tmp_schur", storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1Function< real_t >& src, const P1Function< real_t >& dst, const uint_t level, const DoFType flag ) const
+   void apply( const P1Function< real_t >& src,
+               const P1Function< real_t >& dst,
+               const uint_t                level,
+               const DoFType               flag,
+               UpdateType                  updateType = Replace ) const override
    {
       tmp_solution_.uvw().interpolate( {real_c( 0 ), real_c( 0 ), real_c( 0 )}, level, All );
 

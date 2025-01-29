@@ -50,7 +50,7 @@ class OperatorWrapper final
                     ConstructorArguments... args )
    {
       wrappedOper_ = std::make_unique< oper_t >( storage, minLevel, maxLevel, args... );
-   };
+   }
 
    ~OperatorWrapper() {}
 
@@ -65,7 +65,7 @@ class OperatorWrapper final
                const GenericFunction< value_t >& dst,
                size_t                            level,
                DoFType                           flag,
-               UpdateType                        updateType = Replace ) const
+               UpdateType                        updateType = Replace ) const override
    {
       wrappedOper_->apply( src.template unwrap< typename oper_t::srcType >(),
                            dst.template unwrap< typename oper_t::dstType >(),
@@ -79,7 +79,7 @@ class OperatorWrapper final
                       const value_t&                    beta,
                       const GenericFunction< value_t >& dst,
                       size_t                            level,
-                      DoFType                           flag ) const
+                      DoFType                           flag ) const override
    {
       wrappedOper_->gemv( alpha,
                           src.template unwrap< typename oper_t::srcType >(),
@@ -123,7 +123,7 @@ class OperatorWrapper final
                   const GenericFunction< idx_t >&             src,
                   const GenericFunction< idx_t >&             dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       wrappedOper_->toMatrix( mat,
                               src.template unwrap< typename oper_t::srcType::template FunctionType< idx_t > >(),

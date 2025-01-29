@@ -37,7 +37,10 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
    : mat_( mat )
    {}
 
-   std::shared_ptr< SparseMatrixProxy > createCopy() const { WALBERLA_ABORT( "Trilinos sparse matrix copy not implemented." ); }
+   std::shared_ptr< SparseMatrixProxy > createCopy() const override
+   {
+      WALBERLA_ABORT( "Trilinos sparse matrix copy not implemented." );
+   }
 
    void addValue( uint_t row, uint_t col, real_t value ) override
    {
@@ -60,7 +63,7 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
       }
    }
 
-   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
+   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       WALBERLA_ABORT( "Trilinos sparse matrix construction from matrix product not implemented." );
    };

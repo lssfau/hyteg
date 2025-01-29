@@ -753,7 +753,7 @@ int main( int argc, char* argv[] )
 
    real_t hMax = real_c( 0.0 );
 
-   const uint level = mainConf.getParameter< uint >( "level" );
+   const uint_t level = mainConf.getParameter< uint_t >( "level" );
 
    std::array< real_t, 3 > l2Error = convAnalysis( mainConf, level, level, hMax );
 

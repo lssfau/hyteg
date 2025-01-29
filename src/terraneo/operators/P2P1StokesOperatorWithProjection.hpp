@@ -185,7 +185,7 @@ class P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS
                const P2P1TaylorHoodFunction< real_t >& dst,
                const uint_t                            level,
                const DoFType                           flag,
-               const UpdateType                        updateType = Replace ) const
+               const UpdateType                        updateType = Replace ) const override
    {
       // hyteg::removeRotationalModes( massOperator, src.uvw(), tmp_Vec, tmp_P2, level );
       // vertexdof::projectMean( src.p(), level );

@@ -611,9 +611,6 @@ class ElementNeighborInfo
    DoFType neighborBoundaryType( uint_t neighbor ) const { return neighborBoundaryType_[neighbor]; }
 
  private:
-   /// Dimensionality of the volume element.
-   int dim_;
-
    /// Logical index of the element.
    Index elementIdx_;
 
@@ -795,6 +792,8 @@ inline hyteg::indexing::Index getMicroVertexIdxOnRefinedMacro( const hyteg::inde
       fRow3 = Index( 0, 1, 1 );
       // (yep the matrix is involutory, too :) )
       break;
+   case CellType::WHITE_DOWN:
+      WALBERLA_ABORT( "Wrong cell type" )
    }
 
    auto d = idxCoarse - b;
@@ -894,6 +893,8 @@ inline hyteg::indexing::Index getMicroVertexIdxOnCoarserMacro( const hyteg::inde
       fRow2 = Index( 0, -1, 0 );
       fRow3 = Index( 0, 1, 1 );
       break;
+   case CellType::WHITE_DOWN:
+      WALBERLA_ABORT( "Wrong cell type" )
    }
 
    idxCoarse[0] = fRow1.dot( idxFine );
@@ -1052,7 +1053,7 @@ inline void getVolumeIdxOnCoarseMacro( const PrimitiveStorage&       storage,
 
    const auto& coarseFace = *storage.getFace( coarseMacroPID );
 
-   uint_t            fineMacroId;
+   uint_t            fineMacroId( 4 );
    celldof::CellType macroType = celldof::CellType::WHITE_UP;
    for ( uint_t i = 0; i < 4; i++ )
    {
@@ -1061,6 +1062,10 @@ inline void getVolumeIdxOnCoarseMacro( const PrimitiveStorage&       storage,
          fineMacroId = i;
          break;
       }
+   }
+   if ( fineMacroId == 4 )
+   {
+      WALBERLA_ABORT( "Could not find micro index" )
    }
 
    if ( fineMacroId == 3 )

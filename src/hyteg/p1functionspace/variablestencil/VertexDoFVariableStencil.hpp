@@ -60,9 +60,9 @@ inline void assembleLocalStencil_new( const P1Form&                            f
 
    form.integrateRow(0, coords, matrixRow );
 
-   opr_data[vertexdof::stencilIndexFromVertex( directions[0] )] += matrixRow(0,0);
-   opr_data[vertexdof::stencilIndexFromVertex( directions[1] )] += matrixRow(0,1);
-   opr_data[vertexdof::stencilIndexFromVertex( directions[2] )] += matrixRow(0,2);
+   opr_data[vertexdof::stencilIndexFromVertex( directions[0] )] += static_cast< ValueType >( matrixRow( 0, 0 ) );
+   opr_data[vertexdof::stencilIndexFromVertex( directions[1] )] += static_cast< ValueType >( matrixRow( 0, 1 ) );
+   opr_data[vertexdof::stencilIndexFromVertex( directions[2] )] += static_cast< ValueType >( matrixRow( 0, 2 ) );
 }
 
 namespace macroface {
@@ -469,7 +469,6 @@ inline void applyVariableStencil(uint_t level,
 
    real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
-   uint_t neighborId = 0;
    for( auto& faceId : vertex.neighborFaces() )
    {
       Face* face       = storage->getFace( faceId );
@@ -487,13 +486,11 @@ inline void applyVariableStencil(uint_t level,
       Point3D matrixRow;
       form.integrate( {{x, x + d0, x + d2}}, matrixRow );
 
-      uint_t i = 1;
+      int i = 1;
       // iterate over adjacent edges
       for( auto& edgeId : adj_edges )
       {
          uint_t      edge_idx = vertex.edge_index( edgeId ) + 1;
-         Edge*       edge     = storage->getEdge( edgeId );
-         PrimitiveID vertex_j = edge->get_opposite_vertex( vertex.getID() );
 
          opr_data[edge_idx] += matrixRow[i];
          i += 1;
@@ -501,8 +498,6 @@ inline void applyVariableStencil(uint_t level,
 
       // add contribution of center vertex
       opr_data[0] += matrixRow[0];
-
-      ++neighborId;
    }
 
    if( update == Replace )
@@ -540,7 +535,6 @@ inline void smoothGSVariableStencil(uint_t level,
    real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
    P1Form form;
 
-   uint_t neighborId = 0;
    for( auto& faceId : vertex.neighborFaces() )
    {
       Face* face       = storage->getFace( faceId );
@@ -558,13 +552,11 @@ inline void smoothGSVariableStencil(uint_t level,
       Point3D matrixRow;
       form.integrate( {{x, x + d0, x + d2}}, matrixRow );
 
-      uint_t i = 1;
+      int i = 1;
       // iterate over adjacent edges
       for( auto& edgeId : adj_edges )
       {
          uint_t      edge_idx = vertex.edge_index( edgeId ) + 1;
-         Edge*       edge     = storage->getEdge( edgeId );
-         PrimitiveID vertex_j = edge->get_opposite_vertex( vertex.getID() );
 
          opr_data[edge_idx] += matrixRow[i];
          i += 1;
@@ -572,8 +564,6 @@ inline void smoothGSVariableStencil(uint_t level,
 
       // add contribution of center vertex
       opr_data[0] += matrixRow[0];
-
-      ++neighborId;
    }
 
    dst[0] = rhs[0];

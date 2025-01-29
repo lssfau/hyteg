@@ -5,7 +5,6 @@ target_sources( hyteg
     P1ProjectNormalOperator.hpp
     P1RotationOperator.hpp
     P1Operator.hpp
-    P1DataHandling.hpp
     VertexDoFFunction.cpp
     VertexDoFAdditivePackInfo.hpp
     VertexDoFIndexing.hpp
@@ -22,7 +21,6 @@ target_sources( hyteg
     P1VectorFunction.hpp
     P1ProjectNormalOperator.cpp
     P1RotationOperator.cpp
-    P1DataHandling.cpp
     P1Function.hpp
     VertexDoFMacroVertex.hpp     
 )

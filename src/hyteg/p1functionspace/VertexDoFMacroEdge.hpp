@@ -66,14 +66,14 @@ inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  v
 
 inline Point3D coordinateFromIndex( const uint_t& level, const Edge& edge, const Index& index )
 {
-   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( level );
+   const real_t  stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( level ) );
    const Point3D step          = ( edge.getCoordinates()[1] - edge.getCoordinates()[0] ) * stepFrequency;
    return edge.getCoordinates()[0] + step * real_c( index.x() );
 }
 
 template < typename ValueType >
 inline ValueType assembleLocal( const uint_t&                            level,
-                                uint_t                                   pos,
+                                idx_t                                    pos,
                                 const Matrix3r&                          localMatrix,
                                 double*                                  src,
                                 double*                                  coeff,
@@ -94,7 +94,7 @@ inline ValueType assembleLocal( const uint_t&                            level,
 
 template < typename ValueType >
 inline void assembleLocalStencil( uint_t                                   level,
-                                  uint_t                                   pos,
+                                  idx_t                                    pos,
                                   const Matrix3r&                          localMatrix,
                                   real_t*                                  opr_data,
                                   real_t*                                  coeff,
@@ -244,7 +244,7 @@ inline void multElementwise( const uint_t&                                      
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
    auto   dst     = edge.getData( dstId )->getPointer( level );
 
-   for ( size_t i = 1; i < rowsize - 1; ++i )
+   for ( idx_t i = 1; i < rowsize - 1; ++i )
    {
       const uint_t idx = vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C );
       ValueType    tmp = edge.getData( srcIds[0] )->getPointer( level )[idx];
@@ -320,7 +320,7 @@ inline void apply( const uint_t&                                               l
 
    ValueType tmp;
 
-   for ( size_t i = 1; i < rowsize - 1; ++i )
+   for ( idx_t i = 1; i < rowsize - 1; ++i )
    {
       const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_W );
       const auto stencilIdxC = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_C );
@@ -386,7 +386,7 @@ inline void smooth_gs( const uint_t&                                            
 
    ValueType tmp;
 
-   for ( size_t i = 1; i < rowsize - 1; ++i )
+   for ( idx_t i = 1; i < rowsize - 1; ++i )
    {
       const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
       const auto dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
@@ -451,7 +451,7 @@ inline void smooth_sor( const uint_t&                                           
 
    for ( int ii = start; ii != stop; ii += incr )
    {
-      const uint_t i       = uint_c( ii );
+      const idx_t  i       = ii;
       const auto   dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
       const auto   dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
       const auto   dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
@@ -667,7 +667,7 @@ inline void saveOperator( const uint_t&                                         
    auto src      = edge.getData( srcId )->getPointer( level );
    auto dst      = edge.getData( dstId )->getPointer( level );
 
-   for ( uint_t i = 1; i < rowsize - 1; ++i )
+   for ( idx_t i = 1; i < rowsize - 1; ++i )
    {
       idx_t dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       idx_t srcint = src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
@@ -722,7 +722,7 @@ inline void saveIdentityOperator( const uint_t&                                 
 
    auto dst = edge.getData( dstId )->getPointer( level );
 
-   for ( uint_t i = 1; i < rowsize - 1; ++i )
+   for ( idx_t i = 1; i < rowsize - 1; ++i )
    {
       idx_t dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
       mat->addValue( uint_c( dstint ), uint_c( dstint ), 1.0 );

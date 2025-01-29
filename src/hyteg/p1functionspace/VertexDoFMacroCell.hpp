@@ -258,7 +258,7 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t& level, const Cel
 
          real_t distSum  = 0;
          bool   contains = true;
-         for ( uint_t i = 0; i < 4; i++ )
+         for ( int i = 0; i < 4; i++ )
          {
             if ( rel[i] < 0 )
             {

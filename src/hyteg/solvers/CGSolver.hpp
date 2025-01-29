@@ -136,40 +136,41 @@ class CGSolver : public Solver< OperatorType >
       timingTree_->stop( "CG Solver" );
    }
 
-   /// \brief Compute tridiagonal matrix associated with underlying Lanzos process
-   ///
-   /// This method can be used to employ the Conjugate Gradient algorithm to setup
-   /// the tridiagonal matrix T for a symmetric positive definite operator/matrix
-   /// associated with underlying Lanzos process. This matrix e.g. provides information
-   /// on the extremal eigenvalues of the operator.
-   ///
-   /// The matrix is defined when performing m iteration steps as:
-   ///
-   /// \f[
-   /// T_m = \left(\begin{array}{cccccc}
-   ///  \displaystyle \frac{1}{\alpha_0} & \displaystyle \frac{\sqrt{\beta_1}}{\alpha_0}
-   ///       & & & & \\[2ex]
-   ///  \displaystyle \frac{\sqrt{\beta_1}}{\alpha_0} &
-   ///       \displaystyle \frac{1}{\alpha_1} + \frac{\beta_1}{\alpha_0} &
-   ///       \displaystyle \frac{\sqrt{\beta_2}}{\alpha_1} & & & \\[2ex]
-   ///  & \ddots & \ddots & \ddots & \\
-   ///  & & \ddots & \ddots & \displaystyle\frac{\sqrt{\beta_{m-2}}}{\alpha_{m-2}} \\
-   ///  & & & \displaystyle\frac{\sqrt{\beta_{m-2}}}{\alpha_{m-2}} &
-   ///        \displaystyle\frac{1}{\alpha_{m-1}} + \frac{\beta_{m-2}}{\alpha_{m-1}}
-   ///     \end{array}\right)
-   /// \f]
-   ///
-   /// here \f$\alpha_k\f$ is the step length CG takes into the current search direction, while
-   /// \f$\beta_k\f$ is the scalar used to update the search direction itself. For further details
-   /// see e.g. the book "Iterative methods for sparse linear systems" by Yousef Saad.
-   ///
-   /// \param A          operator to be used in CG/Lanczos method
-   /// \param x          auxilliary vector needed for performing CG iterations
-   /// \param b          right-hand side vector used for CG iterations
-   /// \param level      grid level to work on (operator & gridfunctions)
-   /// \param numSteps   number of CG steps performed corresponds to dimension of matrix
-   /// \param mainDiag   on return this vector containes the entries of T on the main diagonal
-   /// \param subDiag    on return this vector containes the entries of T on the 1st sub-diagonal
+   /** \brief Compute tridiagonal matrix associated with underlying Lanzos process
+    *
+    *  This method can be used to employ the Conjugate Gradient algorithm to setup
+    *  the tridiagonal matrix T for a symmetric positive definite operator/matrix
+    *  associated with underlying Lanzos process. This matrix e.g. provides information
+    *  on the extremal eigenvalues of the operator.
+    *
+    *  The matrix is defined when performing m iteration steps as:
+    *
+    *  \f[
+    *  T_m = \left(\begin{array}{cccccc}
+    *   \displaystyle \frac{1}{\alpha_0} & \displaystyle \frac{\sqrt{\beta_1}}{\alpha_0}
+    *        & & & & \\[2ex]
+    *   \displaystyle \frac{\sqrt{\beta_1}}{\alpha_0} &
+    *        \displaystyle \frac{1}{\alpha_1} + \frac{\beta_1}{\alpha_0} &
+    *        \displaystyle \frac{\sqrt{\beta_2}}{\alpha_1} & & & \\[2ex]
+    *   & \ddots & \ddots & \ddots & \\
+    *   & & \ddots & \ddots & \displaystyle\frac{\sqrt{\beta_{m-2}}}{\alpha_{m-2}} \\
+    *   & & & \displaystyle\frac{\sqrt{\beta_{m-2}}}{\alpha_{m-2}} &
+    *         \displaystyle\frac{1}{\alpha_{m-1}} + \frac{\beta_{m-2}}{\alpha_{m-1}}
+    *      \end{array}\right)
+    *  \f]
+    *
+    *  here \f$\alpha_k\f$ is the step length CG takes into the current search direction, while
+    *  \f$\beta_k\f$ is the scalar used to update the search direction itself. For further details
+    *  see e.g. the book "Iterative methods for sparse linear systems" by Yousef Saad.
+    *
+    *  \param A          operator to be used in CG/Lanczos method
+    *  \param x          auxilliary vector needed for performing CG iterations
+    *  \param b          right-hand side vector used for CG iterations
+    *  \param level      grid level to work on (operator & gridfunctions)
+    *  \param numSteps   number of CG steps performed corresponds to dimension of matrix
+    *  \param mainDiag   on return this vector containes the entries of T on the main diagonal
+    *  \param subDiag    on return this vector containes the entries of T on the 1st sub-diagonal
+   **/
    void setupLanczosTriDiagMatrix( const OperatorType&                              A,
                                    const FunctionType&                              x,
                                    const FunctionType&                              b,

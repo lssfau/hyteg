@@ -43,6 +43,8 @@ class EigenSparseMatrixProxy : public SparseMatrixProxy
    , cols_( cols )
    {}
 
+   virtual ~EigenSparseMatrixProxy() = default;
+
    virtual std::shared_ptr< SparseMatrixProxy > createCopy() const { WALBERLA_ABORT( "Not implemented." ); }
 
    /// \brief Resets the proxy such that it can be reused.

@@ -49,14 +49,14 @@ class GenericFunction
    {
       auto realMe = static_cast< FunctionWrapper< func_t >* >( this );
       return realMe->unwrap();
-   };
+   }
 
    template < typename func_t >
    const func_t& unwrap() const
    {
       auto realMe = static_cast< const FunctionWrapper< func_t >* >( this );
       return realMe->unwrap();
-   };
+   }
 
    /// Returns the dimension of the field represented by the function
    ///
@@ -132,7 +132,7 @@ class GenericFunction
    void copyBoundaryConditionFromFunction( const OtherType& other )
    {
       this->setBoundaryCondition( other.getBoundaryCondition() );
-   };
+   }
 
    virtual void enumerate( uint_t level ) const = 0;
 

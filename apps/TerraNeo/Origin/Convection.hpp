@@ -266,9 +266,9 @@ class ConvectionSimulation
 
    std::shared_ptr< AdiosCheckpointExporter > checkpointExporter;
    std::shared_ptr< AdiosCheckpointImporter > checkpointImporter;
-#endif
 
    std::map< std::string, adiosHelpers::adiostype_t > attributeList_;
+#endif
 
    // std::functions for various functionalities
    std::function< real_t( const Point3D& ) > densityFunc;

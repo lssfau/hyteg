@@ -44,7 +44,7 @@ using walberla::uint_t;
 class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImporter >
 {
  public:
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
 
    /// \param filePath             path to checkpoint file
    /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
@@ -219,26 +219,26 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    {
       if ( isTimestepInfoReadIn )
       {
-         return timestepInfo;
+         return timestepInfo_;
       }
       else
       {
          auto varTimestepInfo = io_.InquireVariable< real_t >( "TIME" );
          auto nSteps          = varTimestepInfo.Steps();
 
-         timestepInfo.resize( nSteps );
+         timestepInfo_.resize( nSteps );
 
          for ( uint_t idx = 0u; idx < nSteps; ++idx )
          {
             varTimestepInfo.SetStepSelection( { idx, 1u } );
-            engine_.Get( varTimestepInfo, timestepInfo[idx] );
+            engine_.Get( varTimestepInfo, timestepInfo_[idx] );
          }
 
          engine_.PerformGets();
 
          isTimestepInfoReadIn = true;
 
-         return timestepInfo;
+         return timestepInfo_;
       }
    }
 
@@ -259,7 +259,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    adios2::Engine engine_;
    ///@}
 
-   std::vector< real_t > timestepInfo;
+   std::vector< real_t > timestepInfo_;
 
    bool isTimestepInfoReadIn = false;
 

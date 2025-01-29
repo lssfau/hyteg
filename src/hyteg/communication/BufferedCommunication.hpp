@@ -413,14 +413,12 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
          const uint_t senderRank       = rankToReceiveFrom.first;
          const uint_t numberOfMessages = rankToReceiveFrom.second;
 
-         auto recvFunction = [this, numberOfMessages]( RecvBuffer& recvBuffer ) -> void {
+         auto recvFunction = [this, numberOfMessages, storage]( RecvBuffer& recvBuffer ) -> void {
             for ( uint_t message = 0; message < numberOfMessages; message++ )
             {
                PrimitiveID senderID;
                PrimitiveID receiverID;
                readHeader( recvBuffer, senderID, receiverID );
-
-               std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
 
                WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
                WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< ReceiverType >( receiverID ) );

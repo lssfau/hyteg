@@ -29,16 +29,17 @@ namespace n1e1 {
 class N1E1Form_mass_BInv_fp32
 {
  public:
-   /// Edges are in FEniCS ordering:
-   ///
-   /// 3
-   /// |\`\.
-   /// | 0 `\.
-   /// |  \   1
-   /// 3  2 _  `\.
-   /// |  /  `-2 `\.
-   /// | 4      `\_`\
-   /// 0------5------1
+   /** Edges are in FEniCS ordering:
+    * 
+    *  3
+    *  |\`\.
+    *  | 0 `\.
+    *  |  \   1
+    *  3  2 _  `\.
+    *  |  /  `-2 `\.
+    *  | 4      `\_`\
+    *  0------5------1
+   **/
    void integrateAll( const std::array< PointND< float, 3 >, 4 >& coords,
                       const std::array< walberla::int16_t, 6 >&   edgeDirections,
                       Matrix< float, 6, 6 >&                      elMat ) const;

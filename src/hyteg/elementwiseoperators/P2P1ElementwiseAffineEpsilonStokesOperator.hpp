@@ -61,7 +61,8 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
                const uint_t                            level,
-               const DoFType                           flag ) const
+               const DoFType                           flag,
+               UpdateType                              updateType = Replace ) const override
    {
       viscOp.apply( src.uvw(), dst.uvw(), level, flag );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -72,7 +73,7 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
                   const P2P1TaylorHoodFunction< idx_t >&      src,
                   const P2P1TaylorHoodFunction< idx_t >&      dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       viscOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );

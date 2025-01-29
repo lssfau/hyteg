@@ -89,9 +89,9 @@ inline std::ostream& operator<<( std::ostream& out, const EdgeDoFOrientation orn
 inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::Index& vertexIndex0, const indexing::Index& vertexIndex1 )
 {
    const indexing::Index offset = vertexIndex1 - vertexIndex0;
-   const int             x      = offset.x();
-   const int             y      = offset.y();
-   const int             z      = offset.z();
+   const idx_t           x      = offset.x();
+   const idx_t           y      = offset.y();
+   const idx_t           z      = offset.z();
    //
    //  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
    //  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );

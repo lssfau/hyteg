@@ -66,7 +66,7 @@ class DGFormAbort : public DGForm
                                        const DGBasisInfo&,
                                        int,
                                        int,
-                                       MatrixXr& ) const
+                                       MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
@@ -79,7 +79,7 @@ class DGFormAbort : public DGForm
                                        const DGBasisInfo&,
                                        int,
                                        int,
-                                       MatrixXr& ) const
+                                       MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
@@ -94,7 +94,7 @@ class DGFormAbort : public DGForm
                                           const DGBasisInfo&,
                                           int,
                                           int,
-                                          MatrixXr& ) const
+                                          MatrixXr& ) const override
    {}
 
    virtual void integrateFacetCoupling3D( const std::vector< Point3D >&,
@@ -107,7 +107,7 @@ class DGFormAbort : public DGForm
                                           const DGBasisInfo&,
                                           int,
                                           int,
-                                          MatrixXr& ) const
+                                          MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
@@ -120,7 +120,7 @@ class DGFormAbort : public DGForm
                                                    const DGBasisInfo&,
                                                    int,
                                                    int,
-                                                   MatrixXr& ) const
+                                                   MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
@@ -133,7 +133,7 @@ class DGFormAbort : public DGForm
                                                    const DGBasisInfo&,
                                                    int,
                                                    int,
-                                                   MatrixXr& ) const
+                                                   MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
@@ -144,7 +144,7 @@ class DGFormAbort : public DGForm
                                                  const Point3D&,
                                                  const DGBasisInfo&,
                                                  int,
-                                                 MatrixXr& ) const
+                                                 MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
@@ -155,7 +155,7 @@ class DGFormAbort : public DGForm
                                                  const Point3D&,
                                                  const DGBasisInfo&,
                                                  int,
-                                                 MatrixXr& ) const
+                                                 MatrixXr& ) const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }

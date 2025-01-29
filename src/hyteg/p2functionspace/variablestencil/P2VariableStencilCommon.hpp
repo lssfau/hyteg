@@ -1098,7 +1098,6 @@ inline void smoothGSVariableStencil(uint_t level,
 
    const uint_t NE = vertex.getNumNeighborEdges();
    const uint_t NF = vertex.getNumNeighborFaces();
-   const real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
    std::vector<real_t> vertexToVertexStencil(NE + 1);
    std::vector<real_t> edgeToVertexStencil(NE + NF);

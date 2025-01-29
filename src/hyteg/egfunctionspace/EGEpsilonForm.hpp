@@ -41,8 +41,8 @@ class EGEpsilonFormEP1_0 : public hyteg::dg::DGForm
 
  public:
     EGEpsilonFormEP1_0(std::function< real_t ( const Point3D & ) > mu)
-: callback_Scalar_Variable_Coefficient_3D_mu (mu)
-, callback_Scalar_Variable_Coefficient_2D_mu (mu)
+: callback_Scalar_Variable_Coefficient_2D_mu (mu)
+, callback_Scalar_Variable_Coefficient_3D_mu (mu)
     {}
 
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
@@ -145,7 +145,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -244,7 +244,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -373,7 +373,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -522,7 +522,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -704,7 +704,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -930,7 +930,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -1245,7 +1245,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -1415,8 +1415,8 @@ class EGEpsilonFormP1E_0 : public hyteg::dg::DGForm
 
  public:
     EGEpsilonFormP1E_0(std::function< real_t ( const Point3D & ) > mu)
-: callback_Scalar_Variable_Coefficient_3D_mu (mu)
-, callback_Scalar_Variable_Coefficient_2D_mu (mu)
+: callback_Scalar_Variable_Coefficient_2D_mu (mu)
+, callback_Scalar_Variable_Coefficient_3D_mu (mu)
     {}
 
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
@@ -1519,7 +1519,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1618,7 +1618,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1747,7 +1747,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1918,7 +1918,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2100,7 +2100,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2326,7 +2326,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2641,7 +2641,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -2863,8 +2863,8 @@ class EGEpsilonFormEP1_1 : public hyteg::dg::DGForm
 
  public:
     EGEpsilonFormEP1_1(std::function< real_t ( const Point3D & ) > mu)
-: callback_Scalar_Variable_Coefficient_3D_mu (mu)
-, callback_Scalar_Variable_Coefficient_2D_mu (mu)
+: callback_Scalar_Variable_Coefficient_2D_mu (mu)
+, callback_Scalar_Variable_Coefficient_3D_mu (mu)
     {}
 
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
@@ -2967,7 +2967,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -3066,7 +3066,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -3195,7 +3195,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -3344,7 +3344,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -3525,7 +3525,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -3751,7 +3751,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4065,7 +4065,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4235,8 +4235,8 @@ class EGEpsilonFormP1E_1 : public hyteg::dg::DGForm
 
  public:
     EGEpsilonFormP1E_1(std::function< real_t ( const Point3D & ) > mu)
-: callback_Scalar_Variable_Coefficient_3D_mu (mu)
-, callback_Scalar_Variable_Coefficient_2D_mu (mu)
+: callback_Scalar_Variable_Coefficient_2D_mu (mu)
+, callback_Scalar_Variable_Coefficient_3D_mu (mu)
     {}
 
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_mu;
@@ -4339,7 +4339,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4438,7 +4438,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4567,7 +4567,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -4738,7 +4738,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -4919,7 +4919,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5145,7 +5145,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5460,7 +5460,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -5731,7 +5731,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -5775,7 +5775,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -5829,7 +5829,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -5942,7 +5942,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6124,7 +6124,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6350,7 +6350,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6665,7 +6665,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -6884,7 +6884,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -6928,7 +6928,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -6982,7 +6982,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -7099,7 +7099,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7281,7 +7281,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7507,7 +7507,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -7822,7 +7822,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8044,14 +8044,16 @@ class EGEpsilonFormEE : public hyteg::dg::DGForm
 
  public:
     EGEpsilonFormEE(std::function< real_t ( const Point3D & ) > mu)
-: callback_Scalar_Variable_Coefficient_3D_g0 ([](const Point3D & p) -> real_t { return 0.; })
-, callback_Scalar_Variable_Coefficient_3D_mu (mu)
+: callback_Scalar_Variable_Coefficient_3D_g2 ([](const Point3D & p) -> real_t { return 0.; })
 , callback_Scalar_Variable_Coefficient_2D_g1 ([](const Point3D & p) -> real_t { return 0.; })
-, callback_Scalar_Variable_Coefficient_3D_g1 ([](const Point3D & p) -> real_t { return 0.; })
-, callback_Scalar_Variable_Coefficient_3D_g2 ([](const Point3D & p) -> real_t { return 0.; })
 , callback_Scalar_Variable_Coefficient_2D_g0 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g1 ([](const Point3D & p) -> real_t { return 0.; })
+, callback_Scalar_Variable_Coefficient_3D_g0 ([](const Point3D & p) -> real_t { return 0.; })
 , callback_Scalar_Variable_Coefficient_2D_mu (mu)
+, callback_Scalar_Variable_Coefficient_3D_mu (mu)
     {}
+
+    virtual ~EGEpsilonFormEE() = default;
 
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_3D_g2;
 std::function< real_t ( const Point3D & ) > callback_Scalar_Variable_Coefficient_2D_g1;
@@ -8158,7 +8160,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                                           elMat ) const
+                                       MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -8237,7 +8239,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                                           elMat ) const
+                                          MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -8360,7 +8362,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                                           elMat ) const
+                                                   MatrixXr&                                           elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ),
                    trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -8690,7 +8692,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                  const DGBasisInfo&                                       testBasis,
                                                  int                                                      trialDegree,
                                                  int                                                      testDegree,
-                           MatrixXr&                                           elMat ) const
+                           MatrixXr&                                           elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -8836,7 +8838,7 @@ void Scalar_Variable_Coefficient_3D_mu( real_t in_0, real_t in_1, real_t in_2, r
                                                      const DGBasisInfo&                                       testBasis,
                                                      int                                                      trialDegree,
                                                      int                                                      testDegree,
-                               MatrixXr&                            elMat ) const
+                               MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -9009,7 +9011,7 @@ void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                                         const DGBasisInfo&                                       testBasis,
                                                         int                                                      trialDegree,
                                                         int                                                      testDegree,
-                                  MatrixXr&                            elMat ) const
+                                  MatrixXr&                            elMat ) const override
    {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );
@@ -9310,7 +9312,7 @@ void integrateFacetDirichletBoundary3D(
     const DGBasisInfo&                                       testBasis,
     int                                                      trialDegree,
     int                                                      testDegree,
-                                        MatrixXr&                            elMat ) const
+                                        MatrixXr&                            elMat ) const override
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
                  Eigen::Index( trialBasis.numDoFsPerElement( 3, uint_c( trialDegree ) ) ) );

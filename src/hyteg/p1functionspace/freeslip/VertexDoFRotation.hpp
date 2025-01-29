@@ -160,7 +160,6 @@ inline void saveRotationOperator3D( uint_t                                      
 
       normalFunction( xPhy, normal );
 
-      Matrix3r rotation;
       rotationMatrix3D( normal, rotation, transpose );
 
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );

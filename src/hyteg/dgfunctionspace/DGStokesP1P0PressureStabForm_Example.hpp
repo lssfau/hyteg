@@ -56,7 +56,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const
+                                       MatrixXr&                     elMat ) const override
    {
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
@@ -95,7 +95,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const
+                                          MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
@@ -146,7 +146,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const
+                                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
       elMat.setZero();
@@ -158,7 +158,7 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                  const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 MatrixXr&                     elMat ) const
+                                                 MatrixXr&                     elMat ) const override
    {
       elMat.resize( basis.numDoFsPerElement( 2, degree ), 1 );
       elMat.setZero();

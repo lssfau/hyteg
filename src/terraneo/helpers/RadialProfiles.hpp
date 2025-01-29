@@ -95,14 +95,14 @@ std::vector< real_t >
    for ( int iShell = 0U; iShell < nRad - 1; iShell++ )
    {
       shellRadii[( 1 << effectiveLevel ) * iShell] = layers[iShell];
-      uint_t shell                                 = ( 1 << effectiveLevel ) * iShell;
+      //uint_t shell                                 = ( 1 << effectiveLevel ) * iShell;
       // WALBERLA_LOG_INFO_ON_ROOT("Shell Layer " << shell << " = " << profile.shellRadii[shell]);
       for ( int jShell = 0U; jShell < ( 1 << effectiveLevel ) - 1; jShell++ )
       {
          shellRadii[( 1 << effectiveLevel ) * iShell + jShell + 1] =
              layers[iShell] + ( jShell + 1 ) * ( layers[iShell + 1] - layers[iShell] ) / ( 1 << effectiveLevel );
 
-         shell = ( 1 << effectiveLevel ) * iShell + jShell + 1;
+         //shell = ( 1 << effectiveLevel ) * iShell + jShell + 1;
          // WALBERLA_LOG_INFO_ON_ROOT("Shell Layer " << shell << " = " << profile.shellRadii[shell]);
       }
    }

@@ -45,7 +45,7 @@ public:
                    const uint_t & maxLevel,
                    const real_t & residualTolerance, 
                    const uint_t & maxIterations, 
-                   const DoFType & flag_,
+                   const DoFType & flag,
                    const bool & clipAlpha = true,
                    const bool & clipBeta  = false ) :
             velocityBlockSolver_( velocityBlockSolver ),
@@ -53,7 +53,7 @@ public:
             maxLevel_( maxLevel ),
             residualTolerance_( residualTolerance ),
             maxIterations_( maxIterations ),
-            flag_( flag_ ),
+            flag_( flag ),
 
             clipAlpha_( clipAlpha ),
             clipBeta_( clipBeta ),

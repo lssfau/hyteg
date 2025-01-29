@@ -79,7 +79,8 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
    void apply( const EGP0StokesFunction< real_t >& src,
                const EGP0StokesFunction< real_t >& dst,
                const uint_t                        level,
-               const DoFType                       flag ) const
+               const DoFType                       flag,
+               UpdateType                          updateType = Replace ) const override
    {
       velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -90,7 +91,7 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
                   const EGP0StokesFunction< idx_t >&          src,
                   const EGP0StokesFunction< idx_t >&          dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
@@ -163,7 +164,8 @@ class EGP0EpsilonStokesOperatorType : public Operator< EGP0StokesFunction< real_
    void apply( const EGP0StokesFunction< real_t >& src,
                const EGP0StokesFunction< real_t >& dst,
                const uint_t                        level,
-               const DoFType                       flag ) const
+               const DoFType                       flag,
+               UpdateType                          updateType = Replace ) const override
    {
       velocityBlockOp.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -174,7 +176,7 @@ class EGP0EpsilonStokesOperatorType : public Operator< EGP0StokesFunction< real_
                   const EGP0StokesFunction< idx_t >&          src,
                   const EGP0StokesFunction< idx_t >&          dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       velocityBlockOp.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );

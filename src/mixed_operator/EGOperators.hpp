@@ -52,8 +52,8 @@ class EGOperator final : public Operator< EGFunction< real_t >, EGFunction< real
    EGOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
    , cg_to_cg_coupling_( storage, minLevel, maxLevel )
-   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
    , cg_to_eg_coupling_( storage, minLevel, maxLevel )
+   , eg_to_cg_coupling_( storage, minLevel, maxLevel )
    , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< EECouplingForm >() )
    {}
 
@@ -134,24 +134,21 @@ class EGVariableCoeffOperator final : public Operator< EGFunction< real_t >, EGF
                             uint_t                                     maxLevel,
                             std::function< real_t( const Point3D& ) >  viscosity )
    : Operator< EGFunction< real_t >, EGFunction< real_t > >( storage, minLevel, maxLevel )
-
-   , viscosity_( viscosity )
    , cg_to_cg_coupling_( storage, minLevel, maxLevel, viscosity )
-   , eg_to_cg_coupling_( storage,
-                         minLevel,
-                         maxLevel,
-                         std::make_tuple( std::make_shared< typename P0ToP1Coupling::OperX_T::FormType >( viscosity ),
-                                          std::make_shared< typename P0ToP1Coupling::OperY_T::FormType >( viscosity ),
-                                          std::make_shared< typename P0ToP1Coupling::OperZ_T::FormType >( viscosity ) ) )
-
    , cg_to_eg_coupling_( storage,
                          minLevel,
                          maxLevel,
                          std::make_tuple( std::make_shared< typename P1ToP0Coupling::OperX_T::FormType >( viscosity ),
                                           std::make_shared< typename P1ToP0Coupling::OperY_T::FormType >( viscosity ),
                                           std::make_shared< typename P1ToP0Coupling::OperZ_T::FormType >( viscosity ) ) )
-
+   , eg_to_cg_coupling_( storage,
+                         minLevel,
+                         maxLevel,
+                         std::make_tuple( std::make_shared< typename P0ToP1Coupling::OperX_T::FormType >( viscosity ),
+                                          std::make_shared< typename P0ToP1Coupling::OperY_T::FormType >( viscosity ),
+                                          std::make_shared< typename P0ToP1Coupling::OperZ_T::FormType >( viscosity ) ) )
    , eg_to_eg_coupling_( storage, minLevel, maxLevel, std::make_shared< EECouplingForm >( viscosity ) )
+   , viscosity_( viscosity )
    {}
 
    void apply( const EGFunction< real_t >& src,

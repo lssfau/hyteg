@@ -46,7 +46,7 @@ class MPITagProvider
    /// Return the largest possible tag value supported by the MPI library in use
    static int getMaxMPITag()
    {
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
       void* maxTag;
       int   status;
       MPI_Comm_get_attr( walberla::mpi::MPIManager::instance()->comm(), MPI_TAG_UB, &maxTag, &status );

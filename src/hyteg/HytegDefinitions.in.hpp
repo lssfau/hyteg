@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#cmakedefine HYTEG_BUILD_WITH_MPI
 #cmakedefine HYTEG_BUILD_WITH_ADIOS2
 #cmakedefine HYTEG_BUILD_WITH_MPFR
 #cmakedefine HYTEG_BUILD_WITH_PETSC

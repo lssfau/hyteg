@@ -77,7 +77,7 @@ class SphericalElementFormMass : public P1Form
       elMat( 2, 2 ) = factor * real_c( 2 );
    }
 
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const { WALBERLA_ABORT( "Not implemented." ); }
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override { WALBERLA_ABORT( "Not implemented." ); }
 
    void setRadius( real_t radius )
    {

@@ -349,7 +349,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
       {
          for ( uint_t coordinate = 0; coordinate < 3; coordinate++ )
          {
-            geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
+            geometricOffsetsArray[cellVertex * 3 + coordinate] =
+                geometricOffsetsFromCenter[cellVertex][static_cast< int >( coordinate )];
          }
       }
 
@@ -434,13 +435,14 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
       //    Since we enforced that the first entry in the local cell micro-vertex array is always the reference micro-vertex
       //    we only need to get the result of the form integrator which gives us the first row of the local stiffness matrix
       for ( uint_t localID = 0; localID < 4; localID++ )
+
       {
          const stencilDirection stencilDir = cellAtVertex[localID];
          if ( macroCellStencilEntries.count( stencilDir ) == 0 )
          {
             macroCellStencilEntries[stencilDir] = real_c( 0 );
          }
-         macroCellStencilEntries[stencilDir] += real_c( localStiffnessMatrixRow[localID] );
+         macroCellStencilEntries[stencilDir] += real_c( localStiffnessMatrixRow[static_cast< int >( localID )] );
       }
    }
    return macroCellStencilEntries;
@@ -509,7 +511,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm_new(
          {
             macroCellStencilEntries[stencilDir] = real_c( 0 );
          }
-         macroCellStencilEntries[stencilDir] += real_c( localStiffnessMatrixRow( 0, localID ) );
+         macroCellStencilEntries[stencilDir] += real_c( localStiffnessMatrixRow( 0, static_cast< int >( localID ) ) );
       }
    }
    return macroCellStencilEntries;
@@ -551,11 +553,11 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
          case 0:
             return indexing::Index( 0, 0, 0 );
          case 1:
-            return indexing::Index( levelinfo::num_microvertices_per_edge( level ) - 1, 0, 0 );
+            return indexing::Index( static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) ) - 1, 0, 0 );
          case 2:
-            return indexing::Index( 0, levelinfo::num_microvertices_per_edge( level ) - 1, 0 );
+            return indexing::Index( 0, static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0 );
          default:
-            return indexing::Index( 0, 0, levelinfo::num_microvertices_per_edge( level ) - 1 );
+            return indexing::Index( 0, 0, static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
          }
       }();
 
@@ -647,11 +649,11 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
          case 0:
             return indexing::Index( 0, 0, 0 );
          case 1:
-            return indexing::Index( levelinfo::num_microvertices_per_edge( level ) - 1, 0, 0 );
+            return indexing::Index( static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0, 0 );
          case 2:
-            return indexing::Index( 0, levelinfo::num_microvertices_per_edge( level ) - 1, 0 );
+            return indexing::Index( 0, static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0 );
          default:
-            return indexing::Index( 0, 0, levelinfo::num_microvertices_per_edge( level ) - 1 );
+            return indexing::Index( 0, 0, static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) - 1 ) );
          }
       }();
 

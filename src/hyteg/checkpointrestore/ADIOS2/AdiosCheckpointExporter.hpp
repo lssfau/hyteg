@@ -49,7 +49,7 @@ using walberla::uint_t;
 class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExporter >
 {
  public:
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
 
    /// \param configFile        name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator

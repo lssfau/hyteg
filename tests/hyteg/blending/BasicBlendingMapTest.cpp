@@ -76,12 +76,12 @@ auto genMap( const std::string& variant )
 
    else if ( variant == "AffineMap2D" )
    {
-      map = std::make_shared< AffineMap2D >( Matrix2r(), Point2D() );
+      map = std::make_shared< AffineMap2D >( Matrix2r::Zero(), Point2D::Zero() );
    }
 
    else if ( variant == "AffineMap3D" )
    {
-      map = std::make_shared< AffineMap3D >( Matrix3r(), Point3D() );
+      map = std::make_shared< AffineMap3D >( Matrix3r::Zero(), Point3D::Zero() );
    }
 
    else if ( variant == "AnnulusMap" )

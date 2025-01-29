@@ -40,8 +40,8 @@ variables:
       -DCMAKE_CXX_FLAGS=$CMAKE_CXX_FLAGS
       -DWARNING_ERROR=$WARNING_ERROR
       -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY
-      -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI
-      -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP
+      -DHYTEG_BUILD_WITH_MPI=$HYTEG_BUILD_WITH_MPI
+      -DHYTEG_BUILD_WITH_OPENMP=$HYTEG_BUILD_WITH_OPENMP
       -DWALBERLA_BUILD_WITH_METIS=$WALBERLA_BUILD_WITH_METIS
       -DWALBERLA_BUILD_WITH_PARMETIS=$WALBERLA_BUILD_WITH_PARMETIS
       -DWALBERLA_LOG_LEVEL=PROGRESS
@@ -74,8 +74,8 @@ variables:
   # these are the defaults which will be overwritten with the extends keyword
   variables:
     CTEST_EXCLUDE_LABELS: "longrun"
-    WALBERLA_BUILD_WITH_MPI: "ON"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_MPI: "ON"
+    HYTEG_BUILD_WITH_OPENMP: "OFF"
     OMP_NUM_THREADS: "4"
     OMP_WAIT_POLICY: "PASSIVE"
     CMAKE_BUILD_TYPE: "Release"
@@ -109,6 +109,7 @@ icx_2024_serial:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+    CMAKE_CXX_FLAGS: "-fp-model=precise"
   only:
     variables:
       - $ENABLE_NIGHTLY_BUILDS
@@ -120,6 +121,7 @@ icx_2024_mpionly:
   image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
+    CMAKE_CXX_FLAGS: "-fp-model=precise"
   only:
     variables:
       - $ENABLE_NIGHTLY_BUILDS
@@ -135,7 +137,7 @@ icx_2024_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   tags:
@@ -145,7 +147,7 @@ icx_2024_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -161,6 +163,7 @@ icx_2024_mpionly_petsc_trilinos:
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
+    CMAKE_CXX_FLAGS: "-fp-model=precise"
   tags:
     - docker
 
@@ -174,6 +177,7 @@ icx_2024_mpionly_eigen_petsc_trilinos_no_werror:
     HYTEG_BUILD_WITH_TRILINOS: "ON"
     PETSC_DIR: "/opt/view"
     WARNING_ERROR: "OFF"
+    CMAKE_CXX_FLAGS: "-fp-model=precise"
   when: manual
   needs: [ ]
   tags:
@@ -212,7 +216,7 @@ gcc_10_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   only:
@@ -225,7 +229,7 @@ gcc_10_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -283,7 +287,7 @@ gcc_11_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   only:
@@ -296,7 +300,7 @@ gcc_11_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -354,7 +358,7 @@ gcc_12_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   only:
@@ -367,7 +371,7 @@ gcc_12_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -423,7 +427,7 @@ gcc_13_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   tags:
@@ -433,7 +437,7 @@ gcc_13_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -503,7 +507,7 @@ clang_14_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   only:
@@ -516,7 +520,7 @@ clang_14_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -574,7 +578,7 @@ clang_15_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   only:
@@ -587,7 +591,7 @@ clang_15_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -645,7 +649,7 @@ clang_16_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   only:
@@ -658,7 +662,7 @@ clang_16_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -716,7 +720,7 @@ clang_17_serial_dbg_sp:
     WALBERLA_BUILD_WITH_MPI: "OFF"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_DOUBLE_ACCURACY: "OFF"
     WALBERLA_BUILD_WITH_METIS: "OFF"
   tags:
@@ -726,7 +730,7 @@ clang_17_mpionly_dbg_petsc-complex_trilinos:
   extends: .build_template
   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
   variables:
-    CMAKE_BUILD_TYPE: "DebugOptimized"
+    CMAKE_BUILD_TYPE: "Debug"
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
@@ -811,7 +815,7 @@ docu_build:
 #    image: walberla/cppcheck
 #    script:
 #       - cppcheck --version
-#       - cppcheck . --max-configs=10 --enable=warning --enable=style --enable=performance --enable=portability -i src/gui/extern -i src/geometry/structured/extern -i sqlite3.c -i StackWalker.cpp -I src/ -I tests/ -I apps/ -D WALBERLA_BUILD_WITH_MPI -D WALBERLA_BUILD_WITH_METIS -D WALBERLA_BUILD_WITH_BOOST_THREAD -D WALBERLA_BUILD_WITH_PYTHON --xml 2> report.xml
+#       - cppcheck . --max-configs=10 --enable=warning --enable=style --enable=performance --enable=portability -i src/gui/extern -i src/geometry/structured/extern -i sqlite3.c -i StackWalker.cpp -I src/ -I tests/ -I apps/ -D HYTEG_BUILD_WITH_MPI -D WALBERLA_BUILD_WITH_METIS -D WALBERLA_BUILD_WITH_BOOST_THREAD -D WALBERLA_BUILD_WITH_PYTHON --xml 2> report.xml
 #       - cppcheck-htmlreport --file=report.xml --report-dir=html_report --source-dir=.
 #    artifacts:
 #       untracked: true
@@ -838,7 +842,7 @@ coverage:
     - cd $CI_PROJECT_DIR/build-coverage
     - pwd
     - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-    - cmake .. -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=DebugOptimized -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DHYTEG_BUILD_WITH_PETSC=ON -DHYTEG_BUILD_WITH_TRILINOS=ON  -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fprofile-abs-path"
+    - cmake .. -DWARNING_ERROR=ON -DHYTEG_BUILD_WITH_MPI=ON -DHYTEG_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=Debug -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DHYTEG_BUILD_WITH_PETSC=ON -DHYTEG_BUILD_WITH_TRILINOS=ON  -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fprofile-abs-path"
     - cmake . -LA
     - cd $CI_PROJECT_DIR/build-coverage/tests
     - pwd
@@ -942,7 +946,7 @@ benchmark_ClangBuildAnalyzer:
     - mkdir $CI_PROJECT_DIR/build
     - cd $CI_PROJECT_DIR/build
     - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-    - cmake .. -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF -DWALBERLA_BUILD_WITH_LIKWID_MARKERS=ON
+    - cmake .. -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DHYTEG_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF -DHYTEG_BUILD_WITH_LIKWID=ON
     - cmake . -LA
     - time make core -j20
     - time make hyteg -j20

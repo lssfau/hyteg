@@ -128,7 +128,7 @@ class P2FenicsForm : public P2Form
    /// \param elMat   On return is filled with the matrix entries
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override;
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) override { WALBERLA_UNUSED( map ); }
 
  private:
    void computeLocalStiffnessMatrix( const std::array< Point3D, 3 >& coords, Matrix6r& localStiffnessMatrix ) const;

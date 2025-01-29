@@ -70,14 +70,14 @@ class DGDiffusionForm_Example : public DGForm
                            int                                                      testDegree,
                            MatrixXr&                     elMat ) const override;
 
-   virtual void integrateVolume3D( const std::vector< Point3D >& coords,
+   void integrateVolume3D( const std::vector< Point3D >& coords,
                                    const DGBasisInfo&                                       trialBasis,
                                    const DGBasisInfo&                                       testBasis,
                                    int                                                      trialDegree,
                                    int                                                      testDegree,
                                    MatrixXr&                     elMat ) const override;
 
-   virtual void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
+   void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
@@ -85,9 +85,9 @@ class DGDiffusionForm_Example : public DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const;
+                                       MatrixXr&                     elMat ) const override;
 
-   virtual void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
+   void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
@@ -95,9 +95,9 @@ class DGDiffusionForm_Example : public DGForm
                                        const DGBasisInfo&                                       testBasis,
                                        int                                                      trialDegree,
                                        int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const;
+                                       MatrixXr&                     elMat ) const override;
 
-   virtual void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
+   void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
                                           const std::vector< Point3D >& coordsElementOuter,
                                           const std::vector< Point3D >& coordsFacet,
                                           const Point3D&                oppositeVertexInnerElement,
@@ -107,9 +107,9 @@ class DGDiffusionForm_Example : public DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const;
+                                          MatrixXr&                     elMat ) const override;
 
-   virtual void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
+   void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
                                           const std::vector< Point3D >& coordsElementOuter,
                                           const std::vector< Point3D >& coordsFacet,
                                           const Point3D&                oppositeVertexInnerElement,
@@ -119,9 +119,9 @@ class DGDiffusionForm_Example : public DGForm
                                           const DGBasisInfo&                                       testBasis,
                                           int                                                      trialDegree,
                                           int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const;
+                                          MatrixXr&                     elMat ) const override;
 
-   virtual void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+   void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
@@ -129,9 +129,9 @@ class DGDiffusionForm_Example : public DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const;
+                                                   MatrixXr&                     elMat ) const override;
 
-   virtual void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+   void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
@@ -139,23 +139,23 @@ class DGDiffusionForm_Example : public DGForm
                                                    const DGBasisInfo&                                       testBasis,
                                                    int                                                      trialDegree,
                                                    int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const;
+                                                   MatrixXr&                     elMat ) const override;
 
-   virtual void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
+   void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
                                                  const std::vector< Point3D >& coordsFacet,
                                                  const Point3D&                oppositeVertex,
                                                  const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 MatrixXr&                     elMat ) const;
+                                                 MatrixXr&                     elMat ) const override;
 
-   virtual void integrateRHSDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
+   void integrateRHSDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
                                                  const std::vector< Point3D >& coordsFacet,
                                                  const Point3D&                oppositeVertex,
                                                  const Point3D&                outwardNormal,
                                                  const DGBasisInfo&                                       basis,
                                                  int                                                      degree,
-                                                 MatrixXr&                     elMat ) const;
+                                                 MatrixXr&                     elMat ) const override;
 
  private:
    void Scalar_Variable_Coefficient_2D_g( real_t in_0, real_t in_1, real_t* out_0 ) const

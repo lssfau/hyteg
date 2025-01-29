@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -90,10 +91,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , velocityPreconditionerType_( velocityPreconditionerType )
    , pressurePreconditionerType_( pressurePreconditionerType )
    , krylovSolverType_( krylovSolverType )
+   , disableApplicationBC_( false )
    , verbose_( false )
    , reassembleMatrix_( true )
    , matrixWasAssembledOnce_( false )
-   , disableApplicationBC_( false )
    , setFromOptions_( false )
    {
       num.enumerate( level );

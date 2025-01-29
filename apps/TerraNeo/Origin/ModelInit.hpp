@@ -62,7 +62,8 @@ void ConvectionSimulation::init()
    TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
 
    printConfig( TN );
-   
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
    attributeList_["rCMB"] = TN.domainParameters.rCMB;
    attributeList_["rSurface"] = TN.domainParameters.rSurface;
    attributeList_["nTan"] = TN.domainParameters.nTan;
@@ -106,6 +107,7 @@ void ConvectionSimulation::init()
    attributeList_["depthViscosityFactor"] = TN.physicalParameters.depthViscosityFactor;
    attributeList_["viscosityLowerBound"] = TN.physicalParameters.viscosityLowerBound;
    attributeList_["viscosityUpperBound"] = TN.physicalParameters.viscosityUpperBound;
+#endif
 
    setupBoundaryConditions();
    setupFunctions();

@@ -54,26 +54,24 @@ uint_t getNumberOfGlobalDoFCouplings( const opType& oper, uint_t level )
    typedef Operator< EdgeDoFFunction< real_t >, EdgeDoFFunction< real_t > > EdgeDoFScalarOp;
 
    // Scalar P1 operators
-   if ( dynamic_cast< const P1ScalarOp* >( &oper ) )
+   if constexpr ( std::is_base_of_v< P1ScalarOp, opType > )
    {
       nCouplings = countLocalDoFCouplings< P1FunctionTag, P1FunctionTag >( oper.getStorage(), level );
    }
-
    // Scalar P2 operators
-   else if ( dynamic_cast< const P2ScalarOp* >( &oper ) )
+   else if ( std::is_base_of_v< P2ScalarOp, opType > )
    {
       nCouplings = countLocalDoFCouplings< P2FunctionTag, P2FunctionTag >( oper.getStorage(), level );
    }
 
    // Scalar EdgeDoF operators
-   else if ( dynamic_cast< const EdgeDoFScalarOp* >( &oper ) )
+   else if ( std::is_base_of_v< EdgeDoFScalarOp, opType > )
    {
       nCouplings = countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( oper.getStorage(), level );
    }
-
    // P2-P1 Taylor-Hood pure Stokes variants
-   else if ( dynamic_cast< const P2P1TaylorHoodStokesOperator* >( &oper ) ||
-             dynamic_cast< const P2P1ElementwiseBlendingStokesOperator* >( &oper ) )
+   else if ( std::is_base_of_v< P2P1TaylorHoodStokesOperator, opType > ||
+             std::is_base_of_v< P2P1ElementwiseBlendingStokesOperator, opType > )
    {
       uint_t dim = oper.getStorage()->hasGlobalCells() ? 3 : 2;
       nCouplings = dim * countLocalDoFCouplings< P2FunctionTag, P2FunctionTag >( oper.getStorage(), level ) +

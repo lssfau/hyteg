@@ -42,21 +42,22 @@ namespace hyteg {
 
 namespace operatorgeneration {
 
-/// Implements the divergence operator from the vectorial P2 space to the scalar P1 space.
-/// Specifically, it corresponds to the operator (strong form)
-///
-///     ∇ · u
-///
-/// and the weak form (trial: vector valued u, test: scalar v)
-///
-///     - ∫ ( ∇ · u ) v.
-///
-/// This gives a 1x3 block operator
-///
-///         /                \
-///     B = | B_11 B_12 B_13 |
-///         \                /
-///
+/** Implements the divergence operator from the vectorial P2 space to the scalar P1 space.
+ *  Specifically, it corresponds to the operator (strong form)
+ *
+ *      ∇ · u
+ *
+ *  and the weak form (trial: vector valued u, test: scalar v)
+ *
+ *      - ∫ ( ∇ · u ) v.
+ *
+ *  This gives a 1x3 block operator
+ *
+ *          /                \
+ *      B = | B_11 B_12 B_13 |
+ *          \                /
+ *
+**/
 using P2ToP1DivergenceOperator = VectorToScalarOperator< P2VectorFunction,
                                                          P1Function,
                                                          operatorgeneration::P2ToP1ElementwiseDivergence_0_0,

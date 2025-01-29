@@ -40,7 +40,9 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
    }
 
-   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const
+   virtual ~PETScSparseMatrixProxy() = default;
+
+   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const override
    {
       Mat matCopy;
 

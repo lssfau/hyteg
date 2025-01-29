@@ -260,7 +260,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                        "No information on the polynomial degree on this primitive (primitive does not exist locally)." );
       WALBERLA_ASSERT( polyDegreesPerPrimitive_.count( primitiveID ) > 0,
                        "No information on the polynomial degree on this primitive (no information stored in the map)." );
-      return polyDegreesPerPrimitive_.at( primitiveID );
+      return static_cast< int >( polyDegreesPerPrimitive_.at( primitiveID ) );
    }
 
    /// \brief Assigns unique values to all data points. Increments by 1 per DoF.

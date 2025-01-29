@@ -322,8 +322,9 @@ constexpr inline uint_t
       return indexFaceFromVertex( level, col + 1, row, sD::CELL_BLUE_NW );
    case sD::CELL_BLUE_W:
       return indexFaceFromVertex( level, col, row, sD::CELL_BLUE_NW );
+   default:
+      return std::numeric_limits< size_t >::max();
    }
-   return std::numeric_limits< size_t >::max();
 }
 
 constexpr inline uint_t
@@ -340,8 +341,9 @@ constexpr inline uint_t
       return indexFaceFromVertex( level, col, row + 1, sD::CELL_GRAY_NE );
    case sD::CELL_GRAY_W:
       return indexFaceFromVertex( level, col, row, sD::CELL_GRAY_NE );
+   default:
+      return std::numeric_limits< size_t >::max();
    }
-   return std::numeric_limits< size_t >::max();
 }
 
 // =================================

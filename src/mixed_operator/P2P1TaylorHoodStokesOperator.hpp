@@ -44,17 +44,18 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    , Lapl( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , pspg_( storage, minLevel, maxLevel )
-   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , energyNormOp( Lapl )
    , blockPrec( storage, minLevel, maxLevel )
+   , pspg_( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
                const uint_t                            level,
-               const DoFType                           flag ) const
+               const DoFType                           flag,
+               UpdateType                              updateType = Replace ) const override
    {
       Lapl.apply( src.uvw(), dst.uvw(), level, flag, Replace );
       divT.apply( src.p(), dst.uvw(), level, flag, Add );
@@ -65,7 +66,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                   const P2P1TaylorHoodFunction< idx_t >&      src,
                   const P2P1TaylorHoodFunction< idx_t >&      dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       Lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );

@@ -46,10 +46,10 @@ class AugmentedLagrangianOperator : public Operator<  VecFunctionType,  VecFunct
         : Operator< VecFunctionType, VecFunctionType >( storage, level, level )
         , storage_(storage)
         , level_(level)
+        , nu(Nu)
         , Lapl( storage, level, level )
         , div( storage, level, level )
         , divT( storage, level, level )
-        , nu(Nu)
         { 
         }
 

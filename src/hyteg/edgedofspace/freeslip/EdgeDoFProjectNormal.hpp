@@ -327,7 +327,7 @@ inline void projectNormal3D( uint_t                                             
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c(2) * real_c(it.x()) * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
       normal_function( xPhy, normal );
@@ -372,7 +372,7 @@ inline void saveProjectNormalOperator2D( uint_t                                 
 
    for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c(2) * real_c(it.x()) * microEdgeOffset;
       edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
       normal_function( xPhy, normal );

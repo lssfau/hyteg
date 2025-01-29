@@ -53,6 +53,7 @@ class P2Form_divKgrad : public P2FormHyTeG
       real_t L2   = QUADPOINTS[k][0];                                                                           \
       real_t L3   = QUADPOINTS[k][1];                                                                           \
       real_t L1   = 1.0 - L2 - L3;                                                                              \
+      WALBERLA_UNUSED(L1);                                                                                      \
       mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + coords[0][0]; \
       mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + coords[0][1]; \
       real_t aux  = callback( mappedPt );                                                                       \

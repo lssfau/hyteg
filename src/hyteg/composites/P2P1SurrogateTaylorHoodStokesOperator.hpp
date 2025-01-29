@@ -68,7 +68,8 @@ class P2P1SurrogateTaylorHoodStokesOperator
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
                const size_t                            level,
-               DoFType                                 flag ) const
+               DoFType                                 flag,
+               UpdateType                              updateType = Replace ) const override
    {
       WALBERLA_CHECK( !hasGlobalCells_, "Surrogate Stokes operator not implemented for 3D." );
 

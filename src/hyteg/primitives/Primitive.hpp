@@ -235,8 +235,7 @@ class Primitive
    /// Only subclasses shall be constructable
    /// Explicit copy-constructor - added data shall not be copied
    Primitive( const Primitive& other )
-   : primitiveID_( other.primitiveID_ )
-   , neighborVertices_( other.neighborVertices_ )
+   : neighborVertices_( other.neighborVertices_ )
    , neighborEdges_( other.neighborEdges_ )
    , neighborFaces_( other.neighborFaces_ )
    , neighborCells_( other.neighborCells_ )
@@ -245,14 +244,15 @@ class Primitive
    , childFaces_( other.childFaces_ )
    , childCells_( other.childCells_ )
    , geometryMap_( other.geometryMap_ )
+   , primitiveID_( other.primitiveID_ )
    , meshBoundaryFlag_( other.meshBoundaryFlag_ )
    {}
 
    /// Only subclasses shall be constructable
    Primitive( const PrimitiveID& id )
-   : primitiveID_( id )
+   : geometryMap_( std::make_shared< IdentityMap >() )
+   , primitiveID_( id )
    , meshBoundaryFlag_( 0 )
-   , geometryMap_( std::make_shared< IdentityMap >() )
    {}
 
    /// Creates Primitive from an MPI buffer

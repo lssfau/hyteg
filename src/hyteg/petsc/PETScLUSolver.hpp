@@ -62,14 +62,14 @@ class PETScLUSolver : public Solver< OperatorType >
    , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
    , xVec_( "LU_x", petscCommunicator_ )
    , bVec_( "LU_b", petscCommunicator_ )
-   , nullSpaceSet_( false )
    , flag_( hyteg::All )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
    , assumeSymmetry_( true )
-   , disableApplicationBC_( false )
    , solverType_( PETScDirectSolverType::MUMPS )
+   , nullSpaceSet_( false )
+   , disableApplicationBC_( false )
    {
       num_.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp_ );

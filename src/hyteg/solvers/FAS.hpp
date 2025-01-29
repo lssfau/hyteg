@@ -55,6 +55,11 @@ class FASSolver : public Solver< OperatorType >
               CycleType                                               cycleType                     = CycleType::VCYCLE )
    : minLevel_( minLevel )
    , maxLevel_( maxLevel )
+   , preSmoothSteps_( preSmoothSteps )
+   , postSmoothSteps_( postSmoothSteps )
+   , smoothIncrement_( smoothIncrementOnCoarserGrids )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , cycleType_( cycleType )
    , smoother_( smoother )
    , coarseSolver_( coarseSolver )
    , restrictionOperator_( restrictionOperator )
@@ -63,11 +68,6 @@ class FASSolver : public Solver< OperatorType >
    , tmp_( "fas_tmp", storage, minLevel, maxLevel )
    , d_( "fas_d", storage, minLevel, maxLevel )
    , w_( "fas_w", storage, minLevel, maxLevel )
-   , preSmoothSteps_( preSmoothSteps )
-   , postSmoothSteps_( postSmoothSteps )
-   , smoothIncrement_( smoothIncrementOnCoarserGrids )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
-   , cycleType_( cycleType )
    , timingTree_( storage->getTimingTree() )
    {}
 

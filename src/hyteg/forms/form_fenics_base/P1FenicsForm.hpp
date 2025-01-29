@@ -111,7 +111,9 @@ class P1FenicsForm : public P1Form
       Matrix< double,
               fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,
               fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime >
-          localStiffnessMatrix;
+          localStiffnessMatrix = Matrix< double,
+                                         fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::RowsAtCompileTime,
+                                         fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T::ColsAtCompileTime >::Zero();
       gen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 
       out[0] = localStiffnessMatrix( 0, 0 );
@@ -180,7 +182,7 @@ class P1FenicsForm : public P1Form
       elMat = tmp.cast< real_t >();
    }
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) const { WALBERLA_UNUSED( map ); }
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) override { WALBERLA_UNUSED( map ); }
 };
 
 } // namespace hyteg

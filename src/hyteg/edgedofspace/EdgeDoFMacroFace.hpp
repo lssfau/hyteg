@@ -45,7 +45,7 @@ using walberla::uint_t;
 inline Point3D
     coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index, const EdgeDoFOrientation& orientation )
 {
-   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
+   const real_t stepFrequency = 1.0 / real_c(levelinfo::num_microedges_per_edge(Level));
    const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
    Point3D       increment;
@@ -110,13 +110,14 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
                                                       Matrix2r& transform,
                                                       Point3D&  dofs )
 {
-   // Get the element local coordinates and DoFs from physical coordinates
-   // The local DoFs are sorted in following order
-   // x
-   // | \
-  // 1  0
-   // |    \
-  // x--2--x
+   /** Get the element local coordinates and DoFs from physical coordinates
+    *  The local DoFs are sorted in following order
+    *  x
+    *  | \
+    *  1  0
+    *  |    \
+    *  x--2--x
+   **/
 
    // Transform absolute coordinates to macro element relative coordinates
    Matrix2r A;

@@ -86,7 +86,7 @@ class DGMassForm_Example : public DGFormVolume
                                    const DGBasisInfo&                                       testBasis,
                                    int                                                      trialDegree,
                                    int                                                      testDegree,
-                                   MatrixXr&                     elMat ) const
+                                   MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
 

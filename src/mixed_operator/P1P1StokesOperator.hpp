@@ -51,7 +51,8 @@ class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1Stokes
    void apply( const P1StokesFunction< real_t >& src,
                const P1StokesFunction< real_t >& dst,
                const size_t                      level,
-               DoFType                           flag ) const
+               DoFType                           flag,
+               UpdateType                        updateType = Replace ) const override
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -66,7 +67,7 @@ class P1P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1Stokes
                   const P1StokesFunction< idx_t >&            src,
                   const P1StokesFunction< idx_t >&            dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       lapl.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( mat, src.p(), dst.uvw(), level, flag );

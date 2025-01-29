@@ -38,16 +38,16 @@ class P1RowSumForm : public P1Form
       WALBERLA_ABORT( "P1RowSumForm() only implemented for technical reasons. Please use P1RowSumForm( form ) instead!" );
    }
 
-   P1RowSumForm( const std::shared_ptr< P1Form >& form )
+   explicit P1RowSumForm( const std::shared_ptr< P1Form >& form )
    : form_( form )
    {}
 
-   virtual ~P1RowSumForm() = default;
+   ~P1RowSumForm() override = default;
 
    // ---------------------------
    //  2D versions for triangles
    // ---------------------------
-   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
+   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       out.setZero();
       Matrix3r elMat;
@@ -57,7 +57,7 @@ class P1RowSumForm : public P1Form
          out[0] += elMat( 0, j );
    }
 
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
       Matrix3r elementMatrix;
       form_->setGeometryMap( this->geometryMap_ );
@@ -77,7 +77,7 @@ class P1RowSumForm : public P1Form
    // ----------------------------
    //  3D versions for tetrahedra
    // ----------------------------
-   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       Matrix4r elementMatrix;
       integrateAll( coords, elementMatrix );
@@ -87,7 +87,7 @@ class P1RowSumForm : public P1Form
       out[3] = elementMatrix( 0, 3 );
    }
 
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override
    {
       Matrix4r elementMatrix;
       form_->setGeometryMap( geometryMap_ );

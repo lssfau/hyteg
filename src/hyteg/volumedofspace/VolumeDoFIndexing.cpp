@@ -32,8 +32,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
                                           BoundaryCondition                          boundaryCondition,
                                           PrimitiveID                                faceID,
                                           const std::shared_ptr< PrimitiveStorage >& storage )
-: dim_( 2 )
-, elementIdx_( elementIdx )
+: elementIdx_( elementIdx )
 , volumeID_( faceID )
 , storage_( storage )
 , faceType_( faceType )
@@ -220,8 +219,7 @@ ElementNeighborInfo::ElementNeighborInfo( Index                                 
                                           BoundaryCondition                          boundaryCondition,
                                           PrimitiveID                                cellID,
                                           const std::shared_ptr< PrimitiveStorage >& storage )
-: dim_( 3 )
-, elementIdx_( elementIdx )
+: elementIdx_( elementIdx )
 , volumeID_( cellID )
 , storage_( storage )
 , cellType_( cellType )

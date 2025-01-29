@@ -62,7 +62,7 @@ class AdiosWriterForP2;
 class AdiosWriter : public FEFunctionWriter< AdiosWriter >
 {
  public:
-#ifdef WALBERLA_BUILD_WITH_MPI
+#ifdef HYTEG_BUILD_WITH_MPI
    /// \param filePath          Path to directory where the BP files are stored
    /// \param fileBaseName      Basename for output BP file (which is acutally a folder)
    /// \param storage           PrimitiveStorage associated with functions to export
