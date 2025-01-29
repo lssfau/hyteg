@@ -8,8 +8,8 @@ Parameters
   # rMin 3.141592653589793;
   # rMax 6.283185307179586;
 
-  RayleighNumber 1e5;
-  DissipationNumber 0.5;
+  RayleighNumber 3e5;
+  DissipationNumber 0.25;
   alpha 1.0;
   thermalConductivity 1.0;
 
@@ -21,14 +21,23 @@ Parameters
   plateDirSwitch false;
   plateSwitchFreq 100;
   plateVelRad 0.0;
-  
+
   nPlumes 8;
 
   nx 10;
   ny 4;
 
-  minLevel 4;
+  minLevel 0;
   maxLevel 4;
+
+  readInMinLevel 0;
+  readInMaxLevel 4;
+
+  ala true;
+
+  residualVelocityTolPicard 1e-5;
+  nStokesPicard 4;
+  direct false;
 
   AiniPerturb 0.1;
 
@@ -53,28 +62,30 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 100001;
+  maxTimeSteps 25001;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
   dtRaster 1e-7;
-  cflMax 0.25;
+  cflMax 1.2;
   simulationTime 1e1;
   nonLinIter 4;
-  iterPicard 1;
+  iterPicard 2;
 
   level 1;
 
-  cpPath ./output/checkpoint;
-  cpFilename KingSquare_TALA_Ra_1e5_Di_0_5_22062024_Checkpoint_div_2;
-  cpStartFilename KingSquare_TALA_Ra_1e5_Di_0_5_22062024_Checkpoint_div_1;
+  cpPath ./output/gmd_stuff/king/checkpoint;
+  cpFilename KingSquare_ALA_Ra_3e5_Di_0_25_Continuous.bp;
+  cpStartFilename KingSquare_ALA_Ra_2e5_Di_0_25_Continuous.bp;
 
-  outputPath ./output/;
-  outputFilename KingSquare_TALA_Ra_1e5_Di_0_5;
+  importStep 999999;
+
+  outputPath ./output/gmd_stuff/king/;
+  outputFilename KingSquare_ALA_Ra_3e5_Di_0_25;
   vtkWriteFrequency 25;
   adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
 
   storeCheckpointFreq 1000;
-  storeCheckpoint false;
-  startFromCheckpoint false;
+  storeCheckpoint true;
+  startFromCheckpoint true;
 }
