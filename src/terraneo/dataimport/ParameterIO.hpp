@@ -39,12 +39,12 @@ using walberla::uint_t;
 
 struct ParameterFileVersion
 {
-   uint_t major = 0;
-   uint_t minor = 1;
+   uint_t major_ = 0;
+   uint_t minor_ = 1;
 
    ParameterFileVersion( uint_t major, uint_t minor )
-   : major( major )
-   , minor( minor )
+   : major_( major )
+   , minor_( minor )
    {}
 
    ParameterFileVersion( const std::string& version )
@@ -58,8 +58,8 @@ struct ParameterFileVersion
 
       try
       {
-         major = std::stoi( version.substr( 0, dotPos ) );
-         minor = std::stoi( version.substr( dotPos + 1 ) );
+         major_ = std::stoi( version.substr( 0, dotPos ) );
+         minor_ = std::stoi( version.substr( dotPos + 1 ) );
       } catch ( const std::invalid_argument& e )
       {
          WALBERLA_ABORT( "Invalid Parameter File Version string: " << version << ". Error: " << e.what() );
@@ -69,13 +69,13 @@ struct ParameterFileVersion
       }
    }
 
-   bool operator==( const ParameterFileVersion& other ) const { return major == other.major && minor == other.minor; }
+   bool operator==( const ParameterFileVersion& other ) const { return major_ == other.major_ && minor_ == other.minor_; }
 
    bool operator!=( const ParameterFileVersion& other ) const { return !( *this == other ); }
 
    bool operator<( const ParameterFileVersion& other ) const
    {
-      return ( major < other.major ) || ( major == other.major && minor < other.minor );
+      return ( major_ < other.major_ ) || ( major_ == other.major_ && minor_ < other.minor_ );
    }
 
    bool operator<=( const ParameterFileVersion& other ) const { return *this < other || *this == other; }
@@ -427,6 +427,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          initialisationParam.ord                         = mainConf.getParameter< int >( "order" );
          initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
          break;
+      default:
+         WALBERLA_LOG_WARNING("Handling for this INITIAL_TEMPERATURE_DEVIATION_METHOD is not implemented")
       }
    }
 
