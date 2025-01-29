@@ -191,25 +191,23 @@ static Point3D microEdgePositionNoMesh( uint_t                                  
                                         edgedof::EdgeDoFOrientation                microEdgeOrientation,
                                         bool                                       withBlending )
 {
-   if ( storage->cellExistsLocally( primitiveId ) )
+   auto cellPtr = storage->getLocalCell( primitiveId );
+   if ( cellPtr != nullptr )
    {
-      return microEdgePositionNoMesh(
-          level, *storage->getCell( primitiveId ), microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgePositionNoMesh( level, *cellPtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
-   else if ( storage->faceExistsLocally( primitiveId ) )
+   auto facePtr = storage->getLocalFace( primitiveId );
+   if ( facePtr != nullptr )
    {
-      return microEdgePositionNoMesh(
-          level, *storage->getFace( primitiveId ), microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgePositionNoMesh( level, *facePtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
-   else if ( storage->edgeExistsLocally( primitiveId ) )
+   auto edgePtr = storage->getLocalEdge( primitiveId );
+   if ( edgePtr != nullptr )
    {
-      return microEdgePositionNoMesh(
-          level, *storage->getEdge( primitiveId ), microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgePositionNoMesh( level, *edgePtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
-   else
-   {
-      WALBERLA_ABORT( "MicroMesh: Primitive does not exist locally, or you passed a macro-vertex!" );
-   }
+
+   WALBERLA_ABORT( "MicroMesh: Primitive does not exist locally, or you passed a macro-vertex!" );
 }
 
 /////////////////////////////////

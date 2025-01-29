@@ -272,6 +272,11 @@ class PrimitiveStorage : private walberla::NonCopyable
    Vertex*       getVertex( const PrimitiveID& id );
    ///@}
 
+   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
+   /// The versions only returns an \ref Vertex that exists locally
+   /// Returns nullptr if the \ref Vertex does not exist locally
+   [[nodiscard]] const Vertex* getLocalVertex( const PrimitiveID& id ) const;
+
    /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
    /// The returned \ref Edge is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Edge does not exist locally nor in the direct neighborhood.
@@ -279,6 +284,11 @@ class PrimitiveStorage : private walberla::NonCopyable
    const Edge* getEdge( const PrimitiveID& id ) const;
    Edge*       getEdge( const PrimitiveID& id );
    ///@}
+
+   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
+   /// The versions only returns an \ref Edge that exists locally
+   /// Returns nullptr if the \ref Edge does not exist locally
+   [[nodiscard]] const Edge* getLocalEdge( const PrimitiveID& id ) const;
 
    /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
    /// The returned \ref Face is either local or lies in the direct neighborhood.
@@ -288,12 +298,24 @@ class PrimitiveStorage : private walberla::NonCopyable
    Face*       getFace( const PrimitiveID& id );
    ///@}
 
+   /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
+   /// The versions only returns a \ref Face that exists locally
+   /// Returns nullptr if the \ref Face does not exist locally
+   [[nodiscard]] const Face* getLocalFace( const PrimitiveID& id ) const;
+
    /// Returns the \ref Cell that is assigned to the passed \ref PrimitiveID.
    /// The returned \ref Cell is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Cell does not exist locally nor in the direct neighborhood.
    ///@{
    const Cell* getCell( const PrimitiveID& id ) const;
    Cell*       getCell( const PrimitiveID& id );
+   ///@}
+
+   /// Returns the \ref Cell that is assigned to the passed \ref PrimitiveID.
+   /// The versions only returns a \ref Cell that exists locally
+   /// Returns nullptr if the \ref Cell does not exist locally
+   ///@{
+   [[nodiscard]] const Cell* getLocalCell( const PrimitiveID& id ) const;
    ///@}
 
    /// @name Generic versions of the getter methods.
