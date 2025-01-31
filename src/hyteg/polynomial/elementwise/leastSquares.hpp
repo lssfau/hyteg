@@ -25,6 +25,8 @@
 #include <filesystem>
 #include <hyteg/eigen/EigenWrapper.hpp>
 #include <hyteg/indexing/Common.hpp>
+#include <hyteg/indexing/MacroCellIndexing.hpp>
+#include <hyteg/indexing/MacroFaceIndexing.hpp>
 
 #include "polynomial.hpp"
 
@@ -34,28 +36,6 @@ namespace surrogate {
 using walberla::uint_t;
 
 namespace interpolation {
-
-/**
- * @brief Computes the number of vertices in a triangle with edge length n
- *
- * @param n number of vertices along an edge
- * @return The triangular number of n.
- */
-static constexpr inline uint_t tri( uint_t n )
-{
-   return n * ( n + 1 ) / 2;
-}
-
-/**
- * @brief Computes the number of vertices in a tetrahedron with edge length n
- *
- * @param n number of vertices along an edge
- * @return The tetrahedral number of n.
- */
-static constexpr inline uint_t tet( uint_t n )
-{
-   return n * ( n + 1 ) * ( n + 2 ) / 6;
-}
 
 /**
  * @brief Computes the downsampled number of vertices along an edge on a given level
@@ -78,7 +58,7 @@ static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling )
  */
 static constexpr inline uint_t n_volume( uint_t d, uint_t n )
 {
-   return ( d == 2 ) ? tri( n ) : tet( n );
+   return ( d == 2 ) ? indexing::layout::linearMacroFaceSize( n ) : indexing::layout::linearMacroCellSize( n );
 }
 
 /**
@@ -458,7 +438,7 @@ class LeastSquares
    const FLOAT residual() const { return ( A * c - b ).norm() / std::sqrt( rows ); }
 
  private:
-   // spacial dimension
+   // spatial dimension
    const uint_t _dim;
    // polynomial degree
    const uint_t _q;

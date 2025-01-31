@@ -38,7 +38,7 @@ namespace surrogate {
  * @class LocalMatrixLike
  * @brief T^RxC matrix where R and C are the dimensions of the local element matrices for a given local polynomial degree
  * @tparam T The type of the elements stored in the matrix (e.g. polynomial::Polynomial).
- * @tparam DIM The spacial dimension of the PDE domain
+ * @tparam DIM The spatial dimension of the PDE domain
  * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */
@@ -86,7 +86,7 @@ class ElementTypeWiseData
  * @class LocalMatrixMap
  * @brief Map of local element matrices to store all local matrices of a given macro element.
  * @tparam FLOAT The type of the elements stored in the matrix (e.g. double, real_t, ...)
- * @tparam DIM The spacial dimension of the PDE domain
+ * @tparam DIM The spatial dimension of the PDE domain
  * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */

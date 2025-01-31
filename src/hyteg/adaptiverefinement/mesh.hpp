@@ -545,7 +545,7 @@ class Mesh
    }
 
  private:
-   uint_t                    _DIM;    // spacial dimension
+   uint_t                    _DIM;    // spatial dimension
    std::shared_ptr< Mesh2D > _mesh2D; // internal mesh object for the case _DIM=2
    std::shared_ptr< Mesh3D > _mesh3D; // internal mesh object for the case _DIM=3
 };

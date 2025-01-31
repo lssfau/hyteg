@@ -64,8 +64,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
    uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
    // precompute and store local stiffness matrices for level 1-3
-   const auto maxLvl = std::min( maxLevel_, min_lvl_for_surrogate - 1u );
-   for ( uint_t level = 0; level <= maxLvl; ++level )
+   for ( uint_t level = 0; level < min_lvl_for_surrogate && level <= maxLevel_; ++level )
    {
       if ( dim == 2 )
       {
@@ -78,8 +77,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
    }
 
    // approximate local stiffness matrices for level 4+ by polynomials
-   const auto minLvl = std::max( minLevel_, min_lvl_for_surrogate );
-   for ( uint_t level = minLvl; level <= maxLevel_; ++level )
+   for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
    {
       // adjust downsampling for this level
       auto ds = downsampling;
