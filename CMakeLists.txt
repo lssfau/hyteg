@@ -44,6 +44,8 @@ mark_as_advanced( DOXYGEN_LOOKUP_CACHE_SIZE )
 
 if ( HYTEG_BUILD_WITH_MPI )
    set(WALBERLA_BUILD_WITH_MPI ON)
+else ()
+   set( WALBERLA_BUILD_WITH_MPI OFF )
 endif ()
 
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
@@ -169,6 +171,7 @@ if ( HYTEG_BUILD_WITH_PETSC )
           INTERFACE_LINK_LIBRARIES "${PETSC_LIBRARIES}"
           )
     set(HYTEG_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
+    set( WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE )
     message(STATUS "HYTEG_BUILD_WITH_MPI was force set to ON")
     set(CMAKE_REQUIRED_INCLUDES ${PETSC_INCLUDES})
     include(CheckSymbolExists)
