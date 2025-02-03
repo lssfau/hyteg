@@ -23,21 +23,21 @@ function( CheckGitVersion )
 
    execute_process(
            COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
-           WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
            OUTPUT_VARIABLE GIT_COMMIT_HASH
            OUTPUT_STRIP_TRAILING_WHITESPACE
    )
 
    execute_process(
            COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
            OUTPUT_VARIABLE GIT_BRANCH
            OUTPUT_STRIP_TRAILING_WHITESPACE
    )
 
    execute_process(
            COMMAND ${GIT_EXECUTABLE} diff --stat
-           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
            OUTPUT_VARIABLE GIT_DIFF
            OUTPUT_STRIP_TRAILING_WHITESPACE
    )
@@ -66,6 +66,7 @@ function( CheckGitSetup )
            -Dhyteg_git_input=${hyteg_git_input}
            -Dhyteg_git_output=${hyteg_git_output}
            -DGIT_EXECUTABLE=${GIT_EXECUTABLE}
+           -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
            -P ${CURRENT_LIST_DIR}/CheckGit.cmake
            BYPRODUCTS ${hyteg_git_output}
    )
