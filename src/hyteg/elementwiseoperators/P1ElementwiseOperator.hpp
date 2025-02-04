@@ -126,44 +126,6 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    };
 
  private:
-   /// compute product of element local vector with element matrix
-   ///
-   /// \param level          level on which we operate in mesh hierarchy
-   /// \param microFace      index associated with the current element = micro-face
-   /// \param fType          type of micro-face (GRAY or BLUE)
-   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
-   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   /// \param elMat          the 3x3 element matrix to be multiplied
-   /// \param alpha          scaling factor that is applied to the local result vector
-   ///
-   /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply2D( const uint_t           level,
-                                     const indexing::Index& microFace,
-                                     facedof::FaceType      fType,
-                                     const real_t* const    srcVertexData,
-                                     real_t* const          dstVertexData,
-                                     const Matrix3r&        elMat,
-                                     const real_t&          alpha ) const;
-
-   /// compute product of element local vector with element matrix
-   ///
-   /// \param level          level on which we operate in mesh hierarchy
-   /// \param microCell      index associated with the current element = micro-cell
-   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
-   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
-   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   /// \param elMat          the 4x4 element matrix to be multiplied
-   /// \param alpha          scaling factor that is applied to the local result vector
-   ///
-   /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply3D( const uint_t            level,
-                                     const indexing::Index&  microCell,
-                                     const celldof::CellType cType,
-                                     const real_t* const     srcVertexData,
-                                     real_t* const           dstVertexData,
-                                     const Matrix4r&         elMat,
-                                     const real_t&           alpha ) const;
-
    /// Compute contributions to operator diagonal for given micro-face
    ///
    /// \param face           face primitive we operate on
@@ -282,48 +244,6 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    std::map< PrimitiveID, std::map< uint_t, std::vector< Matrix4r, Eigen::aligned_allocator< Matrix4r > > > >
        localElementMatrices3D_;
 };
-
-template < class P1Form >
-void assembleLocalElementMatrix2D( const Face&            face,
-                                   uint_t                 level,
-                                   const indexing::Index& microFace,
-                                   facedof::FaceType      fType,
-                                   P1Form                 form,
-                                   Matrix3r&              elMat )
-{
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
-   std::array< Point3D, 3 >         coords;
-   for ( uint_t k = 0; k < 3; ++k )
-   {
-      coords[k] = vertexdof::macroface::coordinateFromIndex( level, face, verts[k] );
-   }
-
-   // assemble local element matrix
-   form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-}
-
-template < class P1Form >
-void assembleLocalElementMatrix3D( const Cell&            cell,
-                                   uint_t                 level,
-                                   const indexing::Index& microCell,
-                                   celldof::CellType      cType,
-                                   P1Form                 form,
-                                   Matrix4r&              elMat )
-{
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-   std::array< Point3D, 4 >         coords;
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
-   }
-
-   // assemble local element matrix
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-}
 
 typedef P1ElementwiseOperator<
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >

@@ -27,6 +27,8 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
 
+#include "P1LocalOperations.hpp"
+
 namespace hyteg {
 
 template < class P1Form >
@@ -157,10 +159,10 @@ void P1ElementwiseOperator< P1Form >::gemv( const real_t&               alpha,
                }
                else
                {
-                  assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
+                  p1::assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
                }
 
-               localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+               p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
             }
          }
       }
@@ -219,10 +221,10 @@ void P1ElementwiseOperator< P1Form >::gemv( const real_t&               alpha,
                }
                else
                {
-                  assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
+                  p1::assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
                }
 
-               localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+               p1::localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
             }
          }
       }
@@ -257,68 +259,6 @@ void P1ElementwiseOperator< P1Form >::smooth_jac( const P1Function< real_t >& ds
    dst.assign( { 1.0, omega }, { src, dst }, level, flag );
 
    this->stopTiming( "smooth_jac" );
-}
-
-template < class P1Form >
-void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply2D( const uint_t           level,
-                                                                   const indexing::Index& microFace,
-                                                                   facedof::FaceType      fType,
-                                                                   const real_t* const    srcVertexData,
-                                                                   real_t* const          dstVertexData,
-                                                                   const Matrix3r&        elMat,
-                                                                   const real_t&          alpha ) const
-{
-   WALBERLA_ASSERT_UNEQUAL( srcVertexData, dstVertexData );
-
-   // obtain data indices of dofs associated with micro-face
-   std::array< uint_t, 3 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, fType, level, vertexDoFIndices );
-
-   // assemble local element vector
-   Point3D elVecOld, elVecNew;
-   for ( int k = 0; k < 3; ++k )
-   {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
-   }
-
-   // apply matrix (operator locally)
-   elVecNew = alpha * ( elMat * elVecOld );
-
-   // redistribute result from "local" to "global vector"
-   for ( int k = 0; k < 3; ++k )
-   {
-      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
-   }
-}
-
-template < class P1Form >
-void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply3D( const uint_t            level,
-                                                                   const indexing::Index&  microCell,
-                                                                   const celldof::CellType cType,
-                                                                   const real_t* const     srcVertexData,
-                                                                   real_t* const           dstVertexData,
-                                                                   const Matrix4r&         elMat,
-                                                                   const real_t&           alpha ) const
-{
-   // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 4 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
-
-   // assemble local element vector
-   Point4D elVecOld, elVecNew;
-   for ( int k = 0; k < 4; ++k )
-   {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
-   }
-
-   // apply matrix (operator locally)
-   elVecNew = alpha * ( elMat * elVecOld );
-
-   // redistribute result from "local" to "global vector"
-   for ( int k = 0; k < 4; ++k )
-   {
-      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
-   }
 }
 
 template < class P1Form >
@@ -463,7 +403,7 @@ void P1ElementwiseOperator< P1Form >::computeAndStoreLocalElementMatrices()
                {
                   Matrix4r& elMat = localElementMatrix3D( *cell, level, micro, cType );
                   elMat.setZero();
-                  assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
+                  p1::assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
                }
             }
          }
@@ -490,7 +430,7 @@ void P1ElementwiseOperator< P1Form >::computeAndStoreLocalElementMatrices()
                {
                   Matrix3r& elMat = localElementMatrix2D( *face, level, micro, fType );
                   elMat.setZero();
-                  assembleLocalElementMatrix2D( *face, level, micro, fType, form_, elMat );
+                  p1::assembleLocalElementMatrix2D( *face, level, micro, fType, form_, elMat );
                }
             }
          }

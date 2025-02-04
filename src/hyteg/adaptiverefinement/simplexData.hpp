@@ -136,7 +136,7 @@ using CellData   = SimplexData< CELL >;
 namespace walberla {
 namespace mpi {
 
-template < uint_t J,    // spacial dimension
+template < uint_t J,    // spatial dimension
            typename T,  // Element type of SendBuffer
            typename G > // Growth policy of SendBuffer
 GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::adaptiveRefinement::SimplexData< J >& sd )
@@ -145,7 +145,7 @@ GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyt
    return buf;
 }
 
-template < uint_t J,    // spacial dimension
+template < uint_t J,    // spatial dimension
            typename T > // Element type  of RecvBuffer
 GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::adaptiveRefinement::SimplexData< J >& sd )
 {

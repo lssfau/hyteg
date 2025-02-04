@@ -19,5 +19,7 @@ target_sources( hyteg
     DiagonalNonConstantOperator.cpp
     N1E1ElementwiseOperator.hpp
     N1E1ElementwiseOperator.cpp
+    P1ElementwiseSurrogateOperator.hpp
+    P1ElementwiseSurrogateOperator.cpp
 )
 
