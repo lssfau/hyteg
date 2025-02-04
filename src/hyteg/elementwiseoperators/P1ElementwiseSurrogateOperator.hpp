@@ -186,44 +186,6 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
                   real_t* const           dstVertexData,
                   const real_t&           alpha ) const;
 
-   /// compute product of element local vector with element matrix
-   ///
-   /// \param level          level on which we operate in mesh hierarchy
-   /// \param microFace      index associated with the current element = micro-face
-   /// \param fType          type of micro-face (GRAY or BLUE)
-   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
-   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   /// \param elMat          the 3x3 element matrix to be multiplied
-   /// \param alpha          scaling factor that is applied to the local result vector
-   ///
-   /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply2D( const uint_t           level,
-                                     const indexing::Index& microFace,
-                                     facedof::FaceType      fType,
-                                     const real_t* const    srcVertexData,
-                                     real_t* const          dstVertexData,
-                                     const Matrix3r&        elMat,
-                                     const real_t&          alpha ) const;
-
-   /// compute product of element local vector with element matrix
-   ///
-   /// \param level          level on which we operate in mesh hierarchy
-   /// \param microCell      index associated with the current element = micro-cell
-   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
-   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
-   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   /// \param elMat          the 4x4 element matrix to be multiplied
-   /// \param alpha          scaling factor that is applied to the local result vector
-   ///
-   /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply3D( const uint_t            level,
-                                     const indexing::Index&  microCell,
-                                     const celldof::CellType cType,
-                                     const real_t* const     srcVertexData,
-                                     real_t* const           dstVertexData,
-                                     const Matrix4r&         elMat,
-                                     const real_t&           alpha ) const;
-
    /// compute contributions to diagonal of on all micro faces of given type
    ///
    /// \param face           macro face
