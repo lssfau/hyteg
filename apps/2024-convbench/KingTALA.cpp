@@ -43,7 +43,7 @@
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMass.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
-#include "hyteg_operators/operators/k_divdiv/P2VectorElementwiseKDivdiv.hpp"
+// #include "hyteg_operators/operators/k_divdiv/P2VectorElementwiseKDivdiv.hpp"
 
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
 // #include "P2TransportTALAOperator.hpp"
@@ -721,7 +721,7 @@ void TALASimulation::solveU()
    // bool frd = mainConf.getParameter< bool >("frd");
 
    // operatorgeneration::P2VectorElementwiseDivDiv_float64 divdiv(storage, minLevel, maxLevel, *viscP2);
-   operatorgeneration::P2VectorElementwiseKDivdiv divdiv( storage, minLevel, maxLevel, *viscP1Scaled2by3 );
+   // operatorgeneration::P2VectorElementwiseKDivdiv divdiv( storage, minLevel, maxLevel, *viscP1Scaled2by3 );
 
    // divdiv.apply(u->uvw(), uRhs->uvw(), maxLevel, All, Add);
 
