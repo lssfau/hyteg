@@ -217,6 +217,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector&                          
       bool do_r = criterion_r( err_glob, i );
       bool do_c = criterion_c( err_glob, i );
       auto id   = err_glob[i].second;
+      if ( do_r && do_c )
       {
          WALBERLA_ABORT( "Can't apply both refinement and coarsening to element " << id << "!" );
       }
