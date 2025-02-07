@@ -108,8 +108,14 @@ void testRuleOfThree()
       WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated before creating functions." );
    }
 
+   auto globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+   WALBERLA_CHECK_EQUAL( globalMem, 0 );
+
    {
       vertexdof::VertexDoFFunction< real_t > f( "f", storage, level, level );
+
+      globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+      WALBERLA_CHECK_GREATER( globalMem, 0 );
 
       auto f_copy( f );
       auto f_copy_2 = f;
@@ -127,6 +133,9 @@ void testRuleOfThree()
          WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating VertexDoFFunction." );
       }
    }
+
+   globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+   WALBERLA_CHECK_EQUAL( globalMem, 0 );
 
    for ( auto id : primitiveIDs )
    {
@@ -147,6 +156,9 @@ void testRuleOfThree()
    {
       EdgeDoFFunction< real_t > f( "f", storage, level, level );
 
+      globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+      WALBERLA_CHECK_GREATER( globalMem, 0 );
+
       auto f_copy( f );
       auto f_copy_2 = f;
       f             = f_copy_2;
@@ -161,6 +173,9 @@ void testRuleOfThree()
          WALBERLA_CHECK_EQUAL( numDataEntries, 1, "Data should be allocated after creating EdgeDoFFunction." );
       }
    }
+
+   globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+   WALBERLA_CHECK_EQUAL( globalMem, 0 );
 
    for ( auto id : primitiveIDs )
    {
@@ -181,6 +196,9 @@ void testRuleOfThree()
    {
       volumedofspace::VolumeDoFFunction< real_t > f(
           "f", storage, level, level, 2, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
+
+      globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+      WALBERLA_CHECK_GREATER( globalMem, 0 );
 
       auto f_copy( f );
       auto f_copy_2 = f;
@@ -204,6 +222,9 @@ void testRuleOfThree()
          }
       }
    }
+
+   globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+   WALBERLA_CHECK_EQUAL( globalMem, 0 );
 
    for ( auto id : primitiveIDs )
    {
@@ -237,6 +258,9 @@ void testRuleOfThree()
          auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
          WALBERLA_CHECK_GREATER( numDataEntries, 0, "Data should be allocated after creating VolumeDoFFunction." );
       }
+
+      globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+      WALBERLA_CHECK_GREATER( globalMem, 0 );
    }
 
    for ( auto id : primitiveIDs )
@@ -244,6 +268,9 @@ void testRuleOfThree()
       auto numDataEntries = storage->getPrimitive( id )->getNumberOfDataEntries();
       WALBERLA_CHECK_EQUAL( numDataEntries, 0, "No data should be allocated after leaving scope." );
    }
+
+   globalMem = FunctionMemory< real_t >::getGlobalAllocatedMemoryInBytes();
+   WALBERLA_CHECK_EQUAL( globalMem, 0 );
 }
 
 template < typename func_t >

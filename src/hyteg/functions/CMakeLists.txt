@@ -6,7 +6,6 @@ target_sources( hyteg
     Function.hpp
     FunctionIterator.hpp
     FunctionMultiStore.hpp
-    FunctionProperties.cpp
     FunctionProperties.hpp
     FunctionTraits.hpp
     FunctionWrapper.hpp

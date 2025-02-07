@@ -1363,7 +1363,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   printFunctionAllocationInfo( *storage, 1 );
+   printFunctionAllocationInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after solver allocation:" )

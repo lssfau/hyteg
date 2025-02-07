@@ -835,7 +835,7 @@ void runBenchmark( real_t     cflMax,
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   printFunctionAllocationInfo( *storage, 1 );
+   printFunctionAllocationInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    printCurrentMemoryUsage();
    WALBERLA_LOG_INFO_ON_ROOT( "" );

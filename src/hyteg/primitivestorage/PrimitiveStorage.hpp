@@ -1016,7 +1016,6 @@ inline void
 template < typename DataType >
 void PrimitiveStorage::deletePrimitiveData( PrimitiveDataID< DataType, hyteg::Primitive >& dataID )
 {
-   dataID = generateDataID< DataType, Primitive >();
    PrimitiveMap primitives;
 
    auto vertices = getVertices();
