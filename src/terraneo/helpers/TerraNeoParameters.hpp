@@ -278,6 +278,7 @@ struct PhysicalParameters
    std::vector< real_t > radiusAlpha;
    std::vector< real_t > radiusDensity;
    std::vector< real_t > temperatureProfile;
+   std::vector< real_t > velocityProfile;
    std::vector< real_t > viscosityProfile;
    std::vector< real_t > temperatureInputProfile;
    std::vector< real_t > thermalExpansivityProfile;

@@ -281,6 +281,13 @@ void ConvectionSimulation::step()
    }
 
    solveStokes();
+   // Compute rms velocity radially
+   velocityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+                                                                               TN.domainParameters.rMin,
+                                                                               TN.domainParameters.rMax,
+                                                                               TN.domainParameters.nRad,
+                                                                               TN.domainParameters.maxLevel ) );
+   TN.physicalParameters.velocityProfile = velocityProfiles->rms;
 
    // update viscosity Profiles for logging
    if ( TN.simulationParameters.tempDependentViscosity )

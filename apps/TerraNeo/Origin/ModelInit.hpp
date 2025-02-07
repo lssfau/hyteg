@@ -377,6 +377,13 @@ void ConvectionSimulation::initialiseFunctions()
    temperatureProfiles                      = std::make_shared< RadialProfile >( temperatureRadialProfile );
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
+   auto velocityRadialProfile = computeRadialProfile( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+                                                      TN.domainParameters.rMin,
+                                                      TN.domainParameters.rMax,
+                                                      TN.domainParameters.nRad,
+                                                      TN.domainParameters.maxLevel );
+   velocityProfiles           = std::make_shared< RadialProfile >( velocityRadialProfile );
+
    if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
    {
       updateViscosity();

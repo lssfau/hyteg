@@ -427,11 +427,15 @@ struct RadialProfile
          }
 
          outFile << std::string( "Radius  " ) << fieldName << std::string( "_Mean " ) << fieldName << std::string( "_Max " )
-                 << fieldName << std::string( "_Min \n" );
+                 << fieldName << std::string( "_Min " ) << fieldName << std::string( "_rms \n" );
          for ( uint_t shell = 0; shell < shellRadii.size(); ++shell )
          {
-            outFile << walberla::format(
-                "%6.4f  %7.4f  %6.4f  %6.4f \n", shellRadii.at( shell ), mean.at( shell ), max.at( shell ), min.at( shell ) );
+            outFile << walberla::format( "%6.4f  %7.4f  %6.4f  %6.4f \n",
+                                         shellRadii.at( shell ),
+                                         mean.at( shell ),
+                                         max.at( shell ),
+                                         min.at( shell ),
+                                         rms.at( shell ) );
          }
          outFile.close();
       }
@@ -444,7 +448,7 @@ struct RadialProfile
 ///
 /// It is also possible to use on a thin spherical shell with rMin == rMax == layers[0].
 /// For example to calcualte these parameters on the surface of the Earth (from Plates):
-/// rMin = rMax = nRad = 1.0. 
+/// rMin = rMax = nRad = 1.0.
 ///
 /// Iterating over the coefficients of the passed FE function, this function computes and returns the min, max, mean, and rms of
 /// the coefficients (for scalar functions) or of the magnitude (for vector-valued functions) in radial layers.

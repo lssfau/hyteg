@@ -291,6 +291,19 @@ void ConvectionSimulation::dataOutput()
                                           ".dat",
                                       "temperature" );
 
+      real_t cmPerYear = 3.15e9;
+      for ( uint_t i = 0; i < velocityProfiles->rms.size(); i++ )
+      {
+         velocityProfiles->mean[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->max[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->min[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->rms[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+      }
+      velocityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
+                                       TN.outputParameters.outputBaseName + "_VelocityProfile_" + std::to_string( outputTime ) +
+                                       ".dat",
+                                   "velocity" );
+
       if ( TN.simulationParameters.tempDependentViscosity )
       {
          // Redimensionalise viscosity to SI unit [Pa s]

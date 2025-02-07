@@ -295,6 +295,7 @@ class ConvectionSimulation
 
    std::shared_ptr< RadialProfile >                             viscosityProfiles;
    std::shared_ptr< RadialProfile >                             temperatureProfiles;
+   std::shared_ptr< RadialProfile >                             velocityProfiles;
    std::shared_ptr< TemperatureInitializationParameters >       temperatureInitParams;
    std::shared_ptr< std::function< real_t( const Point3D& ) > > temperatureReferenceFct;
 };
