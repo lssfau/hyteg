@@ -195,12 +195,6 @@ int main( int argc, char* argv[] )
                               2,
                               2 );
 
-   auto count = hyteg::Function< hyteg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
-   if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
-      for (uint_t i = minLevel; i <= maxLevel; ++i) {
-         WALBERLA_LOG_INFO_ON_ROOT("Total number of P1 Functions on " << i << " : " << count[i]);
-      }
-   }
 
    P1Transport transportOperator(storage, minLevel, maxLevel);
    real_t time = 0.0;

@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
    const real_t rmin = layers.front();
    const real_t rmax = layers.back();
 
-   const Point3D sourcePoint  = Point3D(  rmin, 0, 0  ) + real_c( 0.5 ) * Point3D(  rmax - rmin, 0, 0  );
+   const Point3D sourcePoint  = Point3D( rmin, 0, 0 ) + real_c( 0.5 ) * Point3D( rmax - rmin, 0, 0 );
    const real_t  sourceRadius = real_c( 0.5 );
 
    const uint_t minLevel       = mainConf.getParameter< uint_t >( "minLevel" );
@@ -262,14 +262,6 @@ int main( int argc, char* argv[] )
                                   2,
                                   2 );
 
-      auto count = hyteg::Function< hyteg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
-      if ( mainConf.getParameter< bool >( "printFunctionCount" ) )
-      {
-         for ( uint_t i = minLevel; i <= maxLevel; ++i )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions on " << i << " : " << count[i] );
-         }
-      }
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       r.assign( { 1.0, -1.0 }, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) ) /
