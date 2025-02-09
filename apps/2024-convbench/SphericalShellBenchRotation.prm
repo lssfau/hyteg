@@ -54,7 +54,17 @@ Parameters
 
   viscosityProfile /home/pponkumar/hyteg/hyteg/data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
 
-  maxLevel 5;
+  viscosityLowerBound 1e20;
+  viscosityUpperBound 1e23;
+
+  activationEnergy 8.0;
+
+  rheologyType 1;
+
+  shearHeating true;
+  adiabaticHeating true;
+
+  maxLevel 4;
   minLevel 2;
 
   readInMinLevel 2;
@@ -70,7 +80,7 @@ Parameters
 
   supgScaling 1.0;
 
-  handsetEigen false;
+  handsetEigen true;
   handsetEigenValue 4.0;
 
   eigenLevel 5;
@@ -83,7 +93,7 @@ Parameters
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterationsInitial 25;
+  fgmresIterationsInitial 10;
   nStepsInitial 25;
   fgmresIterations 10;
   fgmresTolerance 1e-4;

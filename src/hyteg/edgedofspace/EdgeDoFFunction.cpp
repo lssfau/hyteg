@@ -1986,7 +1986,7 @@ template void EdgeDoFFunction< float >::interpolateByPrimitiveType< hyteg::Cell 
                                                                                    uint_t       level,
                                                                                    DoFType      flag ) const;
 
-// template void edgedof::macrocell::setBoundaryToZero< float >(const uint_t&                                           level,
-//                                                              const Cell&                                             cell,
-//                                                              const PrimitiveDataID< FunctionMemory< float >, Cell >& cellDataID);
+template void edgedof::macrocell::setBoundaryToZero< float >(const uint_t&                                           level,
+                                                             const Cell&                                             cell,
+                                                             const PrimitiveDataID< FunctionMemory< float >, Cell >& cellDataID);
 } // namespace hyteg

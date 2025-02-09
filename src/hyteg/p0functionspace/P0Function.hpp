@@ -385,11 +385,14 @@ class P0Function : public Function< P0Function< ValueType > >
 
                   real_t fineAverage = 0.0;
                   real_t fineInvAverage = 0.0;
+                  real_t fineGeoAverage = 1.0;
 
                   volumedofspace::indexing::getFineMicroElementsFromCoarseMicroElement(
                      coarseElementIdx, coarseCellType, fineElementIndices, fineCellTypes );
 
                   WALBERLA_CHECK_EQUAL( fineElementIndices.size(), fineCellTypes.size() );
+
+                  uint_t nFineElements = fineElementIndices.size();
 
                   for ( uint_t fineIdx = 0; fineIdx < fineElementIndices.size(); fineIdx += 1 )
                   {
@@ -408,6 +411,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      
                      fineAverage += fineVal;
                      fineInvAverage += (1.0 / fineVal);
+                     fineGeoAverage *= std::pow(fineVal, 1.0 / nFineElements);
                   }
 
                   // WALBERLA_LOG_INFO_ON_ROOT( "fineElementIndices.size() = " << fineElementIndices.size() );
@@ -420,8 +424,9 @@ class P0Function : public Function< P0Function< ValueType > >
                                                                   1u,
                                                                   coarseLevel,
                                                                   volumedofspace::indexing::VolumeDoFMemoryLayout::SoA )] =
-                     fineElementIndices.size() / fineInvAverage;
+                     // fineElementIndices.size() / fineInvAverage;
                      // fineAverage / fineElementIndices.size();
+                     fineGeoAverage;
                }
             }
          }
@@ -562,10 +567,12 @@ class P0Function : public Function< P0Function< ValueType > >
       // auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
       //             valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
-      // return (value + valueTet0 + valueTet1 + valueTet2 + valueTet3) / 5.0;
+      // return (val1 + val2 + val3 + val4 + val5) / 5.0;
+      return std::pow(val1, 1.0 / 5.0) * std::pow(val2, 1.0 / 5.0) 
+      * std::pow(val3, 1.0 / 5.0) * std::pow(val4, 1.0 / 5.0) * std::pow(val5, 1.0 / 5.0);
       // return 5.0 / ( (1.0 / value) + (1.0 / valueTet0) + (1.0 / valueTet1) + (1.0 / valueTet2) + (1.0 / valueTet3) );
       // return 4.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) );
-      return 5.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) + (1.0 / val5) );
+      // return 5.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) + (1.0 / val5) );
    }
 
    void averageFromP1( P1Function< real_t > src, uint_t level )

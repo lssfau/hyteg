@@ -1212,7 +1212,7 @@ inline void setBoundaryToZero( const uint_t&                                    
                                const Cell&                                                 cell,
                                const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellDataID )
 {
-   real_t* data = cell.getData( cellDataID )->getPointer( level );
+   ValueType* data = cell.getData( cellDataID )->getPointer( level );
 
    for ( const auto& idx : edgedof::macrocell::BoundaryIterator( level, 0, 1, 2 ) )
    {

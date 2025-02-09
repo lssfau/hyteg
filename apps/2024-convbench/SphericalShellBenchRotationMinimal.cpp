@@ -37,13 +37,15 @@
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticInjection.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
-#include "hyteg/gridtransferoperators/P2toP2LinearProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
@@ -195,11 +197,13 @@ struct ParameterData
 
    real_t epsC = 0.01, epsS = 0.01, eps = 0.01, thetaPhaseShift = 0.0, phiPhaseShift = 0.0;
 
-   real_t residualStokes = 0.0, uDiffPicard = 0.0, residualTransport = 0.0, residualExitTol = 1e10, stokesDxExitTol = 1e-2;
+   real_t uDiffPicard = 0.0, residualTransport = 0.0, residualExitTol = 1e10, stokesDxExitTol = 1e-2;
 
    bool useAdios2 = false, startFromCheckpoint = false, storeCheckpoint = false, useGMG = false;
 
    bool haveViscosityProfile = false;
+
+   bool shearHeating = false, adiabaticHeating = false;
 
    // Non dimensional numbers
 
@@ -222,8 +226,10 @@ struct ParameterData
    real_t adiabatSurfaceTemp   = real_c( 1600 );
    real_t activationEnergy     = real_c( 5 );
    real_t depthViscosityFactor = real_c( 3 );
-   real_t viscosityLowerBound  = real_c( 1e19 );
-   real_t viscosityUpperBound  = real_c( 1e24 );
+   real_t viscosityLowerBound  = real_c( 1e20 );
+   real_t viscosityUpperBound  = real_c( 1e23 );
+
+   uint_t rheologyType = 0u;
 
    //gravity
 
@@ -269,8 +275,8 @@ class TALASimulation
       params.rMin = mainConf.getParameter< real_t >( "rMin" );
       params.rMax = mainConf.getParameter< real_t >( "rMax" );
 
-      readInMinLevel = mainConf.getParameter< uint_t >("readInMinLevel");
-      readInMaxLevel = mainConf.getParameter< uint_t >("readInMaxLevel");
+      readInMinLevel = mainConf.getParameter< uint_t >( "readInMinLevel" );
+      readInMaxLevel = mainConf.getParameter< uint_t >( "readInMaxLevel" );
 
       endTime             = mainConf.getParameter< real_t >( "simulationTime" );
       params.maxTimeSteps = mainConf.getParameter< uint_t >( "maxTimeSteps" );
@@ -310,6 +316,15 @@ class TALASimulation
 
       params.rMu  = mainConf.getParameter< real_t >( "rMu" );
       params.TRef = mainConf.getParameter< real_t >( "TRef" );
+
+      params.viscosityLowerBound = mainConf.getParameter< real_t >( "viscosityLowerBound" );
+      params.viscosityUpperBound = mainConf.getParameter< real_t >( "viscosityUpperBound" );
+
+      params.activationEnergy = mainConf.getParameter< real_t >( "activationEnergy" );
+      params.rheologyType     = mainConf.getParameter< uint_t >( "rheologyType" );
+
+      params.shearHeating     = mainConf.getParameter< bool >( "shearHeating" );
+      params.adiabaticHeating = mainConf.getParameter< bool >( "adiabaticHeating" );
 
       params.stokesDxExitTol = mainConf.getParameter< real_t >( "stokesDxExitTol" );
 
@@ -527,10 +542,19 @@ class TALASimulation
             real_t viscVal =
                 terraneo::interpolateDataValues( x, radiusViscosityProfile, viscosityProfile, params.rMin, params.rMax );
 
-            real_t activationEnergy = 4.0;
-
-            // viscVal *= std::exp( activationEnergy * ( real_c( 0.5 ) - Temperature ) );
-            viscVal *= std::exp( activationEnergy * ( ( real_c( 1 ) / ( Temperature + real_c( 0.25 ) ) ) - real_c( 1.45 ) ) );
+            if ( params.rheologyType == 0u )
+            {
+               viscVal *= std::exp( params.activationEnergy * ( real_c( 0.5 ) - Temperature ) );
+            }
+            else if ( params.rheologyType == 1u )
+            {
+               viscVal *=
+                   std::exp( params.activationEnergy * ( ( real_c( 1 ) / ( Temperature + real_c( 0.25 ) ) ) - real_c( 1.45 ) ) );
+            }
+            else
+            {
+               WALBERLA_ABORT( "Unknown Rheology type" );
+            }
 
             //impose min viscosity
             if ( viscVal < params.viscosityLowerBound )
@@ -606,17 +630,17 @@ class TALASimulation
          {
             real_t dr = r - params.rMax;
             xNew      = xOld - dr * xOld / r;
-            WALBERLA_LOG_INFO( "Particle outside SURFACE, projecting back" );
-            WALBERLA_LOG_INFO( "xOld = " << xOld << ", xOld.norm() = " << xOld.norm() );
-            WALBERLA_LOG_INFO( "xNew = " << xNew << ", xNew.norm() = " << xNew.norm() );
+            // WALBERLA_LOG_INFO( "Particle outside SURFACE, projecting back" );
+            // WALBERLA_LOG_INFO( "xOld = " << xOld << ", xOld.norm() = " << xOld.norm() );
+            // WALBERLA_LOG_INFO( "xNew = " << xNew << ", xNew.norm() = " << xNew.norm() );
          }
          else if ( r < params.rMin + eps )
          {
             real_t dr = params.rMin - r;
             xNew      = xOld + dr * xOld / r;
-            WALBERLA_LOG_INFO( "Particle inside CMB, projecting back" );
-            WALBERLA_LOG_INFO( "xOld = " << xOld << ", xOld.norm() = " << xOld.norm() );
-            WALBERLA_LOG_INFO( "xNew = " << xNew << ", xNew.norm() = " << xNew.norm() );
+            // WALBERLA_LOG_INFO( "Particle inside CMB, projecting back" );
+            // WALBERLA_LOG_INFO( "xOld = " << xOld << ", xOld.norm() = " << xOld.norm() );
+            // WALBERLA_LOG_INFO( "xNew = " << xNew << ", xNew.norm() = " << xNew.norm() );
          }
          else
          {
@@ -626,8 +650,7 @@ class TALASimulation
 
       transport.setProjectPointsBackOutsideDomainFunction( projectPointsBack );
 
-      BoundaryCondition bcTemp, bcVelocityThetaPhi, bcVelocityR;
-
+      bcTemp.createAllInnerBC();
       bcTemp.createDirichletBC( "DirichletInnerAndOuter", { MeshInfo::flagInnerBoundary, MeshInfo::flagOuterBoundary } );
 
       bcVelocityR.createDirichletBC( "DirichletAllRadial",
@@ -656,8 +679,8 @@ class TALASimulation
              "NeumannAllTP", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
       }
 
-      rhoP1 = std::make_shared< P1Function< real_t > >( "rhoP1", storage_, minLevel_, maxLevel_, bcTemp );
-      // viscP2    = std::make_shared< P2Function< real_t > >( "viscP2", storage_, minLevel_, maxLevel_, bcTemp );
+      rhoP1     = std::make_shared< P1Function< real_t > >( "rhoP1", storage_, minLevel_, maxLevel_, bcTemp );
+      viscP2    = std::make_shared< P2Function< real_t > >( "viscP2", storage_, minLevel_, maxLevel_, bcTemp );
       viscInvP1 = std::make_shared< P1Function< real_t > >( "viscInvP1", storage_, minLevel_, maxLevel_, bcTemp );
 
       // rhoP2 = std::make_shared< P2Function< real_t > >( "rhoP2", storage_, minLevel_, maxLevel_ );
@@ -665,8 +688,12 @@ class TALASimulation
       viscP0 = std::make_shared< P0Function< real_t > >( "viscP0", storage_, minLevel_, maxLevel_ );
 
       // zero = std::make_shared< P2Function< real_t > >( "zero", storage_, minLevel_, maxLevel_, bcTemp );
+      TP1                 = std::make_shared< P1Function< real_t > >( "TP1", storage_, minLevel_, maxLevel_ + 1 );
+      shearHeatingCoeffP1 = std::make_shared< P1Function< real_t > >( "shearHeatingCoeffP1", storage_, minLevel_, maxLevel_ + 1 );
 
       shearHeatingCoeff = std::make_shared< P2Function< real_t > >( "shearHeatingCoeff", storage_, minLevel_, maxLevel_ );
+      shearHeatingCoeffDebug =
+          std::make_shared< P2Function< real_t > >( "shearHeatingCoeffDebug", storage_, minLevel_, maxLevel_ );
 
       T     = std::make_shared< P2Function< real_t > >( "T", storage_, minLevel_, maxLevel_, bcTemp );
       TCp   = std::make_shared< P2Function< real_t > >( "TCp", storage_, minLevel_, maxLevel_, bcTemp );
@@ -675,6 +702,8 @@ class TALASimulation
       TPrev = std::make_shared< P2Function< real_t > >( "TPrev", storage_, minLevel_, maxLevel_, bcTemp );
       TRhs  = std::make_shared< P2Function< real_t > >( "TRhs", storage_, minLevel_, maxLevel_, bcTemp );
       TDev  = std::make_shared< P2Function< real_t > >( "TDev", storage_, minLevel_, maxLevel_, bcTemp );
+
+      TKelvin = std::make_shared< P2Function< real_t > >( "TKelvin", storage_, minLevel_, maxLevel_, bcTemp );
 
       u     = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "u", storage_, minLevel_, maxLevel_, bcVelocity );
       uCp   = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uCp", storage_, minLevel_, maxLevel_, bcVelocity );
@@ -714,6 +743,8 @@ class TALASimulation
       }
 
       real_t rotFactor = mainConf.getParameter< real_t >( "rotFactor" );
+
+      stokesOperator = std::make_shared< StokesOperator >( storage, minLevel, maxLevel, *viscP2 );
 
       stokesOperatorRotationOpgen = std::make_shared< StokesOperatorType >( storage,
                                                                             minLevel,
@@ -756,7 +787,8 @@ class TALASimulation
       //     InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >(
       //     storage, minLevel, maxLevel, *schurOperator, chebyshevSmoother, schurSolver, uzawaOmega, relaxSchur, 1u );
 
-      ABlockCoarseGridDirectSolver = std::make_shared< PETScLUSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel );
+      ABlockCoarseGridDirectSolver =
+          std::make_shared< PETScLUSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel );
       ABlockCoarseGridDirectSolver->setReassembleMatrix( true );
 
       ABlockCoarseGridMinresSolver = std::make_shared< MinResSolver< StokesOperatorType::VelocityOperator_T > >(
@@ -812,22 +844,27 @@ class TALASimulation
 
       WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-      transportTALAOp = std::make_shared< terraneo::P2TransportIcosahedralShellMapStdOperator >( storage, minLevel, maxLevel );
-      transportTALAOp->setTALADict( { { terraneo::TransportOperatorTermKey::SHEAR_HEATING_TERM, false },
-                                      { terraneo::TransportOperatorTermKey::ADIABATIC_HEATING_TERM, false },
+      transportTALAOp = std::make_shared< terraneo::P2TransportIcosahedralShellMapOperator >( storage, minLevel, maxLevel );
+      transportTALAOp->setTALADict( { { terraneo::TransportOperatorTermKey::SHEAR_HEATING_TERM, params.shearHeating },
+                                      { terraneo::TransportOperatorTermKey::ADIABATIC_HEATING_TERM, params.adiabaticHeating },
                                       { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, false },
                                       { terraneo::TransportOperatorTermKey::ADVECTION_TERM_WITH_MMOC, true },
                                       { terraneo::TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY, false },
                                       { terraneo::TransportOperatorTermKey::DIFFUSION_TERM, true },
                                       { terraneo::TransportOperatorTermKey::SUPG_STABILISATION, false } } );
 
-      transportTALAOp->setTemperature( TInt );
+      transportTALAOp->setTemperature( T );
       transportTALAOp->setVelocity( u );
+      // transportTALAOp->setViscosity( viscP1 );
       transportTALAOp->setViscosity( viscP2 );
 
       diffusivityFunc = [this]( const Point3D& x ) { return ( real_c( 1.0 ) ) / ( rhoFunc( x ) * params.pecletNumber ); };
 
       adiabaticFunc = [this]( const Point3D& ) { return params.dissipationNumber; };
+
+      shearHeatingCoeffFunc = [this]( const Point3D& x ) {
+         return params.dissipationNumber * params.pecletNumber / ( params.rayleighNumber * rhoFunc( x ) );
+      };
 
       constEnergyFunc = [this]( const Point3D& ) { return params.hNumber * params.intHeatingFactor; };
 
@@ -852,22 +889,32 @@ class TALASimulation
 
       surfaceTempFunc = [this]( const Point3D& ) { return 0.0; };
 
+      transportTALAOp->setInvGravity( { std::make_shared< std::function< real_t( const Point3D& ) > >( gX ),
+                                        std::make_shared< std::function< real_t( const Point3D& ) > >( gY ),
+                                        std::make_shared< std::function< real_t( const Point3D& ) > >( gZ ) } );
+
       transportTALAOp->setDiffusivityCoeff( std::make_shared< terraneo::InterpolateFunctionType >( diffusivityFunc ) );
       transportTALAOp->setAdiabaticCoeff( std::make_shared< terraneo::InterpolateFunctionType >( adiabaticFunc ) );
       transportTALAOp->setConstEnergyCoeff( std::make_shared< terraneo::InterpolateFunctionType >( constEnergyFunc ) );
-      // transportTALAOp->setReferenceTemperature( std::make_shared< terraneo::InterpolateFunctionType >( referenceTempFunc ) );
+      transportTALAOp->setReferenceTemperature( std::make_shared< terraneo::InterpolateFunctionType >( referenceTempFunc ) );
       transportTALAOp->setSurfTempCoeff( std::make_shared< terraneo::InterpolateFunctionType >( surfaceTempFunc ) );
 
-      shearHeatingCoeff->interpolate( 1.0, maxLevel, All );
+      shearHeatingCoeff->interpolate( shearHeatingCoeffFunc, maxLevel, All );
+      shearHeatingCoeffP1->interpolate( shearHeatingCoeffFunc, maxLevel, All );
+
       transportTALAOp->setShearHeatingCoeff( shearHeatingCoeff );
 
       transportTALAOp->initializeOperators();
 
-      transportTALAGmresSolver = std::make_shared< GMRESSolver< terraneo::P2TransportIcosahedralShellMapStdOperator > >(
+      transportTALAGmresSolver = std::make_shared< GMRESSolver< terraneo::P2TransportIcosahedralShellMapOperator > >(
           storage, minLevel, maxLevel, 1000u, 50u, 1e-8, 1e-8 );
       transportTALAGmresSolver->setPrintInfo( true );
 
-      p2LinearProlongation = std::make_shared< P2toP2LinearProlongation >(storage, minLevel, maxLevel);
+      transportTALACGSolver =
+          std::make_shared< CGSolver< terraneo::P2TransportIcosahedralShellMapOperator > >( storage, minLevel, maxLevel );
+      transportTALACGSolver->setPrintInfo( true );
+
+      p2LinearProlongation = std::make_shared< P2toP2LinearProlongation >( storage, minLevel, maxLevel );
       p1LinearProlongation = std::make_shared< P1toP1LinearProlongation< real_t > >();
 
       // Visualization
@@ -887,7 +934,7 @@ class TALASimulation
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       adiosXmlConfig = mainConf.getParameter< std::string >( "adiosXmlConfig" );
-      adios2Output               = std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
+      adios2Output   = std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
 
       // adios2Outputl2 = std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
 
@@ -905,10 +952,22 @@ class TALASimulation
 #ifdef HYTEG_BUILD_WITH_ADIOS2
          adios2Output->add( *u );
          adios2Output->add( *T );
+         adios2Output->add( *TKelvin );
+         adios2Output->add( *TInt );
+         adios2Output->add( *viscP2 );
+         adios2Output->add( *shearHeatingCoeffDebug );
+
+         adios2Output->add( *TP1 );
          adios2Output->add( *viscP1 );
          // adios2Output->add( *uRhsRotated );
          // adios2Output->add( *uRotated );
          // adios2Output->add( *rhoP1 );
+
+         for ( auto it = mainConf.begin(); it != mainConf.end(); ++it )
+         {
+            adios2Output->addAttribute( it->first, it->second );
+         }
+
 #else
          WALBERLA_ABORT( "ADIOS2 output requested in prm file but ADIOS2 was not compiled!" );
 #endif
@@ -940,6 +999,7 @@ class TALASimulation
    void stepPrCr();
    void step();
    void solve();
+   void calculateStokesRHS();
    void calculateStokesResidual();
    void calculateVelocityDifference();
    void calculateEnergyResidual();
@@ -965,15 +1025,16 @@ class TALASimulation
 
    std::shared_ptr< PrimitiveStorage > storage;
    uint_t                              minLevel, maxLevel;
-   
+
    uint_t readInMinLevel, readInMaxLevel;
 
    std::shared_ptr< P0Function< real_t > > viscP0;
 
-   std::shared_ptr< P1Function< real_t > > rhoP1, viscP1;
+   std::shared_ptr< P1Function< real_t > > rhoP1, viscP1, TP1, shearHeatingCoeffP1;
 
-   std::shared_ptr< P2Function< real_t > > T, TCp, TDev, Tc, TPrev, TInt, TRhs, TRes, rhoP2, viscP2, zero, shearHeatingCoeff;
-   std::shared_ptr< P1Function< real_t > > viscInvP1;
+   std::shared_ptr< P2Function< real_t > > T, TKelvin, TCp, TDev, Tc, TPrev, TInt, TRhs, TRes, rhoP2, viscP2, zero,
+       shearHeatingCoeff, shearHeatingCoeffDebug;
+   std::shared_ptr< P1Function< real_t > >             viscInvP1;
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > u, uCp, uTmp, uRes, uPrev, uPrevIter, uRhs, uRhsStrong, uSpec, uTmpSpec,
        uRotated, uRhsRotated;
    std::shared_ptr< P2VectorFunction< real_t > > uAdv, uAdb, uShr, uSpecRad, uTemp, tempFct;
@@ -983,7 +1044,7 @@ class TALASimulation
 
    std::vector< real_t > radiusViscosityProfile, viscosityProfile;
 
-   BoundaryCondition bcVelocity;
+   BoundaryCondition bcVelocity, bcTemp, bcVelocityThetaPhi, bcVelocityR;
 
    std::shared_ptr< StokesOperator >            stokesOperator;
    std::shared_ptr< P2P1StokesRotationWrapper > stokesOperatorRotation;
@@ -998,10 +1059,12 @@ class TALASimulation
    // std::shared_ptr< CompStokesOperatorFreeSlip > compStokesOperatorFS;
    operatorgeneration::P2ElementwiseMassIcosahedralShellMap massOperator;
 
+   std::shared_ptr< P1toP1LinearProlongation< real_t > > p1ProlongationOperator;
+
    std::shared_ptr< FrozenVelocityOperator > frozenVelocityOperator;
 
    // std::shared_ptr< P2TransportTimesteppingOperator >                  transportOp;
-   std::shared_ptr< terraneo::P2TransportIcosahedralShellMapStdOperator > transportTALAOp;
+   std::shared_ptr< terraneo::P2TransportIcosahedralShellMapOperator > transportTALAOp;
 
    std::shared_ptr< P2Function< real_t > > diffusivityCoeff_;
    std::shared_ptr< P2Function< real_t > > advectionCoeff_;
@@ -1012,7 +1075,13 @@ class TALASimulation
 
    uint_t iTimeStep      = 0U;
    real_t simulationTime = 0.0, endTime = 1.0, dt = 0.0;
-   real_t residualStokes = 0.0, uDiffPicard = 0.0, residualTransport = 0.0;
+   
+   real_t residualStokes = 0.0, residualStokesU = 0.0, residualStokesP = 0.0;
+   real_t residualStokesP0 = 0.0, residualStokesUP0 = 0.0, residualStokesPP0 = 0.0;
+   
+   real_t uDiffPicard = 0.0, residualTransport = 0.0;
+
+   const real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
 
    // Parameter data struct
    ParameterData params;
@@ -1032,7 +1101,7 @@ class TALASimulation
        inexactUzawaSmoother;
 
    std::shared_ptr< PETScLUSolver< StokesOperatorType::VelocityOperator_T > > ABlockCoarseGridDirectSolver;
-   std::shared_ptr< MinResSolver< StokesOperatorType::VelocityOperator_T > > ABlockCoarseGridMinresSolver;
+   std::shared_ptr< MinResSolver< StokesOperatorType::VelocityOperator_T > >  ABlockCoarseGridMinresSolver;
 
    std::shared_ptr< P2toP2QuadraticVectorProlongation >                                  ABlockProlongationOperator;
    std::shared_ptr< P2toP2QuadraticVectorRestriction >                                   ABlockRestrictionOperator;
@@ -1053,18 +1122,20 @@ class TALASimulation
 
    // Transport
 
-   std::shared_ptr< P2toP2LinearProlongation > p2LinearProlongation;
+   std::shared_ptr< P2toP2LinearProlongation >           p2LinearProlongation;
    std::shared_ptr< P1toP1LinearProlongation< real_t > > p1LinearProlongation;
 
    // std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > >                   transportGmresSolver;
-   std::shared_ptr< GMRESSolver< terraneo::P2TransportIcosahedralShellMapStdOperator > > transportTALAGmresSolver;
-   // std::shared_ptr< MinResSolver< terraneo::P2TransportIcosahedralShellMapOperator > > transportTALAMinresSolver;
+   std::shared_ptr< CGSolver< terraneo::P2TransportIcosahedralShellMapOperator > >    transportTALACGSolver;
+   std::shared_ptr< GMRESSolver< terraneo::P2TransportIcosahedralShellMapOperator > > transportTALAGmresSolver;
+   // std::shared_ptr< MinResSolver< terraneo::P1TransportIcosahedralShellMapOperator > > transportTALAMinresSolver;
 
    bool OmegaComputationDone = false;
 
    std::function< real_t( const Point3D& ) > StokesRHSX, StokesRHSY, StokesRHSZ, gX, gY, gZ, gradRhoOverRhoFuncX,
        gradRhoOverRhoFuncY, gradRhoOverRhoFuncZ, bcTemperature, tempIni, rhoFunc, refTempFunc, DiRhoAlpha, DiRaRho, tempBC,
-       tempTc, diffusivityFunc, adiabaticFunc, constEnergyFunc, referenceTempFunc, surfaceTempFunc;
+       tempTc, diffusivityFunc, adiabaticFunc, shearHeatingCoeffFunc, constEnergyFunc, referenceTempFunc, surfaceTempFunc,
+       oppositeGX, oppositeGY, oppositeGZ;
 
    std::function< void( const Point3D&, Point3D& ) > normalsFS;
 
@@ -1102,12 +1173,8 @@ class TALASimulation
 #endif
 };
 
-void TALASimulation::solveU()
+void TALASimulation::calculateStokesRHS()
 {
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
-
-   storage->getTimingTree()->start( "stokes_solve_whole_setup" );
-
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > calculateTDev =
        [this]( const Point3D& x, const std::vector< real_t >& vals ) {
           real_t refTemp = referenceTempFunc( x );
@@ -1117,12 +1184,6 @@ void TALASimulation::solveU()
    uRhsStrong->uvw().component( 0u ).interpolate( calculateTDev, { *( T ) }, maxLevel, All );
    uRhsStrong->uvw().component( 1u ).interpolate( calculateTDev, { *( T ) }, maxLevel, All );
    uRhsStrong->uvw().component( 2u ).interpolate( calculateTDev, { *( T ) }, maxLevel, All );
-
-   // uRhsStrong->uvw().interpolate( { StokesRHSX, StokesRHSY, StokesRHSZ }, maxLevel, All );
-
-   // uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *T }, maxLevel, All );
-   // uRhsStrong->uvw().component( 1 ).multElementwise( { uRhsStrong->uvw().component( 1 ), *T }, maxLevel, All );
-   // uRhsStrong->uvw().component( 2 ).multElementwise( { uRhsStrong->uvw().component( 2 ), *T }, maxLevel, All );
 
    massOperator.apply( uRhsStrong->uvw().component( 0u ), uRhs->uvw().component( 0u ), maxLevel, All );
    massOperator.apply( uRhsStrong->uvw().component( 1u ), uRhs->uvw().component( 1u ), maxLevel, All );
@@ -1154,15 +1215,43 @@ void TALASimulation::solveU()
    rhoP1->interpolate( rhoFunc, maxLevel, All );
 
    frozenVelocityOperator->apply( u->uvw(), uRhs->p(), maxLevel, All );
+}
+
+void TALASimulation::solveU()
+{
+   WALBERLA_LOG_INFO_ON_ROOT("");
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
+   WALBERLA_LOG_INFO_ON_ROOT("");
+
+   storage->getTimingTree()->start( "stokes_solve_whole_setup" );
 
    viscInvP1->interpolate( tempDepInvViscFunc, { T->getVertexDoFFunction() }, maxLevel, All );
 
+   viscP2->interpolate( tempDepViscFunc, { *T }, maxLevel, All );
    viscP1->interpolate( tempDepViscFunc, { T->getVertexDoFFunction() }, maxLevel, All );
 
    communication::syncFunctionBetweenPrimitives( *viscP1, maxLevel );
 
    viscP0->averageFromP1( *viscP1, maxLevel );
    viscP0->transferToAllLowerLevels( maxLevel );
+
+   calculateStokesRHS();
+   calculateStokesResidual();
+
+   WALBERLA_LOG_INFO_ON_ROOT("");
+   WALBERLA_LOG_INFO_ON_ROOT("P0 viscosity residual before (which is solved)");
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Velocity Stokes residual before = %4.7e", residualStokesUP0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Pressure Stokes residual before = %4.7e", residualStokesPP0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Total Stokes residual before    = %4.7e", residualStokesP0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT("");
+
+   WALBERLA_LOG_INFO_ON_ROOT("P2 viscosity residual before (for comparison)");
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Velocity Stokes residual before = %4.7e", residualStokesU ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Pressure Stokes residual before = %4.7e", residualStokesP ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Total Stokes residual before    = %4.7e", residualStokes ) );
+   WALBERLA_LOG_INFO_ON_ROOT("");
+
+   calculateStokesRHS();
 
    uRotated->interpolate( 0.0, maxLevel, All );
 
@@ -1227,7 +1316,7 @@ void TALASimulation::solveU()
             uSpec->uvw().interpolate( { randFunc, randFunc, randFunc }, level, All );
 
             real_t spectralRadius = estimateSpectralRadiusWithPowerIteration(
-               stokesOperatorRotationOpgen->getA(), uSpec->uvw(), uTmpSpec->uvw(), nPowerIter, storage, level );
+                stokesOperatorRotationOpgen->getA(), uSpec->uvw(), uTmpSpec->uvw(), nPowerIter, storage, level );
 
             WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
             WALBERLA_LOG_INFO_ON_ROOT( "eigenLower = " << eigenLower << ", eigenUpper = " << eigenUpper );
@@ -1248,7 +1337,7 @@ void TALASimulation::solveU()
             uint_t eigenLevel = mainConf.getParameter< uint_t >( "eigenLevel" );
 
             chebyshevSmoother->setupCoefficients(
-               3u, eigenUpperVals[eigenLevel - minLevel], eigenUpperBoundFactor, 1.0 / eigenLowerBoundFactor );
+                3u, eigenUpperVals[eigenLevel - minLevel], eigenUpperBoundFactor, 1.0 / eigenLowerBoundFactor );
          }
       }
       else
@@ -1312,6 +1401,22 @@ void TALASimulation::solveU()
 
    vertexdof::projectMean( u->p(), maxLevel );
 
+   calculateStokesRHS();
+   calculateStokesResidual();
+
+   WALBERLA_LOG_INFO_ON_ROOT("");
+   WALBERLA_LOG_INFO_ON_ROOT("P0 viscosity residual after (which is solved)");
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Velocity Stokes residual before = %4.7e", residualStokesUP0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Pressure Stokes residual before = %4.7e", residualStokesPP0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Total Stokes residual before    = %4.7e", residualStokesP0 ) );
+   WALBERLA_LOG_INFO_ON_ROOT("");
+
+   WALBERLA_LOG_INFO_ON_ROOT("P2 viscosity residual after (for comparison)");
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Velocity Stokes residual before = %4.7e", residualStokesU ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Pressure Stokes residual before = %4.7e", residualStokesP ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Total Stokes residual before    = %4.7e", residualStokes ) );
+   WALBERLA_LOG_INFO_ON_ROOT("");
+
    // hyteg::removeRotationalModes(massOperator, u->uvw(), uRhsStrong->uvw(), uTemp->component(0), maxLevel);
    // projectionOperator->project( *u, maxLevel, FreeslipBoundary );
 
@@ -1324,8 +1429,6 @@ void TALASimulation::solveT()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING TRANSPORT SOLVER with dt = %2.6e", dt ) );
 
-   real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
-
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Numerical timestep = " << dt );
    WALBERLA_LOG_INFO_ON_ROOT(
@@ -1334,7 +1437,7 @@ void TALASimulation::solveT()
 
    for ( uint_t iTempSteps = 0u; iTempSteps < 1u; iTempSteps++ )
    {
-      TInt->assign( { 1.0 }, { *TPrev }, maxLevel, All );
+      TInt->assign( { 1.0 }, { *T }, maxLevel, All );
 
       transport.step( *TInt, u->uvw(), uPrev->uvw(), maxLevel, Inner, dt, 1, true );
 
@@ -1346,13 +1449,39 @@ void TALASimulation::solveT()
       // real_t supgScaling = mainConf.getParameter< real_t >( "supgScaling" );
       // transportTALAOp->setSUPGScaling( supgScaling );
 
+      T->assign( { 1.0 }, { *TInt }, maxLevel, All );
+
+      TKelvin->assign( { params.cmbTemp - params.surfaceTemp }, { *T }, maxLevel, All );
+      real_t minTempK = TKelvin->getMinValue( maxLevel, All );
+      real_t maxTempK = TKelvin->getMaxValue( maxLevel, All );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Minimum Temperature before energy solve = " << minTempK );
+      WALBERLA_LOG_INFO_ON_ROOT( "Maximum Temperature before energy solve = " << maxTempK );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+
       transportTALAOp->applyRHS( *TRhs, maxLevel, Inner | NeumannBoundary );
 
       TInt->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
       T->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
+      // transportTALACGSolver->solve( *transportTALAOp, *TP1, TRhs->getVertexDoFFunction(), maxLevel );
       transportTALAGmresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
+
+      TKelvin->assign( { params.cmbTemp - params.surfaceTemp }, { *T }, maxLevel, All );
+      minTempK = TKelvin->getMinValue( maxLevel, All );
+      maxTempK = TKelvin->getMaxValue( maxLevel, All );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Minimum Temperature before energy solve = " << minTempK );
+      WALBERLA_LOG_INFO_ON_ROOT( "Maximum Temperature before energy solve = " << maxTempK );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+      // p1LinearProlongation->prolongate( *( TP1 ), maxLevel, All );
+      // P1toP2Conversion( *( TP1 ), *( T ), maxLevel, All );
+
+      // T->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
       TPrev->assign( { 1.0 }, { *T }, maxLevel, All );
    }
@@ -1365,12 +1494,12 @@ void TALASimulation::step()
    real_t vMax = u->uvw().getMaxComponentMagnitude( maxLevel, All );
    real_t hMin = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    // real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
-   
+
    WALBERLA_LOG_INFO_ON_ROOT( "Calculating timestep at step " << iTimeStep );
    WALBERLA_LOG_INFO_ON_ROOT( "velocityMax = " << vMax );
 
    dt = params.cflMax * hMin / vMax;
-   
+
    WALBERLA_LOG_INFO_ON_ROOT( "Calculated timestep = " << dt );
 
    dt = std::isnan( dt ) ? params.dtMin : std::max( std::min( dt, params.dtMax ), params.dtMin );
@@ -1418,16 +1547,16 @@ void TALASimulation::solve()
       // adios2Importer->restoreFunction( u->uvw() );
       // adios2Importer->restoreFunction( u->p() );
 
-      WALBERLA_LOG_INFO_ON_ROOT("Starting from checkpoint");
-      
-      uint_t importStep = mainConf.getParameter< uint_t >("importStep");
+      WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint" );
 
-      adios2Importer = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
+      uint_t importStep = mainConf.getParameter< uint_t >( "importStep" );
+
+      adios2Importer  = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
       uint_t lastStep = adios2Importer->getTimestepInfo().size();
 
-      if(importStep > lastStep - 1)
+      if ( importStep > lastStep - 1 )
       {
-         WALBERLA_LOG_INFO_ON_ROOT("importStep is greater than lastStep, so using lastStep for checkpoint");
+         WALBERLA_LOG_INFO_ON_ROOT( "importStep is greater than lastStep, so using lastStep for checkpoint" );
          importStep = lastStep - 1;
       }
 
@@ -1435,13 +1564,13 @@ void TALASimulation::solve()
       adios2Importer->restoreFunction( uCp->p(), readInMinLevel, readInMaxLevel, importStep );
       adios2Importer->restoreFunction( *TCp, readInMinLevel, readInMaxLevel, importStep );
 
-      for(uint level = readInMaxLevel; level < maxLevel; level++)
+      for ( uint_t level = readInMaxLevel; level < maxLevel; level++ )
       {
-         p2LinearProlongation->prolongate(uCp->uvw().component(0u), level, All);
-         p2LinearProlongation->prolongate(uCp->uvw().component(1u), level, All);
-         p1LinearProlongation->prolongate(uCp->p(), level, All);
+         p2LinearProlongation->prolongate( uCp->uvw().component( 0u ), level, All );
+         p2LinearProlongation->prolongate( uCp->uvw().component( 1u ), level, All );
+         p1LinearProlongation->prolongate( uCp->p(), level, All );
 
-         p2LinearProlongation->prolongate(*TCp, level, All);
+         p2LinearProlongation->prolongate( *TCp, level, All );
       }
 
       u->assign( { 1.0 }, { *uCp }, maxLevel, All );
@@ -1471,12 +1600,19 @@ void TALASimulation::solve()
 
    while ( simulationTime < endTime && iTimeStep < params.maxTimeSteps )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nStarting step at time = %f!\n", simulationTime ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Starting step at numerical time = %f!", simulationTime ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "Starting step at physical time  = %f!",
+                            ( simulationTime * params.mantleThickness ) / ( params.characteristicVelocity * secondsPerMyr ) ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
 
       step();
       // stepPrCr();
-
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Step done!" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
 
       simulationTime += dt;
 
@@ -1505,11 +1641,15 @@ void TALASimulation::solve()
 
          real_t velocityRMS = nusseltcalc::velocityRMSSphere( *u, *uTmp, massOperator, params.rMin, params.rMax, maxLevel );
 
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( "\n\nNusselt number outer = %4.7e\nNusselt number inner = %4.7e\nVelocity RMS = %4.7e\n\n",
+             walberla::format( "Nusselt number outer = %4.7e\nNusselt number inner = %4.7e\nVelocity RMS = %4.7e",
                                nusseltNumberOuter,
                                nusseltNumberInner,
                                velocityRMS ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
       }
 
       iTimeStep++;
@@ -1554,21 +1694,32 @@ void TALASimulation::solve()
 
 void TALASimulation::calculateStokesResidual()
 {
-   uRhsStrong->uvw().interpolate( { StokesRHSX, StokesRHSY, StokesRHSZ }, maxLevel, All );
-
-   uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *T }, maxLevel, All );
-   uRhsStrong->uvw().component( 1 ).multElementwise( { uRhsStrong->uvw().component( 1 ), *T }, maxLevel, All );
-   uRhsStrong->uvw().component( 2 ).multElementwise( { uRhsStrong->uvw().component( 2 ), *T }, maxLevel, All );
-
-   massOperator.apply( uRhsStrong->uvw().component( 0u ), uRhs->uvw().component( 0u ), maxLevel, All );
-   massOperator.apply( uRhsStrong->uvw().component( 1u ), uRhs->uvw().component( 1u ), maxLevel, All );
-   massOperator.apply( uRhsStrong->uvw().component( 2u ), uRhs->uvw().component( 2u ), maxLevel, All );
-
-   stokesOperatorRotationOpgen->apply( *u, *uTmp, maxLevel, Inner );
-
+   // stokesOperatorRotationOpgen->apply( *u, *uTmp, maxLevel, Inner );
+   stokesOperator->apply( *u, *uTmp, maxLevel, Inner );
    uTmp->uvw().assign( { 1.0, -1.0 }, { uTmp->uvw(), uRhs->uvw() }, maxLevel, Inner );
+   residualStokesU = std::sqrt( uTmp->uvw().dotGlobal( uTmp->uvw(), maxLevel, Inner ) );
+   residualStokesP = std::sqrt( uTmp->p().dotGlobal( uTmp->p(), maxLevel, Inner ) );
+   residualStokes = std::sqrt( uTmp->dotGlobal( *uTmp, maxLevel, Inner ) );
 
-   residualStokes = std::sqrt( uTmp->uvw().dotGlobal( uTmp->uvw(), maxLevel, Inner ) );
+   rotationOperator->rotate(u->uvw(), maxLevel, FreeslipBoundary, false);
+   rotationOperator->rotate(uRhs->uvw(), maxLevel, FreeslipBoundary, false);
+
+   uRhsRotated->assign( { 1.0 }, { *uRhs }, maxLevel, All );
+   uRotated->assign( { 1.0 }, { *u }, maxLevel, All );
+
+   uTmp->uvw().component( 0U ).setBoundaryCondition( bcVelocityThetaPhi );
+   uTmp->uvw().component( 1U ).setBoundaryCondition( bcVelocityThetaPhi );
+   uTmp->uvw().component( 2U ).setBoundaryCondition( bcVelocityR );
+
+   stokesOperatorRotationOpgen->apply( *uRotated, *uTmp, maxLevel, All );   
+   uTmp->uvw().assign( { 1.0, -1.0 }, { uTmp->uvw(), uRhsRotated->uvw() }, maxLevel, All );
+   residualStokesUP0 = std::sqrt( uTmp->uvw().dotGlobal( uTmp->uvw(), maxLevel, Inner ) );
+   residualStokesPP0 = std::sqrt( uTmp->p().dotGlobal( uTmp->p(), maxLevel, Inner ) );
+   residualStokesP0 = std::sqrt( uTmp->dotGlobal( *uTmp, maxLevel, Inner ) );
+
+   uTmp->uvw().setBoundaryCondition(bcVelocity);
+   rotationOperator->rotate(u->uvw(), maxLevel, FreeslipBoundary, true);
+   rotationOperator->rotate(uRhs->uvw(), maxLevel, FreeslipBoundary, true);
 }
 
 } // namespace hyteg
