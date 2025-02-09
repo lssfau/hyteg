@@ -787,9 +787,11 @@ class TALASimulation
       //     InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >(
       //     storage, minLevel, maxLevel, *schurOperator, chebyshevSmoother, schurSolver, uzawaOmega, relaxSchur, 1u );
 
+#if defined( HYTEG_BUILD_WITH_PETSC )
       ABlockCoarseGridDirectSolver =
           std::make_shared< PETScLUSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel );
       ABlockCoarseGridDirectSolver->setReassembleMatrix( true );
+#endif
 
       ABlockCoarseGridMinresSolver = std::make_shared< MinResSolver< StokesOperatorType::VelocityOperator_T > >(
           storage, minLevel, minLevel, stokesCoarseMinresIter, stokesCoarseMinresRelTol );
@@ -1100,7 +1102,9 @@ class TALASimulation
        InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >
        inexactUzawaSmoother;
 
+#if defined( HYTEG_BUILD_WITH_PETSC )
    std::shared_ptr< PETScLUSolver< StokesOperatorType::VelocityOperator_T > > ABlockCoarseGridDirectSolver;
+#endif
    std::shared_ptr< MinResSolver< StokesOperatorType::VelocityOperator_T > >  ABlockCoarseGridMinresSolver;
 
    std::shared_ptr< P2toP2QuadraticVectorProlongation >                                  ABlockProlongationOperator;
