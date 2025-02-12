@@ -1439,56 +1439,52 @@ void TALASimulation::solveT()
        "Timestep in Ma = " << ( dt * params.mantleThickness ) / ( params.characteristicVelocity * secondsPerMyr ) << " Ma" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   for ( uint_t iTempSteps = 0u; iTempSteps < 1u; iTempSteps++ )
-   {
-      TInt->assign( { 1.0 }, { *T }, maxLevel, All );
+   TInt->assign( { 1.0 }, { *TPrev }, maxLevel, All );
 
-      transport.step( *TInt, u->uvw(), uPrev->uvw(), maxLevel, Inner, dt, 1, true );
+   transport.step( *TInt, u->uvw(), uPrev->uvw(), maxLevel, Inner, dt, 1, true );
 
-      TInt->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
+   TInt->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
-      // transportOp->setDt( dt );
-      transportTALAOp->setTimestep( dt );
+   // transportOp->setDt( dt );
+   transportTALAOp->setTimestep( dt );
 
-      // real_t supgScaling = mainConf.getParameter< real_t >( "supgScaling" );
-      // transportTALAOp->setSUPGScaling( supgScaling );
+   // real_t supgScaling = mainConf.getParameter< real_t >( "supgScaling" );
+   // transportTALAOp->setSUPGScaling( supgScaling );
 
-      T->assign( { 1.0 }, { *TInt }, maxLevel, All );
+   T->assign( { 1.0 }, { *TInt }, maxLevel, All );
 
-      TKelvin->assign( { params.cmbTemp - params.surfaceTemp }, { *T }, maxLevel, All );
-      real_t minTempK = TKelvin->getMinValue( maxLevel, All );
-      real_t maxTempK = TKelvin->getMaxValue( maxLevel, All );
+   TKelvin->assign( { params.cmbTemp - params.surfaceTemp }, { *T }, maxLevel, All );
+   real_t minTempK = TKelvin->getMinValue( maxLevel, All );
+   real_t maxTempK = TKelvin->getMaxValue( maxLevel, All );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Minimum Temperature before energy solve = " << minTempK );
-      WALBERLA_LOG_INFO_ON_ROOT( "Maximum Temperature before energy solve = " << maxTempK );
-      WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Minimum Temperature before energy solve = " << minTempK );
+   WALBERLA_LOG_INFO_ON_ROOT( "Maximum Temperature before energy solve = " << maxTempK );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-      transportTALAOp->applyRHS( *TRhs, maxLevel, Inner | NeumannBoundary );
+   transportTALAOp->applyRHS( *TRhs, maxLevel, Inner | NeumannBoundary );
 
-      TInt->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
+   TInt->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
-      T->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
+   T->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
-      // transportTALACGSolver->solve( *transportTALAOp, *TP1, TRhs->getVertexDoFFunction(), maxLevel );
-      transportTALAGmresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
+   // transportTALACGSolver->solve( *transportTALAOp, *TP1, TRhs->getVertexDoFFunction(), maxLevel );
+   transportTALAGmresSolver->solve( *transportTALAOp, *T, *TRhs, maxLevel );
 
-      TKelvin->assign( { params.cmbTemp - params.surfaceTemp }, { *T }, maxLevel, All );
-      minTempK = TKelvin->getMinValue( maxLevel, All );
-      maxTempK = TKelvin->getMaxValue( maxLevel, All );
+   TKelvin->assign( { params.cmbTemp - params.surfaceTemp }, { *T }, maxLevel, All );
+   minTempK = TKelvin->getMinValue( maxLevel, All );
+   maxTempK = TKelvin->getMaxValue( maxLevel, All );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Minimum Temperature before energy solve = " << minTempK );
-      WALBERLA_LOG_INFO_ON_ROOT( "Maximum Temperature before energy solve = " << maxTempK );
-      WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Minimum Temperature before energy solve = " << minTempK );
+   WALBERLA_LOG_INFO_ON_ROOT( "Maximum Temperature before energy solve = " << maxTempK );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-      // p1LinearProlongation->prolongate( *( TP1 ), maxLevel, All );
-      // P1toP2Conversion( *( TP1 ), *( T ), maxLevel, All );
+   // p1LinearProlongation->prolongate( *( TP1 ), maxLevel, All );
+   // P1toP2Conversion( *( TP1 ), *( T ), maxLevel, All );
 
-      // T->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
+   // T->interpolate( referenceTempFunc, maxLevel, DirichletBoundary );
 
-      TPrev->assign( { 1.0 }, { *T }, maxLevel, All );
-   }
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
 }
@@ -1511,22 +1507,13 @@ void TALASimulation::step()
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nStarting Picard!\n" ) );
 
    // uPrevIter->assign( { 1.0 }, { *uPrev }, maxLevel, All );
+   uint_t nCouplingSteps = mainConf.getParameter< uint_t >("nCouplingSteps");
 
-   solveT();
-
-   // calculateStokesResidual();
-   // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nStokes residual before = %4.7e\n", residualStokes ) );
-
-   solveU();
-
-   // calculateStokesResidual();
-   // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nStokes residual after = %4.7e\n", residualStokes ) );
-
-   // calculateEnergyResidual();
-
-   // calculateVelocityDifference();
-
-   // uPrevIter->assign( { 1.0 }, { *uPrev }, maxLevel, All );
+   for(uint_t iCoupling = 0u; iCoupling < nCouplingSteps; iCoupling++)
+   {
+      solveT();
+      solveU();
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT(
        walberla::format( "Velocity Difference = %1.7e, Stokes Residual = %1.7e, Transport Residual = %1.7e",

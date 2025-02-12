@@ -16,6 +16,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/gridtransferoperators/P2toP2LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -32,12 +33,12 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
-#include "hyteg/gridtransferoperators/P2toP2LinearProlongation.hpp"
 
 // #include "hyteg/operatorgeneration/generated/DivDiv/P2VectorElementwiseDivDiv_float64.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 // #include "SimpleCompStokesOperator.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvection.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ToP2ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMass.hpp"
@@ -57,6 +58,7 @@ using namespace hyteg;
 using namespace terraneo;
 
 using P2ToP1ElementwiseKMass = operatorgeneration::P2ToP1ElementwiseKMass;
+using P2AdvectionOperator    = operatorgeneration::P2ElementwiseAdvection;
 // using P1ToP2ElementwiseKMass = operatorgeneration::P1ToP2ElementwiseKMass;
 
 namespace hyteg {
@@ -294,8 +296,8 @@ class TALASimulation
       params.rMin = mainConf.getParameter< real_t >( "rMin" );
       params.rMax = mainConf.getParameter< real_t >( "rMax" );
 
-      readInMinLevel = mainConf.getParameter< uint_t >("readInMinLevel");
-      readInMaxLevel = mainConf.getParameter< uint_t >("readInMaxLevel");
+      readInMinLevel = mainConf.getParameter< uint_t >( "readInMinLevel" );
+      readInMaxLevel = mainConf.getParameter< uint_t >( "readInMaxLevel" );
 
       endTime             = mainConf.getParameter< real_t >( "simulationTime" );
       params.maxTimeSteps = mainConf.getParameter< uint_t >( "maxTimeSteps" );
@@ -402,23 +404,24 @@ class TALASimulation
       bcVelocityY.createNeumannBC( "LRNeumann", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
       bcVelocityY.createDirichletBC( "TBDirichlet", { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Corners } );
 
-      TCp      = std::make_shared< P2Function< real_t > >( "TCp", storage_, minLevel, maxLevel, bcTemp );
-      uCp      = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uCp", storage_, minLevel, maxLevel, bcVelocity );
-      
-      TCpStore      = std::make_shared< P2Function< real_t > >( "TCpStore", storage_, minLevel_, maxLevel_, bcTemp );
-      uCpStore      = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uCpStore", storage_, minLevel_, maxLevel_, bcVelocity );
-      
-      TDev      = std::make_shared< P2Function< real_t > >( "TDev", storage_, minLevel_, maxLevel_, bcTemp );
-      TDevPrev  = std::make_shared< P2Function< real_t > >( "TDevPrev", storage_, minLevel_, maxLevel_, bcTemp );
-      TDevInt   = std::make_shared< P2Function< real_t > >( "TDevInt", storage_, minLevel_, maxLevel_, bcTemp );
-      TRef      = std::make_shared< P2Function< real_t > >( "TRef", storage_, minLevel_, maxLevel_, bcTemp );
-      TRefDev   = std::make_shared< P2Function< real_t > >( "TRefDev", storage_, minLevel_, maxLevel_, bcTemp );
-      TRes      = std::make_shared< P2Function< real_t > >( "TRes", storage_, minLevel_, maxLevel_, bcTemp );
-      TRhs      = std::make_shared< P2Function< real_t > >( "TRhs", storage_, minLevel_, maxLevel_, bcTemp );
-      rhoP2     = std::make_shared< P2Function< real_t > >( "rhoP2", storage_, minLevel_, maxLevel_, bcTemp );
-      rhoInvP2  = std::make_shared< P2Function< real_t > >( "rhoInvP2", storage_, minLevel_, maxLevel_, bcTemp );
-      viscP2    = std::make_shared< P2Function< real_t > >( "viscP2", storage_, minLevel_, maxLevel_ );
-      
+      TCp = std::make_shared< P2Function< real_t > >( "TCp", storage_, minLevel, maxLevel, bcTemp );
+      uCp = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uCp", storage_, minLevel, maxLevel, bcVelocity );
+
+      TCpStore = std::make_shared< P2Function< real_t > >( "TCpStore", storage_, minLevel_, maxLevel_, bcTemp );
+      uCpStore = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uCpStore", storage_, minLevel_, maxLevel_, bcVelocity );
+
+      TDev     = std::make_shared< P2Function< real_t > >( "TDev", storage_, minLevel_, maxLevel_, bcTemp );
+      TDevPrev = std::make_shared< P2Function< real_t > >( "TDevPrev", storage_, minLevel_, maxLevel_, bcTemp );
+      TDevInt  = std::make_shared< P2Function< real_t > >( "TDevInt", storage_, minLevel_, maxLevel_, bcTemp );
+      TRef     = std::make_shared< P2Function< real_t > >( "TRef", storage_, minLevel_, maxLevel_, bcTemp );
+      TRefDev  = std::make_shared< P2Function< real_t > >( "TRefDev", storage_, minLevel_, maxLevel_, bcTemp );
+      TRes     = std::make_shared< P2Function< real_t > >( "TRes", storage_, minLevel_, maxLevel_, bcTemp );
+      TRhs     = std::make_shared< P2Function< real_t > >( "TRhs", storage_, minLevel_, maxLevel_, bcTemp );
+      rhoP2    = std::make_shared< P2Function< real_t > >( "rhoP2", storage_, minLevel_, maxLevel_, bcTemp );
+      rhoInvP2 = std::make_shared< P2Function< real_t > >( "rhoInvP2", storage_, minLevel_, maxLevel_, bcTemp );
+      viscP2   = std::make_shared< P2Function< real_t > >( "viscP2", storage_, minLevel_, maxLevel_ );
+      cp       = std::make_shared< P2Function< real_t > >( "cp", storage_, minLevel_, maxLevel_ );
+
       viscP1Scaled2by3 = std::make_shared< P1Function< real_t > >( "viscP1Scaled2by3", storage_, minLevel_, maxLevel_ );
       viscInvP1        = std::make_shared< P1Function< real_t > >( "viscInvP1", storage_, minLevel_, maxLevel_ );
 
@@ -447,6 +450,11 @@ class TALASimulation
       transportOp = std::make_shared< P2TransportTimesteppingOperator >( storage_, minLevel_, maxLevel_, params.diffusivity );
 
       transportTALAOp = std::make_shared< terraneo::P2TransportOperator >( storage_, minLevel_, maxLevel_ );
+
+      cp->interpolate( 1.0, maxLevel, All );
+
+      advectionOperator = std::make_shared< P2AdvectionOperator >(
+          storage, minLevel, maxLevel, *cp, u->uvw().component( 0u ), u->uvw().component( 1u ) );
 
       gradRhoByRhoP2->component( 0U ).interpolate( 0.0, maxLevel_, All );
 
@@ -605,14 +613,13 @@ class TALASimulation
 
       cpStartFilename = mainConf.getParameter< std::string >( "cpStartFilename" );
 
-      
       adios2CheckpointExporter = std::make_shared< AdiosCheckpointExporter >( adiosXmlConfig );
 
       adios2CheckpointExporter->registerFunction( uCp->uvw(), minLevel, maxLevel );
       adios2CheckpointExporter->registerFunction( uCp->p(), minLevel, maxLevel );
       adios2CheckpointExporter->registerFunction( *TCp, minLevel, maxLevel );
 
-      p2LinearProlongation = std::make_shared< P2toP2LinearProlongation >(storage, minLevel, maxLevel);
+      p2LinearProlongation = std::make_shared< P2toP2LinearProlongation >( storage, minLevel, maxLevel );
 
       p1LinearProlongation = std::make_shared< P1toP1LinearProlongation< real_t > >();
    }
@@ -631,10 +638,12 @@ class TALASimulation
 
    uint_t readInMinLevel, readInMaxLevel;
 
+   std::shared_ptr< P2Function< real_t > >             cp;
    std::shared_ptr< P2Function< real_t > >             TCp, TCpStore;
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > uCp, uCpStore;
 
-   std::shared_ptr< P2Function< real_t > > TDev, TDevPrev, TDevInt, TRef, TRefDev, TRhs, TRes, rhoP2, rhoInvP2, zero, viscP2, Ttemp;
+   std::shared_ptr< P2Function< real_t > > TDev, TDevPrev, TDevInt, TRef, TRefDev, TRhs, TRes, rhoP2, rhoInvP2, zero, viscP2,
+       Ttemp;
    std::shared_ptr< P1Function< real_t > >             viscInvP1, viscP1Scaled2by3;
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > u, uRes, uPrev, uPrevIter, uRhs, uRhsStrong, uTemp;
    std::shared_ptr< P2VectorFunction< real_t > >       gradRhoByRhoP2;
@@ -660,11 +669,13 @@ class TALASimulation
 
    std::shared_ptr< terraneo::P2TransportOperator > transportTALAOp;
 
+   std::shared_ptr< P2AdvectionOperator > advectionOperator;
+
    //    std::shared_ptr< P2P1THCompStokesOperator > compStokesOp;
 
    MMOCTransport< P2Function< real_t > > transport;
 
-   std::shared_ptr< P2toP2LinearProlongation > p2LinearProlongation;
+   std::shared_ptr< P2toP2LinearProlongation >           p2LinearProlongation;
    std::shared_ptr< P1toP1LinearProlongation< real_t > > p1LinearProlongation;
 
    // Solvers
@@ -717,7 +728,7 @@ void TALASimulation::solveU()
 
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
-   bool ala = mainConf.getParameter< bool >("ala");
+   bool ala = mainConf.getParameter< bool >( "ala" );
    // bool frd = mainConf.getParameter< bool >("frd");
 
    // operatorgeneration::P2VectorElementwiseDivDiv_float64 divdiv(storage, minLevel, maxLevel, *viscP2);
@@ -732,7 +743,7 @@ void TALASimulation::solveU()
 
    operatorgeneration::P1ToP2ElementwiseKMass alaOp( storage, minLevel, maxLevel, alaCoeff );
 
-   if( ala )
+   if ( ala )
    {
       alaOp.apply( u->p(), uRhs->uvw().component( 1U ), maxLevel, All, Add );
    }
@@ -745,11 +756,11 @@ void TALASimulation::solveU()
 
    DoFType flags = Inner;
 
-   real_t residualVelocityTolPicard = mainConf.getParameter< real_t >("residualVelocityTolPicard");
+   real_t residualVelocityTolPicard = mainConf.getParameter< real_t >( "residualVelocityTolPicard" );
 
-   uint_t nStokesPicard = mainConf.getParameter< uint_t >("nStokesPicard");
+   uint_t nStokesPicard = mainConf.getParameter< uint_t >( "nStokesPicard" );
 
-   bool direct = mainConf.getParameter< bool >("direct");
+   bool direct = mainConf.getParameter< bool >( "direct" );
 
    zero->getVertexDoFFunction().interpolate( 1.0, maxLevel, All );
 
@@ -757,14 +768,14 @@ void TALASimulation::solveU()
    {
       stokesOperator->apply( *u, *uTemp, maxLevel, flags );
       uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, flags );
-      real_t residualBefore = uTemp->dotGlobal( *uTemp, maxLevel, flags );
+      real_t residualBefore         = uTemp->dotGlobal( *uTemp, maxLevel, flags );
       real_t residualVelocityBefore = uTemp->uvw().dotGlobal( uTemp->uvw(), maxLevel, flags );
       real_t residualPressureBefore = uTemp->p().dotGlobal( uTemp->p(), maxLevel, flags );
 
       u->uvw().interpolate( 0.0, maxLevel, DirichletBoundary );
       u->p().interpolate( 0.0, maxLevel, DirichletBoundary );
 
-      if( direct )
+      if ( direct )
       {
          stokesDirectSolver->solve( *stokesOperator, *u, *uRhs, maxLevel );
       }
@@ -774,15 +785,15 @@ void TALASimulation::solveU()
       }
       // stokesMinresSolverNoFS->solve( *stokesOperator, *u, *uRhs, maxLevel );
 
-      real_t minP = u->p().getMinValue(maxLevel, All);
-      u->p().assign({1.0, -minP}, {u->p(), zero->getVertexDoFFunction()}, maxLevel, All);
+      real_t minP = u->p().getMinValue( maxLevel, All );
+      u->p().assign( { 1.0, -minP }, { u->p(), zero->getVertexDoFFunction() }, maxLevel, All );
       // vertexdof::projectMean( u->p(), maxLevel );
 
       vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
       // divdiv.apply(u->uvw(), uRhs->uvw(), maxLevel, All, Add);
 
-      if( ala )
+      if ( ala )
       {
          alaOp.apply( u->p(), uRhs->uvw().component( 1U ), maxLevel, All, Add );
       }
@@ -792,34 +803,44 @@ void TALASimulation::solveU()
 
       stokesOperator->apply( *u, *uTemp, maxLevel, flags );
       uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, flags );
-      real_t residualAfter = uTemp->dotGlobal( *uTemp, maxLevel, flags );
+      real_t residualAfter         = uTemp->dotGlobal( *uTemp, maxLevel, flags );
       real_t residualVelocityAfter = uTemp->uvw().dotGlobal( uTemp->uvw(), maxLevel, flags );
       real_t residualPressureAfter = uTemp->p().dotGlobal( uTemp->p(), maxLevel, flags );
 
       WALBERLA_LOG_INFO_ON_ROOT( "Picard iter " << iStokesPicard + 1 )
       WALBERLA_LOG_INFO_ON_ROOT( "Stokes Residual Before = " << residualBefore << std::endl
-                                                            << "Stokes Residual After = " << residualAfter << std::endl );
+                                                             << "Stokes Residual After = " << residualAfter << std::endl );
       WALBERLA_LOG_INFO_ON_ROOT( "Velocity Residual Before = " << residualVelocityBefore << std::endl
-                                                            << "Velocity Residual After = " << residualVelocityAfter << std::endl );
+                                                               << "Velocity Residual After = " << residualVelocityAfter
+                                                               << std::endl );
       WALBERLA_LOG_INFO_ON_ROOT( "Pressure Residual Before = " << residualPressureBefore << std::endl
-                                                            << "Pressure Residual After = " << residualPressureAfter << std::endl );
+                                                               << "Pressure Residual After = " << residualPressureAfter
+                                                               << std::endl );
 
-      if( residualVelocityAfter < residualVelocityTolPicard )
+      if ( residualVelocityAfter < residualVelocityTolPicard )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Picard velocity tolerance reached" );
          break;
       }
    }
 
-   
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STOKES SOLVER DONE!" ) );
 }
 
 void TALASimulation::solveT()
 {
+   DoFType residualCalcFlag = Inner;
+
    transportTALAOp->calculateTimestep( params.cflMax );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING TRANSPORT SOLVER with dt = %2.6e", transportTALAOp->timestep ) );
+
+   TDev->assign({1.0}, {*TDevPrev}, maxLevel, All);
+
+   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, All );
+   advectionOperator->apply( *TDev, *Ttemp, maxLevel, All, Add );
+   Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
+   real_t residualBeforeMMOC = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
 
    if ( params.MMOC )
       transportTALAOp->stepMMOC( maxLevel );
@@ -831,9 +852,8 @@ void TALASimulation::solveT()
 
    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
 
-   DoFType residualCalcFlag = All;
-
-   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, residualCalcFlag );
+   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, All );
+   advectionOperator->apply( *TDev, *Ttemp, maxLevel, All, Add );
    Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
    real_t residualBefore = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
 
@@ -841,7 +861,8 @@ void TALASimulation::solveT()
    // transportTALAMinresSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
    // transportTALADirectSolver->solve( *transportTALAOp, *TDev, *TRhs, maxLevel );
 
-   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, residualCalcFlag );
+   transportTALAOp->apply( *TDev, *Ttemp, maxLevel, All );
+   advectionOperator->apply( *TDev, *Ttemp, maxLevel, All, Add );
    Ttemp->assign( { 1.0, -1.0 }, { *Ttemp, *TRhs }, maxLevel, residualCalcFlag );
    real_t residualAfter = Ttemp->dotGlobal( *Ttemp, maxLevel, residualCalcFlag );
 
@@ -867,9 +888,12 @@ void TALASimulation::solveT()
 
    //    TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Transport Residual Before = " << residualBefore << std::endl
+   WALBERLA_LOG_INFO_ON_ROOT("");
+   WALBERLA_LOG_INFO_ON_ROOT( "Transport Residual Before MMOC = " << residualBeforeMMOC << std::endl << "Transport Residual Before = " << residualBefore << std::endl
                                                              << "Transport Residual After = " << residualAfter << std::endl );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
+   WALBERLA_LOG_INFO_ON_ROOT("");
+
 }
 
 void TALASimulation::step()
@@ -882,9 +906,15 @@ void TALASimulation::step()
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Peclet number = %f", Pe ) );
 
-   solveT();
+   uint_t nCouplingIter = mainConf.getParameter< uint_t >("nCouplingIter");
 
-   solveU();
+   for(uint_t couplingIter = 0u; couplingIter < nCouplingIter; couplingIter++)
+   {
+      solveT();
+      solveU();
+
+      writeVTK( couplingIter + 1 );
+   }
 
    TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
 
@@ -900,16 +930,16 @@ void TALASimulation::solve()
 
    if ( startFromCheckpoint )
    {
-      WALBERLA_LOG_INFO_ON_ROOT("Starting from checkpoint");
-      
-      uint_t importStep = mainConf.getParameter< uint_t >("importStep");
+      WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint" );
+
+      uint_t importStep = mainConf.getParameter< uint_t >( "importStep" );
 
       adios2CheckpointImporter = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
-      uint_t lastStep = adios2CheckpointImporter->getTimestepInfo().size();
+      uint_t lastStep          = adios2CheckpointImporter->getTimestepInfo().size();
 
-      if(importStep > lastStep - 1)
+      if ( importStep > lastStep - 1 )
       {
-         WALBERLA_LOG_INFO_ON_ROOT("importStep is greater than lastStep, so using lastStep for checkpoint");
+         WALBERLA_LOG_INFO_ON_ROOT( "importStep is greater than lastStep, so using lastStep for checkpoint" );
          importStep = lastStep - 1;
       }
 
@@ -917,13 +947,13 @@ void TALASimulation::solve()
       adios2CheckpointImporter->restoreFunction( uCp->p(), readInMinLevel, readInMaxLevel, importStep );
       adios2CheckpointImporter->restoreFunction( *TCp, readInMinLevel, readInMaxLevel, importStep );
 
-      for(uint level = readInMaxLevel; level < maxLevel; level++)
+      for ( uint level = readInMaxLevel; level < maxLevel; level++ )
       {
-         p2LinearProlongation->prolongate(uCp->uvw().component(0u), level, All);
-         p2LinearProlongation->prolongate(uCp->uvw().component(1u), level, All);
-         p1LinearProlongation->prolongate(uCp->p(), level, All);
+         p2LinearProlongation->prolongate( uCp->uvw().component( 0u ), level, All );
+         p2LinearProlongation->prolongate( uCp->uvw().component( 1u ), level, All );
+         p1LinearProlongation->prolongate( uCp->p(), level, All );
 
-         p2LinearProlongation->prolongate(*TCp, level, All);
+         p2LinearProlongation->prolongate( *TCp, level, All );
       }
 
       u->assign( { 1.0 }, { *uCp }, maxLevel, All );
@@ -991,19 +1021,19 @@ void TALASimulation::solve()
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Storing Checkpoint!" );
 
-         uCp->assign({1.0}, {*u}, maxLevel, All);
-         TCp->assign({1.0}, {*TDev}, maxLevel, All);
+         uCp->assign( { 1.0 }, { *u }, maxLevel, All );
+         TCp->assign( { 1.0 }, { *TDev }, maxLevel, All );
 
          adios2CheckpointExporter->storeCheckpointContinuous( cpPath, cpFilename, simulationTime );
       }
    }
 
-   if( storeCheckpoint )
+   if ( storeCheckpoint )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Storing final Checkpoint!" );
 
-      uCp->assign({1.0}, {*u}, maxLevel, All);
-      TCp->assign({1.0}, {*TDev}, maxLevel, All);
+      uCp->assign( { 1.0 }, { *u }, maxLevel, All );
+      TCp->assign( { 1.0 }, { *TDev }, maxLevel, All );
 
       adios2CheckpointExporter->storeCheckpointContinuous( cpPath, cpFilename, simulationTime, true );
    }

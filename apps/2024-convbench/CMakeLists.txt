@@ -50,4 +50,4 @@ waLBerla_add_executable( NAME TosiNonlinearUnitSquare
 
 waLBerla_add_executable( NAME KingTALA
         FILES  KingTALA.cpp
-        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-mass opgen-k_mass opgen-div_k_grad opgen-epsilon opgen-terraneo opgen-composites-stokes)
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-advection opgen-mass opgen-k_mass opgen-div_k_grad opgen-epsilon opgen-terraneo opgen-composites-stokes)

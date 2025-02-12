@@ -425,8 +425,8 @@ class P0Function : public Function< P0Function< ValueType > >
                                                                   coarseLevel,
                                                                   volumedofspace::indexing::VolumeDoFMemoryLayout::SoA )] =
                      // fineElementIndices.size() / fineInvAverage;
-                     // fineAverage / fineElementIndices.size();
-                     fineGeoAverage;
+                     fineAverage / fineElementIndices.size();
+                     // fineGeoAverage;
                }
             }
          }
@@ -567,9 +567,9 @@ class P0Function : public Function< P0Function< ValueType > >
       // auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
       //             valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 
-      // return (val1 + val2 + val3 + val4 + val5) / 5.0;
-      return std::pow(val1, 1.0 / 5.0) * std::pow(val2, 1.0 / 5.0) 
-      * std::pow(val3, 1.0 / 5.0) * std::pow(val4, 1.0 / 5.0) * std::pow(val5, 1.0 / 5.0);
+      return (val1 + val2 + val3 + val4 + val5) / 5.0;
+      // return std::pow(val1, 1.0 / 5.0) * std::pow(val2, 1.0 / 5.0) 
+      // * std::pow(val3, 1.0 / 5.0) * std::pow(val4, 1.0 / 5.0) * std::pow(val5, 1.0 / 5.0);
       // return 5.0 / ( (1.0 / value) + (1.0 / valueTet0) + (1.0 / valueTet1) + (1.0 / valueTet2) + (1.0 / valueTet3) );
       // return 4.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) );
       // return 5.0 / ( (1.0 / val1) + (1.0 / val2) + (1.0 / val3) + (1.0 / val4) + (1.0 / val5) );

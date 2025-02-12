@@ -8,7 +8,7 @@ Parameters
   # rMin 3.141592653589793;
   # rMax 6.283185307179586;
 
-  RayleighNumber 3e5;
+  RayleighNumber 1e4;
   DissipationNumber 0.25;
   alpha 1.0;
   thermalConductivity 1.0;
@@ -62,7 +62,9 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 25001;
+  nCouplingIter 10;
+  
+  maxTimeSteps 2;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
@@ -81,11 +83,11 @@ Parameters
   importStep 999999;
 
   outputPath ./output/gmd_stuff/king/;
-  outputFilename KingSquare_ALA_Ra_3e5_Di_0_25;
+  outputFilename KingSquare_Debug;
   vtkWriteFrequency 25;
   adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
 
   storeCheckpointFreq 1000;
-  storeCheckpoint true;
-  startFromCheckpoint true;
+  storeCheckpoint false;
+  startFromCheckpoint false;
 }
