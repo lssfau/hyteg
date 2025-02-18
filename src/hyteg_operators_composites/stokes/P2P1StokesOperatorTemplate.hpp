@@ -120,14 +120,14 @@ class P2P1StokesConstViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
 /// \tparam GradientOperator   Bᵀ
 /// \tparam DivergenceOperator B
 ///
-template < typename ViscousOperator, typename GradientOperator, typename DivergenceOperator >
+template < typename ViscousOperator, typename GradientOperator, typename DivergenceOperator, typename ViscosityFunctionType >
 class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
    P2P1StokesVarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
                                       uint_t                                     minLevel,
                                       uint_t                                     maxLevel,
-                                      const P2Function< real_t >&                mu )
+                                      const ViscosityFunctionType&               mu )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel, mu )
    , BT( storage, minLevel, maxLevel )

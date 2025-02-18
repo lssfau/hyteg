@@ -21,12 +21,14 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP0Viscosity.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1Viscosity.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 #include "hyteg_operators_composites/gradient/P1ToP2GradientOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesOperatorTemplate.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockEpsilonOperator.hpp"
-#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
 
 namespace hyteg {
 namespace operatorgeneration {
@@ -52,24 +54,46 @@ namespace operatorgeneration {
 ///
 using P2P1StokesEpsilonOperator = detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockEpsilonOperator,
                                                                              operatorgeneration::P1ToP2GradientOperator,
-                                                                             operatorgeneration::P2ToP1DivergenceOperator >;
+                                                                             operatorgeneration::P2ToP1DivergenceOperator,
+                                                                             P2Function< real_t > >;
+
+using P2P1StokesEpsilonP0ViscosityOperator =
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonP0Viscosity,
+                                               operatorgeneration::P1ToP2GradientOperator,
+                                               operatorgeneration::P2ToP1DivergenceOperator,
+                                               P0Function< real_t > >;
+
+using P2P1StokesEpsilonP1ViscosityOperator =
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonP1Viscosity,
+                                               operatorgeneration::P1ToP2GradientOperator,
+                                               operatorgeneration::P2ToP1DivergenceOperator,
+                                               P1Function< real_t > >;
 
 /// P2P1StokesEpsilonOperator with AnnulusMap blending. See documentation of P2P1StokesEpsilonOperator.
 using P2P1StokesEpsilonAnnulusMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockEpsilonAnnulusMapOperator,
                                                operatorgeneration::P1ToP2GradientAnnulusMapOperator,
-                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
+                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator,
+                                               P2Function< real_t > >;
 
 /// P2P1StokesEpsilonOperator with IcosahedralShellMap blending. See documentation of P2P1StokesEpsilonOperator.
 using P2P1StokesEpsilonIcosahedralShellMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonIcosahedralShellMap,
                                                operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
-                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P2Function< real_t > >;
+
+using P2P1StokesEpsilonP0ViscosityIcosahedralShellMapOperator =
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap,
+                                               operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P0Function< real_t > >;
 
 using P2P1StokesEpsilonP1ViscosityIcosahedralShellMapOperator =
-    detail::P2P1StokesP1VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap,
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap,
                                                operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
-                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P1Function< real_t > >;
 
 } // namespace operatorgeneration
 } // namespace hyteg
