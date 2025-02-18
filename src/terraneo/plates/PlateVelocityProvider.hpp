@@ -134,22 +134,28 @@ class PlateVelocityProvider
          return errorHandler( point, age );
       }
 
-      // We average since at least some of the samples are on at least one other plate.
-      // This is possibly slightly inaccurate since we are averaging over the cartesian velocity vectors and then projecting out
-      // the normal component. It would be better to average in the "latlon-space", average, and then return the cartesian vector.
-      // But the average itself is already a somewhat arbitrary and physically meaningless approximation, this might just work.
-
       vec3D  avgVelCart( 0, 0, 0 );
       real_t weightSum = 0;
 
       const auto pointsAndWeights = pointWeightProvider.samplePointsAndWeightsLonLat( pointLonLat );
 
       real_t maxDistance = 0.0;
-
       for ( const auto& [samplePointSphLonLat, weight] : pointsAndWeights )
       {
          maxDistance = std::max( maxDistance, distancePointPoint( pointLonLat, samplePointSphLonLat ) );
+      }
 
+      if ( maxDistance < distance )
+      {
+         // We do not apply averaging since all points that would be used for averaging are on the same plate.
+         WALBERLA_LOG_DETAIL_ON_ROOT( "No averaging." );
+         WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
+         return computeCartesianVelocityVector( plateRotations_, plateID, age, pointLonLat, 1.0 );
+      }
+
+      // We average since at least some of the samples are possibly on at least one other plate.
+      for ( const auto& [samplePointSphLonLat, weight] : pointsAndWeights )
+      {
          uint_t avgPointPlateID{ 0 };
          bool   avgPointPlateFound{ false };
          real_t avgPointDistance{ real_c( -1 ) };
@@ -162,17 +168,13 @@ class PlateVelocityProvider
             return errorHandler( samplePointSphLonLat, age );
          }
 
+         // This is possibly slightly inaccurate since we are averaging over the cartesian velocity vectors and then projecting
+         // out the normal component. It would be better to average in the "lonlat-space" and then convert and return the
+         // cartesian vector. On the other hand, averaging the plate velocities is already a somewhat arbitrary and physically
+         // meaningless approximation in the first place, so this might just work.
          avgVelCart +=
              weight * computeCartesianVelocityVector( plateRotations_, avgPointPlateID, age, samplePointSphLonLat, 1.0 );
          weightSum += weight;
-      }
-
-      if ( maxDistance < distance )
-      {
-         // We do not apply averaging since all points that would be used for averaging are on the same plate.
-         WALBERLA_LOG_DETAIL_ON_ROOT( "No averaging." );
-         WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
-         return computeCartesianVelocityVector( plateRotations_, plateID, age, pointLonLat, 1.0 );
       }
 
       avgVelCart /= weightSum;
