@@ -576,6 +576,8 @@ void ConvectionSimulation::solveStokes()
    }
 
    real_t stokesResidual = calculateStokesResidual( TN.domainParameters.maxLevel );
+   // For calculation of relative stokes Residual
+   real_t stokesResidualInitial = stokesResidual;
 
    TN.solverParameters.vCycleResidualUPrev       = stokesResidual;
    TN.solverParameters.initialResidualU          = stokesResidual;
@@ -620,6 +622,10 @@ void ConvectionSimulation::solveStokes()
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Stokes residual (final): " << stokesResidual );
+
+   real_t relStokesResidual = stokesResidual / stokesResidualInitial;
+   WALBERLA_LOG_INFO_ON_ROOT( "Relative stokes residual (final): " << relStokesResidual );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
    if ( TN.outputParameters.createTimingDB )
    {
       db->setVariableEntry( "Stokes_residual_final", stokesResidual );

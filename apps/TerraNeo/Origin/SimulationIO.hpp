@@ -41,7 +41,7 @@ void ConvectionSimulation::setupOutput()
    else
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-      WALBERLA_LOG_INFO_ON_ROOT( "Output format: ADIOS2 - BP4" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output format: ADIOS2 - BP5" );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       _output = std::make_shared< AdiosWriter >( TN.outputParameters.outputDirectory,
                                                  TN.outputParameters.outputBaseName,

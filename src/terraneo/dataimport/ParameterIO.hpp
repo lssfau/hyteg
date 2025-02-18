@@ -139,6 +139,8 @@ inline void loadRadialProfile( const walberla::Config::BlockHandle& mainConf,
 
 // define plate velocity oracle
 std::shared_ptr< terraneo::plates::PlateVelocityProvider > oracle;
+// define plate velocity averaging point provider
+std::shared_ptr< terraneo::plates::UniformCirclesPointWeightProvider > avgPointProvider;
 
 inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {

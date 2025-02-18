@@ -141,21 +141,15 @@ real_t ConvectionSimulation::surfaceTempCoefficientFunction( const Point3D& )
 
 void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
 {
-   uint_t coordIdx = 0;
+   uint_t                                           coordIdx = 0;
+   terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
 
-   //function to return plate velocities, copied and adapted from PlateVelocityDemo.cpp.
-   std::function< real_t( const Point3D& ) > Velocity = [&coordIdx]( const Point3D& x ) {
-      terraneo::vec3D coords{ x[0], x[1], x[2] };
-      //get velocity at current plate age (intervals of 1Ma)
-      terraneo::vec3D velocity = oracle->getPointVelocity(
-          coords,
-          TN.simulationParameters.plateAge,
-          terraneo::plates::LinearDistanceSmoother{ real_c( 1 ) / TN.simulationParameters.plateSmoothingDistance },
-          terraneo::plates::DefaultPlateNotFoundHandler{} );
-
-      return velocity[int_c( coordIdx )] /
-             ( TN.physicalParameters.characteristicVelocity *
-               TN.simulationParameters.plateVelocityScaling ); //non-dimensionalise by dividing by characteristic velocity
+   // callback function for computing the velocity components
+   std::function< real_t( const Point3D& ) > Velocity = [&coordIdx, &handlerWithStatistics]( const Point3D& point ) {
+      vec3D coords{ point[0], point[1], point[2] };
+      vec3D velocity = oracle->getLocallyAveragedPointVelocity(
+          coords, TN.simulationParameters.plateAge, *avgPointProvider, handlerWithStatistics );
+      return velocity[int_c( coordIdx )];
    };
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
