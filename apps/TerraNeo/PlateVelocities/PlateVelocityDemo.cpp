@@ -92,7 +92,8 @@ void performComputations( uint_t                                     level,
    uint_t                                           coordIdx = 0;
    terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
 
-   plates::UniformCirclesPointWeightProvider avgPointProvider( { { 1.0 / 100.0, 6 }, { 1.0 / 50.0, 12 } }, 1e-1 );
+   // plates::UniformCirclesPointWeightProvider avgPointProvider( { { 1.0 / 100.0, 6 }, { 1.0 / 50.0, 12 } }, 1e-1 );
+   plates::UniformCirclesPointWeightProvider avgPointProvider( { { 1.0 / 100.0, 6 } }, 1e-1 );
 
    // callback function for computing the velocity components
    std::function< real_t( const Point3D& ) > computeVelocityComponent =

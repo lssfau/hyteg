@@ -24,6 +24,7 @@
 
 #include "terraneo/helpers/conversions.hpp"
 #include "terraneo/helpers/typeAliases.hpp"
+#include "terraneo/plates/functionsForGeometry.hpp"
 
 namespace terraneo::plates {
 
@@ -113,6 +114,9 @@ class LocalAveragingPointWeightProvider
    /// To construct an average, the weighted sum of the values at the points must be divided by the sum of the weights.
    /// There is no restriction on the sum of the weights. Ensure to always perform that division.
    virtual std::vector< std::pair< vec3D, real_t > > samplePointsAndWeightsLonLat( const vec3D& pointOnSurfaceLonLat ) const = 0;
+
+   /// \brief Returns the maximum distance of any sample point to the provided point in lonlat.
+   virtual real_t maxDistance( const vec3D& pointOnSurfaceLonLat ) const = 0;
 };
 
 /// \brief Implements an averaging rule based on points that are arranged in zero or more circles with given radii and resolutions
@@ -155,6 +159,14 @@ class UniformCirclesPointWeightProvider final : public LocalAveragingPointWeight
             sampleOffsets2DCart_.emplace_back( point, weight );
          }
       }
+
+      const vec3D centerLonLat( 0, 0, 1 );
+      const auto  pointsAndWeights = samplePointsAndWeightsLonLat( centerLonLat );
+      maxDistance_                 = 0.0;
+      for ( const auto& [samplePointSphLonLat, weight] : pointsAndWeights )
+      {
+         maxDistance_ = std::max( maxDistance_, distancePointPoint( centerLonLat, samplePointSphLonLat ) );
+      }
    }
 
    std::vector< std::pair< vec3D, real_t > > samplePointsAndWeightsLonLat( const vec3D& pointOnSurfaceLonLat ) const override
@@ -162,8 +174,11 @@ class UniformCirclesPointWeightProvider final : public LocalAveragingPointWeight
       return samplePointsAndWeightsLonLatFrom2DCartOffsets( pointOnSurfaceLonLat, sampleOffsets2DCart_ );
    }
 
+   real_t maxDistance( const vec3D& ) const override { return maxDistance_; }
+
  private:
    std::vector< std::pair< vec3D, real_t > > sampleOffsets2DCart_;
+   real_t                                    maxDistance_;
 };
 
 /// \brief Implements an averaging rule based on points that are arranged in a 2D Fibonacci Lattice.
@@ -197,6 +212,14 @@ class FibonacciLatticePointWeightProvider final : public LocalAveragingPointWeig
 
          sampleOffsets2DCart_.emplace_back( offset, weight );
       }
+
+      const vec3D centerLonLat( 0, 0, 1 );
+      const auto  pointsAndWeights = samplePointsAndWeightsLonLat( centerLonLat );
+      maxDistance_                 = 0.0;
+      for ( const auto& [samplePointSphLonLat, weight] : pointsAndWeights )
+      {
+         maxDistance_ = std::max( maxDistance_, distancePointPoint( centerLonLat, samplePointSphLonLat ) );
+      }
    }
 
    std::vector< std::pair< vec3D, real_t > > samplePointsAndWeightsLonLat( const vec3D& pointOnSurfaceLonLat ) const override
@@ -204,8 +227,11 @@ class FibonacciLatticePointWeightProvider final : public LocalAveragingPointWeig
       return samplePointsAndWeightsLonLatFrom2DCartOffsets( pointOnSurfaceLonLat, sampleOffsets2DCart_ );
    }
 
+   real_t maxDistance( const vec3D& ) const override { return maxDistance_; }
+
  private:
    std::vector< std::pair< vec3D, real_t > > sampleOffsets2DCart_;
+   real_t                                    maxDistance_;
 };
 
 } // namespace terraneo::plates

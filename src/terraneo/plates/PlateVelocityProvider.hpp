@@ -137,21 +137,15 @@ class PlateVelocityProvider
       vec3D  avgVelCart( 0, 0, 0 );
       real_t weightSum = 0;
 
-      const auto pointsAndWeights = pointWeightProvider.samplePointsAndWeightsLonLat( pointLonLat );
-
-      real_t maxDistance = 0.0;
-      for ( const auto& [samplePointSphLonLat, weight] : pointsAndWeights )
-      {
-         maxDistance = std::max( maxDistance, distancePointPoint( pointLonLat, samplePointSphLonLat ) );
-      }
-
-      if ( maxDistance < distance )
+      if ( pointWeightProvider.maxDistance( pointLonLat ) < distance )
       {
          // We do not apply averaging since all points that would be used for averaging are on the same plate.
          WALBERLA_LOG_DETAIL_ON_ROOT( "No averaging." );
          WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
          return computeCartesianVelocityVector( plateRotations_, plateID, age, pointLonLat, 1.0 );
       }
+
+      const auto pointsAndWeights = pointWeightProvider.samplePointsAndWeightsLonLat( pointLonLat );
 
       // We average since at least some of the samples are possibly on at least one other plate.
       for ( const auto& [samplePointSphLonLat, weight] : pointsAndWeights )
