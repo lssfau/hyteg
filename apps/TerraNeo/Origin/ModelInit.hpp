@@ -340,7 +340,7 @@ void ConvectionSimulation::initialiseFunctions()
       terraneo::oracle = std::make_shared< terraneo::plates::PlateVelocityProvider >(
           TN.simulationParameters.fnameTopologies, TN.simulationParameters.fnameReconstructions );
       // Plate averaging object
-      std::vector< std::pair< real_t, int > > weightPairs = { { 1.0 / 100.0, 6 }, { 1.0 / 50.0, 12 } };
+      std::vector< std::pair< real_t, int > > weightPairs = { { 1.0 / 100.0, 6 } };
       terraneo::avgPointProvider = std::make_shared< terraneo::plates::UniformCirclesPointWeightProvider >( weightPairs, 1e-1 );
    }
    // Assign temperature field to temperaturePrev
