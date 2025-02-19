@@ -161,10 +161,7 @@ class P2P1StokesRotationWrapper : public Operator< P2P1TaylorHoodFunction< real_
    , stokesABlockWrappedOperator_( storage, minLevel, maxLevel, *this )
    , tmp_( "tmp__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
    , tmpdst_( "tmpdst__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
-   , tmpAssembly_( "tmpAssembly__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
-   {
-      tmpAssembly_.enumerate( maxLevel );
-   }
+   { }
 
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
                const P2P1TaylorHoodFunction< real_t >& dst,
@@ -184,38 +181,13 @@ class P2P1StokesRotationWrapper : public Operator< P2P1TaylorHoodFunction< real_
       dst.assign( { 1.0 }, { tmpdst_ }, level, All );
    }
 
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2P1TaylorHoodFunction< idx_t >&      numeratorSrc,
-                  const P2P1TaylorHoodFunction< idx_t >&      numeratorDst,
-                  uint_t                                      level,
-                  DoFType                                     flag ) const
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& ,
+                  const P2P1TaylorHoodFunction< idx_t >&      ,
+                  const P2P1TaylorHoodFunction< idx_t >&      ,
+                  uint_t                                      ,
+                  DoFType                                      ) const
    {
-      auto matProxyOp = mat->createCopy();
-
-      {
-         stokesViscousWrappedOperator_.toMatrix( matProxyOp, numeratorSrc.uvw(), numeratorDst.uvw(), level, flag );
-         stokesBaseOperator_.getBT().toMatrix( matProxyOp, numeratorSrc.p(), numeratorDst.uvw(), level, flag );
-         stokesBaseOperator_.getB().toMatrix( matProxyOp, numeratorSrc.uvw(), numeratorDst.p(), level, flag );
-      }
-
-      auto matProxyProjectionPost = mat->createCopy();
-
-      rotationOperator_.toMatrix(
-          matProxyProjectionPost, tmpAssembly_.uvw(), numeratorDst.uvw(), level, FreeslipBoundary, false );
-
-      // we need the Id also in the pressure block
-      saveIdentityOperator( numeratorSrc.p(), matProxyProjectionPost, level, All );
-
-      std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
-      matrices.push_back( matProxyProjectionPost );
-      matrices.push_back( matProxyOp );
-
-      auto matProxyProjectionPre = mat->createCopy();
-      rotationOperator_.toMatrix( matProxyProjectionPre, tmpAssembly_.uvw(), numeratorDst.uvw(), level, FreeslipBoundary, true );
-      saveIdentityOperator( numeratorSrc.p(), matProxyProjectionPre, level, All );
-      matrices.push_back( matProxyProjectionPre );
-
-      mat->createFromMatrixProduct( matrices );
+      WALBERLA_ABORT("Not implemented");
    }
 
    const VelocityOperator_T&      getA() const { return stokesABlockWrappedOperator_; }
@@ -236,8 +208,6 @@ class P2P1StokesRotationWrapper : public Operator< P2P1TaylorHoodFunction< real_
 
    P2P1TaylorHoodFunction< real_t > tmp_;
    P2P1TaylorHoodFunction< real_t > tmpdst_;
-
-   P2P1TaylorHoodFunction< idx_t > tmpAssembly_;
 };
 
 template < typename StokesViscousOperatorRotationWrapperType, typename ViscosityFunctionType >
@@ -359,6 +329,7 @@ void runTimingTest( const std::shared_ptr< PrimitiveStorage >& storage, const wa
    uint_t uzawaPostSmooth = mainConf.getParameter< uint_t >( "uzawaPostSmooth" );
 
    uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
+   uint_t fgmresRestartIter = mainConf.getParameter< uint_t >( "fgmresRestartIter" );
 
    //
 
@@ -484,12 +455,7 @@ void runTimingTest( const std::shared_ptr< PrimitiveStorage >& storage, const wa
    auto uRhsRotated =
        std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhsRotated", storage, minLevel, maxLevel, bcVelocity );
 
-   auto normalsP2Vec = std::make_shared< P2VectorFunction< real_t > >( "normalsP2Vec", storage, minLevel, maxLevel, bcVelocity );
-
-   for ( uint_t iLevel = minLevel; iLevel <= maxLevel; iLevel++ )
-   {
-      normalsP2Vec->interpolate( { normalsX, normalsY, normalsZ }, iLevel, FreeslipBoundary );
-   }
+   std::shared_ptr< P2VectorFunction< real_t > > normalsP2Vec;
 
    rhoP1->interpolate( rhoFunc, maxLevel, All );
 
@@ -554,6 +520,13 @@ void runTimingTest( const std::shared_ptr< PrimitiveStorage >& storage, const wa
    else if constexpr ( std::is_same_v< StokesOperatorType,
                                        P2P1StokesOpgenRotationWrapper< StokesViscousOperatorType, ViscosityFunctionType > > )
    {
+      normalsP2Vec = std::make_shared< P2VectorFunction< real_t > >( "normalsP2Vec", storage, minLevel, maxLevel, bcVelocity );
+      
+      for ( uint_t iLevel = minLevel; iLevel <= maxLevel; iLevel++ )
+      {
+         normalsP2Vec->interpolate( { normalsX, normalsY, normalsZ }, iLevel, FreeslipBoundary );
+      }
+      
       if constexpr ( std::is_same_v< ViscosityFunctionType, P0Function< real_t > > )
       {
          stokesOperator = std::make_shared< StokesOperatorType >( storage,
@@ -608,7 +581,7 @@ void runTimingTest( const std::shared_ptr< PrimitiveStorage >& storage, const wa
        std::make_shared< CGSolver< SchurOperatorType > >( storage, minLevel, maxLevel, cgSchurSmootherIter, cgSchurSmootherTol );
 
    auto ABlockCoarseGridMinresSolver = std::make_shared< MinResSolver< typename StokesOperatorType::ViscousOperator_T > >(
-       storage, minLevel, maxLevel, stokesCoarseMinresIter, stokesCoarseMinresRelTol );
+       storage, minLevel, minLevel, stokesCoarseMinresIter, stokesCoarseMinresRelTol );
    ABlockCoarseGridMinresSolver->setPrintInfo( false );
 
    auto ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
@@ -633,7 +606,7 @@ void runTimingTest( const std::shared_ptr< PrimitiveStorage >& storage, const wa
        storage, minLevel, maxLevel, *schurOperator, ABlockMultigridSolver, schurSolver, uzawaOmega, relaxSchur, 1u );
 
    auto fgmresSolver = std::make_shared< FGMRESSolver< StokesOperatorType > >(
-       storage, minLevel, maxLevel, fgmresIterations, 50, 1e-8, 1e-8, 0, blockPreconditioner );
+       storage, minLevel, maxLevel, fgmresIterations, fgmresRestartIter, 1e-8, 1e-8, 0, blockPreconditioner );
    fgmresSolver->setPrintInfo( true );
 
    storage->getTimingTree()->stop( "simulation_setup_call" );
