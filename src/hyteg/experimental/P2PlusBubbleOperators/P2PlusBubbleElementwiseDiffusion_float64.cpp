@@ -741,41 +741,41 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_76 +
                                  tmp_kernel_op_4 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_111 =
-              -tmp_kernel_op_1 + 0.43241207267228088;
+              -tmp_kernel_op_0 + 3.1351758546554382;
           const walberla::float64 tmp_kernel_op_112 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_111 - tmp_kernel_op_75;
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_111 - tmp_kernel_op_74;
           const walberla::float64 tmp_kernel_op_113 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_111 - tmp_kernel_op_78;
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_111 - tmp_kernel_op_77;
           const walberla::float64 tmp_kernel_op_114 =
-              -tmp_kernel_op_7 + 3.2673902919218341;
+              -tmp_kernel_op_6 - 2.5347805838436681;
           const walberla::float64 tmp_kernel_op_115 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_114 - tmp_kernel_op_81;
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_114 - tmp_kernel_op_80;
           const walberla::float64 tmp_kernel_op_116 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_114 - tmp_kernel_op_84;
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_114 - tmp_kernel_op_83;
           const walberla::float64 tmp_kernel_op_117 =
-              -tmp_kernel_op_13 + 3.1351758546554382;
+              -tmp_kernel_op_12 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_118 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_117 - tmp_kernel_op_87;
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_117 - tmp_kernel_op_86;
           const walberla::float64 tmp_kernel_op_119 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_117 - tmp_kernel_op_90;
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_117 - tmp_kernel_op_89;
           const walberla::float64 tmp_kernel_op_120 =
-              -tmp_kernel_op_19 - 2.5347805838436681;
+              -tmp_kernel_op_18 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_121 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_120 - tmp_kernel_op_93;
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_120 - tmp_kernel_op_92;
           const walberla::float64 tmp_kernel_op_122 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_120 - tmp_kernel_op_96;
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_120 - tmp_kernel_op_95;
           const walberla::float64 tmp_kernel_op_123 =
-              -tmp_kernel_op_25 + 0.43241207267228088;
+              -tmp_kernel_op_24 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_124 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_123 - tmp_kernel_op_99;
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_123 - tmp_kernel_op_98;
           const walberla::float64 tmp_kernel_op_125 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_123 - tmp_kernel_op_102;
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_123 - tmp_kernel_op_101;
           const walberla::float64 tmp_kernel_op_126 =
-              -tmp_kernel_op_31 + 3.2673902919218341;
+              -tmp_kernel_op_30 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_127 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_126 - tmp_kernel_op_105;
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_126 - tmp_kernel_op_104;
           const walberla::float64 tmp_kernel_op_128 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_126 - tmp_kernel_op_108;
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_126 - tmp_kernel_op_107;
           const walberla::float64 tmp_kernel_op_129 =
               tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_116 +
                                   tmp_kernel_op_115 * tmp_kernel_op_9) +
@@ -790,41 +790,41 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_3 +
                                  tmp_kernel_op_113 * tmp_kernel_op_4);
           const walberla::float64 tmp_kernel_op_130 =
-              -tmp_kernel_op_0 + 3.1351758546554382;
+              -tmp_kernel_op_1 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_131 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_130 - tmp_kernel_op_74;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_130 - tmp_kernel_op_75;
           const walberla::float64 tmp_kernel_op_132 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_130 - tmp_kernel_op_77;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_130 - tmp_kernel_op_78;
           const walberla::float64 tmp_kernel_op_133 =
-              -tmp_kernel_op_6 - 2.5347805838436681;
+              -tmp_kernel_op_7 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_134 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_133 - tmp_kernel_op_80;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_133 - tmp_kernel_op_81;
           const walberla::float64 tmp_kernel_op_135 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_133 - tmp_kernel_op_83;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_133 - tmp_kernel_op_84;
           const walberla::float64 tmp_kernel_op_136 =
-              -tmp_kernel_op_12 + 0.43241207267228088;
+              -tmp_kernel_op_13 + 3.1351758546554382;
           const walberla::float64 tmp_kernel_op_137 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_136 - tmp_kernel_op_86;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_136 - tmp_kernel_op_87;
           const walberla::float64 tmp_kernel_op_138 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_136 - tmp_kernel_op_89;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_136 - tmp_kernel_op_90;
           const walberla::float64 tmp_kernel_op_139 =
-              -tmp_kernel_op_18 + 3.2673902919218341;
+              -tmp_kernel_op_19 - 2.5347805838436681;
           const walberla::float64 tmp_kernel_op_140 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_139 - tmp_kernel_op_92;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_139 - tmp_kernel_op_93;
           const walberla::float64 tmp_kernel_op_141 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_139 - tmp_kernel_op_95;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_139 - tmp_kernel_op_96;
           const walberla::float64 tmp_kernel_op_142 =
-              -tmp_kernel_op_24 + 0.43241207267228088;
+              -tmp_kernel_op_25 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_143 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_142 - tmp_kernel_op_98;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_142 - tmp_kernel_op_99;
           const walberla::float64 tmp_kernel_op_144 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_142 - tmp_kernel_op_101;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_142 - tmp_kernel_op_102;
           const walberla::float64 tmp_kernel_op_145 =
-              -tmp_kernel_op_30 + 3.2673902919218341;
+              -tmp_kernel_op_31 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_146 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_145 - tmp_kernel_op_104;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_145 - tmp_kernel_op_105;
           const walberla::float64 tmp_kernel_op_147 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_145 - tmp_kernel_op_107;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_145 - tmp_kernel_op_108;
           const walberla::float64 tmp_kernel_op_148 =
               tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_135 +
                                   tmp_kernel_op_134 * tmp_kernel_op_9) +
@@ -1070,32 +1070,6 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_76 +
                                  tmp_kernel_op_113 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_204 =
-              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_134 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_135) +
-              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_137 +
-                                  tmp_kernel_op_119 * tmp_kernel_op_138) +
-              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_140 +
-                                  tmp_kernel_op_122 * tmp_kernel_op_141) +
-              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_143 +
-                                  tmp_kernel_op_125 * tmp_kernel_op_144) +
-              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_146 +
-                                  tmp_kernel_op_128 * tmp_kernel_op_147) +
-              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_131 +
-                                 tmp_kernel_op_113 * tmp_kernel_op_132);
-          const walberla::float64 tmp_kernel_op_205 =
-              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_159 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_160) +
-              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_163 +
-                                  tmp_kernel_op_119 * tmp_kernel_op_164) +
-              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_167 +
-                                  tmp_kernel_op_122 * tmp_kernel_op_168) +
-              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_171 +
-                                  tmp_kernel_op_125 * tmp_kernel_op_172) +
-              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_175 +
-                                  tmp_kernel_op_128 * tmp_kernel_op_176) +
-              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_153 +
-                                 tmp_kernel_op_113 * tmp_kernel_op_156);
-          const walberla::float64 tmp_kernel_op_206 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_82 +
                                   tmp_kernel_op_135 * tmp_kernel_op_85) +
               tmp_kernel_op_17 * (tmp_kernel_op_137 * tmp_kernel_op_88 +
@@ -1108,7 +1082,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                   tmp_kernel_op_109 * tmp_kernel_op_147) +
               tmp_kernel_op_5 * (tmp_kernel_op_131 * tmp_kernel_op_76 +
                                  tmp_kernel_op_132 * tmp_kernel_op_79);
-          const walberla::float64 tmp_kernel_op_207 =
+          const walberla::float64 tmp_kernel_op_205 =
               tmp_kernel_op_11 * (tmp_kernel_op_159 * tmp_kernel_op_82 +
                                   tmp_kernel_op_160 * tmp_kernel_op_85) +
               tmp_kernel_op_17 * (tmp_kernel_op_163 * tmp_kernel_op_88 +
@@ -1121,6 +1095,32 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                   tmp_kernel_op_109 * tmp_kernel_op_176) +
               tmp_kernel_op_5 * (tmp_kernel_op_153 * tmp_kernel_op_76 +
                                  tmp_kernel_op_156 * tmp_kernel_op_79);
+          const walberla::float64 tmp_kernel_op_206 =
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_134 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_135) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_137 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_138) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_140 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_141) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_143 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_144) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_146 +
+                                  tmp_kernel_op_128 * tmp_kernel_op_147) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_131 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_132);
+          const walberla::float64 tmp_kernel_op_207 =
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_159 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_160) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_163 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_164) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_167 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_168) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_171 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_172) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_175 +
+                                  tmp_kernel_op_128 * tmp_kernel_op_176) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_153 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_156);
           const walberla::float64 tmp_kernel_op_208 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_159 +
                                   tmp_kernel_op_135 * tmp_kernel_op_160) +
@@ -1149,7 +1149,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                    tmp_kernel_op_5 * ((tmp_kernel_op_3 * tmp_kernel_op_3) +
                                       (tmp_kernel_op_4 * tmp_kernel_op_4))) +
               src_dof_1 * tmp_kernel_op_54 + src_dof_2 * tmp_kernel_op_73 +
-              src_dof_3 * tmp_kernel_op_129 + src_dof_4 * tmp_kernel_op_110 +
+              src_dof_3 * tmp_kernel_op_110 + src_dof_4 * tmp_kernel_op_129 +
               src_dof_5 * tmp_kernel_op_148 + src_dof_6 * tmp_kernel_op_177;
           const walberla::float64 elMatVec_1 =
               src_dof_0 * tmp_kernel_op_54 +
@@ -1166,8 +1166,8 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                        tmp_kernel_op_180 * tmp_kernel_op_185) +
                    tmp_kernel_op_5 * (tmp_kernel_op_178 * tmp_kernel_op_179 +
                                       tmp_kernel_op_179 * tmp_kernel_op_180)) +
-              src_dof_2 * tmp_kernel_op_186 + src_dof_3 * tmp_kernel_op_188 +
-              src_dof_4 * tmp_kernel_op_187 + src_dof_5 * tmp_kernel_op_189 +
+              src_dof_2 * tmp_kernel_op_186 + src_dof_3 * tmp_kernel_op_187 +
+              src_dof_4 * tmp_kernel_op_188 + src_dof_5 * tmp_kernel_op_189 +
               src_dof_6 * tmp_kernel_op_190;
           const walberla::float64 elMatVec_2 =
               src_dof_0 * tmp_kernel_op_73 + src_dof_1 * tmp_kernel_op_186 +
@@ -1184,12 +1184,32 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                        tmp_kernel_op_193 * tmp_kernel_op_198) +
                    tmp_kernel_op_5 * (tmp_kernel_op_191 * tmp_kernel_op_192 +
                                       tmp_kernel_op_192 * tmp_kernel_op_193)) +
-              src_dof_3 * tmp_kernel_op_200 + src_dof_4 * tmp_kernel_op_199 +
+              src_dof_3 * tmp_kernel_op_199 + src_dof_4 * tmp_kernel_op_200 +
               src_dof_5 * tmp_kernel_op_201 + src_dof_6 * tmp_kernel_op_202;
           const walberla::float64 elMatVec_3 =
+              src_dof_0 * tmp_kernel_op_110 + src_dof_1 * tmp_kernel_op_187 +
+              src_dof_2 * tmp_kernel_op_199 +
+              src_dof_3 *
+                  (tmp_kernel_op_11 * ((tmp_kernel_op_82 * tmp_kernel_op_82) +
+                                       (tmp_kernel_op_85 * tmp_kernel_op_85)) +
+                   tmp_kernel_op_17 * ((tmp_kernel_op_88 * tmp_kernel_op_88) +
+                                       (tmp_kernel_op_91 * tmp_kernel_op_91)) +
+                   tmp_kernel_op_23 * ((tmp_kernel_op_94 * tmp_kernel_op_94) +
+                                       (tmp_kernel_op_97 * tmp_kernel_op_97)) +
+                   tmp_kernel_op_29 *
+                       ((tmp_kernel_op_100 * tmp_kernel_op_100) +
+                        (tmp_kernel_op_103 * tmp_kernel_op_103)) +
+                   tmp_kernel_op_35 *
+                       ((tmp_kernel_op_106 * tmp_kernel_op_106) +
+                        (tmp_kernel_op_109 * tmp_kernel_op_109)) +
+                   tmp_kernel_op_5 * ((tmp_kernel_op_76 * tmp_kernel_op_76) +
+                                      (tmp_kernel_op_79 * tmp_kernel_op_79))) +
+              src_dof_4 * tmp_kernel_op_203 + src_dof_5 * tmp_kernel_op_204 +
+              src_dof_6 * tmp_kernel_op_205;
+          const walberla::float64 elMatVec_4 =
               src_dof_0 * tmp_kernel_op_129 + src_dof_1 * tmp_kernel_op_188 +
-              src_dof_2 * tmp_kernel_op_200 +
-              src_dof_3 * (tmp_kernel_op_11 *
+              src_dof_2 * tmp_kernel_op_200 + src_dof_3 * tmp_kernel_op_203 +
+              src_dof_4 * (tmp_kernel_op_11 *
                                ((tmp_kernel_op_115 * tmp_kernel_op_115) +
                                 (tmp_kernel_op_116 * tmp_kernel_op_116)) +
                            tmp_kernel_op_17 *
@@ -1207,26 +1227,6 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                            tmp_kernel_op_5 *
                                ((tmp_kernel_op_112 * tmp_kernel_op_112) +
                                 (tmp_kernel_op_113 * tmp_kernel_op_113))) +
-              src_dof_4 * tmp_kernel_op_203 + src_dof_5 * tmp_kernel_op_204 +
-              src_dof_6 * tmp_kernel_op_205;
-          const walberla::float64 elMatVec_4 =
-              src_dof_0 * tmp_kernel_op_110 + src_dof_1 * tmp_kernel_op_187 +
-              src_dof_2 * tmp_kernel_op_199 + src_dof_3 * tmp_kernel_op_203 +
-              src_dof_4 *
-                  (tmp_kernel_op_11 * ((tmp_kernel_op_82 * tmp_kernel_op_82) +
-                                       (tmp_kernel_op_85 * tmp_kernel_op_85)) +
-                   tmp_kernel_op_17 * ((tmp_kernel_op_88 * tmp_kernel_op_88) +
-                                       (tmp_kernel_op_91 * tmp_kernel_op_91)) +
-                   tmp_kernel_op_23 * ((tmp_kernel_op_94 * tmp_kernel_op_94) +
-                                       (tmp_kernel_op_97 * tmp_kernel_op_97)) +
-                   tmp_kernel_op_29 *
-                       ((tmp_kernel_op_100 * tmp_kernel_op_100) +
-                        (tmp_kernel_op_103 * tmp_kernel_op_103)) +
-                   tmp_kernel_op_35 *
-                       ((tmp_kernel_op_106 * tmp_kernel_op_106) +
-                        (tmp_kernel_op_109 * tmp_kernel_op_109)) +
-                   tmp_kernel_op_5 * ((tmp_kernel_op_76 * tmp_kernel_op_76) +
-                                      (tmp_kernel_op_79 * tmp_kernel_op_79))) +
               src_dof_5 * tmp_kernel_op_206 + src_dof_6 * tmp_kernel_op_207;
           const walberla::float64 elMatVec_5 =
               src_dof_0 * tmp_kernel_op_148 + src_dof_1 * tmp_kernel_op_189 +
@@ -1716,41 +1716,41 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_76 +
                                  tmp_kernel_op_4 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_111 =
-              -tmp_kernel_op_1 + 0.43241207267228088;
+              -tmp_kernel_op_0 + 3.1351758546554382;
           const walberla::float64 tmp_kernel_op_112 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_111 - tmp_kernel_op_75;
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_111 - tmp_kernel_op_74;
           const walberla::float64 tmp_kernel_op_113 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_111 - tmp_kernel_op_78;
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_111 - tmp_kernel_op_77;
           const walberla::float64 tmp_kernel_op_114 =
-              -tmp_kernel_op_7 + 3.2673902919218341;
+              -tmp_kernel_op_6 - 2.5347805838436681;
           const walberla::float64 tmp_kernel_op_115 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_114 - tmp_kernel_op_81;
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_114 - tmp_kernel_op_80;
           const walberla::float64 tmp_kernel_op_116 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_114 - tmp_kernel_op_84;
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_114 - tmp_kernel_op_83;
           const walberla::float64 tmp_kernel_op_117 =
-              -tmp_kernel_op_13 + 3.1351758546554382;
+              -tmp_kernel_op_12 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_118 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_117 - tmp_kernel_op_87;
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_117 - tmp_kernel_op_86;
           const walberla::float64 tmp_kernel_op_119 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_117 - tmp_kernel_op_90;
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_117 - tmp_kernel_op_89;
           const walberla::float64 tmp_kernel_op_120 =
-              -tmp_kernel_op_19 - 2.5347805838436681;
+              -tmp_kernel_op_18 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_121 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_120 - tmp_kernel_op_93;
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_120 - tmp_kernel_op_92;
           const walberla::float64 tmp_kernel_op_122 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_120 - tmp_kernel_op_96;
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_120 - tmp_kernel_op_95;
           const walberla::float64 tmp_kernel_op_123 =
-              -tmp_kernel_op_25 + 0.43241207267228088;
+              -tmp_kernel_op_24 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_124 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_123 - tmp_kernel_op_99;
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_123 - tmp_kernel_op_98;
           const walberla::float64 tmp_kernel_op_125 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_123 - tmp_kernel_op_102;
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_123 - tmp_kernel_op_101;
           const walberla::float64 tmp_kernel_op_126 =
-              -tmp_kernel_op_31 + 3.2673902919218341;
+              -tmp_kernel_op_30 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_127 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_126 - tmp_kernel_op_105;
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_126 - tmp_kernel_op_104;
           const walberla::float64 tmp_kernel_op_128 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_126 - tmp_kernel_op_108;
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_126 - tmp_kernel_op_107;
           const walberla::float64 tmp_kernel_op_129 =
               tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_116 +
                                   tmp_kernel_op_115 * tmp_kernel_op_9) +
@@ -1765,41 +1765,41 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_3 +
                                  tmp_kernel_op_113 * tmp_kernel_op_4);
           const walberla::float64 tmp_kernel_op_130 =
-              -tmp_kernel_op_0 + 3.1351758546554382;
+              -tmp_kernel_op_1 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_131 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_130 - tmp_kernel_op_74;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_130 - tmp_kernel_op_75;
           const walberla::float64 tmp_kernel_op_132 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_130 - tmp_kernel_op_77;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_130 - tmp_kernel_op_78;
           const walberla::float64 tmp_kernel_op_133 =
-              -tmp_kernel_op_6 - 2.5347805838436681;
+              -tmp_kernel_op_7 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_134 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_133 - tmp_kernel_op_80;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_133 - tmp_kernel_op_81;
           const walberla::float64 tmp_kernel_op_135 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_133 - tmp_kernel_op_83;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_133 - tmp_kernel_op_84;
           const walberla::float64 tmp_kernel_op_136 =
-              -tmp_kernel_op_12 + 0.43241207267228088;
+              -tmp_kernel_op_13 + 3.1351758546554382;
           const walberla::float64 tmp_kernel_op_137 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_136 - tmp_kernel_op_86;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_136 - tmp_kernel_op_87;
           const walberla::float64 tmp_kernel_op_138 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_136 - tmp_kernel_op_89;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_136 - tmp_kernel_op_90;
           const walberla::float64 tmp_kernel_op_139 =
-              -tmp_kernel_op_18 + 3.2673902919218341;
+              -tmp_kernel_op_19 - 2.5347805838436681;
           const walberla::float64 tmp_kernel_op_140 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_139 - tmp_kernel_op_92;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_139 - tmp_kernel_op_93;
           const walberla::float64 tmp_kernel_op_141 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_139 - tmp_kernel_op_95;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_139 - tmp_kernel_op_96;
           const walberla::float64 tmp_kernel_op_142 =
-              -tmp_kernel_op_24 + 0.43241207267228088;
+              -tmp_kernel_op_25 + 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_143 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_142 - tmp_kernel_op_98;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_142 - tmp_kernel_op_99;
           const walberla::float64 tmp_kernel_op_144 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_142 - tmp_kernel_op_101;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_142 - tmp_kernel_op_102;
           const walberla::float64 tmp_kernel_op_145 =
-              -tmp_kernel_op_30 + 3.2673902919218341;
+              -tmp_kernel_op_31 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_146 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_145 - tmp_kernel_op_104;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_145 - tmp_kernel_op_105;
           const walberla::float64 tmp_kernel_op_147 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_145 - tmp_kernel_op_107;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_145 - tmp_kernel_op_108;
           const walberla::float64 tmp_kernel_op_148 =
               tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_135 +
                                   tmp_kernel_op_134 * tmp_kernel_op_9) +
@@ -2045,32 +2045,6 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_76 +
                                  tmp_kernel_op_113 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_204 =
-              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_134 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_135) +
-              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_137 +
-                                  tmp_kernel_op_119 * tmp_kernel_op_138) +
-              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_140 +
-                                  tmp_kernel_op_122 * tmp_kernel_op_141) +
-              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_143 +
-                                  tmp_kernel_op_125 * tmp_kernel_op_144) +
-              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_146 +
-                                  tmp_kernel_op_128 * tmp_kernel_op_147) +
-              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_131 +
-                                 tmp_kernel_op_113 * tmp_kernel_op_132);
-          const walberla::float64 tmp_kernel_op_205 =
-              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_159 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_160) +
-              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_163 +
-                                  tmp_kernel_op_119 * tmp_kernel_op_164) +
-              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_167 +
-                                  tmp_kernel_op_122 * tmp_kernel_op_168) +
-              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_171 +
-                                  tmp_kernel_op_125 * tmp_kernel_op_172) +
-              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_175 +
-                                  tmp_kernel_op_128 * tmp_kernel_op_176) +
-              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_153 +
-                                 tmp_kernel_op_113 * tmp_kernel_op_156);
-          const walberla::float64 tmp_kernel_op_206 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_82 +
                                   tmp_kernel_op_135 * tmp_kernel_op_85) +
               tmp_kernel_op_17 * (tmp_kernel_op_137 * tmp_kernel_op_88 +
@@ -2083,7 +2057,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                   tmp_kernel_op_109 * tmp_kernel_op_147) +
               tmp_kernel_op_5 * (tmp_kernel_op_131 * tmp_kernel_op_76 +
                                  tmp_kernel_op_132 * tmp_kernel_op_79);
-          const walberla::float64 tmp_kernel_op_207 =
+          const walberla::float64 tmp_kernel_op_205 =
               tmp_kernel_op_11 * (tmp_kernel_op_159 * tmp_kernel_op_82 +
                                   tmp_kernel_op_160 * tmp_kernel_op_85) +
               tmp_kernel_op_17 * (tmp_kernel_op_163 * tmp_kernel_op_88 +
@@ -2096,6 +2070,32 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                   tmp_kernel_op_109 * tmp_kernel_op_176) +
               tmp_kernel_op_5 * (tmp_kernel_op_153 * tmp_kernel_op_76 +
                                  tmp_kernel_op_156 * tmp_kernel_op_79);
+          const walberla::float64 tmp_kernel_op_206 =
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_134 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_135) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_137 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_138) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_140 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_141) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_143 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_144) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_146 +
+                                  tmp_kernel_op_128 * tmp_kernel_op_147) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_131 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_132);
+          const walberla::float64 tmp_kernel_op_207 =
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_159 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_160) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_163 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_164) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_167 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_168) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_171 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_172) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_175 +
+                                  tmp_kernel_op_128 * tmp_kernel_op_176) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_153 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_156);
           const walberla::float64 tmp_kernel_op_208 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_159 +
                                   tmp_kernel_op_135 * tmp_kernel_op_160) +
@@ -2124,7 +2124,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                    tmp_kernel_op_5 * ((tmp_kernel_op_3 * tmp_kernel_op_3) +
                                       (tmp_kernel_op_4 * tmp_kernel_op_4))) +
               src_dof_1 * tmp_kernel_op_54 + src_dof_2 * tmp_kernel_op_73 +
-              src_dof_3 * tmp_kernel_op_129 + src_dof_4 * tmp_kernel_op_110 +
+              src_dof_3 * tmp_kernel_op_110 + src_dof_4 * tmp_kernel_op_129 +
               src_dof_5 * tmp_kernel_op_148 + src_dof_6 * tmp_kernel_op_177;
           const walberla::float64 elMatVec_1 =
               src_dof_0 * tmp_kernel_op_54 +
@@ -2141,8 +2141,8 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                        tmp_kernel_op_180 * tmp_kernel_op_185) +
                    tmp_kernel_op_5 * (tmp_kernel_op_178 * tmp_kernel_op_179 +
                                       tmp_kernel_op_179 * tmp_kernel_op_180)) +
-              src_dof_2 * tmp_kernel_op_186 + src_dof_3 * tmp_kernel_op_188 +
-              src_dof_4 * tmp_kernel_op_187 + src_dof_5 * tmp_kernel_op_189 +
+              src_dof_2 * tmp_kernel_op_186 + src_dof_3 * tmp_kernel_op_187 +
+              src_dof_4 * tmp_kernel_op_188 + src_dof_5 * tmp_kernel_op_189 +
               src_dof_6 * tmp_kernel_op_190;
           const walberla::float64 elMatVec_2 =
               src_dof_0 * tmp_kernel_op_73 + src_dof_1 * tmp_kernel_op_186 +
@@ -2159,12 +2159,32 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                        tmp_kernel_op_193 * tmp_kernel_op_198) +
                    tmp_kernel_op_5 * (tmp_kernel_op_191 * tmp_kernel_op_192 +
                                       tmp_kernel_op_192 * tmp_kernel_op_193)) +
-              src_dof_3 * tmp_kernel_op_200 + src_dof_4 * tmp_kernel_op_199 +
+              src_dof_3 * tmp_kernel_op_199 + src_dof_4 * tmp_kernel_op_200 +
               src_dof_5 * tmp_kernel_op_201 + src_dof_6 * tmp_kernel_op_202;
           const walberla::float64 elMatVec_3 =
+              src_dof_0 * tmp_kernel_op_110 + src_dof_1 * tmp_kernel_op_187 +
+              src_dof_2 * tmp_kernel_op_199 +
+              src_dof_3 *
+                  (tmp_kernel_op_11 * ((tmp_kernel_op_82 * tmp_kernel_op_82) +
+                                       (tmp_kernel_op_85 * tmp_kernel_op_85)) +
+                   tmp_kernel_op_17 * ((tmp_kernel_op_88 * tmp_kernel_op_88) +
+                                       (tmp_kernel_op_91 * tmp_kernel_op_91)) +
+                   tmp_kernel_op_23 * ((tmp_kernel_op_94 * tmp_kernel_op_94) +
+                                       (tmp_kernel_op_97 * tmp_kernel_op_97)) +
+                   tmp_kernel_op_29 *
+                       ((tmp_kernel_op_100 * tmp_kernel_op_100) +
+                        (tmp_kernel_op_103 * tmp_kernel_op_103)) +
+                   tmp_kernel_op_35 *
+                       ((tmp_kernel_op_106 * tmp_kernel_op_106) +
+                        (tmp_kernel_op_109 * tmp_kernel_op_109)) +
+                   tmp_kernel_op_5 * ((tmp_kernel_op_76 * tmp_kernel_op_76) +
+                                      (tmp_kernel_op_79 * tmp_kernel_op_79))) +
+              src_dof_4 * tmp_kernel_op_203 + src_dof_5 * tmp_kernel_op_204 +
+              src_dof_6 * tmp_kernel_op_205;
+          const walberla::float64 elMatVec_4 =
               src_dof_0 * tmp_kernel_op_129 + src_dof_1 * tmp_kernel_op_188 +
-              src_dof_2 * tmp_kernel_op_200 +
-              src_dof_3 * (tmp_kernel_op_11 *
+              src_dof_2 * tmp_kernel_op_200 + src_dof_3 * tmp_kernel_op_203 +
+              src_dof_4 * (tmp_kernel_op_11 *
                                ((tmp_kernel_op_115 * tmp_kernel_op_115) +
                                 (tmp_kernel_op_116 * tmp_kernel_op_116)) +
                            tmp_kernel_op_17 *
@@ -2182,26 +2202,6 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                            tmp_kernel_op_5 *
                                ((tmp_kernel_op_112 * tmp_kernel_op_112) +
                                 (tmp_kernel_op_113 * tmp_kernel_op_113))) +
-              src_dof_4 * tmp_kernel_op_203 + src_dof_5 * tmp_kernel_op_204 +
-              src_dof_6 * tmp_kernel_op_205;
-          const walberla::float64 elMatVec_4 =
-              src_dof_0 * tmp_kernel_op_110 + src_dof_1 * tmp_kernel_op_187 +
-              src_dof_2 * tmp_kernel_op_199 + src_dof_3 * tmp_kernel_op_203 +
-              src_dof_4 *
-                  (tmp_kernel_op_11 * ((tmp_kernel_op_82 * tmp_kernel_op_82) +
-                                       (tmp_kernel_op_85 * tmp_kernel_op_85)) +
-                   tmp_kernel_op_17 * ((tmp_kernel_op_88 * tmp_kernel_op_88) +
-                                       (tmp_kernel_op_91 * tmp_kernel_op_91)) +
-                   tmp_kernel_op_23 * ((tmp_kernel_op_94 * tmp_kernel_op_94) +
-                                       (tmp_kernel_op_97 * tmp_kernel_op_97)) +
-                   tmp_kernel_op_29 *
-                       ((tmp_kernel_op_100 * tmp_kernel_op_100) +
-                        (tmp_kernel_op_103 * tmp_kernel_op_103)) +
-                   tmp_kernel_op_35 *
-                       ((tmp_kernel_op_106 * tmp_kernel_op_106) +
-                        (tmp_kernel_op_109 * tmp_kernel_op_109)) +
-                   tmp_kernel_op_5 * ((tmp_kernel_op_76 * tmp_kernel_op_76) +
-                                      (tmp_kernel_op_79 * tmp_kernel_op_79))) +
               src_dof_5 * tmp_kernel_op_206 + src_dof_6 * tmp_kernel_op_207;
           const walberla::float64 elMatVec_5 =
               src_dof_0 * tmp_kernel_op_148 + src_dof_1 * tmp_kernel_op_189 +
@@ -2596,175 +2596,175 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_56 +
                                  tmp_kernel_op_4 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_74 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_75 =
-              -tmp_kernel_op_1 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_76 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_75 - tmp_kernel_op_74;
-          const walberla::float64 tmp_kernel_op_77 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_78 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_75 - tmp_kernel_op_77;
-          const walberla::float64 tmp_kernel_op_79 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_6;
-          const walberla::float64 tmp_kernel_op_80 =
-              -tmp_kernel_op_7 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_81 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_80 - tmp_kernel_op_79;
-          const walberla::float64 tmp_kernel_op_82 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_6;
-          const walberla::float64 tmp_kernel_op_83 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_80 - tmp_kernel_op_82;
-          const walberla::float64 tmp_kernel_op_84 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_85 =
-              -tmp_kernel_op_13 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_86 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_85 - tmp_kernel_op_84;
-          const walberla::float64 tmp_kernel_op_87 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_88 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_85 - tmp_kernel_op_87;
-          const walberla::float64 tmp_kernel_op_89 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_18;
-          const walberla::float64 tmp_kernel_op_90 =
-              -tmp_kernel_op_19 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_91 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_90 - tmp_kernel_op_89;
-          const walberla::float64 tmp_kernel_op_92 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_18;
-          const walberla::float64 tmp_kernel_op_93 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_90 - tmp_kernel_op_92;
-          const walberla::float64 tmp_kernel_op_94 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_24;
-          const walberla::float64 tmp_kernel_op_95 =
-              -tmp_kernel_op_25 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_96 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_95 - tmp_kernel_op_94;
-          const walberla::float64 tmp_kernel_op_97 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_24;
-          const walberla::float64 tmp_kernel_op_98 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_95 - tmp_kernel_op_97;
-          const walberla::float64 tmp_kernel_op_99 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_30;
-          const walberla::float64 tmp_kernel_op_100 =
-              -tmp_kernel_op_31 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_101 =
-              jac_affine_inv_0_0_GRAY * tmp_kernel_op_100 - tmp_kernel_op_99;
-          const walberla::float64 tmp_kernel_op_102 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_30;
-          const walberla::float64 tmp_kernel_op_103 =
-              jac_affine_inv_0_1_GRAY * tmp_kernel_op_100 - tmp_kernel_op_102;
-          const walberla::float64 tmp_kernel_op_104 =
-              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_83 +
-                                  tmp_kernel_op_81 * tmp_kernel_op_9) +
-              tmp_kernel_op_17 * (tmp_kernel_op_15 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_16 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_21 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_22 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_27 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_28 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_33 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_34) +
-              tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_4 * tmp_kernel_op_78);
-          const walberla::float64 tmp_kernel_op_105 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_106 =
-              tmp_kernel_op_105 + tmp_kernel_op_74;
-          const walberla::float64 tmp_kernel_op_107 =
+          const walberla::float64 tmp_kernel_op_75 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_76 =
+              tmp_kernel_op_74 + tmp_kernel_op_75;
+          const walberla::float64 tmp_kernel_op_77 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_108 =
-              tmp_kernel_op_107 + tmp_kernel_op_77;
-          const walberla::float64 tmp_kernel_op_109 =
+          const walberla::float64 tmp_kernel_op_78 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_79 =
+              tmp_kernel_op_77 + tmp_kernel_op_78;
+          const walberla::float64 tmp_kernel_op_80 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_7;
-          const walberla::float64 tmp_kernel_op_110 =
-              tmp_kernel_op_109 + tmp_kernel_op_79;
-          const walberla::float64 tmp_kernel_op_111 =
+          const walberla::float64 tmp_kernel_op_81 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_6;
+          const walberla::float64 tmp_kernel_op_82 =
+              tmp_kernel_op_80 + tmp_kernel_op_81;
+          const walberla::float64 tmp_kernel_op_83 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_7;
-          const walberla::float64 tmp_kernel_op_112 =
-              tmp_kernel_op_111 + tmp_kernel_op_82;
-          const walberla::float64 tmp_kernel_op_113 =
+          const walberla::float64 tmp_kernel_op_84 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_6;
+          const walberla::float64 tmp_kernel_op_85 =
+              tmp_kernel_op_83 + tmp_kernel_op_84;
+          const walberla::float64 tmp_kernel_op_86 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_114 =
-              tmp_kernel_op_113 + tmp_kernel_op_84;
-          const walberla::float64 tmp_kernel_op_115 =
+          const walberla::float64 tmp_kernel_op_87 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_88 =
+              tmp_kernel_op_86 + tmp_kernel_op_87;
+          const walberla::float64 tmp_kernel_op_89 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_116 =
-              tmp_kernel_op_115 + tmp_kernel_op_87;
-          const walberla::float64 tmp_kernel_op_117 =
+          const walberla::float64 tmp_kernel_op_90 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_91 =
+              tmp_kernel_op_89 + tmp_kernel_op_90;
+          const walberla::float64 tmp_kernel_op_92 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_19;
-          const walberla::float64 tmp_kernel_op_118 =
-              tmp_kernel_op_117 + tmp_kernel_op_89;
-          const walberla::float64 tmp_kernel_op_119 =
+          const walberla::float64 tmp_kernel_op_93 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_18;
+          const walberla::float64 tmp_kernel_op_94 =
+              tmp_kernel_op_92 + tmp_kernel_op_93;
+          const walberla::float64 tmp_kernel_op_95 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_19;
-          const walberla::float64 tmp_kernel_op_120 =
-              tmp_kernel_op_119 + tmp_kernel_op_92;
-          const walberla::float64 tmp_kernel_op_121 =
+          const walberla::float64 tmp_kernel_op_96 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_18;
+          const walberla::float64 tmp_kernel_op_97 =
+              tmp_kernel_op_95 + tmp_kernel_op_96;
+          const walberla::float64 tmp_kernel_op_98 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_25;
-          const walberla::float64 tmp_kernel_op_122 =
-              tmp_kernel_op_121 + tmp_kernel_op_94;
-          const walberla::float64 tmp_kernel_op_123 =
+          const walberla::float64 tmp_kernel_op_99 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_24;
+          const walberla::float64 tmp_kernel_op_100 =
+              tmp_kernel_op_98 + tmp_kernel_op_99;
+          const walberla::float64 tmp_kernel_op_101 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_25;
-          const walberla::float64 tmp_kernel_op_124 =
-              tmp_kernel_op_123 + tmp_kernel_op_97;
-          const walberla::float64 tmp_kernel_op_125 =
+          const walberla::float64 tmp_kernel_op_102 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_24;
+          const walberla::float64 tmp_kernel_op_103 =
+              tmp_kernel_op_101 + tmp_kernel_op_102;
+          const walberla::float64 tmp_kernel_op_104 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_31;
-          const walberla::float64 tmp_kernel_op_126 =
-              tmp_kernel_op_125 + tmp_kernel_op_99;
-          const walberla::float64 tmp_kernel_op_127 =
+          const walberla::float64 tmp_kernel_op_105 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_30;
+          const walberla::float64 tmp_kernel_op_106 =
+              tmp_kernel_op_104 + tmp_kernel_op_105;
+          const walberla::float64 tmp_kernel_op_107 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_31;
-          const walberla::float64 tmp_kernel_op_128 =
-              tmp_kernel_op_102 + tmp_kernel_op_127;
-          const walberla::float64 tmp_kernel_op_129 =
-              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_112 +
-                                  tmp_kernel_op_110 * tmp_kernel_op_9) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_15 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_16) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_21 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_22) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_27 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_28) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_33 +
-                                  tmp_kernel_op_128 * tmp_kernel_op_34) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_3 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_4);
-          const walberla::float64 tmp_kernel_op_130 =
+          const walberla::float64 tmp_kernel_op_108 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_30;
+          const walberla::float64 tmp_kernel_op_109 =
+              tmp_kernel_op_107 + tmp_kernel_op_108;
+          const walberla::float64 tmp_kernel_op_110 =
+              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_85 +
+                                  tmp_kernel_op_82 * tmp_kernel_op_9) +
+              tmp_kernel_op_17 * (tmp_kernel_op_15 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_16 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_21 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_22 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_27 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_28) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_33 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_34) +
+              tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_76 +
+                                 tmp_kernel_op_4 * tmp_kernel_op_79);
+          const walberla::float64 tmp_kernel_op_111 =
               -tmp_kernel_op_0 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_131 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_130 - tmp_kernel_op_105;
-          const walberla::float64 tmp_kernel_op_132 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_130 - tmp_kernel_op_107;
-          const walberla::float64 tmp_kernel_op_133 =
+          const walberla::float64 tmp_kernel_op_112 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_111 - tmp_kernel_op_74;
+          const walberla::float64 tmp_kernel_op_113 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_111 - tmp_kernel_op_77;
+          const walberla::float64 tmp_kernel_op_114 =
               -tmp_kernel_op_6 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_134 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_133 - tmp_kernel_op_109;
-          const walberla::float64 tmp_kernel_op_135 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_133 - tmp_kernel_op_111;
-          const walberla::float64 tmp_kernel_op_136 =
+          const walberla::float64 tmp_kernel_op_115 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_114 - tmp_kernel_op_80;
+          const walberla::float64 tmp_kernel_op_116 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_114 - tmp_kernel_op_83;
+          const walberla::float64 tmp_kernel_op_117 =
               -tmp_kernel_op_12 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_137 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_136 - tmp_kernel_op_113;
-          const walberla::float64 tmp_kernel_op_138 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_136 - tmp_kernel_op_115;
-          const walberla::float64 tmp_kernel_op_139 =
+          const walberla::float64 tmp_kernel_op_118 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_117 - tmp_kernel_op_86;
+          const walberla::float64 tmp_kernel_op_119 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_117 - tmp_kernel_op_89;
+          const walberla::float64 tmp_kernel_op_120 =
               -tmp_kernel_op_18 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_140 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_139 - tmp_kernel_op_117;
-          const walberla::float64 tmp_kernel_op_141 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_139 - tmp_kernel_op_119;
-          const walberla::float64 tmp_kernel_op_142 =
+          const walberla::float64 tmp_kernel_op_121 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_120 - tmp_kernel_op_92;
+          const walberla::float64 tmp_kernel_op_122 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_120 - tmp_kernel_op_95;
+          const walberla::float64 tmp_kernel_op_123 =
               -tmp_kernel_op_24 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_143 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_142 - tmp_kernel_op_121;
-          const walberla::float64 tmp_kernel_op_144 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_142 - tmp_kernel_op_123;
-          const walberla::float64 tmp_kernel_op_145 =
+          const walberla::float64 tmp_kernel_op_124 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_123 - tmp_kernel_op_98;
+          const walberla::float64 tmp_kernel_op_125 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_123 - tmp_kernel_op_101;
+          const walberla::float64 tmp_kernel_op_126 =
               -tmp_kernel_op_30 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_127 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_126 - tmp_kernel_op_104;
+          const walberla::float64 tmp_kernel_op_128 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_126 - tmp_kernel_op_107;
+          const walberla::float64 tmp_kernel_op_129 =
+              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_116 +
+                                  tmp_kernel_op_115 * tmp_kernel_op_9) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_15 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_16) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_21 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_22) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_27 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_28) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_33 +
+                                  tmp_kernel_op_128 * tmp_kernel_op_34) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_3 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_4);
+          const walberla::float64 tmp_kernel_op_130 =
+              -tmp_kernel_op_1 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_131 =
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_130 - tmp_kernel_op_75;
+          const walberla::float64 tmp_kernel_op_132 =
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_130 - tmp_kernel_op_78;
+          const walberla::float64 tmp_kernel_op_133 =
+              -tmp_kernel_op_7 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_134 =
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_133 - tmp_kernel_op_81;
+          const walberla::float64 tmp_kernel_op_135 =
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_133 - tmp_kernel_op_84;
+          const walberla::float64 tmp_kernel_op_136 =
+              -tmp_kernel_op_13 + 3.1351758546554382;
+          const walberla::float64 tmp_kernel_op_137 =
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_136 - tmp_kernel_op_87;
+          const walberla::float64 tmp_kernel_op_138 =
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_136 - tmp_kernel_op_90;
+          const walberla::float64 tmp_kernel_op_139 =
+              -tmp_kernel_op_19 - 2.5347805838436681;
+          const walberla::float64 tmp_kernel_op_140 =
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_139 - tmp_kernel_op_93;
+          const walberla::float64 tmp_kernel_op_141 =
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_139 - tmp_kernel_op_96;
+          const walberla::float64 tmp_kernel_op_142 =
+              -tmp_kernel_op_25 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_143 =
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_142 - tmp_kernel_op_99;
+          const walberla::float64 tmp_kernel_op_144 =
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_142 - tmp_kernel_op_102;
+          const walberla::float64 tmp_kernel_op_145 =
+              -tmp_kernel_op_31 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_146 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_145 - tmp_kernel_op_125;
+              jac_affine_inv_0_0_GRAY * tmp_kernel_op_145 - tmp_kernel_op_105;
           const walberla::float64 tmp_kernel_op_147 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_145 - tmp_kernel_op_127;
+              jac_affine_inv_0_1_GRAY * tmp_kernel_op_145 - tmp_kernel_op_108;
           const walberla::float64 tmp_kernel_op_148 =
               tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_135 +
                                   tmp_kernel_op_134 * tmp_kernel_op_9) +
@@ -2877,31 +2877,31 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_37 * tmp_kernel_op_56 +
                                  tmp_kernel_op_38 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_187 =
-              tmp_kernel_op_11 * (tmp_kernel_op_40 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_41 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_43 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_44 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_46 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_47 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_49 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_50 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_52 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_53) +
+              tmp_kernel_op_11 * (tmp_kernel_op_40 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_41 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_43 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_44 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_46 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_47 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_49 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_50) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_52 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_53) +
               tmp_kernel_op_5 * (tmp_kernel_op_37 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_38 * tmp_kernel_op_78);
+                                 tmp_kernel_op_38 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_188 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_40 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_41) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_43 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_44) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_46 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_47) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_49 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_50) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_52 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_40 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_41) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_43 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_44) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_46 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_47) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_49 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_50) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_52 +
                                   tmp_kernel_op_128 * tmp_kernel_op_53) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_37 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_38);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_37 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_38);
           const walberla::float64 tmp_kernel_op_189 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_40 +
                                   tmp_kernel_op_135 * tmp_kernel_op_41) +
@@ -2945,31 +2945,31 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 tmp_kernel_op_198 =
               (tmp_kernel_op_70 * tmp_kernel_op_70);
           const walberla::float64 tmp_kernel_op_199 =
-              tmp_kernel_op_11 * (tmp_kernel_op_59 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_60 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_62 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_63 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_65 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_66 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_68 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_69 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_71 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_72) +
+              tmp_kernel_op_11 * (tmp_kernel_op_59 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_60 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_62 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_63 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_65 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_66 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_68 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_69) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_71 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_72) +
               tmp_kernel_op_5 * (tmp_kernel_op_56 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_57 * tmp_kernel_op_78);
+                                 tmp_kernel_op_57 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_200 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_59 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_60) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_62 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_63) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_65 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_66) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_68 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_69) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_71 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_59 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_60) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_62 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_63) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_65 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_66) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_68 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_69) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_71 +
                                   tmp_kernel_op_128 * tmp_kernel_op_72) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_56 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_57);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_56 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_201 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_59 +
                                   tmp_kernel_op_135 * tmp_kernel_op_60) +
@@ -2997,70 +2997,70 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_153 * tmp_kernel_op_56 +
                                  tmp_kernel_op_156 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_203 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_126 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_128) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_78);
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_124 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_125) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_127 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_128) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_76 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_204 =
-              tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_135 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_137 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_138 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_140 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_141 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_143 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_144 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_146 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_147) +
+              tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_135 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_137 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_138 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_140 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_141 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_143 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_144) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_146 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_147) +
               tmp_kernel_op_5 * (tmp_kernel_op_131 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_132 * tmp_kernel_op_78);
+                                 tmp_kernel_op_132 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_205 =
-              tmp_kernel_op_11 * (tmp_kernel_op_159 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_160 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_163 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_164 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_167 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_168 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_171 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_172 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_175 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_176) +
+              tmp_kernel_op_11 * (tmp_kernel_op_159 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_160 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_163 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_164 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_167 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_168 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_171 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_172) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_175 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_176) +
               tmp_kernel_op_5 * (tmp_kernel_op_153 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_156 * tmp_kernel_op_78);
+                                 tmp_kernel_op_156 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_206 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_134 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_135) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_137 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_138) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_140 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_141) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_143 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_144) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_146 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_134 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_135) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_137 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_138) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_140 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_141) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_143 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_144) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_146 +
                                   tmp_kernel_op_128 * tmp_kernel_op_147) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_131 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_132);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_131 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_132);
           const walberla::float64 tmp_kernel_op_207 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_159 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_160) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_163 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_164) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_167 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_168) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_171 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_172) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_175 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_159 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_160) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_163 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_164) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_167 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_168) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_171 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_172) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_175 +
                                   tmp_kernel_op_128 * tmp_kernel_op_176) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_153 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_156);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_153 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_156);
           const walberla::float64 tmp_kernel_op_208 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_159 +
                                   tmp_kernel_op_135 * tmp_kernel_op_160) +
@@ -3089,7 +3089,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                  (tmp_kernel_op_4 * tmp_kernel_op_4));
           const walberla::float64 elMat_0_1 = tmp_kernel_op_54;
           const walberla::float64 elMat_0_2 = tmp_kernel_op_73;
-          const walberla::float64 elMat_0_3 = tmp_kernel_op_104;
+          const walberla::float64 elMat_0_3 = tmp_kernel_op_110;
           const walberla::float64 elMat_0_4 = tmp_kernel_op_129;
           const walberla::float64 elMat_0_5 = tmp_kernel_op_148;
           const walberla::float64 elMat_0_6 = tmp_kernel_op_177;
@@ -3131,22 +3131,22 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 elMat_2_4 = tmp_kernel_op_200;
           const walberla::float64 elMat_2_5 = tmp_kernel_op_201;
           const walberla::float64 elMat_2_6 = tmp_kernel_op_202;
-          const walberla::float64 elMat_3_0 = tmp_kernel_op_104;
+          const walberla::float64 elMat_3_0 = tmp_kernel_op_110;
           const walberla::float64 elMat_3_1 = tmp_kernel_op_187;
           const walberla::float64 elMat_3_2 = tmp_kernel_op_199;
           const walberla::float64 elMat_3_3 =
-              tmp_kernel_op_11 * ((tmp_kernel_op_81 * tmp_kernel_op_81) +
-                                  (tmp_kernel_op_83 * tmp_kernel_op_83)) +
-              tmp_kernel_op_17 * ((tmp_kernel_op_86 * tmp_kernel_op_86) +
-                                  (tmp_kernel_op_88 * tmp_kernel_op_88)) +
-              tmp_kernel_op_23 * ((tmp_kernel_op_91 * tmp_kernel_op_91) +
-                                  (tmp_kernel_op_93 * tmp_kernel_op_93)) +
-              tmp_kernel_op_29 * ((tmp_kernel_op_96 * tmp_kernel_op_96) +
-                                  (tmp_kernel_op_98 * tmp_kernel_op_98)) +
-              tmp_kernel_op_35 * ((tmp_kernel_op_101 * tmp_kernel_op_101) +
+              tmp_kernel_op_11 * ((tmp_kernel_op_82 * tmp_kernel_op_82) +
+                                  (tmp_kernel_op_85 * tmp_kernel_op_85)) +
+              tmp_kernel_op_17 * ((tmp_kernel_op_88 * tmp_kernel_op_88) +
+                                  (tmp_kernel_op_91 * tmp_kernel_op_91)) +
+              tmp_kernel_op_23 * ((tmp_kernel_op_94 * tmp_kernel_op_94) +
+                                  (tmp_kernel_op_97 * tmp_kernel_op_97)) +
+              tmp_kernel_op_29 * ((tmp_kernel_op_100 * tmp_kernel_op_100) +
                                   (tmp_kernel_op_103 * tmp_kernel_op_103)) +
+              tmp_kernel_op_35 * ((tmp_kernel_op_106 * tmp_kernel_op_106) +
+                                  (tmp_kernel_op_109 * tmp_kernel_op_109)) +
               tmp_kernel_op_5 * ((tmp_kernel_op_76 * tmp_kernel_op_76) +
-                                 (tmp_kernel_op_78 * tmp_kernel_op_78));
+                                 (tmp_kernel_op_79 * tmp_kernel_op_79));
           const walberla::float64 elMat_3_4 = tmp_kernel_op_203;
           const walberla::float64 elMat_3_5 = tmp_kernel_op_204;
           const walberla::float64 elMat_3_6 = tmp_kernel_op_205;
@@ -3155,18 +3155,18 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 elMat_4_2 = tmp_kernel_op_200;
           const walberla::float64 elMat_4_3 = tmp_kernel_op_203;
           const walberla::float64 elMat_4_4 =
-              tmp_kernel_op_11 * ((tmp_kernel_op_110 * tmp_kernel_op_110) +
-                                  (tmp_kernel_op_112 * tmp_kernel_op_112)) +
-              tmp_kernel_op_17 * ((tmp_kernel_op_114 * tmp_kernel_op_114) +
+              tmp_kernel_op_11 * ((tmp_kernel_op_115 * tmp_kernel_op_115) +
                                   (tmp_kernel_op_116 * tmp_kernel_op_116)) +
-              tmp_kernel_op_23 * ((tmp_kernel_op_118 * tmp_kernel_op_118) +
-                                  (tmp_kernel_op_120 * tmp_kernel_op_120)) +
-              tmp_kernel_op_29 * ((tmp_kernel_op_122 * tmp_kernel_op_122) +
-                                  (tmp_kernel_op_124 * tmp_kernel_op_124)) +
-              tmp_kernel_op_35 * ((tmp_kernel_op_126 * tmp_kernel_op_126) +
+              tmp_kernel_op_17 * ((tmp_kernel_op_118 * tmp_kernel_op_118) +
+                                  (tmp_kernel_op_119 * tmp_kernel_op_119)) +
+              tmp_kernel_op_23 * ((tmp_kernel_op_121 * tmp_kernel_op_121) +
+                                  (tmp_kernel_op_122 * tmp_kernel_op_122)) +
+              tmp_kernel_op_29 * ((tmp_kernel_op_124 * tmp_kernel_op_124) +
+                                  (tmp_kernel_op_125 * tmp_kernel_op_125)) +
+              tmp_kernel_op_35 * ((tmp_kernel_op_127 * tmp_kernel_op_127) +
                                   (tmp_kernel_op_128 * tmp_kernel_op_128)) +
-              tmp_kernel_op_5 * ((tmp_kernel_op_106 * tmp_kernel_op_106) +
-                                 (tmp_kernel_op_108 * tmp_kernel_op_108));
+              tmp_kernel_op_5 * ((tmp_kernel_op_112 * tmp_kernel_op_112) +
+                                 (tmp_kernel_op_113 * tmp_kernel_op_113));
           const walberla::float64 elMat_4_5 = tmp_kernel_op_206;
           const walberla::float64 elMat_4_6 = tmp_kernel_op_207;
           const walberla::float64 elMat_5_0 = tmp_kernel_op_148;
@@ -3615,175 +3615,175 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_56 +
                                  tmp_kernel_op_4 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_74 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_75 =
-              -tmp_kernel_op_1 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_76 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_75 - tmp_kernel_op_74;
-          const walberla::float64 tmp_kernel_op_77 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_78 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_75 - tmp_kernel_op_77;
-          const walberla::float64 tmp_kernel_op_79 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_6;
-          const walberla::float64 tmp_kernel_op_80 =
-              -tmp_kernel_op_7 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_81 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_80 - tmp_kernel_op_79;
-          const walberla::float64 tmp_kernel_op_82 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_6;
-          const walberla::float64 tmp_kernel_op_83 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_80 - tmp_kernel_op_82;
-          const walberla::float64 tmp_kernel_op_84 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_85 =
-              -tmp_kernel_op_13 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_86 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_85 - tmp_kernel_op_84;
-          const walberla::float64 tmp_kernel_op_87 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_88 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_85 - tmp_kernel_op_87;
-          const walberla::float64 tmp_kernel_op_89 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_18;
-          const walberla::float64 tmp_kernel_op_90 =
-              -tmp_kernel_op_19 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_91 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_90 - tmp_kernel_op_89;
-          const walberla::float64 tmp_kernel_op_92 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_18;
-          const walberla::float64 tmp_kernel_op_93 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_90 - tmp_kernel_op_92;
-          const walberla::float64 tmp_kernel_op_94 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_24;
-          const walberla::float64 tmp_kernel_op_95 =
-              -tmp_kernel_op_25 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_96 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_95 - tmp_kernel_op_94;
-          const walberla::float64 tmp_kernel_op_97 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_24;
-          const walberla::float64 tmp_kernel_op_98 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_95 - tmp_kernel_op_97;
-          const walberla::float64 tmp_kernel_op_99 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_30;
-          const walberla::float64 tmp_kernel_op_100 =
-              -tmp_kernel_op_31 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_101 =
-              jac_affine_inv_0_0_BLUE * tmp_kernel_op_100 - tmp_kernel_op_99;
-          const walberla::float64 tmp_kernel_op_102 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_30;
-          const walberla::float64 tmp_kernel_op_103 =
-              jac_affine_inv_0_1_BLUE * tmp_kernel_op_100 - tmp_kernel_op_102;
-          const walberla::float64 tmp_kernel_op_104 =
-              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_83 +
-                                  tmp_kernel_op_81 * tmp_kernel_op_9) +
-              tmp_kernel_op_17 * (tmp_kernel_op_15 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_16 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_21 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_22 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_27 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_28 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_33 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_34) +
-              tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_4 * tmp_kernel_op_78);
-          const walberla::float64 tmp_kernel_op_105 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_106 =
-              tmp_kernel_op_105 + tmp_kernel_op_74;
-          const walberla::float64 tmp_kernel_op_107 =
+          const walberla::float64 tmp_kernel_op_75 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_76 =
+              tmp_kernel_op_74 + tmp_kernel_op_75;
+          const walberla::float64 tmp_kernel_op_77 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_108 =
-              tmp_kernel_op_107 + tmp_kernel_op_77;
-          const walberla::float64 tmp_kernel_op_109 =
+          const walberla::float64 tmp_kernel_op_78 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_79 =
+              tmp_kernel_op_77 + tmp_kernel_op_78;
+          const walberla::float64 tmp_kernel_op_80 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_7;
-          const walberla::float64 tmp_kernel_op_110 =
-              tmp_kernel_op_109 + tmp_kernel_op_79;
-          const walberla::float64 tmp_kernel_op_111 =
+          const walberla::float64 tmp_kernel_op_81 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_6;
+          const walberla::float64 tmp_kernel_op_82 =
+              tmp_kernel_op_80 + tmp_kernel_op_81;
+          const walberla::float64 tmp_kernel_op_83 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_7;
-          const walberla::float64 tmp_kernel_op_112 =
-              tmp_kernel_op_111 + tmp_kernel_op_82;
-          const walberla::float64 tmp_kernel_op_113 =
+          const walberla::float64 tmp_kernel_op_84 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_6;
+          const walberla::float64 tmp_kernel_op_85 =
+              tmp_kernel_op_83 + tmp_kernel_op_84;
+          const walberla::float64 tmp_kernel_op_86 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_114 =
-              tmp_kernel_op_113 + tmp_kernel_op_84;
-          const walberla::float64 tmp_kernel_op_115 =
+          const walberla::float64 tmp_kernel_op_87 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_88 =
+              tmp_kernel_op_86 + tmp_kernel_op_87;
+          const walberla::float64 tmp_kernel_op_89 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_116 =
-              tmp_kernel_op_115 + tmp_kernel_op_87;
-          const walberla::float64 tmp_kernel_op_117 =
+          const walberla::float64 tmp_kernel_op_90 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_91 =
+              tmp_kernel_op_89 + tmp_kernel_op_90;
+          const walberla::float64 tmp_kernel_op_92 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_19;
-          const walberla::float64 tmp_kernel_op_118 =
-              tmp_kernel_op_117 + tmp_kernel_op_89;
-          const walberla::float64 tmp_kernel_op_119 =
+          const walberla::float64 tmp_kernel_op_93 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_18;
+          const walberla::float64 tmp_kernel_op_94 =
+              tmp_kernel_op_92 + tmp_kernel_op_93;
+          const walberla::float64 tmp_kernel_op_95 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_19;
-          const walberla::float64 tmp_kernel_op_120 =
-              tmp_kernel_op_119 + tmp_kernel_op_92;
-          const walberla::float64 tmp_kernel_op_121 =
+          const walberla::float64 tmp_kernel_op_96 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_18;
+          const walberla::float64 tmp_kernel_op_97 =
+              tmp_kernel_op_95 + tmp_kernel_op_96;
+          const walberla::float64 tmp_kernel_op_98 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_25;
-          const walberla::float64 tmp_kernel_op_122 =
-              tmp_kernel_op_121 + tmp_kernel_op_94;
-          const walberla::float64 tmp_kernel_op_123 =
+          const walberla::float64 tmp_kernel_op_99 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_24;
+          const walberla::float64 tmp_kernel_op_100 =
+              tmp_kernel_op_98 + tmp_kernel_op_99;
+          const walberla::float64 tmp_kernel_op_101 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_25;
-          const walberla::float64 tmp_kernel_op_124 =
-              tmp_kernel_op_123 + tmp_kernel_op_97;
-          const walberla::float64 tmp_kernel_op_125 =
+          const walberla::float64 tmp_kernel_op_102 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_24;
+          const walberla::float64 tmp_kernel_op_103 =
+              tmp_kernel_op_101 + tmp_kernel_op_102;
+          const walberla::float64 tmp_kernel_op_104 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_31;
-          const walberla::float64 tmp_kernel_op_126 =
-              tmp_kernel_op_125 + tmp_kernel_op_99;
-          const walberla::float64 tmp_kernel_op_127 =
+          const walberla::float64 tmp_kernel_op_105 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_30;
+          const walberla::float64 tmp_kernel_op_106 =
+              tmp_kernel_op_104 + tmp_kernel_op_105;
+          const walberla::float64 tmp_kernel_op_107 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_31;
-          const walberla::float64 tmp_kernel_op_128 =
-              tmp_kernel_op_102 + tmp_kernel_op_127;
-          const walberla::float64 tmp_kernel_op_129 =
-              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_112 +
-                                  tmp_kernel_op_110 * tmp_kernel_op_9) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_15 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_16) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_21 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_22) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_27 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_28) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_33 +
-                                  tmp_kernel_op_128 * tmp_kernel_op_34) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_3 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_4);
-          const walberla::float64 tmp_kernel_op_130 =
+          const walberla::float64 tmp_kernel_op_108 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_30;
+          const walberla::float64 tmp_kernel_op_109 =
+              tmp_kernel_op_107 + tmp_kernel_op_108;
+          const walberla::float64 tmp_kernel_op_110 =
+              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_85 +
+                                  tmp_kernel_op_82 * tmp_kernel_op_9) +
+              tmp_kernel_op_17 * (tmp_kernel_op_15 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_16 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_21 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_22 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_27 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_28) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_33 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_34) +
+              tmp_kernel_op_5 * (tmp_kernel_op_3 * tmp_kernel_op_76 +
+                                 tmp_kernel_op_4 * tmp_kernel_op_79);
+          const walberla::float64 tmp_kernel_op_111 =
               -tmp_kernel_op_0 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_131 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_130 - tmp_kernel_op_105;
-          const walberla::float64 tmp_kernel_op_132 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_130 - tmp_kernel_op_107;
-          const walberla::float64 tmp_kernel_op_133 =
+          const walberla::float64 tmp_kernel_op_112 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_111 - tmp_kernel_op_74;
+          const walberla::float64 tmp_kernel_op_113 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_111 - tmp_kernel_op_77;
+          const walberla::float64 tmp_kernel_op_114 =
               -tmp_kernel_op_6 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_134 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_133 - tmp_kernel_op_109;
-          const walberla::float64 tmp_kernel_op_135 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_133 - tmp_kernel_op_111;
-          const walberla::float64 tmp_kernel_op_136 =
+          const walberla::float64 tmp_kernel_op_115 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_114 - tmp_kernel_op_80;
+          const walberla::float64 tmp_kernel_op_116 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_114 - tmp_kernel_op_83;
+          const walberla::float64 tmp_kernel_op_117 =
               -tmp_kernel_op_12 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_137 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_136 - tmp_kernel_op_113;
-          const walberla::float64 tmp_kernel_op_138 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_136 - tmp_kernel_op_115;
-          const walberla::float64 tmp_kernel_op_139 =
+          const walberla::float64 tmp_kernel_op_118 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_117 - tmp_kernel_op_86;
+          const walberla::float64 tmp_kernel_op_119 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_117 - tmp_kernel_op_89;
+          const walberla::float64 tmp_kernel_op_120 =
               -tmp_kernel_op_18 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_140 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_139 - tmp_kernel_op_117;
-          const walberla::float64 tmp_kernel_op_141 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_139 - tmp_kernel_op_119;
-          const walberla::float64 tmp_kernel_op_142 =
+          const walberla::float64 tmp_kernel_op_121 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_120 - tmp_kernel_op_92;
+          const walberla::float64 tmp_kernel_op_122 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_120 - tmp_kernel_op_95;
+          const walberla::float64 tmp_kernel_op_123 =
               -tmp_kernel_op_24 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_143 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_142 - tmp_kernel_op_121;
-          const walberla::float64 tmp_kernel_op_144 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_142 - tmp_kernel_op_123;
-          const walberla::float64 tmp_kernel_op_145 =
+          const walberla::float64 tmp_kernel_op_124 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_123 - tmp_kernel_op_98;
+          const walberla::float64 tmp_kernel_op_125 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_123 - tmp_kernel_op_101;
+          const walberla::float64 tmp_kernel_op_126 =
               -tmp_kernel_op_30 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_127 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_126 - tmp_kernel_op_104;
+          const walberla::float64 tmp_kernel_op_128 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_126 - tmp_kernel_op_107;
+          const walberla::float64 tmp_kernel_op_129 =
+              tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_116 +
+                                  tmp_kernel_op_115 * tmp_kernel_op_9) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_15 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_16) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_21 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_22) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_27 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_28) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_33 +
+                                  tmp_kernel_op_128 * tmp_kernel_op_34) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_3 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_4);
+          const walberla::float64 tmp_kernel_op_130 =
+              -tmp_kernel_op_1 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_131 =
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_130 - tmp_kernel_op_75;
+          const walberla::float64 tmp_kernel_op_132 =
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_130 - tmp_kernel_op_78;
+          const walberla::float64 tmp_kernel_op_133 =
+              -tmp_kernel_op_7 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_134 =
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_133 - tmp_kernel_op_81;
+          const walberla::float64 tmp_kernel_op_135 =
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_133 - tmp_kernel_op_84;
+          const walberla::float64 tmp_kernel_op_136 =
+              -tmp_kernel_op_13 + 3.1351758546554382;
+          const walberla::float64 tmp_kernel_op_137 =
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_136 - tmp_kernel_op_87;
+          const walberla::float64 tmp_kernel_op_138 =
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_136 - tmp_kernel_op_90;
+          const walberla::float64 tmp_kernel_op_139 =
+              -tmp_kernel_op_19 - 2.5347805838436681;
+          const walberla::float64 tmp_kernel_op_140 =
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_139 - tmp_kernel_op_93;
+          const walberla::float64 tmp_kernel_op_141 =
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_139 - tmp_kernel_op_96;
+          const walberla::float64 tmp_kernel_op_142 =
+              -tmp_kernel_op_25 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_143 =
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_142 - tmp_kernel_op_99;
+          const walberla::float64 tmp_kernel_op_144 =
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_142 - tmp_kernel_op_102;
+          const walberla::float64 tmp_kernel_op_145 =
+              -tmp_kernel_op_31 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_146 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_145 - tmp_kernel_op_125;
+              jac_affine_inv_0_0_BLUE * tmp_kernel_op_145 - tmp_kernel_op_105;
           const walberla::float64 tmp_kernel_op_147 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_145 - tmp_kernel_op_127;
+              jac_affine_inv_0_1_BLUE * tmp_kernel_op_145 - tmp_kernel_op_108;
           const walberla::float64 tmp_kernel_op_148 =
               tmp_kernel_op_11 * (tmp_kernel_op_10 * tmp_kernel_op_135 +
                                   tmp_kernel_op_134 * tmp_kernel_op_9) +
@@ -3896,31 +3896,31 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_37 * tmp_kernel_op_56 +
                                  tmp_kernel_op_38 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_187 =
-              tmp_kernel_op_11 * (tmp_kernel_op_40 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_41 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_43 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_44 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_46 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_47 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_49 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_50 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_52 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_53) +
+              tmp_kernel_op_11 * (tmp_kernel_op_40 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_41 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_43 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_44 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_46 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_47 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_49 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_50) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_52 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_53) +
               tmp_kernel_op_5 * (tmp_kernel_op_37 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_38 * tmp_kernel_op_78);
+                                 tmp_kernel_op_38 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_188 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_40 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_41) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_43 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_44) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_46 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_47) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_49 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_50) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_52 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_40 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_41) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_43 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_44) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_46 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_47) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_49 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_50) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_52 +
                                   tmp_kernel_op_128 * tmp_kernel_op_53) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_37 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_38);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_37 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_38);
           const walberla::float64 tmp_kernel_op_189 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_40 +
                                   tmp_kernel_op_135 * tmp_kernel_op_41) +
@@ -3964,31 +3964,31 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 tmp_kernel_op_198 =
               (tmp_kernel_op_70 * tmp_kernel_op_70);
           const walberla::float64 tmp_kernel_op_199 =
-              tmp_kernel_op_11 * (tmp_kernel_op_59 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_60 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_62 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_63 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_65 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_66 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_68 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_69 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_71 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_72) +
+              tmp_kernel_op_11 * (tmp_kernel_op_59 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_60 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_62 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_63 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_65 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_66 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_68 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_69) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_71 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_72) +
               tmp_kernel_op_5 * (tmp_kernel_op_56 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_57 * tmp_kernel_op_78);
+                                 tmp_kernel_op_57 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_200 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_59 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_60) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_62 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_63) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_65 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_66) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_68 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_69) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_71 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_59 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_60) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_62 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_63) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_65 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_66) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_68 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_69) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_71 +
                                   tmp_kernel_op_128 * tmp_kernel_op_72) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_56 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_57);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_56 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_201 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_59 +
                                   tmp_kernel_op_135 * tmp_kernel_op_60) +
@@ -4016,70 +4016,70 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_5 * (tmp_kernel_op_153 * tmp_kernel_op_56 +
                                  tmp_kernel_op_156 * tmp_kernel_op_57);
           const walberla::float64 tmp_kernel_op_203 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_126 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_128) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_78);
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_124 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_125) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_127 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_128) +
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_76 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_204 =
-              tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_135 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_137 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_138 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_140 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_141 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_143 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_144 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_146 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_147) +
+              tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_135 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_137 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_138 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_140 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_141 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_143 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_144) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_146 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_147) +
               tmp_kernel_op_5 * (tmp_kernel_op_131 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_132 * tmp_kernel_op_78);
+                                 tmp_kernel_op_132 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_205 =
-              tmp_kernel_op_11 * (tmp_kernel_op_159 * tmp_kernel_op_81 +
-                                  tmp_kernel_op_160 * tmp_kernel_op_83) +
-              tmp_kernel_op_17 * (tmp_kernel_op_163 * tmp_kernel_op_86 +
-                                  tmp_kernel_op_164 * tmp_kernel_op_88) +
-              tmp_kernel_op_23 * (tmp_kernel_op_167 * tmp_kernel_op_91 +
-                                  tmp_kernel_op_168 * tmp_kernel_op_93) +
-              tmp_kernel_op_29 * (tmp_kernel_op_171 * tmp_kernel_op_96 +
-                                  tmp_kernel_op_172 * tmp_kernel_op_98) +
-              tmp_kernel_op_35 * (tmp_kernel_op_101 * tmp_kernel_op_175 +
-                                  tmp_kernel_op_103 * tmp_kernel_op_176) +
+              tmp_kernel_op_11 * (tmp_kernel_op_159 * tmp_kernel_op_82 +
+                                  tmp_kernel_op_160 * tmp_kernel_op_85) +
+              tmp_kernel_op_17 * (tmp_kernel_op_163 * tmp_kernel_op_88 +
+                                  tmp_kernel_op_164 * tmp_kernel_op_91) +
+              tmp_kernel_op_23 * (tmp_kernel_op_167 * tmp_kernel_op_94 +
+                                  tmp_kernel_op_168 * tmp_kernel_op_97) +
+              tmp_kernel_op_29 * (tmp_kernel_op_100 * tmp_kernel_op_171 +
+                                  tmp_kernel_op_103 * tmp_kernel_op_172) +
+              tmp_kernel_op_35 * (tmp_kernel_op_106 * tmp_kernel_op_175 +
+                                  tmp_kernel_op_109 * tmp_kernel_op_176) +
               tmp_kernel_op_5 * (tmp_kernel_op_153 * tmp_kernel_op_76 +
-                                 tmp_kernel_op_156 * tmp_kernel_op_78);
+                                 tmp_kernel_op_156 * tmp_kernel_op_79);
           const walberla::float64 tmp_kernel_op_206 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_134 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_135) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_137 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_138) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_140 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_141) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_143 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_144) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_146 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_134 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_135) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_137 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_138) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_140 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_141) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_143 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_144) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_146 +
                                   tmp_kernel_op_128 * tmp_kernel_op_147) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_131 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_132);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_131 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_132);
           const walberla::float64 tmp_kernel_op_207 =
-              tmp_kernel_op_11 * (tmp_kernel_op_110 * tmp_kernel_op_159 +
-                                  tmp_kernel_op_112 * tmp_kernel_op_160) +
-              tmp_kernel_op_17 * (tmp_kernel_op_114 * tmp_kernel_op_163 +
-                                  tmp_kernel_op_116 * tmp_kernel_op_164) +
-              tmp_kernel_op_23 * (tmp_kernel_op_118 * tmp_kernel_op_167 +
-                                  tmp_kernel_op_120 * tmp_kernel_op_168) +
-              tmp_kernel_op_29 * (tmp_kernel_op_122 * tmp_kernel_op_171 +
-                                  tmp_kernel_op_124 * tmp_kernel_op_172) +
-              tmp_kernel_op_35 * (tmp_kernel_op_126 * tmp_kernel_op_175 +
+              tmp_kernel_op_11 * (tmp_kernel_op_115 * tmp_kernel_op_159 +
+                                  tmp_kernel_op_116 * tmp_kernel_op_160) +
+              tmp_kernel_op_17 * (tmp_kernel_op_118 * tmp_kernel_op_163 +
+                                  tmp_kernel_op_119 * tmp_kernel_op_164) +
+              tmp_kernel_op_23 * (tmp_kernel_op_121 * tmp_kernel_op_167 +
+                                  tmp_kernel_op_122 * tmp_kernel_op_168) +
+              tmp_kernel_op_29 * (tmp_kernel_op_124 * tmp_kernel_op_171 +
+                                  tmp_kernel_op_125 * tmp_kernel_op_172) +
+              tmp_kernel_op_35 * (tmp_kernel_op_127 * tmp_kernel_op_175 +
                                   tmp_kernel_op_128 * tmp_kernel_op_176) +
-              tmp_kernel_op_5 * (tmp_kernel_op_106 * tmp_kernel_op_153 +
-                                 tmp_kernel_op_108 * tmp_kernel_op_156);
+              tmp_kernel_op_5 * (tmp_kernel_op_112 * tmp_kernel_op_153 +
+                                 tmp_kernel_op_113 * tmp_kernel_op_156);
           const walberla::float64 tmp_kernel_op_208 =
               tmp_kernel_op_11 * (tmp_kernel_op_134 * tmp_kernel_op_159 +
                                   tmp_kernel_op_135 * tmp_kernel_op_160) +
@@ -4108,7 +4108,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                                  (tmp_kernel_op_4 * tmp_kernel_op_4));
           const walberla::float64 elMat_0_1 = tmp_kernel_op_54;
           const walberla::float64 elMat_0_2 = tmp_kernel_op_73;
-          const walberla::float64 elMat_0_3 = tmp_kernel_op_104;
+          const walberla::float64 elMat_0_3 = tmp_kernel_op_110;
           const walberla::float64 elMat_0_4 = tmp_kernel_op_129;
           const walberla::float64 elMat_0_5 = tmp_kernel_op_148;
           const walberla::float64 elMat_0_6 = tmp_kernel_op_177;
@@ -4150,22 +4150,22 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 elMat_2_4 = tmp_kernel_op_200;
           const walberla::float64 elMat_2_5 = tmp_kernel_op_201;
           const walberla::float64 elMat_2_6 = tmp_kernel_op_202;
-          const walberla::float64 elMat_3_0 = tmp_kernel_op_104;
+          const walberla::float64 elMat_3_0 = tmp_kernel_op_110;
           const walberla::float64 elMat_3_1 = tmp_kernel_op_187;
           const walberla::float64 elMat_3_2 = tmp_kernel_op_199;
           const walberla::float64 elMat_3_3 =
-              tmp_kernel_op_11 * ((tmp_kernel_op_81 * tmp_kernel_op_81) +
-                                  (tmp_kernel_op_83 * tmp_kernel_op_83)) +
-              tmp_kernel_op_17 * ((tmp_kernel_op_86 * tmp_kernel_op_86) +
-                                  (tmp_kernel_op_88 * tmp_kernel_op_88)) +
-              tmp_kernel_op_23 * ((tmp_kernel_op_91 * tmp_kernel_op_91) +
-                                  (tmp_kernel_op_93 * tmp_kernel_op_93)) +
-              tmp_kernel_op_29 * ((tmp_kernel_op_96 * tmp_kernel_op_96) +
-                                  (tmp_kernel_op_98 * tmp_kernel_op_98)) +
-              tmp_kernel_op_35 * ((tmp_kernel_op_101 * tmp_kernel_op_101) +
+              tmp_kernel_op_11 * ((tmp_kernel_op_82 * tmp_kernel_op_82) +
+                                  (tmp_kernel_op_85 * tmp_kernel_op_85)) +
+              tmp_kernel_op_17 * ((tmp_kernel_op_88 * tmp_kernel_op_88) +
+                                  (tmp_kernel_op_91 * tmp_kernel_op_91)) +
+              tmp_kernel_op_23 * ((tmp_kernel_op_94 * tmp_kernel_op_94) +
+                                  (tmp_kernel_op_97 * tmp_kernel_op_97)) +
+              tmp_kernel_op_29 * ((tmp_kernel_op_100 * tmp_kernel_op_100) +
                                   (tmp_kernel_op_103 * tmp_kernel_op_103)) +
+              tmp_kernel_op_35 * ((tmp_kernel_op_106 * tmp_kernel_op_106) +
+                                  (tmp_kernel_op_109 * tmp_kernel_op_109)) +
               tmp_kernel_op_5 * ((tmp_kernel_op_76 * tmp_kernel_op_76) +
-                                 (tmp_kernel_op_78 * tmp_kernel_op_78));
+                                 (tmp_kernel_op_79 * tmp_kernel_op_79));
           const walberla::float64 elMat_3_4 = tmp_kernel_op_203;
           const walberla::float64 elMat_3_5 = tmp_kernel_op_204;
           const walberla::float64 elMat_3_6 = tmp_kernel_op_205;
@@ -4174,18 +4174,18 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 elMat_4_2 = tmp_kernel_op_200;
           const walberla::float64 elMat_4_3 = tmp_kernel_op_203;
           const walberla::float64 elMat_4_4 =
-              tmp_kernel_op_11 * ((tmp_kernel_op_110 * tmp_kernel_op_110) +
-                                  (tmp_kernel_op_112 * tmp_kernel_op_112)) +
-              tmp_kernel_op_17 * ((tmp_kernel_op_114 * tmp_kernel_op_114) +
+              tmp_kernel_op_11 * ((tmp_kernel_op_115 * tmp_kernel_op_115) +
                                   (tmp_kernel_op_116 * tmp_kernel_op_116)) +
-              tmp_kernel_op_23 * ((tmp_kernel_op_118 * tmp_kernel_op_118) +
-                                  (tmp_kernel_op_120 * tmp_kernel_op_120)) +
-              tmp_kernel_op_29 * ((tmp_kernel_op_122 * tmp_kernel_op_122) +
-                                  (tmp_kernel_op_124 * tmp_kernel_op_124)) +
-              tmp_kernel_op_35 * ((tmp_kernel_op_126 * tmp_kernel_op_126) +
+              tmp_kernel_op_17 * ((tmp_kernel_op_118 * tmp_kernel_op_118) +
+                                  (tmp_kernel_op_119 * tmp_kernel_op_119)) +
+              tmp_kernel_op_23 * ((tmp_kernel_op_121 * tmp_kernel_op_121) +
+                                  (tmp_kernel_op_122 * tmp_kernel_op_122)) +
+              tmp_kernel_op_29 * ((tmp_kernel_op_124 * tmp_kernel_op_124) +
+                                  (tmp_kernel_op_125 * tmp_kernel_op_125)) +
+              tmp_kernel_op_35 * ((tmp_kernel_op_127 * tmp_kernel_op_127) +
                                   (tmp_kernel_op_128 * tmp_kernel_op_128)) +
-              tmp_kernel_op_5 * ((tmp_kernel_op_106 * tmp_kernel_op_106) +
-                                 (tmp_kernel_op_108 * tmp_kernel_op_108));
+              tmp_kernel_op_5 * ((tmp_kernel_op_112 * tmp_kernel_op_112) +
+                                 (tmp_kernel_op_113 * tmp_kernel_op_113));
           const walberla::float64 elMat_4_5 = tmp_kernel_op_206;
           const walberla::float64 elMat_4_6 = tmp_kernel_op_207;
           const walberla::float64 elMat_5_0 = tmp_kernel_op_148;
@@ -4566,77 +4566,77 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 tmp_kernel_op_39 =
               ((tmp_kernel_op_21 - 1.0) * (tmp_kernel_op_21 - 1.0));
           const walberla::float64 tmp_kernel_op_40 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_41 =
-              -tmp_kernel_op_1 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_42 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_43 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_4;
-          const walberla::float64 tmp_kernel_op_44 =
-              -tmp_kernel_op_5 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_45 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_4;
-          const walberla::float64 tmp_kernel_op_46 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_8;
-          const walberla::float64 tmp_kernel_op_47 =
-              -tmp_kernel_op_9 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_48 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_8;
-          const walberla::float64 tmp_kernel_op_49 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_50 =
-              -tmp_kernel_op_13 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_51 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_52 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_16;
-          const walberla::float64 tmp_kernel_op_53 =
-              -tmp_kernel_op_17 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_54 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_16;
-          const walberla::float64 tmp_kernel_op_55 =
-              jac_affine_inv_1_0_GRAY * tmp_kernel_op_20;
-          const walberla::float64 tmp_kernel_op_56 =
-              -tmp_kernel_op_21 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_57 =
-              jac_affine_inv_1_1_GRAY * tmp_kernel_op_20;
-          const walberla::float64 tmp_kernel_op_58 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_59 =
+          const walberla::float64 tmp_kernel_op_41 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_42 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_60 =
+          const walberla::float64 tmp_kernel_op_43 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_44 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_5;
-          const walberla::float64 tmp_kernel_op_61 =
+          const walberla::float64 tmp_kernel_op_45 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_4;
+          const walberla::float64 tmp_kernel_op_46 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_5;
-          const walberla::float64 tmp_kernel_op_62 =
+          const walberla::float64 tmp_kernel_op_47 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_4;
+          const walberla::float64 tmp_kernel_op_48 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_9;
-          const walberla::float64 tmp_kernel_op_63 =
+          const walberla::float64 tmp_kernel_op_49 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_8;
+          const walberla::float64 tmp_kernel_op_50 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_9;
-          const walberla::float64 tmp_kernel_op_64 =
+          const walberla::float64 tmp_kernel_op_51 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_8;
+          const walberla::float64 tmp_kernel_op_52 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_65 =
+          const walberla::float64 tmp_kernel_op_53 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_54 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_66 =
+          const walberla::float64 tmp_kernel_op_55 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_56 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_17;
-          const walberla::float64 tmp_kernel_op_67 =
+          const walberla::float64 tmp_kernel_op_57 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_16;
+          const walberla::float64 tmp_kernel_op_58 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_17;
-          const walberla::float64 tmp_kernel_op_68 =
+          const walberla::float64 tmp_kernel_op_59 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_16;
+          const walberla::float64 tmp_kernel_op_60 =
               jac_affine_inv_0_0_GRAY * tmp_kernel_op_21;
-          const walberla::float64 tmp_kernel_op_69 =
+          const walberla::float64 tmp_kernel_op_61 =
+              jac_affine_inv_1_0_GRAY * tmp_kernel_op_20;
+          const walberla::float64 tmp_kernel_op_62 =
               jac_affine_inv_0_1_GRAY * tmp_kernel_op_21;
-          const walberla::float64 tmp_kernel_op_70 =
+          const walberla::float64 tmp_kernel_op_63 =
+              jac_affine_inv_1_1_GRAY * tmp_kernel_op_20;
+          const walberla::float64 tmp_kernel_op_64 =
               -tmp_kernel_op_0 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_71 =
+          const walberla::float64 tmp_kernel_op_65 =
               -tmp_kernel_op_4 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_72 =
+          const walberla::float64 tmp_kernel_op_66 =
               -tmp_kernel_op_8 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_73 =
+          const walberla::float64 tmp_kernel_op_67 =
               -tmp_kernel_op_12 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_74 =
+          const walberla::float64 tmp_kernel_op_68 =
               -tmp_kernel_op_16 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_75 =
+          const walberla::float64 tmp_kernel_op_69 =
               -tmp_kernel_op_20 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_70 =
+              -tmp_kernel_op_1 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_71 =
+              -tmp_kernel_op_5 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_72 =
+              -tmp_kernel_op_9 + 3.1351758546554382;
+          const walberla::float64 tmp_kernel_op_73 =
+              -tmp_kernel_op_13 - 2.5347805838436681;
+          const walberla::float64 tmp_kernel_op_74 =
+              -tmp_kernel_op_17 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_75 =
+              -tmp_kernel_op_21 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_76 =
               jac_affine_inv_0_0_GRAY * 27.0;
           const int64_t tmp_kernel_op_77 = 0;
@@ -4738,128 +4738,128 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_7 * (tmp_kernel_op_32 * tmp_kernel_op_35 +
                                  tmp_kernel_op_34 * tmp_kernel_op_35);
           const walberla::float64 elMatDiag_3 =
-              tmp_kernel_op_11 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_47 -
-                                    tmp_kernel_op_46) *
-                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_47 -
-                                    tmp_kernel_op_46)) +
-                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_47 -
-                                    tmp_kernel_op_48) *
-                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_47 -
-                                    tmp_kernel_op_48))) +
-              tmp_kernel_op_15 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_50 -
-                                    tmp_kernel_op_49) *
-                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_50 -
-                                    tmp_kernel_op_49)) +
-                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_50 -
-                                    tmp_kernel_op_51) *
-                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_50 -
-                                    tmp_kernel_op_51))) +
-              tmp_kernel_op_19 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_53 -
-                                    tmp_kernel_op_52) *
-                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_53 -
-                                    tmp_kernel_op_52)) +
-                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_53 -
-                                    tmp_kernel_op_54) *
-                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_53 -
-                                    tmp_kernel_op_54))) +
-              tmp_kernel_op_23 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_56 -
-                                    tmp_kernel_op_55) *
-                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_56 -
-                                    tmp_kernel_op_55)) +
-                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_56 -
-                                    tmp_kernel_op_57) *
-                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_56 -
-                                    tmp_kernel_op_57))) +
-              tmp_kernel_op_3 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_41 -
-                                   tmp_kernel_op_40) *
-                                  (jac_affine_inv_0_0_GRAY * tmp_kernel_op_41 -
-                                   tmp_kernel_op_40)) +
-                                 ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_41 -
-                                   tmp_kernel_op_42) *
-                                  (jac_affine_inv_0_1_GRAY * tmp_kernel_op_41 -
-                                   tmp_kernel_op_42))) +
-              tmp_kernel_op_7 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_44 -
-                                   tmp_kernel_op_43) *
-                                  (jac_affine_inv_0_0_GRAY * tmp_kernel_op_44 -
-                                   tmp_kernel_op_43)) +
-                                 ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_44 -
-                                   tmp_kernel_op_45) *
-                                  (jac_affine_inv_0_1_GRAY * tmp_kernel_op_44 -
-                                   tmp_kernel_op_45)));
+              tmp_kernel_op_11 * (((tmp_kernel_op_48 + tmp_kernel_op_49) *
+                                   (tmp_kernel_op_48 + tmp_kernel_op_49)) +
+                                  ((tmp_kernel_op_50 + tmp_kernel_op_51) *
+                                   (tmp_kernel_op_50 + tmp_kernel_op_51))) +
+              tmp_kernel_op_15 * (((tmp_kernel_op_52 + tmp_kernel_op_53) *
+                                   (tmp_kernel_op_52 + tmp_kernel_op_53)) +
+                                  ((tmp_kernel_op_54 + tmp_kernel_op_55) *
+                                   (tmp_kernel_op_54 + tmp_kernel_op_55))) +
+              tmp_kernel_op_19 * (((tmp_kernel_op_56 + tmp_kernel_op_57) *
+                                   (tmp_kernel_op_56 + tmp_kernel_op_57)) +
+                                  ((tmp_kernel_op_58 + tmp_kernel_op_59) *
+                                   (tmp_kernel_op_58 + tmp_kernel_op_59))) +
+              tmp_kernel_op_23 * (((tmp_kernel_op_60 + tmp_kernel_op_61) *
+                                   (tmp_kernel_op_60 + tmp_kernel_op_61)) +
+                                  ((tmp_kernel_op_62 + tmp_kernel_op_63) *
+                                   (tmp_kernel_op_62 + tmp_kernel_op_63))) +
+              tmp_kernel_op_3 * (((tmp_kernel_op_40 + tmp_kernel_op_41) *
+                                  (tmp_kernel_op_40 + tmp_kernel_op_41)) +
+                                 ((tmp_kernel_op_42 + tmp_kernel_op_43) *
+                                  (tmp_kernel_op_42 + tmp_kernel_op_43))) +
+              tmp_kernel_op_7 * (((tmp_kernel_op_44 + tmp_kernel_op_45) *
+                                  (tmp_kernel_op_44 + tmp_kernel_op_45)) +
+                                 ((tmp_kernel_op_46 + tmp_kernel_op_47) *
+                                  (tmp_kernel_op_46 + tmp_kernel_op_47)));
           const walberla::float64 elMatDiag_4 =
-              tmp_kernel_op_11 * (((tmp_kernel_op_46 + tmp_kernel_op_62) *
-                                   (tmp_kernel_op_46 + tmp_kernel_op_62)) +
-                                  ((tmp_kernel_op_48 + tmp_kernel_op_63) *
-                                   (tmp_kernel_op_48 + tmp_kernel_op_63))) +
-              tmp_kernel_op_15 * (((tmp_kernel_op_49 + tmp_kernel_op_64) *
-                                   (tmp_kernel_op_49 + tmp_kernel_op_64)) +
-                                  ((tmp_kernel_op_51 + tmp_kernel_op_65) *
-                                   (tmp_kernel_op_51 + tmp_kernel_op_65))) +
-              tmp_kernel_op_19 * (((tmp_kernel_op_52 + tmp_kernel_op_66) *
-                                   (tmp_kernel_op_52 + tmp_kernel_op_66)) +
-                                  ((tmp_kernel_op_54 + tmp_kernel_op_67) *
-                                   (tmp_kernel_op_54 + tmp_kernel_op_67))) +
-              tmp_kernel_op_23 * (((tmp_kernel_op_55 + tmp_kernel_op_68) *
-                                   (tmp_kernel_op_55 + tmp_kernel_op_68)) +
-                                  ((tmp_kernel_op_57 + tmp_kernel_op_69) *
-                                   (tmp_kernel_op_57 + tmp_kernel_op_69))) +
-              tmp_kernel_op_3 * (((tmp_kernel_op_40 + tmp_kernel_op_58) *
-                                  (tmp_kernel_op_40 + tmp_kernel_op_58)) +
-                                 ((tmp_kernel_op_42 + tmp_kernel_op_59) *
-                                  (tmp_kernel_op_42 + tmp_kernel_op_59))) +
-              tmp_kernel_op_7 * (((tmp_kernel_op_43 + tmp_kernel_op_60) *
-                                  (tmp_kernel_op_43 + tmp_kernel_op_60)) +
-                                 ((tmp_kernel_op_45 + tmp_kernel_op_61) *
-                                  (tmp_kernel_op_45 + tmp_kernel_op_61)));
-          const walberla::float64 elMatDiag_5 =
-              tmp_kernel_op_11 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_72 -
+              tmp_kernel_op_11 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_66 -
+                                    tmp_kernel_op_48) *
+                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_66 -
+                                    tmp_kernel_op_48)) +
+                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_66 -
+                                    tmp_kernel_op_50) *
+                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_66 -
+                                    tmp_kernel_op_50))) +
+              tmp_kernel_op_15 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_67 -
+                                    tmp_kernel_op_52) *
+                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_67 -
+                                    tmp_kernel_op_52)) +
+                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_67 -
+                                    tmp_kernel_op_54) *
+                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_67 -
+                                    tmp_kernel_op_54))) +
+              tmp_kernel_op_19 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_68 -
+                                    tmp_kernel_op_56) *
+                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_68 -
+                                    tmp_kernel_op_56)) +
+                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_68 -
+                                    tmp_kernel_op_58) *
+                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_68 -
+                                    tmp_kernel_op_58))) +
+              tmp_kernel_op_23 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_69 -
+                                    tmp_kernel_op_60) *
+                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_69 -
+                                    tmp_kernel_op_60)) +
+                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_69 -
                                     tmp_kernel_op_62) *
-                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_72 -
-                                    tmp_kernel_op_62)) +
-                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_72 -
+                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_69 -
+                                    tmp_kernel_op_62))) +
+              tmp_kernel_op_3 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_64 -
+                                   tmp_kernel_op_40) *
+                                  (jac_affine_inv_1_0_GRAY * tmp_kernel_op_64 -
+                                   tmp_kernel_op_40)) +
+                                 ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_64 -
+                                   tmp_kernel_op_42) *
+                                  (jac_affine_inv_1_1_GRAY * tmp_kernel_op_64 -
+                                   tmp_kernel_op_42))) +
+              tmp_kernel_op_7 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_65 -
+                                   tmp_kernel_op_44) *
+                                  (jac_affine_inv_1_0_GRAY * tmp_kernel_op_65 -
+                                   tmp_kernel_op_44)) +
+                                 ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_65 -
+                                   tmp_kernel_op_46) *
+                                  (jac_affine_inv_1_1_GRAY * tmp_kernel_op_65 -
+                                   tmp_kernel_op_46)));
+          const walberla::float64 elMatDiag_5 =
+              tmp_kernel_op_11 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_72 -
+                                    tmp_kernel_op_49) *
+                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_72 -
+                                    tmp_kernel_op_49)) +
+                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_72 -
+                                    tmp_kernel_op_51) *
+                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_72 -
+                                    tmp_kernel_op_51))) +
+              tmp_kernel_op_15 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_73 -
+                                    tmp_kernel_op_53) *
+                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_73 -
+                                    tmp_kernel_op_53)) +
+                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_73 -
+                                    tmp_kernel_op_55) *
+                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_73 -
+                                    tmp_kernel_op_55))) +
+              tmp_kernel_op_19 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_74 -
+                                    tmp_kernel_op_57) *
+                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_74 -
+                                    tmp_kernel_op_57)) +
+                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_74 -
+                                    tmp_kernel_op_59) *
+                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_74 -
+                                    tmp_kernel_op_59))) +
+              tmp_kernel_op_23 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_75 -
+                                    tmp_kernel_op_61) *
+                                   (jac_affine_inv_0_0_GRAY * tmp_kernel_op_75 -
+                                    tmp_kernel_op_61)) +
+                                  ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_75 -
                                     tmp_kernel_op_63) *
-                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_72 -
+                                   (jac_affine_inv_0_1_GRAY * tmp_kernel_op_75 -
                                     tmp_kernel_op_63))) +
-              tmp_kernel_op_15 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_73 -
-                                    tmp_kernel_op_64) *
-                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_73 -
-                                    tmp_kernel_op_64)) +
-                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_73 -
-                                    tmp_kernel_op_65) *
-                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_73 -
-                                    tmp_kernel_op_65))) +
-              tmp_kernel_op_19 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_74 -
-                                    tmp_kernel_op_66) *
-                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_74 -
-                                    tmp_kernel_op_66)) +
-                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_74 -
-                                    tmp_kernel_op_67) *
-                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_74 -
-                                    tmp_kernel_op_67))) +
-              tmp_kernel_op_23 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_75 -
-                                    tmp_kernel_op_68) *
-                                   (jac_affine_inv_1_0_GRAY * tmp_kernel_op_75 -
-                                    tmp_kernel_op_68)) +
-                                  ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_75 -
-                                    tmp_kernel_op_69) *
-                                   (jac_affine_inv_1_1_GRAY * tmp_kernel_op_75 -
-                                    tmp_kernel_op_69))) +
-              tmp_kernel_op_3 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_70 -
-                                   tmp_kernel_op_58) *
-                                  (jac_affine_inv_1_0_GRAY * tmp_kernel_op_70 -
-                                   tmp_kernel_op_58)) +
-                                 ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_70 -
-                                   tmp_kernel_op_59) *
-                                  (jac_affine_inv_1_1_GRAY * tmp_kernel_op_70 -
-                                   tmp_kernel_op_59))) +
-              tmp_kernel_op_7 * (((jac_affine_inv_1_0_GRAY * tmp_kernel_op_71 -
-                                   tmp_kernel_op_60) *
-                                  (jac_affine_inv_1_0_GRAY * tmp_kernel_op_71 -
-                                   tmp_kernel_op_60)) +
-                                 ((jac_affine_inv_1_1_GRAY * tmp_kernel_op_71 -
-                                   tmp_kernel_op_61) *
-                                  (jac_affine_inv_1_1_GRAY * tmp_kernel_op_71 -
-                                   tmp_kernel_op_61)));
+              tmp_kernel_op_3 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_70 -
+                                   tmp_kernel_op_41) *
+                                  (jac_affine_inv_0_0_GRAY * tmp_kernel_op_70 -
+                                   tmp_kernel_op_41)) +
+                                 ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_70 -
+                                   tmp_kernel_op_43) *
+                                  (jac_affine_inv_0_1_GRAY * tmp_kernel_op_70 -
+                                   tmp_kernel_op_43))) +
+              tmp_kernel_op_7 * (((jac_affine_inv_0_0_GRAY * tmp_kernel_op_71 -
+                                   tmp_kernel_op_45) *
+                                  (jac_affine_inv_0_0_GRAY * tmp_kernel_op_71 -
+                                   tmp_kernel_op_45)) +
+                                 ((jac_affine_inv_0_1_GRAY * tmp_kernel_op_71 -
+                                   tmp_kernel_op_47) *
+                                  (jac_affine_inv_0_1_GRAY * tmp_kernel_op_71 -
+                                   tmp_kernel_op_47)));
           const walberla::float64 elMatDiag_6 =
               tmp_kernel_op_11 *
                   (((tmp_kernel_op_76 * tmp_kernel_op_84 +
@@ -5161,77 +5161,77 @@ void P2PlusBubbleElementwiseDiffusion_float64::
           const walberla::float64 tmp_kernel_op_39 =
               ((tmp_kernel_op_21 - 1.0) * (tmp_kernel_op_21 - 1.0));
           const walberla::float64 tmp_kernel_op_40 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_41 =
-              -tmp_kernel_op_1 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_42 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_0;
-          const walberla::float64 tmp_kernel_op_43 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_4;
-          const walberla::float64 tmp_kernel_op_44 =
-              -tmp_kernel_op_5 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_45 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_4;
-          const walberla::float64 tmp_kernel_op_46 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_8;
-          const walberla::float64 tmp_kernel_op_47 =
-              -tmp_kernel_op_9 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_48 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_8;
-          const walberla::float64 tmp_kernel_op_49 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_50 =
-              -tmp_kernel_op_13 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_51 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_12;
-          const walberla::float64 tmp_kernel_op_52 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_16;
-          const walberla::float64 tmp_kernel_op_53 =
-              -tmp_kernel_op_17 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_54 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_16;
-          const walberla::float64 tmp_kernel_op_55 =
-              jac_affine_inv_1_0_BLUE * tmp_kernel_op_20;
-          const walberla::float64 tmp_kernel_op_56 =
-              -tmp_kernel_op_21 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_57 =
-              jac_affine_inv_1_1_BLUE * tmp_kernel_op_20;
-          const walberla::float64 tmp_kernel_op_58 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_59 =
+          const walberla::float64 tmp_kernel_op_41 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_42 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_1;
-          const walberla::float64 tmp_kernel_op_60 =
+          const walberla::float64 tmp_kernel_op_43 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_0;
+          const walberla::float64 tmp_kernel_op_44 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_5;
-          const walberla::float64 tmp_kernel_op_61 =
+          const walberla::float64 tmp_kernel_op_45 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_4;
+          const walberla::float64 tmp_kernel_op_46 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_5;
-          const walberla::float64 tmp_kernel_op_62 =
+          const walberla::float64 tmp_kernel_op_47 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_4;
+          const walberla::float64 tmp_kernel_op_48 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_9;
-          const walberla::float64 tmp_kernel_op_63 =
+          const walberla::float64 tmp_kernel_op_49 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_8;
+          const walberla::float64 tmp_kernel_op_50 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_9;
-          const walberla::float64 tmp_kernel_op_64 =
+          const walberla::float64 tmp_kernel_op_51 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_8;
+          const walberla::float64 tmp_kernel_op_52 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_65 =
+          const walberla::float64 tmp_kernel_op_53 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_54 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_13;
-          const walberla::float64 tmp_kernel_op_66 =
+          const walberla::float64 tmp_kernel_op_55 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_12;
+          const walberla::float64 tmp_kernel_op_56 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_17;
-          const walberla::float64 tmp_kernel_op_67 =
+          const walberla::float64 tmp_kernel_op_57 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_16;
+          const walberla::float64 tmp_kernel_op_58 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_17;
-          const walberla::float64 tmp_kernel_op_68 =
+          const walberla::float64 tmp_kernel_op_59 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_16;
+          const walberla::float64 tmp_kernel_op_60 =
               jac_affine_inv_0_0_BLUE * tmp_kernel_op_21;
-          const walberla::float64 tmp_kernel_op_69 =
+          const walberla::float64 tmp_kernel_op_61 =
+              jac_affine_inv_1_0_BLUE * tmp_kernel_op_20;
+          const walberla::float64 tmp_kernel_op_62 =
               jac_affine_inv_0_1_BLUE * tmp_kernel_op_21;
-          const walberla::float64 tmp_kernel_op_70 =
+          const walberla::float64 tmp_kernel_op_63 =
+              jac_affine_inv_1_1_BLUE * tmp_kernel_op_20;
+          const walberla::float64 tmp_kernel_op_64 =
               -tmp_kernel_op_0 + 3.1351758546554382;
-          const walberla::float64 tmp_kernel_op_71 =
+          const walberla::float64 tmp_kernel_op_65 =
               -tmp_kernel_op_4 - 2.5347805838436681;
-          const walberla::float64 tmp_kernel_op_72 =
+          const walberla::float64 tmp_kernel_op_66 =
               -tmp_kernel_op_8 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_73 =
+          const walberla::float64 tmp_kernel_op_67 =
               -tmp_kernel_op_12 + 3.2673902919218341;
-          const walberla::float64 tmp_kernel_op_74 =
+          const walberla::float64 tmp_kernel_op_68 =
               -tmp_kernel_op_16 + 0.43241207267228088;
-          const walberla::float64 tmp_kernel_op_75 =
+          const walberla::float64 tmp_kernel_op_69 =
               -tmp_kernel_op_20 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_70 =
+              -tmp_kernel_op_1 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_71 =
+              -tmp_kernel_op_5 + 3.2673902919218341;
+          const walberla::float64 tmp_kernel_op_72 =
+              -tmp_kernel_op_9 + 3.1351758546554382;
+          const walberla::float64 tmp_kernel_op_73 =
+              -tmp_kernel_op_13 - 2.5347805838436681;
+          const walberla::float64 tmp_kernel_op_74 =
+              -tmp_kernel_op_17 + 0.43241207267228088;
+          const walberla::float64 tmp_kernel_op_75 =
+              -tmp_kernel_op_21 + 3.2673902919218341;
           const walberla::float64 tmp_kernel_op_76 =
               jac_affine_inv_0_0_BLUE * 27.0;
           const int64_t tmp_kernel_op_77 = 0;
@@ -5333,128 +5333,128 @@ void P2PlusBubbleElementwiseDiffusion_float64::
               tmp_kernel_op_7 * (tmp_kernel_op_32 * tmp_kernel_op_35 +
                                  tmp_kernel_op_34 * tmp_kernel_op_35);
           const walberla::float64 elMatDiag_3 =
-              tmp_kernel_op_11 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_47 -
-                                    tmp_kernel_op_46) *
-                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_47 -
-                                    tmp_kernel_op_46)) +
-                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_47 -
-                                    tmp_kernel_op_48) *
-                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_47 -
-                                    tmp_kernel_op_48))) +
-              tmp_kernel_op_15 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_50 -
-                                    tmp_kernel_op_49) *
-                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_50 -
-                                    tmp_kernel_op_49)) +
-                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_50 -
-                                    tmp_kernel_op_51) *
-                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_50 -
-                                    tmp_kernel_op_51))) +
-              tmp_kernel_op_19 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_53 -
-                                    tmp_kernel_op_52) *
-                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_53 -
-                                    tmp_kernel_op_52)) +
-                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_53 -
-                                    tmp_kernel_op_54) *
-                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_53 -
-                                    tmp_kernel_op_54))) +
-              tmp_kernel_op_23 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_56 -
-                                    tmp_kernel_op_55) *
-                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_56 -
-                                    tmp_kernel_op_55)) +
-                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_56 -
-                                    tmp_kernel_op_57) *
-                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_56 -
-                                    tmp_kernel_op_57))) +
-              tmp_kernel_op_3 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_41 -
-                                   tmp_kernel_op_40) *
-                                  (jac_affine_inv_0_0_BLUE * tmp_kernel_op_41 -
-                                   tmp_kernel_op_40)) +
-                                 ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_41 -
-                                   tmp_kernel_op_42) *
-                                  (jac_affine_inv_0_1_BLUE * tmp_kernel_op_41 -
-                                   tmp_kernel_op_42))) +
-              tmp_kernel_op_7 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_44 -
-                                   tmp_kernel_op_43) *
-                                  (jac_affine_inv_0_0_BLUE * tmp_kernel_op_44 -
-                                   tmp_kernel_op_43)) +
-                                 ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_44 -
-                                   tmp_kernel_op_45) *
-                                  (jac_affine_inv_0_1_BLUE * tmp_kernel_op_44 -
-                                   tmp_kernel_op_45)));
+              tmp_kernel_op_11 * (((tmp_kernel_op_48 + tmp_kernel_op_49) *
+                                   (tmp_kernel_op_48 + tmp_kernel_op_49)) +
+                                  ((tmp_kernel_op_50 + tmp_kernel_op_51) *
+                                   (tmp_kernel_op_50 + tmp_kernel_op_51))) +
+              tmp_kernel_op_15 * (((tmp_kernel_op_52 + tmp_kernel_op_53) *
+                                   (tmp_kernel_op_52 + tmp_kernel_op_53)) +
+                                  ((tmp_kernel_op_54 + tmp_kernel_op_55) *
+                                   (tmp_kernel_op_54 + tmp_kernel_op_55))) +
+              tmp_kernel_op_19 * (((tmp_kernel_op_56 + tmp_kernel_op_57) *
+                                   (tmp_kernel_op_56 + tmp_kernel_op_57)) +
+                                  ((tmp_kernel_op_58 + tmp_kernel_op_59) *
+                                   (tmp_kernel_op_58 + tmp_kernel_op_59))) +
+              tmp_kernel_op_23 * (((tmp_kernel_op_60 + tmp_kernel_op_61) *
+                                   (tmp_kernel_op_60 + tmp_kernel_op_61)) +
+                                  ((tmp_kernel_op_62 + tmp_kernel_op_63) *
+                                   (tmp_kernel_op_62 + tmp_kernel_op_63))) +
+              tmp_kernel_op_3 * (((tmp_kernel_op_40 + tmp_kernel_op_41) *
+                                  (tmp_kernel_op_40 + tmp_kernel_op_41)) +
+                                 ((tmp_kernel_op_42 + tmp_kernel_op_43) *
+                                  (tmp_kernel_op_42 + tmp_kernel_op_43))) +
+              tmp_kernel_op_7 * (((tmp_kernel_op_44 + tmp_kernel_op_45) *
+                                  (tmp_kernel_op_44 + tmp_kernel_op_45)) +
+                                 ((tmp_kernel_op_46 + tmp_kernel_op_47) *
+                                  (tmp_kernel_op_46 + tmp_kernel_op_47)));
           const walberla::float64 elMatDiag_4 =
-              tmp_kernel_op_11 * (((tmp_kernel_op_46 + tmp_kernel_op_62) *
-                                   (tmp_kernel_op_46 + tmp_kernel_op_62)) +
-                                  ((tmp_kernel_op_48 + tmp_kernel_op_63) *
-                                   (tmp_kernel_op_48 + tmp_kernel_op_63))) +
-              tmp_kernel_op_15 * (((tmp_kernel_op_49 + tmp_kernel_op_64) *
-                                   (tmp_kernel_op_49 + tmp_kernel_op_64)) +
-                                  ((tmp_kernel_op_51 + tmp_kernel_op_65) *
-                                   (tmp_kernel_op_51 + tmp_kernel_op_65))) +
-              tmp_kernel_op_19 * (((tmp_kernel_op_52 + tmp_kernel_op_66) *
-                                   (tmp_kernel_op_52 + tmp_kernel_op_66)) +
-                                  ((tmp_kernel_op_54 + tmp_kernel_op_67) *
-                                   (tmp_kernel_op_54 + tmp_kernel_op_67))) +
-              tmp_kernel_op_23 * (((tmp_kernel_op_55 + tmp_kernel_op_68) *
-                                   (tmp_kernel_op_55 + tmp_kernel_op_68)) +
-                                  ((tmp_kernel_op_57 + tmp_kernel_op_69) *
-                                   (tmp_kernel_op_57 + tmp_kernel_op_69))) +
-              tmp_kernel_op_3 * (((tmp_kernel_op_40 + tmp_kernel_op_58) *
-                                  (tmp_kernel_op_40 + tmp_kernel_op_58)) +
-                                 ((tmp_kernel_op_42 + tmp_kernel_op_59) *
-                                  (tmp_kernel_op_42 + tmp_kernel_op_59))) +
-              tmp_kernel_op_7 * (((tmp_kernel_op_43 + tmp_kernel_op_60) *
-                                  (tmp_kernel_op_43 + tmp_kernel_op_60)) +
-                                 ((tmp_kernel_op_45 + tmp_kernel_op_61) *
-                                  (tmp_kernel_op_45 + tmp_kernel_op_61)));
-          const walberla::float64 elMatDiag_5 =
-              tmp_kernel_op_11 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_72 -
+              tmp_kernel_op_11 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_66 -
+                                    tmp_kernel_op_48) *
+                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_66 -
+                                    tmp_kernel_op_48)) +
+                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_66 -
+                                    tmp_kernel_op_50) *
+                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_66 -
+                                    tmp_kernel_op_50))) +
+              tmp_kernel_op_15 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_67 -
+                                    tmp_kernel_op_52) *
+                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_67 -
+                                    tmp_kernel_op_52)) +
+                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_67 -
+                                    tmp_kernel_op_54) *
+                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_67 -
+                                    tmp_kernel_op_54))) +
+              tmp_kernel_op_19 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_68 -
+                                    tmp_kernel_op_56) *
+                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_68 -
+                                    tmp_kernel_op_56)) +
+                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_68 -
+                                    tmp_kernel_op_58) *
+                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_68 -
+                                    tmp_kernel_op_58))) +
+              tmp_kernel_op_23 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_69 -
+                                    tmp_kernel_op_60) *
+                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_69 -
+                                    tmp_kernel_op_60)) +
+                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_69 -
                                     tmp_kernel_op_62) *
-                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_72 -
-                                    tmp_kernel_op_62)) +
-                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_72 -
+                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_69 -
+                                    tmp_kernel_op_62))) +
+              tmp_kernel_op_3 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_64 -
+                                   tmp_kernel_op_40) *
+                                  (jac_affine_inv_1_0_BLUE * tmp_kernel_op_64 -
+                                   tmp_kernel_op_40)) +
+                                 ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_64 -
+                                   tmp_kernel_op_42) *
+                                  (jac_affine_inv_1_1_BLUE * tmp_kernel_op_64 -
+                                   tmp_kernel_op_42))) +
+              tmp_kernel_op_7 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_65 -
+                                   tmp_kernel_op_44) *
+                                  (jac_affine_inv_1_0_BLUE * tmp_kernel_op_65 -
+                                   tmp_kernel_op_44)) +
+                                 ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_65 -
+                                   tmp_kernel_op_46) *
+                                  (jac_affine_inv_1_1_BLUE * tmp_kernel_op_65 -
+                                   tmp_kernel_op_46)));
+          const walberla::float64 elMatDiag_5 =
+              tmp_kernel_op_11 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_72 -
+                                    tmp_kernel_op_49) *
+                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_72 -
+                                    tmp_kernel_op_49)) +
+                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_72 -
+                                    tmp_kernel_op_51) *
+                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_72 -
+                                    tmp_kernel_op_51))) +
+              tmp_kernel_op_15 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_73 -
+                                    tmp_kernel_op_53) *
+                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_73 -
+                                    tmp_kernel_op_53)) +
+                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_73 -
+                                    tmp_kernel_op_55) *
+                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_73 -
+                                    tmp_kernel_op_55))) +
+              tmp_kernel_op_19 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_74 -
+                                    tmp_kernel_op_57) *
+                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_74 -
+                                    tmp_kernel_op_57)) +
+                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_74 -
+                                    tmp_kernel_op_59) *
+                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_74 -
+                                    tmp_kernel_op_59))) +
+              tmp_kernel_op_23 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_75 -
+                                    tmp_kernel_op_61) *
+                                   (jac_affine_inv_0_0_BLUE * tmp_kernel_op_75 -
+                                    tmp_kernel_op_61)) +
+                                  ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_75 -
                                     tmp_kernel_op_63) *
-                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_72 -
+                                   (jac_affine_inv_0_1_BLUE * tmp_kernel_op_75 -
                                     tmp_kernel_op_63))) +
-              tmp_kernel_op_15 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_73 -
-                                    tmp_kernel_op_64) *
-                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_73 -
-                                    tmp_kernel_op_64)) +
-                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_73 -
-                                    tmp_kernel_op_65) *
-                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_73 -
-                                    tmp_kernel_op_65))) +
-              tmp_kernel_op_19 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_74 -
-                                    tmp_kernel_op_66) *
-                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_74 -
-                                    tmp_kernel_op_66)) +
-                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_74 -
-                                    tmp_kernel_op_67) *
-                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_74 -
-                                    tmp_kernel_op_67))) +
-              tmp_kernel_op_23 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_75 -
-                                    tmp_kernel_op_68) *
-                                   (jac_affine_inv_1_0_BLUE * tmp_kernel_op_75 -
-                                    tmp_kernel_op_68)) +
-                                  ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_75 -
-                                    tmp_kernel_op_69) *
-                                   (jac_affine_inv_1_1_BLUE * tmp_kernel_op_75 -
-                                    tmp_kernel_op_69))) +
-              tmp_kernel_op_3 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_70 -
-                                   tmp_kernel_op_58) *
-                                  (jac_affine_inv_1_0_BLUE * tmp_kernel_op_70 -
-                                   tmp_kernel_op_58)) +
-                                 ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_70 -
-                                   tmp_kernel_op_59) *
-                                  (jac_affine_inv_1_1_BLUE * tmp_kernel_op_70 -
-                                   tmp_kernel_op_59))) +
-              tmp_kernel_op_7 * (((jac_affine_inv_1_0_BLUE * tmp_kernel_op_71 -
-                                   tmp_kernel_op_60) *
-                                  (jac_affine_inv_1_0_BLUE * tmp_kernel_op_71 -
-                                   tmp_kernel_op_60)) +
-                                 ((jac_affine_inv_1_1_BLUE * tmp_kernel_op_71 -
-                                   tmp_kernel_op_61) *
-                                  (jac_affine_inv_1_1_BLUE * tmp_kernel_op_71 -
-                                   tmp_kernel_op_61)));
+              tmp_kernel_op_3 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_70 -
+                                   tmp_kernel_op_41) *
+                                  (jac_affine_inv_0_0_BLUE * tmp_kernel_op_70 -
+                                   tmp_kernel_op_41)) +
+                                 ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_70 -
+                                   tmp_kernel_op_43) *
+                                  (jac_affine_inv_0_1_BLUE * tmp_kernel_op_70 -
+                                   tmp_kernel_op_43))) +
+              tmp_kernel_op_7 * (((jac_affine_inv_0_0_BLUE * tmp_kernel_op_71 -
+                                   tmp_kernel_op_45) *
+                                  (jac_affine_inv_0_0_BLUE * tmp_kernel_op_71 -
+                                   tmp_kernel_op_45)) +
+                                 ((jac_affine_inv_0_1_BLUE * tmp_kernel_op_71 -
+                                   tmp_kernel_op_47) *
+                                  (jac_affine_inv_0_1_BLUE * tmp_kernel_op_71 -
+                                   tmp_kernel_op_47)));
           const walberla::float64 elMatDiag_6 =
               tmp_kernel_op_11 *
                   (((tmp_kernel_op_76 * tmp_kernel_op_84 +

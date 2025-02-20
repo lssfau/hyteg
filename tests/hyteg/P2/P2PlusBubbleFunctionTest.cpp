@@ -280,11 +280,13 @@ real_t solveDiffusionProblem( bool doVTKOutput = false )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    // pick an analytical solution for the homogeneous diffusion equation
-   real_t freqNum{ real_c( 2 ) };
+   real_t freqNum{ real_c( 1 ) };
 
    std::function< real_t( const hyteg::Point3D& ) > expr_analytic = [&freqNum]( const Point3D& x ) {
       using walberla::math::pi;
       return std::sinh( freqNum * pi * x[1] ) / std::sinh( freqNum * pi ) * std::sin( freqNum * pi * x[0] );
+      // return real_c(1.0);
+      // return real_c(3)*x[0];
    };
 
    // setup some P2+ functions
@@ -466,7 +468,7 @@ void runMassTests()
    runSingleMassTest( MeshType::ANNULUS );
 }
 
-void runDiffusionTest( bool doVTKOutput = false )
+void runDiffusionTest( bool doVTKOutput = true )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "==============================================" );
    WALBERLA_LOG_INFO_ON_ROOT( " P2PlusBubbleFunction: Diffusion Problem Test" );

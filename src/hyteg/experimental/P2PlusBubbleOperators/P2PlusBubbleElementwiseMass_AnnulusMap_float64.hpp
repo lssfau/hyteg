@@ -97,14 +97,14 @@ private:
   /// - volume element:  triangle, dim: 2, vertices: 3, spacedim: 2
   /// - kernel type:     apply
   /// - loop strategy:   SAWTOOTH
-  /// - quadrature rule: Dunavant 3 | points: 4, degree: 3
+  /// - quadrature rule: Griener-Schmid 1 | points: 10, degree: 6
   /// - blending map:    AnnulusMap
   /// - operations per element:
   ///   adds    muls    divs    pows    abs    assignments    function_calls
   ///   unknown_ops
   /// ------  ------  ------  ------  -----  -------------  ----------------
   /// -------------
-  ///    247     408      13       8      0              0                 0 0
+  ///    523     906      13      20      0              0                 0 0
   void apply_P2PlusBubbleElementwiseMass_AnnulusMap_float64_macro_2D(
       walberla::float64 *RESTRICT _data_dst,
       walberla::float64 *RESTRICT _data_dstEdge,
@@ -129,14 +129,14 @@ private:
   /// - volume element:  triangle, dim: 2, vertices: 3, spacedim: 2
   /// - kernel type:     toMatrix
   /// - loop strategy:   SAWTOOTH
-  /// - quadrature rule: Dunavant 3 | points: 4, degree: 3
+  /// - quadrature rule: Griener-Schmid 1 | points: 10, degree: 6
   /// - blending map:    AnnulusMap
   /// - operations per element:
   ///   adds    muls    divs    pows    abs    assignments    function_calls
   ///   unknown_ops
   /// ------  ------  ------  ------  -----  -------------  ----------------
   /// -------------
-  ///    198     359      13       8      0              0                 0 3
+  ///    474     857      13      20      0              0                 0 3
   void toMatrix_P2PlusBubbleElementwiseMass_AnnulusMap_float64_macro_2D(
       idx_t *RESTRICT _data_dst, idx_t *RESTRICT _data_dstEdge,
       idx_t *RESTRICT _data_dstVertex, idx_t *RESTRICT _data_src,
@@ -159,14 +159,14 @@ private:
   /// - volume element:  triangle, dim: 2, vertices: 3, spacedim: 2
   /// - kernel type:     computeInverseDiagonalOperatorValues
   /// - loop strategy:   SAWTOOTH
-  /// - quadrature rule: Dunavant 3 | points: 4, degree: 3
+  /// - quadrature rule: Griener-Schmid 1 | points: 10, degree: 6
   /// - blending map:    AnnulusMap
   /// - operations per element:
   ///   adds    muls    divs    pows    abs    assignments    function_calls
   ///   unknown_ops
   /// ------  ------  ------  ------  -----  -------------  ----------------
   /// -------------
-  ///    134     199      13       8      0              0                 0 0
+  ///    272     457      13      20      0              0                 0 0
   void
   computeInverseDiagonalOperatorValues_P2PlusBubbleElementwiseMass_AnnulusMap_float64_macro_2D(
       walberla::float64 *RESTRICT _data_invDiag_,
