@@ -166,6 +166,9 @@ Parameters
 
    maxNumTimeSteps 10;
    fixedTimeStep false;
+   predictorCorrector false;
+   // Maximum timestep size in Ma
+   maxTimeStepSize 0.5
    cflMax 0.75;
    dtConstant 1e-4;
 

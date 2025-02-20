@@ -125,10 +125,21 @@ void ConvectionSimulation::step()
       TN.simulationParameters.dt = ( TN.simulationParameters.cflMax / vMax ) * TN.simulationParameters.hMin;
    }
 
-   TN.simulationParameters.modelTime += TN.simulationParameters.dt;
    real_t stepSize = ( TN.simulationParameters.dt * TN.physicalParameters.mantleThickness ) /
                      ( TN.physicalParameters.characteristicVelocity * TN.simulationParameters.plateVelocityScaling *
                        TN.simulationParameters.secondsPerMyr );
+   // Limit the timestep size to a maximum value (in Ma).
+   if ( stepSize > ( TN.simulationParameters.maxTimestepSize ) && TN.simulationParameters.simulationType == "CirculationModel" )
+   {
+      TN.simulationParameters.dt = ( ( TN.simulationParameters.maxTimestepSize ) *
+                                     ( TN.physicalParameters.characteristicVelocity *
+                                       TN.simulationParameters.plateVelocityScaling * TN.simulationParameters.secondsPerMyr ) ) /
+                                   ( TN.physicalParameters.mantleThickness );
+      stepSize = TN.simulationParameters.maxTimestepSize;
+   }
+
+   TN.simulationParameters.modelTime += TN.simulationParameters.dt;
+
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Step size: " << stepSize << " Ma" );
    WALBERLA_LOG_INFO_ON_ROOT( "Velocity max magnitude: " << vMax << " " );
@@ -279,6 +290,147 @@ void ConvectionSimulation::step()
                                                                                    TN.domainParameters.rMax,
                                                                                    TN.domainParameters.nRad,
                                                                                    TN.domainParameters.maxLevel ) );
+   }
+
+   //########################################################################################//
+   // THIS IS AN ATTEMPT TO IMPROVE THE COUPLING
+   // THE ENERGY AND STOKES ARE SOLVED AGAIN!
+   //
+   // IN THE FUTURE THIS COULD BE DONE IN A LOOP
+   // TO ENSURE EVEN TIGHTER COUPLING
+   //########################################################################################//
+
+   bool predictorCorrector = TN.simulationParameters.predictorCorrector;
+
+   if ( predictorCorrector )
+   {
+      //######################################################//
+      //                ENERGY EQUATION AGAIN                 //
+      //######################################################//
+
+      /*############ ADVECTION STEP ############*/
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "------- Advection Step ------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+      transportOperator->step( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                               p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+                               p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw(),
+                               TN.domainParameters.maxLevel,
+                               hyteg::Inner,
+                               TN.simulationParameters.dt,
+                               1,
+                               true,
+                               true,
+                               false );
+
+      p2ScalarFunctionContainer["TemperaturePrev"]->assign(
+          { real_c( 1 ) }, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, TN.domainParameters.maxLevel, All );
+
+      for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
+      {
+         if ( TN.initialisationParameters.temperatureNoise )
+         {
+            p2ScalarFunctionContainer["TemperatureFE"]->interpolate(
+                temperatureWhiteNoise(
+                    *temperatureInitParams, *temperatureReferenceFct, TN.initialisationParameters.noiseFactor ),
+                l,
+                DirichletBoundary );
+         }
+         else
+         {
+            p2ScalarFunctionContainer["TemperatureFE"]->interpolate(
+                temperatureSPH( *temperatureInitParams,
+                                *temperatureReferenceFct,
+                                TN.initialisationParameters.tempInit,
+                                TN.initialisationParameters.deg,
+                                TN.initialisationParameters.ord,
+                                TN.initialisationParameters.lmax,
+                                TN.initialisationParameters.lmin,
+                                TN.initialisationParameters.superposition,
+                                TN.initialisationParameters.buoyancyFactor,
+                                TN.physicalParameters.initialTemperatureSteepness ),
+                l,
+                DirichletBoundary );
+         }
+      }
+
+      /*############ ENERGY STEP ############*/
+
+      p1ScalarFunctionContainer["TemperatureFEP1"]->assign(
+          { real_c( 1 ) },
+          { p2ScalarFunctionContainer["TemperatureFE"]->getVertexDoFFunction() },
+          TN.domainParameters.maxLevel,
+          All );
+
+      // setupEnergyRHS();
+      storage->getTimingTree()->start( "TerraNeo solve Energy equation" );
+      solveEnergy();
+      storage->getTimingTree()->stop( "TerraNeo solve Energy equation" );
+
+      //######################################################//
+      //               STOKES EQUATIONS AGAIN                 //
+      //######################################################//
+
+      if ( TN.simulationParameters.simulationType == "CirculationModel" )
+      {
+         //update plate velocity boundary condition prior to stokes solve
+         //update if >=1Myr has passed since Prev update
+         if ( ( ( TN.simulationParameters.plateAge - TN.simulationParameters.ageMa ) >= real_c( 1 ) ) )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "" );
+            WALBERLA_LOG_INFO_ON_ROOT( "Update plates" );
+
+            //save the age of the current update (rounded to 1Myr intervals)
+            TN.simulationParameters.plateAge = std::round( TN.simulationParameters.ageMa );
+            updatePlateVelocities( *( p2p1StokesFunctionContainer["VelocityFE"] ) );
+         }
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Plate age: " << TN.simulationParameters.plateAge << " Ma" )
+      }
+
+      //update ref temp vector based on new temperature field
+
+      temperatureProfiles =
+          std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                                   TN.domainParameters.rMin,
+                                                                   TN.domainParameters.rMax,
+                                                                   TN.domainParameters.nRad,
+                                                                   TN.domainParameters.maxLevel ) );
+
+      TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
+
+      // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
+      for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
+      {
+         // Redimensionalise temperature
+         real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+         if ( ( temperatureProfiles->min[i] ) <= 0 )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
+                                                                << " detected at shell radii: "
+                                                                << temperatureProfiles->shellRadii[i] );
+            WALBERLA_LOG_INFO_ON_ROOT( "Dump data" );
+            dataOutput();
+            WALBERLA_ABORT( "Aborting simulation run" );
+         }
+      }
+
+      solveStokes();
+
+      // update viscosity Profiles for logging
+      if ( TN.simulationParameters.tempDependentViscosity )
+      {
+         viscosityProfiles =
+             std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["ViscosityFE"] ),
+                                                                      TN.domainParameters.rMin,
+                                                                      TN.domainParameters.rMax,
+                                                                      TN.domainParameters.nRad,
+                                                                      TN.domainParameters.maxLevel ) );
+      }
    }
    //######################################################//
    //                  DUMP OUTPUT                         //

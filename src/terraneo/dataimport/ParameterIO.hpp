@@ -281,7 +281,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    simulationParam.cflMax                 = mainConf.getParameter< real_t >( "cflMax" );
    simulationParam.fixedTimestep          = mainConf.getParameter< bool >( "fixedTimestep" );
+   simulationParam.maxTimestepSize        = mainConf.getParameter< real_t >( "maxTimestepSize" );
    simulationParam.dtConstant             = mainConf.getParameter< real_t >( "dtConstant" );
+   simulationParam.predictorCorrector     = mainConf.getParameter< bool >( "predictorCorrector" );
    simulationParam.maxNumTimesteps        = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
    simulationParam.adaptiveRefTemp        = mainConf.getParameter< bool >( "adaptiveRefTemp" );
    simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
@@ -712,8 +714,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
    }
    else
    {
@@ -727,8 +728,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

@@ -84,11 +84,9 @@ Parameters
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
-   viscosity       1e23;
+   viscosity       1e22;
 
    // Adiabatic reference state parameters
-
-   // adiabatic reference state parameters
 
    adiabatSurfaceTemp 1600;
    surfaceDensity 3.3745581070e03;
@@ -103,7 +101,7 @@ Parameters
 
    // Temperature dependent or independent viscosity
 
-   tempDependentViscosity false;
+   tempDependentViscosity true;
 
    // Temperature-dependent viscosity law
    // 0 =  Frank–Kamenetskii type 1: goes as e^(-Activation * T)
@@ -136,7 +134,7 @@ Parameters
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
 
-   characteristicVelocity 1e-9;
+   characteristicVelocity 5e-9;
 
    // Input temperature
 
@@ -157,7 +155,7 @@ Parameters
 
    // Model simulation type: ConvectionModel / CirculationModel
 
-   simulationType ConvectionModel;
+   simulationType CirculationModel;
 
    compressible false;
    shearHeating false;
@@ -174,7 +172,10 @@ Parameters
 
    maxNumTimeSteps 5;
    fixedTimeStep false;
-   cflMax 0.5;
+   predictorCorrector true;
+   // Maximum timestep size in Ma
+   maxTimeStepSize 1;
+   cflMax 2;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -246,7 +247,7 @@ Parameters
 
    // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   stokesKillTolerance 10000;
+   stokesKillTolerance 10000000;
 
    // Diffusion parameters 
 
@@ -291,8 +292,8 @@ Parameters
 
    // ADIOS2 parameter keys and values for data output
 
-   ADIOS2ParamKey NumAggregators;
-   ADIOS2Value 16;
+   ADIOS2ParamKey NumSubFiles;
+   ADIOS2Value 32;
 
    outputDirectory ./output/Test_HAWK-P0_test;
    outputBaseName TerraNeo;
@@ -301,5 +302,5 @@ Parameters
 
    timingAnalysis true;
    createTimingDB true;
-   SQLdatabaseFileName TerraNeoSQLDatabaseFile.db;
+   SQLdatabaseFileName TerraNeoSQLDatabaseFile_PlateFix_MT128_PredCorr.db;
 }

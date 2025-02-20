@@ -190,6 +190,7 @@ struct SimulationParameters
    //Parameters given via config file
    bool        fixedTimestep              = false;
    uint_t      timeStep                   = 0;
+   real_t      maxTimestepSize            = 0;
    real_t      modelTime                  = real_c( 0 );
    real_t      dtPrev                     = real_c( 0 );
    real_t      dt                         = real_c( 0 );
@@ -225,6 +226,7 @@ struct SimulationParameters
    bool        haveThermalExpProfile       = false;
    bool        haveSpecificHeatCapProfile  = false;
    bool        haveDensityProfile          = false;
+   bool        predictorCorrector          = false;
    std::string fileTemperatureInputProfile = std::string( "TemperatureInputProfile.json" );
    std::string fileViscosityProfile        = std::string( "ViscosityProfile.json" );
    std::string fileThermalExpProfile       = std::string( "ThermalExpProfile.json" );
