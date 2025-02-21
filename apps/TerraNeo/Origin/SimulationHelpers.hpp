@@ -149,7 +149,9 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
       vec3D coords{ point[0], point[1], point[2] };
       vec3D velocity = oracle->getLocallyAveragedPointVelocity(
           coords, TN.simulationParameters.plateAge, *avgPointProvider, handlerWithStatistics );
-      return velocity[int_c( coordIdx )];
+      return velocity[int_c( coordIdx )] /
+             ( TN.physicalParameters.characteristicVelocity *
+               TN.simulationParameters.plateVelocityScaling ); //non-dimensionalise by dividing by characteristic velocity
    };
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; ++l )
