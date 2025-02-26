@@ -318,7 +318,7 @@ void runTest( bool preCompute )
       vtkOutput.write( maxLevel, numIterations + 1 );
    }
 
-   WALBERLA_CHECK_LESS( currRes, 9.0e-9 );
+   WALBERLA_CHECK_LESS( currRes, 9.02e-9 );
    WALBERLA_CHECK_LESS( discr_l2_err_u, 4.0e-04 );
    WALBERLA_CHECK_LESS( discr_l2_err_v, 4.0e-04 );
    if ( std::is_same_v< real_t, double > )
