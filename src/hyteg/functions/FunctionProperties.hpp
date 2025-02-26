@@ -477,6 +477,10 @@ void printFunctionAllocationInfo()
    const double maxActualAllocatedMemory    = double( FunctionMemory< ValueType >::getMaxLocalAllocatedMemoryInBytes() ) / 1e+09;
 
    WALBERLA_LOG_INFO_ON_ROOT( "====================== Function Allocation Info ======================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "The table entries are with respect to MPI processes." );
+   WALBERLA_LOG_INFO_ON_ROOT( "Thus, min/max gives the minimal/maximal value of memory allocated on " );
+   WALBERLA_LOG_INFO_ON_ROOT( "a process, while sum is the global amount over all processes." );
+   WALBERLA_LOG_INFO_ON_ROOT( "=====================================================================" );
    WALBERLA_LOG_INFO_ON_ROOT( "                       +--------------+--------------+--------------+" );
    WALBERLA_LOG_INFO_ON_ROOT( "                       |          sum |          min |          max |" );
    WALBERLA_LOG_INFO_ON_ROOT( " ----------------------+--------------+--------------+--------------+" );
