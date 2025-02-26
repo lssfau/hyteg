@@ -261,7 +261,7 @@ void simulate( int argc, char* argv[] )
                       P2ConstantMassOperator >
        diffusion( storage, minLevel, maxLevel, diffusionSolver );
 
-   printFunctionAllocationInfo( *storage, 1 );
+   printFunctionAllocationInfo();
 
    walberla::WcTimer timer;
 

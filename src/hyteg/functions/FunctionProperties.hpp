@@ -22,6 +22,7 @@
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
@@ -461,18 +462,35 @@ inline uint_t polynomialDegreeOfBasisFunctions()
    }
 }
 
-/// \brief Prints infos about the memory consumption of all functions.
+/// \brief Prints the memory consumption of all functions with a specified scalar type.
 ///
 /// Note 1: this function may be expensive since it performs global reduction (multiple times)
 /// Note 2: must be called collectively by all threads
-/// Note 3: currently restricted to functions of type real_t
-/// Note 4: might partly include memory allocated for stencils
+/// Note 3: might partly include memory allocated for stencils
 ///
-/// \param storage Primitive Storage containing the functions
-/// \param verbosityLevel
-///     0: only print memory consumption
-///     1: additionally number of functions and DoFs of each type
-///     2: additionally list names of allocated functions
-void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t& verbosityLevel = 1 );
+template < typename ValueType = real_t >
+void printFunctionAllocationInfo()
+{
+   // calculate actual allocated memory
+   const double globalActualAllocatedMemory = double( FunctionMemory< ValueType >::getGlobalAllocatedMemoryInBytes() ) / 1e+09;
+   const double minActualAllocatedMemory    = double( FunctionMemory< ValueType >::getMinLocalAllocatedMemoryInBytes() ) / 1e+09;
+   const double maxActualAllocatedMemory    = double( FunctionMemory< ValueType >::getMaxLocalAllocatedMemoryInBytes() ) / 1e+09;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "====================== Function Allocation Info ======================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "The table entries are with respect to MPI processes." );
+   WALBERLA_LOG_INFO_ON_ROOT( "Thus, min/max gives the minimal/maximal value of memory allocated on " );
+   WALBERLA_LOG_INFO_ON_ROOT( "a process, while sum is the global amount over all processes." );
+   WALBERLA_LOG_INFO_ON_ROOT( "=====================================================================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "                       +--------------+--------------+--------------+" );
+   WALBERLA_LOG_INFO_ON_ROOT( "                       |          sum |          min |          max |" );
+   WALBERLA_LOG_INFO_ON_ROOT( " ----------------------+--------------+--------------+--------------+" );
+   WALBERLA_LOG_INFO_ON_ROOT( " allocated memory (GB) | "
+                              << std::setw( 12 ) << std::scientific << std::setprecision( 3 ) << globalActualAllocatedMemory
+                              << " | " << std::setw( 12 ) << std::scientific << std::setprecision( 3 ) << minActualAllocatedMemory
+                              << " | " << std::setw( 12 ) << std::scientific << std::setprecision( 3 ) << maxActualAllocatedMemory
+                              << " | " );
+   WALBERLA_LOG_INFO_ON_ROOT( " ----------------------+--------------+--------------+--------------+" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+}
 
 } // namespace hyteg

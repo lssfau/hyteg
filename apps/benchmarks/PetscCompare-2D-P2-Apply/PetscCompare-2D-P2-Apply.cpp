@@ -227,7 +227,6 @@ int main( int argc, char* argv[] )
    printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
    WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() )
 #endif
-   //printFunctionAllocationInfo( *storage );
    printCurrentMemoryUsage();
    LIKWID_MARKER_CLOSE;
 }

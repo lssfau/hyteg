@@ -67,13 +67,6 @@ class Function
       {
          enableTiming( storage->getTimingTree() );
       }
-
-      functionNames_.push_back( name );
-
-      for ( uint_t i = minLevel; i <= maxLevel; ++i )
-      {
-         levelWiseFunctionCounter_[i]++;
-      }
    }
 
    virtual ~Function() = default;
@@ -107,10 +100,6 @@ class Function
       }
    }
 
-   static uint_t                     getNumFunctions() { return functionNames_.size(); }
-   static std::vector< std::string > getFunctionNames() { return functionNames_; }
-   static std::map< uint_t, uint_t > getLevelWiseFunctionCounter() { return levelWiseFunctionCounter_; }
-
  protected:
    std::string                         functionName_;
    std::shared_ptr< PrimitiveStorage > storage_;
@@ -139,16 +128,6 @@ class Function
          timingTree_->stop( FunctionTrait< FunctionType >::getTypeName() );
       }
    }
-
- private:
-   static std::vector< std::string > functionNames_;
-   static std::map< uint_t, uint_t > levelWiseFunctionCounter_;
 };
-
-template < typename FunctionType >
-std::vector< std::string > Function< FunctionType >::functionNames_ = {};
-
-template < typename FunctionType >
-std::map< uint_t, uint_t > Function< FunctionType >::levelWiseFunctionCounter_ = {};
 
 } // namespace hyteg

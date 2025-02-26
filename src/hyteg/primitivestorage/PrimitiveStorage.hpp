@@ -242,7 +242,7 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists locally.
    template < typename PrimitiveType >
-   inline bool primitiveExistsLocallyGenerically( const PrimitiveID& id ) const
+   bool primitiveExistsLocallyGenerically( const PrimitiveID& id ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
       return false;
@@ -250,7 +250,7 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
    template < typename PrimitiveType >
-   inline bool primitiveExistsInNeighborhoodGenerically( const PrimitiveID& id ) const
+   bool primitiveExistsInNeighborhoodGenerically( const PrimitiveID& id ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
       return false;
@@ -321,13 +321,13 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// @name Generic versions of the getter methods.
    ///@{
    template < typename PrimitiveType >
-   inline const PrimitiveType* getPrimitiveGenerically( const PrimitiveID& id ) const
+   const PrimitiveType* getPrimitiveGenerically( const PrimitiveID& id ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
 
    template < typename PrimitiveType >
-   inline PrimitiveType* getPrimitiveGenerically( const PrimitiveID& id )
+   PrimitiveType* getPrimitiveGenerically( const PrimitiveID& id )
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
@@ -384,7 +384,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Fills the passed vector with the IDs of the primitives of the type provided via the
    /// template parameter \p PrimitiveType
    template < typename PrimitiveType >
-   inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID >& primitiveIDs ) const
+   void getPrimitiveIDsGenerically( std::vector< PrimitiveID >& primitiveIDs ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
@@ -392,7 +392,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Fills the passed vector with the IDs of the neighboring / non-local / ghost primitives of the
    /// type provided via the template parameter \p PrimitiveType
    template < typename PrimitiveType >
-   inline void getNeighboringPrimitiveIDsGenerically( std::vector< PrimitiveID >& primitiveIDs ) const
+   void getNeighboringPrimitiveIDsGenerically( std::vector< PrimitiveID >& primitiveIDs ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
@@ -448,33 +448,33 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// \param identifier string that identifies the data that was added
    ///@{
    template < typename DataType, typename DataHandlingType >
-   inline void addPrimitiveData( PrimitiveDataID< DataType, Primitive >&    dataID,
-                                 const std::shared_ptr< DataHandlingType >& dataHandling,
-                                 const std::string&                         identifier );
+   void addPrimitiveData( PrimitiveDataID< DataType, Primitive >&    dataID,
+                          const std::shared_ptr< DataHandlingType >& dataHandling,
+                          const std::string&                         identifier );
 
    template < typename DataType, typename DataHandlingType >
-   inline void addVertexData( PrimitiveDataID< DataType, Vertex >&       dataID,
-                              const std::shared_ptr< DataHandlingType >& dataHandling,
-                              const std::string&                         identifier );
+   void addVertexData( PrimitiveDataID< DataType, Vertex >&       dataID,
+                       const std::shared_ptr< DataHandlingType >& dataHandling,
+                       const std::string&                         identifier );
 
    template < typename DataType, typename DataHandlingType >
-   inline void addEdgeData( PrimitiveDataID< DataType, Edge >&         dataID,
-                            const std::shared_ptr< DataHandlingType >& dataHandling,
-                            const std::string&                         identifier );
+   void addEdgeData( PrimitiveDataID< DataType, Edge >&         dataID,
+                     const std::shared_ptr< DataHandlingType >& dataHandling,
+                     const std::string&                         identifier );
 
    template < typename DataType, typename DataHandlingType >
-   inline void addFaceData( PrimitiveDataID< DataType, Face >&         dataID,
-                            const std::shared_ptr< DataHandlingType >& dataHandling,
-                            const std::string&                         identifier );
+   void addFaceData( PrimitiveDataID< DataType, Face >&         dataID,
+                     const std::shared_ptr< DataHandlingType >& dataHandling,
+                     const std::string&                         identifier );
 
    template < typename DataType, typename DataHandlingType >
-   inline void addCellData( PrimitiveDataID< DataType, Cell >&         dataID,
-                            const std::shared_ptr< DataHandlingType >& dataHandling,
-                            const std::string&                         identifier );
+   void addCellData( PrimitiveDataID< DataType, Cell >&         dataID,
+                     const std::shared_ptr< DataHandlingType >& dataHandling,
+                     const std::string&                         identifier );
 
    /// Creates an invalid PrimitiveDataID - no \ref Primitive of the storage will ever have data attached that corresponds to this ID.
    template < typename DataType, typename PrimitiveType >
-   inline PrimitiveDataID< DataType, PrimitiveType > generateInvalidPrimitiveDataID()
+   PrimitiveDataID< DataType, PrimitiveType > generateInvalidPrimitiveDataID()
    {
       return generateDataID< DataType, PrimitiveType >();
    }
@@ -485,19 +485,19 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// \param dataID ID of the data to be deleted
    ///@{
    template < typename DataType >
-   inline void deletePrimitiveData( PrimitiveDataID< DataType, Primitive >& dataID );
+   void deletePrimitiveData( const PrimitiveDataID< DataType, Primitive >& dataID );
 
    template < typename DataType >
-   inline void deleteVertexData( PrimitiveDataID< DataType, Vertex >& dataID );
+   void deleteVertexData( const PrimitiveDataID< DataType, Vertex >& dataID );
 
    template < typename DataType >
-   inline void deleteEdgeData( PrimitiveDataID< DataType, Edge >& dataID );
+   void deleteEdgeData( const PrimitiveDataID< DataType, Edge >& dataID );
 
    template < typename DataType >
-   inline void deleteFaceData( PrimitiveDataID< DataType, Face >& dataID );
+   void deleteFaceData( const PrimitiveDataID< DataType, Face >& dataID );
 
    template < typename DataType >
-   inline void deleteCellData( PrimitiveDataID< DataType, Cell >& dataID );
+   void deleteCellData( const PrimitiveDataID< DataType, Cell >& dataID );
    ///@}
 
    /// Migrates the passed local primitives to the respective target process.
@@ -531,7 +531,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    std::set< uint_t > getNeighboringVolumeRanksOfVolume( const PrimitiveID& volumePrimitiveID ) const;
    std::set< uint_t > getNeighboringVolumeRanksOfAllVolumes() const;
 
-   inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const { return timingTree_; }
+   const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const { return timingTree_; }
 
    /// Returns a formatted string that contains global information about the storage.
    /// Must be called by all processes!
@@ -698,22 +698,22 @@ class PrimitiveStorage : private walberla::NonCopyable
    void initializeAndDeserializeAllPrimitiveData( walberla::mpi::RecvBuffer& recvBuffer, const PrimitiveID& primitiveID );
 
    template < typename DataType, typename PrimitiveType >
-   inline PrimitiveDataID< DataType, PrimitiveType > generateDataID();
+   PrimitiveDataID< DataType, PrimitiveType > generateDataID();
 
    template < typename DataType,
               typename PrimitiveType,
               typename DataHandlingType,
               typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
-   inline void addPrimitiveData( const std::shared_ptr< DataHandlingType >&                       dataHandling,
-                                 const std::string&                                               identifier,
-                                 const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
-                                 const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
+   void addPrimitiveData( const std::shared_ptr< DataHandlingType >&                       dataHandling,
+                          const std::string&                                               identifier,
+                          const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                          const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
 
    template < typename DataType,
               typename PrimitiveType,
               typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
-   inline void deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
-                                    const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
+   void deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                             const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
 
    /// The first indirection specifies the hierarchy level.
    std::map< uint_t, VertexMap > vertices_;
@@ -733,7 +733,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    std::map< uint_t, CellMap >   neighborCells_;
 
    template < typename DataType >
-   inline void addDataHandlingCallbacks(
+   void addDataHandlingCallbacks(
        const PrimitiveDataID< DataType, Primitive >&                                                   dataID,
        const std::function< void( const std::shared_ptr< Primitive >& ) >&                             initializationFunction,
        const std::function< void( const std::shared_ptr< Primitive >&, walberla::mpi::SendBuffer& ) >& serializationFunction,
@@ -745,7 +745,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void addDataHandlingCallbacks(
+   void addDataHandlingCallbacks(
        const PrimitiveDataID< DataType, Vertex >&                                                   dataID,
        const std::function< void( const std::shared_ptr< Vertex >& ) >&                             initializationFunction,
        const std::function< void( const std::shared_ptr< Vertex >&, walberla::mpi::SendBuffer& ) >& serializationFunction,
@@ -757,7 +757,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void addDataHandlingCallbacks(
+   void addDataHandlingCallbacks(
        const PrimitiveDataID< DataType, Edge >&                                                   dataID,
        const std::function< void( const std::shared_ptr< Edge >& ) >&                             initializationFunction,
        const std::function< void( const std::shared_ptr< Edge >&, walberla::mpi::SendBuffer& ) >& serializationFunction,
@@ -769,7 +769,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void addDataHandlingCallbacks(
+   void addDataHandlingCallbacks(
        const PrimitiveDataID< DataType, Face >&                                                   dataID,
        const std::function< void( const std::shared_ptr< Face >& ) >&                             initializationFunction,
        const std::function< void( const std::shared_ptr< Face >&, walberla::mpi::SendBuffer& ) >& serializationFunction,
@@ -781,7 +781,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void addDataHandlingCallbacks(
+   void addDataHandlingCallbacks(
        const PrimitiveDataID< DataType, Cell >&                                                   dataID,
        const std::function< void( const std::shared_ptr< Cell >& ) >&                             initializationFunction,
        const std::function< void( const std::shared_ptr< Cell >&, walberla::mpi::SendBuffer& ) >& serializationFunction,
@@ -793,7 +793,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive >& dataID )
+   void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive >& dataID )
    {
       primitiveDataInitializationFunctions_.erase( dataID );
       primitiveDataSerializationFunctions_.erase( dataID );
@@ -801,7 +801,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Vertex >& dataID )
+   void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Vertex >& dataID )
    {
       vertexDataInitializationFunctions_.erase( dataID );
       vertexDataSerializationFunctions_.erase( dataID );
@@ -809,7 +809,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Edge >& dataID )
+   void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Edge >& dataID )
    {
       edgeDataInitializationFunctions_.erase( dataID );
       edgeDataSerializationFunctions_.erase( dataID );
@@ -817,7 +817,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Face >& dataID )
+   void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Face >& dataID )
    {
       faceDataInitializationFunctions_.erase( dataID );
       faceDataSerializationFunctions_.erase( dataID );
@@ -825,7 +825,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
    template < typename DataType >
-   inline void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Cell >& dataID )
+   void deleteDataHandlingCallbacks( const PrimitiveDataID< DataType, Cell >& dataID )
    {
       cellDataInitializationFunctions_.erase( dataID );
       cellDataSerializationFunctions_.erase( dataID );
@@ -969,11 +969,10 @@ PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 }
 
 template < typename DataType, typename PrimitiveType, typename DataHandlingType, typename >
-inline void
-    PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType >& dataHandling,
-                                        const std::string& identifier, // TODO remark: identifier not used in this function
-                                        const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
-                                        const PrimitiveDataID< DataType, PrimitiveType >&                dataID )
+void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType >& dataHandling,
+                                         const std::string& identifier, // TODO remark: identifier not used in this function
+                                         const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
+                                         const PrimitiveDataID< DataType, PrimitiveType >&                dataID )
 {
    WALBERLA_DEBUG_SECTION()
    {
@@ -1014,9 +1013,8 @@ inline void
 // Deleting Primitive data
 
 template < typename DataType >
-void PrimitiveStorage::deletePrimitiveData( PrimitiveDataID< DataType, hyteg::Primitive >& dataID )
+void PrimitiveStorage::deletePrimitiveData( const PrimitiveDataID< DataType, hyteg::Primitive >& dataID )
 {
-   dataID = generateDataID< DataType, Primitive >();
    PrimitiveMap primitives;
 
    auto vertices = getVertices();
@@ -1033,25 +1031,25 @@ void PrimitiveStorage::deletePrimitiveData( PrimitiveDataID< DataType, hyteg::Pr
 }
 
 template < typename DataType >
-void PrimitiveStorage::deleteVertexData( PrimitiveDataID< DataType, Vertex >& dataID )
+void PrimitiveStorage::deleteVertexData( const PrimitiveDataID< DataType, Vertex >& dataID )
 {
    deletePrimitiveData( getVertices(), dataID );
 }
 
 template < typename DataType >
-void PrimitiveStorage::deleteEdgeData( PrimitiveDataID< DataType, Edge >& dataID )
+void PrimitiveStorage::deleteEdgeData( const PrimitiveDataID< DataType, Edge >& dataID )
 {
    deletePrimitiveData( getEdges(), dataID );
 }
 
 template < typename DataType >
-void PrimitiveStorage::deleteFaceData( PrimitiveDataID< DataType, Face >& dataID )
+void PrimitiveStorage::deleteFaceData( const PrimitiveDataID< DataType, Face >& dataID )
 {
    deletePrimitiveData( getFaces(), dataID );
 }
 
 template < typename DataType >
-void PrimitiveStorage::deleteCellData( PrimitiveDataID< DataType, Cell >& dataID )
+void PrimitiveStorage::deleteCellData( const PrimitiveDataID< DataType, Cell >& dataID )
 {
    deletePrimitiveData( getCells(), dataID );
 }

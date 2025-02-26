@@ -390,7 +390,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    WALBERLA_LOG_INFO_ON_ROOT( "Obtaining function allocation info ..." )
 
-   printFunctionAllocationInfo( *storage, 2 );
+   printFunctionAllocationInfo();
 
    WALBERLA_LOG_INFO_ON_ROOT( "Gathering memory usage info ..." )
 

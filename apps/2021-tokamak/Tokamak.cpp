@@ -475,7 +475,7 @@ void tokamak( TokamakDomain         tokamakDomain,
       M.computeAndStoreLocalElementMatrices();
    }
 
-   hyteg::printFunctionAllocationInfo( *storage );
+   hyteg::printFunctionAllocationInfo();
    hyteg::printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Interpolating boundary conditions, coefficient, and exact solution ..." )

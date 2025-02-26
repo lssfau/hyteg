@@ -81,7 +81,7 @@ int runBenchmark( const double tolerance, const uint_t maxIter )
 
    auto globalInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( globalInfo )
-   printFunctionAllocationInfo( *storage, 1 );
+   printFunctionAllocationInfo();
 
    LIKWID_MARKER_START( "solve" );
    solver.solve( L, u, f, level );
