@@ -230,7 +230,10 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
 , memoryLayout_( memoryLayout )
 , referenceCounter_( new internal::ReferenceCounter() )
 {
-   communicateNumScalarsPerPrimitive();
+   if ( this->storage_->getAdditionalHaloDepth() > 0 )
+   {
+      communicateNumScalarsPerPrimitive();
+   }
    allocateMemory();
    addPackInfos();
 
@@ -254,7 +257,10 @@ VolumeDoFFunction< ValueType >::VolumeDoFFunction( const std::string&           
    {
       numScalarsPerPrimitive_[pid] = numScalars;
    }
-   communicateNumScalarsPerPrimitive();
+   if ( this->storage_->getAdditionalHaloDepth() > 0 )
+   {
+      communicateNumScalarsPerPrimitive();
+   }
    allocateMemory();
    addPackInfos();
 

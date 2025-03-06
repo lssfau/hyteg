@@ -77,6 +77,14 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
       WALBERLA_LOG_WARNING( "DG-type functions do not support blending, yet! See issue #293" );
    }
 
+   if ( this->storage_->getAdditionalHaloDepth() == 0 )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT(
+          "\nYou are creating a DGFunction on a PrimitiveStorage with additionalHaloDepth = 0.\n"
+          << "This will cause problems, if you have coupling between interior DoFs of different elements!\n"
+          << "Proceed at your own risk." );
+   }
+
    volumeDoFFunction_ =
        std::make_shared< volumedofspace::VolumeDoFFunction< ValueType > >( name,
                                                                            storage,

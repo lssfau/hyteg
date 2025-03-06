@@ -58,8 +58,8 @@ Matrix2r getMatrix()
    real_t   phi = real_c( 2.0 / 9.0 ) * walberla::math::pi;
    mat( 0, 0 )  = +std::cos( phi );
    mat( 0, 1 )  = -std::sin( phi );
-   mat( 1, 0 ) = +std::sin( phi ) * real_c( 2.25 );
-   mat( 1, 1 ) = +std::cos( phi ) * real_c( 2.25 );
+   mat( 1, 0 )  = +std::sin( phi ) * real_c( 2.25 );
+   mat( 1, 1 )  = +std::cos( phi ) * real_c( 2.25 );
 
    return mat;
 }
@@ -67,6 +67,7 @@ Matrix2r getMatrix()
 std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
 {
    std::shared_ptr< PrimitiveStorage > storage;
+   uint_t                              additionalHaloDepth{ 0 };
 
    switch ( meshType )
    {
@@ -74,7 +75,7 @@ std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
       // simple mesh
       MeshInfo              mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/tri_1el.msh" ) );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-      storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage, additionalHaloDepth );
       break;
    }
 
@@ -83,7 +84,7 @@ std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
       MeshInfo              mesh = MeshInfo::meshAnnulus( real_c( 1 ), real_c( 2 ), MeshInfo::CROSS, 4, 2 );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       AnnulusMap::setMap( setupStorage );
-      storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage, additionalHaloDepth );
       break;
    }
 
@@ -92,7 +93,7 @@ std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
       MeshInfo mesh = MeshInfo::meshRectangle(
           Point2D( real_c( 0 ), real_c( 0 ) ), Point2D( real_c( 1 ), real_c( 1 ) ), MeshInfo::CRISSCROSS, 1, 1 );
       SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-      storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage, additionalHaloDepth );
       break;
    }
 
@@ -106,7 +107,7 @@ std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
       Matrix2r mat = getMatrix();
       Point2D  vec( real_c( -7.0 ), real_c( 3.0 ) );
       AffineMap2D::setMap( setupStorage, mat, vec );
-      storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage, additionalHaloDepth );
       break;
    }
 
@@ -120,7 +121,7 @@ std::shared_ptr< PrimitiveStorage > generateStorage( MeshType meshType )
           []( const Point3D& x ) {
              return x[1] + ( real_c( 1 ) - x[0] * x[0] ) * x[1] * ( std::sqrt( real_c( 2 ) ) - real_c( 1 ) );
           } };
-      storage                     = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+      storage                     = std::make_shared< PrimitiveStorage >( setupStorage, additionalHaloDepth );
       uint_t     level            = 4;
       const auto microMeshDegree2 = std::make_shared< micromesh::MicroMesh >( storage, level, level, 2, 2 );
       micromesh::interpolateAndCommunicate( *microMeshDegree2, mapper, level );
@@ -397,12 +398,14 @@ void runSingleMassTest( MeshType meshType )
    WALBERLA_LOG_INFO_ON_ROOT( " - computed volume of physical domain = " << std::scientific << measure );
    WALBERLA_LOG_INFO_ON_ROOT( " - analytic volume of physical domain = " << std::scientific << volumeCtrl );
 
-   if ( meshType == MeshType::UNIT_SQUARE || meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING ) {
-     WALBERLA_CHECK_FLOAT_EQUAL( measure, volumeCtrl );
+   if ( meshType == MeshType::UNIT_SQUARE || meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
+   {
+      WALBERLA_CHECK_FLOAT_EQUAL( measure, volumeCtrl );
    }
-   else if ( meshType == MeshType::ANNULUS ) {
-     WALBERLA_CHECK_LESS_EQUAL( std::abs( measure - volumeCtrl ), real_c(1e-7) );
-     return;
+   else if ( meshType == MeshType::ANNULUS )
+   {
+      WALBERLA_CHECK_LESS_EQUAL( std::abs( measure - volumeCtrl ), real_c( 1e-7 ) );
+      return;
    }
 
    // test 2: "integrate" polynomial
