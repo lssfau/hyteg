@@ -369,12 +369,13 @@ void ConvectionSimulation::initialiseFunctions()
       p2p1StokesFunctionContainer["StokesTmp1"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
    }
 
-   auto temperatureRadialProfile = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+   auto temperatureRadialProfile            = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
                                                          TN.domainParameters.rMin,
                                                          TN.domainParameters.rMax,
                                                          TN.domainParameters.nRad,
                                                          TN.domainParameters.maxLevel );
-   temperatureProfiles           = std::make_shared< RadialProfile >( temperatureRadialProfile );
+   temperatureProfiles                      = std::make_shared< RadialProfile >( temperatureRadialProfile );
+   TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
    if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
    {
@@ -386,22 +387,7 @@ void ConvectionSimulation::initialiseFunctions()
                                                           TN.domainParameters.maxLevel );
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
-
-   referenceTemperatureFct = [this]( const Point3D& x ) {
-      real_t radius = x.norm();
-      if ( TN.simulationParameters.adaptiveRefTemp )
-      {
-         uint_t shell = static_cast< uint_t >(
-             std::round( real_c( TN.simulationParameters.numLayers ) *
-                         ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
-         WALBERLA_ASSERT( shell < temperatureProfiles->mean.size() );
-         return temperatureProfiles->mean.at( shell );
-      }
-      else
-      {
-         return referenceTemperatureFunction( x );
-      }
-   };
+   referenceTemperatureFct = [this]( const Point3D& x ) { return referenceTemperatureFunction( x ); };
 }
 
 void ConvectionSimulation::setupSolversAndOperators()

@@ -261,26 +261,38 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
       return ( TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
 
-   if ( TN.simulationParameters.haveTemperatureProfile )
+   if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.timeStep > 0 )
    {
-      real_t temp = interpolateDataValues( x,
-                                           TN.physicalParameters.radiusT,
-                                           TN.physicalParameters.temperatureInputProfile,
-                                           TN.domainParameters.rMin,
-                                           TN.domainParameters.rMax );
-
-      real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
-
+      uint_t shell = static_cast< uint_t >(
+          std::round( real_c( TN.simulationParameters.numLayers ) *
+                      ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
+      WALBERLA_ASSERT( shell < TN.physicalParameters.temperatureProfile.size() );
+      real_t retVal = TN.physicalParameters.temperatureProfile.at( shell );
       return retVal;
    }
    else
    {
-      real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
-                    std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
+      if ( TN.simulationParameters.haveTemperatureProfile )
+      {
+         real_t temp = interpolateDataValues( x,
+                                              TN.physicalParameters.radiusT,
+                                              TN.physicalParameters.temperatureInputProfile,
+                                              TN.domainParameters.rMin,
+                                              TN.domainParameters.rMax );
 
-      real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
 
-      return retVal;
+         return retVal;
+      }
+      else
+      {
+         real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
+                       std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
+
+         real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+
+         return retVal;
+      }
    }
 }
 

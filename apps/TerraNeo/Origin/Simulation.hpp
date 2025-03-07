@@ -556,40 +556,13 @@ void ConvectionSimulation::setupStokesRHS()
       ////////////////////
       //    Momentum    //
       ////////////////////
-      if ( TN.simulationParameters.adaptiveRefTemp )
-      {
-         std::function< real_t( const Point3D&, const std::vector< real_t >& ) > adaptiveTemperatureDev =
-             [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
-                auto radius = x.norm();
-
-                size_t shell = static_cast< size_t >( std::round(
-                    real_c( TN.simulationParameters.numLayers ) *
-                    ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
-
-                return ( Temperature[0] - temperatureProfiles->mean.at( shell ) );
-             };
-         p2ScalarFunctionContainer["TemperatureDev"]->interpolate(
-             adaptiveTemperatureDev, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
-      }
-      else
-      {
-         std::function< real_t( const Point3D&, const std::vector< real_t >& ) > calculateTDev =
-             [this]( const Point3D& x, const std::vector< real_t >& vals ) {
-                real_t refTemp = referenceTemperatureFct( x );
-                return vals[0] - refTemp;
-             };
-         p2ScalarFunctionContainer["TemperatureDev"]->interpolate(
-             calculateTDev, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
-
-         // p2ScalarFunctionContainer["TemperatureReference"]->interpolate( referenceTemperatureFct, l, All );
-         // p2ScalarFunctionContainer["TemperatureDev"]->assign(
-         //     { 1.0, -1.0 },
-         //     { *( p2ScalarFunctionContainer["TemperatureFE"] ), *( p2ScalarFunctionContainer["TemperatureReference"] ) },
-         //     l,
-         //     All );
-      }
-
-      // Multiply with mass matrix (of velocity space -- P2) to get the weak form
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > calculateTDev =
+          [this]( const Point3D& x, const std::vector< real_t >& vals ) {
+             real_t refTemp = referenceTemperatureFct( x );
+             return vals[0] - refTemp;
+          };
+      p2ScalarFunctionContainer["TemperatureDev"]->interpolate(
+          calculateTDev, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
 
       P2MassOperator->apply(
           *( p2ScalarFunctionContainer["TemperatureDev"] ), p2p1StokesFunctionContainer["StokesRHS"]->uvw()[0], l, All );

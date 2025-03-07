@@ -176,7 +176,7 @@ void ConvectionSimulation::dataOutput()
    WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output   ****" );
    WALBERLA_LOG_INFO_ON_ROOT( "**************************" );
 
-   if ( !TN.simulationParameters.adaptiveRefTemp )
+   if ( !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
    {
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFunction =
           [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
@@ -196,7 +196,14 @@ void ConvectionSimulation::dataOutput()
              temperatureDevFunction, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
       }
    }
-
+   else
+   {
+      p2ScalarFunctionContainer["TemperatureDev"]->assign(
+          { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
+          { *( p2ScalarFunctionContainer["TemperatureDev"] ) },
+          TN.domainParameters.maxLevel,
+          All );
+   }
    p2ScalarFunctionContainer["Temperature[K]"]->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
                                                         { *( p2ScalarFunctionContainer["TemperatureFE"] ) },
                                                         TN.domainParameters.maxLevel,
