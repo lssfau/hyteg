@@ -158,10 +158,16 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
          face->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
          Point2D computationalLocation2D( computationalLocation[0], computationalLocation[1] );
 
-         if ( isPointInTriangle( computationalLocation2D,
-                                 Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
-                                 Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
-                                 Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
+         bool pointInTriangleCheck =
+             isPointInTriangle( computationalLocation2D,
+                                Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
+                                Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
+                                Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) );
+
+         bool pointPairingCheck =
+             face->getGeometryMap()->verifyPointPairing( computationalLocation, toPoint3D( p->getPosition() ) );
+
+         if ( pointInTriangleCheck && pointPairingCheck )
          {
             p->setContainingPrimitive( faceID );
             foundByPointLocation = true;
@@ -179,11 +185,16 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
                Point2D computationalLocationNeighbor2D( computationalLocationNeighbor[0], computationalLocationNeighbor[1] );
 
-               if ( isPointInTriangle(
-                        computationalLocationNeighbor2D,
-                        Point2D( neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1] ),
-                        Point2D( neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1] ),
-                        Point2D( neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1] ) ) )
+               bool pointInNeighbourTriangleCheck = isPointInTriangle(
+                   computationalLocationNeighbor2D,
+                   Point2D( neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1] ),
+                   Point2D( neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1] ),
+                   Point2D( neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1] ) );
+
+               bool pointPairingNeighbourCheck = neighborFace->getGeometryMap()->verifyPointPairing(
+                   computationalLocationNeighbor, toPoint3D( p->getPosition() ) );
+
+               if ( pointInNeighbourTriangleCheck && pointPairingNeighbourCheck )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborFaceID );
@@ -200,11 +211,14 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
             // 2. The particle is outside of the entire domain -> we set the outsideDomain flag.
             // 3. The particle is in the neighborhood patch, but floating-point errors made all point location
             //    calculations return false. We therefore check with a larger radius.
-            if ( sphereTriangleIntersection( computationalLocation,
-                                             particleLocationRadius,
-                                             face->getCoordinates().at( 0 ),
-                                             face->getCoordinates().at( 1 ),
-                                             face->getCoordinates().at( 2 ) ) )
+
+            bool sphereTriangleIntersectionCheck = sphereTriangleIntersection( computationalLocation,
+                                                                               particleLocationRadius,
+                                                                               face->getCoordinates().at( 0 ),
+                                                                               face->getCoordinates().at( 1 ),
+                                                                               face->getCoordinates().at( 2 ) );
+
+            if ( sphereTriangleIntersectionCheck && pointPairingCheck )
             {
                p->setContainingPrimitive( faceID );
                foundByPointLocation = true;
@@ -220,11 +234,17 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                   Point3D    computationalLocationNeighbor;
                   neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-                  if ( sphereTriangleIntersection( computationalLocationNeighbor,
-                                                   particleLocationRadius,
-                                                   neighborFace->getCoordinates().at( 0 ),
-                                                   neighborFace->getCoordinates().at( 1 ),
-                                                   neighborFace->getCoordinates().at( 2 ) ) )
+                  bool sphereTriangleNeighbourIntersectionCheck =
+                      sphereTriangleIntersection( computationalLocationNeighbor,
+                                                  particleLocationRadius,
+                                                  neighborFace->getCoordinates().at( 0 ),
+                                                  neighborFace->getCoordinates().at( 1 ),
+                                                  neighborFace->getCoordinates().at( 2 ) );
+
+                  bool pointPairingNeighbourCheck = neighborFace->getGeometryMap()->verifyPointPairing(
+                      computationalLocationNeighbor, toPoint3D( p->getPosition() ) );
+
+                  if ( sphereTriangleNeighbourIntersectionCheck && pointPairingNeighbourCheck )
                   {
                      p->setContainingPrimitive( neighborFaceID );
                      foundByPointLocation = true;
@@ -255,15 +275,20 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
          Point3D computationalLocation;
          cell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
 
-         if ( isPointInTetrahedron( computationalLocation,
-                                    cell->getCoordinates().at( 0 ),
-                                    cell->getCoordinates().at( 1 ),
-                                    cell->getCoordinates().at( 2 ),
-                                    cell->getCoordinates().at( 3 ),
-                                    cell->getFaceInwardNormal( 0 ),
-                                    cell->getFaceInwardNormal( 1 ),
-                                    cell->getFaceInwardNormal( 2 ),
-                                    cell->getFaceInwardNormal( 3 ) ) )
+         bool pointInTetrahedronCheck = isPointInTetrahedron( computationalLocation,
+                                                              cell->getCoordinates().at( 0 ),
+                                                              cell->getCoordinates().at( 1 ),
+                                                              cell->getCoordinates().at( 2 ),
+                                                              cell->getCoordinates().at( 3 ),
+                                                              cell->getFaceInwardNormal( 0 ),
+                                                              cell->getFaceInwardNormal( 1 ),
+                                                              cell->getFaceInwardNormal( 2 ),
+                                                              cell->getFaceInwardNormal( 3 ) );
+
+         bool pointPairingCheck =
+             cell->getGeometryMap()->verifyPointPairing( computationalLocation, toPoint3D( p->getPosition() ) );
+
+         if ( pointInTetrahedronCheck && pointPairingCheck )
          {
             p->setContainingPrimitive( cellID );
             foundByPointLocation = true;
@@ -279,15 +304,20 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                Point3D    computationalLocationNeighbor;
                neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-               if ( isPointInTetrahedron( computationalLocationNeighbor,
-                                          neighborCell->getCoordinates().at( 0 ),
-                                          neighborCell->getCoordinates().at( 1 ),
-                                          neighborCell->getCoordinates().at( 2 ),
-                                          neighborCell->getCoordinates().at( 3 ),
-                                          neighborCell->getFaceInwardNormal( 0 ),
-                                          neighborCell->getFaceInwardNormal( 1 ),
-                                          neighborCell->getFaceInwardNormal( 2 ),
-                                          neighborCell->getFaceInwardNormal( 3 ) ) )
+               bool pointInNeighbourTetrahedronCheck = isPointInTetrahedron( computationalLocationNeighbor,
+                                                                             neighborCell->getCoordinates().at( 0 ),
+                                                                             neighborCell->getCoordinates().at( 1 ),
+                                                                             neighborCell->getCoordinates().at( 2 ),
+                                                                             neighborCell->getCoordinates().at( 3 ),
+                                                                             neighborCell->getFaceInwardNormal( 0 ),
+                                                                             neighborCell->getFaceInwardNormal( 1 ),
+                                                                             neighborCell->getFaceInwardNormal( 2 ),
+                                                                             neighborCell->getFaceInwardNormal( 3 ) );
+
+               bool pointPairingNeighbourCheck = neighborCell->getGeometryMap()->verifyPointPairing(
+                   computationalLocationNeighbor, toPoint3D( p->getPosition() ) );
+
+               if ( pointInNeighbourTetrahedronCheck && pointPairingNeighbourCheck )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborCellID );
@@ -304,12 +334,15 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
             // 2. The particle is outside of the entire domain -> we set the outsideDomain flag.
             // 3. The particle is in the neighborhood patch, but floating-point errors made all point location
             //    calculations return false. We therefore check with a larger radius.
-            if ( sphereTetrahedronIntersection( computationalLocation,
-                                                particleLocationRadius,
-                                                cell->getCoordinates().at( 0 ),
-                                                cell->getCoordinates().at( 1 ),
-                                                cell->getCoordinates().at( 2 ),
-                                                cell->getCoordinates().at( 3 ) ) )
+
+            bool sphereTetrahedronIntersectionCheck = sphereTetrahedronIntersection( computationalLocation,
+                                                                                     particleLocationRadius,
+                                                                                     cell->getCoordinates().at( 0 ),
+                                                                                     cell->getCoordinates().at( 1 ),
+                                                                                     cell->getCoordinates().at( 2 ),
+                                                                                     cell->getCoordinates().at( 3 ) );
+
+            if ( sphereTetrahedronIntersectionCheck && pointPairingCheck )
             {
                p->setContainingPrimitive( cellID );
                foundByPointLocation = true;
@@ -324,12 +357,18 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                   Point3D    computationalLocationNeighbor;
                   neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-                  if ( sphereTetrahedronIntersection( computationalLocationNeighbor,
-                                                      particleLocationRadius,
-                                                      neighborCell->getCoordinates().at( 0 ),
-                                                      neighborCell->getCoordinates().at( 1 ),
-                                                      neighborCell->getCoordinates().at( 2 ),
-                                                      neighborCell->getCoordinates().at( 3 ) ) )
+                  bool sphereTetrahedronNeighbourIntersectionCheck =
+                      sphereTetrahedronIntersection( computationalLocationNeighbor,
+                                                     particleLocationRadius,
+                                                     neighborCell->getCoordinates().at( 0 ),
+                                                     neighborCell->getCoordinates().at( 1 ),
+                                                     neighborCell->getCoordinates().at( 2 ),
+                                                     neighborCell->getCoordinates().at( 3 ) );
+
+                  bool pointPairingNeighbourCheck = neighborCell->getGeometryMap()->verifyPointPairing(
+                      computationalLocationNeighbor, toPoint3D( p->getPosition() ) );
+
+                  if ( sphereTetrahedronNeighbourIntersectionCheck && pointPairingNeighbourCheck )
                   {
                      p->setContainingPrimitive( neighborCellID );
                      foundByPointLocation = true;
@@ -1159,7 +1198,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
       ranksToReceiveFrom.insert( 0 );
    }
 
-   static const int TAG2 = communication::MPITagProvider::getMPITag();
+   static const int            TAG2 = communication::MPITagProvider::getMPITag();
    walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), TAG2 );
 
    for ( const auto& p : particleStorage )
