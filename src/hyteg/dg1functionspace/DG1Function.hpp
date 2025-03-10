@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -86,7 +86,10 @@ class DG1Function : public Function< DG1Function< ValueType > >
       WALBERLA_ABORT( "Not implemented." );
    }
 
-   void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const { WALBERLA_ABORT( "Not implemented." ); }
+   void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
+   {
+      dgFunction_->interpolate( constant, level, dofType );
+   }
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const
    {
