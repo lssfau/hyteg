@@ -42,34 +42,6 @@ inline real_t computeGaussianWeight( const real_t distance, const real_t sigma )
    return std::exp( -distance * distance / ( 2 * sigma * sigma ) );
 }
 
-/// Given some normal (cartesian) vector on the surface of a sphere, computes two normalized (cartiesian) vectors that span the
-/// tangential space.
-inline std::pair< vec3D, vec3D > findOrthogonalVectorsCart( const vec3D& normalCart )
-{
-   // Choose an arbitrary vector (not parallel) to normal
-   real_t smallest = fabs( normalCart.x() );
-   vec3D  u1( 1, 0, 0 );
-
-   if ( fabs( normalCart.y() ) < smallest )
-   {
-      smallest = fabs( normalCart.y() );
-      u1       = vec3D( 0, 1, 0 );
-   }
-
-   if ( fabs( normalCart.z() ) < smallest )
-   {
-      u1 = vec3D( 0, 0, 1 );
-   }
-
-   // Compute the first orthogonal vector
-   u1 = normalCart.cross( u1 ).normalized();
-
-   // Compute the second orthogonal vector
-   vec3D u2 = normalCart.cross( u1 ).normalized();
-
-   return { u1, u2 };
-}
-
 /// Helper function that projects a set of points from the 2D plane onto the surface of a sphere.
 ///
 /// This is used internally for the computation of sample points to compute averages around a point on the sphere.
@@ -122,9 +94,9 @@ class LocalAveragingPointWeightProvider
 /// \brief Implements an averaging rule based on points that are arranged in zero or more circles with given radii and resolutions
 ///        around the given center.
 ///
-///        After arranging in 2D space, all points are then projected onto the sphere. This means that the given radii are
-///        understood in the 2D plane and not as distances on the sphere. Concretely, after projection, the distances might be
-///        larger. The larger the radii compared to the radius of the sphere, the larger the stretch due to the projection.
+///  After arranging in 2D space, all points are then projected onto the sphere. This means that the given radii are
+///  understood in the 2D plane and not as distances on the sphere. Concretely, after projection, the distances might be
+///  larger. The larger the radii compared to the radius of the sphere, the larger the stretch due to the projection.
 class UniformCirclesPointWeightProvider final : public LocalAveragingPointWeightProvider
 {
  public:
@@ -153,7 +125,7 @@ class UniformCirclesPointWeightProvider final : public LocalAveragingPointWeight
 
          for ( int i = 0; i < numPoints; ++i )
          {
-            const vec3D  offset( radius * cos( radOffset + i * radH ), radius * sin( radOffset + i * radH ), 0 );
+            const vec3D  offset( radius * std::cos( radOffset + i * radH ), radius * std::sin( radOffset + i * radH ), 0 );
             const vec3D  point( offset );
             const real_t weight = computeGaussianWeight( radius, gaussianWeightSigma );
             sampleOffsets2DCart_.emplace_back( point, weight );
@@ -183,9 +155,11 @@ class UniformCirclesPointWeightProvider final : public LocalAveragingPointWeight
 
 /// \brief Implements an averaging rule based on points that are arranged in a 2D Fibonacci Lattice.
 ///
-///        After arranging in 2D space, all points are then projected onto the sphere. This means that the given radii are
-///        understood in the 2D plane and not as distances on the sphere. Concretely, after projection, the distances might be
-///        larger. The larger the radii compared to the radius of the sphere, the larger the stretch due to the projection.
+/// See also: https://stackoverflow.com/a/44164075
+///
+/// After arranging in 2D space, all points are then projected onto the sphere. This means that the given radii are
+/// understood in the 2D plane and not as distances on the sphere. Concretely, after projection, the distances might be
+/// larger. The larger the radii compared to the radius of the sphere, the larger the stretch due to the projection.
 class FibonacciLatticePointWeightProvider final : public LocalAveragingPointWeightProvider
 {
  public:
@@ -202,9 +176,9 @@ class FibonacciLatticePointWeightProvider final : public LocalAveragingPointWeig
       for ( int i = 0; i < numPoints; ++i )
       {
          const auto theta  = 2.0 * pi * real_c( i ) / phi;
-         const auto r      = radius * sqrt( real_c( i ) / real_c( ( numPoints - 1 ) ) );
-         const auto x      = r * cos( theta );
-         const auto y      = r * sin( theta );
+         const auto r      = radius * std::sqrt( real_c( i ) / real_c( ( numPoints - 1 ) ) );
+         const auto x      = r * std::cos( theta );
+         const auto y      = r * std::sin( theta );
          const auto offset = vec3D( x, y, 0 );
          const auto dist   = offset.norm();
 

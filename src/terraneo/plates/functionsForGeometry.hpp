@@ -90,4 +90,32 @@ inline real_t getDistanceLinePoint( const vec3D& point, const vec3D& pini, const
    return distancePointPoint( ppoint, pintersect );
 }
 
+/// Given some normal (cartesian) vector on the surface of a sphere, computes two normalized (cartesian) vectors that span the
+/// tangential space.
+inline std::pair< vec3D, vec3D > findOrthogonalVectorsCart( const vec3D& normalCart )
+{
+   // Choose an arbitrary vector (not parallel) to normal
+   real_t smallest = std::fabs( normalCart.x() );
+   vec3D  u1( 1, 0, 0 );
+
+   if ( std::fabs( normalCart.y() ) < smallest )
+   {
+      smallest = std::fabs( normalCart.y() );
+      u1       = vec3D( 0, 1, 0 );
+   }
+
+   if ( std::fabs( normalCart.z() ) < smallest )
+   {
+      u1 = vec3D( 0, 0, 1 );
+   }
+
+   // Compute the first orthogonal vector
+   u1 = normalCart.cross( u1 ).normalized();
+
+   // Compute the second orthogonal vector
+   vec3D u2 = normalCart.cross( u1 ).normalized();
+
+   return { u1, u2 };
+}
+
 } // namespace terraneo::plates

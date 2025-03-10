@@ -157,18 +157,16 @@ class PlateVelocityProvider
          std::tie( avgPointPlateFound, avgPointPlateID, avgPointDistance ) =
              findPlateAndDistance( age, plateTopologies_, samplePointSphLonLat, idWhenNoPlateFound );
 
-         if ( !avgPointPlateFound )
+         if ( avgPointPlateFound )
          {
-            return errorHandler( samplePointSphLonLat, age );
+            // This is possibly slightly inaccurate since we are averaging over the cartesian velocity vectors and then projecting
+            // out the normal component. It would be better to average in the "lonlat-space" and then convert and return the
+            // cartesian vector. On the other hand, averaging the plate velocities is already a somewhat arbitrary and physically
+            // meaningless approximation in the first place, so this might just work.
+            avgVelCart +=
+                weight * computeCartesianVelocityVector( plateRotations_, avgPointPlateID, age, samplePointSphLonLat, 1.0 );
+            weightSum += weight;
          }
-
-         // This is possibly slightly inaccurate since we are averaging over the cartesian velocity vectors and then projecting
-         // out the normal component. It would be better to average in the "lonlat-space" and then convert and return the
-         // cartesian vector. On the other hand, averaging the plate velocities is already a somewhat arbitrary and physically
-         // meaningless approximation in the first place, so this might just work.
-         avgVelCart +=
-             weight * computeCartesianVelocityVector( plateRotations_, avgPointPlateID, age, samplePointSphLonLat, 1.0 );
-         weightSum += weight;
       }
 
       avgVelCart /= weightSum;
