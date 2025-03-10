@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Berta Vilacis, Marcus Mohr.
+ * Copyright (c) 2022-2025 Berta Vilacis, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,6 +29,13 @@ namespace terraneo::plates {
 /// between plates.
 /// @{
 
+/// Does not apply any smoothing.
+class NoSmoothing
+{
+ public:
+   real_t operator()( const real_t distanceFromBoundary ) const { return 1.0; }
+};
+
 /// Linearly decrease smoothing factor from 1.0 to 0.0
 ///
 /// The velocity of a point is scaled by a smoothing factor that linearly
@@ -38,7 +45,7 @@ class LinearDistanceSmoother
 {
  public:
    LinearDistanceSmoother( real_t slope )
-   : slope_( slope ){};
+   : slope_( slope ) {};
 
    real_t operator()( const real_t distanceFromBoundary ) const
    {

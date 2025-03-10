@@ -6,6 +6,7 @@ target_sources( hyteg
     PlateRotationProvider.hpp
     PlateStorage.hpp
     PlateVelocityProvider.hpp
+    LocalAveragingPointWeightProvider.hpp
     SmoothingStrategies.hpp
     types.hpp
 )

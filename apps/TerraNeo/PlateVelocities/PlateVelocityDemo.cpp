@@ -92,12 +92,17 @@ void performComputations( uint_t                                     level,
    uint_t                                           coordIdx = 0;
    terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
 
+   // plates::UniformCirclesPointWeightProvider avgPointProvider( { { 1.0 / 100.0, 6 }, { 1.0 / 50.0, 12 } }, 1e-1 );
+   plates::UniformCirclesPointWeightProvider avgPointProvider( { { 1.0 / 100.0, 6 } }, 1e-1 );
+
    // callback function for computing the velocity components
    std::function< real_t( const Point3D& ) > computeVelocityComponent =
-       [&oracle, age, &coordIdx, &handlerWithStatistics]( const Point3D& point ) {
+       [&oracle, age, &coordIdx, &handlerWithStatistics, &avgPointProvider]( const Point3D& point ) {
           vec3D coords{ point[0], point[1], point[2] };
-          vec3D velocity =
-              oracle.getPointVelocity( coords, age, terraneo::plates::LinearDistanceSmoother{ 0.015 }, handlerWithStatistics );
+
+          vec3D velocity = oracle.getLocallyAveragedPointVelocity( coords, age, avgPointProvider, handlerWithStatistics );
+          // vec3D velocity =
+          //     oracle.getPointVelocity( coords, age, terraneo::plates::LinearDistanceSmoother{ 0.015 }, handlerWithStatistics );
           return velocity[int_c( coordIdx )];
        };
 
@@ -134,8 +139,8 @@ void performComputations( uint_t                                     level,
 
       RadialProfile profileRad = computeRadialProfile( ( *surfaceVelocity ), 1.0, 1.0, 1.0, level );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Velocity Max Magnitude is: " << profileRad.max[0]*3600*24*365*100 << " cm yr^-1" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Velocity RMS is: " << profileRad.rms[0]*3600*24*365*100 << " cm yr^-1" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Velocity Max Magnitude is: " << profileRad.max[0] * 3600 * 24 * 365 * 100 << " cm yr^-1" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Velocity RMS is: " << profileRad.rms[0] * 3600 * 24 * 365 * 100 << " cm yr^-1" );
    }
 
    // export results
@@ -223,8 +228,8 @@ int main( int argc, char* argv[] )
    //  Meshing
    // ---------
    WALBERLA_LOG_INFO_ON_ROOT( "*** STEP 2: Generating Mesh" );
-   const uint_t level = params.getParameter< uint_t >( "level" );
-   const uint_t nTan  = params.getParameter< uint_t >( "nTan" );
+   const uint_t level  = params.getParameter< uint_t >( "level" );
+   const uint_t nTan   = params.getParameter< uint_t >( "nTan" );
    const real_t radius = real_c( 1 );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshThinSphericalShell( nTan, radius );
@@ -242,9 +247,9 @@ int main( int argc, char* argv[] )
    //  Oracle
    // --------
    WALBERLA_LOG_INFO_ON_ROOT( "*** STEP 3: Generating an Oracle" );
-   std::string                             dataDir{ "../../../data/terraneo/plates/Muller2022/" };
-   std::string                             fnameTopologies      = dataDir + "topologies_0-1000Ma.geojson";
-   std::string                             fnameReconstructions = dataDir + "EB_1000_0_rotfile_Merdith_et_al_optimised_modifiedbyYW.rot";
+   std::string dataDir{ "../../../data/terraneo/plates/Muller2022/" };
+   std::string fnameTopologies      = dataDir + "topologies_0-1000Ma.geojson";
+   std::string fnameReconstructions = dataDir + "EB_1000_0_rotfile_Merdith_et_al_optimised_modifiedbyYW.rot";
    terraneo::plates::PlateVelocityProvider oracle( fnameTopologies, fnameReconstructions );
 
    WALBERLA_LOG_INFO_ON_ROOT( "*** STEP 4: Checking plate stages to work with" );
