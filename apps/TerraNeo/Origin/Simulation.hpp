@@ -129,7 +129,7 @@ void ConvectionSimulation::step()
                      ( TN.physicalParameters.characteristicVelocity * TN.simulationParameters.plateVelocityScaling *
                        TN.simulationParameters.secondsPerMyr );
    // Limit the timestep size to a maximum value (in Ma).
-   if ( stepSize > ( TN.simulationParameters.maxTimestepSize ) && TN.simulationParameters.simulationType == "CirculationModel" )
+   if ( stepSize > ( TN.simulationParameters.maxTimestepSize ) )
    {
       TN.simulationParameters.dt = ( ( TN.simulationParameters.maxTimestepSize ) *
                                      ( TN.physicalParameters.characteristicVelocity *
@@ -440,10 +440,9 @@ void ConvectionSimulation::step()
       outputCheckpoint();
    }
 
-   if ( !TN.outputParameters.outputMyr )
+   if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0 )
    {
       dataOutput();
-      localTimerStep.end();
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
