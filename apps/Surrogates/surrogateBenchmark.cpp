@@ -25,7 +25,9 @@
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
-#include <hyteg_operators/operators/diffusion/P1ElementwiseDiffusion.hpp>
+
+#include "./operators/P1ElementwiseDiffusion.hpp"
+#include "./operators/P1ElementwiseDiffusion_cubes_const_vect_polycse.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -36,49 +38,57 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
 
    // setup pde coefficient k ∈ P_q
    uint8_t                                            dim = storage->hasGlobalCells() ? 3 : 2;
-   hyteg::surrogate::polynomial::Polynomial< real_t > k_poly( dim, q );
+   hyteg::surrogate::polynomial::Polynomial< real_t > k_poly( dim, q_max + 1 );
    for ( auto& c : k_poly )
    {
       c = walberla::math::realRandom();
    }
    auto k = [&]( const hyteg::Point3D& x ) { return k_poly.eval_naive( x ); };
 
-   // operators
-   operatorgeneration::P1ElementwiseDiffusion A( storage, level, level );
-   forms::p1_div_k_grad_affine_q3             form( k, k );
+   forms::p1_div_k_grad_affine_q3 form( k, k );
+
+   // constant operators
+   operatorgeneration::P1ElementwiseDiffusion                          A( storage, level, level );
+   operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_polycse A_opt( storage, level, level );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
-   // hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
-   // hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
 
-   // epsilon = std::is_same< real_t, double >() ? 1e-12 : 1e-5;
-
-   // apply operators
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | t in sec for apply()", "operator type" ) );
    walberla::WcTimer timer;
+
+   // apply constant operator
    timer.start();
    A.apply( u, Au, level, All, Replace );
    timer.end();
    auto t = timer.total();
+   timer.reset();
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %e", "generated", t ) );
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | t in sec for apply()", "operator type" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %e", "const generated", t ) );
+   // apply optimized operator
+   timer.start();
+   A_opt.apply( u, Au, level, All, Replace );
+   timer.end();
+   t = timer.total();
+   timer.reset();
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %e", "generated-optimized", t ) );
 
+   // apply surrogate operators
    for ( uint8_t q = 0; q <= q_max; ++q )
    {
       P1ElementwiseSurrogateAffineDivKGradOperator A_q( storage, level, level, form );
       A_q.init( q, 1, "", false );
-      timer.reset();
       timer.start();
       A_q.apply( u, Au, level, All, Replace );
       timer.end();
       t = timer.total();
+      timer.reset();
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%18s %d | %e", "surrogate q =", q, t ) );
    }
 }
@@ -110,7 +120,7 @@ int main( int argc, char* argv[] )
    // -------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    uint_t  lvl   = 9;
-   uint8_t q_max = 5;
+   uint8_t q_max = 3;
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl ) );
    benchmark( storage, q_max, lvl );
    WALBERLA_LOG_INFO_ON_ROOT( "" );

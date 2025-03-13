@@ -1,3 +1,5 @@
+add_subdirectory(operators)
+
 waLBerla_add_executable(NAME compareP1Stencils
       FILES compareP1Stencils.cpp
       DEPENDS hyteg constant_stencil_operator)
@@ -20,4 +22,4 @@ waLBerla_add_executable( NAME jumpCoefficient
 
 waLBerla_add_executable( NAME surrogateBenchmark
       FILES surrogateBenchmark.cpp
-      DEPENDS hyteg opgen-diffusion)
+      DEPENDS hyteg opgen-mogli-diffusion)
