@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.1
  */
 
 #include <core/DataTypes.h>
@@ -26,8 +26,8 @@
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
 
-#include "./operators/P1ElementwiseDiffusion.hpp"
-#include "./operators/P1ElementwiseDiffusion_cubes_const_vect_polycse.hpp"
+#include "operators/P1ElementwiseDiffusion.hpp"
+#include "operators/P1ElementwiseDiffusion_cubes_const_vect_polycse.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -83,7 +83,7 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
    for ( uint8_t q = 0; q <= q_max; ++q )
    {
       P1ElementwiseSurrogateAffineDivKGradOperator A_q( storage, level, level, form );
-      A_q.init( q, 1, "", false );
+      A_q.init( q, 0, "", false );
       timer.start();
       A_q.apply( u, Au, level, All, Replace );
       timer.end();
@@ -118,15 +118,15 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run benchmarks
    // -------------------
+   uint_t  lvl2   = 10;
+   uint_t  lvl3   = 7;
+   uint8_t q_max = 5;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   uint_t  lvl   = 9;
-   uint8_t q_max = 3;
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl ) );
-   benchmark( storage, q_max, lvl );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl2 ) );
+   benchmark( storage, q_max, lvl2 );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   lvl = 6;
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "3d, level=%d", lvl ) );
-   benchmark( storage3d, q_max, lvl );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "3d, level=%d", lvl3 ) );
+   benchmark( storage3d, q_max, lvl3 );
 
    return 0;
 }

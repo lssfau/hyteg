@@ -528,29 +528,79 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
          for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
          {
             // restrict to 1d polynomial
-            auto y = X[micro.y()];
-            for ( idx_t i = 0; i < surrogate.rows(); ++i )
-            {
-               for ( idx_t j = 0; j < surrogate.cols(); ++j )
-               {
-                  surrogate( i, j ).fix_y( y );
-               }
-            }
+            auto y   = X[micro.y()];
+            auto p00 = surrogate( 0, 0 ).fix_y( y );
+            auto p01 = surrogate( 0, 1 ).fix_y( y );
+            auto p02 = surrogate( 0, 2 ).fix_y( y );
+            auto p03 = surrogate( 0, 3 ).fix_y( y );
+            auto p10 = surrogate( 1, 0 ).fix_y( y );
+            auto p11 = surrogate( 1, 1 ).fix_y( y );
+            auto p12 = surrogate( 1, 2 ).fix_y( y );
+            auto p13 = surrogate( 1, 3 ).fix_y( y );
+            auto p20 = surrogate( 2, 0 ).fix_y( y );
+            auto p21 = surrogate( 2, 1 ).fix_y( y );
+            auto p22 = surrogate( 2, 2 ).fix_y( y );
+            auto p23 = surrogate( 2, 3 ).fix_y( y );
+            auto p30 = surrogate( 3, 0 ).fix_y( y );
+            auto p31 = surrogate( 3, 1 ).fix_y( y );
+            auto p32 = surrogate( 3, 2 ).fix_y( y );
+            auto p33 = surrogate( 3, 3 ).fix_y( y );
 
             for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
             {
-               // evaluate p(x) using Horner's method
-               auto x = X[micro.x()];
-               for ( idx_t i = 0; i < surrogate.rows(); ++i )
+               // evaluate the 1d polynomials
+               auto x    = X[micro.x()];
+               auto xpow = real_t( 1.0 );
+
+               real_t a00 = 0, a01 = 0, a02 = 0, a03 = 0;
+               real_t a10 = 0, a11 = 0, a12 = 0, a13 = 0;
+               real_t a20 = 0, a21 = 0, a22 = 0, a23 = 0;
+               real_t a30 = 0, a31 = 0, a32 = 0, a33 = 0;
+
+               const auto n = p00.n_coefficients();
+
+               for ( uint_t k = 0; k < n; ++k )
                {
-                  for ( idx_t j = 0; j < surrogate.cols(); ++j )
-                  {
-                     elMat( i, j ) = surrogate( i, j ).eval( x );
-                  }
+                  a00 += p00[k] * xpow;
+                  a01 += p01[k] * xpow;
+                  a02 += p02[k] * xpow;
+                  a03 += p03[k] * xpow;
+                  a10 += p10[k] * xpow;
+                  a11 += p11[k] * xpow;
+                  a12 += p12[k] * xpow;
+                  a13 += p13[k] * xpow;
+                  a20 += p20[k] * xpow;
+                  a21 += p21[k] * xpow;
+                  a22 += p22[k] * xpow;
+                  a23 += p23[k] * xpow;
+                  a30 += p30[k] * xpow;
+                  a31 += p31[k] * xpow;
+                  a32 += p32[k] * xpow;
+                  a33 += p33[k] * xpow;
+                  xpow *= x;
                }
 
+               // obtain data indices of dofs associated with micro-cell
+               std::array< uint_t, 4 > vertexDoFIndices;
+               p1::getGlobalIndices3D(cType, level, microCell, vertexDoFIndices);
+
+               // assemble local element vector
+               const auto src0 = srcVertexData[vertexDoFIndices[0]];
+               const auto src1 = srcVertexData[vertexDoFIndices[1]];
+               const auto src2 = srcVertexData[vertexDoFIndices[2]];
+               const auto src3 = srcVertexData[vertexDoFIndices[3]];
+
                // local matvec
-               p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+               const auto dst0 = a00 * src0 + a01 * src1 + a02 * src2 + a03 * src3;
+               const auto dst1 = a10 * src0 + a11 * src1 + a12 * src2 + a13 * src3;
+               const auto dst2 = a20 * src0 + a21 * src1 + a22 * src2 + a23 * src3;
+               const auto dst3 = a30 * src0 + a31 * src1 + a32 * src2 + a33 * src3;
+
+               // write data back into global vector
+               dstVertexData[vertexDoFIndices[0]] += alpha * dst0;
+               dstVertexData[vertexDoFIndices[1]] += alpha * dst1;
+               dstVertexData[vertexDoFIndices[2]] += alpha * dst2;
+               dstVertexData[vertexDoFIndices[3]] += alpha * dst3;
             }
          }
       }

@@ -267,12 +267,13 @@ class Polynomial : public std::vector< FLOAT >
    }
 
    // fix y coordinate s.th. only 1d polynomial must be evaluated
-   void fix_y( const FLOAT y ) const
+   const Polynomial< FLOAT >& fix_y( const FLOAT y ) const
    {
       WALBERLA_ASSERT( _d == 2 || _d == 3, "fix_z can only be used in 2d and 3d" );
       if ( _d == 2 )
       {
-         return fix_coord( y );
+         fix_coord( y );
+         return *_restriction;
       }
       else
       {
