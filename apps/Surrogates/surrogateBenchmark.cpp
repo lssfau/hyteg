@@ -34,11 +34,10 @@ using namespace hyteg;
 
 void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_t q_max, const uint_t level )
 {
-   double epsilon, errorMax;
+   uint8_t dim = storage->hasGlobalCells() ? 3 : 2;
 
    // setup pde coefficient k ∈ P_q
-   uint8_t                                            dim = storage->hasGlobalCells() ? 3 : 2;
-   hyteg::surrogate::polynomial::Polynomial< real_t > k_poly( dim, q_max + 1 );
+   hyteg::surrogate::polynomial::Polynomial< real_t, 3 > k_poly( q_max + 1 );
    for ( auto& c : k_poly )
    {
       c = walberla::math::realRandom();
@@ -47,9 +46,10 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
 
    forms::p1_div_k_grad_affine_q3 form( k, k );
 
-   // constant operators
+   // operators
    operatorgeneration::P1ElementwiseDiffusion                          A( storage, level, level );
    operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_polycse A_opt( storage, level, level );
+   P1ElementwiseSurrogateAffineDivKGradOperator                        A_q( storage, level, level, form );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
@@ -82,8 +82,9 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
    // apply surrogate operators
    for ( uint8_t q = 0; q <= q_max; ++q )
    {
-      P1ElementwiseSurrogateAffineDivKGradOperator A_q( storage, level, level, form );
       A_q.init( q, 0, "", false );
+      // A_q.init( q, 0, "svd", false );
+      // A_q.store_svd( "svd" );
       timer.start();
       A_q.apply( u, Au, level, All, Replace );
       timer.end();
@@ -118,9 +119,9 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run benchmarks
    // -------------------
-   uint_t  lvl2   = 10;
-   uint_t  lvl3   = 7;
-   uint8_t q_max = 5;
+   uint_t  lvl2  = 10;
+   uint_t  lvl3  = 7;
+   uint8_t q_max = 3;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl2 ) );
    benchmark( storage, q_max, lvl2 );

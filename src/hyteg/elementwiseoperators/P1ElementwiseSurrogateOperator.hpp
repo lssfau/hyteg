@@ -58,9 +58,10 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    /* Single precision LSQ leads to very poor accuracy of the resulting polynomials. Therefore,
       we use real_t for the polynomial evaluation only, while sticking to double precision LSQ.
     */
-   using LSQ        = surrogate::LeastSquares< double >;
-   using Poly       = surrogate::polynomial::Polynomial< real_t >;
+   template < uint8_t DIM >
+   using Poly       = surrogate::polynomial::Polynomial< real_t, DIM >;
    using PolyDomain = surrogate::polynomial::Domain< real_t >;
+   using LSQ        = surrogate::LeastSquares< double >;
 
    template < uint_t DIM >
    using RHS_matrix = surrogate::RHS_matrix< real_t, DIM, 1, 1 >;
@@ -95,6 +96,8 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
               size_t             downsampling            = 0,
               const std::string& path_to_svd             = "",
               bool               needsInverseDiagEntries = true );
+
+   void store_svd( const std::string& path_to_svd );
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,

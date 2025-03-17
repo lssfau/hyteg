@@ -195,7 +195,7 @@ using PrecomputedData = ElementWiseData< LocalMatrixMap< FLOAT, DIM, SRC_DEGREE,
 // container for surrogates
 template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using SurrogateData = ElementWiseData<
-    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT >, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
+    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT, DIM >, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
 
 } // namespace surrogate
 } // namespace hyteg

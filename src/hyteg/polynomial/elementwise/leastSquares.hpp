@@ -262,7 +262,10 @@ class LeastSquares
    void compute_svd()
    {
       // Setup Vandermonde matrix
-      const polynomial::Basis           phi( _q );
+
+      // monomial basis
+      auto& phi = polynomial::Basis::get( _q );
+      // conversion from i∈ℕ to x∈ℝ
       const polynomial::Domain< FLOAT > X( _lvl );
 
       auto it = samplingIterator();

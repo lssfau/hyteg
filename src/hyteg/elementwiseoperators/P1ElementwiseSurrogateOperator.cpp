@@ -122,6 +122,18 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
 }
 
 template < class P1Form >
+void P1ElementwiseSurrogateOperator< P1Form >::store_svd( const std::string& path_to_svd )
+{
+   for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
+   {
+      if ( lsq_[level] != nullptr )
+      {
+         lsq_[level]->write_to_file( path_to_svd );
+      }
+   }
+}
+
+template < class P1Form >
 void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( uint_t level )
 {
    for ( const auto& [id, face] : storage_->getFaces() )
@@ -205,7 +217,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
                // apply least squares fit
                lsq.setRHS( rhs( i, j ) );
                auto& coeffs      = lsq.solve();
-               surrogate( i, j ) = Poly( 2, q, coeffs );
+               surrogate( i, j ) = Poly< 2 >( q, coeffs );
             }
          }
       }
@@ -255,7 +267,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
                // apply least squares fit
                lsq.setRHS( rhs( i, j ) );
                auto& coeffs      = lsq.solve();
-               surrogate( i, j ) = Poly( 3, q, coeffs );
+               surrogate( i, j ) = Poly< 3 >( q, coeffs );
             }
          }
       }
@@ -528,38 +540,43 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
          for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
          {
             // restrict to 1d polynomial
-            auto y   = X[micro.y()];
-            auto p00 = surrogate( 0, 0 ).fix_y( y );
-            auto p01 = surrogate( 0, 1 ).fix_y( y );
-            auto p02 = surrogate( 0, 2 ).fix_y( y );
-            auto p03 = surrogate( 0, 3 ).fix_y( y );
-            auto p10 = surrogate( 1, 0 ).fix_y( y );
-            auto p11 = surrogate( 1, 1 ).fix_y( y );
-            auto p12 = surrogate( 1, 2 ).fix_y( y );
-            auto p13 = surrogate( 1, 3 ).fix_y( y );
-            auto p20 = surrogate( 2, 0 ).fix_y( y );
-            auto p21 = surrogate( 2, 1 ).fix_y( y );
-            auto p22 = surrogate( 2, 2 ).fix_y( y );
-            auto p23 = surrogate( 2, 3 ).fix_y( y );
-            auto p30 = surrogate( 3, 0 ).fix_y( y );
-            auto p31 = surrogate( 3, 1 ).fix_y( y );
-            auto p32 = surrogate( 3, 2 ).fix_y( y );
-            auto p33 = surrogate( 3, 3 ).fix_y( y );
+            const auto  y    = X[micro.y()];
+            const auto& p00  = surrogate( 0, 0 ).fix_y( y );
+            const auto& p01  = surrogate( 0, 1 ).fix_y( y );
+            const auto& p02  = surrogate( 0, 2 ).fix_y( y );
+            const auto& p03  = surrogate( 0, 3 ).fix_y( y );
+            const auto& p10  = surrogate( 1, 0 ).fix_y( y );
+            const auto& p11  = surrogate( 1, 1 ).fix_y( y );
+            const auto& p12  = surrogate( 1, 2 ).fix_y( y );
+            const auto& p13  = surrogate( 1, 3 ).fix_y( y );
+            const auto& p20  = surrogate( 2, 0 ).fix_y( y );
+            const auto& p21  = surrogate( 2, 1 ).fix_y( y );
+            const auto& p22  = surrogate( 2, 2 ).fix_y( y );
+            const auto& p23  = surrogate( 2, 3 ).fix_y( y );
+            const auto& p30  = surrogate( 3, 0 ).fix_y( y );
+            const auto& p31  = surrogate( 3, 1 ).fix_y( y );
+            const auto& p32  = surrogate( 3, 2 ).fix_y( y );
+            const auto& p33  = surrogate( 3, 3 ).fix_y( y );
+            const auto  dimP = uint_t( p00.n_coefficients() );
 
-            for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
+            // global dof indices
+            micro.x() = 0;
+            std::array< uint_t, 4 > vertexDoFIndices{};
+            p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
+
+            const auto nX = row_end - micro.z() - micro.y();
+            for ( idx_t idxX = 0; idxX < nX; ++idxX )
             {
-               // evaluate the 1d polynomials
-               auto x    = X[micro.x()];
-               auto xpow = real_t( 1.0 );
-
+               // local stiffness matrix
                real_t a00 = 0, a01 = 0, a02 = 0, a03 = 0;
                real_t a10 = 0, a11 = 0, a12 = 0, a13 = 0;
                real_t a20 = 0, a21 = 0, a22 = 0, a23 = 0;
                real_t a30 = 0, a31 = 0, a32 = 0, a33 = 0;
 
-               const auto n = p00.n_coefficients();
-
-               for ( uint_t k = 0; k < n; ++k )
+               // evaluate the 1d polynomials
+               const auto x    = X[idxX];
+               auto       xpow = real_t( 1.0 );
+               for ( uint_t k = 0; k < dimP; ++k )
                {
                   a00 += p00[k] * xpow;
                   a01 += p01[k] * xpow;
@@ -580,10 +597,6 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                   xpow *= x;
                }
 
-               // obtain data indices of dofs associated with micro-cell
-               std::array< uint_t, 4 > vertexDoFIndices;
-               p1::getGlobalIndices3D(cType, level, microCell, vertexDoFIndices);
-
                // assemble local element vector
                const auto src0 = srcVertexData[vertexDoFIndices[0]];
                const auto src1 = srcVertexData[vertexDoFIndices[1]];
@@ -595,12 +608,23 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                const auto dst1 = a10 * src0 + a11 * src1 + a12 * src2 + a13 * src3;
                const auto dst2 = a20 * src0 + a21 * src1 + a22 * src2 + a23 * src3;
                const auto dst3 = a30 * src0 + a31 * src1 + a32 * src2 + a33 * src3;
+               // // ! only diagonal matvec ! todo: change back
+               // const auto dst0 = a00 * src0;
+               // const auto dst1 = a11 * src1;
+               // const auto dst2 = a22 * src2;
+               // const auto dst3 = a33 * src3;
 
                // write data back into global vector
                dstVertexData[vertexDoFIndices[0]] += alpha * dst0;
                dstVertexData[vertexDoFIndices[1]] += alpha * dst1;
                dstVertexData[vertexDoFIndices[2]] += alpha * dst2;
                dstVertexData[vertexDoFIndices[3]] += alpha * dst3;
+
+               // increment global indices
+               for ( auto& dof_idx : vertexDoFIndices )
+               {
+                  ++dof_idx;
+               }
             }
          }
       }
