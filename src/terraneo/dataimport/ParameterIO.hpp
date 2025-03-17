@@ -316,6 +316,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       physicalParam.viscosityUpperBound          = mainConf.getParameter< real_t >( "viscosityUpperBound" );
    }
 
+   simulationParam.finalAge = mainConf.getParameter< real_t >( "finalAge" );
    //simulation parameters for circulation models only:
    if ( simulationParam.simulationType == "CirculationModel" )
    {
@@ -324,7 +325,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          simulationParam.fnameTopologies        = mainConf.getParameter< std::string >( "fnameTopologies" );
          simulationParam.fnameReconstructions   = mainConf.getParameter< std::string >( "fnameReconstructions" );
          simulationParam.initialAge             = mainConf.getParameter< real_t >( "initialAge" );
-         simulationParam.finalAge               = mainConf.getParameter< real_t >( "finalAge" );
          simulationParam.ageMa                  = simulationParam.initialAge;
          simulationParam.agePrev                = simulationParam.initialAge;
          simulationParam.plateAge               = simulationParam.initialAge;
@@ -714,7 +714,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
+                                 << "true" );
    }
    else
    {
@@ -728,7 +729,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
+                                 << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {
