@@ -358,7 +358,7 @@ void ConvectionSimulation::calculateHeatflow( const std::shared_ptr< RadialProfi
 // This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
 // It takes the mean temperature of the corresponding layers as input and calculates the heat flow
 // as q = -k *  grad T * A [TW].
-void ConvectionSimulation::calculateHeatflowIntegral()
+void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< RadialProfile >& temperatureProfile )
 {
    const real_t pi                  = walberla::math::pi;
    const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
@@ -373,7 +373,7 @@ void ConvectionSimulation::calculateHeatflowIntegral()
    const real_t areaCMB     = 4 * pi * std::pow( radius[0], 2 );
 
    // Calculate heat flows
-   const real_t heatFlowFactor = -thermalConductivity * mantleThickness * 1e-12;
+   const real_t heatFlowFactor = thermalConductivity * mantleThickness * 1e-12;
 
    real_t dTdr = ( meanTemp[1] - meanTemp[0] ) / ( radius[1] - radius[0] );
 
@@ -381,16 +381,15 @@ void ConvectionSimulation::calculateHeatflowIntegral()
    real_t hGradient = 1e-2;
    real_t epsBoundary = 1e-7;
 
-   real_t dTdrOuter = nusseltcalc::calculateNusseltNumberSphere3D( 
+   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D( 
       *(p2ScalarFunctionContainer["TemperatureFE"]), TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMax, epsBoundary, nuSamples );
 
-   real_t dTdrInner = nusseltcalc::calculateNusseltNumberSphere3D( 
+   real_t dTdrIntegralInner = nusseltcalc::calculateNusseltNumberSphere3D( 
       *(p2ScalarFunctionContainer["TemperatureFE"]), 
       TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary, epsBoundary, nuSamples );
 
-   real_t heatFlowCMB = heatFlowFactor * dTdrOuter * redimTemp * areaCMB;
-
-   real_t heatFlowSurface = heatFlowFactor * dTdrInner * redimTemp * areaCMB;
+   real_t heatFlowSurface = heatFlowFactor * dTdrIntegralOuter * redimTemp;
+   real_t heatFlowCMB = heatFlowFactor * dTdrIntegralInner * redimTemp;
 
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );

@@ -157,8 +157,8 @@ class ConvectionSimulation
    void updatePlateVelocities( StokesFunction& );
    void solveStokes();
    void solveEnergy();
-   void calculateHeatflow( const std::shared_ptr< RadialProfile >& temperatureProfile );
-   void calculateHeatflowIntegral();
+   void calculateHeatflow( const std::shared_ptr< RadialProfile >& );
+   void calculateHeatflowIntegral( const std::shared_ptr< RadialProfile >& );
    void dataOutput();
    void outputCheckpoint();
    void initTimingDB();
