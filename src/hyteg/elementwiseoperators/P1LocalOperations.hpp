@@ -90,9 +90,11 @@ static inline void localMatrixVectorMultiply3D( const uint_t            level,
                                   const Matrix4r&         elMat,
                                   const real_t&           alpha )
 {
+   WALBERLA_ASSERT_UNEQUAL( srcVertexData, dstVertexData );
+
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
-   // p1::getGlobalIndices3D(cType, level, microCell, vertexDoFIndices);
+   p1::getGlobalIndices3D(cType, level, microCell, vertexDoFIndices);
 
    // assemble local element vector
    Point4D elVecOld, elVecNew;
@@ -102,20 +104,12 @@ static inline void localMatrixVectorMultiply3D( const uint_t            level,
    }
 
    // local matvec
-   // elVecNew = elMat * elVecOld;
-   elVecNew[0] = elMat(0,0) * elVecOld[0] + elMat(0,1) * elVecOld[1] + elMat(0,2) * elVecOld[2] + elMat(0,3) * elVecOld[3];
-   elVecNew[1] = elMat(1,0) * elVecOld[0] + elMat(1,1) * elVecOld[1] + elMat(1,2) * elVecOld[2] + elMat(1,3) * elVecOld[3];
-   elVecNew[2] = elMat(2,0) * elVecOld[0] + elMat(2,1) * elVecOld[1] + elMat(2,2) * elVecOld[2] + elMat(2,3) * elVecOld[3];
-   elVecNew[3] = elMat(3,0) * elVecOld[0] + elMat(3,1) * elVecOld[1] + elMat(3,2) * elVecOld[2] + elMat(3,3) * elVecOld[3];
-   // elVecNew[0] = elMat(0,0) * elVecOld[0];
-   // elVecNew[1] = elMat(1,1) * elVecOld[1];
-   // elVecNew[2] = elMat(2,2) * elVecOld[2];
-   // elVecNew[3] = elMat(3,3) * elVecOld[3];
+   elVecNew = alpha * ( elMat * elVecOld );
 
    // redistribute result from "local" to "global vector"
    for ( int k = 0; k < 4; ++k )
    {
-      dstVertexData[vertexDoFIndices[uint_c( k )]] += alpha * elVecNew[k];
+      dstVertexData[vertexDoFIndices[uint_c( k )]] += elVecNew[k];
    }
 }
 
