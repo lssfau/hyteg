@@ -559,7 +559,10 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
             const auto& p33  = surrogate( 3, 3 ).fix_y( y );
             const auto  dimP = uint_t( p00.n_coefficients() );
 
-            // global dof indices
+            /* global dof indices
+               Computing global indices seems to be rather slow so we factor it
+               out of the x-loop.
+            */
             micro.x() = 0;
             std::array< uint_t, 4 > vertexDoFIndices{};
             p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
@@ -567,6 +570,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
             const auto nX = row_end - micro.z() - micro.y();
             for ( idx_t idxX = 0; idxX < nX; ++idxX )
             {
+               // global indices
+               const uint_t g0 = vertexDoFIndices[0] + idxX;
+               const uint_t g1 = vertexDoFIndices[1] + idxX;
+               const uint_t g2 = vertexDoFIndices[2] + idxX;
+               const uint_t g3 = vertexDoFIndices[3] + idxX;
+
                // local stiffness matrix
                real_t a00 = 0, a01 = 0, a02 = 0, a03 = 0;
                real_t a10 = 0, a11 = 0, a12 = 0, a13 = 0;
@@ -578,6 +587,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                auto       xpow = real_t( 1.0 );
                for ( uint_t k = 0; k < dimP; ++k )
                {
+                  // const auto xk = xpow;
                   a00 += p00[k] * xpow;
                   a01 += p01[k] * xpow;
                   a02 += p02[k] * xpow;
@@ -598,10 +608,10 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                }
 
                // assemble local element vector
-               const auto src0 = srcVertexData[vertexDoFIndices[0]];
-               const auto src1 = srcVertexData[vertexDoFIndices[1]];
-               const auto src2 = srcVertexData[vertexDoFIndices[2]];
-               const auto src3 = srcVertexData[vertexDoFIndices[3]];
+               const auto src0 = srcVertexData[g0];
+               const auto src1 = srcVertexData[g1];
+               const auto src2 = srcVertexData[g2];
+               const auto src3 = srcVertexData[g3];
 
                // local matvec
                const auto dst0 = a00 * src0 + a01 * src1 + a02 * src2 + a03 * src3;
@@ -615,16 +625,23 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                // const auto dst3 = a33 * src3;
 
                // write data back into global vector
-               dstVertexData[vertexDoFIndices[0]] += alpha * dst0;
-               dstVertexData[vertexDoFIndices[1]] += alpha * dst1;
-               dstVertexData[vertexDoFIndices[2]] += alpha * dst2;
-               dstVertexData[vertexDoFIndices[3]] += alpha * dst3;
+               dstVertexData[g0] += alpha * dst0;
+               dstVertexData[g1] += alpha * dst1;
+               dstVertexData[g2] += alpha * dst2;
+               dstVertexData[g3] += alpha * dst3;
 
-               // increment global indices
-               for ( auto& dof_idx : vertexDoFIndices )
-               {
-                  ++dof_idx;
-               }
+               // // alternative version of the above // todo: remove
+               // for ( idx_t i = 0; i < surrogate.rows(); ++i )
+               // {
+               //    for ( idx_t j = 0; j < surrogate.cols(); ++j )
+               //    {
+               //       elMat( i, j ) = surrogate( i, j ).eval( x );
+               //    }
+               // }
+
+               // // local matvec
+               // micro.x() = idxX;
+               // p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
             }
          }
       }
