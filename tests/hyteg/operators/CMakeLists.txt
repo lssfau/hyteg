@@ -59,3 +59,6 @@ endif ()
 waLBerla_compile_test(FILES DiagonalNonConstantOperatorTest.cpp DEPENDS hyteg core constant_stencil_operator)
 waLBerla_execute_test(NAME DiagonalNonConstantOperatorTest)
 
+waLBerla_compile_test(FILES P1ElementwiseOperatorTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_execute_test(NAME P1ElementwiseOperatorTest)
+
