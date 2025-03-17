@@ -746,8 +746,7 @@ void ConvectionSimulation::solveStokes()
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    if ( TN.outputParameters.createTimingDB )
    {
-      db->setVariableEntry( "Stokes_residual_final", stokesResidual );
-      db->setVariableEntry( "Time_setup_Stokes_RHS", setupStokesTimer );
+      db->setVariableEntry( "Relative_Stokes_residual", relStokesResidual );
       db->setVariableEntry( "Time_solve_Stokes", timeStokesSolve );
    }
 }
