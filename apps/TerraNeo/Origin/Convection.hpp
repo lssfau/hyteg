@@ -99,6 +99,7 @@
 #include "terraneo/operators/P2TransportRHSOperator.hpp"
 // #include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "terraneo/operators/P2TransportTALAOperatorStd.hpp"
+#include "terraneo/utils/NusseltNumberOperator.hpp"
 
 namespace terraneo {
 
@@ -156,7 +157,8 @@ class ConvectionSimulation
    void updatePlateVelocities( StokesFunction& );
    void solveStokes();
    void solveEnergy();
-
+   void calculateHeatflow( const std::shared_ptr< RadialProfile >& temperatureProfile );
+   void calculateHeatflowIntegral();
    void dataOutput();
    void outputCheckpoint();
    void initTimingDB();

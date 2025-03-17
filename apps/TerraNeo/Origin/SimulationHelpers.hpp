@@ -320,5 +320,120 @@ void ConvectionSimulation::initTimingDB()
    db->setConstantEntry( "maxLevel", TN.domainParameters.maxLevel );
    db->setConstantEntry( "minLevel", TN.domainParameters.minLevel );
 }
+// This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
+// It takes the mean temperature of the corresponding layers as input and calculates the heat flow
+// as q = -k *  grad T * A [TW].
+void ConvectionSimulation::calculateHeatflow( const std::shared_ptr< RadialProfile >& temperatureProfile )
+{
+   const real_t pi                  = walberla::math::pi;
+   const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+   const real_t thermalConductivity = TN.physicalParameters.thermalConductivity;
+   const real_t mantleThickness     = TN.physicalParameters.mantleThickness;
+
+   const std::vector< real_t >& radius    = temperatureProfile->shellRadii;
+   const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
+   const uint_t                 numLayers = radius.size();
+
+   const real_t areaSurface = 4 * pi * std::pow( radius[numLayers - 1], 2 );
+   const real_t areaCMB     = 4 * pi * std::pow( radius[0], 2 );
+
+   // Calculate heat flows
+   const real_t heatFlowFactor = -thermalConductivity * mantleThickness * 1e-12;
+
+   real_t heatFlowCMB = heatFlowFactor * ( meanTemp[1] - meanTemp[0] ) * redimTemp / ( radius[1] - radius[0] ) * areaCMB;
+
+   real_t heatFlowSurface = heatFlowFactor * ( meanTemp[numLayers - 1] - meanTemp[numLayers - 2] ) * redimTemp /
+                            ( radius[numLayers - 1] - radius[numLayers - 2] ) * areaSurface;
+
+   WALBERLA_LOG_INFO_ON_ROOT( " " );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow Surface: " << heatFlowSurface << " TW" );
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
+      db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
+   }
+}
+
+// This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
+// It takes the mean temperature of the corresponding layers as input and calculates the heat flow
+// as q = -k *  grad T * A [TW].
+void ConvectionSimulation::calculateHeatflowIntegral()
+{
+   const real_t pi                  = walberla::math::pi;
+   const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+   const real_t thermalConductivity = TN.physicalParameters.thermalConductivity;
+   const real_t mantleThickness     = TN.physicalParameters.mantleThickness;
+
+   const std::vector< real_t >& radius    = temperatureProfile->shellRadii;
+   const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
+   const uint_t                 numLayers = radius.size();
+
+   const real_t areaSurface = 4 * pi * std::pow( radius[numLayers - 1], 2 );
+   const real_t areaCMB     = 4 * pi * std::pow( radius[0], 2 );
+
+   // Calculate heat flows
+   const real_t heatFlowFactor = -thermalConductivity * mantleThickness * 1e-12;
+
+   real_t dTdr = ( meanTemp[1] - meanTemp[0] ) / ( radius[1] - radius[0] );
+
+   uint_t nuSamples = 101u;
+   real_t hGradient = 1e-2;
+   real_t epsBoundary = 1e-7;
+
+   real_t dTdrOuter = nusseltcalc::calculateNusseltNumberSphere3D( 
+      *(p2ScalarFunctionContainer["TemperatureFE"]), TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMax, epsBoundary, nuSamples );
+
+   real_t dTdrInner = nusseltcalc::calculateNusseltNumberSphere3D( 
+      *(p2ScalarFunctionContainer["TemperatureFE"]), 
+      TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary, epsBoundary, nuSamples );
+
+   real_t heatFlowCMB = heatFlowFactor * dTdrOuter * redimTemp * areaCMB;
+
+   real_t heatFlowSurface = heatFlowFactor * dTdrInner * redimTemp * areaCMB;
+
+   WALBERLA_LOG_INFO_ON_ROOT( " " );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow Surface: " << heatFlowSurface << " TW" );
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
+      db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
+   }
+}
+
+void ConvectionSimulation::adjustSolver()
+{
+   stokesSolverFS = std::move( solverTemplate->solverFGMRES( TN.solverParameters.numPowerIterations,
+                                                             TN.solverParameters.FGMRESOuterIterations * 2,
+                                                             TN.solverParameters.FGMRESTolerance,
+                                                             TN.solverParameters.uzawaIterations * 2,
+                                                             TN.solverParameters.uzawaOmega,
+                                                             TN.solverParameters.ABlockMGIterations * 2,
+                                                             TN.solverParameters.ABlockMGTolerance,
+                                                             TN.solverParameters.ABlockMGPreSmooth + 2,
+                                                             TN.solverParameters.ABlockMGPostSmooth + 2,
+                                                             TN.solverParameters.ABlockCoarseGridIterations * 2,
+                                                             TN.solverParameters.ABlockCoarseGridTolerance,
+                                                             TN.solverParameters.SchurCoarseGridIterations * 2,
+                                                             TN.solverParameters.SchurCoarseGridTolerance ) );
+}
+
+void ConvectionSimulation::resetSolver()
+{
+   stokesSolverFS = std::move( solverTemplate->solverFGMRES( TN.solverParameters.numPowerIterations,
+                                                             TN.solverParameters.FGMRESOuterIterations,
+                                                             TN.solverParameters.FGMRESTolerance,
+                                                             TN.solverParameters.uzawaIterations,
+                                                             TN.solverParameters.uzawaOmega,
+                                                             TN.solverParameters.ABlockMGIterations,
+                                                             TN.solverParameters.ABlockMGTolerance,
+                                                             TN.solverParameters.ABlockMGPreSmooth,
+                                                             TN.solverParameters.ABlockMGPostSmooth,
+                                                             TN.solverParameters.ABlockCoarseGridIterations,
+                                                             TN.solverParameters.ABlockCoarseGridTolerance,
+                                                             TN.solverParameters.SchurCoarseGridIterations,
+                                                             TN.solverParameters.SchurCoarseGridTolerance ) );
+}
 
 } // namespace terraneo

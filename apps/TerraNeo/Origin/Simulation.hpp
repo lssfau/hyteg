@@ -263,7 +263,8 @@ void ConvectionSimulation::step()
                                                                                   TN.domainParameters.maxLevel ) );
 
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
-
+   // calculateHeatflow( temperatureProfiles );
+   calculateHeatflowIntegral();
    // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
    for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
    {
