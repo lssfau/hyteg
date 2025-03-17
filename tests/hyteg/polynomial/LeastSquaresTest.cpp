@@ -34,7 +34,8 @@ using walberla::math::pi;
 using walberla::math::realRandom;
 
 // test accuracy of least squares fit
-double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bool use_precomputed )
+template < uint_t D >
+double LeastSquaresTest( uint_t q, uint_t lvl, uint_t downsampling, bool use_precomputed )
 {
    // ---------------------------------------------------------
    /// initialize least squares system
@@ -42,11 +43,11 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    std::unique_ptr< hyteg::surrogate::LeastSquares< real_t > > lsq;
    if ( use_precomputed )
    {
-      lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( "svd", d, q, lvl, downsampling );
+      lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( "svd", D, q, lvl, downsampling );
    }
    else
    {
-      lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( d, q, lvl, downsampling );
+      lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( D, q, lvl, downsampling );
       // write svd to file to be used when calling the function again with `use_precomputed=true`
       lsq->write_to_file( "svd" );
    }
@@ -75,27 +76,27 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    // ---------------------------------------------------------
    auto& coeffs = lsq->solve();
    // initialize polynomial
-   hyteg::surrogate::polynomial::Polynomial< real_t > p( uint8_t( d ), uint8_t( q ), coeffs );
+   hyteg::surrogate::polynomial::Polynomial< real_t, D > p( uint8_t( q ), coeffs );
 
    // ---------------------------------------------------------
    /// evaluate polynomial and compute error
    // ---------------------------------------------------------
    idx_t  len_edge = ( idx_t( 1 ) << lvl );
    double error    = 0.0;
-   idx_t  k_max    = ( d == 3 ) ? len_edge : 1;
-   idx_t  j_max    = ( d >= 2 ) ? len_edge : 1;
+   idx_t  k_max    = ( D == 3 ) ? len_edge : 1;
+   idx_t  j_max    = ( D >= 2 ) ? len_edge : 1;
    idx_t  i_max    = len_edge;
    for ( idx_t k = 0; k < k_max; ++k )
    {
       auto z = X[k];
-      if ( d == 3 )
+      if constexpr ( D == 3 )
       {
          p.fix_z( z );
       }
       for ( idx_t j = 0; j < j_max - k; ++j )
       {
          auto y = X[j];
-         if ( d >= 2 )
+         if constexpr ( D >= 2 )
          {
             p.fix_y( y );
          }
@@ -108,11 +109,56 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
       }
    }
    auto h  = 1.0 / double( len_edge );
-   auto dV = std::pow( h, d );
+   auto dV = std::pow( h, D );
    error   = std::sqrt( error * dV );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         discrete L2 error: ||f-p|| = %e", error ) );
 
    return error;
+}
+
+template < uint8_t D >
+void all_tests()
+{
+   const uint_t          lvl = 4;
+   std::vector< double > epsilon;
+   if constexpr ( D == 2 )
+   {
+      epsilon = { 3e-1, 2e-1, 1e-1, 2e-2, 2e-2, 2e-3, 8e-4, 8e-5, 2e-5, 4e-7 };
+   }
+   else
+   {
+      epsilon = { 2e-1, 1e-1, 5e-2, 3e-2, 8e-3, 3e-3, 4e-4, 2e-4, 9e-6, 2e-6 };
+   }
+
+   for ( uint_t q = 0; q <= 9; ++q )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%dD, level %d, polynomial degree %d", D, lvl, q ) );
+      for ( uint_t ds = 1; ds <= 3; ++ds )
+      {
+         // with single precision, accuracy won't get better than 5e-4
+         if ( std::is_same< real_t, float >() && epsilon[q] < 5e-4 )
+         {
+            epsilon[q] = 5e-4;
+         }
+         if ( q <= hyteg::surrogate::LeastSquares< real_t >::max_degree( lvl, ds ) )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   downsampling factor %d", ds ) );
+
+            WALBERLA_LOG_INFO_ON_ROOT( "      compute svd" );
+            auto err1 = LeastSquaresTest< D >( q, lvl, ds, 0 );
+            WALBERLA_CHECK_LESS( err1, epsilon[q], "accuracy LSQ" );
+
+            WALBERLA_LOG_INFO_ON_ROOT( "      use precomputed svd" );
+            auto   err2  = LeastSquaresTest< D >( q, lvl, ds, 1 );
+            double eps_m = std::is_same< real_t, double >() ? 1e-14 : 1e-6;
+            WALBERLA_CHECK_LESS( std::abs( err1 - err2 ), err1 * eps_m, "precomputed svd" );
+         }
+      }
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   // cleanup
+   std::filesystem::remove_all( "svd" );
 }
 
 int main( int argc, char* argv[] )
@@ -128,43 +174,8 @@ int main( int argc, char* argv[] )
    // -------------------
    WALBERLA_LOG_INFO_ON_ROOT( "LeastSquaresTest" );
 
-   std::vector< double > epsilon_2d{ 3e-1, 2e-1, 1e-1, 2e-2, 2e-2, 2e-3, 8e-4, 8e-5, 2e-5, 4e-7 };
-   std::vector< double > epsilon_3d{ 2e-1, 1e-1, 5e-2, 3e-2, 8e-3, 3e-3, 4e-4, 2e-4, 9e-6, 2e-6 };
-
-   const uint_t lvl = 4;
-   for ( uint_t d = 2; d <= 3; ++d )
-   {
-      auto& epsilon = ( d == 2 ) ? epsilon_2d : epsilon_3d;
-      for ( uint_t q = 0; q <= 9; ++q )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%dD, level %d, polynomial degree %d", d, lvl, q ) );
-         for ( uint_t ds = 1; ds <= 3; ++ds )
-         {
-            // with single precision, accuracy won't get better than 5e-4
-            if ( std::is_same< real_t, float >() && epsilon[q] < 5e-4 )
-            {
-               epsilon[q] = 5e-4;
-            }
-            if ( q <= hyteg::surrogate::LeastSquares< real_t >::max_degree( lvl, ds ) )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   downsampling factor %d", ds ) );
-
-               WALBERLA_LOG_INFO_ON_ROOT( "      compute svd" );
-               auto err1 = LeastSquaresTest( d, q, lvl, ds, 0 );
-               WALBERLA_CHECK_LESS( err1, epsilon[q], "accuracy LSQ" );
-
-               WALBERLA_LOG_INFO_ON_ROOT( "      use precomputed svd" );
-               auto   err2  = LeastSquaresTest( d, q, lvl, ds, 1 );
-               double eps_m = std::is_same< real_t, double >() ? 1e-14 : 1e-6;
-               WALBERLA_CHECK_LESS( std::abs( err1 - err2 ), err1 * eps_m, "precomputed svd" );
-            }
-         }
-      }
-      WALBERLA_LOG_INFO_ON_ROOT( "" )
-   }
-
-   // cleanup
-   std::filesystem::remove_all( "svd" );
+   all_tests< 2 >();
+   all_tests< 3 >();
 
    return 0;
 }

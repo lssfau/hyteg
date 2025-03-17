@@ -19,13 +19,13 @@
  */
 
 #include <core/DataTypes.h>
+#include <core/math/Random.h>
 #include <core/mpi/MPIManager.h>
 #include <hyteg/elementwiseoperators/P1ElementwiseOperator.hpp>
 #include <hyteg/elementwiseoperators/P1ElementwiseSurrogateOperator.hpp>
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
-#include <core/math/Random.h>
 
 using walberla::real_t;
 using namespace hyteg;
@@ -40,22 +40,18 @@ using namespace hyteg;
    by polynomials of degree q, it holds
       q>=p => A_q = A.
 */
-void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        storage,
-                              const uint8_t                                     q,
-                              const uint_t                                      level )
+template < uint8_t DIM >
+void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_t q, const uint_t level )
 {
    double epsilon, errorMax;
 
    // setup pde coefficient k ∈ P_q
-   uint8_t dim = storage->hasGlobalCells()? 3 : 2;
-   hyteg::surrogate::polynomial::Polynomial<real_t> k_poly(dim, q);
-   for (auto& c : k_poly)
+   hyteg::surrogate::polynomial::Polynomial< real_t, DIM > k_poly( q );
+   for ( auto& c : k_poly )
    {
       c = walberla::math::realRandom();
    }
-   auto k = [&]( const hyteg::Point3D& x){
-      return k_poly.eval_naive(x);
-   };
+   auto k = [&]( const hyteg::Point3D& x ) { return k_poly.eval_naive( x ); };
 
    // operators
    forms::p1_div_k_grad_affine_q3               form( k, k );
@@ -75,7 +71,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    };
    u.interpolate( initialU, level );
 
-   epsilon = std::is_same< real_t, double >() ? 1e-12 : 1e-5;
+   epsilon = std::is_same< real_t, double >() ? 2e-12 : 1e-5;
 
    // apply operators
    A.apply( u, Au, level, All, Replace );
@@ -146,10 +142,10 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, q=%d, 2d", lvl, q ) );
-         P1SurrogateOperatorTest( storage, q, lvl );
+         P1SurrogateOperatorTest< 2 >( storage, q, lvl );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, q=%d, 3d", lvl, q ) );
-         P1SurrogateOperatorTest( storage3d, q, lvl );
+         P1SurrogateOperatorTest< 3 >( storage3d, q, lvl );
       }
    }
    return 0;

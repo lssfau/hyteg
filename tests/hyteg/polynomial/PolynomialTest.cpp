@@ -78,14 +78,15 @@ void MonomialBasisTest( int i, int j, int k )
 }
 
 // test different algorithms to evaluate polynomials
-void PolynomialTest( uint8_t d, uint8_t q )
+template < uint8_t D >
+void PolynomialTest( uint8_t q )
 {
    // ---------------------------------------------------------
    /// initialize
    // ---------------------------------------------------------
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", d, q ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", D, q ) );
    // choose random element p from P_q(R^d)
-   hyteg::surrogate::polynomial::Polynomial< real_t > p( d, q );
+   hyteg::surrogate::polynomial::Polynomial< real_t, D > p( q );
    for ( auto& c : p )
    {
       c = realRandom();
@@ -109,25 +110,34 @@ void PolynomialTest( uint8_t d, uint8_t q )
       z_pow[i] = z_pow[i - 1] * x[2];
    }
    // sum up contributions of each basis function φ_n, i.e., p(x) = ∑_n c_n φ_n(x)
+   auto& phi = hyteg::surrogate::polynomial::Basis::get( q );
    for ( idx_t n = 0; n < p.n_coefficients(); ++n )
    {
-      auto [i, j, k] = p.phi( n ).expand(); // φ_n = x^i y^j z^k
+      auto [i, j, k] = phi[n].expand(); // φ_n = x^i y^j z^k
       px_manual += p.c( n ) * x_pow[i] * y_pow[j] * z_pow[k];
    }
 
    // ---------------------------------------------------------
    /// use naive evaluation (should be equivalent to the above)
    // ---------------------------------------------------------
-   real_t px_naive = p.eval_naive( x );
+   real_t px_naive = real_t( 0.0 );
+   if constexpr ( D == 1 )
+   {
+      px_naive = p.eval( x[0] ); // 1D polynomial doesn't provide a function eval_naive()
+   }
+   else
+   {
+      px_naive = p.eval_naive( x );
+   }
 
    // ---------------------------------------------------------
    /// evaluate p(x) using Horner's method
    // ---------------------------------------------------------
-   if ( d == 3 )
+   if constexpr ( D == 3 )
    {
       p.fix_z( x[2] ); // restrict p to P_q(R^2)
    }
-   if ( d >= 2 )
+   if constexpr ( D >= 2 )
    {
       p.fix_y( x[1] ); // restrict to P_q(R)
    }
@@ -163,12 +173,11 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "=======================================================" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   for ( uint8_t d = 1; d <= 3; ++d )
+   for ( uint8_t deg = 0; deg <= 12; ++deg )
    {
-      for ( uint8_t deg = 0; deg <= 12; ++deg )
-      {
-         PolynomialTest( d, deg );
-      }
+      PolynomialTest< 1 >( deg );
+      PolynomialTest< 2 >( deg );
+      PolynomialTest< 3 >( deg );
    }
 
    return 0;
