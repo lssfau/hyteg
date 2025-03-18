@@ -54,15 +54,17 @@ class LocalMatrixLike
    {}
 
    // get (i,j) entry of this
-   inline T& operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
+   inline T& operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i * C + j )]; }
    // get (i,j) entry of this
-   inline const T& operator()( idx_t i, idx_t j ) const { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
+   inline const T& operator()( idx_t i, idx_t j ) const { return _data[static_cast< uint_t >( i * C + j )]; }
 
    inline constexpr idx_t rows() const { return R; }
    inline constexpr idx_t cols() const { return C; }
 
+   inline const std::array< T, C * R >& get_data() const {return _data;}
+
  private:
-   std::array< std::array< T, C >, R > _data;
+   std::array< T, C * R > _data;
 };
 
 template < typename T, uint_t DIM >

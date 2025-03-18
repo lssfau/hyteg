@@ -518,6 +518,23 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
    else
    {
       auto& surrogate = surrogate_3d_.at( id )[level][cType];
+      // restriction to 1d
+      const auto& p00 = surrogate( 0, 0 ).get_1d_restriction();
+      const auto& p01 = surrogate( 0, 1 ).get_1d_restriction();
+      const auto& p02 = surrogate( 0, 2 ).get_1d_restriction();
+      const auto& p03 = surrogate( 0, 3 ).get_1d_restriction();
+      const auto& p10 = surrogate( 1, 0 ).get_1d_restriction();
+      const auto& p11 = surrogate( 1, 1 ).get_1d_restriction();
+      const auto& p12 = surrogate( 1, 2 ).get_1d_restriction();
+      const auto& p13 = surrogate( 1, 3 ).get_1d_restriction();
+      const auto& p20 = surrogate( 2, 0 ).get_1d_restriction();
+      const auto& p21 = surrogate( 2, 1 ).get_1d_restriction();
+      const auto& p22 = surrogate( 2, 2 ).get_1d_restriction();
+      const auto& p23 = surrogate( 2, 3 ).get_1d_restriction();
+      const auto& p30 = surrogate( 3, 0 ).get_1d_restriction();
+      const auto& p31 = surrogate( 3, 1 ).get_1d_restriction();
+      const auto& p32 = surrogate( 3, 2 ).get_1d_restriction();
+      const auto& p33 = surrogate( 3, 3 ).get_1d_restriction();
       // domain of surrogates
       PolyDomain X( level );
       // local stiffness matrix
@@ -527,37 +544,22 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
       const auto      row_end = idx_t( celldof::macrocell::numCellsPerRowByType( level, cType ) );
       for ( micro.z() = 0; micro.z() < row_end; micro.z()++ )
       {
-         // restrict to 2d polynomial
-         auto z = X[micro.z()];
-         for ( idx_t i = 0; i < surrogate.rows(); ++i )
+         // fix z-coordinate
+         const auto z = X[micro.z()];
+         for ( auto& s_ij : surrogate.get_data() )
          {
-            for ( idx_t j = 0; j < surrogate.cols(); ++j )
-            {
-               surrogate( i, j ).fix_z( z );
-            }
+            s_ij.fix_z( z );
          }
 
          for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
          {
-            // restrict to 1d polynomial
-            const auto  y    = X[micro.y()];
-            const auto& p00  = surrogate( 0, 0 ).fix_y( y );
-            const auto& p01  = surrogate( 0, 1 ).fix_y( y );
-            const auto& p02  = surrogate( 0, 2 ).fix_y( y );
-            const auto& p03  = surrogate( 0, 3 ).fix_y( y );
-            const auto& p10  = surrogate( 1, 0 ).fix_y( y );
-            const auto& p11  = surrogate( 1, 1 ).fix_y( y );
-            const auto& p12  = surrogate( 1, 2 ).fix_y( y );
-            const auto& p13  = surrogate( 1, 3 ).fix_y( y );
-            const auto& p20  = surrogate( 2, 0 ).fix_y( y );
-            const auto& p21  = surrogate( 2, 1 ).fix_y( y );
-            const auto& p22  = surrogate( 2, 2 ).fix_y( y );
-            const auto& p23  = surrogate( 2, 3 ).fix_y( y );
-            const auto& p30  = surrogate( 3, 0 ).fix_y( y );
-            const auto& p31  = surrogate( 3, 1 ).fix_y( y );
-            const auto& p32  = surrogate( 3, 2 ).fix_y( y );
-            const auto& p33  = surrogate( 3, 3 ).fix_y( y );
-            const auto  dimP = uint_t( p00.n_coefficients() );
+            // fix y-coordinate
+            const auto y = X[micro.y()];
+            for ( auto& s_ij : surrogate.get_data() )
+            {
+               s_ij.fix_y( y );
+            }
+            const auto dimP = uint_t( p00.n_coefficients() );
 
             /* global dof indices
                Computing global indices seems to be rather slow so we factor it
@@ -566,6 +568,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
             micro.x() = 0;
             std::array< uint_t, 4 > vertexDoFIndices{};
             p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
+
+            // constant part of local stiffness matrix
+            const real_t c00 = p00[0], c01 = p01[0], c02 = p02[0], c03 = p03[0];
+            const real_t c10 = p10[0], c11 = p11[0], c12 = p12[0], c13 = p13[0];
+            const real_t c20 = p20[0], c21 = p21[0], c22 = p22[0], c23 = p23[0];
+            const real_t c30 = p30[0], c31 = p31[0], c32 = p32[0], c33 = p33[0];
 
             const auto nX = row_end - micro.z() - micro.y();
             for ( idx_t idxX = 0; idxX < nX; ++idxX )
@@ -577,17 +585,17 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                const uint_t g3 = vertexDoFIndices[3] + idxX;
 
                // local stiffness matrix
-               real_t a00 = 0, a01 = 0, a02 = 0, a03 = 0;
-               real_t a10 = 0, a11 = 0, a12 = 0, a13 = 0;
-               real_t a20 = 0, a21 = 0, a22 = 0, a23 = 0;
-               real_t a30 = 0, a31 = 0, a32 = 0, a33 = 0;
+               real_t a00 = c00, a01 = c01, a02 = c02, a03 = c03;
+               real_t a10 = c10, a11 = c11, a12 = c12, a13 = c13;
+               real_t a20 = c20, a21 = c21, a22 = c22, a23 = c23;
+               real_t a30 = c30, a31 = c31, a32 = c32, a33 = c33;
 
-               // evaluate the 1d polynomials
+               // evaluate the 1d polynomials (variable part)
                const auto x    = X[idxX];
                auto       xpow = real_t( 1.0 );
-               for ( uint_t k = 0; k < dimP; ++k )
+               for ( uint_t k = 1; k < dimP; ++k )
                {
-                  // const auto xk = xpow;
+                  xpow *= x;
                   a00 += p00[k] * xpow;
                   a01 += p01[k] * xpow;
                   a02 += p02[k] * xpow;
@@ -604,31 +612,25 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                   a31 += p31[k] * xpow;
                   a32 += p32[k] * xpow;
                   a33 += p33[k] * xpow;
-                  xpow *= x;
                }
 
                // assemble local element vector
-               const auto src0 = srcVertexData[g0];
-               const auto src1 = srcVertexData[g1];
-               const auto src2 = srcVertexData[g2];
-               const auto src3 = srcVertexData[g3];
+               const auto src0 = alpha * srcVertexData[g0];
+               const auto src1 = alpha * srcVertexData[g1];
+               const auto src2 = alpha * srcVertexData[g2];
+               const auto src3 = alpha * srcVertexData[g3];
 
                // local matvec
                const auto dst0 = a00 * src0 + a01 * src1 + a02 * src2 + a03 * src3;
                const auto dst1 = a10 * src0 + a11 * src1 + a12 * src2 + a13 * src3;
                const auto dst2 = a20 * src0 + a21 * src1 + a22 * src2 + a23 * src3;
                const auto dst3 = a30 * src0 + a31 * src1 + a32 * src2 + a33 * src3;
-               // // ! only diagonal matvec ! todo: change back
-               // const auto dst0 = a00 * src0;
-               // const auto dst1 = a11 * src1;
-               // const auto dst2 = a22 * src2;
-               // const auto dst3 = a33 * src3;
 
                // write data back into global vector
-               dstVertexData[g0] += alpha * dst0;
-               dstVertexData[g1] += alpha * dst1;
-               dstVertexData[g2] += alpha * dst2;
-               dstVertexData[g3] += alpha * dst3;
+               dstVertexData[g0] += dst0;
+               dstVertexData[g1] += dst1;
+               dstVertexData[g2] += dst2;
+               dstVertexData[g3] += dst3;
 
                // // alternative version of the above // todo: remove
                // for ( idx_t i = 0; i < surrogate.rows(); ++i )

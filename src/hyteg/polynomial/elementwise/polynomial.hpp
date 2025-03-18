@@ -177,7 +177,7 @@ struct Domain
    : scaling( FLOAT( 4.0 ) / FLOAT( ( 1 << lvl ) - 1 ) )
    {}
    // convert index i to coordinate x ∈ [-1,3]
-   inline constexpr FLOAT operator[]( idx_t i ) const { return scaling * FLOAT( i ) - FLOAT( 1.0 ); }
+   inline constexpr FLOAT operator[]( idx_t i ) const { return scaling * FLOAT( i ) - shift; }
 
    // convert index [i,j,k] to coordinate x ∈ [-1,3]^3
    inline PointND< FLOAT, 3 > operator()( const indexing::Index& idx ) const
@@ -186,7 +186,8 @@ struct Domain
    }
 
    // scaling factor to convert index i ∈ {0,..., 2^lvl - 1} to coordinate x ∈ [-1,3]
-   const FLOAT scaling;
+   const FLOAT            scaling;
+   static constexpr FLOAT shift = FLOAT( 1.0 );
 };
 
 template < typename FLOAT, uint8_t DIM >
@@ -260,23 +261,22 @@ class Polynomial : public std::vector< FLOAT >
    }
 
    // fix z coordinate s.th. only 2d polynomial must be evaluated
-   void fix_z( const FLOAT z ) const
+   inline void fix_z( const FLOAT z ) const
    {
       static_assert( DIM == 3, "fix_z can only be used in 3d!" );
       fix_coord( z );
    }
 
    // fix y coordinate s.th. only 1d polynomial must be evaluated
-   const Polynomial< FLOAT, 1 >& fix_y( const FLOAT y ) const
+   inline void fix_y( const FLOAT y ) const
    {
       if constexpr ( DIM == 2 )
       {
          fix_coord( y );
-         return _restriction;
       }
       else // DIM == 3
       {
-         return _restriction.fix_y( y );
+         _restriction.fix_y( y );
       }
    }
 
@@ -301,6 +301,18 @@ class Polynomial : public std::vector< FLOAT >
          p_xyz += c( i ) * phi[uint_t( i )].eval( x );
       }
       return p_xyz;
+   }
+
+   inline const Polynomial< FLOAT, 1 >& get_1d_restriction() const
+   {
+      if constexpr ( DIM == 2 )
+      {
+         return _restriction;
+      }
+      else // DIM == 3
+      {
+         return _restriction.get_1d_restriction();
+      }
    }
 
  private:
