@@ -89,12 +89,15 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
    hyteg::P1Function< real_t > u( "u", storage, level, level );
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
 
+   auto n_dof = u.getNumberOfGlobalDoFs( level );
+   // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "number of global dof: %d", n_dof ) );
+
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
-
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | t in sec for apply()", "operator type" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply() benchmark" );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10s | %10s |", "operator type", "t in sec", "MDoF/s" ) );
    walberla::WcTimer timer;
 
    // apply constant operator
@@ -104,9 +107,9 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
       A.apply( u, Au, level, All, Replace );
    }
    timer.end();
-   auto t = timer.total();
+   auto t = timer.total() / iter;
    timer.reset();
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %e", "generated", t ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "generated", t, int( n_dof / t * 1e-6 ) ) );
 
    // apply optimized operator
    timer.start();
@@ -115,9 +118,9 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
       A_opt.apply( u, Au, level, All, Replace );
    }
    timer.end();
-   t = timer.total();
+   t = timer.total() / iter;
    timer.reset();
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %e", "generated-optimized", t ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "generated-optimized", t, int( n_dof / t * 1e-6 ) ) );
 
    // apply surrogate operators
    for ( uint8_t q = 0; q <= q_max; ++q )
@@ -131,9 +134,9 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
          A_q.apply( u, Au, level, All, Replace );
       }
       timer.end();
-      t = timer.total();
+      t = timer.total() / iter;
       timer.reset();
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%18s %d | %e", "surrogate q =", q, t ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q = ", q, t, int( n_dof / t * 1e-6 ) ) );
    }
 }
 
