@@ -303,6 +303,18 @@ class Polynomial : public std::vector< FLOAT >
       return p_xyz;
    }
 
+   inline const Polynomial< FLOAT, 2 >& get_2d_restriction() const
+   {
+      if constexpr ( DIM == 2 )
+      {
+         return ( *this );
+      }
+      else // DIM == 3
+      {
+         return _restriction;
+      }
+   }
+
    inline const Polynomial< FLOAT, 1 >& get_1d_restriction() const
    {
       if constexpr ( DIM == 2 )

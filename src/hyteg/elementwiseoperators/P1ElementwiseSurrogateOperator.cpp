@@ -520,26 +520,49 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
    else
    {
       auto& surrogate = surrogate_3d_.at( id )[level][cType];
-      // restriction to 1d
-      const auto& p00 = surrogate( 0, 0 ).get_1d_restriction();
-      const auto& p01 = surrogate( 0, 1 ).get_1d_restriction();
-      const auto& p02 = surrogate( 0, 2 ).get_1d_restriction();
-      const auto& p03 = surrogate( 0, 3 ).get_1d_restriction();
-      const auto& p10 = surrogate( 1, 0 ).get_1d_restriction();
-      const auto& p11 = surrogate( 1, 1 ).get_1d_restriction();
-      const auto& p12 = surrogate( 1, 2 ).get_1d_restriction();
-      const auto& p13 = surrogate( 1, 3 ).get_1d_restriction();
-      const auto& p20 = surrogate( 2, 0 ).get_1d_restriction();
-      const auto& p21 = surrogate( 2, 1 ).get_1d_restriction();
-      const auto& p22 = surrogate( 2, 2 ).get_1d_restriction();
-      const auto& p23 = surrogate( 2, 3 ).get_1d_restriction();
-      const auto& p30 = surrogate( 3, 0 ).get_1d_restriction();
-      const auto& p31 = surrogate( 3, 1 ).get_1d_restriction();
-      const auto& p32 = surrogate( 3, 2 ).get_1d_restriction();
-      const auto& p33 = surrogate( 3, 3 ).get_1d_restriction();
-      const auto dimP = uint_t( p00.n_coefficients() );
-      // domain of surrogates
+      // poly degree
+      const auto q = poly_degree_[level];
+      // monomial basis
+      auto& phi = surrogate::polynomial::Basis::get( q );
+      // dimension of Pq
+      const auto dimP = surrogate::polynomial::dimP( 1, q );
+      // domain
       const PolyDomain X( level );
+      // restriction to 2d
+      auto& pp00 = surrogate( 0, 0 ).get_2d_restriction();
+      auto& pp01 = surrogate( 0, 1 ).get_2d_restriction();
+      auto& pp02 = surrogate( 0, 2 ).get_2d_restriction();
+      auto& pp03 = surrogate( 0, 3 ).get_2d_restriction();
+      auto& pp10 = surrogate( 1, 0 ).get_2d_restriction();
+      auto& pp11 = surrogate( 1, 1 ).get_2d_restriction();
+      auto& pp12 = surrogate( 1, 2 ).get_2d_restriction();
+      auto& pp13 = surrogate( 1, 3 ).get_2d_restriction();
+      auto& pp20 = surrogate( 2, 0 ).get_2d_restriction();
+      auto& pp21 = surrogate( 2, 1 ).get_2d_restriction();
+      auto& pp22 = surrogate( 2, 2 ).get_2d_restriction();
+      auto& pp23 = surrogate( 2, 3 ).get_2d_restriction();
+      auto& pp30 = surrogate( 3, 0 ).get_2d_restriction();
+      auto& pp31 = surrogate( 3, 1 ).get_2d_restriction();
+      auto& pp32 = surrogate( 3, 2 ).get_2d_restriction();
+      auto& pp33 = surrogate( 3, 3 ).get_2d_restriction();
+      // restriction to 1d
+      auto p00 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p01 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p02 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p03 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p10 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p11 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p12 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p13 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p20 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p21 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p22 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p23 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p30 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p31 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p32 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+      auto p33 = surrogate::polynomial::Polynomial<real_t, 1>(q);
+
       // iterate over all micro-cells
       indexing::Index micro;
       const auto      row_end = idx_t( celldof::macrocell::numCellsPerRowByType( level, cType ) );
@@ -555,10 +578,63 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
          for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
          {
             // fix y-coordinate
-            const auto y = X[micro.y()];
-            for ( auto& s_ij : surrogate.get_data() )
             {
-               s_ij.fix_y( y );
+               /* code is copied from Polynomial::fix_coord to improve performance
+               */
+               const auto y = X[micro.y()];
+
+               // y^k for k=0,...,q
+               std::vector< real_t > y_pow( q + 1 );
+               y_pow[0] = 1.0;
+               for ( uint_t k = 1; k <= q; ++k )
+               {
+                  y_pow[k] = y_pow[k - 1] * y;
+               }
+
+               // first index where the 2d extension starts
+               auto jk = dimP;
+               // iterate over coefficients of 1d polynomial
+               for ( uint_t j = 0; j < dimP; ++j )
+               {
+                  const auto max_k = uint_t( q - phi[j].degree() );
+                  // k=0
+                  p00[j] = pp00[j];
+                  p01[j] = pp01[j];
+                  p02[j] = pp02[j];
+                  p03[j] = pp03[j];
+                  p10[j] = pp10[j];
+                  p11[j] = pp11[j];
+                  p12[j] = pp12[j];
+                  p13[j] = pp13[j];
+                  p20[j] = pp20[j];
+                  p21[j] = pp21[j];
+                  p22[j] = pp22[j];
+                  p23[j] = pp23[j];
+                  p30[j] = pp30[j];
+                  p31[j] = pp31[j];
+                  p32[j] = pp32[j];
+                  p33[j] = pp33[j];
+                  for ( int k = 1; k <= max_k; ++k )
+                  {
+                     p00[j] += pp00[jk] * y_pow[k];
+                     p01[j] += pp01[jk] * y_pow[k];
+                     p02[j] += pp02[jk] * y_pow[k];
+                     p03[j] += pp03[jk] * y_pow[k];
+                     p10[j] += pp10[jk] * y_pow[k];
+                     p11[j] += pp11[jk] * y_pow[k];
+                     p12[j] += pp12[jk] * y_pow[k];
+                     p13[j] += pp13[jk] * y_pow[k];
+                     p20[j] += pp20[jk] * y_pow[k];
+                     p21[j] += pp21[jk] * y_pow[k];
+                     p22[j] += pp22[jk] * y_pow[k];
+                     p23[j] += pp23[jk] * y_pow[k];
+                     p30[j] += pp30[jk] * y_pow[k];
+                     p31[j] += pp31[jk] * y_pow[k];
+                     p32[j] += pp32[jk] * y_pow[k];
+                     p33[j] += pp33[jk] * y_pow[k];
+                     ++jk;
+                  }
+               }
             }
 
             /* global dof indices
