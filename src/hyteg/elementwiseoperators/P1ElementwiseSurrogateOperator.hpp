@@ -44,7 +44,7 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class P1Form >
+template < class P1Form, bool Symmetric = false >
 class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
                                        public WeightedJacobiSmoothable< P1Function< real_t > >,
                                        public OperatorWithInverseDiagonal< P1Function< real_t > >
@@ -244,26 +244,12 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    SurrogateData< 3 > surrogate_3d_;
 };
 
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogateLaplaceOperator;
-
-typedef P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogatePolarLaplaceOperator;
-
-typedef P1ElementwiseSurrogateOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogateMassOperator;
-
-typedef P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 > P1ElementwiseSurrogateBlendingMassOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4, true > P1ElementwiseSurrogateBlendingMassOperator;
 
 typedef P1ElementwiseSurrogateOperator< P1LinearCombinationForm > P1ElementwiseSurrogateLinearCombinationOperator;
 
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogatePSPGOperator;
-
-typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 > P1ElementwiseSurrogateBlendingLaplaceOperator;
-typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 > P1ElementwiseSurrogateBlendingLaplaceOperatorQ2;
+typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3, true > P1ElementwiseSurrogateBlendingLaplaceOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2, true > P1ElementwiseSurrogateBlendingLaplaceOperatorQ2;
 
 typedef P1ElementwiseSurrogateOperator<
     P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >
@@ -283,9 +269,9 @@ typedef P1ElementwiseSurrogateOperator<
 typedef P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >
     P1ElementwiseSurrogateDivTZOperator;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseSurrogateAffineDivKGradOperator;
-typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseSurrogateBlendingDivKGradOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, true >   P1ElementwiseSurrogateAffineDivKGradOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3, true > P1ElementwiseSurrogateBlendingDivKGradOperator;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseSurrogateKMassOperator;
+typedef P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4, true > P1ElementwiseSurrogateKMassOperator;
 
 } // namespace hyteg

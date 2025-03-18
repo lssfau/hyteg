@@ -31,18 +31,20 @@
 
 namespace hyteg {
 
-template < class P1Form >
-P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                          size_t                                     minLevel,
-                                                                          size_t                                     maxLevel )
-: P1ElementwiseSurrogateOperator< P1Form >( storage, minLevel, maxLevel, P1Form() )
+template < class P1Form, bool Symmetric >
+P1ElementwiseSurrogateOperator< P1Form, Symmetric >::P1ElementwiseSurrogateOperator(
+    const std::shared_ptr< PrimitiveStorage >& storage,
+    size_t                                     minLevel,
+    size_t                                     maxLevel )
+: P1ElementwiseSurrogateOperator< P1Form, Symmetric >( storage, minLevel, maxLevel, P1Form() )
 {}
 
-template < class P1Form >
-P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                          size_t                                     minLevel,
-                                                                          size_t                                     maxLevel,
-                                                                          const P1Form&                              form )
+template < class P1Form, bool Symmetric >
+P1ElementwiseSurrogateOperator< P1Form, Symmetric >::P1ElementwiseSurrogateOperator(
+    const std::shared_ptr< PrimitiveStorage >& storage,
+    size_t                                     minLevel,
+    size_t                                     maxLevel,
+    const P1Form&                              form )
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
 , is_initialized_( false )
@@ -55,11 +57,11 @@ P1ElementwiseSurrogateOperator< P1Form >::P1ElementwiseSurrogateOperator( const 
 , surrogate_3d_( storage, maxLevel )
 {}
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_degree,
-                                                     size_t             downsampling,
-                                                     const std::string& path_to_svd,
-                                                     bool               needsInverseDiagEntries )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::init( uint8_t            poly_degree,
+                                                                size_t             downsampling,
+                                                                const std::string& path_to_svd,
+                                                                bool               needsInverseDiagEntries )
 {
    uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
@@ -121,8 +123,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::init( uint8_t            poly_deg
    is_initialized_ = true;
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::store_svd( const std::string& path_to_svd )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::store_svd( const std::string& path_to_svd )
 {
    for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
    {
@@ -133,8 +135,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::store_svd( const std::string& pat
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( uint_t level )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::precompute_local_stiffness_2d( uint_t level )
 {
    for ( const auto& [id, face] : storage_->getFaces() )
    {
@@ -154,8 +156,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_2d( ui
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_3d( uint_t level )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::precompute_local_stiffness_3d( uint_t level )
 {
    for ( const auto& [id, cell] : storage_->getCells() )
    {
@@ -174,8 +176,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::precompute_local_stiffness_3d( ui
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint_t level )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::compute_local_surrogates_2d( uint_t level )
 {
    auto  q   = poly_degree_[level];
    auto& lsq = *lsq_[level];
@@ -224,8 +226,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_2d( uint
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint_t level )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::compute_local_surrogates_3d( uint_t level )
 {
    auto  q   = poly_degree_[level];
    auto& lsq = *lsq_[level];
@@ -274,23 +276,23 @@ void P1ElementwiseSurrogateOperator< P1Form >::compute_local_surrogates_3d( uint
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::apply( const P1Function< real_t >& src,
-                                                      const P1Function< real_t >& dst,
-                                                      size_t                      level,
-                                                      DoFType                     flag,
-                                                      UpdateType                  updateType ) const
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply( const P1Function< real_t >& src,
+                                                                 const P1Function< real_t >& dst,
+                                                                 size_t                      level,
+                                                                 DoFType                     flag,
+                                                                 UpdateType                  updateType ) const
 {
    return gemv( real_c( 1 ), src, ( updateType == Replace ? real_c( 0 ) : real_c( 1 ) ), dst, level, flag );
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&               alpha,
-                                                     const P1Function< real_t >& src,
-                                                     const real_t&               beta,
-                                                     const P1Function< real_t >& dst,
-                                                     size_t                      level,
-                                                     DoFType                     flag ) const
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::gemv( const real_t&               alpha,
+                                                                const P1Function< real_t >& src,
+                                                                const real_t&               beta,
+                                                                const P1Function< real_t >& dst,
+                                                                size_t                      level,
+                                                                DoFType                     flag ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -415,13 +417,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::gemv( const real_t&              
    this->stopTiming( "gemv" );
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::smooth_jac( const P1Function< real_t >& dst,
-                                                           const P1Function< real_t >& rhs,
-                                                           const P1Function< real_t >& src,
-                                                           real_t                      omega,
-                                                           size_t                      level,
-                                                           DoFType                     flag ) const
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::smooth_jac( const P1Function< real_t >& dst,
+                                                                      const P1Function< real_t >& rhs,
+                                                                      const P1Function< real_t >& src,
+                                                                      real_t                      omega,
+                                                                      size_t                      level,
+                                                                      DoFType                     flag ) const
 {
    this->startTiming( "smooth_jac" );
 
@@ -436,13 +438,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::smooth_jac( const P1Function< rea
    this->stopTiming( "smooth_jac" );
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&             face,
-                                                         const uint_t            level,
-                                                         const facedof::FaceType fType,
-                                                         const real_t* const     srcVertexData,
-                                                         real_t* const           dstVertexData,
-                                                         const real_t&           alpha ) const
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_2d( const Face&             face,
+                                                                    const uint_t            level,
+                                                                    const facedof::FaceType fType,
+                                                                    const real_t* const     srcVertexData,
+                                                                    real_t* const           dstVertexData,
+                                                                    const real_t&           alpha ) const
 {
    auto& id = face.getID();
 
@@ -496,13 +498,13 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_2d( const Face&            
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&             cell,
-                                                         const uint_t            level,
-                                                         const celldof::CellType cType,
-                                                         const real_t* const     srcVertexData,
-                                                         real_t* const           dstVertexData,
-                                                         const real_t&           alpha ) const
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell&             cell,
+                                                                    const uint_t            level,
+                                                                    const celldof::CellType cType,
+                                                                    const real_t* const     srcVertexData,
+                                                                    real_t* const           dstVertexData,
+                                                                    const real_t&           alpha ) const
 {
    auto& id = cell.getID();
 
@@ -569,7 +571,9 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
             std::array< uint_t, 4 > vertexDoFIndices{};
             p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
 
-            // constant part of local stiffness matrix
+            /* constant part of local stiffness matrix
+               For some reason, extracting this from the x-loop improves performance.
+            */
             const real_t c00 = p00[0], c01 = p01[0], c02 = p02[0], c03 = p03[0];
             const real_t c10 = p10[0], c11 = p11[0], c12 = p12[0], c13 = p13[0];
             const real_t c20 = p20[0], c21 = p21[0], c22 = p22[0], c23 = p23[0];
@@ -585,10 +589,21 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                const uint_t g3 = vertexDoFIndices[3] + idxX;
 
                // local stiffness matrix
-               real_t a00 = c00, a01 = c01, a02 = c02, a03 = c03;
-               real_t a10 = c10, a11 = c11, a12 = c12, a13 = c13;
-               real_t a20 = c20, a21 = c21, a22 = c22, a23 = c23;
-               real_t a30 = c30, a31 = c31, a32 = c32, a33 = c33;
+               real_t a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33;
+               if constexpr ( Symmetric )
+               {
+                  a00 = c00;
+                  a10 = c10, a11 = c11;
+                  a20 = c20, a21 = c21, a22 = c22;
+                  a30 = c30, a31 = c31, a32 = c32, a33 = c33;
+               }
+               else
+               {
+                  a00 = c00, a01 = c01, a02 = c02, a03 = c03;
+                  a10 = c10, a11 = c11, a12 = c12, a13 = c13;
+                  a20 = c20, a21 = c21, a22 = c22, a23 = c23;
+                  a30 = c30, a31 = c31, a32 = c32, a33 = c33;
+               }
 
                // evaluate the 1d polynomials (variable part)
                const auto x    = X[idxX];
@@ -596,22 +611,27 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
                for ( uint_t k = 1; k < dimP; ++k )
                {
                   xpow *= x;
-                  a00 += p00[k] * xpow;
-                  a01 += p01[k] * xpow;
-                  a02 += p02[k] * xpow;
-                  a03 += p03[k] * xpow;
-                  a10 += p10[k] * xpow;
-                  a11 += p11[k] * xpow;
-                  a12 += p12[k] * xpow;
-                  a13 += p13[k] * xpow;
-                  a20 += p20[k] * xpow;
-                  a21 += p21[k] * xpow;
-                  a22 += p22[k] * xpow;
-                  a23 += p23[k] * xpow;
-                  a30 += p30[k] * xpow;
-                  a31 += p31[k] * xpow;
-                  a32 += p32[k] * xpow;
-                  a33 += p33[k] * xpow;
+                  if constexpr ( Symmetric )
+                  {
+                     a00 += p00[k] * xpow;
+                     a10 += p10[k] * xpow, a11 += p11[k] * xpow;
+                     a20 += p20[k] * xpow, a21 += p21[k] * xpow, a22 += p22[k] * xpow;
+                     a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
+                  }
+                  else
+                  {
+                     a00 += p00[k] * xpow, a01 += p01[k] * xpow, a02 += p02[k] * xpow, a03 += p03[k] * xpow;
+                     a10 += p10[k] * xpow, a11 += p11[k] * xpow, a12 += p12[k] * xpow, a13 += p13[k] * xpow;
+                     a20 += p20[k] * xpow, a21 += p21[k] * xpow, a22 += p22[k] * xpow, a23 += p23[k] * xpow;
+                     a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
+                  }
+               }
+
+               if constexpr ( Symmetric )
+               {
+                  a01 = a10, a02 = a20, a03 = a30;
+                  /*      */ a12 = a21, a13 = a31;
+                  /*                 */ a23 = a32;
                }
 
                // assemble local element vector
@@ -650,8 +670,8 @@ void P1ElementwiseSurrogateOperator< P1Form >::apply_3d( const Cell&            
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bool invert )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::computeDiagonalOperatorValues( bool invert )
 {
    std::shared_ptr< P1Function< real_t > > targetFunction;
    if ( invert )
@@ -739,11 +759,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::computeDiagonalOperatorValues( bo
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const Face&             face,
-                                                                          const uint_t            level,
-                                                                          const facedof::FaceType fType,
-                                                                          real_t* const           dstVertexData )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::diagonal_contributions_2d( const Face&             face,
+                                                                                     const uint_t            level,
+                                                                                     const facedof::FaceType fType,
+                                                                                     real_t* const           dstVertexData )
 {
    // add local contributions of micro to global diagonal
    auto extract_diagonal_values = [&]( const indexing::Index& micro, const Matrix3r& elMat ) {
@@ -789,11 +809,11 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_2d( const 
    }
 }
 
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const Cell&             cell,
-                                                                          const uint_t            level,
-                                                                          const celldof::CellType cType,
-                                                                          real_t* const           dstVertexData )
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::diagonal_contributions_3d( const Cell&             cell,
+                                                                                     const uint_t            level,
+                                                                                     const celldof::CellType cType,
+                                                                                     real_t* const           dstVertexData )
 {
    // add local contributions of micro to global diagonal
    auto extract_diagonal_values = [&]( const indexing::Index& micro, const Matrix4r& elMat ) {
@@ -840,12 +860,12 @@ void P1ElementwiseSurrogateOperator< P1Form >::diagonal_contributions_3d( const 
 }
 
 // Assemble operator as sparse matrix
-template < class P1Form >
-void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                         const P1Function< idx_t >&                  src,
-                                                         const P1Function< idx_t >&                  dst,
-                                                         uint_t                                      level,
-                                                         DoFType                                     flag ) const
+template < class P1Form, bool Symmetric >
+void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                    const P1Function< idx_t >&                  src,
+                                                                    const P1Function< idx_t >&                  dst,
+                                                                    uint_t                                      level,
+                                                                    DoFType                                     flag ) const
 {
    // todo
    WALBERLA_UNUSED( mat );
@@ -882,7 +902,7 @@ void P1ElementwiseSurrogateOperator< P1Form >::toMatrix( const std::shared_ptr< 
 // // Needed for P1Blending(Inverse)DiagonalOperator
 // template class P1ElementwiseSurrogateOperator< P1RowSumForm >;
 
-template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >;
+template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, true >;
 // template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
 
 // template class P1ElementwiseSurrogateOperator<
