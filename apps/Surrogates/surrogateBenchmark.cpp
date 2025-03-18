@@ -64,14 +64,35 @@ std::array< uint_t, DIM > compute_domain_size( uint_t n_procs )
    return n;
 }
 
-void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_t q_max, const uint_t level, const uint_t iter )
+template < uint8_t DEGREE >
+double apply_surrogate( const std::shared_ptr< PrimitiveStorage >& storage,
+                        const hyteg::P1Function< real_t >&         u,
+                        hyteg::P1Function< real_t >&               Au,
+                        const uint_t                               level,
+                        const forms::p1_div_k_grad_affine_q3&      form,
+                        const uint_t                               iter )
+{
+   P1ElementwiseSurrogateAffineDivKGradOperator< DEGREE > A_q( storage, level, level, form );
+   A_q.init( 0, "", false );
+   walberla::WcTimer timer;
+   timer.start();
+   for ( uint_t i = 0; i < iter; ++i )
+   {
+      A_q.apply( u, Au, level, All, Replace );
+   }
+   timer.end();
+   return timer.total() / iter;
+}
+
+template < uint8_t MAX_SURROGATE_DEGREE >
+void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t level, const uint_t iter )
 {
    uint8_t dim  = storage->hasGlobalCells() ? 3 : 2;
    uint_t  n_el = ( dim == 2 ) ? storage->getNumberOfGlobalFaces() : storage->getNumberOfGlobalCells();
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "number of elements: %d", n_el ) );
 
    // setup pde coefficient k ∈ P_q
-   hyteg::surrogate::polynomial::Polynomial< real_t, 3 > k_poly( q_max + 1 );
+   hyteg::surrogate::polynomial::Polynomial< real_t, 3, MAX_SURROGATE_DEGREE + 1 > k_poly;
    for ( auto& c : k_poly )
    {
       c = walberla::math::realRandom();
@@ -83,7 +104,6 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
    // operators
    operatorgeneration::P1ElementwiseDiffusion                          A( storage, level, level );
    operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_polycse A_opt( storage, level, level );
-   P1ElementwiseSurrogateAffineDivKGradOperator                        A_q( storage, level, level, form );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
@@ -123,20 +143,37 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "generated-optimized", t, int( n_dof / t * 1e-6 ) ) );
 
    // apply surrogate operators
-   for ( uint8_t q = 0; q <= q_max; ++q )
+   for ( uint8_t q = 0; q <= MAX_SURROGATE_DEGREE; ++q )
    {
-      A_q.init( q, 0, "", false );
-      // A_q.init( q, 0, "svd", false );
-      // A_q.store_svd( "svd" );
-      timer.start();
-      for ( uint_t i = 0; i < iter; ++i )
+      switch ( q )
       {
-         A_q.apply( u, Au, level, All, Replace );
+      case 0:
+         t = apply_surrogate< 0 >( storage, u, Au, level, form, iter );
+         break;
+      case 1:
+         t = apply_surrogate< 1 >( storage, u, Au, level, form, iter );
+         break;
+      case 2:
+         t = apply_surrogate< 2 >( storage, u, Au, level, form, iter );
+         break;
+      case 3:
+         t = apply_surrogate< 3 >( storage, u, Au, level, form, iter );
+         break;
+      case 4:
+         t = apply_surrogate< 4 >( storage, u, Au, level, form, iter );
+         break;
+      case 5:
+         t = apply_surrogate< 5 >( storage, u, Au, level, form, iter );
+         break;
+      case 6:
+         t = apply_surrogate< 6 >( storage, u, Au, level, form, iter );
+         break;
+      default:
+         WALBERLA_LOG_WARNING_ON_ROOT( "Unsupported surrogate degree" );
+         break;
       }
-      timer.end();
-      t = timer.total() / iter;
-      timer.reset();
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q = ", q, t, int( n_dof / t * 1e-6 ) ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q = ", q, t, int( n_dof / t * 1e-6 ) ) );
    }
 }
 
@@ -169,16 +206,16 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run benchmarks
    // -------------------
-   uint_t  lvl2  = 10;
-   uint_t  lvl3  = 7;
-   uint8_t q_max = 3;
-   uint_t  iter  = 5;
+   uint_t            lvl2  = 10;
+   uint_t            lvl3  = 7;
+   constexpr uint8_t q_max = 3;
+   uint_t            iter  = 5;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl2 ) );
-   benchmark( storage, q_max, lvl2, iter );
+   benchmark< q_max >( storage, lvl2, iter );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "3d, level=%d", lvl3 ) );
-   benchmark( storage3d, q_max, lvl3, iter );
+   benchmark< q_max >( storage3d, lvl3, iter );
 
    return 0;
 }

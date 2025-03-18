@@ -259,12 +259,13 @@ class LeastSquares
       }
    }
 
+   template < uint8_t DEGREE >
    void compute_svd()
    {
       // Setup Vandermonde matrix
 
       // monomial basis
-      auto& phi = polynomial::Basis::get( _q );
+      constexpr polynomial::Basis< DEGREE > phi;
       // conversion from i∈ℕ to x∈ℝ
       const polynomial::Domain< FLOAT > X( _lvl );
 
@@ -328,7 +329,61 @@ class LeastSquares
             WALBERLA_LOG_WARNING_ON_ROOT( "Could not load SVD. Compute SVD instead." );
          }
       }
-      compute_svd();
+
+      switch ( degree )
+      {
+      case 0:
+         compute_svd< 0 >();
+         break;
+      case 1:
+         compute_svd< 1 >();
+         break;
+      case 2:
+         compute_svd< 2 >();
+         break;
+      case 3:
+         compute_svd< 3 >();
+         break;
+      case 4:
+         compute_svd< 4 >();
+         break;
+      case 5:
+         compute_svd< 5 >();
+         break;
+      case 6:
+         compute_svd< 6 >();
+         break;
+      case 7:
+         compute_svd< 7 >();
+         break;
+      case 8:
+         compute_svd< 8 >();
+         break;
+      case 9:
+         compute_svd< 9 >();
+         break;
+      case 10:
+         compute_svd< 10 >();
+         break;
+      case 11:
+         compute_svd< 11 >();
+         break;
+      case 12:
+         compute_svd< 12 >();
+         break;
+      case 13:
+         compute_svd< 13 >();
+         break;
+      case 14:
+         compute_svd< 14 >();
+         break;
+      case 15:
+         compute_svd< 15 >();
+         break;
+      default:
+         WALBERLA_ABORT( "Polynomial degree " << degree << " not supported!" );
+         break;
+      }
    }
 
  public:

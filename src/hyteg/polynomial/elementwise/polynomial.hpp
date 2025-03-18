@@ -110,60 +110,44 @@ struct Monomial
 };
 
 // monomial basis of polynomial space, given by the exponents of the monomials
-struct Basis : public std::vector< Monomial >
+template < uint8_t DEGREE >
+struct Basis : public std::array< Monomial, dimP( 3, DEGREE ) >
 {
- private:
-   Basis( uint8_t q = 0 )
-   : std::vector< Monomial >( dimP( 3, q ) )
-   , _q( q )
+   constexpr Basis()
    {
       // 1d basis
-      for ( uint8_t i = 0; i <= _q; ++i )
+      for ( uint8_t i = 0; i <= DEGREE; ++i )
       {
          ( *this )[i] = Monomial( i, 0, 0 );
       }
       // extend to 2d
-      auto ij = dimP( 1, _q );
-      for ( uint8_t i = 0; i < _q; ++i )
+      auto ij = dimP( 1, DEGREE );
+      for ( uint8_t i = 0; i < DEGREE; ++i )
       {
-         for ( uint8_t j = 1; i + j <= _q; ++j )
+         for ( uint8_t j = 1; i + j <= DEGREE; ++j )
          {
             ( *this )[ij++] = Monomial( i, j, 0 );
          }
       }
       // extend to 3d
-      auto ijk = dimP( 2, _q );
-      for ( uint8_t i = 0; i < _q; ++i )
+      auto ijk = dimP( 2, DEGREE );
+      for ( uint8_t i = 0; i < DEGREE; ++i )
       {
-         for ( uint8_t k = 1; i + k <= _q; ++k )
+         for ( uint8_t k = 1; i + k <= DEGREE; ++k )
          {
             ( *this )[ijk++] = Monomial( i, 0, k );
          }
       }
-      for ( uint8_t i = 0; i < _q; ++i )
+      for ( uint8_t i = 0; i < DEGREE; ++i )
       {
-         for ( uint8_t j = 1; i + j < _q; ++j )
+         for ( uint8_t j = 1; i + j < DEGREE; ++j )
          {
-            for ( uint8_t k = 1; i + j + k <= _q; ++k )
+            for ( uint8_t k = 1; i + j + k <= DEGREE; ++k )
             {
                ( *this )[ijk++] = Monomial( i, j, k );
             }
          }
       }
-   }
-
- public:
-   const uint8_t _q; // polynomial degree
-
-   // Singleton instance of Basis
-   static const Basis& get( uint8_t q )
-   {
-      static std::map< uint8_t, Basis > _all_bases;
-      if ( _all_bases.find( q ) == _all_bases.end() )
-      {
-         _all_bases.emplace( q, Basis( q ) );
-      }
-      return _all_bases.at( q );
    }
 };
 
@@ -190,53 +174,21 @@ struct Domain
    static constexpr FLOAT shift = FLOAT( 1.0 );
 };
 
-template < typename FLOAT, uint8_t DIM >
-class Polynomial : public std::vector< FLOAT >
+template < typename FLOAT, uint8_t DIM, uint8_t DEGREE >
+class Polynomial : public std::array< FLOAT, dimP( DIM, DEGREE ) >
 {
  public:
    static constexpr uint8_t X = 0;
    static constexpr uint8_t Y = 1;
    static constexpr uint8_t Z = 2;
 
-   inline Polynomial( uint8_t q = 0 )
-   : std::vector< FLOAT >( dimP( DIM, q ) )
-   , _q( q )
-   , _restriction( q )
-   {}
+   inline Polynomial() {}
 
    template < typename CoeffVector >
-   inline Polynomial( uint8_t q, const CoeffVector& coeffs )
-   : Polynomial( q )
+   inline Polynomial( const CoeffVector& coeffs )
    {
       set_coefficients( coeffs );
    }
-
-   // copy constructor
-   inline Polynomial( const Polynomial& other )
-   : std::vector< FLOAT >( other )
-   , _q( other._q )
-   , _restriction( other._restriction )
-   {}
-   inline Polynomial( Polynomial&& other ) = default;
-
-   // copy assignment
-   inline Polynomial& operator=( const Polynomial& other )
-   {
-      std::vector< FLOAT >::operator=( other );
-      _q           = other._q;
-      _restriction = other._restriction;
-      return *this;
-   }
-   inline Polynomial& operator=( Polynomial&& other ) = default;
-
-   // get i-th coefficient w.r.t. monomial basis
-   inline FLOAT& c( idx_t i ) { return ( *this )[uint_t( i )]; }
-
-   // get i-th coefficient w.r.t. monomial basis
-   inline const FLOAT& c( idx_t i ) const { return ( *this )[uint_t( i )]; }
-
-   // get number of coefficients ( = dimension of polynomial space )
-   inline idx_t n_coefficients() const { return idx_t( this->size() ); }
 
    /**
     * @brief Sets the coefficients of the polynomial.
@@ -247,16 +199,16 @@ class Polynomial : public std::vector< FLOAT >
    template < typename CoeffVector >
    inline void set_coefficients( const CoeffVector& coeffs )
    {
-      if ( idx_t( coeffs.size() ) != n_coefficients() )
+      if ( uint_t( coeffs.size() ) != this->size() )
       {
          WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
       }
 
       using coeff_idx_t = decltype( coeffs.size() );
 
-      for ( idx_t i = 0; i < n_coefficients(); ++i )
+      for ( uint_t i = 0; i < this->size(); ++i )
       {
-         c( i ) = static_cast< FLOAT >( coeffs[static_cast< coeff_idx_t >( i )] );
+         ( *this )[i] = static_cast< FLOAT >( coeffs[static_cast< coeff_idx_t >( i )] );
       }
    }
 
@@ -293,17 +245,17 @@ class Polynomial : public std::vector< FLOAT >
    FLOAT eval_naive( const PointND< FLOAT, 3 >& x ) const
    {
       // monomial basis
-      auto& phi = Basis::get( _q );
+      constexpr Basis< DEGREE > phi;
 
       FLOAT p_xyz = 0.0;
-      for ( idx_t i = 0; i < n_coefficients(); ++i )
+      for ( uint_t i = 0; i < this->size(); ++i )
       {
-         p_xyz += c( i ) * phi[uint_t( i )].eval( x );
+         p_xyz += ( *this )[i] * phi[i].eval( x );
       }
       return p_xyz;
    }
 
-   inline const Polynomial< FLOAT, 2 >& get_2d_restriction() const
+   inline const Polynomial< FLOAT, 2, DEGREE >& get_2d_restriction() const
    {
       if constexpr ( DIM == 2 )
       {
@@ -315,7 +267,7 @@ class Polynomial : public std::vector< FLOAT >
       }
    }
 
-   inline const Polynomial< FLOAT, 1 >& get_1d_restriction() const
+   inline const Polynomial< FLOAT, 1, DEGREE >& get_1d_restriction() const
    {
       if constexpr ( DIM == 2 )
       {
@@ -332,76 +284,63 @@ class Polynomial : public std::vector< FLOAT >
    inline void fix_coord( const FLOAT z ) const
    {
       // monomial basis
-      auto& phi = Basis::get( _q );
+      constexpr Basis< DEGREE > phi;
 
       // z^k for k=0,...,q
-      Eigen::Vector< FLOAT, -1 > z_pow( _q + 1 );
+      std::array< FLOAT, DEGREE + 1 > z_pow;
       z_pow[0] = 1.0;
-      for ( int k = 1; k <= _q; ++k )
+      for ( uint_t k = 1; k <= DEGREE; ++k )
       {
          z_pow[k] = z_pow[k - 1] * z;
       }
 
       // first index where the 3d extension starts
-      auto ijk = _restriction.n_coefficients();
+      auto ijk = _restriction.size();
       // iterate over coefficients of 2d polynomial
-      for ( idx_t ij = 0; ij < _restriction.n_coefficients(); ++ij )
+      for ( uint_t ij = 0; ij < _restriction.size(); ++ij )
       {
-         const auto max_k = _q - phi[uint_t( ij )].degree();
+         const auto max_k = DEGREE - phi[ij].degree();
 
-         _restriction.c( ij ) = c( ij ); // k=0
+         _restriction[ij] = ( *this )[ij]; // k=0
          for ( int k = 1; k <= max_k; ++k )
          {
-            _restriction.c( ij ) += c( ijk++ ) * z_pow[k];
+            _restriction[ij] += ( *this )[ijk++] * z_pow[k];
          }
       }
    }
 
-   // degree of polynomial
-   uint8_t _q;
    // restriction to lower dimension
-   mutable Polynomial< FLOAT, DIM - 1 > _restriction;
+   mutable Polynomial< FLOAT, DIM - 1, DEGREE > _restriction;
    // make all polynomials friends
-   template < typename fFLOAT, uint8_t fDIM >
+   template < typename fFLOAT, uint8_t fDIM, uint8_t fDEG >
    friend class Polynomial;
 };
 
 // partial specialization for 1D polynomial
-template < typename FLOAT >
-class Polynomial< FLOAT, 1 > : public std::vector< FLOAT >
+template < typename FLOAT, uint8_t DEGREE >
+class Polynomial< FLOAT, 1, DEGREE > : public std::array< FLOAT, dimP( 1, DEGREE ) >
 {
  public:
-   inline Polynomial( uint8_t q = 0 )
-   : std::vector< FLOAT >( dimP( 1, q ) )
-   , _q( q )
-   {}
-
-   // get i-th coefficient w.r.t. monomial basis
-   inline FLOAT& c( idx_t i ) { return ( *this )[uint_t( i )]; }
-
-   // get i-th coefficient w.r.t. monomial basis
-   inline const FLOAT& c( idx_t i ) const { return ( *this )[uint_t( i )]; }
-
-   // get number of coefficients ( = dimension of polynomial space )
-   inline idx_t n_coefficients() const { return idx_t( this->size() ); }
-
    /** @brief Evaluate the 1d polynomial at x using Horner's method.
     * @param x The x-coordinate.
     * @return p(x)
    */
    inline FLOAT eval( const FLOAT x ) const
    {
-      auto px = c( n_coefficients() - 1 );
-      for ( idx_t i = n_coefficients() - 2; i >= 0; --i )
+      if constexpr ( DEGREE == 0 )
       {
-         px = px * x + c( i );
+         return ( *this )[0];
       }
-      return px;
+      else
+      {
+         auto px = ( *this )[this->size() - 1];
+         for ( int i = this->size() - 2; i >= 0; --i )
+         {
+            px = px * x + ( *this )[static_cast< uint_t >( i )];
+         }
+         return px;
+      }
    }
-
- private:
-   // degree of polynomial
-   uint8_t _q;
 };
 
 } // namespace polynomial

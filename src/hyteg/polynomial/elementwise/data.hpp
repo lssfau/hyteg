@@ -61,7 +61,7 @@ class LocalMatrixLike
    inline constexpr idx_t rows() const { return R; }
    inline constexpr idx_t cols() const { return C; }
 
-   inline const std::array< T, C * R >& get_data() const {return _data;}
+   inline const std::array< T, C * R >& get_data() const { return _data; }
 
  private:
    std::array< T, C * R > _data;
@@ -195,9 +195,10 @@ using RHS_matrix = LocalMatrixLike< typename LeastSquares< FLOAT >::Vector, DIM,
 template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using PrecomputedData = ElementWiseData< LocalMatrixMap< FLOAT, DIM, SRC_DEGREE, DST_DEGREE > >;
 // container for surrogates
-template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE, uint8_t SURROGATE_DEGREE >
 using SurrogateData = ElementWiseData<
-    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT, DIM >, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
+    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT, DIM, SURROGATE_DEGREE >, DIM, SRC_DEGREE, DST_DEGREE >,
+                         DIM > >;
 
 } // namespace surrogate
 } // namespace hyteg

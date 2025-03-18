@@ -40,13 +40,16 @@ using namespace hyteg;
    by polynomials of degree q, it holds
       q>=p => A_q = A.
 */
-template < uint8_t DIM >
-void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_t q, const uint_t level )
+template < uint8_t DIM, uint8_t DEGREE >
+void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t level )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, degree=%d, %dD", level, DEGREE, DIM ) );
+
    double epsilon, errorMax;
 
    // setup pde coefficient k ∈ P_q
-   hyteg::surrogate::polynomial::Polynomial< real_t, DIM > k_poly( q );
+   hyteg::surrogate::polynomial::Polynomial< real_t, DIM, DEGREE > k_poly;
    for ( auto& c : k_poly )
    {
       c = walberla::math::realRandom();
@@ -54,11 +57,11 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >& storage
    auto k = [&]( const hyteg::Point3D& x ) { return k_poly.eval_naive( x ); };
 
    // operators
-   forms::p1_div_k_grad_affine_q3               form( k, k );
-   P1ElementwiseAffineDivKGradOperator          A( storage, level, level, form );
-   P1ElementwiseSurrogateAffineDivKGradOperator A_q( storage, level, level, form );
+   forms::p1_div_k_grad_affine_q3                         form( k, k );
+   P1ElementwiseAffineDivKGradOperator                    A( storage, level, level, form );
+   P1ElementwiseSurrogateAffineDivKGradOperator< DEGREE > A_q( storage, level, level, form );
 
-   A_q.init( q, 1, "", false );
+   A_q.init( 1, "", false );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
@@ -123,7 +126,7 @@ int main( int argc, char* argv[] )
    MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage2d = std::make_shared< PrimitiveStorage >( setupStorage );
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -138,15 +141,16 @@ int main( int argc, char* argv[] )
    // -------------------
    for ( uint_t lvl = 3; lvl <= 5; ++lvl )
    {
-      for ( uint8_t q = 1; q <= 5; ++q )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "" );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, q=%d, 2d", lvl, q ) );
-         P1SurrogateOperatorTest< 2 >( storage, q, lvl );
-         WALBERLA_LOG_INFO_ON_ROOT( "" );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "level=%d, q=%d, 3d", lvl, q ) );
-         P1SurrogateOperatorTest< 3 >( storage3d, q, lvl );
-      }
+      P1SurrogateOperatorTest< 2, 1 >( storage2d, lvl );
+      P1SurrogateOperatorTest< 3, 1 >( storage3d, lvl );
+      P1SurrogateOperatorTest< 2, 2 >( storage2d, lvl );
+      P1SurrogateOperatorTest< 3, 2 >( storage3d, lvl );
+      P1SurrogateOperatorTest< 2, 3 >( storage2d, lvl );
+      P1SurrogateOperatorTest< 3, 3 >( storage3d, lvl );
+      P1SurrogateOperatorTest< 2, 4 >( storage2d, lvl );
+      P1SurrogateOperatorTest< 3, 4 >( storage3d, lvl );
+      P1SurrogateOperatorTest< 2, 5 >( storage2d, lvl );
+      P1SurrogateOperatorTest< 3, 5 >( storage3d, lvl );
    }
    return 0;
 }
