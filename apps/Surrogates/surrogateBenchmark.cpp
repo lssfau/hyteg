@@ -32,7 +32,7 @@
 using walberla::real_t;
 using namespace hyteg;
 
-void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_t q_max, const uint_t level )
+void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_t q_max, const uint_t level, const uint_t iter )
 {
    uint8_t dim = storage->hasGlobalCells() ? 3 : 2;
 
@@ -65,7 +65,10 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
 
    // apply constant operator
    timer.start();
-   A.apply( u, Au, level, All, Replace );
+   for ( uint_t i = 0; i < iter; ++i )
+   {
+      A.apply( u, Au, level, All, Replace );
+   }
    timer.end();
    auto t = timer.total();
    timer.reset();
@@ -73,7 +76,10 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
 
    // apply optimized operator
    timer.start();
-   A_opt.apply( u, Au, level, All, Replace );
+   for ( uint_t i = 0; i < iter; ++i )
+   {
+      A_opt.apply( u, Au, level, All, Replace );
+   }
    timer.end();
    t = timer.total();
    timer.reset();
@@ -86,7 +92,10 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint8_
       // A_q.init( q, 0, "svd", false );
       // A_q.store_svd( "svd" );
       timer.start();
-      A_q.apply( u, Au, level, All, Replace );
+      for ( uint_t i = 0; i < iter; ++i )
+      {
+         A_q.apply( u, Au, level, All, Replace );
+      }
       timer.end();
       t = timer.total();
       timer.reset();
@@ -122,12 +131,13 @@ int main( int argc, char* argv[] )
    uint_t  lvl2  = 10;
    uint_t  lvl3  = 7;
    uint8_t q_max = 3;
+   uint_t iter = 10;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl2 ) );
-   benchmark( storage, q_max, lvl2 );
+   benchmark( storage, q_max, lvl2, iter );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "3d, level=%d", lvl3 ) );
-   benchmark( storage3d, q_max, lvl3 );
+   benchmark( storage3d, q_max, lvl3, iter );
 
    return 0;
 }
