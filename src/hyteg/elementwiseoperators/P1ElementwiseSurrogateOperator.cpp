@@ -537,10 +537,9 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
       const auto& p31 = surrogate( 3, 1 ).get_1d_restriction();
       const auto& p32 = surrogate( 3, 2 ).get_1d_restriction();
       const auto& p33 = surrogate( 3, 3 ).get_1d_restriction();
+      const auto dimP = uint_t( p00.n_coefficients() );
       // domain of surrogates
-      PolyDomain X( level );
-      // local stiffness matrix
-      Matrix4r elMat( Matrix4r::Zero() );
+      const PolyDomain X( level );
       // iterate over all micro-cells
       indexing::Index micro;
       const auto      row_end = idx_t( celldof::macrocell::numCellsPerRowByType( level, cType ) );
@@ -561,7 +560,6 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
             {
                s_ij.fix_y( y );
             }
-            const auto dimP = uint_t( p00.n_coefficients() );
 
             /* global dof indices
                Computing global indices seems to be rather slow so we factor it
@@ -572,24 +570,24 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
             p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
 
             /* constant part of local stiffness matrix
-               For some reason, extracting this from the x-loop improves performance.
+               For some reason, accessing pij[0] within the x-loop costs performance
             */
             const real_t c00 = p00[0], c01 = p01[0], c02 = p02[0], c03 = p03[0];
             const real_t c10 = p10[0], c11 = p11[0], c12 = p12[0], c13 = p13[0];
             const real_t c20 = p20[0], c21 = p21[0], c22 = p22[0], c23 = p23[0];
             const real_t c30 = p30[0], c31 = p31[0], c32 = p32[0], c33 = p33[0];
 
-            const auto nX = row_end - micro.z() - micro.y();
-            for ( idx_t idxX = 0; idxX < nX; ++idxX )
+            for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
             {
                // global indices
-               const uint_t g0 = vertexDoFIndices[0] + idxX;
-               const uint_t g1 = vertexDoFIndices[1] + idxX;
-               const uint_t g2 = vertexDoFIndices[2] + idxX;
-               const uint_t g3 = vertexDoFIndices[3] + idxX;
+               const uint_t g0 = vertexDoFIndices[0] + micro.x();
+               const uint_t g1 = vertexDoFIndices[1] + micro.x();
+               const uint_t g2 = vertexDoFIndices[2] + micro.x();
+               const uint_t g3 = vertexDoFIndices[3] + micro.x();
 
                // local stiffness matrix
                real_t a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33;
+               // constant part
                if constexpr ( Symmetric )
                {
                   a00 = c00;
@@ -604,9 +602,8 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
                   a20 = c20, a21 = c21, a22 = c22, a23 = c23;
                   a30 = c30, a31 = c31, a32 = c32, a33 = c33;
                }
-
                // evaluate the 1d polynomials (variable part)
-               const auto x    = X[idxX];
+               const auto x    = X[micro.x()];
                auto       xpow = real_t( 1.0 );
                for ( uint_t k = 1; k < dimP; ++k )
                {
@@ -626,7 +623,6 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
                      a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
                   }
                }
-
                if constexpr ( Symmetric )
                {
                   a01 = a10, a02 = a20, a03 = a30;
@@ -651,19 +647,6 @@ void P1ElementwiseSurrogateOperator< P1Form, Symmetric >::apply_3d( const Cell& 
                dstVertexData[g1] += dst1;
                dstVertexData[g2] += dst2;
                dstVertexData[g3] += dst3;
-
-               // // alternative version of the above // todo: remove
-               // for ( idx_t i = 0; i < surrogate.rows(); ++i )
-               // {
-               //    for ( idx_t j = 0; j < surrogate.cols(); ++j )
-               //    {
-               //       elMat( i, j ) = surrogate( i, j ).eval( x );
-               //    }
-               // }
-
-               // // local matvec
-               // micro.x() = idxX;
-               // p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
             }
          }
       }
