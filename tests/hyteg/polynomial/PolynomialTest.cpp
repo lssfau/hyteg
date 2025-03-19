@@ -78,15 +78,15 @@ void MonomialBasisTest( int i, int j, int k )
 }
 
 // test different algorithms to evaluate polynomials
-template < uint8_t D >
-void PolynomialTest( uint8_t q )
+template < uint8_t D, uint8_t Q >
+void PolynomialTest()
 {
    // ---------------------------------------------------------
    /// initialize
    // ---------------------------------------------------------
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", D, q ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", D, Q ) );
    // choose random element p from P_q(R^d)
-   hyteg::surrogate::polynomial::Polynomial< real_t, D > p( q );
+   hyteg::surrogate::polynomial::Polynomial< real_t, D, Q > p;
    for ( auto& c : p )
    {
       c = realRandom();
@@ -99,22 +99,22 @@ void PolynomialTest( uint8_t q )
    // ---------------------------------------------------------
    real_t px_manual = 0.0;
    // initialize powers of x,y,z
-   Eigen::Vector< real_t, -1 > x_pow( q + 1 ); // x^0, x^1, ...
-   Eigen::Vector< real_t, -1 > y_pow( q + 1 ); // y^0, y^1, ...
-   Eigen::Vector< real_t, -1 > z_pow( q + 1 ); // z^0, z^1, ...
+   Eigen::Vector< real_t, -1 > x_pow( Q + 1 ); // x^0, x^1, ...
+   Eigen::Vector< real_t, -1 > y_pow( Q + 1 ); // y^0, y^1, ...
+   Eigen::Vector< real_t, -1 > z_pow( Q + 1 ); // z^0, z^1, ...
    x_pow[0] = y_pow[0] = z_pow[0] = 1.0;
-   for ( int i = 1; i <= q; ++i )
+   for ( int i = 1; i <= Q; ++i )
    {
       x_pow[i] = x_pow[i - 1] * x[0];
       y_pow[i] = y_pow[i - 1] * x[1];
       z_pow[i] = z_pow[i - 1] * x[2];
    }
    // sum up contributions of each basis function φ_n, i.e., p(x) = ∑_n c_n φ_n(x)
-   auto& phi = hyteg::surrogate::polynomial::Basis::get( q );
-   for ( idx_t n = 0; n < p.n_coefficients(); ++n )
+   hyteg::surrogate::polynomial::Basis< Q > phi;
+   for ( uint_t n = 0; n < p.size(); ++n )
    {
       auto [i, j, k] = phi[n].expand(); // φ_n = x^i y^j z^k
-      px_manual += p.c( n ) * x_pow[i] * y_pow[j] * z_pow[k];
+      px_manual += p[n] * x_pow[i] * y_pow[j] * z_pow[k];
    }
 
    // ---------------------------------------------------------
@@ -173,12 +173,45 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "=======================================================" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   for ( uint8_t deg = 0; deg <= 12; ++deg )
-   {
-      PolynomialTest< 1 >( deg );
-      PolynomialTest< 2 >( deg );
-      PolynomialTest< 3 >( deg );
-   }
+   PolynomialTest< 1, 0 >();
+   PolynomialTest< 1, 1 >();
+   PolynomialTest< 1, 2 >();
+   PolynomialTest< 1, 3 >();
+   PolynomialTest< 1, 4 >();
+   PolynomialTest< 1, 5 >();
+   PolynomialTest< 1, 6 >();
+   PolynomialTest< 1, 7 >();
+   PolynomialTest< 1, 8 >();
+   PolynomialTest< 1, 9 >();
+   PolynomialTest< 1, 10 >();
+   PolynomialTest< 1, 11 >();
+   PolynomialTest< 1, 12 >();
+   PolynomialTest< 2, 0 >();
+   PolynomialTest< 2, 1 >();
+   PolynomialTest< 2, 2 >();
+   PolynomialTest< 2, 3 >();
+   PolynomialTest< 2, 4 >();
+   PolynomialTest< 2, 5 >();
+   PolynomialTest< 2, 6 >();
+   PolynomialTest< 2, 7 >();
+   PolynomialTest< 2, 8 >();
+   PolynomialTest< 2, 9 >();
+   PolynomialTest< 2, 10 >();
+   PolynomialTest< 2, 11 >();
+   PolynomialTest< 2, 12 >();
+   PolynomialTest< 3, 0 >();
+   PolynomialTest< 3, 1 >();
+   PolynomialTest< 3, 2 >();
+   PolynomialTest< 3, 3 >();
+   PolynomialTest< 3, 4 >();
+   PolynomialTest< 3, 5 >();
+   PolynomialTest< 3, 6 >();
+   PolynomialTest< 3, 7 >();
+   PolynomialTest< 3, 8 >();
+   PolynomialTest< 3, 9 >();
+   PolynomialTest< 3, 10 >();
+   PolynomialTest< 3, 11 >();
+   PolynomialTest< 3, 12 >();
 
    return 0;
 }

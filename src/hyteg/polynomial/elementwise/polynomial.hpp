@@ -178,10 +178,6 @@ template < typename FLOAT, uint8_t DIM, uint8_t DEGREE >
 class Polynomial : public std::array< FLOAT, dimP( DIM, DEGREE ) >
 {
  public:
-   static constexpr uint8_t X = 0;
-   static constexpr uint8_t Y = 1;
-   static constexpr uint8_t Z = 2;
-
    inline Polynomial() {}
 
    template < typename CoeffVector >
@@ -309,11 +305,8 @@ class Polynomial : public std::array< FLOAT, dimP( DIM, DEGREE ) >
       }
    }
 
-   // restriction to lower dimension
+   // restriction to lower spatial dimension
    mutable Polynomial< FLOAT, DIM - 1, DEGREE > _restriction;
-   // make all polynomials friends
-   template < typename fFLOAT, uint8_t fDIM, uint8_t fDEG >
-   friend class Polynomial;
 };
 
 // partial specialization for 1D polynomial
