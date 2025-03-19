@@ -960,7 +960,6 @@ template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, 1
 template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, 12, true >;
 template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, 13, true >;
 template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, 14, true >;
-template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, 15, true >;
 
 // template class P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 >;
 
