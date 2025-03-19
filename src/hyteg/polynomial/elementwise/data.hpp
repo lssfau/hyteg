@@ -43,45 +43,40 @@ namespace surrogate {
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */
 template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-class LocalMatrixLike
+struct LocalMatrixLike : public std::array< T, polynomial::dimP( DIM, DST_DEGREE ) * polynomial::dimP( DIM, SRC_DEGREE ) >
 {
- public:
    static constexpr idx_t R = polynomial::dimP( DIM, DST_DEGREE );
    static constexpr idx_t C = polynomial::dimP( DIM, SRC_DEGREE );
 
-   LocalMatrixLike()
-   : _data{}
-   {}
-
    // get (i,j) entry of this
-   inline T& operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i * C + j )]; }
+   inline T& operator()( idx_t i, idx_t j ) { return ( *this )[static_cast< uint_t >( i * C + j )]; }
    // get (i,j) entry of this
-   inline const T& operator()( idx_t i, idx_t j ) const { return _data[static_cast< uint_t >( i * C + j )]; }
+   inline const T& operator()( idx_t i, idx_t j ) const { return ( *this )[static_cast< uint_t >( i * C + j )]; }
 
    inline constexpr idx_t rows() const { return R; }
    inline constexpr idx_t cols() const { return C; }
-
-   inline const std::array< T, C * R >& get_data() const { return _data; }
-
- private:
-   std::array< T, C * R > _data;
 };
 
+/**
+ * @class ElementTypeWiseData
+ * @brief A container for storing data associated with element types (white-up, white-down, ... )
+ *
+ * @tparam T The type of the data associated with each element type.
+ * @tparam DIM The spatial dimension of the PDE domain (2 for 2D, 3 for 3D).
+ */
 template < typename T, uint_t DIM >
-class ElementTypeWiseData
+struct ElementTypeWiseData : public std::array< T, ( DIM == 2 ) ? 2 : 6 >
 {
- public:
    using ElementType = typename std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
 
-   constexpr ElementTypeWiseData()
-   : _data{}
-   {}
-
-   inline T&       operator[]( const ElementType& eType ) { return _data[static_cast< uint_t >( eType )]; }
-   inline const T& operator[]( const ElementType& eType ) const { return _data[static_cast< uint_t >( eType )]; }
-
- private:
-   std::array< T, ( DIM == 2 ) ? 2 : 6 > _data;
+   inline T& operator[]( const ElementType& eType )
+   {
+      return std::array < T, ( DIM == 2 ) ? 2 : 6 > ::operator[]( static_cast< uint_t >( eType ) );
+   }
+   inline const T& operator[]( const ElementType& eType ) const
+   {
+      return std::array < T, ( DIM == 2 ) ? 2 : 6 > ::operator[]( static_cast< uint_t >( eType ) );
+   }
 };
 
 /**

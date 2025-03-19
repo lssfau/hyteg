@@ -561,7 +561,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
       {
          // fix z-coordinate
          const auto z = X[micro.z()];
-         for ( auto& s_ij : surrogate.get_data() )
+         for ( auto& s_ij : surrogate )
          {
             s_ij.fix_z( z );
          }
