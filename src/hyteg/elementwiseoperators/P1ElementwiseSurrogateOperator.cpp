@@ -79,25 +79,18 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::init( size_t  
    // approximate local stiffness matrices for level 4+ by polynomials
    for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
    {
-      // adjust downsampling for this level
-      auto ds = downsampling;
-      while ( LSQ::max_degree( level, ds ) < DEGREE && ds > 1 )
-      {
-         --ds;
-      }
-
       // initialize least squares approximation
-      if ( lsq_[level] == nullptr || downsampling_[level] != ds )
+      if ( lsq_[level] == nullptr || downsampling_ != downsampling )
       {
          if ( path_to_svd == "" )
          {
-            lsq_[level] = std::make_shared< LSQ >( dim, DEGREE, level, ds );
+            lsq_[level] = std::make_shared< LSQ >( dim, DEGREE, level, downsampling );
          }
          else
          {
-            lsq_[level] = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, ds );
+            lsq_[level] = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, downsampling );
          }
-         downsampling_[level] = ds;
+         downsampling_ = downsampling;
       }
 
       if ( dim == 2 )

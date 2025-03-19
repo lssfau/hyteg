@@ -227,7 +227,7 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
 
    // least squares approximator for each level
    std::vector< std::shared_ptr< LSQ > > lsq_;
-   std::vector< uint_t >                 downsampling_;
+   uint_t                                downsampling_;
 
    // precomputed local stiffness matrices for level 1-3
    PrecomputedData< 2 > a_loc_2d_;
