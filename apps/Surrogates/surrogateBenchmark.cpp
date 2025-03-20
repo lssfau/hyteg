@@ -27,7 +27,8 @@
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
 
 #include "operators/P1ElementwiseDiffusion.hpp"
-#include "operators/P1ElementwiseDiffusion_cubes_const_vect_polycse.hpp"
+#include "operators/P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab.hpp"
+// #include "operators/P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -102,8 +103,8 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
    forms::p1_div_k_grad_affine_q3 form( k, k );
 
    // operators
-   operatorgeneration::P1ElementwiseDiffusion                          A( storage, level, level );
-   operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_polycse A_opt( storage, level, level );
+   operatorgeneration::P1ElementwiseDiffusion                                      A( storage, level, level );
+   operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab A_opt( storage, level, level );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
