@@ -39,7 +39,7 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
    real_t retVal;
    real_t rho;
 
-   if ( TN.simulationParameters.haveDensityProfile )
+   if ( TN.simulationParameters.haveDensityProfile && TN.simulationParameters.compressible )
    {
       // Interpolate density values from given profile
       rho = interpolateDataValues( x,
@@ -50,10 +50,18 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
    }
    else
    {
-      //implement adiabatic compression, determined by dissipation number and gruneisen parameter
-      rho = TN.physicalParameters.surfaceDensity *
-            std::exp( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) /
-                      TN.physicalParameters.grueneisenParameter );
+      if ( !TN.simulationParameters.compressible )
+      {
+         // If incompressible density is rho / rho_ref = 1
+         rho = TN.physicalParameters.referenceDensity;
+      }
+      else
+      {
+         // Implement adiabatic compression, determined by dissipation number and gruneisen parameter
+         rho = TN.physicalParameters.surfaceDensity *
+               std::exp( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) /
+                         TN.physicalParameters.grueneisenParameter );
+      }
    }
    retVal = rho / TN.physicalParameters.referenceDensity;
 
