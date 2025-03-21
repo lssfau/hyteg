@@ -20,6 +20,8 @@ waLBerla_add_executable( NAME jumpCoefficient
       FILES jumpCoefficient.cpp
       DEPENDS hyteg mixed_operator)
 
-waLBerla_add_executable( NAME surrogateBenchmark
-      FILES surrogateBenchmark.cpp
-      DEPENDS hyteg opgen-mogli-diffusion)
+if(HYTEG_BUILD_WITH_AVX AND WALBERLA_DOUBLE_ACCURACY)
+      waLBerla_add_executable( NAME surrogateBenchmark
+            FILES surrogateBenchmark.cpp
+            DEPENDS hyteg opgen-mogli-diffusion)
+endif()
