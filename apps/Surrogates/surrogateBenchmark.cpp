@@ -28,7 +28,7 @@
 
 #include "operators/P1ElementwiseDiffusion.hpp"
 #include "operators/P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab.hpp"
-// #include "operators/P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab.hpp"
+#include "operators/P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -65,6 +65,23 @@ std::array< uint_t, DIM > compute_domain_size( uint_t n_procs )
    return n;
 }
 
+template < typename Operator >
+double apply( const Operator& A,
+                        const hyteg::P1Function< real_t >&         u,
+                        hyteg::P1Function< real_t >&               Au,
+                        const uint_t                               level,
+                        const uint_t                               iter )
+{
+   walberla::WcTimer timer;
+   timer.start();
+   for ( uint_t i = 0; i < iter; ++i )
+   {
+      A.apply( u, Au, level, All, Replace );
+   }
+   timer.end();
+   return timer.total() / iter;
+}
+
 template < uint8_t DEGREE >
 double apply_surrogate( const std::shared_ptr< PrimitiveStorage >& storage,
                         const hyteg::P1Function< real_t >&         u,
@@ -75,14 +92,7 @@ double apply_surrogate( const std::shared_ptr< PrimitiveStorage >& storage,
 {
    P1ElementwiseSurrogateAffineDivKGradOperator< DEGREE > A_q( storage, level, level, form );
    A_q.init( 0, "", false );
-   walberla::WcTimer timer;
-   timer.start();
-   for ( uint_t i = 0; i < iter; ++i )
-   {
-      A_q.apply( u, Au, level, All, Replace );
-   }
-   timer.end();
-   return timer.total() / iter;
+   return apply(A_q, u, Au, level, iter);
 }
 
 template < uint8_t MAX_SURROGATE_DEGREE >
@@ -102,10 +112,6 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
 
    forms::p1_div_k_grad_affine_q3 form( k, k );
 
-   // operators
-   operatorgeneration::P1ElementwiseDiffusion                                      A( storage, level, level );
-   operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab A_opt( storage, level, level );
-
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
@@ -117,31 +123,25 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
+
    WALBERLA_LOG_INFO_ON_ROOT( "apply() benchmark" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10s | %10s |", "operator type", "t in sec", "MDoF/s" ) );
    walberla::WcTimer timer;
 
    // apply constant operator
-   timer.start();
-   for ( uint_t i = 0; i < iter; ++i )
-   {
-      A.apply( u, Au, level, All, Replace );
-   }
-   timer.end();
-   auto t = timer.total() / iter;
-   timer.reset();
+   operatorgeneration::P1ElementwiseDiffusion                                      A( storage, level, level );
+   auto t = apply(A, u, Au, level, iter);
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "generated", t, int( n_dof / t * 1e-6 ) ) );
 
    // apply optimized operator
-   timer.start();
-   for ( uint_t i = 0; i < iter; ++i )
-   {
-      A_opt.apply( u, Au, level, All, Replace );
-   }
-   timer.end();
-   t = timer.total() / iter;
-   timer.reset();
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "generated-optimized", t, int( n_dof / t * 1e-6 ) ) );
+   operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab A_opt( storage, level, level );
+   t = apply(A_opt, u, Au, level, iter);
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. optimized", t, int( n_dof / t * 1e-6 ) ) );
+
+   // // apply optimized operator with avx512
+   // operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab A_512( storage, level, level );
+   // t = apply(A_512, u, Au, level, iter);
+   // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. opt. AVX512", t, int( n_dof / t * 1e-6 ) ) );
 
    // apply surrogate operators
    for ( uint8_t q = 0; q <= MAX_SURROGATE_DEGREE; ++q )
@@ -174,7 +174,7 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
          break;
       }
       WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q = ", q, t, int( n_dof / t * 1e-6 ) ) );
+          walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q=", q, t, int( n_dof / t * 1e-6 ) ) );
    }
 }
 
