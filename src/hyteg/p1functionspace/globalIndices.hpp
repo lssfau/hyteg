@@ -63,7 +63,7 @@ static inline void getGlobalIndices2D( const facedof::FaceType  fType,
    indices are encodes as i = x + 2y + 4z = x + y<<1 + z<<2
    where x,y,z ∈ {0,1}
 */
-static constexpr surrogate::ElementTypeWiseData< std::array< uint_t, 4 >, 3 > cubeIndices{
+static constexpr surrogate::ElementTypeWiseData< std::array< uint_t, 4 >, 3 > cubeIndicesFromCellIndices{
     std::array< uint_t, 4 >{ 0b000, 0b001, 0b010, 0b100 }, // WHITE UP
     std::array< uint_t, 4 >{ 0b001, 0b011, 0b010, 0b101 }, // BLUE UP
     std::array< uint_t, 4 >{ 0b001, 0b010, 0b101, 0b100 }, // GREEN UP

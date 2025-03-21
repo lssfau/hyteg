@@ -21,8 +21,9 @@
 #pragma once
 #include <array>
 #include <hyteg/Levelinfo.hpp>
-#include <hyteg/eigen/EigenWrapper.hpp>
 #include <hyteg/indexing/Common.hpp>
+#include <hyteg/primitivestorage/PrimitiveStorage.hpp>
+#include <hyteg/types/Matrix.hpp>
 #include <hyteg/volumedofspace/CellDoFIndexing.hpp>
 #include <hyteg/volumedofspace/FaceDoFIndexing.hpp>
 
