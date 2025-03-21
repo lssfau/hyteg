@@ -40,6 +40,9 @@ waLBerla_execute_test(NAME VolumeDoFIndexingTest)
 waLBerla_compile_test(FILES MicroElementDoFTypificationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MicroElementDoFTypificationTest)
 
+waLBerla_compile_test(FILES CubeIndexingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME CubeIndexingTest)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES CouplingCountTest.cpp DEPENDS hyteg core mixed_operator)
     waLBerla_execute_test(NAME CouplingCountTest COMMAND $<TARGET_FILE:CouplingCountTest>)
