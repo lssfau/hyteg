@@ -28,6 +28,7 @@
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
 
 namespace hyteg {
