@@ -279,7 +279,8 @@ class P1SurrogateOperator : public P1Operator< P1Form >
             for ( uint_t c = 0; c < stencilSize; ++c )
             {
                stencilPoly.push_back( Poly2D( polyDegree ) );
-               interpolator.push_back( Interpolator2D( polyDegree, interpolationLevel, level < maxLevel_ ) );
+               interpolator.push_back( Interpolator2D(
+                   polyDegree, GetNumInterpolationPoints< LSQPType::VERTEX >( interpolationLevel ), level < maxLevel_ ) );
             }
 
             // add sample points
@@ -315,13 +316,13 @@ class P1SurrogateOperator : public P1Operator< P1Form >
       // initialize polynomial evaluator
       // for ( auto& it : storage_->getFaces() )
       // {
-         // auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_); // always returns 27!
-         auto stencilSize = faceStencilSize2D;
+      // auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_); // always returns 27!
+      auto stencilSize = faceStencilSize2D;
 
-         for ( uint_t c = 0; c < stencilSize; ++c )
-         {
-            facePolyEvaluator_.push_back( Polynomial2DEvaluator( polyDegree ) );
-         }
+      for ( uint_t c = 0; c < stencilSize; ++c )
+      {
+         facePolyEvaluator_.push_back( Polynomial2DEvaluator( polyDegree ) );
+      }
 
       //    break; // we use the same evaluator for all faces
       // }
@@ -358,7 +359,10 @@ class P1SurrogateOperator : public P1Operator< P1Form >
             for ( auto& [idx, val] : stencilMemory )
             {
                stencilPoly.insert_or_assign( idx, Poly3D( polyDegree ) );
-               interpolator.insert_or_assign( idx, Interpolator3D( polyDegree, interpolationLevel, level < maxLevel_ ) );
+               interpolator.insert_or_assign(
+                   idx,
+                   Interpolator3D(
+                       polyDegree, GetNumInterpolationPoints3D< LSQPType::VERTEX >( interpolationLevel ), level < maxLevel_ ) );
             }
 
             // add sample points

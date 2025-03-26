@@ -7,6 +7,7 @@ target_sources( hyteg
     LSQPInterpolator.hpp
     MonomialBasis2D.hpp
     MonomialBasis3D.hpp
+    PiecewiseLSQPInterpolation.hpp
 )
 
 add_subdirectory(elementwise)
