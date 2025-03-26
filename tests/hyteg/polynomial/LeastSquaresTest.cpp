@@ -65,9 +65,7 @@ double LeastSquaresTest( uint_t d, uint_t q, uint_t lvl, uint_t downsampling, bo
    auto it = lsq->samplingIterator();
    while ( it != it.end() )
    {
-      WALBERLA_LOG_DEVEL( "it.ijk(): " << it.ijk() );
       auto x = X( it.ijk() );
-      WALBERLA_LOG_DEVEL( "x:        " << x );
       lsq->setRHS( it(), f( x ) );
       ++it;
    }
