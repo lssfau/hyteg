@@ -30,6 +30,7 @@
 
 using namespace hyteg;
 
+template < typename PiecewiseLSQPPolyKDTree >
 real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth, real_t aabbExtensionFactor )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Degree: " << degree )
@@ -51,7 +52,7 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
    P1Function< real_t > err( "err", storage, level, level );
 
    // Interpolate something oscillatory.
-   auto f = []( const Point3D& x ) { return std::sin( 10.0 * x( 0 ) ) + std::cos( 20.0 * x( 1 ) ); };
+   auto f = []( const Point3D& x ) { return std::sin( 10.0 * x( 0 ) ) + std::cos( 20.0 * x( 1 ) ) + std::sin( 15.0 * x( 2 ) ); };
    u.interpolate( f, level );
 
    // Compute AABB of domain.
@@ -68,7 +69,7 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
    AABB aabb( aabbMin, aabbMax );
 
    // Building a KDTree.
-   PiecewiseLSQPPolyKDTree2D kdTree( aabb, depth );
+   PiecewiseLSQPPolyKDTree kdTree( aabb, depth );
    addPolynomialsToLeaves( kdTree, degree );
    auto lsqpPointAdder = interpolationPointAdder( kdTree, aabbExtensionFactor );
 
@@ -102,7 +103,7 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
 
    walberla::mpi::readMPIIO( "../../../output/" + fileBaseName + ".buf", recvBuffer );
 
-   PiecewiseLSQPPolyKDTree2D kdTreeRead( aabb, 0 );
+   PiecewiseLSQPPolyKDTree kdTreeRead( aabb, 0 );
    kdTreeRead.deserialize( recvBuffer );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Evaluating polynomial." );
@@ -138,7 +139,7 @@ int main( int argc, char* argv[] )
 
    {
       MeshInfo   meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
-      const auto err      = test( meshInfo, 5, 4, 6, 1.0 );
+      const auto err      = test< PiecewiseLSQPPolyKDTree2D >( meshInfo, 5, 4, 6, 1.0 );
       WALBERLA_CHECK_LESS( err, 0.043 );
    }
 
@@ -146,7 +147,7 @@ int main( int argc, char* argv[] )
 
    {
       MeshInfo   meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
-      const auto err      = test( meshInfo, 5, 5, 5, 1.0 );
+      const auto err      = test< PiecewiseLSQPPolyKDTree2D >( meshInfo, 5, 5, 5, 1.0 );
       WALBERLA_CHECK_LESS( err, 0.012 );
    }
 
@@ -154,7 +155,7 @@ int main( int argc, char* argv[] )
 
    {
       MeshInfo   meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
-      const auto err      = test( meshInfo, 5, 6, 5, 1.0 );
+      const auto err      = test< PiecewiseLSQPPolyKDTree2D >( meshInfo, 5, 6, 5, 1.0 );
       WALBERLA_CHECK_LESS( err, 0.0016 );
    }
 
@@ -162,7 +163,7 @@ int main( int argc, char* argv[] )
 
    {
       MeshInfo   meshInfo = MeshInfo::meshTorus( 5, 5, 1.0, { 0.1, 0.2 } );
-      const auto err      = test( meshInfo, 3, 5, 7, 1.0 );
-      WALBERLA_CHECK_LESS( err, 0.019 );
+      const auto err      = test< PiecewiseLSQPPolyKDTree3D >( meshInfo, 3, 5, 6, 1.0 );
+      WALBERLA_CHECK_LESS( err, 0.014 );
    }
 }
