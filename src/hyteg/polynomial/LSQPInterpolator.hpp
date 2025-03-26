@@ -80,7 +80,7 @@ template < typename Basis, LSQPType Type >
 class LSQPInterpolator
 {
  public:
-   LSQPInterpolator( uint_t degree )
+   LSQPInterpolator( uint_t degree = 0 )
    : degree_( degree )
    , numCoefficients_( Polynomial2D< Basis >::getNumCoefficients( degree ) )
    , offset_( 0 )
@@ -130,7 +130,7 @@ template < typename Basis, LSQPType Type >
 class LSQPInterpolator3D
 {
  public:
-   LSQPInterpolator3D( uint_t degree )
+   LSQPInterpolator3D( uint_t degree = 0 )
    : degree_( degree )
    , numCoefficients_( Polynomial3D< Basis >::getNumCoefficients( degree ) )
    , offset_( 0 )

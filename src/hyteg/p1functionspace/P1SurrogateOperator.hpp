@@ -279,8 +279,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
             for ( uint_t c = 0; c < stencilSize; ++c )
             {
                stencilPoly.push_back( Poly2D( polyDegree ) );
-               interpolator.push_back( Interpolator2D(
-                   polyDegree, GetNumInterpolationPoints< LSQPType::VERTEX >( interpolationLevel ), level < maxLevel_ ) );
+               interpolator.push_back( Interpolator2D( polyDegree ) );
             }
 
             // add sample points
@@ -359,10 +358,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
             for ( auto& [idx, val] : stencilMemory )
             {
                stencilPoly.insert_or_assign( idx, Poly3D( polyDegree ) );
-               interpolator.insert_or_assign(
-                   idx,
-                   Interpolator3D(
-                       polyDegree, GetNumInterpolationPoints3D< LSQPType::VERTEX >( interpolationLevel ), level < maxLevel_ ) );
+               interpolator.insert_or_assign( idx, Interpolator3D( polyDegree ) );
             }
 
             // add sample points
