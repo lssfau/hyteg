@@ -21,9 +21,6 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/p2functionspace/P2VectorFunction.hpp"
-
 namespace hyteg {
 
 // Some forward declarations
@@ -31,6 +28,15 @@ template < typename funcType >
 class P2Function;
 
 class FEFunctionRegistry;
+
+template < typename vType >
+class P1VectorFunction;
+
+template < typename vType >
+class P2VectorFunction;
+
+template < typename vType >
+class EGFunction;
 
 namespace communication {
 
