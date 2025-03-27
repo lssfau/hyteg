@@ -36,7 +36,7 @@ class StencilInterpolator
    {
       for (uint_t i = 0; i < N; ++i)
       {
-         data_[i] = std::make_shared<LSQPInterpolator<MonomialBasis2D, L>>(polyDegree, interpolationLevel);
+         data_[i] = std::make_shared<LSQPInterpolator<MonomialBasis2D, L>>(polyDegree);
       }
    }
 
