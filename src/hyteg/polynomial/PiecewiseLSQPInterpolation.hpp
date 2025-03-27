@@ -55,11 +55,11 @@ struct AABB
 
    /// @brief Constructs an AABB with specified minimum and maximum coordinates.
    ///
-   /// @param min The minimum coordinates of the bounding box.
-   /// @param max The maximum coordinates of the bounding box.
-   AABB( const std::vector< double >& min, const std::vector< double >& max )
-   : min( min )
-   , max( max )
+   /// @param aabbMin The minimum coordinates of the bounding box.
+   /// @param aabbMax The maximum coordinates of the bounding box.
+   AABB( const std::vector< double >& aabbMin, const std::vector< double >& aabbMax )
+   : min( aabbMin )
+   , max( aabbMax )
    {}
 
    /// @brief Checks if a given point is contained within the AABB.
@@ -159,12 +159,12 @@ class KDTreeNode
 
    /// @brief Constructs a KDTreeNode with specified bounds and depth.
    ///
-   /// @param bounds The bounding box of the node.
-   /// @param depth The depth of the node in the tree.
-   KDTreeNode( const AABB& bounds, int depth )
-   : bounds( bounds )
+   /// @param nodeBounds The bounding box of the node.
+   /// @param nodeDepth The depth of the node in the tree.
+   KDTreeNode( const AABB& nodeBounds, int nodeDepth )
+   : bounds( nodeBounds )
    , isLeaf( true )
-   , depth( depth )
+   , depth( nodeDepth )
    , data( std::nullopt )
    {}
 
@@ -246,9 +246,9 @@ class KDTree
    /// @brief Constructs a KDTree with specified bounds and maximum depth.
    ///
    /// @param bounds The bounding box of the root node.
-   /// @param maxDepth The maximum depth of the tree.
-   KDTree( const AABB& bounds, int maxDepth )
-   : maxDepth( maxDepth )
+   /// @param treeMaxDepth The maximum depth of the tree.
+   KDTree( const AABB& bounds, int treeMaxDepth )
+   : maxDepth( treeMaxDepth )
    , dimensions( bounds.min.size() )
    {
       root = std::make_unique< KDTreeNode< T > >( bounds, 0 );
