@@ -27,6 +27,7 @@
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitives/Primitive.hpp"
 #include "hyteg/primitives/PrimitiveID.hpp"
+#include "hyteg/primitives/all.hpp"
 
 namespace hyteg::adiosCheckpointHelpers {
 

@@ -26,6 +26,7 @@
 #include "hyteg/gridtransferoperators/generatedKernels/prolongate_3D_macrocell_P1_push_additive.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
 

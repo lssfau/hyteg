@@ -19,24 +19,44 @@
  */
 
 #pragma once
+#include <functional>
 
-#include <atomic>
-#include <limits>
+#include "core/DataTypes.h"
 
-#include "core/debug/CheckFunctions.h"
-#include "core/debug/Debug.h"
-#include "core/mpi/BufferSystem.h"
-#include "core/mpi/MPIManager.h"
-#include "core/mpi/OpenMPBufferSystem.h"
-#include "core/timing/TimingPool.h"
-#include "core/timing/TimingTree.h"
+namespace walberla {
+namespace mpi {
+template< typename T >
+class GenericRecvBuffer;
+using RecvBuffer = GenericRecvBuffer<unsigned char>;
 
-#include "hyteg/communication/PackInfo.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+struct OptimalGrowth;
+template< typename T
+   , typename G >
+class GenericSendBuffer;
+using SendBuffer = GenericSendBuffer<unsigned char, OptimalGrowth>;
+
+template< typename RecvBuffer_T, typename SendBuffer_T >
+class GenericOpenMPBufferSystem;
+using OpenMPBufferSystem = GenericOpenMPBufferSystem<RecvBuffer, SendBuffer>;
+}
+
+namespace timing {
+struct WcPolicy;
+template< typename TP >
+class TimingTree;
+}
+
+using WcTimingTree = timing::TimingTree<timing::WcPolicy>;
+}
+
 
 namespace hyteg {
+class PrimitiveStorage;
+class PrimitiveID;
+
 namespace communication {
 
+class PackInfo;
 using walberla::int_c;
 
 /// \brief Executes communication between primitives
@@ -102,11 +122,11 @@ class BufferedCommunicator
    ///@}
 
    /// Writes timing data for the setup and for the wait phase to \p timingTree
-   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { timingTree_ = timingTree; }
+   void enableTiming(const std::shared_ptr<walberla::WcTimingTree> &timingTree);
 
- private:
-   typedef std::function< void( SendBuffer& buf ) > SendFunction;
-   typedef std::function< void( RecvBuffer& buf ) > RecvFunction;
+private:
+   typedef std::function<void(walberla::mpi::SendBuffer &buf)> SendFunction;
+   typedef std::function<void(walberla::mpi::RecvBuffer &buf)> RecvFunction;
 
    enum CommunicationDirection
    {
@@ -131,7 +151,7 @@ class BufferedCommunicator
       NUM_COMMUNICATION_DIRECTIONS
    };
 
-   static const uint_t SYNC_WORD;
+   static const walberla::uint_t SYNC_WORD;
 
    static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
    static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
@@ -139,8 +159,9 @@ class BufferedCommunicator
    template < typename SenderType, typename ReceiverType >
    CommunicationDirection getCommunicationDirection() const;
 
-   void writeHeader( SendBuffer& sendBuffer, const PrimitiveID& senderID, const PrimitiveID& receiverID );
-   void readHeader( RecvBuffer& recvBuffer, PrimitiveID& senderID, PrimitiveID& receiverID );
+   void writeHeader(walberla::mpi::SendBuffer &sendBuffer, const PrimitiveID &senderID, const PrimitiveID &receiverID);
+
+   void readHeader(walberla::mpi::RecvBuffer &recvBuffer, PrimitiveID &senderID, PrimitiveID &receiverID);
 
    void endCommunication( const CommunicationDirection& communicationDirection );
 
@@ -154,7 +175,7 @@ class BufferedCommunicator
 
    std::weak_ptr< PrimitiveStorage > primitiveStorage_;
 
-   uint_t primitiveStorageModificationStamp_;
+   walberla::uint_t primitiveStorageModificationStamp_;
 
    std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
@@ -170,34 +191,6 @@ class BufferedCommunicator
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
-
-extern template void BufferedCommunicator::startCommunication<Vertex, Edge>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Vertex, Cell>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Edge, Vertex>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Edge, Face>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Edge, Cell>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Face, Vertex>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Face, Edge>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Face, Face>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Face, Cell>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Cell, Vertex>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Cell, Edge>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Cell, Face>(std::vector<PrimitiveID>);
-extern template void BufferedCommunicator::startCommunication<Cell, Cell>(std::vector<PrimitiveID>);
-
-extern template void BufferedCommunicator::endCommunication<Vertex, Edge>();
-extern template void BufferedCommunicator::endCommunication<Vertex, Cell>();
-extern template void BufferedCommunicator::endCommunication<Edge, Vertex>();
-extern template void BufferedCommunicator::endCommunication<Edge, Face>();
-extern template void BufferedCommunicator::endCommunication<Edge, Cell>();
-extern template void BufferedCommunicator::endCommunication<Face, Vertex>();
-extern template void BufferedCommunicator::endCommunication<Face, Edge>();
-extern template void BufferedCommunicator::endCommunication<Face, Face>();
-extern template void BufferedCommunicator::endCommunication<Face, Cell>();
-extern template void BufferedCommunicator::endCommunication<Cell, Vertex>();
-extern template void BufferedCommunicator::endCommunication<Cell, Edge>();
-extern template void BufferedCommunicator::endCommunication<Cell, Face>();
-extern template void BufferedCommunicator::endCommunication<Cell, Cell>();
 
 } // namespace communication
 } // namespace hyteg

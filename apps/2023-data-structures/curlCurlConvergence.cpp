@@ -29,6 +29,7 @@
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
+#include "core/timing/TimingPool.h"
 
 #include "hyteg/dataexport/LaTeX/Table.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"

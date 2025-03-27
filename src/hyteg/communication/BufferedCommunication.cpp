@@ -20,11 +20,15 @@
 
 #include "hyteg/communication/BufferedCommunication.hpp"
 
-#include <functional>
-
 #include "core/logging/Logging.h"
+#include "core/timing/TimingTree.h"
+#include "core/mpi/OpenMPBufferSystem.h"
 
 #include "hyteg/communication/MPITagProvider.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/communication/PackInfo.hpp"
+
+#include <functional>
 
 namespace hyteg {
 namespace communication {
@@ -69,6 +73,8 @@ void BufferedCommunicator::setLocalCommunicationMode( const LocalCommunicationMo
    setupBeforeNextCommunication();
    localCommunicationMode_ = localCommunicationMode;
 }
+
+void BufferedCommunicator::enableTiming(const std::shared_ptr<walberla::WcTimingTree> &timingTree) { timingTree_ = timingTree; }
 
 void BufferedCommunicator::writeHeader( SendBuffer& sendBuffer, const PrimitiveID& senderID, const PrimitiveID& receiverID )
 {
