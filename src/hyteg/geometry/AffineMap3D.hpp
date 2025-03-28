@@ -24,6 +24,7 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 

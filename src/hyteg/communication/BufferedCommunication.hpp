@@ -23,32 +23,16 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/types/BufferSystemForwardDeclare.hpp"
+
 namespace walberla {
-namespace mpi {
-template< typename T >
-class GenericRecvBuffer;
-using RecvBuffer = GenericRecvBuffer<unsigned char>;
-
-struct OptimalGrowth;
-template< typename T
-   , typename G >
-class GenericSendBuffer;
-using SendBuffer = GenericSendBuffer<unsigned char, OptimalGrowth>;
-
-template< typename RecvBuffer_T, typename SendBuffer_T >
-class GenericOpenMPBufferSystem;
-using OpenMPBufferSystem = GenericOpenMPBufferSystem<RecvBuffer, SendBuffer>;
-}
-
 namespace timing {
 struct WcPolicy;
 template< typename TP >
 class TimingTree;
 }
-
 using WcTimingTree = timing::TimingTree<timing::WcPolicy>;
 }
-
 
 namespace hyteg {
 class PrimitiveStorage;

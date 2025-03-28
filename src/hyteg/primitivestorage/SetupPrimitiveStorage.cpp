@@ -627,7 +627,7 @@ void SetupPrimitiveStorage::scatterPrimitives( VertexMap&                       
          it.buffer() >> primitiveType;
          PrimitiveID id;
          it.buffer() >> id;
-         if ( walberla::mpi::MPIManager::instance()->rank() == int_c( targetRank ) )
+         if ( walberla::mpi::MPIManager::instance()->rank() == uint_c( targetRank ) )
          {
             if ( primitiveType == 0 )
             {

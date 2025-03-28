@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 #include "GeometryMap.hpp"
 

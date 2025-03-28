@@ -20,6 +20,10 @@
 
 #pragma once
 
+#include "core/DataTypes.h"
+#include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
 #include "hyteg/eigen/EigenWrapper.hpp"
 
 namespace hyteg {
@@ -33,6 +37,9 @@ class Matrix : public Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor :
 {
    using Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >::Matrix;
 };
+
+// template < typename ValueType, int M, int N >
+// using Matrix = Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
 
 template < int M, int N >
 using Matrixr = Matrix< real_t, M, N >;
@@ -76,7 +83,6 @@ GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyt
 }
 
 template < typename T, // Element type  of RecvBuffer
-           typename PointNDDataType,
            typename MatrixDataType,
            int M,
            int N >
@@ -92,40 +98,5 @@ GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::Matrix< 
    return buf;
 }
 
-template < typename T, // Element type of SendBuffer
-           typename G  // Growth policy of SendBuffer
-           >
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::MatrixXr& matrix )
-{
-   buf << matrix.rows();
-   buf << matrix.cols();
-   for ( int i = 0; i < matrix.rows(); ++i )
-   {
-      for ( int j = 0; j < matrix.cols(); j++ )
-      {
-         buf << matrix( i, j );
-      }
-   }
-
-   return buf;
-}
-
-template < typename T // Element type  of RecvBuffer
-           >
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::MatrixXr& matrix )
-{
-   Eigen::Index rows, cols;
-   buf >> rows;
-   buf >> cols;
-   matrix.resize( rows, cols );
-   for ( int i = 0; i < rows; ++i )
-   {
-      for ( int j = 0; j < cols; j++ )
-      {
-         buf >> matrix( i, j );
-      }
-   }
-   return buf;
-}
 
 } // namespace walberla::mpi

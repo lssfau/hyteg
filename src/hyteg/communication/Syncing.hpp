@@ -22,53 +22,50 @@
 #include "core/DataTypes.h"
 
 namespace hyteg {
-
 // Some forward declarations
-template < typename funcType >
+template< typename funcType >
 class P2Function;
 
 class FEFunctionRegistry;
 
-template < typename vType >
+template< typename vType >
 class P1VectorFunction;
 
-template < typename vType >
+template< typename vType >
 class P2VectorFunction;
 
-template < typename vType >
+template< typename vType >
 class EGFunction;
 
 namespace communication {
-
 /// Describe direction of data synchronisation between primitives
-enum class syncDirection_t
-{
-   LOW2HIGH,     ///< synchronise halos from low-dimensional to high-dimensional primitives, i.e. vertex -> edge -> face (-> cell)
+enum class syncDirection_t {
+   LOW2HIGH, ///< synchronise halos from low-dimensional to high-dimensional primitives, i.e. vertex -> edge -> face (-> cell)
    BIDIRECTIONAL ///< completely synchronise halos between all primitives
 };
 
 using walberla::uint_t;
 
-template < typename funcType >
-void syncFunctionBetweenPrimitives( const funcType& function,
-                                    const uint_t&   level,
-                                    syncDirection_t direction = syncDirection_t::BIDIRECTIONAL );
+template< typename funcType >
+void syncFunctionBetweenPrimitives(const funcType &function,
+                                   const uint_t &level,
+                                   syncDirection_t direction = syncDirection_t::BIDIRECTIONAL);
 
 // template < template< class > class funcType, typename vType >
-template < typename vType >
-void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& function,
-                                          const uint_t&                    level,
-                                          syncDirection_t                  direction = syncDirection_t::BIDIRECTIONAL );
+template< typename vType >
+void syncVectorFunctionBetweenPrimitives(const P1VectorFunction<vType> &function,
+                                         const uint_t &level,
+                                         syncDirection_t direction = syncDirection_t::BIDIRECTIONAL);
 
-template < typename vType >
-void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& function,
-                                          const uint_t&                    level,
-                                          syncDirection_t                  direction = syncDirection_t::BIDIRECTIONAL );
+template< typename vType >
+void syncVectorFunctionBetweenPrimitives(const P2VectorFunction<vType> &function,
+                                         const uint_t &level,
+                                         syncDirection_t direction = syncDirection_t::BIDIRECTIONAL);
 
-template < typename vType >
-void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& function,
-                                          const uint_t&              level,
-                                          syncDirection_t            direction = syncDirection_t::BIDIRECTIONAL );
+template< typename vType >
+void syncVectorFunctionBetweenPrimitives(const EGFunction<vType> &function,
+                                         const uint_t &level,
+                                         syncDirection_t direction = syncDirection_t::BIDIRECTIONAL);
 
 /// Sync all functions registered with the passed FEFunctionRegistry object
 ///
@@ -87,10 +84,9 @@ void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& function,
 ///                                can e.g. be done for data-export with VTKOutput to avoid unneccessary
 ///                                communication)
 /// \param direction               specifies direction of communication (LOW2HIGH or BIDIRECTIONAL)
-void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
-                              uint_t                    level,
-                              bool                      excludeDGTypeFunctions,
-                              syncDirection_t           direction = syncDirection_t::BIDIRECTIONAL );
-
+void syncRegisteredFunctions(const FEFunctionRegistry &feFunctionRegistry,
+                             uint_t level,
+                             bool excludeDGTypeFunctions,
+                             syncDirection_t direction = syncDirection_t::BIDIRECTIONAL);
 } // namespace communication
 } // namespace hyteg

@@ -29,6 +29,8 @@
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/forms/N1E1Form.hpp"
 
+#include "core/Abort.h"
+
 namespace hyteg {
 namespace forms {
 

@@ -22,6 +22,7 @@
 #include "hyteg/fenics/fenics.hpp"
 #include "hyteg/fenics/ufc_traits.hpp"
 #include "hyteg/forms/P2Form.hpp"
+#include "hyteg/types/PointND.hpp"
 
 // P1 to P2
 

@@ -21,6 +21,8 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 
