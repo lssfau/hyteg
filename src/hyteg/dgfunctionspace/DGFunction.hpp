@@ -385,6 +385,18 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    std::map< PrimitiveID, uint_t > polyDegreesPerPrimitive_;
 
    BoundaryCondition boundaryCondition_;
+
+   bool meshIsBlended()
+   {
+      for ( const auto& pid : storage_->getPrimitiveIDs() )
+      {
+         if ( !storage_->getPrimitive( pid )->getGeometryMap()->isIdentity() )
+         {
+            return true;
+         }
+      }
+      return false;
+   };
 };
 
 } // namespace dg
