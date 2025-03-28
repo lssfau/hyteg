@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include "core/Abort.h"
+
 #include "hyteg/forms/Form.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/Matrix.hpp"
