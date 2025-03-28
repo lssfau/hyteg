@@ -126,8 +126,8 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::apply(
 
       const auto micro_edges_per_macro_edge =
           (int64_t)levelinfo::num_microedges_per_edge(level);
-      const auto num_microfaces_per_face =
-          (int64_t)levelinfo::num_microfaces_per_face(level);
+      // const auto num_microfaces_per_face =
+      //     (int64_t)levelinfo::num_microfaces_per_face(level);
       const auto micro_edges_per_macro_edge_float =
           (walberla::float64)levelinfo::num_microedges_per_edge(level);
       const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -158,12 +158,12 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::apply(
       real_t bMat_11 =
           std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
               ->getMatrix()(1, 1);
-      real_t bVec_0 =
-          std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
-              ->getVector()[0];
-      real_t bVec_1 =
-          std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
-              ->getVector()[1];
+      // real_t bVec_0 =
+      //     std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
+      //         ->getVector()[0];
+      // real_t bVec_1 =
+      //     std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
+      //         ->getVector()[1];
 
       this->timingTree_->start("kernel");
 
@@ -240,8 +240,8 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::toMatrix(
 
       const auto micro_edges_per_macro_edge =
           (int64_t)levelinfo::num_microedges_per_edge(level);
-      const auto num_microfaces_per_face =
-          (int64_t)levelinfo::num_microfaces_per_face(level);
+      // const auto num_microfaces_per_face =
+      //     (int64_t)levelinfo::num_microfaces_per_face(level);
       const auto micro_edges_per_macro_edge_float =
           (walberla::float64)levelinfo::num_microedges_per_edge(level);
       const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -272,12 +272,12 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::toMatrix(
       real_t bMat_11 =
           std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
               ->getMatrix()(1, 1);
-      real_t bVec_0 =
-          std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
-              ->getVector()[0];
-      real_t bVec_1 =
-          std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
-              ->getVector()[1];
+      // real_t bVec_0 =
+      //     std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
+      //         ->getVector()[0];
+      // real_t bVec_1 =
+      //     std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
+      //         ->getVector()[1];
 
       this->timingTree_->start("kernel");
 
@@ -334,8 +334,8 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
 
         const auto micro_edges_per_macro_edge =
             (int64_t)levelinfo::num_microedges_per_edge(level);
-        const auto num_microfaces_per_face =
-            (int64_t)levelinfo::num_microfaces_per_face(level);
+        // const auto num_microfaces_per_face =
+        //     (int64_t)levelinfo::num_microfaces_per_face(level);
         const auto micro_edges_per_macro_edge_float =
             (walberla::float64)levelinfo::num_microedges_per_edge(level);
         const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -366,12 +366,12 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
         real_t bMat_11 =
             std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
                 ->getMatrix()(1, 1);
-        real_t bVec_0 =
-            std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
-                ->getVector()[0];
-        real_t bVec_1 =
-            std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
-                ->getVector()[1];
+        // real_t bVec_0 =
+        //     std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
+        //         ->getVector()[0];
+        // real_t bVec_1 =
+        //     std::dynamic_pointer_cast<AffineMap2D>(face.getGeometryMap())
+        //         ->getVector()[1];
 
         this->timingTree_->start("kernel");
 
@@ -467,6 +467,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -527,6 +528,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 jac_blending_1_1_q_9 = bMat_11;
           const walberla::float64 jac_blending_1_0_q_9 = bMat_10;
           const walberla::float64 jac_blending_0_1_q_9 = bMat_01;
@@ -1531,6 +1533,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge - 1;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -1591,6 +1594,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 jac_blending_1_1_q_9 = bMat_11;
           const walberla::float64 jac_blending_1_0_q_9 = bMat_10;
           const walberla::float64 jac_blending_0_1_q_9 = bMat_01;
@@ -2627,6 +2631,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -2687,6 +2692,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 jac_blending_1_1_q_9 = bMat_11;
           const walberla::float64 jac_blending_1_0_q_9 = bMat_10;
           const walberla::float64 jac_blending_0_1_q_9 = bMat_01;
@@ -3759,6 +3765,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge - 1;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -3819,6 +3826,8 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+
+#endif
           const walberla::float64 jac_blending_1_1_q_9 = bMat_11;
           const walberla::float64 jac_blending_1_0_q_9 = bMat_10;
           const walberla::float64 jac_blending_0_1_q_9 = bMat_01;
@@ -4915,6 +4924,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -4975,6 +4985,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 jac_blending_1_1_q_9 = bMat_11;
           const walberla::float64 jac_blending_1_0_q_9 = bMat_10;
           const walberla::float64 jac_blending_0_1_q_9 = bMat_01;
@@ -5388,6 +5399,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge - 1;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -5448,6 +5460,7 @@ void P2PlusBubbleElementwiseMass_AffineMap2D_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 jac_blending_1_1_q_9 = bMat_11;
           const walberla::float64 jac_blending_1_0_q_9 = bMat_10;
           const walberla::float64 jac_blending_0_1_q_9 = bMat_01;

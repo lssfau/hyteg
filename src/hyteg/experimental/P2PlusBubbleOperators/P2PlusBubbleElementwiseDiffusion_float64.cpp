@@ -126,8 +126,8 @@ void P2PlusBubbleElementwiseDiffusion_float64::apply(
 
       const auto micro_edges_per_macro_edge =
           (int64_t)levelinfo::num_microedges_per_edge(level);
-      const auto num_microfaces_per_face =
-          (int64_t)levelinfo::num_microfaces_per_face(level);
+      // const auto num_microfaces_per_face =
+      //     (int64_t)levelinfo::num_microfaces_per_face(level);
       const auto micro_edges_per_macro_edge_float =
           (walberla::float64)levelinfo::num_microedges_per_edge(level);
       const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -218,8 +218,8 @@ void P2PlusBubbleElementwiseDiffusion_float64::toMatrix(
 
       const auto micro_edges_per_macro_edge =
           (int64_t)levelinfo::num_microedges_per_edge(level);
-      const auto num_microfaces_per_face =
-          (int64_t)levelinfo::num_microfaces_per_face(level);
+      // const auto num_microfaces_per_face =
+      //     (int64_t)levelinfo::num_microfaces_per_face(level);
       const auto micro_edges_per_macro_edge_float =
           (walberla::float64)levelinfo::num_microedges_per_edge(level);
       const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -290,8 +290,8 @@ void P2PlusBubbleElementwiseDiffusion_float64::
 
         const auto micro_edges_per_macro_edge =
             (int64_t)levelinfo::num_microedges_per_edge(level);
-        const auto num_microfaces_per_face =
-            (int64_t)levelinfo::num_microfaces_per_face(level);
+        // const auto num_microfaces_per_face =
+        //     (int64_t)levelinfo::num_microfaces_per_face(level);
         const auto micro_edges_per_macro_edge_float =
             (walberla::float64)levelinfo::num_microedges_per_edge(level);
         const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -409,6 +409,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -469,6 +470,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 src_dof_0 =
               _data_srcVertex[ctr_0 + ctr_1 * (micro_edges_per_macro_edge + 2) -
                               ((ctr_1 * (ctr_1 + 1)) / (2))];
@@ -1378,6 +1380,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge - 1;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -1438,6 +1441,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 src_dof_0 =
               _data_srcVertex[ctr_0 + ctr_1 * (micro_edges_per_macro_edge + 2) -
                               ((ctr_1 * (ctr_1 + 1)) / (2)) + 1];
@@ -2377,6 +2381,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -2437,6 +2442,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 tmp_kernel_op_0 = 1.7837939636638596;
           const walberla::float64 tmp_kernel_op_1 = 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_2 =
@@ -3396,6 +3402,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge - 1;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -3456,6 +3463,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 tmp_kernel_op_0 = 1.7837939636638596;
           const walberla::float64 tmp_kernel_op_1 = 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_2 =
@@ -4437,6 +4445,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -4497,6 +4506,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 tmp_kernel_op_0 = 1.7837939636638596;
           const walberla::float64 tmp_kernel_op_1 = 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_2 =
@@ -5032,6 +5042,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
       for (int64_t ctr_1 = 0; ctr_1 < micro_edges_per_macro_edge; ctr_1 += 1)
         for (int64_t ctr_0 = 0; ctr_0 < -ctr_1 + micro_edges_per_macro_edge - 1;
              ctr_0 += 1) {
+#if 0
           const walberla::float64 p_affine_0_0 =
               macro_vertex_coord_id_0comp0 +
               1.0 / (micro_edges_per_macro_edge_float) *
@@ -5092,6 +5103,7 @@ void P2PlusBubbleElementwiseDiffusion_float64::
                   (-macro_vertex_coord_id_0comp1 +
                    macro_vertex_coord_id_2comp1) *
                   1.0 * ((walberla::float64)(ctr_1 + 1));
+#endif
           const walberla::float64 tmp_kernel_op_0 = 1.7837939636638596;
           const walberla::float64 tmp_kernel_op_1 = 0.43241207267228088;
           const walberla::float64 tmp_kernel_op_2 =

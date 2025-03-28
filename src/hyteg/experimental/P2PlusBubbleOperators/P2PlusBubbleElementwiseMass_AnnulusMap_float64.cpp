@@ -126,8 +126,8 @@ void P2PlusBubbleElementwiseMass_AnnulusMap_float64::apply(
 
       const auto micro_edges_per_macro_edge =
           (int64_t)levelinfo::num_microedges_per_edge(level);
-      const auto num_microfaces_per_face =
-          (int64_t)levelinfo::num_microfaces_per_face(level);
+      // const auto num_microfaces_per_face =
+      //     (int64_t)levelinfo::num_microfaces_per_face(level);
       const auto micro_edges_per_macro_edge_float =
           (walberla::float64)levelinfo::num_microedges_per_edge(level);
       const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -248,8 +248,8 @@ void P2PlusBubbleElementwiseMass_AnnulusMap_float64::toMatrix(
 
       const auto micro_edges_per_macro_edge =
           (int64_t)levelinfo::num_microedges_per_edge(level);
-      const auto num_microfaces_per_face =
-          (int64_t)levelinfo::num_microfaces_per_face(level);
+      // const auto num_microfaces_per_face =
+      //     (int64_t)levelinfo::num_microfaces_per_face(level);
       const auto micro_edges_per_macro_edge_float =
           (walberla::float64)levelinfo::num_microedges_per_edge(level);
       const walberla::float64 macro_vertex_coord_id_0comp0 =
@@ -350,8 +350,8 @@ void P2PlusBubbleElementwiseMass_AnnulusMap_float64::
 
         const auto micro_edges_per_macro_edge =
             (int64_t)levelinfo::num_microedges_per_edge(level);
-        const auto num_microfaces_per_face =
-            (int64_t)levelinfo::num_microfaces_per_face(level);
+        // const auto num_microfaces_per_face =
+        //     (int64_t)levelinfo::num_microfaces_per_face(level);
         const auto micro_edges_per_macro_edge_float =
             (walberla::float64)levelinfo::num_microedges_per_edge(level);
         const walberla::float64 macro_vertex_coord_id_0comp0 =
