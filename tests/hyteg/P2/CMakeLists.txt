@@ -25,8 +25,10 @@ waLBerla_execute_test(NAME P2SwapTest)
 waLBerla_compile_test(FILES P2FunctionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2FunctionTest)
 
-waLBerla_compile_test(FILES P2PlusBubbleFunctionTest.cpp DEPENDS hyteg opgen-diffusion core)
-waLBerla_execute_test(NAME P2PlusBubbleFunctionTest)
+if(WALBERLA_DOUBLE_ACCURACY)
+  waLBerla_compile_test(FILES P2PlusBubbleFunctionTest.cpp DEPENDS hyteg opgen-diffusion core)
+  waLBerla_execute_test(NAME P2PlusBubbleFunctionTest)
+endif()
 
 waLBerla_compile_test(FILES P2Level0Test.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)
