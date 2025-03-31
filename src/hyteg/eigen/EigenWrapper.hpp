@@ -59,8 +59,8 @@ template < typename T, // Element type of RecvBuffer
            int numRows,
            int numCols,
            int options >
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >&                             buffer,
-                                    Eigen::Matrix<EigenScalarType, numRows, numCols, options> eigenMatrix) {
+GenericRecvBuffer<T> &operator>>(GenericRecvBuffer<T> &buffer,
+                                 Eigen::Matrix<EigenScalarType, numRows, numCols, options> &eigenMatrix) {
    for ( int rowIdx = 0; rowIdx < numRows; ++rowIdx )
    {
       for ( int colIdx = 0; colIdx < numCols; ++colIdx )
