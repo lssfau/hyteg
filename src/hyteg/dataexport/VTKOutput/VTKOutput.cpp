@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -137,7 +137,7 @@ uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
    case vtk::DoFType::P2:
       return feFunctionRegistry_.getP2Functions().size() + feFunctionRegistry_.getP2VectorFunctions().size();
    case vtk::DoFType::P2_PLUS_BUBBLE:
-      return feFunctionRegistry_.getP2PlusBubbleFunctions().size(); // + feFunctionRegistry_.getP2PlusBubbleVectorFunctions().size();
+      return feFunctionRegistry_.getP2PlusBubbleFunctions().size() + feFunctionRegistry_.getP2PlusBubbleVectorFunctions().size();
    case vtk::DoFType::P1DGE:
       return feFunctionRegistry_.getEGFunctions().size();
       break;

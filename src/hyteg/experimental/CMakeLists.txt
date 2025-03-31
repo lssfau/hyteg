@@ -2,6 +2,7 @@ target_sources( hyteg
     PRIVATE
     P2PlusBubbleFunction.cpp
     P2PlusBubbleFunction.hpp
+    P2PlusBubbleVectorFunction.hpp
     SphericalElementFunction.hpp
 )
 

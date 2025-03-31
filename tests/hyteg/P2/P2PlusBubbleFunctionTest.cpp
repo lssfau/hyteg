@@ -35,6 +35,7 @@
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AnnulusMap_float64.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_float64.hpp"
+#include "hyteg/experimental/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -485,6 +486,39 @@ void runDiffusionTest( bool doVTKOutput = true )
    WALBERLA_CHECK_LESS( value2, 0.5e-9 );
 }
 
+void runVectorFunctionTest( bool doVTKOutput = false )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "========================================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " P2PlusBubbleVectorFunction: Basic Test" );
+   WALBERLA_LOG_INFO_ON_ROOT( "========================================" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "* function object creation" );
+   std::shared_ptr< PrimitiveStorage > storage = generateStorage( MeshType::SIMPLE_MESH );
+
+   const uint_t level = 3;
+
+   auto vecFunc = P2PlusBubbleVectorFunction< real_t >( "P2+ Vector-Function", storage, level, level );
+
+   std::function< real_t( const hyteg::Point3D& ) > exprX = []( const Point3D& coords ) {
+      real_t x = coords( 0 );
+      real_t y = coords( 1 );
+      return x * x * y + real_c( 2 ) * x * x + real_c( 3 ) * y * y + real_c( 4 ) * x + real_c( 5 ) * x * y - y + real_c( 2 );
+   };
+
+   std::function< real_t( const hyteg::Point3D& ) > exprY = []( const Point3D& x ) { return real_c( 1.5 ) * x[0] + x[1]; };
+
+   WALBERLA_LOG_INFO_ON_ROOT( "* function interpolation" );
+   vecFunc.interpolate( { exprX, exprY }, level, All );
+
+   if ( doVTKOutput )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "* VTK export" );
+      VTKOutput vtkOutput( ".", "p2_plus_bubble_vector", storage );
+      vtkOutput.add( vecFunc );
+      vtkOutput.write( level );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -500,6 +534,7 @@ int main( int argc, char* argv[] )
    runInterpolationTests();
    runMassTests();
    runDiffusionTest();
+   runVectorFunctionTest();
 
    return EXIT_SUCCESS;
 }

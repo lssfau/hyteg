@@ -30,20 +30,6 @@ class VTKP2PlusBubbleWriter
  public:
    static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
 
-   template < typename dstStream_t, typename value_t >
-   static void writeP2PlusBubbleFunctionData( bool                                       write2D,
-                                              dstStream_t&                               dstStream,
-                                              const P2PlusBubbleFunction< value_t >&     function,
-                                              const std::shared_ptr< PrimitiveStorage >& storage,
-                                              const uint_t&                              level );
-
-   // template < typename dstStream_t, typename value_t >
-   // static void writeP2PlusBubbleVectorFunctionData( bool                                         write2D,
-   //                                                  dstStream_t&                                 dstStream,
-   //                                                  const P2PlusBubbleVectorFunction< value_t >& function,
-   //                                                  const std::shared_ptr< PrimitiveStorage >&   storage,
-   //                                                  const uint_t&                                level );
-
  private:
    template < typename value_t >
    static void writeScalarFunction( std::ostream&                              output,
@@ -53,13 +39,13 @@ class VTKP2PlusBubbleWriter
                                     bool                                       write2D,
                                     vtk::DataFormat                            vtkDataFormat );
 
-   // template < typename value_t >
-   // static void writeVectorFunction( std::ostream&                                output,
-   //                                  const P2PlusBubbleVectorFunction< value_t >& function,
-   //                                  const std::shared_ptr< PrimitiveStorage >&   storage,
-   //                                  const uint_t&                                level,
-   //                                  bool                                         write2D,
-   //                                  vtk::DataFormat                              vtkDataFormat );
+   template < typename value_t >
+   static void writeVectorFunction( std::ostream&                                output,
+                                    const P2PlusBubbleVectorFunction< value_t >& function,
+                                    const std::shared_ptr< PrimitiveStorage >&   storage,
+                                    const uint_t&                                level,
+                                    bool                                         write2D,
+                                    vtk::DataFormat                              vtkDataFormat );
 };
 
 } // namespace hyteg

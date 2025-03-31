@@ -67,6 +67,8 @@ struct P1VectorFunctionTag
 {};
 struct P2VectorFunctionTag
 {};
+struct P2PlusBubbleVectorFunctionTag
+{};
 struct DGVectorFunctionTag
 {};
 struct EGFunctionTag
@@ -136,6 +138,9 @@ class P1VectorFunction_AltKind;
 template < typename VType >
 class P2VectorFunction;
 
+template < typename VType >
+class P2PlusBubbleVectorFunction;
+
 namespace dg {
 template < typename VType >
 class DGVectorFunction;
@@ -166,6 +171,7 @@ typedef enum
    N1E1_VECTOR_FUNCTION,
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
+   P2_PLUS_BUBBLE_VECTOR_FUNCTION,
    DG_VECTOR_FUNCTION,
    EG_FUNCTION,
    OTHER_FUNCTION
@@ -286,9 +292,9 @@ struct FunctionTrait< P2Function< VType > >
 template < typename VType >
 struct FunctionTrait< P2PlusBubbleFunction< VType > >
 {
-   typedef VType                     ValueType;
-   typedef P2PlusBubbleFunctionTag   Tag;
-   // typedef P2VectorFunction< VType > AssocVectorFunctionType;
+   typedef VType                               ValueType;
+   typedef P2PlusBubbleFunctionTag             Tag;
+   typedef P2PlusBubbleVectorFunction< VType > AssocVectorFunctionType;
 
    static std::string getTypeName() { return "P2PlusBubbleFunction"; }
 
@@ -370,6 +376,19 @@ struct FunctionTrait< P2VectorFunction< VType > >
    static std::string getTypeName() { return "P2VectorFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::P2_VECTOR_FUNCTION;
+};
+
+/// P2PlusBubbleVectorFunction specialization
+template < typename VType >
+struct FunctionTrait< P2PlusBubbleVectorFunction< VType > >
+{
+   typedef VType                         ValueType;
+   typedef P2PlusBubbleVectorFunctionTag Tag;
+   typedef P2PlusBubbleFunction< VType > VectorComponentType;
+
+   static std::string getTypeName() { return "P2PlusBubbleVectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P2_PLUS_BUBBLE_VECTOR_FUNCTION;
 };
 
 /// DGVectorFunction specialization

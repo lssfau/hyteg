@@ -117,7 +117,7 @@ void VTKP2PlusBubbleWriter::write( const VTKOutput& mgr, std::ostream& output, c
 
    output << "<PointData>\n";
 
-   // write all scalar P2Functions of supported value type
+   // write all scalar P2PlusBubbleFunctions of supported value type
    for ( const auto& function : mgr.feFunctionRegistry_.getP2PlusBubbleFunctions().getFunctions< double >() )
    {
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -135,9 +135,7 @@ void VTKP2PlusBubbleWriter::write( const VTKOutput& mgr, std::ostream& output, c
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
-#if 0
-
-   // write all P2VectorFunctions of supported value type
+   // write all P2PlusBubbleVectorFunctions of supported value type
    for ( const auto& function : mgr.feFunctionRegistry_.getP2PlusBubbleVectorFunctions().getFunctions< double >() )
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
@@ -154,8 +152,6 @@ void VTKP2PlusBubbleWriter::write( const VTKOutput& mgr, std::ostream& output, c
    {
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
-
-#endif
 
    output << "</PointData>\n";
 
@@ -176,8 +172,7 @@ void VTKP2PlusBubbleWriter::writeScalarFunction( std::ostream&                  
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
    VTKStreamWriter< value_t >   streamWriter( vtkDataFormat );
-   const P2Function< value_t >& p2Function =
-       function.getP2Function(); // reinterpret_cast< const P2Function< value_t >& >( function );
+   const P2Function< value_t >& p2Function = function.getP2Function();
    VTKP2Writer::writeP2FunctionData( write2D, streamWriter, p2Function, storage, level );
 
    if ( write2D )
@@ -218,11 +213,91 @@ void VTKP2PlusBubbleWriter::writeScalarFunction( std::ostream&                  
                value_t correction = ( value_t( 4 ) * edgeDoFsum - vertexDoFsum ) / value_t( 9 );
 
                // as the other six shape functions are not zero at the center, the bubble dof
-               // represents and excess, for VTK output we need to add to this excess the weighted
+               // represents an excess, for VTK output we need to add to this excess the weighted
                // sum of the other shape functions
                streamWriter << bubbleData[volumedofspace::indexing::index(
                                    microFace.x(), microFace.y(), faceType, 0, 1, level, memLayout )] +
                                    correction;
+            }
+         }
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "Missing 3D implementation inside VTKP2PlusBubbleWriter!" );
+   }
+
+   streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
+}
+
+template < typename value_t >
+void VTKP2PlusBubbleWriter::writeVectorFunction( std::ostream&                                output,
+                                                 const P2PlusBubbleVectorFunction< value_t >& vFunction,
+                                                 const std::shared_ptr< PrimitiveStorage >&   storage,
+                                                 const uint_t&                                level,
+                                                 bool                                         write2D,
+                                                 vtk::DataFormat                              vtkDataFormat )
+
+{
+   WALBERLA_ASSERT_EQUAL( storage, vFunction.getStorage() );
+
+   uint_t dim = vFunction.getDimension();
+
+   vtk::openDataElement( output, typeToString< value_t >(), vFunction.getFunctionName(), dim, vtkDataFormat );
+
+   VTKStreamWriter< value_t >         streamWriter( vtkDataFormat );
+   const P2VectorFunction< value_t >& p2VecFunction = reinterpret_cast< const P2VectorFunction< value_t >& >( vFunction );
+   VTKP2Writer::writeP2VectorFunctionData( write2D, streamWriter, p2VecFunction, storage, level );
+
+   if ( write2D )
+   {
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face&        face   = *itFaces.second;
+         const PrimitiveID& faceID = itFaces.first;
+
+         for ( const auto& faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& microFace : facedof::macroface::Iterator( level, faceType, 0 ) )
+            {
+               for ( uint_t idx = 0; idx < dim; ++idx )
+               {
+                  value_t* vertexData =
+                      face.getData( vFunction[idx].getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+                  value_t* edgeData = face.getData( vFunction[idx].getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+
+                  auto       bubbleData = vFunction[idx].getVolumeDoFFunction().dofMemory( faceID, level );
+                  const auto memLayout  = vFunction[idx].getVolumeDoFFunction().memoryLayout();
+
+                  // obtain data indices of dofs associated with vertices and edges of micro-face
+                  std::array< uint_t, 3 > vertexDoFIndices;
+                  vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, faceType, level, vertexDoFIndices );
+
+                  std::array< uint_t, 3 > edgeDoFIndices;
+                  edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFace, faceType, level, edgeDoFIndices );
+
+                  // assemble "correction term"
+                  value_t vertexDoFsum = value_t( 0 );
+                  vertexDoFsum += vertexData[vertexDoFIndices[0]];
+                  vertexDoFsum += vertexData[vertexDoFIndices[1]];
+                  vertexDoFsum += vertexData[vertexDoFIndices[2]];
+
+                  value_t edgeDoFsum = value_t( 0 );
+                  edgeDoFsum += edgeData[edgeDoFIndices[0]];
+                  edgeDoFsum += edgeData[edgeDoFIndices[1]];
+                  edgeDoFsum += edgeData[edgeDoFIndices[2]];
+
+                  value_t correction = ( value_t( 4 ) * edgeDoFsum - vertexDoFsum ) / value_t( 9 );
+
+                  // as the other six shape functions are not zero at the center, the bubble dof
+                  // represents an excess, for VTK output we need to add to this excess the weighted
+                  // sum of the other shape functions
+                  streamWriter << bubbleData[volumedofspace::indexing::index(
+                                      microFace.x(), microFace.y(), faceType, 0, 1, level, memLayout )] +
+                                      correction;
+               }
             }
          }
       }
