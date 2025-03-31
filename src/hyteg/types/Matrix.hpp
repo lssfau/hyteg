@@ -20,10 +20,6 @@
 
 #pragma once
 
-#include "core/DataTypes.h"
-#include "core/mpi/RecvBuffer.h"
-#include "core/mpi/SendBuffer.h"
-
 #include "hyteg/eigen/EigenWrapper.hpp"
 
 namespace hyteg {
@@ -33,13 +29,7 @@ using walberla::real_t;
 using walberla::uint_t;
 
 template < typename ValueType, int M, int N >
-class Matrix : public Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >
-{
-   using Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >::Matrix;
-};
-
-// template < typename ValueType, int M, int N >
-// using Matrix = Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
+using Matrix = Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
 
 template < int M, int N >
 using Matrixr = Matrix< real_t, M, N >;
@@ -52,51 +42,4 @@ using Matrix10r = Matrixr< 10, 10 >;
 using MatrixXr  = Matrixr< Eigen::Dynamic, Eigen::Dynamic >;
 using VectorXr  = Matrixr< Eigen::Dynamic, 1 >;
 
-extern template class Matrix< real_t, 2, 2 >;
-extern template class Matrix< real_t, 3, 3 >;
-extern template class Matrix< real_t, 4, 4 >;
-extern template class Matrix< real_t, 6, 6 >;
-extern template class Matrix< real_t, 10, 10 >;
-extern template class Matrix< real_t, Eigen::Dynamic, Eigen::Dynamic >;
-extern template class Matrix< real_t, Eigen::Dynamic, 1 >;
-
 } // namespace hyteg
-
-namespace walberla::mpi {
-
-template < typename T, // Element type of SendBuffer
-           typename G, // Growth policy of SendBuffer
-           typename MatrixDataType,
-           int M,
-           int N >
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >& buf, const hyteg::Matrix< MatrixDataType, M, N >& matrix )
-{
-   for ( int i = 0; i < M; ++i )
-   {
-      for ( int j = 0; j < N; j++ )
-      {
-         buf << matrix( i, j );
-      }
-   }
-
-   return buf;
-}
-
-template < typename T, // Element type  of RecvBuffer
-           typename MatrixDataType,
-           int M,
-           int N >
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >& buf, hyteg::Matrix< MatrixDataType, M, N >& matrix )
-{
-   for ( int i = 0; i < M; ++i )
-   {
-      for ( int j = 0; j < N; j++ )
-      {
-         buf >> matrix( i, j );
-      }
-   }
-   return buf;
-}
-
-
-} // namespace walberla::mpi

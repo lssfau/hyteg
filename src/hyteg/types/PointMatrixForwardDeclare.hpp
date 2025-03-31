@@ -22,6 +22,7 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include <Eigen/Core>
 
 namespace hyteg {
 template< typename ValueType, int N >
@@ -34,8 +35,8 @@ using Point4D = PointND<walberla::real_t, 4>;
 using Point6D = PointND<walberla::real_t, 6>;
 using Point10D = PointND<walberla::real_t, 10>;
 
-template< typename ValueType, int M, int N >
-class Matrix;
+template < typename ValueType, int M, int N >
+using Matrix = Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
 
 template< int M, int N >
 using Matrixr = Matrix<walberla::real_t, M, N>;
