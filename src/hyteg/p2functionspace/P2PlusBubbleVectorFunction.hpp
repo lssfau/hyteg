@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/functions/CSFVectorFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/VectorFunctionTools.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 
 namespace hyteg {
 

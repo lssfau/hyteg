@@ -36,11 +36,11 @@
 
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
-
 #include "hyteg/geometry/AffineMap2D.hpp"
 
 #include "hyteg/operators/Operator.hpp"
+
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 

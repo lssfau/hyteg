@@ -17,7 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
+
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 
 #include <cmath>
 
@@ -30,14 +31,13 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseDiffusion_float64.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AnnulusMap_float64.hpp"
 #include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_float64.hpp"
-#include "hyteg/experimental/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusion.hpp"
 
