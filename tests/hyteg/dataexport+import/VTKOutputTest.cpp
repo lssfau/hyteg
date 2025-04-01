@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,13 +30,13 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"

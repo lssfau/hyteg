@@ -26,7 +26,6 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"

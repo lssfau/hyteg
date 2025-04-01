@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,7 +27,6 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
-#include "hyteg/experimental/P2PlusBubbleFunction.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
@@ -35,6 +34,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -92,7 +92,8 @@ static void exportFunctions( const std::string& functionType, uint_t level, cons
    }
    else if ( functionType == P2_PLUS_BUBBLE_SCALAR )
    {
-      interpolateAndWriteVTK( directory, level, storage, P2PlusBubbleFunction< real_t >( functionName, storage, minLevel, maxLevel ) );
+      interpolateAndWriteVTK(
+          directory, level, storage, P2PlusBubbleFunction< real_t >( functionName, storage, minLevel, maxLevel ) );
    }
    else if ( functionType == DG1_SCALAR )
    {
