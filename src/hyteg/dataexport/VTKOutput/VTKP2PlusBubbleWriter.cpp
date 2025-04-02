@@ -172,7 +172,7 @@ void VTKP2PlusBubbleWriter::writeScalarFunction( std::ostream&                  
    vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
    VTKStreamWriter< value_t >   streamWriter( vtkDataFormat );
-   const P2Function< value_t >& p2Function = function.getP2Function();
+   const P2Function< value_t >& p2Function = reinterpret_cast< const P2Function< value_t >& >( function );
    VTKP2Writer::writeP2FunctionData( write2D, streamWriter, p2Function, storage, level );
 
    if ( write2D )
