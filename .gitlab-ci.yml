@@ -31,6 +31,7 @@ variables:
     - cmake --version
     - ccache --version
     - mpirun --version
+    - ninja --version
     - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - mkdir $CI_PROJECT_DIR/build
     - cd $CI_PROJECT_DIR/build
