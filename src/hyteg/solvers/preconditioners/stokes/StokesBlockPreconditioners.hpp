@@ -354,8 +354,10 @@ class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
-template < typename OperatorType, typename AOperatorType, typename SchurOperatorType,
-           class VelocityProjectionOperatorType = P2ProjectNormalOperator  >
+template < typename OperatorType,
+           typename AOperatorType,
+           typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator >
 class BlockFactorisationPreconditioner : public Solver< OperatorType >
 {
  public:
@@ -411,7 +413,7 @@ class BlockFactorisationPreconditioner : public Solver< OperatorType >
 
       x.p().assign( { -1.0 }, { x.p() }, level, flag_ );
 
-      if( projection_ != nullptr )
+      if ( projection_ != nullptr )
       {
          projection_->project( tmp_.uvw(), level, FreeslipBoundary );
       }

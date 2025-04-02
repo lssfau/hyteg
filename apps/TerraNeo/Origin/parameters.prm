@@ -256,7 +256,7 @@ Parameters
    
    OutputVelocity true;
    OutputTemperature true;
-   OutputInterval 1;
+   OutputInterval 100;
    OutputVertexDoFs false;
 
    //If desired: output per Myr:
@@ -265,7 +265,9 @@ Parameters
    outputIntervalMyr 1;
 
    outputProfiles true;
-   ADIOS2OutputConfig ADIOS2config.xml;
+
+   // ABSOLUTE PATH is better for cluster jobs
+   ADIOS2OutputConfig /home/pponkumar/hyteg/hyteg/apps/TerraNeo/Origin/ADIOS2config.xml;
 
    ADIOS2StoreCheckpointPath ./output/checkpoint;
    ADIOS2StoreCheckpointFilename TerraNeo_checkpoint;
