@@ -13,14 +13,14 @@ Parameters
 
    // Coarse grid
 
-   nTan 3;
-   nRad 2;
+   nTan 5;
+   nRad 3;
    threeDim true;
 
    // Refinement level
 
    maxLevel 3;
-   minLevel 2;
+   minLevel 0;
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -28,7 +28,7 @@ Parameters
    // Temperature Initialisation 
    
    // Reference Temperature
-   temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
+   // temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
 
    /************************************************************/
    ////// Temperature noise (deviation) 
@@ -123,10 +123,10 @@ Parameters
 
    // Input viscosity profile
 
-   viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
-   thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
-   specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
-   densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
+   // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
+   // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
+   // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
 
    characteristicVelocity 1e-9;
 
@@ -145,16 +145,16 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 3;
+   boundaryCond 1;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
    simulationType ConvectionModel;
 
-   compressible true;
-   shearHeating true;
-   adiabaticHeating true;
-   internalHeating true;
+   compressible false;
+   shearHeating false;
+   adiabaticHeating false;
+   internalHeating false;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -164,9 +164,9 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 5;
+   maxNumTimeSteps 20000;
    fixedTimeStep false;
-   cflMax 0.3;
+   cflMax 0.9;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -186,7 +186,7 @@ Parameters
    
    plateSmoothingDistance 110;
 
-   verbose true;
+   verbose false;
 
    //////////////////////////
    //  Solver parameters  //
@@ -221,15 +221,15 @@ Parameters
    ABlockMGPostSmooth 3;
 
    // FGMRES solver parameters 
-   FGMRESOuterIterations 5;
+   FGMRESOuterIterations 10;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
-   ABlockCoarseGridIterations 10;
-   ABlockCoarseGridTolerance 1e-6;
-   SchurMGIterations 3;
-   SchurMGTolerance 1e-6;
+   ABlockCoarseGridIterations 1000;
+   ABlockCoarseGridTolerance 1e-10;
+   SchurMGIterations 1000;
+   SchurMGTolerance 1e-12;
    SchurMGPreSmooth 3;
    SchurMGPostSmooth 3;
    SchurCoarseGridIterations 100;
@@ -264,7 +264,7 @@ Parameters
    outputMyr false;
    outputIntervalMyr 1;
 
-   outputProfiles false;
+   outputProfiles true;
    ADIOS2OutputConfig ADIOS2config.xml;
 
    ADIOS2StoreCheckpointPath ./output/checkpoint;

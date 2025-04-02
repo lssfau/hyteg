@@ -354,6 +354,97 @@ class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
+template < typename OperatorType, typename AOperatorType, typename SchurOperatorType,
+           class VelocityProjectionOperatorType = P2ProjectNormalOperator  >
+class BlockFactorisationPreconditioner : public Solver< OperatorType >
+{
+ public:
+   typedef typename OperatorType::srcType FunctionType;
+
+   BlockFactorisationPreconditioner( const std::shared_ptr< PrimitiveStorage >&            storage,
+                                     const uint_t                                          minLevel,
+                                     const uint_t                                          maxLevel,
+                                     const SchurOperatorType&                              schurOp,
+                                     const std::shared_ptr< Solver< AOperatorType > >&     ABlockApproximationSolver,
+                                     const std::shared_ptr< Solver< SchurOperatorType > >& SchurComplementApproximationSolver,
+                                     real_t                                                relaxParamA,
+                                     real_t                                                relaxParamSchur,
+                                     uint_t                                                VelocityIterations = 1,
+                                     std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr,
+                                     hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                     bool           projectPressure = false )
+   : storage_( storage )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   , schurOp_( schurOp )
+   , ABlockApproximationSolver_( ABlockApproximationSolver )
+   , SchurComplementApproximationSolver_( SchurComplementApproximationSolver )
+   , flag_( flag )
+   , hasGlobalCells_( storage->hasGlobalCells() )
+   , relaxParamA_( relaxParamA )
+   , relaxParamSchur_( relaxParamSchur )
+   , VelocityIterations_( VelocityIterations )
+   , projectPressure_( projectPressure )
+   , residual_( FunctionType( "BlockFactorisationPreconditioner_residual", storage, minLevel, maxLevel ) )
+   , tmp_( FunctionType( "BlockFactorisationPreconditioner_tmp", storage, minLevel, maxLevel ) )
+   , projection_( projection )
+   {}
+
+   virtual void solve( const OperatorType&                   A,
+                       const typename OperatorType::srcType& x,
+                       const typename OperatorType::dstType& b,
+                       const uint_t                          level ) override
+   {
+      copyBCs( x, residual_ );
+      copyBCs( x, tmp_ );
+
+      if ( projectPressure_ )
+      {
+         vertexdof::projectMean( x.p(), level );
+      }
+
+      SchurComplementApproximationSolver_->solve( schurOp_, x.p(), b.p(), level );
+
+      A.getBT().apply( x.p(), tmp_.uvw(), level, flag_, Replace );
+
+      tmp_.uvw().assign( { 1.0, 1.0 }, { b.uvw(), tmp_.uvw() }, level, flag_ );
+
+      x.p().assign( { -1.0 }, { x.p() }, level, flag_ );
+
+      if( projection_ != nullptr )
+      {
+         projection_->project( tmp_.uvw(), level, FreeslipBoundary );
+      }
+
+      for ( uint_t i = 0; i < VelocityIterations_; i++ )
+      {
+         ABlockApproximationSolver_->solve( A.getA(), x.uvw(), tmp_.uvw(), level );
+      }
+   }
+
+ protected:
+   std::shared_ptr< PrimitiveStorage > storage_;
+   uint_t                              minLevel_;
+   uint_t                              maxLevel_;
+
+   SchurOperatorType schurOp_;
+
+   std::shared_ptr< Solver< AOperatorType > >     ABlockApproximationSolver_;
+   std::shared_ptr< Solver< SchurOperatorType > > SchurComplementApproximationSolver_;
+
+   DoFType flag_;
+   bool    hasGlobalCells_;
+
+   real_t       relaxParamA_;
+   real_t       relaxParamSchur_;
+   uint_t       VelocityIterations_;
+   bool         projectPressure_;
+   FunctionType residual_;
+   FunctionType tmp_;
+
+   std::shared_ptr< VelocityProjectionOperatorType > projection_;
+};
+
 template < typename OperatorType,
            typename AOperatorType,
            typename SchurOperatorType,
