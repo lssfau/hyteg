@@ -270,6 +270,11 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
       real_t retVal = TN.physicalParameters.temperatureProfile.at( shell );
       return retVal;
    }
+   if ( !TN.simulationParameters.compressible && TN.simulationParameters.volAvrgTemperatureDev &&
+        TN.simulationParameters.timeStep > 0 )
+   {
+      return TN.simulationParameters.avrgTemperatureVol;
+   }
    else
    {
       if ( TN.simulationParameters.haveTemperatureProfile )
@@ -281,7 +286,6 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
                                               TN.domainParameters.rMax );
 
          real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
-
          return retVal;
       }
       else
@@ -368,9 +372,6 @@ void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< Rad
    const std::vector< real_t >& radius    = temperatureProfile->shellRadii;
    const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
    const uint_t                 numLayers = radius.size();
-
-   const real_t areaSurface = 4 * pi * std::pow( radius[numLayers - 1], 2 );
-   const real_t areaCMB     = 4 * pi * std::pow( radius[0], 2 );
 
    // Calculate heat flows
    const real_t heatFlowFactor = thermalConductivity * mantleThickness * 1e-12;

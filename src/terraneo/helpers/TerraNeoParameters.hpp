@@ -191,6 +191,7 @@ struct SimulationParameters
    bool        fixedTimestep              = false;
    uint_t      timeStep                   = 0;
    real_t      maxTimestepSize            = 0;
+   real_t      avrgTemperatureVol         = real_c( 0 );
    real_t      modelTime                  = real_c( 0 );
    real_t      dtPrev                     = real_c( 0 );
    real_t      dt                         = real_c( 0 );
@@ -201,6 +202,7 @@ struct SimulationParameters
    uint_t      maxNumTimesteps            = 100;
    bool        adaptiveRefTemp            = false;
    bool        tempDependentViscosity     = false;
+   bool        volAvrgTemperatureDev      = false;
    uint_t      tempDependentViscosityType = 0;
 
    //circulation model parameters
@@ -316,7 +318,7 @@ struct PhysicalParameters
 
    //numbers required to get non-D numbers
 
-   real_t characteristicVelocity = real_c( 5e-9 );
+   real_t characteristicVelocity = thermalConductivity / ( referenceDensity * specificHeatCapacity * mantleThickness) ;
 
    real_t mantleThickness    = real_c( 2900000 );
    real_t thermalDiffusivity = thermalConductivity / ( referenceDensity * specificHeatCapacity );

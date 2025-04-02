@@ -254,7 +254,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    // Set all radial varying parameters to input reference values to avoid inconsistent calculations on non-dim numbers
    physicalParam.specificHeatCapacityRadial = physicalParam.specificHeatCapacity;
    physicalParam.thermalExpansivityRadial   = physicalParam.thermalExpansivity;
-
+   physicalParam.characteristicVelocity = 
+       physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity * physicalParam.mantleThickness );
    //used to calculate non-D numbers
    physicalParam.thermalDiffusivity =
        physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity );
@@ -286,6 +287,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.predictorCorrector     = mainConf.getParameter< bool >( "predictorCorrector" );
    simulationParam.maxNumTimesteps        = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
    simulationParam.adaptiveRefTemp        = mainConf.getParameter< bool >( "adaptiveRefTemp" );
+   simulationParam.volAvrgTemperatureDev  = mainConf.getParameter< bool >( "volAvrgTemperatureDev" );
    simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
    simulationParam.simulationType         = mainConf.getParameter< std::string >( "simulationType" );
    simulationParam.compressible           = mainConf.getParameter< bool >( "compressible" );
@@ -690,6 +692,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Internal heating        : " << ( simulationParam.internalHeating ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "T-dependent Viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.      : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "volumetric avrg Ref Temp.      : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
 
    if ( simulationParam.simulationType == "CirculationModel" )
    {

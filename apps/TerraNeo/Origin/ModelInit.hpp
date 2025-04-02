@@ -367,6 +367,9 @@ void ConvectionSimulation::initialiseFunctions()
       p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
       p2p1StokesFunctionContainer["StokesRHS"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
       p2p1StokesFunctionContainer["StokesTmp1"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
+      // for volumetric average temperature calculation
+      p2ScalarFunctionContainer["TemperatureVolumetric"]->interpolate( real_c( 1 ), level, All );
+      p2ScalarFunctionContainer["Volume"]->interpolate( real_c( 1 ), level, All );
    }
 
    auto temperatureRadialProfile            = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),

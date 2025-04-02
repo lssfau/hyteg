@@ -123,6 +123,7 @@ class ConvectionSimulation
    real_t                      diffPreFactorFunction( const Point3D& x );
    real_t                      calculateStokesResidual( uint_t level );
    real_t                      calculateEnergyResidual( uint_t level );
+   real_t                      calculatePressureResidual( uint_t level );
    real_t                      referenceTemperatureFunction( const Point3D& x );
    const SimulationParameters& getSimulationParams();
 
@@ -195,21 +196,22 @@ class ConvectionSimulation
    };
 
    /** Initialise functions
-    * 
-    * To create a new function, just add into the correct dict and it can be used from the container anywhere in the app
-    * The tuple denotes < 
-    * std::string           = (Name of the function),
-    * uint_t                = (Minimum level),
-    * uint_t                = (Maximum level),
-    * BoundaryConditionType = (Velocity or Temperature or No Boundary condition)
-    * >
-    */
+     * 
+     * To create a new function, just add into the correct dict and it can be used from the container anywhere in the app
+     * The tuple denotes < 
+     * std::string           = (Name of the function),
+     * uint_t                = (Minimum level),
+     * uint_t                = (Maximum level),
+     * BoundaryConditionType = (Velocity or Temperature or No Boundary condition)
+     * >
+     */
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2p1StokesFunctionDict = {
        { "VelocityFE", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "VelocityFEPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesRHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "StokesTmp3", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< StokesFunctionP2P1 > > p2p1StokesFunctionContainer;
 
@@ -225,7 +227,12 @@ class ConvectionSimulation
        { "EnergyRHSWeak", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
        { "DensityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
        { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
+       { "ShearHeatingTermCoeffDebug", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       { "TemperatureVolumetric", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       { "Volume", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       { "Ones", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       { "TemperatureAvrgVolumetric", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
 
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {};

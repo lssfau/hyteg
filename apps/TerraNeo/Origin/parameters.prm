@@ -68,7 +68,7 @@ Parameters
    // tempInit = 3: no filtering
    tempInit 0;
 
-   temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
+   temperatureInputProfile ../../../data/terraneo/radialProfiles/TERRA_temperature_profile.json;
 
    // Steepness of temperature filtering
    initialTemperatureSteepness 4;
@@ -84,7 +84,7 @@ Parameters
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
-   viscosity       1e22;
+   viscosity       1e21;
 
    // Adiabatic reference state parameters
 
@@ -101,7 +101,7 @@ Parameters
 
    // Temperature dependent or independent viscosity
 
-   tempDependentViscosity true;
+   tempDependentViscosity false;
 
    // Temperature-dependent viscosity law
    // 0 =  Frank–Kamenetskii type 1: goes as e^(-Activation * T)
@@ -134,7 +134,7 @@ Parameters
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
 
-   characteristicVelocity 5e-9;
+   characteristicVelocity 1e-9;
 
    // Input temperature
 
@@ -151,11 +151,11 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 3;
+   boundaryCond 1;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
-   simulationType CirculationModel;
+   simulationType ConvectionModel;
 
    compressible false;
    shearHeating false;
@@ -172,16 +172,18 @@ Parameters
 
    maxNumTimeSteps 5;
    fixedTimeStep false;
-   predictorCorrector true;
+   predictorCorrector false;
    // Maximum timestep size in Ma
-   maxTimeStepSize 1;
-   cflMax 2;
+   maxTimeStepSize 100;
+   cflMax 1;
    dtConstant 100;
 
    // Adaptive reference Temperature 
    // true: update to radial mean Temperature
 
    adaptiveRefTemp false;
+   // currently only for incompressible runs implemented
+   volAvrgTemperatureDev false;
 
    // Input files for circulation model
 
@@ -217,7 +219,7 @@ Parameters
 
    // Uzawa solver parameters
 
-   stokesMaxNumIterations 5;
+   stokesMaxNumIterations 2;
    stokesRelativeResidualUTolerance 1e-6;
    stokesAbsoluteResidualUTolerance 1e-6;
    stokesUzawaCoarseGridIter 10;
@@ -234,7 +236,7 @@ Parameters
    FGMRESOuterIterations 3;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
-   ABlockMGIterations 3;
+   ABlockMGIterations 4;
    ABlockMGTolerance 1e-6;
    ABlockCoarseGridIterations 1000;
    ABlockCoarseGridTolerance 1e-10;
@@ -247,7 +249,7 @@ Parameters
 
    // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   stokesKillTolerance 10000000;
+   stokesKillTolerance 1000000;
 
    // Diffusion parameters 
 
@@ -283,12 +285,12 @@ Parameters
    ADIOS2StoreCheckpointFilename TerraNeo_checkpoint_Test_HAWK-v4;
    ADIOS2StoreCheckpoint false;
 
-   ADIOS2StartCheckpointPath ./output/checkpoint;
-   ADIOS2StartCheckpointFilename TerraNeo_checkpoint;
+   ADIOS2StartCheckpointPath /SCRATCH/edascoli/TerraNeo-Output/checkpoint;
+   ADIOS2StartCheckpointFilename TerraNeo_checkpoint_MT128_NS-NS;
    ADIOS2StartFromCheckpoint false;
 
    // In steps
-   ADIOS2StoreCheckpointFrequency 1;
+   ADIOS2StoreCheckpointFrequency 10;
 
    // ADIOS2 parameter keys and values for data output
 
@@ -301,6 +303,6 @@ Parameters
    // Output of a. json file containing timing tree informationf
 
    timingAnalysis true;
-   createTimingDB true;
-   SQLdatabaseFileName TerraNeoSQLDatabaseFile_PlateFix_MT128_PredCorr.db;
+   createTimingDB false;
+   SQLdatabaseFileName TerraNeoSQLDatabaseFile_MT64_NS-NS_Ra-1e6_k_600.db;
 }
