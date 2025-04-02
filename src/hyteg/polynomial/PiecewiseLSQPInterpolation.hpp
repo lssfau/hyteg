@@ -46,31 +46,38 @@
 
 namespace hyteg {
 
-/// @struct AABB
+/// @class AABB
 /// @brief Represents an axis-aligned bounding box (AABB) in n-dimensional space.
-struct AABB
+template < int Dim >
+class AABB
 {
-   std::vector< double > min; ///< Minimum coordinates of the bounding box.
-   std::vector< double > max; ///< Maximum coordinates of the bounding box.
+ public:
+   static constexpr int D = Dim;
 
    /// @brief Constructs an AABB with specified minimum and maximum coordinates.
    ///
    /// @param aabbMin The minimum coordinates of the bounding box.
    /// @param aabbMax The maximum coordinates of the bounding box.
-   AABB( const std::vector< double >& aabbMin, const std::vector< double >& aabbMax )
-   : min( aabbMin )
-   , max( aabbMax )
-   {}
+   AABB( const PointND< real_t, Dim >& aabbMin, const PointND< real_t, Dim >& aabbMax )
+   : min_( aabbMin )
+   , max_( aabbMax )
+   {
+      computeLargestAxis();
+   }
+
+   PointND< real_t, Dim > min() const { return min_; }
+   PointND< real_t, Dim > max() const { return max_; }
+   int                    largestAxis() const { return largestAxis_; }
 
    /// @brief Checks if a given point is contained within the AABB.
    ///
    /// @param point The point to check.
    /// @return True if the point is within the AABB, false otherwise.
-   bool contains( const std::vector< double >& point ) const
+   bool contains( const PointND< real_t, Dim >& point ) const
    {
-      for ( size_t i = 0; i < min.size(); ++i )
+      for ( size_t i = 0; i < min_.size(); ++i )
       {
-         if ( point[i] < min[i] || point[i] > max[i] )
+         if ( point[i] < min_[i] || point[i] > max_[i] )
          {
             return false;
          }
@@ -78,90 +85,107 @@ struct AABB
       return true;
    }
 
-   /// @brief Extends the AABB by a given factor.
+   /// @brief Extends the AABB by a given factor. The center of the AABB does not change.
    ///
    /// @param factor The factor by which to extend the AABB.
    /// @return A new AABB that is extended by the specified factor.
-   AABB extend( double factor ) const
+   AABB extend( real_t factor ) const
    {
-      std::vector< double > newMin( min.size() );
-      std::vector< double > newMax( max.size() );
-      for ( size_t i = 0; i < min.size(); ++i )
+      PointND< real_t, Dim > newMin;
+      PointND< real_t, Dim > newMax;
+      for ( size_t i = 0; i < min_.size(); ++i )
       {
-         double center     = ( min[i] + max[i] ) / 2;
-         double halfExtent = ( max[i] - min[i] ) / 2 * factor;
+         real_t center     = ( min_[i] + max_[i] ) / 2;
+         real_t halfExtent = ( max_[i] - min_[i] ) / 2 * factor;
          newMin[i]         = center - halfExtent;
          newMax[i]         = center + halfExtent;
       }
       return AABB( newMin, newMax );
    }
 
-   /// @brief Returns the vertices of a 2D AABB in counter-clockwise order.
+   /// @brief Returns the vertices of an AABB.
    ///
-   /// @return A vector of vectors, where each inner vector represents a vertex of the 2D AABB.
-   std::vector< std::vector< double > > getVertices2D() const
+   /// 2D: in counter-clockwise order
+   /// 3D: first the bottom vertices in counter-clockwise order, then the top vertices in counter-clockwise order
+   ///
+   /// @return A vector of vectors, where each inner vector represents a vertex of the AABB.
+   std::vector< PointND< real_t, Dim > > getVertices() const
    {
-      if ( min.size() != 2 )
+      if constexpr ( Dim == 2 )
       {
-         throw std::invalid_argument( "getVertices2D can only be used with 2D AABBs." );
+         return { { min_[0], min_[1] }, { min_[0], max_[1] }, { max_[0], max_[1] }, { max_[0], min_[1] } };
+      }
+      else if constexpr ( Dim == 3 )
+      {
+         return { { min_[0], min_[1], min_[2] },
+                  { min_[0], max_[1], min_[2] },
+                  { max_[0], max_[1], min_[2] },
+                  { max_[0], min_[1], min_[2] },
+                  { min_[0], min_[1], max_[2] },
+                  { min_[0], max_[1], max_[2] },
+                  { max_[0], max_[1], max_[2] },
+                  { max_[0], min_[1], max_[2] } };
       }
 
-      return { { min[0], min[1] }, { min[0], max[1] }, { max[0], max[1] }, { max[0], min[1] } };
-   }
-
-   /// @brief Returns the vertices of a 3D AABB, first the bottom vertices in counter-clockwise order, then the top vertices in counter-clockwise order.
-   ///
-   /// @return A vector of vectors, where each inner vector represents a vertex of the 3D AABB.
-   std::vector< std::vector< double > > getVertices3D() const
-   {
-      if ( min.size() != 3 )
-      {
-         throw std::invalid_argument( "getVertices3D can only be used with 3D AABBs." );
-      }
-
-      return { { min[0], min[1], min[2] },
-               { min[0], max[1], min[2] },
-               { max[0], max[1], min[2] },
-               { max[0], min[1], min[2] },
-               { min[0], min[1], max[2] },
-               { min[0], max[1], max[2] },
-               { max[0], max[1], max[2] },
-               { max[0], min[1], max[2] } };
+      WALBERLA_ABORT( "Invalid AABB dim." )
    }
 
    void serialize( SendBuffer& sendBuffer ) const
    {
-      sendBuffer << min;
-      sendBuffer << max;
+      sendBuffer << min_;
+      sendBuffer << max_;
+      sendBuffer << largestAxis_;
    }
 
    void deserialize( RecvBuffer& recvBuffer )
    {
-      recvBuffer >> min;
-      recvBuffer >> max;
+      recvBuffer >> min_;
+      recvBuffer >> max_;
+      recvBuffer >> largestAxis_;
    }
+
+ private:
+   void computeLargestAxis()
+   {
+      largestAxis_         = 0;
+      real_t largestExtent = max_[0] - min_[0];
+      for ( int i = 1; i < Dim; ++i )
+      {
+         real_t extent = max_[i] - min_[i];
+         if ( extent > largestExtent )
+         {
+            largestExtent = extent;
+            largestAxis_  = i;
+         }
+      }
+   }
+
+   PointND< real_t, Dim > min_; ///< Minimum coordinates of the bounding box.
+   PointND< real_t, Dim > max_; ///< Maximum coordinates of the bounding box.
+   int                    largestAxis_;
 };
 
 /// @class KDTreeNode
 /// @brief Represents a node in a KD-Tree, which is a space-partitioning data structure for organizing points in k-dimensional space.
-template < typename T >
+template < typename T, int AABBDim >
 class KDTreeNode
 {
  public:
    using ValueType = T;
+   using AABBType  = AABB< AABBDim >;
 
-   std::unique_ptr< KDTreeNode< T > > left;   ///< Left child node.
-   std::unique_ptr< KDTreeNode< T > > right;  ///< Right child node.
-   AABB                               bounds; ///< Bounding box of the node.
-   bool                               isLeaf; ///< Indicates if the node is a leaf.
-   int                                depth;  ///< Depth of the node in the tree.
-   std::optional< T >                 data;   ///< Optional data of type T associated with the node.
+   std::unique_ptr< KDTreeNode< T, AABBDim > > left;   ///< Left child node.
+   std::unique_ptr< KDTreeNode< T, AABBDim > > right;  ///< Right child node.
+   AABB< AABBDim >                             bounds; ///< Bounding box of the node.
+   bool                                        isLeaf; ///< Indicates if the node is a leaf.
+   int                                         depth;  ///< Depth of the node in the tree.
+   std::optional< T >                          data;   ///< Optional data of type T associated with the node.
 
    /// @brief Constructs a KDTreeNode with specified bounds and depth.
    ///
    /// @param nodeBounds The bounding box of the node.
    /// @param nodeDepth The depth of the node in the tree.
-   KDTreeNode( const AABB& nodeBounds, int nodeDepth )
+   KDTreeNode( const AABB< AABBDim >& nodeBounds, int nodeDepth )
    : bounds( nodeBounds )
    , isLeaf( true )
    , depth( nodeDepth )
@@ -216,7 +240,7 @@ class KDTreeNode
       if ( hasLeft )
       {
          // Dummy arguments
-         left = std::make_unique< KDTreeNode< T > >( bounds, depth );
+         left = std::make_unique< KDTreeNode >( bounds, depth );
          left->deserialize( recvBuffer );
       }
 
@@ -225,7 +249,7 @@ class KDTreeNode
       if ( hasRight )
       {
          // Dummy arguments
-         right = std::make_unique< KDTreeNode< T > >( bounds, depth );
+         right = std::make_unique< KDTreeNode >( bounds, depth );
          right->deserialize( recvBuffer );
       }
    }
@@ -233,59 +257,33 @@ class KDTreeNode
 
 /// @class KDTree
 /// @brief Represents a KD-Tree, a space-partitioning data structure for organizing points in k-dimensional space.
-template < typename T >
+template < typename T, int AABBDim >
 class KDTree
 {
  public:
-   using NodeType = KDTreeNode< T >;
+   using NodeType = KDTreeNode< T, AABBDim >;
 
-   std::unique_ptr< KDTreeNode< T > > root;       ///< Root node of the KD-Tree.
-   int                                maxDepth;   ///< Maximum depth of the tree.
-   int                                dimensions; ///< Number of dimensions.
+   std::unique_ptr< KDTreeNode< T, AABBDim > > root;       ///< Root node of the KD-Tree.
+   int                                         maxDepth;   ///< Maximum depth of the tree.
+   int                                         dimensions; ///< Number of dimensions.
 
    /// @brief Constructs a KDTree with specified bounds and maximum depth.
    ///
    /// @param bounds The bounding box of the root node.
    /// @param treeMaxDepth The maximum depth of the tree.
-   KDTree( const AABB& bounds, int treeMaxDepth )
+   KDTree( const AABB< AABBDim >& bounds, int treeMaxDepth )
    : maxDepth( treeMaxDepth )
-   , dimensions( bounds.min.size() )
+   , dimensions( bounds.min().size() )
    {
-      root = std::make_unique< KDTreeNode< T > >( bounds, 0 );
+      root = std::make_unique< KDTreeNode< T, AABBDim > >( bounds, 0 );
       buildTree( root, 0 );
-   }
-
-   /// @brief Recursively builds the KD-Tree.
-   ///
-   /// @param node The current node being built.
-   /// @param depth The current depth in the tree.
-   void buildTree( std::unique_ptr< KDTreeNode< T > >& node, int depth )
-   {
-      if ( depth >= maxDepth )
-      {
-         return;
-      }
-
-      node->isLeaf = false;
-      int    axis  = getLargestAxis( node->bounds );
-      double mid   = ( node->bounds.min[axis] + node->bounds.max[axis] ) / 2;
-
-      AABB leftBounds      = node->bounds;
-      leftBounds.max[axis] = mid;
-      node->left           = std::make_unique< KDTreeNode< T > >( leftBounds, depth + 1 );
-      buildTree( node->left, depth + 1 );
-
-      AABB rightBounds      = node->bounds;
-      rightBounds.min[axis] = mid;
-      node->right           = std::make_unique< KDTreeNode< T > >( rightBounds, depth + 1 );
-      buildTree( node->right, depth + 1 );
    }
 
    /// @brief Finds the leaf node containing a given point.
    ///
    /// @param point The point to search for.
    /// @return A pointer to the leaf node containing the point, or nullptr if not found.
-   KDTreeNode< T >* findLeafNode( const std::vector< double >& point ) const
+   KDTreeNode< T, AABBDim >* findLeafNode( const PointND< real_t, AABBDim >& point ) const
    {
       return findLeafNodeRecursive( root.get(), point );
    }
@@ -295,9 +293,10 @@ class KDTree
    /// @param point The point to search for.
    /// @param factor The factor by which to extend the bounds.
    /// @return A vector of pointers to leaf nodes containing the point.
-   std::vector< KDTreeNode< T >* > findLeafNodesWithExtendedBounds( const std::vector< double >& point, double factor ) const
+   std::vector< KDTreeNode< T, AABBDim >* > findLeafNodesWithExtendedBounds( const PointND< real_t, AABBDim >& point,
+                                                                             real_t                            factor ) const
    {
-      std::vector< KDTreeNode< T >* > result;
+      std::vector< KDTreeNode< T, AABBDim >* > result;
       findLeafNodesWithExtendedBoundsRecursive( root.get(), point, factor, result );
       return result;
    }
@@ -305,7 +304,10 @@ class KDTree
    /// @brief Iterates over all nodes and applies a callback function.
    ///
    /// @param callback The callback function to apply to each node.
-   void iterate( const std::function< void( KDTreeNode< T >* ) >& callback ) const { iterateRecursive( root.get(), callback ); }
+   void iterate( const std::function< void( KDTreeNode< T, AABBDim >* ) >& callback ) const
+   {
+      iterateRecursive( root.get(), callback );
+   }
 
    /// @brief Prints the structure of the KD-Tree.
    void printTree() const { printTreeRecursive( root.get(), "" ); }
@@ -313,7 +315,7 @@ class KDTree
    /// @brief Gets the number of leaf nodes in the KD-Tree.
    ///
    /// @return The number of leaf nodes.
-   int getNumberOfLeaves() const { return std::pow( 2, maxDepth ); }
+   int getNumberOfLeaves() const { return 1 << maxDepth; }
 
    /// @brief Serializes the KDTree into a JSON object.
    ///
@@ -337,24 +339,34 @@ class KDTree
    }
 
  private:
-   /// @brief Gets the axis with the largest extent in the given bounds.
+   /// @brief Recursively builds the KD-Tree.
    ///
-   /// @param bounds The bounding box.
-   /// @return The index of the axis with the largest extent.
-   int getLargestAxis( const AABB& bounds ) const
+   /// @param node The current node being built.
+   /// @param depth The current depth in the tree.
+   void buildTree( std::unique_ptr< KDTreeNode< T, AABBDim > >& node, int depth )
    {
-      int    largestAxis   = 0;
-      double largestExtent = bounds.max[0] - bounds.min[0];
-      for ( int i = 1; i < dimensions; ++i )
+      if ( depth >= maxDepth )
       {
-         double extent = bounds.max[i] - bounds.min[i];
-         if ( extent > largestExtent )
-         {
-            largestExtent = extent;
-            largestAxis   = i;
-         }
+         return;
       }
-      return largestAxis;
+
+      node->isLeaf = false;
+      int    axis  = node->bounds.largestAxis();
+      real_t mid   = ( node->bounds.min()[axis] + node->bounds.max()[axis] ) / 2;
+
+      auto leftBoundsMin  = node->bounds.min();
+      auto leftBoundsMax  = node->bounds.max();
+      leftBoundsMax[axis] = mid;
+      AABB leftBounds( leftBoundsMin, leftBoundsMax );
+      node->left = std::make_unique< KDTreeNode< T, AABBDim > >( leftBounds, depth + 1 );
+      buildTree( node->left, depth + 1 );
+
+      auto rightBoundsMin  = node->bounds.min();
+      auto rightBoundsMax  = node->bounds.max();
+      rightBoundsMin[axis] = mid;
+      AABB rightBounds( rightBoundsMin, rightBoundsMax );
+      node->right = std::make_unique< KDTreeNode< T, AABBDim > >( rightBounds, depth + 1 );
+      buildTree( node->right, depth + 1 );
    }
 
    /// @brief Recursively finds the leaf node containing a given point.
@@ -362,7 +374,8 @@ class KDTree
    /// @param node The current node.
    /// @param point The point to search for.
    /// @return A pointer to the leaf node containing the point, or nullptr if not found.
-   KDTreeNode< T >* findLeafNodeRecursive( KDTreeNode< T >* node, const std::vector< double >& point ) const
+   KDTreeNode< T, AABBDim >* findLeafNodeRecursive( KDTreeNode< T, AABBDim >*         node,
+                                                    const PointND< real_t, AABBDim >& point ) const
    {
       if ( node == nullptr || !node->bounds.contains( point ) )
       {
@@ -374,8 +387,8 @@ class KDTree
          return node;
       }
 
-      int axis = getLargestAxis( node->bounds );
-      if ( point[axis] <= ( node->bounds.min[axis] + node->bounds.max[axis] ) / 2 )
+      int axis = node->bounds.largestAxis();
+      if ( point[axis] <= ( node->bounds.min()[axis] + node->bounds.max()[axis] ) / 2 )
       {
          return findLeafNodeRecursive( node->left.get(), point );
       }
@@ -391,10 +404,10 @@ class KDTree
    /// @param point The point to search for.
    /// @param factor The factor by which to extend the bounds.
    /// @param result A vector to store the resulting leaf nodes.
-   void findLeafNodesWithExtendedBoundsRecursive( KDTreeNode< T >*                 node,
-                                                  const std::vector< double >&     point,
-                                                  double                           factor,
-                                                  std::vector< KDTreeNode< T >* >& result ) const
+   void findLeafNodesWithExtendedBoundsRecursive( KDTreeNode< T, AABBDim >*                 node,
+                                                  const PointND< real_t, AABBDim >&         point,
+                                                  real_t                                    factor,
+                                                  std::vector< KDTreeNode< T, AABBDim >* >& result ) const
    {
       if ( node == nullptr )
          return;
@@ -418,7 +431,8 @@ class KDTree
    ///
    /// @param node The current node.
    /// @param callback The callback function to apply to each node.
-   void iterateRecursive( KDTreeNode< T >* node, const std::function< void( KDTreeNode< T >* ) >& callback ) const
+   void iterateRecursive( KDTreeNode< T, AABBDim >*                                 node,
+                          const std::function< void( KDTreeNode< T, AABBDim >* ) >& callback ) const
    {
       if ( node == nullptr )
          return;
@@ -433,7 +447,7 @@ class KDTree
    ///
    /// @param node The current node.
    /// @param prefix The prefix string for formatting the output.
-   void printTreeRecursive( KDTreeNode< T >* node, const std::string& prefix ) const
+   void printTreeRecursive( KDTreeNode< T, AABBDim >* node, const std::string& prefix ) const
    {
       if ( node == nullptr )
          return;
@@ -516,11 +530,13 @@ struct LSQPPolyPair3D
 };
 
 /// @brief Type alias for a KDTree equipped with necessary data for piecewise interpolation (2D polynomials).
-using PiecewiseLSQPPolyKDTree2D = KDTree< LSQPPolyPair2D >;
+using PiecewiseLSQPPolyKDTree2D = KDTree< LSQPPolyPair2D, 2 >;
 /// @brief Type alias for a KDTree equipped with necessary data for piecewise interpolation (3D polynomials).
-using PiecewiseLSQPPolyKDTree3D = KDTree< LSQPPolyPair3D >;
+using PiecewiseLSQPPolyKDTree3D = KDTree< LSQPPolyPair3D, 3 >;
 
 /// @brief Helper function to initialize the polynomial data on all leaves.
+///
+/// You probably want to use setupPiecewiseLSQPPolyKDTree().
 template < typename PiecewiseLSQPPolyKDTree >
 void addPolynomialsToLeaves( PiecewiseLSQPPolyKDTree& kdTree, uint_t degree )
 {
@@ -535,19 +551,31 @@ void addPolynomialsToLeaves( PiecewiseLSQPPolyKDTree& kdTree, uint_t degree )
 
 /// @brief Returns a function to be passed to interpolate that adds all points to the LSQP of the corresponding KDTree leave
 /// (i.e., subdomain).
+///
+/// You probably want to use setupPiecewiseLSQPPolyKDTree().
+///
+/// Example usage:
+/// @code
+///    auto lsqpPointAdder = interpolationPointAdder( kdTree, aabbExtensionFactor );
+///    u.interpolate( lsqpPointAdder, { u }, level );
+/// @endcode
 template < typename PiecewiseLSQPPolyKDTree >
 std::function< real_t( const Point3D& p, const std::vector< real_t >& feFuncData ) >
     interpolationPointAdder( PiecewiseLSQPPolyKDTree& kdTree, real_t aabbExtensionFactor )
 {
    auto func = [&kdTree, aabbExtensionFactor]( const Point3D& x, const std::vector< real_t >& us ) {
-      auto containingLeaves = kdTree.findLeafNodesWithExtendedBounds( { x( 0 ), x( 1 ), x( 2 ) }, aabbExtensionFactor );
-      for ( auto containingLeaf : containingLeaves )
+      if constexpr ( std::is_same_v< PiecewiseLSQPPolyKDTree, PiecewiseLSQPPolyKDTree2D > )
       {
-         if constexpr ( std::is_same_v< PiecewiseLSQPPolyKDTree, PiecewiseLSQPPolyKDTree2D > )
+         auto containingLeaves = kdTree.findLeafNodesWithExtendedBounds( { x( 0 ), x( 1 ) }, aabbExtensionFactor );
+         for ( auto containingLeaf : containingLeaves )
          {
             containingLeaf->data.value().lsqp.addInterpolationPoint( Point2D( x( 0 ), x( 1 ) ), us[0] );
          }
-         else
+      }
+      else
+      {
+         auto containingLeaves = kdTree.findLeafNodesWithExtendedBounds( { x( 0 ), x( 1 ), x( 2 ) }, aabbExtensionFactor );
+         for ( auto containingLeaf : containingLeaves )
          {
             containingLeaf->data.value().lsqp.addInterpolationPoint( x, us[0] );
          }
@@ -559,6 +587,8 @@ std::function< real_t( const Point3D& p, const std::vector< real_t >& feFuncData
 }
 
 /// @brief Solves all LSQP problems in the leaves.
+///
+/// You probably want to use setupPiecewiseLSQPPolyKDTree().
 template < typename PiecewiseLSQPPolyKDTree >
 void solveLSQPs( PiecewiseLSQPPolyKDTree& kdTree )
 {
@@ -576,19 +606,54 @@ void solveLSQPs( PiecewiseLSQPPolyKDTree& kdTree )
    kdTree.iterate( constructPolys );
 }
 
+/// @brief Sets up the piecewise LSQP kd-tree.
+///
+/// Essentially just a helper that calls
+/// - addPolynomialsToLeaves( ... )         // initializes polynomials
+/// - interpolationPointAdder( ... )        // adds interpolation points
+/// - solveLSQPs( ... )                     // solves the LSQPs on all leaves of the kd-tree
+/// to set up the tree for evaluation.
+///
+/// @tparam PiecewiseLSQPPolyKDTree The type of the piecewise LSQP polynomial kd-tree.
+/// @tparam FEFunctionType The type of the finite element function used for interpolation.
+///
+/// @param kdTree The kd-tree to set up for interpolation.
+/// @param degree The polynomial degree to use for the piecewise polynomials.
+/// @param aabbExtensionFactor The factor by which to extend the axis-aligned bounding box (AABB) around each leaf.
+/// @param level The FE function refinement level.
+/// @param feFunction The finite element function that shall be approximated.
+template < typename PiecewiseLSQPPolyKDTree, typename FEFunctionType >
+void setupPiecewiseLSQPPolyKDTree( PiecewiseLSQPPolyKDTree& kdTree,
+                                   uint_t                   degree,
+                                   real_t                   aabbExtensionFactor,
+                                   uint_t                   level,
+                                   FEFunctionType&          feFunction )
+{
+   addPolynomialsToLeaves( kdTree, degree );
+   auto lsqpPointAdder = interpolationPointAdder( kdTree, aabbExtensionFactor );
+   feFunction.interpolate( lsqpPointAdder, { feFunction }, level );
+   solveLSQPs( kdTree );
+}
+
 /// @brief Returns a function to evaluate a piecewise KDTree polynomial.
+///
+/// Example usage:
+/// @code
+///    u.interpolate( piecewiseKDTreePolyEvaluator( kdTree ), level );
+/// @endcode
 template < typename PiecewiseLSQPPolyKDTree >
 std::function< real_t( const Point3D& ) > piecewiseKDTreePolyEvaluator( const PiecewiseLSQPPolyKDTree& kdTree )
 {
    auto evalKDPoly = [&kdTree]( const Point3D& x ) {
-      auto leaf = kdTree.findLeafNode( { x( 0 ), x( 1 ), x( 2 ) } );
       if constexpr ( std::is_same_v< PiecewiseLSQPPolyKDTree, PiecewiseLSQPPolyKDTree2D > )
       {
+         auto leaf = kdTree.findLeafNode( { x( 0 ), x( 1 ) } );
          WALBERLA_ASSERT( leaf->data.has_value() );
          return leaf->data.value().poly.eval( Point2D( x( 0 ), x( 1 ) ) );
       }
       else
       {
+         auto leaf = kdTree.findLeafNode( { x( 0 ), x( 1 ), x( 2 ) } );
          WALBERLA_ASSERT( leaf->data.has_value() );
          return leaf->data.value().poly.eval( x );
       }
@@ -599,16 +664,19 @@ std::function< real_t( const Point3D& ) > piecewiseKDTreePolyEvaluator( const Pi
 /// @brief Writes a VTK file in parallel with the AABBs of the KDTree with the specified depth.
 ///
 /// If you only want to write one tree - only call this on root.
-template < typename T >
-void writeKDTreeAABBsToVTK( const KDTree< T >& kdTree, uint_t depth, const std::string& dir, const std::string& filename )
+template < typename T, int AABBDim >
+void writeKDTreeAABBsToVTK( const KDTree< T, AABBDim >& kdTree,
+                            uint_t                      depth,
+                            const std::string&          dir,
+                            const std::string&          filename )
 {
    VTKHexahedraOutput vtk( dir, filename );
-   auto               addNodeAABB = [&vtk, depth]( typename KDTree< T >::NodeType* node ) {
+   auto               addNodeAABB = [&vtk, depth]( typename KDTree< T, AABBDim >::NodeType* node ) {
       if ( node->depth == depth )
       {
-         if ( node->bounds.min.size() == 2 )
+         if ( AABBDim == 2 )
          {
-            const auto               vertices = node->bounds.getVertices2D();
+            const auto               vertices = node->bounds.getVertices();
             std::array< Point3D, 4 > rectPoints;
             for ( int i = 0; i < 4; ++i )
             {
@@ -619,9 +687,9 @@ void writeKDTreeAABBsToVTK( const KDTree< T >& kdTree, uint_t depth, const std::
             }
             vtk.addRectangle( rectPoints );
          }
-         else if ( node->bounds.min.size() == 3 )
+         else if ( AABBDim == 3 )
          {
-            const auto               vertices = node->bounds.getVertices3D();
+            const auto               vertices = node->bounds.getVertices();
             std::array< Point3D, 8 > hexaPoints;
             for ( int i = 0; i < 8; ++i )
             {

@@ -44,6 +44,7 @@ class VTKHexahedraOutput
 
    /// Numbering is counter-clockwise.
    /// For hexahedra: first "bottom" rect counter-clockwise, then "top" rect counter-clockwise.
+   /// The starting point in the "top" layer must be the point "above" the starting point in the "bottom" layer.
    void addHexahedron( const std::array< Point3D, 8 >& hexahedronPoints );
 
    /// Writes for all processes. Duplicated rects and hexes will be written if duplicate rects

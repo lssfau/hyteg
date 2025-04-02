@@ -40,7 +40,8 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   uint_t dim = storage->hasGlobalCells() ? 3 : 2;
+   const uint_t dim = PiecewiseLSQPPolyKDTree::NodeType::AABBType::D;
+   WALBERLA_CHECK_EQUAL( PiecewiseLSQPPolyKDTree::NodeType::AABBType::D, storage->hasGlobalCells() ? 3 : 2 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Dim:    " << dim )
 
@@ -56,8 +57,10 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
    u.interpolate( f, level );
 
    // Compute AABB of domain.
-   std::vector< double > aabbMin( dim, std::numeric_limits< double >::max() );
-   std::vector< double > aabbMax( dim, std::numeric_limits< double >::min() );
+   PointND< real_t, dim > aabbMin;
+   aabbMin.fill( std::numeric_limits< real_t >::max() );
+   PointND< real_t, dim > aabbMax;
+   aabbMax.fill( std::numeric_limits< real_t >::min() );
    for ( auto vertex : meshInfo.getVertices() )
    {
       for ( uint_t d = 0; d < dim; ++d )
@@ -66,23 +69,17 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
          aabbMax[d] = std::max( vertex.second.getCoordinates()( d ), aabbMax[d] );
       }
    }
+   using AABB = AABB< PiecewiseLSQPPolyKDTree::NodeType::AABBType::D >;
    AABB aabb( aabbMin, aabbMax );
 
    // Building a KDTree.
    PiecewiseLSQPPolyKDTree kdTree( aabb, depth );
-   addPolynomialsToLeaves( kdTree, degree );
-   auto lsqpPointAdder = interpolationPointAdder( kdTree, aabbExtensionFactor );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Collecting points for interpolation and solving LSQP problems." );
+   setupPiecewiseLSQPPolyKDTree( kdTree, degree, aabbExtensionFactor, level, u );
 
    const auto numCoeffs = dim == 2 ? Polynomial2D< MonomialBasis2D >::getNumCoefficients( degree ) :
                                      Polynomial3D< MonomialBasis3D >::getNumCoefficients( degree );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Collecting points for interpolation." );
-   u.interpolate( lsqpPointAdder, { u }, level );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Solving LSQP problems." );
-
-   solveLSQPs( kdTree );
-
    const auto numLeaves = kdTree.getNumberOfLeaves();
    const auto dofs      = u.getNumberOfGlobalDoFs( level );
 
