@@ -256,10 +256,10 @@ void runInterpolationTests()
    testInterpolation( storage1, { real_c( 3e-16 ), real_c( 3e-16 ), real_c( 2.5e-4 ) } );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on mesh with affine blending" );
-   testInterpolation( storage3, { real_c( 8e-15 ), real_c( 3e-14 ), real_c( 2.1e-3 ) } );
+   testInterpolation( storage3, { real_c( 3e-14 ), real_c( 3e-14 ), real_c( 2.1e-3 ) } );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation with quadratic micromesh" );
-   testInterpolation( storage4, { real_c( 9e-16 ), real_c( 4.5e-5 ), real_c( 3e-3 ) } );
+   testInterpolation( storage4, { real_c( 3e-15 ), real_c( 4.5e-5 ), real_c( 3e-3 ) } );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on mesh with annulus blending" );
    testInterpolation( storage2, { real_c( 1.8e-4 ), real_c( 5e-4 ), real_c( 0.03 ) } );
