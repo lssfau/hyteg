@@ -271,7 +271,7 @@ add_subdirectory( tutorials )
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
 
-  find_package ( Doxygen 1.10.0 )
+  find_package ( Doxygen 1.10.0 OPTIONAL_COMPONENTS dot )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
@@ -302,6 +302,13 @@ if ( DOXYGEN_FOUND )
      endif()
   endforeach ( )
 
+  # Avoid problems on systems that have doxygen installed, but not graphviz/dot;
+  # configure_file below will set Doxygen's HAVE_DOT to our SYSTEM_HAS_DOT
+  set ( SYSTEM_HAS_DOT "NO" )
+  if ( TARGET Doxygen::dot )
+    set ( SYSTEM_HAS_DOT "YES")
+  endif()
+
   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
@@ -317,6 +324,7 @@ else ()
   message( STATUS "No (suitable version of) Doxygen was found. You might not be able to build the documentation (properly)." )
 
 endif ( )
+
 
 ############################################################################################################################
 
