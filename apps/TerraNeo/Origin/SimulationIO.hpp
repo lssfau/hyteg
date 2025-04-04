@@ -226,10 +226,13 @@ void ConvectionSimulation::dataOutput()
    else if ( TN.outputParameters.dataOutput )
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-      WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output ADIOS2 ****" );
-      storage->getTimingTree()->start( "Adios2 data output" );
-      _output->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
-      storage->getTimingTree()->stop( "Adios2 data output" );
+      if( TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0u )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output ADIOS2 ****" );
+         storage->getTimingTree()->start( "Adios2 data output" );
+         _output->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
+         storage->getTimingTree()->stop( "Adios2 data output" );
+      }
 
       if ( TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
            TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
