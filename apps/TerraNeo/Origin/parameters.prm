@@ -28,6 +28,10 @@ Parameters
    // Temperature Initialisation 
    
    // Reference Temperature
+
+   // If this profile is set, then the same is used as the reference Temperature to calculate
+   // temperature deviations, else a reference adiabat is used
+   //
    // temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
 
    /************************************************************/
@@ -123,6 +127,9 @@ Parameters
 
    // Input viscosity profile
 
+   // If the following profiles are uncommented they are used as appropriate field,
+   // and if commented, a constant value (non-dim to 1.0) is used
+   //
    // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
    // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
@@ -186,6 +193,7 @@ Parameters
    
    plateSmoothingDistance 110;
 
+   // This flag is passed to the Stokes solver, which logs residuals if set to true
    verbose false;
 
    //////////////////////////
@@ -267,7 +275,7 @@ Parameters
    outputProfiles true;
 
    // ABSOLUTE PATH is better for cluster jobs
-   ADIOS2OutputConfig /home/pponkumar/hyteg/hyteg/apps/TerraNeo/Origin/ADIOS2config.xml;
+   ADIOS2OutputConfig ADIOS2config.xml;
 
    ADIOS2StoreCheckpointPath ./output/checkpoint;
    ADIOS2StoreCheckpointFilename TerraNeo_checkpoint;

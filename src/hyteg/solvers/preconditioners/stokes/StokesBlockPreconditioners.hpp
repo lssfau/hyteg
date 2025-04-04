@@ -354,6 +354,12 @@ class AdjointInexactUzawaPreconditioner : public Solver< OperatorType >
    std::shared_ptr< VelocityProjectionOperatorType > projection_;
 };
 
+/*
+This version of the Preconditioner is from https://doi.org/10.1002/nla.2375
+Compared to other preconditioners, this one is closer to the AdjointInexactUzawaPreconditioner 
+but does the application without calculating residuals at each step
+hence also cannot use the relaxation parameters
+*/
 template < typename OperatorType,
            typename AOperatorType,
            typename SchurOperatorType,
@@ -369,8 +375,6 @@ class BlockFactorisationPreconditioner : public Solver< OperatorType >
                                      const SchurOperatorType&                              schurOp,
                                      const std::shared_ptr< Solver< AOperatorType > >&     ABlockApproximationSolver,
                                      const std::shared_ptr< Solver< SchurOperatorType > >& SchurComplementApproximationSolver,
-                                     real_t                                                relaxParamA,
-                                     real_t                                                relaxParamSchur,
                                      uint_t                                                VelocityIterations = 1,
                                      std::shared_ptr< VelocityProjectionOperatorType >     projection         = nullptr,
                                      hyteg::DoFType flag = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
@@ -383,8 +387,6 @@ class BlockFactorisationPreconditioner : public Solver< OperatorType >
    , SchurComplementApproximationSolver_( SchurComplementApproximationSolver )
    , flag_( flag )
    , hasGlobalCells_( storage->hasGlobalCells() )
-   , relaxParamA_( relaxParamA )
-   , relaxParamSchur_( relaxParamSchur )
    , VelocityIterations_( VelocityIterations )
    , projectPressure_( projectPressure )
    , residual_( FunctionType( "BlockFactorisationPreconditioner_residual", storage, minLevel, maxLevel ) )
@@ -437,8 +439,6 @@ class BlockFactorisationPreconditioner : public Solver< OperatorType >
    DoFType flag_;
    bool    hasGlobalCells_;
 
-   real_t       relaxParamA_;
-   real_t       relaxParamSchur_;
    uint_t       VelocityIterations_;
    bool         projectPressure_;
    FunctionType residual_;

@@ -1,5 +1,9 @@
 #!/bin/bash
-
+##
+## This is a sample script for running
+## programs on slurm systems
+## This specific one was used on tethys-3g (geophysik)
+##
 ## Absolute paths are better for cluster jobs
 
 #SBATCH --output=./slurm-out/slurm-%j.out

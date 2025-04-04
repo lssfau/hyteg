@@ -332,8 +332,6 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        stokesOperatorFSSelf->getSchur(),
        ABlockMultigridSolver,
        SchurSolver,
-       1.0,
-       1.0,
        1u,
        projectionOperator );
 
