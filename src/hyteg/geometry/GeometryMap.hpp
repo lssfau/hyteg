@@ -21,8 +21,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/types/PointMatrixForwardDeclare.hpp"
 #include "hyteg/types/BufferSystemForwardDeclare.hpp"
+#include "hyteg/types/PointMatrixForwardDeclare.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -86,7 +86,7 @@ class GeometryMap
       ICOSAHEDRAL_SHELL_ALIGNED = 13,
    };
 
-   virtual ~GeometryMap(){};
+   virtual ~GeometryMap() {};
 
    /// Mapping of reference coordinates \p x to physical coordinates \p Fx
    /// \param x Reference input coordinates
@@ -96,7 +96,7 @@ class GeometryMap
    /// Maps point from physical back to computational domain (inverse blending)
    /// \param xPhys coordinates of point in physical domain
    /// \param xComp coordinates of point in computational domain
-   virtual void evalFinv(const Point3D &xPhys, Point3D &xComp) const;
+   virtual void evalFinv( const Point3D& xPhys, Point3D& xComp ) const;
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
@@ -107,7 +107,7 @@ class GeometryMap
    /// \param x Reference input coordinates
    /// \param DFx Jacobian matrix
    /// \return value of Jacobian determinant
-   virtual real_t evalDF(const Point3D &x, Matrix3r &DFx) const;
+   virtual real_t evalDF( const Point3D& x, Matrix3r& DFx ) const;
 
    ///@{
    /**
@@ -137,9 +137,9 @@ class GeometryMap
     *  \param x Reference input coordinates
     *  \param DFinvDFx Result matrix of size dim x dim*dim
    **/
-   virtual void evalDFinvDF(const Point3D &x, Matrixr<2, 4> &DFinvDFx) const;
+   virtual void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const;
 
-   virtual void evalDFinvDF(const Point3D &x, Matrixr<3, 9> &DFinvDFx) const;
+   virtual void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const;
 
    ///@}
 
@@ -151,7 +151,7 @@ class GeometryMap
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    /// \param DFinvx Inverse of the Jacobian matrix
-   virtual void evalDFinv(const Point3D &x, Matrix3r &DFinvx) const;
+   virtual void evalDFinv( const Point3D& x, Matrix3r& DFinvx ) const;
 
    /// Evaluation of the determinant of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates

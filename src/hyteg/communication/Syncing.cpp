@@ -22,8 +22,8 @@
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/functions/FEFunctionRegistry.hpp"
 #include "hyteg/functions/Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/all.hpp"
 

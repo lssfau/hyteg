@@ -18,10 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/geometry/GeometryMap.hpp"
+
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-#include "hyteg/geometry/GeometryMap.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
 
 #include "AffineMap2D.hpp"
 #include "AffineMap3D.hpp"
@@ -36,35 +39,38 @@
 #include "ThinShellMap.hpp"
 #include "TokamakMap.hpp"
 #include "TorusMap.hpp"
-#include "hyteg/types/Matrix.hpp"
-#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
-void GeometryMap::evalFinv(const Point3D &xPhys, Point3D &xComp) const {
+void GeometryMap::evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+{
    WALBERLA_UNUSED( xPhys );
    WALBERLA_UNUSED( xComp );
    WALBERLA_ABORT( "GeometryMap::evalFinv() not implemented for current child map" );
 }
 
-real_t GeometryMap::evalDF(const Point3D &x, Matrix3r &DFx) const {
+real_t GeometryMap::evalDF( const Point3D& x, Matrix3r& DFx ) const
+{
    WALBERLA_UNUSED( x );
    WALBERLA_UNUSED( DFx );
    WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D in child class!" );
 }
 
-void GeometryMap::evalDFinvDF(const Point3D &x, Matrixr<2, 4> &DFinvDFx) const {
+void GeometryMap::evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const
+{
    WALBERLA_UNUSED( x );
    WALBERLA_UNUSED( DFinvDFx );
    WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 2D in child class!" );
 }
 
-void GeometryMap::evalDFinvDF(const Point3D &x, Matrixr<3, 9> &DFinvDFx) const {
+void GeometryMap::evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const
+{
    WALBERLA_UNUSED( x );
    WALBERLA_UNUSED( DFinvDFx );
    WALBERLA_ABORT( "GeometryMap::evalDFinvDF() not implemented for 3D in child class!" );
 }
 
-void GeometryMap::evalDFinv(const Point3D &x, Matrix3r &DFinvx) const {
+void GeometryMap::evalDFinv( const Point3D& x, Matrix3r& DFinvx ) const
+{
    WALBERLA_UNUSED( x );
    WALBERLA_UNUSED( DFinvx );
    WALBERLA_ABORT( "GeometryMap::evalDFinv() not implemented for 3D in child class!" );

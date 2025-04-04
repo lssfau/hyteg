@@ -28,11 +28,11 @@
 namespace walberla {
 namespace timing {
 struct WcPolicy;
-template< typename TP >
+template < typename TP >
 class TimingTree;
-}
-using WcTimingTree = timing::TimingTree<timing::WcPolicy>;
-}
+} // namespace timing
+using WcTimingTree = timing::TimingTree< timing::WcPolicy >;
+} // namespace walberla
 
 namespace hyteg {
 class PrimitiveStorage;
@@ -85,7 +85,7 @@ class BufferedCommunicator
    /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
    /// \param excludeReceivingIDs exclude primtives with these IDs from receiving. The primitives will still send their data
    template < typename SenderType, typename ReceiverType >
-   void startCommunication(std::vector<PrimitiveID> excludeReceivingIDs = {});
+   void startCommunication( std::vector< PrimitiveID > excludeReceivingIDs = {} );
 
    /// Ends the non-blocking communication between two \ref Primitive types
    /// Waits for the started communication to be completed. It is only safe to modify the
@@ -106,11 +106,11 @@ class BufferedCommunicator
    ///@}
 
    /// Writes timing data for the setup and for the wait phase to \p timingTree
-   void enableTiming(const std::shared_ptr<walberla::WcTimingTree> &timingTree);
+   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree );
 
-private:
-   typedef std::function<void(walberla::mpi::SendBuffer &buf)> SendFunction;
-   typedef std::function<void(walberla::mpi::RecvBuffer &buf)> RecvFunction;
+ private:
+   typedef std::function< void( walberla::mpi::SendBuffer& buf ) > SendFunction;
+   typedef std::function< void( walberla::mpi::RecvBuffer& buf ) > RecvFunction;
 
    enum CommunicationDirection
    {
@@ -143,9 +143,9 @@ private:
    template < typename SenderType, typename ReceiverType >
    CommunicationDirection getCommunicationDirection() const;
 
-   void writeHeader(walberla::mpi::SendBuffer &sendBuffer, const PrimitiveID &senderID, const PrimitiveID &receiverID);
+   void writeHeader( walberla::mpi::SendBuffer& sendBuffer, const PrimitiveID& senderID, const PrimitiveID& receiverID );
 
-   void readHeader(walberla::mpi::RecvBuffer &recvBuffer, PrimitiveID &senderID, PrimitiveID &receiverID);
+   void readHeader( walberla::mpi::RecvBuffer& recvBuffer, PrimitiveID& senderID, PrimitiveID& receiverID );
 
    void endCommunication( const CommunicationDirection& communicationDirection );
 
