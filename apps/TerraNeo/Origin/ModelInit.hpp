@@ -627,7 +627,7 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
 
-   transportOperator->setP1Evaluate( true );
+   transportOperator->setP1Evaluate( false );
    transportOperator->setParticleLocalRadiusTolerance( 1e-3 );
 
    std::function< void( const Point3D&, Point3D& ) > projectBack = []( const Point3D& x, Point3D& xProj ) {
