@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Marcus Mohr, Dominik Thoennes.
+ * Copyright (c) 2017-2024 Marcus Mohr, Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).

@@ -226,6 +226,24 @@ void VTKMeshWriter::writePointsForMicroEdges( bool                              
    }
 }
 
+template < typename dstStream_t >
+void VTKMeshWriter::writePointsForMicroFaceCenters( dstStream_t&                               dstStream,
+                                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                                    uint_t                                     level )
+{
+   for ( const auto& it : storage->getFaceIDs() )
+   {
+      for ( const auto& faceType : facedof::allFaceTypes )
+      {
+         for ( const auto& microFaceIndex : facedof::macroface::Iterator( level, faceType, 0 ) )
+         {
+            const Point3D vtkPoint = micromesh::microFaceCenterPosition( storage, it, level, microFaceIndex, faceType );
+            dstStream << vtkPoint[0] << vtkPoint[1] << vtkPoint[2];
+         }
+      }
+   }
+}
+
 void VTKMeshWriter::writeCells2D( vtk::DataFormat                            vtkDataFormat,
                                   std::ostream&                              output,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
@@ -423,20 +441,11 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                                                             const std::shared_ptr< PrimitiveStorage >& storage,
                                                             uint_t                                     level )
 {
-// #define DEBUG_VTK_QUADRATIC_TRIANGLE
-#ifdef DEBUG_VTK_QUADRATIC_TRIANGLE
-#define VTK_QUADRATIC_TRIANGLE_LOG( msg ) WALBERLA_LOG_INFO_ON_ROOT( msg );
-#else
-#define VTK_QUADRATIC_TRIANGLE_LOG( msg )
-#endif
-
    uint_t macroFaceCount = 0;
 
    for ( auto& it : storage->getFaces() )
    {
       WALBERLA_UNUSED( it );
-
-      VTK_QUADRATIC_TRIANGLE_LOG( "rowsize = " << rowsize );
 
       std::map< vtk::DoFType, uint_t > offsets;
 
@@ -492,6 +501,169 @@ void VTKMeshWriter::writeElementNodeAssociationP2Triangles( dstStream_t&        
                              edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
 
                dstStream << idx0 << idx1 << idx2 << idx3 << idx4 << idx5;
+            }
+         }
+      }
+
+      macroFaceCount++;
+   }
+}
+
+void VTKMeshWriter::writeConnectivityP2TrianglesWithBubble( vtk::DataFormat                            vtkDataFormat,
+                                                            std::ostream&                              output,
+                                                            const std::shared_ptr< PrimitiveStorage >& storage,
+                                                            uint_t                                     level )
+{
+   using CellType = uint32_t;
+
+   output << "<Cells>\n";
+   vtk::openDataElement( output, typeToString< CellType >(), "connectivity", 0, vtkDataFormat );
+
+   const uint_t numberOfCells = levelinfo::num_microfaces_per_face( level ) * 6;
+
+   VTKStreamWriter< CellType > streamWriterCells( vtkDataFormat );
+   writeElementNodeAssociationP2TrianglesWithBubble( streamWriterCells, storage, level );
+   streamWriterCells.toStream( output );
+
+   output << "\n</DataArray>\n";
+
+   using OffsetType = uint32_t;
+
+   vtk::openDataElement( output, typeToString< OffsetType >(), "offsets", 0, vtkDataFormat );
+
+   VTKStreamWriter< OffsetType > streamWriterOffsets( vtkDataFormat );
+
+   // offsets
+   CellType offset = 3;
+   for ( auto& it : storage->getFaces() )
+   {
+      WALBERLA_UNUSED( it );
+
+      for ( OffsetType i = 0; i < numberOfCells; ++i )
+      {
+         streamWriterOffsets << offset;
+         offset += 3;
+      }
+   }
+
+   streamWriterOffsets.toStream( output );
+
+   output << "\n</DataArray>\n";
+
+   using CellTypeType = uint16_t;
+
+   vtk::openDataElement( output, typeToString< CellTypeType >(), "types", 0, vtkDataFormat );
+
+   VTKStreamWriter< CellTypeType > streamWriterTypes( vtkDataFormat );
+
+   // cell types
+   const unsigned char vtkTriangleID = 5;
+
+   for ( auto& it : storage->getFaces() )
+   {
+      WALBERLA_UNUSED( it );
+      for ( size_t i = 0; i < numberOfCells; ++i )
+      {
+         streamWriterTypes << vtkTriangleID;
+      }
+   }
+
+   streamWriterTypes.toStream( output );
+
+   output << "\n</DataArray>\n";
+   output << "</Cells>\n";
+}
+
+template < typename dstStream_t >
+void VTKMeshWriter::writeElementNodeAssociationP2TrianglesWithBubble( dstStream_t&                               dstStream,
+                                                                      const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                      uint_t                                     level )
+{
+#define DEBUG_VTK_BUBBLY_TRIANGLE
+#ifdef DEBUG_VTK_BUBBLY_TRIANGLE
+#define VTK_BUBBLY_TRIANGLE_LOG( msg ) WALBERLA_LOG_INFO_ON_ROOT( msg );
+#else
+#define VTK_BUBBLY_TRIANGLE_LOG( msg )
+#endif
+
+   uint_t macroFaceCount = 0;
+
+   for ( auto& it : storage->getFaces() )
+   {
+      WALBERLA_UNUSED( it );
+
+      std::map< vtk::DoFType, uint_t > offsets;
+
+      offsets[vtk::DoFType::VERTEX] = macroFaceCount * levelinfo::num_microvertices_per_face( level );
+      offsets[vtk::DoFType::EDGE_X] = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level ) +
+                                      macroFaceCount * ( levelinfo::num_microedges_per_face( level ) / 3 );
+      offsets[vtk::DoFType::EDGE_XY] = storage->getNumberOfLocalFaces() * ( levelinfo::num_microvertices_per_face( level ) +
+                                                                            levelinfo::num_microedges_per_face( level ) / 3 ) +
+                                       macroFaceCount * ( levelinfo::num_microedges_per_face( level ) / 3 );
+      offsets[vtk::DoFType::EDGE_Y] =
+          storage->getNumberOfLocalFaces() *
+              ( levelinfo::num_microvertices_per_face( level ) + 2 * ( levelinfo::num_microedges_per_face( level ) / 3 ) ) +
+          macroFaceCount * ( levelinfo::num_microedges_per_face( level ) / 3 );
+
+      uint_t faceDoFoffset = storage->getNumberOfLocalFaces() * ( levelinfo::num_microvertices_per_face( level ) +
+                                                                  levelinfo::num_microedges_per_face( level ) ) +
+                             macroFaceCount * levelinfo::num_microfaces_per_face( level );
+
+      for ( auto faceType : facedof::allFaceTypes )
+      {
+         for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+         {
+            if ( faceType == facedof::FaceType::GRAY )
+            {
+               uint_t idx0 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x(), idxIt.y() );
+               uint_t idx1 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x() + 1, idxIt.y() );
+               uint_t idx2 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x(), idxIt.y() + 1 );
+
+               // Looks odd, but we need the index of the x-edge for all types due to the ordering of the points.
+               // The index offsets are included in the offsets map.
+
+               uint_t idx3 = offsets[vtk::DoFType::EDGE_X] +
+                             edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
+
+               uint_t idx4 = offsets[vtk::DoFType::EDGE_XY] +
+                             edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
+
+               uint_t idx5 = offsets[vtk::DoFType::EDGE_Y] +
+                             edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
+
+               uint_t idx6 = faceDoFoffset + facedof::macroface::index( level, idxIt.x(), idxIt.y(), faceType );
+
+               dstStream << idx0 << idx3 << idx6;
+               dstStream << idx3 << idx1 << idx6;
+               dstStream << idx1 << idx4 << idx6;
+               dstStream << idx4 << idx2 << idx6;
+               dstStream << idx2 << idx5 << idx6;
+               dstStream << idx5 << idx0 << idx6;
+            }
+
+            if ( faceType == facedof::FaceType::BLUE )
+            {
+               uint_t idx0 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x() + 1, idxIt.y() );
+               uint_t idx1 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x() + 1, idxIt.y() + 1 );
+               uint_t idx2 = offsets[vtk::DoFType::VERTEX] + vertexdof::macroface::index( level, idxIt.x(), idxIt.y() + 1 );
+
+               uint_t idx3 = offsets[vtk::DoFType::EDGE_Y] +
+                             edgedof::macroface::index( level, idxIt.x() + 1, idxIt.y(), edgedof::EdgeDoFOrientation::X );
+
+               uint_t idx4 = offsets[vtk::DoFType::EDGE_X] +
+                             edgedof::macroface::index( level, idxIt.x(), idxIt.y() + 1, edgedof::EdgeDoFOrientation::X );
+
+               uint_t idx5 = offsets[vtk::DoFType::EDGE_XY] +
+                             edgedof::macroface::index( level, idxIt.x(), idxIt.y(), edgedof::EdgeDoFOrientation::X );
+
+               uint_t idx6 = faceDoFoffset + facedof::macroface::index( level, idxIt.x(), idxIt.y(), faceType );
+
+               dstStream << idx0 << idx3 << idx6;
+               dstStream << idx3 << idx1 << idx6;
+               dstStream << idx1 << idx4 << idx6;
+               dstStream << idx4 << idx2 << idx6;
+               dstStream << idx2 << idx5 << idx6;
+               dstStream << idx5 << idx0 << idx6;
             }
          }
       }
@@ -915,6 +1087,10 @@ template void VTKMeshWriter::writePointsForMicroEdges( bool                     
                                                        const std::shared_ptr< PrimitiveStorage >& storage,
                                                        uint_t                                     level,
                                                        const vtk::DoFType&                        dofType );
+
+template void VTKMeshWriter::writePointsForMicroFaceCenters( VTKStreamWriter< real_t >&                 dstStream,
+                                                             const std::shared_ptr< PrimitiveStorage >& storage,
+                                                             uint_t                                     level );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
 template void VTKMeshWriter::writePointsForMicroVertices( bool                                       write2D,

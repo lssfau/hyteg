@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -42,6 +42,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKN1E1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP2PlusBubbleWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
 
@@ -81,8 +82,8 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
                      "The VTK printer is able to print only functions of the types double, float, int32 and int64." );
 
       // Index vectors of non-nodal FE functions can not be printed directly.
-      static_assert( !( ( std::is_same_v< value_t, int32_t > || std::is_same_v< value_t, int64_t > ) &&
-                        (std::is_same_v< func_t< value_t >, DG1Function< value_t > > ||
+      static_assert( !( (std::is_same_v< value_t, int32_t > || std::is_same_v< value_t, int64_t >) &&(
+                         std::is_same_v< func_t< value_t >, DG1Function< value_t > > ||
                          std::is_same_v< func_t< value_t >, dg::DGFunction< value_t > > ||
                          std::is_same_v< func_t< value_t >, dg::DGVectorFunction< value_t > > ||
                          std::is_same_v< func_t< value_t >, n1e1::N1E1VectorFunction< value_t > > ||
@@ -177,6 +178,7 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    friend class VTKMeshWriter;
    friend class VTKP1Writer;
    friend class VTKP2Writer;
+   friend class VTKP2PlusBubbleWriter;
    friend class VTKDGWriter;
    friend class VTKP1DGEWriter;
    friend class VTKN1E1Writer;

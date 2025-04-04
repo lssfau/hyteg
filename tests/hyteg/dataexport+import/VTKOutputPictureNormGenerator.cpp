@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -34,6 +34,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -41,17 +42,18 @@ namespace hyteg {
 
 using walberla::math::pi;
 
-const std::string P0_SCALAR   = "p0-scalar";
-const std::string P1_SCALAR   = "p1-scalar";
-const std::string P2_SCALAR   = "p2-scalar";
-const std::string DG1_SCALAR  = "dg1-scalar";
-const std::string P1_VECTOR   = "p1-vector";
-const std::string P2_VECTOR   = "p2-vector";
-const std::string EG_VECTOR   = "eg-vector";
-const std::string N1E1_VECTOR = "n1e1-vector";
+const std::string P0_SCALAR             = "p0-scalar";
+const std::string P1_SCALAR             = "p1-scalar";
+const std::string P2_SCALAR             = "p2-scalar";
+const std::string P2_PLUS_BUBBLE_SCALAR = "p2-plus-bubble-scalar";
+const std::string DG1_SCALAR            = "dg1-scalar";
+const std::string P1_VECTOR             = "p1-vector";
+const std::string P2_VECTOR             = "p2-vector";
+const std::string EG_VECTOR             = "eg-vector";
+const std::string N1E1_VECTOR           = "n1e1-vector";
 
 const std::vector< std::string > functionStrings =
-    { P0_SCALAR, P1_SCALAR, P2_SCALAR, DG1_SCALAR, P1_VECTOR, P2_VECTOR, EG_VECTOR, N1E1_VECTOR };
+    { P0_SCALAR, P1_SCALAR, P2_SCALAR, P2_PLUS_BUBBLE_SCALAR, DG1_SCALAR, P1_VECTOR, P2_VECTOR, EG_VECTOR, N1E1_VECTOR };
 
 const auto gradient = []( const Point3D& x ) { return x[0] + x[1] + x[2]; };
 
@@ -87,6 +89,11 @@ static void exportFunctions( const std::string& functionType, uint_t level, cons
    else if ( functionType == P2_SCALAR )
    {
       interpolateAndWriteVTK( directory, level, storage, P2Function< real_t >( functionName, storage, minLevel, maxLevel ) );
+   }
+   else if ( functionType == P2_PLUS_BUBBLE_SCALAR )
+   {
+      interpolateAndWriteVTK(
+          directory, level, storage, P2PlusBubbleFunction< real_t >( functionName, storage, minLevel, maxLevel ) );
    }
    else if ( functionType == DG1_SCALAR )
    {

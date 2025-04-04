@@ -155,6 +155,15 @@ inline uint_t numberOfInnerDoFs( const uint_t& level )
       }
    }
 
+   // =======================
+   //  P2PlusBubbleFunctions
+   // =======================
+   else if constexpr ( std::is_same_v< FunctionTag_T, P2PlusBubbleFunctionTag > )
+   {
+      return numberOfInnerDoFs< P2FunctionTag, PrimitiveType >( level ) +
+             numberOfInnerDoFs< P0FunctionTag, PrimitiveType >( level );
+   }
+
    // =========
    // NO MATCH
    // =========
@@ -216,6 +225,15 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
    {
       return numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level ) +
              numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
+   }
+
+   // =======================
+   //  P2PlusBubbleFunctions
+   // =======================
+   else if constexpr ( std::is_same_v< P2PlusBubbleFunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level ) +
+             numberOfLocalDoFs< P0FunctionTag >( primitiveStorage, level );
    }
 
    // ==================

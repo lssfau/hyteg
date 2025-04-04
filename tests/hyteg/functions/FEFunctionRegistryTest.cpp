@@ -76,6 +76,8 @@ int main( int argc, char* argv[] )
 
    n1e1::N1E1VectorFunction< real_t > n1e1VectorFunc( "N1E1 vector function", storage, minLevel, maxLevel );
 
+   P2PlusBubbleFunction< real_t >  p2BubbleFunc( "bubble enhance P2 function", storageDG, minLevel, maxLevel );
+
    // create a registry and register some functions
    FEFunctionRegistry registry;
 
@@ -102,14 +104,15 @@ int main( int argc, char* argv[] )
    registry.add( n1e1VectorFunc );
    registry.add( p1VectorFunc );
    registry.add( p2VectorFunc );
+   registry.add( p2BubbleFunc );
 
    // adding this will increate the count of P1Function and P2VectorFunction
    registry.add( stokesFunc );
 
    // check name extraction individually for all kinds
    std::vector< functionTraits::FunctionKind > kinds{
-       DG_FUNCTION, P1_FUNCTION, P2_FUNCTION, P1_VECTOR_FUNCTION, P2_VECTOR_FUNCTION, N1E1_VECTOR_FUNCTION, EG_FUNCTION };
-   std::vector< uint_t > count{ 3, 3, 1, 1, 2, 1, 1 };
+       DG_FUNCTION, P1_FUNCTION, P2_FUNCTION, P2_PLUS_BUBBLE_FUNCTION, P1_VECTOR_FUNCTION, P2_VECTOR_FUNCTION, N1E1_VECTOR_FUNCTION, EG_FUNCTION };
+   std::vector< uint_t > count{ 3, 3, 1, 1, 1, 2, 1, 1 };
    for ( uint_t k = 0; k < kinds.size(); ++k )
    {
       names.clear();

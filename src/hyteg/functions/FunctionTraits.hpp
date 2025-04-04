@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -53,6 +53,8 @@ struct DG1FunctionTag
 {};
 struct P2FunctionTag
 {};
+struct P2PlusBubbleFunctionTag
+{};
 struct P1StokesFunctionTag
 {};
 struct P2P1TaylorHoodFunctionTag
@@ -64,6 +66,8 @@ struct P2P2StokesFunctionTag
 struct P1VectorFunctionTag
 {};
 struct P2VectorFunctionTag
+{};
+struct P2PlusBubbleVectorFunctionTag
 {};
 struct DGVectorFunctionTag
 {};
@@ -111,6 +115,9 @@ template < typename VType >
 class P2Function;
 
 template < typename VType >
+class P2PlusBubbleFunction;
+
+template < typename VType >
 class P1StokesFunction;
 
 template < typename VType >
@@ -130,6 +137,9 @@ class P1VectorFunction_AltKind;
 
 template < typename VType >
 class P2VectorFunction;
+
+template < typename VType >
+class P2PlusBubbleVectorFunction;
 
 namespace dg {
 template < typename VType >
@@ -154,12 +164,14 @@ typedef enum
    DG1_FUNCTION,
    P1_FUNCTION,
    P2_FUNCTION,
+   P2_PLUS_BUBBLE_FUNCTION,
    EDGE_DOF_FUNCTION,
    VOLUME_DOF_FUNCTION,
    DG_FUNCTION,
    N1E1_VECTOR_FUNCTION,
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
+   P2_PLUS_BUBBLE_VECTOR_FUNCTION,
    DG_VECTOR_FUNCTION,
    EG_FUNCTION,
    OTHER_FUNCTION
@@ -276,6 +288,19 @@ struct FunctionTrait< P2Function< VType > >
    static const functionTraits::FunctionKind kind = functionTraits::P2_FUNCTION;
 };
 
+/// P2 plus Bubble specialization
+template < typename VType >
+struct FunctionTrait< P2PlusBubbleFunction< VType > >
+{
+   typedef VType                               ValueType;
+   typedef P2PlusBubbleFunctionTag             Tag;
+   typedef P2PlusBubbleVectorFunction< VType > AssocVectorFunctionType;
+
+   static std::string getTypeName() { return "P2PlusBubbleFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P2_PLUS_BUBBLE_FUNCTION;
+};
+
 /// P1Stokes specialization
 template < typename VType >
 struct FunctionTrait< P1StokesFunction< VType > >
@@ -351,6 +376,19 @@ struct FunctionTrait< P2VectorFunction< VType > >
    static std::string getTypeName() { return "P2VectorFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::P2_VECTOR_FUNCTION;
+};
+
+/// P2PlusBubbleVectorFunction specialization
+template < typename VType >
+struct FunctionTrait< P2PlusBubbleVectorFunction< VType > >
+{
+   typedef VType                         ValueType;
+   typedef P2PlusBubbleVectorFunctionTag Tag;
+   typedef P2PlusBubbleFunction< VType > VectorComponentType;
+
+   static std::string getTypeName() { return "P2PlusBubbleVectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P2_PLUS_BUBBLE_VECTOR_FUNCTION;
 };
 
 /// DGVectorFunction specialization

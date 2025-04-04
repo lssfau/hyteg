@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -77,6 +77,17 @@ void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& vecFu
 }
 
 template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const P2PlusBubbleVectorFunction< vType >& vecFunc,
+                                          const uint_t&                              level,
+                                          syncDirection_t                            direction )
+{
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+   {
+      syncFunctionBetweenPrimitives( vecFunc[idx], level, direction );
+   }
+}
+
+template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const EGFunction< vType >& p1dgeFunc, const uint_t& level, syncDirection_t direction )
 {
    auto& vecFunc = *( p1dgeFunc.getConformingPart() );
@@ -144,6 +155,25 @@ template void
 
 template void
     syncFunctionBetweenPrimitives( const P2Function< int64_t >& function, const uint_t& level, syncDirection_t direction );
+
+// --------------------------------------------------
+//  Explicit Instantiations for P2PlusBubbleFunction
+// --------------------------------------------------
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< double >& function,
+                                             const uint_t&                         level,
+                                             syncDirection_t                       direction );
+
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< float >& function,
+                                             const uint_t&                        level,
+                                             syncDirection_t                      direction );
+
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< int32_t >& function,
+                                             const uint_t&                          level,
+                                             syncDirection_t                        direction );
+
+template void syncFunctionBetweenPrimitives( const P2PlusBubbleFunction< int64_t >& function,
+                                             const uint_t&                          level,
+                                             syncDirection_t                        direction );
 
 // ----------------------------------------------
 //  Explicit Instantiations for P1VectorFunction
@@ -296,6 +326,64 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
       controlCount++;
    }
    for ( const auto& function : feFunctionRegistry.getP2VectorFunctions().getFunctions< int64_t >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+
+   // ---------------------------------------------------------
+   //  P2PlusBubbleFunctions [double, float, int32_t, int64_t]
+   // ---------------------------------------------------------
+   if ( !excludeDGTypeFunctions && feFunctionRegistry.getP2PlusBubbleFunctions().size() > 0 )
+   {
+      WALBERLA_ABORT( "Sorry, but P2PlusBubbleFunction::communicate() currently does not communicate bubble dofs!\n"
+                      << "Make sure to call syncing with excludeDGTypeFunctions = true!" );
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< double >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< float >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleFunctions().getFunctions< int64_t >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+
+   // ---------------------------------------------------------------
+   //  P2PlusBubbleVectorFunctions [double, float, int32_t, int64_t]
+   // ---------------------------------------------------------------
+   if ( !excludeDGTypeFunctions && feFunctionRegistry.getP2PlusBubbleVectorFunctions().size() > 0 )
+   {
+      WALBERLA_ABORT( "Sorry, but P2PlusBubbleFunction::communicate() currently does not communicate bubble dofs!\n"
+                      << "Make sure to call syncing with excludeDGTypeFunctions = true!" );
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleVectorFunctions().getFunctions< double >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleVectorFunctions().getFunctions< float >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleVectorFunctions().getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level, direction );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP2PlusBubbleVectorFunctions().getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level, direction );
       controlCount++;
