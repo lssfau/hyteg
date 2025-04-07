@@ -89,10 +89,8 @@ class P1ToP2SurrogateOperator : public Operator< P1Function< real_t >, P2Functio
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
          {
-            P2::StencilInterpolator< LSQPType::VERTEX, P2::NumStencilentries2D::VtV >   VtVInterpolator( polyDegree,
-                                                                                                       interpolationLevel_ );
-            P2::StencilInterpolator< LSQPType::EDGE_ALL, P2::NumStencilentries2D::VtE > VtEInterpolator( polyDegree,
-                                                                                                         interpolationLevel_ );
+            P2::StencilInterpolator< LSQPType::VERTEX, P2::NumStencilentries2D::VtV >   VtVInterpolator( polyDegree );
+            P2::StencilInterpolator< LSQPType::EDGE_ALL, P2::NumStencilentries2D::VtE > VtEInterpolator( polyDegree );
 
             // directions (size of microfaces based on current level)
             real_t        h     = 1.0 / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );

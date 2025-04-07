@@ -95,14 +95,10 @@ class P2SurrogateOperator : public Operator< P2Function< real_t >, P2Function< r
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
          {
-            P2::StencilInterpolator< LSQPType::VERTEX, P2::NumStencilentries2D::VtV >   VtVInterpolator( polyDegree,
-                                                                                                       interpolationLevel_ );
-            P2::StencilInterpolator< LSQPType::VERTEX, P2::NumStencilentries2D::EtV >   EtVInterpolator( polyDegree,
-                                                                                                       interpolationLevel_ );
-            P2::StencilInterpolator< LSQPType::EDGE_ALL, P2::NumStencilentries2D::VtE > VtEInterpolator( polyDegree,
-                                                                                                         interpolationLevel_ );
-            P2::StencilInterpolator< LSQPType::EDGE_ALL, P2::NumStencilentries2D::EtE > EtEInterpolator( polyDegree,
-                                                                                                         interpolationLevel_ );
+            P2::StencilInterpolator< LSQPType::VERTEX, P2::NumStencilentries2D::VtV >   VtVInterpolator( polyDegree );
+            P2::StencilInterpolator< LSQPType::VERTEX, P2::NumStencilentries2D::EtV >   EtVInterpolator( polyDegree );
+            P2::StencilInterpolator< LSQPType::EDGE_ALL, P2::NumStencilentries2D::VtE > VtEInterpolator( polyDegree );
+            P2::StencilInterpolator< LSQPType::EDGE_ALL, P2::NumStencilentries2D::EtE > EtEInterpolator( polyDegree );
 
             // directions (size of microfaces based on current level)
             real_t        h     = 1.0 / ( walberla::real_c( levelinfo::num_microvertices_per_edge( level ) - 1 ) );

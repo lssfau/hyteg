@@ -20,40 +20,39 @@
 #pragma once
 
 #include <array>
-#include <hyteg/polynomial/LSQPInterpolator.hpp>
-#include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
 #include <hyteg/p2functionspace/polynomial/P2StencilPolynomial.hpp>
-
+#include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
+#include <hyteg/polynomial/LSQPInterpolator.hpp>
 
 namespace hyteg {
 namespace P2 {
 
-template <LSQPType L, P2::NumStencilentries2D N>
+template < LSQPType L, P2::NumStencilentries2D N >
 class StencilInterpolator
 {
  public:
-   StencilInterpolator(uint_t polyDegree, uint_t interpolationLevel)
+   StencilInterpolator( uint_t polyDegree )
    {
-      for (uint_t i = 0; i < N; ++i)
+      for ( uint_t i = 0; i < N; ++i )
       {
-         data_[i] = std::make_shared<LSQPInterpolator<MonomialBasis2D, L>>(polyDegree, interpolationLevel);
+         data_[i] = std::make_shared< LSQPInterpolator< MonomialBasis2D, L > >( polyDegree );
       }
    }
 
-   inline void interpolate(StencilPolynomial<N>& poly)
+   void interpolate( StencilPolynomial< N >& poly )
    {
-      for (uint_t i = 0; i < N; ++i)
+      for ( uint_t i = 0; i < N; ++i )
       {
-         data_[i]->interpolate(poly[i]);
+         data_[i]->interpolate( poly[i] );
       }
    }
 
-   inline LSQPInterpolator<MonomialBasis2D, L>& operator[](uint_t i) {return *(data_[i]);}
+   LSQPInterpolator< MonomialBasis2D, L >& operator[]( uint_t i ) { return *( data_[i] ); }
 
-   inline const LSQPInterpolator<MonomialBasis2D, L>& operator[](uint_t i) const {return *(data_[i]);}
+   const LSQPInterpolator< MonomialBasis2D, L >& operator[]( uint_t i ) const { return *( data_[i] ); }
 
  private:
-   std::array<std::shared_ptr<LSQPInterpolator<MonomialBasis2D, L>>, N> data_;
+   std::array< std::shared_ptr< LSQPInterpolator< MonomialBasis2D, L > >, N > data_;
 };
 
 } // namespace P2

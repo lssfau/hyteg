@@ -5,6 +5,8 @@ target_sources( hyteg
     VTKEdgeDoFWriter.cpp
     VTKEdgeDoFWriter.hpp
     VTKHelpers.hpp
+    VTKHexahedraOutput.cpp
+    VTKHexahedraOutput.hpp
     VTKMeshWriter.cpp
     VTKMeshWriter.hpp
     VTKN1E1Writer.cpp
