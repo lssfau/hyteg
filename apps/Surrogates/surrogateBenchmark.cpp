@@ -210,7 +210,7 @@ int main( int argc, char* argv[] )
    uint_t            lvl2  = 10;
    uint_t            lvl3  = 7;
    constexpr uint8_t q_max = 3;
-   uint_t            iter  = 5;
+   uint_t            iter  = 10;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl2 ) );
    benchmark< q_max >( storage, lvl2, iter );
