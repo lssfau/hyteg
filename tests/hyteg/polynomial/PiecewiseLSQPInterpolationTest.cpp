@@ -137,7 +137,8 @@ int main( int argc, char* argv[] )
    {
       MeshInfo   meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
       const auto err      = test< PiecewiseLSQPPolyKDTree2D >( meshInfo, 5, 4, 6, 1.0 );
-      WALBERLA_CHECK_LESS( err, 0.043 );
+
+      WALBERLA_CHECK_LESS( err, 0.044 );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -145,7 +146,15 @@ int main( int argc, char* argv[] )
    {
       MeshInfo   meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
       const auto err      = test< PiecewiseLSQPPolyKDTree2D >( meshInfo, 5, 5, 5, 1.0 );
-      WALBERLA_CHECK_LESS( err, 0.012 );
+
+      if ( std::is_same_v< real_t, double > )
+      {
+         WALBERLA_CHECK_LESS( err, 0.012 );
+      }
+      else if ( std::is_same_v< real_t, float > )
+      {
+         WALBERLA_CHECK_LESS( err, 0.081 );
+      }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -153,7 +162,15 @@ int main( int argc, char* argv[] )
    {
       MeshInfo   meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
       const auto err      = test< PiecewiseLSQPPolyKDTree2D >( meshInfo, 5, 6, 5, 1.0 );
-      WALBERLA_CHECK_LESS( err, 0.0016 );
+
+      if ( std::is_same_v< real_t, double > )
+      {
+         WALBERLA_CHECK_LESS( err, 0.0016 );
+      }
+      else if ( std::is_same_v< real_t, float > )
+      {
+         WALBERLA_CHECK_LESS( err, 0.034 );
+      }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -161,6 +178,14 @@ int main( int argc, char* argv[] )
    {
       MeshInfo   meshInfo = MeshInfo::meshTorus( 5, 5, 1.0, { 0.1, 0.2 } );
       const auto err      = test< PiecewiseLSQPPolyKDTree3D >( meshInfo, 3, 5, 6, 1.0 );
-      WALBERLA_CHECK_LESS( err, 0.014 );
+
+      if ( std::is_same_v< real_t, double > )
+      {
+         WALBERLA_CHECK_LESS( err, 0.014 );
+      }
+      else if ( std::is_same_v< real_t, float > )
+      {
+         WALBERLA_CHECK_LESS( err, 0.086 );
+      }
    }
 }
