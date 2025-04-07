@@ -138,7 +138,7 @@ void all_tests()
       {
          epsilon[Q] = 5e-4;
       }
-      if ( Q < hyteg::surrogate::LeastSquares< real_t >::max_degree( lvl, ds ) )
+      if ( Q + 1 < hyteg::surrogate::interpolation::n_edge( lvl, ds, 0 ) )
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   downsampling factor %d", ds ) );
 
