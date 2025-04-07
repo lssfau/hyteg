@@ -28,6 +28,7 @@
 #include "hyteg/geometry/Polygons.hpp"
 #include "hyteg/geometry/Torus.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 using walberla::int_c;
 using walberla::real_c;

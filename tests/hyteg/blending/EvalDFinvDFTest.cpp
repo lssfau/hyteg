@@ -291,10 +291,10 @@ real_t secondDerivativesFiniteDifferenceTest3D( const std::shared_ptr< Primitive
       dx( 0 ) = h;
 
       geometryMap->evalDF( x + dx, DInvFx_plus_dx );
-      DInvFx_plus_dx = DInvFx_plus_dx.inverse();
+      DInvFx_plus_dx = DInvFx_plus_dx.inverse().eval();
 
       geometryMap->evalDF( x - dx, DInvFx_minus_dx );
-      DInvFx_minus_dx = DInvFx_minus_dx.inverse();
+      DInvFx_minus_dx = DInvFx_minus_dx.inverse().eval();
 
       DFInvDFxNumerical( 0, 0 ) = ( DInvFx_plus_dx( 0, 0 ) - DInvFx_minus_dx( 0, 0 ) ) / ( real_c( 2.0 ) * dx( 0 ) );
       DFInvDFxNumerical( 1, 0 ) = ( DInvFx_plus_dx( 1, 0 ) - DInvFx_minus_dx( 1, 0 ) ) / ( real_c( 2.0 ) * dx( 0 ) );
@@ -310,10 +310,10 @@ real_t secondDerivativesFiniteDifferenceTest3D( const std::shared_ptr< Primitive
       dx( 1 ) = h;
 
       geometryMap->evalDF( x + dx, DInvFx_plus_dx );
-      DInvFx_plus_dx = DInvFx_plus_dx.inverse();
+      DInvFx_plus_dx = DInvFx_plus_dx.inverse().eval();
 
       geometryMap->evalDF( x - dx, DInvFx_minus_dx );
-      DInvFx_minus_dx = DInvFx_minus_dx.inverse();
+      DInvFx_minus_dx = DInvFx_minus_dx.inverse().eval();
 
       DFInvDFxNumerical( 0, 3 ) = ( DInvFx_plus_dx( 0, 0 ) - DInvFx_minus_dx( 0, 0 ) ) / ( real_c( 2.0 ) * dx( 1 ) );
       DFInvDFxNumerical( 1, 3 ) = ( DInvFx_plus_dx( 1, 0 ) - DInvFx_minus_dx( 1, 0 ) ) / ( real_c( 2.0 ) * dx( 1 ) );
@@ -329,10 +329,10 @@ real_t secondDerivativesFiniteDifferenceTest3D( const std::shared_ptr< Primitive
       dx( 2 ) = h;
 
       geometryMap->evalDF( x + dx, DInvFx_plus_dx );
-      DInvFx_plus_dx = DInvFx_plus_dx.inverse();
+      DInvFx_plus_dx = DInvFx_plus_dx.inverse().eval();
 
       geometryMap->evalDF( x - dx, DInvFx_minus_dx );
-      DInvFx_minus_dx = DInvFx_minus_dx.inverse();
+      DInvFx_minus_dx = DInvFx_minus_dx.inverse().eval();
 
       DFInvDFxNumerical( 0, 6 ) = ( DInvFx_plus_dx( 0, 0 ) - DInvFx_minus_dx( 0, 0 ) ) / ( real_c( 2.0 ) * dx( 2 ) );
       DFInvDFxNumerical( 1, 6 ) = ( DInvFx_plus_dx( 1, 0 ) - DInvFx_minus_dx( 1, 0 ) ) / ( real_c( 2.0 ) * dx( 2 ) );

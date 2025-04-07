@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl,
+ * Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,26 +21,29 @@
 
 #pragma once
 
-#include "hyteg/eigen/EigenWrapper.hpp"
+#include "core/DataTypes.h"
+#include <Eigen/Core>
 
 namespace hyteg {
+template< typename ValueType, int N >
+class PointND;
 
-using walberla::int_c;
-using walberla::real_t;
-using walberla::uint_t;
+
+using Point2D = PointND<walberla::real_t, 2>;
+using Point3D = PointND<walberla::real_t, 3>;
+using Point4D = PointND<walberla::real_t, 4>;
+using Point6D = PointND<walberla::real_t, 6>;
+using Point10D = PointND<walberla::real_t, 10>;
 
 template < typename ValueType, int M, int N >
 using Matrix = Eigen::Matrix< ValueType, M, N, N == 1 ? Eigen::ColMajor : Eigen::RowMajor >;
 
-template < int M, int N >
-using Matrixr = Matrix< real_t, M, N >;
+template< int M, int N >
+using Matrixr = Matrix<walberla::real_t, M, N>;
 
-using Matrix2r  = Matrixr< 2, 2 >;
-using Matrix3r  = Matrixr< 3, 3 >;
-using Matrix4r  = Matrixr< 4, 4 >;
-using Matrix6r  = Matrixr< 6, 6 >;
-using Matrix10r = Matrixr< 10, 10 >;
-using MatrixXr  = Matrixr< Eigen::Dynamic, Eigen::Dynamic >;
-using VectorXr  = Matrixr< Eigen::Dynamic, 1 >;
-
-} // namespace hyteg
+using Matrix2r = Matrixr<2, 2>;
+using Matrix3r = Matrixr<3, 3>;
+using Matrix4r = Matrixr<4, 4>;
+using Matrix6r = Matrixr<6, 6>;
+using Matrix10r = Matrixr<10, 10>;
+}

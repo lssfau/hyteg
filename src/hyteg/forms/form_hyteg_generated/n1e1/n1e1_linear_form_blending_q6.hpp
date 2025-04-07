@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "core/Abort.h"
+
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/forms/N1E1Form.hpp"
 

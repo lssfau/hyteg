@@ -995,7 +995,7 @@ inline void smoothGSVariableStencil(uint_t level,
       }
 
       dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge(level, i, SD::EDGE_HO_C)] =
-         tmp / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)];;
+         tmp / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)];
    }
 }
 

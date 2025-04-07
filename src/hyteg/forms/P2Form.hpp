@@ -21,6 +21,8 @@
 
 #include <vector>
 
+#include "core/Abort.h"
+
 #include "hyteg/forms/Form.hpp"
 
 namespace hyteg {

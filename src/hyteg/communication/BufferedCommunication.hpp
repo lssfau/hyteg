@@ -19,24 +19,28 @@
  */
 
 #pragma once
+#include <functional>
 
-#include <atomic>
-#include <limits>
+#include "core/DataTypes.h"
 
-#include "core/debug/CheckFunctions.h"
-#include "core/debug/Debug.h"
-#include "core/mpi/BufferSystem.h"
-#include "core/mpi/MPIManager.h"
-#include "core/mpi/OpenMPBufferSystem.h"
-#include "core/timing/TimingPool.h"
-#include "core/timing/TimingTree.h"
+#include "hyteg/types/BufferSystemForwardDeclare.hpp"
 
-#include "hyteg/communication/PackInfo.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+namespace walberla {
+namespace timing {
+struct WcPolicy;
+template < typename TP >
+class TimingTree;
+} // namespace timing
+using WcTimingTree = timing::TimingTree< timing::WcPolicy >;
+} // namespace walberla
 
 namespace hyteg {
+class PrimitiveStorage;
+class PrimitiveID;
+
 namespace communication {
 
+class PackInfo;
 using walberla::int_c;
 
 /// \brief Executes communication between primitives
@@ -81,7 +85,7 @@ class BufferedCommunicator
    /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
    /// \param excludeReceivingIDs exclude primtives with these IDs from receiving. The primitives will still send their data
    template < typename SenderType, typename ReceiverType >
-   inline void startCommunication( std::vector< PrimitiveID > excludeReceivingIDs = {} );
+   void startCommunication( std::vector< PrimitiveID > excludeReceivingIDs = {} );
 
    /// Ends the non-blocking communication between two \ref Primitive types
    /// Waits for the started communication to be completed. It is only safe to modify the
@@ -89,7 +93,7 @@ class BufferedCommunicator
    /// \tparam SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
    /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
    template < typename SenderType, typename ReceiverType >
-   inline void endCommunication();
+   void endCommunication();
 
    /// @name Local communication mode
    /// Getter and setter to retrieve and set the local communication mode.
@@ -102,11 +106,11 @@ class BufferedCommunicator
    ///@}
 
    /// Writes timing data for the setup and for the wait phase to \p timingTree
-   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { timingTree_ = timingTree; }
+   void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree );
 
  private:
-   typedef std::function< void( SendBuffer& buf ) > SendFunction;
-   typedef std::function< void( RecvBuffer& buf ) > RecvFunction;
+   typedef std::function< void( walberla::mpi::SendBuffer& buf ) > SendFunction;
+   typedef std::function< void( walberla::mpi::RecvBuffer& buf ) > RecvFunction;
 
    enum CommunicationDirection
    {
@@ -131,16 +135,17 @@ class BufferedCommunicator
       NUM_COMMUNICATION_DIRECTIONS
    };
 
-   static const uint_t SYNC_WORD;
+   static const walberla::uint_t SYNC_WORD;
 
    static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
    static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
 
    template < typename SenderType, typename ReceiverType >
-   inline CommunicationDirection getCommunicationDirection() const;
+   CommunicationDirection getCommunicationDirection() const;
 
-   void writeHeader( SendBuffer& sendBuffer, const PrimitiveID& senderID, const PrimitiveID& receiverID );
-   void readHeader( RecvBuffer& recvBuffer, PrimitiveID& senderID, PrimitiveID& receiverID );
+   void writeHeader( walberla::mpi::SendBuffer& sendBuffer, const PrimitiveID& senderID, const PrimitiveID& receiverID );
+
+   void readHeader( walberla::mpi::RecvBuffer& recvBuffer, PrimitiveID& senderID, PrimitiveID& receiverID );
 
    void endCommunication( const CommunicationDirection& communicationDirection );
 
@@ -150,11 +155,11 @@ class BufferedCommunicator
    void setupBeforeNextCommunication();
 
    template < typename SenderType, typename ReceiverType >
-   inline void staticAssertCommunicationDirections() const;
+   void staticAssertCommunicationDirections() const;
 
    std::weak_ptr< PrimitiveStorage > primitiveStorage_;
 
-   uint_t primitiveStorageModificationStamp_;
+   walberla::uint_t primitiveStorageModificationStamp_;
 
    std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
@@ -170,341 +175,6 @@ class BufferedCommunicator
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
-
-template < typename SenderType, typename ReceiverType >
-inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCommunicationDirection() const
-{
-   staticAssertCommunicationDirections< SenderType, ReceiverType >();
-
-   if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge >::value )
-      return VERTEX_TO_EDGE;
-   if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face >::value )
-      return VERTEX_TO_FACE;
-   if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Cell >::value )
-      return VERTEX_TO_CELL;
-
-   if ( std::is_same< SenderType, Edge >::value && std::is_same< ReceiverType, Vertex >::value )
-      return EDGE_TO_VERTEX;
-   if ( std::is_same< SenderType, Edge >::value && std::is_same< ReceiverType, Face >::value )
-      return EDGE_TO_FACE;
-   if ( std::is_same< SenderType, Edge >::value && std::is_same< ReceiverType, Cell >::value )
-      return EDGE_TO_CELL;
-
-   if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Vertex >::value )
-      return FACE_TO_VERTEX;
-   if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Edge >::value )
-      return FACE_TO_EDGE;
-   if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Face >::value )
-      return FACE_TO_FACE;
-   if ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Cell >::value )
-      return FACE_TO_CELL;
-
-   if ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Vertex >::value )
-      return CELL_TO_VERTEX;
-   if ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Edge >::value )
-      return CELL_TO_EDGE;
-   if ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Face >::value )
-      return CELL_TO_FACE;
-   if ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Cell >::value )
-      return CELL_TO_CELL;
-
-   WALBERLA_ABORT( "Sender and receiver types are invalid" );
-
-   return NUM_COMMUNICATION_DIRECTIONS;
-}
-
-template < typename SenderType, typename ReceiverType >
-void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > excludeReceivingIDs )
-{
-   staticAssertCommunicationDirections< SenderType, ReceiverType >();
-
-   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
-
-   const std::string timerStringSetup    = "Communication (setup                   )";
-   const std::string timerStringDirect   = "Communication (direct                  )";
-   const std::string timerStringBuffered = "Communication (buffered / pack         )";
-
-   startTimer( timerStringSetup );
-
-   if ( packInfos_.empty() )
-   {
-      stopTimer( timerStringSetup );
-      return;
-   }
-
-   WALBERLA_ASSERT( !communicationInProgress_[communicationDirection] );
-   communicationInProgress_[communicationDirection] = true;
-
-   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[communicationDirection];
-   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
-
-   std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
-   WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
-
-   if ( storage->getModificationStamp() != primitiveStorageModificationStamp_ )
-   {
-      primitiveStorageModificationStamp_ = storage->getModificationStamp();
-      setupBeforeNextCommunication();
-   }
-
-   if ( setupBeforeNextCommunication_[communicationDirection] )
-   {
-      bufferSystem->clearSendingFunctions();
-      bufferSystem->clearReceivingFunctions();
-
-      directCommunicationFunctions_[communicationDirection].clear();
-
-      std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;   // rank -> sendFunctions
-      std::map< uint_t, uint_t >                      ranksToReceiveFrom; // rank -> number of receives
-
-      std::vector< PrimitiveID > senderIDs;
-      std::vector< PrimitiveID > receiverIDs;
-
-      storage->getPrimitiveIDsGenerically< SenderType >( senderIDs );
-      storage->getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
-
-      for ( const PrimitiveID& excludeID : excludeReceivingIDs )
-      {
-         receiverIDs.erase( std::remove( receiverIDs.begin(), receiverIDs.end(), excludeID ), receiverIDs.end() );
-      }
-
-      // Send functions
-      for ( const PrimitiveID& senderID : senderIDs )
-      {
-         WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< SenderType >( senderID ) );
-         SenderType* sender = storage->getPrimitiveGenerically< SenderType >( senderID );
-
-         std::vector< PrimitiveID > receivingNeighborhood;
-         if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
-         {
-            for ( const auto& [_, neighbors] : sender->getIndirectTopLevelNeighborFaceIDsOverEdges() )
-            {
-               for ( const auto& nFacePID : neighbors )
-               {
-                  receivingNeighborhood.push_back( nFacePID );
-               }
-            }
-         }
-         else if constexpr ( std::is_same_v< SenderType, Cell > && std::is_same_v< ReceiverType, Cell > )
-         {
-            for ( const auto& [_, pid] : sender->getIndirectNeighborCellIDsOverFaces() )
-            {
-               receivingNeighborhood.push_back( pid );
-            }
-         }
-         else
-         {
-            sender->template getNeighborPrimitivesGenerically< ReceiverType >( receivingNeighborhood );
-         }
-
-         for ( const PrimitiveID& excludeID : excludeReceivingIDs )
-         {
-            receivingNeighborhood.erase( std::remove( receivingNeighborhood.begin(), receivingNeighborhood.end(), excludeID ),
-                                         receivingNeighborhood.end() );
-         }
-
-         for ( const auto& neighborID : receivingNeighborhood )
-         {
-            WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) ||
-                             storage->primitiveExistsInNeighborhoodGenerically< ReceiverType >( neighborID ) );
-
-            if ( getLocalCommunicationMode() == DIRECT &&
-                 storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
-            {
-               ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID );
-               for ( auto& packInfo : packInfos_ )
-               {
-                  auto directCommunicationFunction = [sender, receiver, packInfo]() -> void {
-                     packInfo->communicateLocal< SenderType, ReceiverType >( sender, receiver );
-                  };
-                  directCommunicationFunctions_[communicationDirection].push_back( directCommunicationFunction );
-               }
-            }
-            else
-            {
-               uint_t neighborRank = storage->getPrimitiveRank( neighborID );
-
-               if ( !packInfos_.empty() )
-               {
-                  auto headerWriter = [this, senderID, neighborID]( SendBuffer& sendBuffer ) -> void {
-                     writeHeader( sendBuffer, senderID, neighborID );
-                  };
-                  sendFunctionsMap[neighborRank].push_back( headerWriter );
-               }
-
-               for ( auto& packInfo : packInfos_ )
-               {
-                  auto sendFunction = [this, sender, neighborID, packInfo]( SendBuffer& sendBuffer ) -> void {
-                     startTimer( "Packing" );
-                     packInfo->pack< SenderType, ReceiverType >( sender, neighborID, sendBuffer );
-                     stopTimer( "Packing" );
-                  };
-                  sendFunctionsMap[neighborRank].push_back( sendFunction );
-               }
-            }
-         }
-      }
-
-      // Ranks to receive from
-      for ( const PrimitiveID& receiverID : receiverIDs )
-      {
-         ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
-
-         std::vector< PrimitiveID > sendingNeighborhood;
-         if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
-         {
-            for ( const auto& [_, neighbors] : receiver->getIndirectTopLevelNeighborFaceIDsOverEdges() )
-            {
-               for ( const auto& nFacePID : neighbors )
-               {
-                  sendingNeighborhood.push_back( nFacePID );
-               }
-            }
-         }
-         else if constexpr ( std::is_same_v< SenderType, Cell > && std::is_same_v< ReceiverType, Cell > )
-         {
-            for ( const auto& [_, pid] : receiver->getIndirectNeighborCellIDsOverFaces() )
-            {
-               sendingNeighborhood.push_back( pid );
-            }
-         }
-         else
-         {
-            receiver->template getNeighborPrimitivesGenerically< SenderType >( sendingNeighborhood );
-         }
-
-         for ( const auto& neighborID : sendingNeighborhood )
-         {
-            WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) ||
-                             storage->primitiveExistsInNeighborhoodGenerically< SenderType >( neighborID ) );
-
-            if ( getLocalCommunicationMode() != DIRECT ||
-                 !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
-            {
-               uint_t neighborRank = storage->getPrimitiveRank( neighborID );
-
-               if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
-               {
-                  ranksToReceiveFrom[neighborRank] = 1;
-               }
-               else
-               {
-                  ranksToReceiveFrom[neighborRank] += 1;
-               }
-            }
-         }
-      }
-
-      for ( auto it = sendFunctionsMap.begin(); it != sendFunctionsMap.end(); it++ )
-      {
-         uint_t                      receiverRank  = it->first;
-         std::vector< SendFunction > sendFunctions = it->second;
-
-         auto sendFunction = [sendFunctions]( SendBuffer& sendBuffer ) -> void {
-            for ( auto& f : sendFunctions )
-               f( sendBuffer );
-         };
-
-         bufferSystem->addSendingFunction( int_c( receiverRank ), sendFunction );
-      }
-
-      for ( const auto rankToReceiveFrom : ranksToReceiveFrom )
-      {
-         const uint_t senderRank       = rankToReceiveFrom.first;
-         const uint_t numberOfMessages = rankToReceiveFrom.second;
-
-         auto recvFunction = [this, numberOfMessages, storage]( RecvBuffer& recvBuffer ) -> void {
-            for ( uint_t message = 0; message < numberOfMessages; message++ )
-            {
-               PrimitiveID senderID;
-               PrimitiveID receiverID;
-               readHeader( recvBuffer, senderID, receiverID );
-
-               WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
-               WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< ReceiverType >( receiverID ) );
-
-               ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
-
-               for ( const auto& packInfo : packInfos_ )
-               {
-                  startTimer( "Unpacking" );
-                  packInfo->unpack< SenderType, ReceiverType >( receiver, senderID, recvBuffer );
-                  stopTimer( "Unpacking" );
-               }
-            }
-         };
-
-         bufferSystem->addReceivingFunction( int_c( senderRank ), recvFunction );
-      }
-
-      setupBeforeNextCommunication_[communicationDirection] = false;
-
-   } // setup
-
-   stopTimer( timerStringSetup );
-
-   // Buffered communication
-   startTimer( timerStringBuffered );
-   bufferSystem->startCommunication();
-   stopTimer( timerStringBuffered );
-
-   // Local communication
-   startTimer( timerStringDirect );
-   for ( auto& directCommunicationFunction : directCommunicationFunctions_[communicationDirection] )
-   {
-      directCommunicationFunction();
-   }
-   stopTimer( timerStringDirect );
-}
-
-template < typename SenderType, typename ReceiverType >
-void BufferedCommunicator::endCommunication()
-{
-   staticAssertCommunicationDirections< SenderType, ReceiverType >();
-
-   const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
-   const std::string            timerString            = "Communication (buffered / wait + unpack)";
-
-   startTimer( timerString );
-
-   if ( packInfos_.empty() )
-   {
-      stopTimer( timerString );
-      return;
-   }
-
-   WALBERLA_ASSERT( communicationInProgress_[communicationDirection] );
-   communicationInProgress_[communicationDirection] = false;
-
-   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[communicationDirection];
-   bufferSystem->wait();
-
-   stopTimer( timerString );
-}
-
-template < typename SenderType, typename ReceiverType >
-void BufferedCommunicator::staticAssertCommunicationDirections() const
-{
-   static_assert( ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge >::value ) ||
-                      ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face >::value ) ||
-                      ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Cell >::value )
-
-                      || ( std::is_same< SenderType, Edge >::value && std::is_same< ReceiverType, Vertex >::value ) ||
-                      ( std::is_same< SenderType, Edge >::value && std::is_same< ReceiverType, Face >::value ) ||
-                      ( std::is_same< SenderType, Edge >::value && std::is_same< ReceiverType, Cell >::value )
-
-                      || ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Vertex >::value ) ||
-                      ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Edge >::value ) ||
-                      ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Face >::value ) ||
-                      ( std::is_same< SenderType, Face >::value && std::is_same< ReceiverType, Cell >::value )
-
-                      || ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Vertex >::value ) ||
-                      ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Edge >::value ) ||
-                      ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Face >::value ) ||
-                      ( std::is_same< SenderType, Cell >::value && std::is_same< ReceiverType, Cell >::value ),
-
-                  "BufferedCommunicator: illegal sender and receiver type combination." );
-}
 
 } // namespace communication
 } // namespace hyteg

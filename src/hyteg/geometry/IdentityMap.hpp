@@ -34,59 +34,24 @@ class IdentityMap : public GeometryMap
  public:
    IdentityMap() {}
 
-   void evalF( const Point3D& x, Point3D& Fx ) const override final { Fx = x; }
+   void evalF( const Point3D& x, Point3D& Fx ) const override final;
 
-   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final { xComp = xPhys; }
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const override final;
 
-   void evalDF( const Point3D&, Matrix2r& DFx ) const override final
-   {
-      DFx( 0, 0 ) = real_c( 1.0 );
-      DFx( 0, 1 ) = real_c( 0.0 );
-      DFx( 1, 0 ) = real_c( 0.0 );
-      DFx( 1, 1 ) = real_c( 1.0 );
-   }
+   void evalDF( const Point3D&, Matrix2r& DFx ) const override final;
 
-   real_t evalDF( const Point3D&, Matrix3r& DFx ) const override final
-   {
-      DFx( 0, 0 ) = real_c( 1.0 );
-      DFx( 0, 1 ) = real_c( 0.0 );
-      DFx( 0, 2 ) = real_c( 0.0 );
+   real_t evalDF( const Point3D&, Matrix3r& DFx ) const override final;
 
-      DFx( 1, 0 ) = real_c( 0.0 );
-      DFx( 1, 1 ) = real_c( 1.0 );
-      DFx( 1, 2 ) = real_c( 0.0 );
+   void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const override final;
 
-      DFx( 2, 0 ) = real_c( 0.0 );
-      DFx( 2, 1 ) = real_c( 0.0 );
-      DFx( 2, 2 ) = real_c( 1.0 );
+   void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final;
 
-      return real_c( 1.0 );
-   }
-
-   void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const override final
-   {
-      DFinvx( 0, 0 ) = real_c( 1.0 );
-      DFinvx( 0, 1 ) = real_c( 0.0 );
-      DFinvx( 1, 0 ) = real_c( 0.0 );
-      DFinvx( 1, 1 ) = real_c( 1.0 );
-   }
-
-   void evalDFinvDF( const Point3D& x, Matrixr< 2, 4 >& DFinvDFx ) const override final
-   {
-      WALBERLA_UNUSED( x );
-      DFinvDFx.setZero();
-   };
-
-   void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const override final
-   {
-      WALBERLA_UNUSED( x );
-      DFinvDFx.setZero();
-   };
+   void evalDFinvDF( const Point3D& x, Matrixr< 3, 9 >& DFinvDFx ) const override final;
 
    bool isIdentity() const final { return true; }
    bool isAffine() const final { return true; }
 
-   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final { sendBuffer << Type::IDENTITY; }
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const override final;
 
    static void setMap( SetupPrimitiveStorage& setupStorage );
 };

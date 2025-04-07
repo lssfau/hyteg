@@ -21,20 +21,23 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/egfunctionspace/EGFunction.hpp"
-#include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/p2functionspace/P2VectorFunction.hpp"
-
 namespace hyteg {
-
 // Some forward declarations
 template < typename funcType >
 class P2Function;
 
 class FEFunctionRegistry;
 
-namespace communication {
+template < typename vType >
+class P1VectorFunction;
 
+template < typename vType >
+class P2VectorFunction;
+
+template < typename vType >
+class EGFunction;
+
+namespace communication {
 /// Describe direction of data synchronisation between primitives
 enum class syncDirection_t
 {
@@ -86,6 +89,5 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
                               uint_t                    level,
                               bool                      excludeDGTypeFunctions,
                               syncDirection_t           direction = syncDirection_t::BIDIRECTIONAL );
-
 } // namespace communication
 } // namespace hyteg

@@ -42,7 +42,7 @@ using walberla::uint_t;
 /// The PointND class represents an N-dimensional vector with support for algebraic operations.
 /// Internally the class uses a dense Eigen::Matrix for this and at some point we might want to
 /// switch to that representation altogether
-/// \tparam T Vector data type
+/// \tparam ValueType Vector data type
 /// \tparam N Dimension of vector
 template < typename ValueType, int N >
 class PointND : public Eigen::Matrix< ValueType, N, 1 >

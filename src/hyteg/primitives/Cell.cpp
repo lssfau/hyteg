@@ -23,6 +23,7 @@
 #include "core/mpi/BufferDataTypeExtensions.h"
 
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 namespace hyteg {
 

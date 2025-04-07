@@ -23,6 +23,9 @@
 #include "core/debug/TestSubsystem.h"
 
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/mesh/HyTeGMeshDir.hpp"
+#include "hyteg/primitives/Edge.hpp"
+#include "hyteg/primitives/Face.hpp"
 
 namespace hyteg {
 

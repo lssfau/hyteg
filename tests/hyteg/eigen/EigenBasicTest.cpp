@@ -26,10 +26,10 @@
 #include "core/timing/all.h"
 
 #include "hyteg/eigen/EigenWrapper.hpp"
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 // Perform some basic tests of interfacing with Eigen
-
-using namespace hyteg;
 
 using walberla::int_c;
 using walberla::real_c;
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
 
    const int                                 numRows = 3;
    const int                                 numCols = 4;
-   Eigen::Matrix< real_t, numRows, numCols > matMPI, matRef;
+   hyteg::Matrix< real_t, numRows, numCols > matMPI, matRef;
    for ( int i = 0; i < numRows; ++i )
    {
       for ( int j = 0; j < numCols; ++j )

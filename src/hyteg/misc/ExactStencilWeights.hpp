@@ -61,7 +61,7 @@ public:
     vertexToEdgeStencil[7] = 0.0;
     vertexToEdgeStencil[8] = - (1.0 + 1.0/3.0);
     vertexToEdgeStencil[9] = 0.0;
-    vertexToEdgeStencil[10] = - (1.0 + 1.0/3.0);;
+    vertexToEdgeStencil[10] = - (1.0 + 1.0/3.0);
     vertexToEdgeStencil[11] = 0.0;
 
     edgeToEdgeStencil[0] = (5.0 + 1.0/3.0);

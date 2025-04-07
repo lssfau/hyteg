@@ -25,6 +25,8 @@
 
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/types/PointND.hpp"
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitives/Cell.hpp"
 
 namespace hyteg {
 

@@ -22,6 +22,7 @@
 
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
 namespace n1e1 {

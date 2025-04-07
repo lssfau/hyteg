@@ -37,9 +37,10 @@ template < typename T, // Element type of SendBuffer
            typename G, // Growth policy of SendBuffer
            typename EigenScalarType,
            int numRows,
-           int numCols >
-GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >&                                buffer,
-                                       const Eigen::Matrix< EigenScalarType, numRows, numCols >& eigenMatrix )
+           int numCols,
+           int options >
+GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >&                                         buffer,
+                                       const Eigen::Matrix< EigenScalarType, numRows, numCols, options >& eigenMatrix )
 {
    for ( int rowIdx = 0; rowIdx < numRows; ++rowIdx )
    {
@@ -55,9 +56,10 @@ GenericSendBuffer< T, G >& operator<<( GenericSendBuffer< T, G >&               
 template < typename T, // Element type of RecvBuffer
            typename EigenScalarType,
            int numRows,
-           int numCols >
-GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >&                             buffer,
-                                    Eigen::Matrix< EigenScalarType, numRows, numCols >& eigenMatrix )
+           int numCols,
+           int options >
+GenericRecvBuffer< T >& operator>>( GenericRecvBuffer< T >&                                      buffer,
+                                    Eigen::Matrix< EigenScalarType, numRows, numCols, options >& eigenMatrix )
 {
    for ( int rowIdx = 0; rowIdx < numRows; ++rowIdx )
    {

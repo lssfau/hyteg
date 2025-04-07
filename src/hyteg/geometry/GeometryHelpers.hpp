@@ -21,7 +21,6 @@
 #pragma once
 
 #include "core/DataTypes.h"
-#include "core/math/Matrix3.h"
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/types/PointND.hpp"

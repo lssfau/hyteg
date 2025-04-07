@@ -23,6 +23,7 @@
 
 #include "hyteg/primitives/Face.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/types/Matrix.hpp"
 
 #include "GeometryMap.hpp"
 
