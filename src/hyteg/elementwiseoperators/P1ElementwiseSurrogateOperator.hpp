@@ -234,6 +234,9 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    // surrogates for level 4+ (one poly matrix for each element type)
    SurrogateData< 2 > surrogate_2d_;
    SurrogateData< 3 > surrogate_3d_;
+   // cube-wise surrogates for level 4+ (one poly matrix for each hypercube)
+   SurrogateCubeData< 2 > surrogate_cube_2d_;
+   SurrogateCubeData< 3 > surrogate_cube_3d_;
 };
 
 template < uint8_t DEGREE >

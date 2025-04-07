@@ -54,6 +54,8 @@ P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::P1ElementwiseSurrog
 , a_loc_3d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
 , surrogate_2d_( storage, maxLevel )
 , surrogate_3d_( storage, maxLevel )
+, surrogate_cube_2d_( storage, maxLevel )
+, surrogate_cube_3d_( storage, maxLevel )
 {}
 
 template < class P1Form, uint8_t DEGREE, bool Symmetric >
