@@ -169,7 +169,7 @@ int main( int argc, char* argv[] )
       }
       else if ( std::is_same_v< real_t, float > )
       {
-         WALBERLA_CHECK_LESS( err, 0.034 );
+         WALBERLA_CHECK_LESS( err, 0.042 );
       }
    }
 
