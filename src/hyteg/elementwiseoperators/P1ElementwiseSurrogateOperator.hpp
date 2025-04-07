@@ -69,6 +69,9 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    using PrecomputedData = surrogate::PrecomputedData< real_t, DIM, 1, 1 >;
    template < uint_t DIM >
    using SurrogateData = surrogate::SurrogateData< real_t, DIM, 1, 1, DEGREE >;
+   static constexpr uint_t N_CUBE( uint_t dim ) { return 1 << dim; } // number of DoF per micro-hypercube
+   template < uint_t DIM >
+   using SurrogateCubeData = surrogate::ElementWiseData< surrogate::MatrixLike< Poly< DIM >, N_CUBE( DIM ), N_CUBE( DIM ) > >;
 
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -159,31 +162,27 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    ///
    /// \param face           macro face
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param fType          type of micro-face (GRAY or BLUE)
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param alpha          scaling factor that is applied to the local result vector
-   void apply_2d( const Face&             face,
-                  const uint_t            level,
-                  const facedof::FaceType ftype,
-                  const real_t* const     srcVertexData,
-                  real_t* const           dstVertexData,
-                  const real_t&           alpha ) const;
+   void apply_2d( const Face&         face,
+                  const uint_t        level,
+                  const real_t* const srcVertexData,
+                  real_t* const       dstVertexData,
+                  const real_t&       alpha ) const;
 
-   /// compute matrix vector product on all micro cells of given type
+   /// compute matrix vector product on all micro cells
    ///
    /// \param cell           macro cell
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param alpha          scaling factor that is applied to the local result vector
-   void apply_3d( const Cell&             cell,
-                  const uint_t            level,
-                  const celldof::CellType cType,
-                  const real_t* const     srcVertexData,
-                  real_t* const           dstVertexData,
-                  const real_t&           alpha ) const;
+   void apply_3d( const Cell&         cell,
+                  const uint_t        level,
+                  const real_t* const srcVertexData,
+                  real_t* const       dstVertexData,
+                  const real_t&       alpha ) const;
 
    /// compute contributions to diagonal of on all micro faces of given type
    ///

@@ -345,10 +345,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::gemv( const re
          }
 
          // local mat-vec
-         for ( const auto& cType : celldof::allCellTypes )
-         {
-            apply_3d( cell, level, cType, srcVertexData, dstVertexData, alpha );
-         }
+         apply_3d( cell, level, srcVertexData, dstVertexData, alpha );
       }
       // Push result to lower-dimensional primitives
       //
@@ -387,10 +384,8 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::gemv( const re
          }
 
          // local mat-vec
-         for ( const auto& fType : facedof::allFaceTypes )
-         {
-            apply_2d( face, level, fType, srcVertexData, dstVertexData, alpha );
-         }
+
+         apply_2d( face, level, srcVertexData, dstVertexData, alpha );
       }
       // Push result to lower-dimensional primitives
       //
@@ -425,72 +420,75 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::smooth_jac( co
 }
 
 template < class P1Form, uint8_t DEGREE, bool Symmetric >
-void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_2d( const Face&             face,
-                                                                            const uint_t            level,
-                                                                            const facedof::FaceType fType,
-                                                                            const real_t* const     srcVertexData,
-                                                                            real_t* const           dstVertexData,
-                                                                            const real_t&           alpha ) const
+void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_2d( const Face&         face,
+                                                                            const uint_t        level,
+                                                                            const real_t* const srcVertexData,
+                                                                            real_t* const       dstVertexData,
+                                                                            const real_t&       alpha ) const
 {
    auto& id = face.getID();
 
    if ( level < min_lvl_for_surrogate )
    { // use precomputed local matrices
       auto& a_loc = a_loc_2d_.at( id )[level];
-
-      for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+      for ( const auto& fType : facedof::allFaceTypes )
       {
-         p1::localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, a_loc( fType, micro ), alpha );
+         for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+         {
+            p1::localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, a_loc( fType, micro ), alpha );
+         }
       }
    }
    else
    { // use surrogate polynomials to approximate local matrices
-      auto& surrogate = surrogate_2d_.at( id )[level][fType];
-      // domain of surrogates
-      PolyDomain X( level );
-      // local stiffness matrix
-      Matrix3r elMat( Matrix3r::Zero() );
-      // iterate over all micro-faces
-      indexing::Index micro;
-      const auto      row_end = idx_t( facedof::macroface::numFacesPerRowByType( level, fType ) );
-      for ( micro.y() = 0; micro.y() < row_end; micro.y()++ )
+      for ( const auto& fType : facedof::allFaceTypes )
       {
-         // restrict to 1d polynomial
-         auto y = X[micro.y()];
-         for ( idx_t i = 0; i < surrogate.rows(); ++i )
+         auto& surrogate = surrogate_2d_.at( id )[level][fType];
+         // domain of surrogates
+         PolyDomain X( level );
+         // local stiffness matrix
+         Matrix3r elMat( Matrix3r::Zero() );
+         // iterate over all micro-faces
+         indexing::Index micro;
+         const auto      row_end = idx_t( facedof::macroface::numFacesPerRowByType( level, fType ) );
+         for ( micro.y() = 0; micro.y() < row_end; micro.y()++ )
          {
-            for ( idx_t j = 0; j < surrogate.cols(); ++j )
-            {
-               surrogate( i, j ).fix_y( y );
-            }
-         }
-
-         for ( micro.x() = 0; micro.x() < row_end - micro.y(); micro.x()++ )
-         {
-            // evaluate p(x) using Horner's method
-            auto x = X[micro.x()];
+            // restrict to 1d polynomial
+            auto y = X[micro.y()];
             for ( idx_t i = 0; i < surrogate.rows(); ++i )
             {
                for ( idx_t j = 0; j < surrogate.cols(); ++j )
                {
-                  elMat( i, j ) = surrogate( i, j ).eval( x );
+                  surrogate( i, j ).fix_y( y );
                }
             }
 
-            // local matvec
-            p1::localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+            for ( micro.x() = 0; micro.x() < row_end - micro.y(); micro.x()++ )
+            {
+               // evaluate p(x) using Horner's method
+               auto x = X[micro.x()];
+               for ( idx_t i = 0; i < surrogate.rows(); ++i )
+               {
+                  for ( idx_t j = 0; j < surrogate.cols(); ++j )
+                  {
+                     elMat( i, j ) = surrogate( i, j ).eval( x );
+                  }
+               }
+
+               // local matvec
+               p1::localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, dstVertexData, elMat, alpha );
+            }
          }
       }
    }
 }
 
 template < class P1Form, uint8_t DEGREE, bool Symmetric >
-void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( const Cell&             cell,
-                                                                            const uint_t            level,
-                                                                            const celldof::CellType cType,
-                                                                            const real_t* const     srcVertexData,
-                                                                            real_t* const           dstVertexData,
-                                                                            const real_t&           alpha ) const
+void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( const Cell&         cell,
+                                                                            const uint_t        level,
+                                                                            const real_t* const srcVertexData,
+                                                                            real_t* const       dstVertexData,
+                                                                            const real_t&       alpha ) const
 {
    auto& id = cell.getID();
 
@@ -498,215 +496,221 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
    { // use precomputed local matrices
       auto& a_loc = a_loc_3d_.at( id )[level];
 
-      for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+      for ( const auto& cType : celldof::allCellTypes )
       {
-         p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, a_loc( cType, micro ), alpha );
+         for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+         {
+            p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, a_loc( cType, micro ), alpha );
+         }
       }
    }
    else
    {
-      auto& surrogate = surrogate_3d_.at( id )[level][cType];
-      // monomial basis
-      constexpr surrogate::polynomial::Basis< DEGREE > phi;
-      // dimension of Pq
-      constexpr auto dimP = surrogate::polynomial::dimP( 1, DEGREE );
-      // domain
-      const PolyDomain X( level );
-      // restriction to 2d
-      auto& pp00 = surrogate( 0, 0 ).get_2d_restriction();
-      auto& pp01 = surrogate( 0, 1 ).get_2d_restriction();
-      auto& pp02 = surrogate( 0, 2 ).get_2d_restriction();
-      auto& pp03 = surrogate( 0, 3 ).get_2d_restriction();
-      auto& pp10 = surrogate( 1, 0 ).get_2d_restriction();
-      auto& pp11 = surrogate( 1, 1 ).get_2d_restriction();
-      auto& pp12 = surrogate( 1, 2 ).get_2d_restriction();
-      auto& pp13 = surrogate( 1, 3 ).get_2d_restriction();
-      auto& pp20 = surrogate( 2, 0 ).get_2d_restriction();
-      auto& pp21 = surrogate( 2, 1 ).get_2d_restriction();
-      auto& pp22 = surrogate( 2, 2 ).get_2d_restriction();
-      auto& pp23 = surrogate( 2, 3 ).get_2d_restriction();
-      auto& pp30 = surrogate( 3, 0 ).get_2d_restriction();
-      auto& pp31 = surrogate( 3, 1 ).get_2d_restriction();
-      auto& pp32 = surrogate( 3, 2 ).get_2d_restriction();
-      auto& pp33 = surrogate( 3, 3 ).get_2d_restriction();
-      // restriction to 1d
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p00;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p01;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p02;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p03;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p10;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p11;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p12;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p13;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p20;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p21;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p22;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p23;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p30;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p31;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p32;
-      surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p33;
-
-      // iterate over all micro-cells
-      indexing::Index micro;
-      const auto      row_end = idx_t( celldof::macrocell::numCellsPerRowByType( level, cType ) );
-      for ( micro.z() = 0; micro.z() < row_end; micro.z()++ )
+      for ( const auto& cType : celldof::allCellTypes )
       {
-         // fix z-coordinate
-         const auto z = X[micro.z()];
-         for ( auto& s_ij : surrogate )
-         {
-            s_ij.fix_z( z );
-         }
+         auto& surrogate = surrogate_3d_.at( id )[level][cType];
+         // monomial basis
+         constexpr surrogate::polynomial::Basis< DEGREE > phi;
+         // dimension of Pq
+         constexpr auto dimP = surrogate::polynomial::dimP( 1, DEGREE );
+         // domain
+         const PolyDomain X( level );
+         // restriction to 2d
+         auto& pp00 = surrogate( 0, 0 ).get_2d_restriction();
+         auto& pp01 = surrogate( 0, 1 ).get_2d_restriction();
+         auto& pp02 = surrogate( 0, 2 ).get_2d_restriction();
+         auto& pp03 = surrogate( 0, 3 ).get_2d_restriction();
+         auto& pp10 = surrogate( 1, 0 ).get_2d_restriction();
+         auto& pp11 = surrogate( 1, 1 ).get_2d_restriction();
+         auto& pp12 = surrogate( 1, 2 ).get_2d_restriction();
+         auto& pp13 = surrogate( 1, 3 ).get_2d_restriction();
+         auto& pp20 = surrogate( 2, 0 ).get_2d_restriction();
+         auto& pp21 = surrogate( 2, 1 ).get_2d_restriction();
+         auto& pp22 = surrogate( 2, 2 ).get_2d_restriction();
+         auto& pp23 = surrogate( 2, 3 ).get_2d_restriction();
+         auto& pp30 = surrogate( 3, 0 ).get_2d_restriction();
+         auto& pp31 = surrogate( 3, 1 ).get_2d_restriction();
+         auto& pp32 = surrogate( 3, 2 ).get_2d_restriction();
+         auto& pp33 = surrogate( 3, 3 ).get_2d_restriction();
+         // restriction to 1d
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p00;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p01;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p02;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p03;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p10;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p11;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p12;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p13;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p20;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p21;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p22;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p23;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p30;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p31;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p32;
+         surrogate::polynomial::Polynomial< real_t, 1, DEGREE > p33;
 
-         for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
+         // iterate over all micro-cells
+         indexing::Index micro;
+         const auto      row_end = idx_t( celldof::macrocell::numCellsPerRowByType( level, cType ) );
+         for ( micro.z() = 0; micro.z() < row_end; micro.z()++ )
          {
-            // fix y-coordinate
+            // fix z-coordinate
+            const auto z = X[micro.z()];
+            for ( auto& s_ij : surrogate )
             {
-               /* code is copied from Polynomial::fix_coord to improve performance
-               */
-               const auto y = X[micro.y()];
-
-               // y^k for k=0,...,q
-               std::array< real_t, DEGREE + 1 > y_pow;
-               y_pow[0] = 1.0;
-               for ( uint_t k = 1; k <= DEGREE; ++k )
-               {
-                  y_pow[k] = y_pow[k - 1] * y;
-               }
-
-               // first index where the 2d extension starts
-               auto jk = dimP;
-               // iterate over coefficients of 1d polynomial
-               for ( uint_t j = 0; j < dimP; ++j )
-               {
-                  const auto max_k = uint_t( DEGREE - phi[j].degree() );
-                  // k=0
-                  p00[j] = pp00[j];
-                  p01[j] = pp01[j];
-                  p02[j] = pp02[j];
-                  p03[j] = pp03[j];
-                  p10[j] = pp10[j];
-                  p11[j] = pp11[j];
-                  p12[j] = pp12[j];
-                  p13[j] = pp13[j];
-                  p20[j] = pp20[j];
-                  p21[j] = pp21[j];
-                  p22[j] = pp22[j];
-                  p23[j] = pp23[j];
-                  p30[j] = pp30[j];
-                  p31[j] = pp31[j];
-                  p32[j] = pp32[j];
-                  p33[j] = pp33[j];
-                  for ( int k = 1; k <= max_k; ++k )
-                  {
-                     p00[j] += pp00[jk] * y_pow[k];
-                     p01[j] += pp01[jk] * y_pow[k];
-                     p02[j] += pp02[jk] * y_pow[k];
-                     p03[j] += pp03[jk] * y_pow[k];
-                     p10[j] += pp10[jk] * y_pow[k];
-                     p11[j] += pp11[jk] * y_pow[k];
-                     p12[j] += pp12[jk] * y_pow[k];
-                     p13[j] += pp13[jk] * y_pow[k];
-                     p20[j] += pp20[jk] * y_pow[k];
-                     p21[j] += pp21[jk] * y_pow[k];
-                     p22[j] += pp22[jk] * y_pow[k];
-                     p23[j] += pp23[jk] * y_pow[k];
-                     p30[j] += pp30[jk] * y_pow[k];
-                     p31[j] += pp31[jk] * y_pow[k];
-                     p32[j] += pp32[jk] * y_pow[k];
-                     p33[j] += pp33[jk] * y_pow[k];
-                     ++jk;
-                  }
-               }
+               s_ij.fix_z( z );
             }
 
-            /* global dof indices
+            for ( micro.y() = 0; micro.y() < row_end - micro.z(); micro.y()++ )
+            {
+               // fix y-coordinate
+               {
+                  /* code is copied from Polynomial::fix_coord to improve performance
+               */
+                  const auto y = X[micro.y()];
+
+                  // y^k for k=0,...,q
+                  std::array< real_t, DEGREE + 1 > y_pow;
+                  y_pow[0] = 1.0;
+                  for ( uint_t k = 1; k <= DEGREE; ++k )
+                  {
+                     y_pow[k] = y_pow[k - 1] * y;
+                  }
+
+                  // first index where the 2d extension starts
+                  auto jk = dimP;
+                  // iterate over coefficients of 1d polynomial
+                  for ( uint_t j = 0; j < dimP; ++j )
+                  {
+                     const auto max_k = uint_t( DEGREE - phi[j].degree() );
+                     // k=0
+                     p00[j] = pp00[j];
+                     p01[j] = pp01[j];
+                     p02[j] = pp02[j];
+                     p03[j] = pp03[j];
+                     p10[j] = pp10[j];
+                     p11[j] = pp11[j];
+                     p12[j] = pp12[j];
+                     p13[j] = pp13[j];
+                     p20[j] = pp20[j];
+                     p21[j] = pp21[j];
+                     p22[j] = pp22[j];
+                     p23[j] = pp23[j];
+                     p30[j] = pp30[j];
+                     p31[j] = pp31[j];
+                     p32[j] = pp32[j];
+                     p33[j] = pp33[j];
+                     for ( int k = 1; k <= max_k; ++k )
+                     {
+                        p00[j] += pp00[jk] * y_pow[k];
+                        p01[j] += pp01[jk] * y_pow[k];
+                        p02[j] += pp02[jk] * y_pow[k];
+                        p03[j] += pp03[jk] * y_pow[k];
+                        p10[j] += pp10[jk] * y_pow[k];
+                        p11[j] += pp11[jk] * y_pow[k];
+                        p12[j] += pp12[jk] * y_pow[k];
+                        p13[j] += pp13[jk] * y_pow[k];
+                        p20[j] += pp20[jk] * y_pow[k];
+                        p21[j] += pp21[jk] * y_pow[k];
+                        p22[j] += pp22[jk] * y_pow[k];
+                        p23[j] += pp23[jk] * y_pow[k];
+                        p30[j] += pp30[jk] * y_pow[k];
+                        p31[j] += pp31[jk] * y_pow[k];
+                        p32[j] += pp32[jk] * y_pow[k];
+                        p33[j] += pp33[jk] * y_pow[k];
+                        ++jk;
+                     }
+                  }
+               }
+
+               /* global dof indices
                Computing global indices seems to be rather slow so we factor it
                out of the x-loop.
             */
-            micro.x() = 0;
-            std::array< uint_t, 4 > vertexDoFIndices{};
-            p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
+               micro.x() = 0;
+               std::array< uint_t, 4 > vertexDoFIndices{};
+               p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
 
-            /* constant part of local stiffness matrix
+               /* constant part of local stiffness matrix
                For some reason, accessing pij[0] within the x-loop costs performance
             */
-            const real_t c00 = p00[0], c01 = p01[0], c02 = p02[0], c03 = p03[0];
-            const real_t c10 = p10[0], c11 = p11[0], c12 = p12[0], c13 = p13[0];
-            const real_t c20 = p20[0], c21 = p21[0], c22 = p22[0], c23 = p23[0];
-            const real_t c30 = p30[0], c31 = p31[0], c32 = p32[0], c33 = p33[0];
+               const real_t c00 = p00[0], c01 = p01[0], c02 = p02[0], c03 = p03[0];
+               const real_t c10 = p10[0], c11 = p11[0], c12 = p12[0], c13 = p13[0];
+               const real_t c20 = p20[0], c21 = p21[0], c22 = p22[0], c23 = p23[0];
+               const real_t c30 = p30[0], c31 = p31[0], c32 = p32[0], c33 = p33[0];
 
-            for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
-            {
-               // global indices
-               const uint_t g0 = vertexDoFIndices[0] + micro.x();
-               const uint_t g1 = vertexDoFIndices[1] + micro.x();
-               const uint_t g2 = vertexDoFIndices[2] + micro.x();
-               const uint_t g3 = vertexDoFIndices[3] + micro.x();
+               for ( micro.x() = 0; micro.x() < row_end - micro.z() - micro.y(); micro.x()++ )
+               {
+                  // global indices
+                  const uint_t g0 = vertexDoFIndices[0] + micro.x();
+                  const uint_t g1 = vertexDoFIndices[1] + micro.x();
+                  const uint_t g2 = vertexDoFIndices[2] + micro.x();
+                  const uint_t g3 = vertexDoFIndices[3] + micro.x();
 
-               // local stiffness matrix
-               real_t a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33;
-               // constant part
-               if constexpr ( Symmetric )
-               {
-                  a00 = c00;
-                  a10 = c10, a11 = c11;
-                  a20 = c20, a21 = c21, a22 = c22;
-                  a30 = c30, a31 = c31, a32 = c32, a33 = c33;
-               }
-               else
-               {
-                  a00 = c00, a01 = c01, a02 = c02, a03 = c03;
-                  a10 = c10, a11 = c11, a12 = c12, a13 = c13;
-                  a20 = c20, a21 = c21, a22 = c22, a23 = c23;
-                  a30 = c30, a31 = c31, a32 = c32, a33 = c33;
-               }
-               // evaluate the 1d polynomials (variable part)
-               const auto x    = X[micro.x()];
-               auto       xpow = real_t( 1.0 );
-               for ( uint_t k = 1; k < dimP; ++k )
-               {
-                  xpow *= x;
+                  // local stiffness matrix
+                  real_t a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33;
+                  // constant part
                   if constexpr ( Symmetric )
                   {
-                     a00 += p00[k] * xpow;
-                     a10 += p10[k] * xpow, a11 += p11[k] * xpow;
-                     a20 += p20[k] * xpow, a21 += p21[k] * xpow, a22 += p22[k] * xpow;
-                     a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
+                     a00 = c00;
+                     a10 = c10, a11 = c11;
+                     a20 = c20, a21 = c21, a22 = c22;
+                     a30 = c30, a31 = c31, a32 = c32, a33 = c33;
                   }
                   else
                   {
-                     a00 += p00[k] * xpow, a01 += p01[k] * xpow, a02 += p02[k] * xpow, a03 += p03[k] * xpow;
-                     a10 += p10[k] * xpow, a11 += p11[k] * xpow, a12 += p12[k] * xpow, a13 += p13[k] * xpow;
-                     a20 += p20[k] * xpow, a21 += p21[k] * xpow, a22 += p22[k] * xpow, a23 += p23[k] * xpow;
-                     a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
+                     a00 = c00, a01 = c01, a02 = c02, a03 = c03;
+                     a10 = c10, a11 = c11, a12 = c12, a13 = c13;
+                     a20 = c20, a21 = c21, a22 = c22, a23 = c23;
+                     a30 = c30, a31 = c31, a32 = c32, a33 = c33;
                   }
+                  // evaluate the 1d polynomials (variable part)
+                  const auto x    = X[micro.x()];
+                  auto       xpow = real_t( 1.0 );
+                  for ( uint_t k = 1; k < dimP; ++k )
+                  {
+                     xpow *= x;
+                     if constexpr ( Symmetric )
+                     {
+                        a00 += p00[k] * xpow;
+                        a10 += p10[k] * xpow, a11 += p11[k] * xpow;
+                        a20 += p20[k] * xpow, a21 += p21[k] * xpow, a22 += p22[k] * xpow;
+                        a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
+                     }
+                     else
+                     {
+                        a00 += p00[k] * xpow, a01 += p01[k] * xpow, a02 += p02[k] * xpow, a03 += p03[k] * xpow;
+                        a10 += p10[k] * xpow, a11 += p11[k] * xpow, a12 += p12[k] * xpow, a13 += p13[k] * xpow;
+                        a20 += p20[k] * xpow, a21 += p21[k] * xpow, a22 += p22[k] * xpow, a23 += p23[k] * xpow;
+                        a30 += p30[k] * xpow, a31 += p31[k] * xpow, a32 += p32[k] * xpow, a33 += p33[k] * xpow;
+                     }
+                  }
+                  if constexpr ( Symmetric )
+                  {
+                     a01 = a10, a02 = a20, a03 = a30;
+                     /*      */ a12 = a21, a13 = a31;
+                     /*                 */ a23 = a32;
+                  }
+
+                  // assemble local element vector
+                  const auto src0 = alpha * srcVertexData[g0];
+                  const auto src1 = alpha * srcVertexData[g1];
+                  const auto src2 = alpha * srcVertexData[g2];
+                  const auto src3 = alpha * srcVertexData[g3];
+
+                  // local matvec
+                  const auto dst0 = a00 * src0 + a01 * src1 + a02 * src2 + a03 * src3;
+                  const auto dst1 = a10 * src0 + a11 * src1 + a12 * src2 + a13 * src3;
+                  const auto dst2 = a20 * src0 + a21 * src1 + a22 * src2 + a23 * src3;
+                  const auto dst3 = a30 * src0 + a31 * src1 + a32 * src2 + a33 * src3;
+
+                  // write data back into global vector
+                  dstVertexData[g0] += dst0;
+                  dstVertexData[g1] += dst1;
+                  dstVertexData[g2] += dst2;
+                  dstVertexData[g3] += dst3;
                }
-               if constexpr ( Symmetric )
-               {
-                  a01 = a10, a02 = a20, a03 = a30;
-                  /*      */ a12 = a21, a13 = a31;
-                  /*                 */ a23 = a32;
-               }
-
-               // assemble local element vector
-               const auto src0 = alpha * srcVertexData[g0];
-               const auto src1 = alpha * srcVertexData[g1];
-               const auto src2 = alpha * srcVertexData[g2];
-               const auto src3 = alpha * srcVertexData[g3];
-
-               // local matvec
-               const auto dst0 = a00 * src0 + a01 * src1 + a02 * src2 + a03 * src3;
-               const auto dst1 = a10 * src0 + a11 * src1 + a12 * src2 + a13 * src3;
-               const auto dst2 = a20 * src0 + a21 * src1 + a22 * src2 + a23 * src3;
-               const auto dst3 = a30 * src0 + a31 * src1 + a32 * src2 + a33 * src3;
-
-               // write data back into global vector
-               dstVertexData[g0] += dst0;
-               dstVertexData[g1] += dst1;
-               dstVertexData[g2] += dst2;
-               dstVertexData[g3] += dst3;
             }
          }
       }

@@ -36,19 +36,15 @@ namespace hyteg {
 namespace surrogate {
 
 /**
- * @class LocalMatrixLike
- * @brief T^RxC matrix where R and C are the dimensions of the local element matrices for a given local polynomial degree
+ * @class MatrixLike
+ * @brief T^RxC matrix
  * @tparam T The type of the elements stored in the matrix (e.g. polynomial::Polynomial).
- * @tparam DIM The spatial dimension of the PDE domain
- * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
- * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
+ * @tparam R rows of the matrix
+ * @tparam C columns of the matrix
  */
-template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-struct LocalMatrixLike : public std::array< T, polynomial::dimP( DIM, DST_DEGREE ) * polynomial::dimP( DIM, SRC_DEGREE ) >
+template < typename T, uint_t R, uint_t C >
+struct MatrixLike : public std::array< T, R*C >
 {
-   static constexpr idx_t R = polynomial::dimP( DIM, DST_DEGREE );
-   static constexpr idx_t C = polynomial::dimP( DIM, SRC_DEGREE );
-
    // get (i,j) entry of this
    inline T& operator()( idx_t i, idx_t j ) { return ( *this )[static_cast< uint_t >( i * C + j )]; }
    // get (i,j) entry of this
@@ -184,6 +180,16 @@ struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
    }
 };
 
+/**
+ * @class LocalMatrixLike
+ * @brief T^RxC matrix where R and C are the dimensions of the local element matrices for a given local polynomial degree
+ * @tparam T The type of the elements stored in the matrix (e.g. polynomial::Polynomial).
+ * @tparam DIM The spatial dimension of the PDE domain
+ * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
+ * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
+ */
+template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+using LocalMatrixLike = MatrixLike<T, polynomial::dimP( DIM, DST_DEGREE ), polynomial::dimP( DIM, SRC_DEGREE )>;
 // container for RHS vectors for lsq-fit
 template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using RHS_matrix = LocalMatrixLike< typename LeastSquares< FLOAT >::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
