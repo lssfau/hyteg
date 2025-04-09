@@ -250,12 +250,14 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.surfaceDensity         = mainConf.getParameter< real_t >( "surfaceDensity" );
    physicalParam.referenceDensity       = mainConf.getParameter< real_t >( "referenceDensity" );
    physicalParam.viscosity              = mainConf.getParameter< real_t >( "viscosity" );
+   physicalParam.referenceViscosity     = physicalParam.viscosity;
 
    // Set all radial varying parameters to input reference values to avoid inconsistent calculations on non-dim numbers
    physicalParam.specificHeatCapacityRadial = physicalParam.specificHeatCapacity;
    physicalParam.thermalExpansivityRadial   = physicalParam.thermalExpansivity;
-   physicalParam.characteristicVelocity = 
-       physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity * physicalParam.mantleThickness );
+   physicalParam.characteristicVelocity =
+       physicalParam.thermalConductivity /
+       ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity * physicalParam.mantleThickness );
    //used to calculate non-D numbers
    physicalParam.thermalDiffusivity =
        physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity );

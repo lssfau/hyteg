@@ -581,13 +581,6 @@ void ConvectionSimulation::solveEnergy()
                                                      ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) );
    }
 
-   p1ProlongationOperator->prolongate( *( p1ScalarFunctionContainer["TemperatureFEP1"] ), TN.domainParameters.maxLevel, All );
-
-   P1toP2Conversion( *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
-                     *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                     TN.domainParameters.maxLevel,
-                     All );
-
    real_t energyResidual = calculateEnergyResidual( TN.domainParameters.maxLevel );
 
    if ( std::isnan( energyResidual ) )
