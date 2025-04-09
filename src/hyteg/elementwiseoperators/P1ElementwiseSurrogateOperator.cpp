@@ -84,13 +84,18 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::init( size_t  
       // initialize least squares approximation
       if ( lsq_[level] == nullptr || downsampling_ != downsampling )
       {
+         /* In 2D, there is no 'blue' face for x=n.
+            In 3D, no 'white-down' for x=n-1 and only 'white-up' for x=n.
+            Therefore, we don't use these x-values as sample points.
+         */
+         auto offset = dim - 1;
          if ( path_to_svd == "" )
          {
-            lsq_[level] = std::make_shared< LSQ >( dim, DEGREE, level, downsampling );
+            lsq_[level] = std::make_shared< LSQ >( dim, DEGREE, level, downsampling, offset );
          }
          else
          {
-            lsq_[level] = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, downsampling );
+            lsq_[level] = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, downsampling, offset );
          }
          downsampling_ = downsampling;
       }
@@ -169,6 +174,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::precompute_loc
 template < class P1Form, uint8_t DEGREE, bool Symmetric >
 void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_surrogates_2d( uint_t level )
 {
+   // todo correct interpolation at row end
    auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 2 > rhs;
@@ -218,6 +224,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_
 template < class P1Form, uint8_t DEGREE, bool Symmetric >
 void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_surrogates_3d( uint_t level )
 {
+   // todo correct interpolation at row end
    auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 3 > rhs;
