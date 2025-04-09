@@ -91,10 +91,7 @@ class DG1Function : public Function< DG1Function< ValueType > >
       dgFunction_->interpolate( constant, level, dofType );
    }
 
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const
-   {
-      WALBERLA_ABORT( "Not implemented." );
-   }
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType dofType = All ) const;
 
    void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expressions,
                      uint_t                                                                    level,
@@ -227,10 +224,18 @@ class DG1Function : public Function< DG1Function< ValueType > >
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
 };
 
-void applyDirichletBC( const DG1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+// We perform explicit instantiations in the cpp file
+extern template class DG1Function< double >;
+extern template class DG1Function< float >;
+extern template class DG1Function< int32_t >;
+extern template class DG1Function< int64_t >;
+
+static inline void applyDirichletBC( const DG1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    WALBERLA_UNUSED( numerator );
    WALBERLA_UNUSED( mat );
    WALBERLA_UNUSED( level );
 }
+
 } // namespace hyteg
+
