@@ -25,10 +25,9 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/mixedoperators/DG1ToP2PlusBubbleOperator.hpp"
-#include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
+#include "hyteg/mixedoperators/P2PlusBubbleToDG1Operator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
 
 #ifdef SHOW_TH_RESULTS
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"

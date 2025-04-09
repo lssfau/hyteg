@@ -11,6 +11,7 @@ target_sources( hyteg
     P1ToP2SurrogateOperator.hpp
     P1ToP2VariableOperator.hpp
     P1VectorToP0ScalarOperator.hpp
+    P2PlusBubbleToDG1Operator.hpp
     P2ToP1SurrogateOperator.hpp
     P2ToP1VariableOperator.hpp
 )
