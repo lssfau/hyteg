@@ -377,19 +377,27 @@ void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< Rad
 
    real_t dTdr = ( meanTemp[1] - meanTemp[0] ) / ( radius[1] - radius[0] );
 
-   uint_t nuSamples = 101u;
-   real_t hGradient = 1e-2;
+   uint_t nuSamples   = 101u;
+   real_t hGradient   = 1e-2;
    real_t epsBoundary = 1e-7;
 
-   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D( 
-      *(p2ScalarFunctionContainer["TemperatureFE"]), TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMax, epsBoundary, nuSamples );
+   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                                           TN.domainParameters.maxLevel,
+                                                                           hGradient,
+                                                                           TN.domainParameters.rMax,
+                                                                           epsBoundary,
+                                                                           nuSamples );
 
-   real_t dTdrIntegralInner = nusseltcalc::calculateNusseltNumberSphere3D( 
-      *(p2ScalarFunctionContainer["TemperatureFE"]), 
-      TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary, epsBoundary, nuSamples );
+   real_t dTdrIntegralInner =
+       nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                    TN.domainParameters.maxLevel,
+                                                    hGradient,
+                                                    TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary,
+                                                    epsBoundary,
+                                                    nuSamples );
 
    real_t heatFlowSurface = heatFlowFactor * dTdrIntegralOuter * redimTemp;
-   real_t heatFlowCMB = heatFlowFactor * dTdrIntegralInner * redimTemp;
+   real_t heatFlowCMB     = heatFlowFactor * dTdrIntegralInner * redimTemp;
 
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
@@ -399,40 +407,6 @@ void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< Rad
       db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
       db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
    }
-}
-
-void ConvectionSimulation::adjustSolver()
-{
-   stokesSolverFS = std::move( solverTemplate->solverFGMRES( TN.solverParameters.numPowerIterations,
-                                                             TN.solverParameters.FGMRESOuterIterations * 2,
-                                                             TN.solverParameters.FGMRESTolerance,
-                                                             TN.solverParameters.uzawaIterations * 2,
-                                                             TN.solverParameters.uzawaOmega,
-                                                             TN.solverParameters.ABlockMGIterations * 2,
-                                                             TN.solverParameters.ABlockMGTolerance,
-                                                             TN.solverParameters.ABlockMGPreSmooth + 2,
-                                                             TN.solverParameters.ABlockMGPostSmooth + 2,
-                                                             TN.solverParameters.ABlockCoarseGridIterations * 2,
-                                                             TN.solverParameters.ABlockCoarseGridTolerance,
-                                                             TN.solverParameters.SchurCoarseGridIterations * 2,
-                                                             TN.solverParameters.SchurCoarseGridTolerance ) );
-}
-
-void ConvectionSimulation::resetSolver()
-{
-   stokesSolverFS = std::move( solverTemplate->solverFGMRES( TN.solverParameters.numPowerIterations,
-                                                             TN.solverParameters.FGMRESOuterIterations,
-                                                             TN.solverParameters.FGMRESTolerance,
-                                                             TN.solverParameters.uzawaIterations,
-                                                             TN.solverParameters.uzawaOmega,
-                                                             TN.solverParameters.ABlockMGIterations,
-                                                             TN.solverParameters.ABlockMGTolerance,
-                                                             TN.solverParameters.ABlockMGPreSmooth,
-                                                             TN.solverParameters.ABlockMGPostSmooth,
-                                                             TN.solverParameters.ABlockCoarseGridIterations,
-                                                             TN.solverParameters.ABlockCoarseGridTolerance,
-                                                             TN.solverParameters.SchurCoarseGridIterations,
-                                                             TN.solverParameters.SchurCoarseGridTolerance ) );
 }
 
 } // namespace terraneo
