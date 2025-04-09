@@ -178,7 +178,7 @@ template < typename FLOAT, uint8_t DIM, uint8_t DEGREE >
 class Polynomial : public std::array< FLOAT, dimP( DIM, DEGREE ) >
 {
  public:
-   inline Polynomial() {}
+   inline Polynomial() : std::array< FLOAT, dimP( DIM, DEGREE ) >{} {}
 
    template < typename CoeffVector >
    inline Polynomial( const CoeffVector& coeffs )
