@@ -297,10 +297,8 @@ void ConvectionSimulation::step()
 
    if ( !TN.outputParameters.outputMyr )
    {
-      localTimerStep.start();
       dataOutput();
       localTimerStep.end();
-      timerDataOutput = localTimerStep.last();
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -313,7 +311,6 @@ void ConvectionSimulation::step()
       db->setVariableEntry( "timestep", TN.simulationParameters.timeStep );
       db->setVariableEntry( "max_magnitude_velocity_cm_a", MaxVelocityMagSI );
       db->setVariableEntry( "Time_solve_Energy", timerSolveEnergy );
-      db->setVariableEntry( "Time_data_Output", timerDataOutput );
       db->writeRowOnRoot();
    }
 
