@@ -61,6 +61,9 @@ void test( int dim, uint_t level, uint_t degree, std::function< real_t( const Po
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, degree );
 
+   // ensure that interpolation of a constant value works technically
+   u.interpolate( real_c( 0 ), level );
+
    DGFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
 

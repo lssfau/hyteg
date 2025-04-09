@@ -613,19 +613,21 @@ void DGFunction< ValueType >::applyDirichletBoundaryConditions( const std::share
 template < typename ValueType >
 void DGFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType dofType ) const
 {
+   if ( std::dynamic_pointer_cast< DGBasisLinearLagrange_Example >( basis_ ) == nullptr )
+   {
+      WALBERLA_ABORT( "DGFunction::interpolate(): Ooops, not your standard nodal basis!" );
+   }
+
    if ( this->storage_->hasGlobalCells() )
    {
       for ( auto& it : this->getStorage()->getCells() )
       {
          const auto cellID = it.first;
 
-         WALBERLA_CHECK_EQUAL( this->polynomialDegree( cellID ), 0 );
-         WALBERLA_CHECK_EQUAL( this->basis()->numDoFsPerElement( 3, 0 ), 1 );
-
          const auto degree    = polynomialDegree( cellID );
          const auto memLayout = this->volumeDoFFunction()->memoryLayout();
          auto       dofs      = this->volumeDoFFunction()->dofMemory( cellID, level );
-         const auto numDofs   = basis()->numDoFsPerElement( 2, uint_c( degree ) );
+         const auto numDofs   = basis()->numDoFsPerElement( 3, uint_c( degree ) );
 
          for ( auto cellType : celldof::allCellTypes )
          {
