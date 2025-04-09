@@ -40,31 +40,31 @@ namespace hyteg {
 namespace solvertemplates {
 
 // clang-format off
-
-enum class StokesGMGFSSolverParamKey
-{
-    NUM_POWER_ITERATIONS_SPECTRUM,
-    FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
-    FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,   
-
-        INEXACT_UZAWA_VELOCITY_ITER, 
-        INEXACT_UZAWA_OMEGA,
-
-            ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
-            ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                ABLOCK_MG_PRESMOOTH,    
-                ABLOCK_MG_POSTSMOOTH,
-                    ABLOCK_COARSE_ITER,
-                    ABLOCK_COARSE_TOLERANCE,
-                    ABLOCK_COARSE_GRID_PETSC,
-            
-            SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
-            SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                SCHUR_MG_PRESMOOTH,    
-                SCHUR_MG_POSTSMOOTH,
-                    SCHUR_COARSE_GRID_CG_ITER,
-                    SCHUR_COARSE_GRID_CG_TOLERANCE
-};
+ 
+ enum class StokesGMGFSSolverParamKey
+ {
+     NUM_POWER_ITERATIONS_SPECTRUM,
+     FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
+     FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,   
+ 
+         INEXACT_UZAWA_VELOCITY_ITER, 
+         INEXACT_UZAWA_OMEGA,
+ 
+             ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
+             ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
+                 ABLOCK_MG_PRESMOOTH,    
+                 ABLOCK_MG_POSTSMOOTH,
+                     ABLOCK_COARSE_ITER,
+                     ABLOCK_COARSE_TOLERANCE,
+                     ABLOCK_COARSE_GRID_PETSC,
+             
+             SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
+             SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
+                 SCHUR_MG_PRESMOOTH,    
+                 SCHUR_MG_POSTSMOOTH,
+                     SCHUR_COARSE_GRID_CG_ITER,
+                     SCHUR_COARSE_GRID_CG_TOLERANCE
+ };
 
 // clang-format on
 
@@ -86,7 +86,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 {
    std::map< StokesGMGFSSolverParamKey, std::variant< real_t, uint_t > > defaultParams = {
        { StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, uint_c( 25u ) },
-       { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, uint_c( 5u ) },
+       { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, uint_c( 25u ) },
        { StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE, real_c( 1e-6 ) },
        { StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, uint_c( 1u ) },
        { StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, real_c( 1.0 ) },
@@ -94,14 +94,14 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        { StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, real_c( 1e-6 ) },
        { StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, uint_c( 3u ) },
        { StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, uint_c( 3u ) },
-       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, uint_c( 10u ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, uint_c( 100u ) },
        { StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE, real_c( 1e-8 ) },
        { StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC, real_c( 0 ) },
        { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, uint_c( 1u ) },
        { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, real_c( 1e-6 ) },
        { StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, uint_c( 3u ) },
        { StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, uint_c( 3u ) },
-       { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER, uint_c( 1u ) },
+       { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER, uint_c( 100u ) },
        { StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE, real_c( 1e-6 ) } };
 
    for ( auto const& param : extraParams )
@@ -180,7 +180,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
           storage, minLevel, AblockPETScRelativeTolerance, ABlockCGCoarseTol, ABlockCGCoarseIter );
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "PETSc module not found or enabled. Switching to HyTeG MinRes." );
-      // Fall back to HyTeG MinRes solver 
+      // Fall back to HyTeG MinRes solver
 #endif
    }
    else
@@ -213,7 +213,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated spectral radius: " << spectralRadiusA );
 
-   ABlockSmoother->setupCoefficients( 3, spectralRadiusA );
+   ABlockSmoother->setupCoefficients( 3, spectralRadiusA, 4.0, 0.3 );
 
    auto ABlockMultigridSolver = std::make_shared< GeometricMultigridSolver< SubstAType > >( storage,
                                                                                             ABlockSmoother,
@@ -293,8 +293,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                                                                                             0,
                                                                                             CycleType::VCYCLE );
 
-   auto SchurSolver = std::make_shared< CGSolver< SubstSType > >(
-       storage, minLevel, maxLevel, SchurCGOuterIter, SchurCGOuterTol, SchurMultigridSolver_ );
+   auto SchurSolver =
+       std::make_shared< CGSolver< SubstSType > >( storage, minLevel, maxLevel, SchurCGOuterIter, SchurCGOuterTol );
    SchurSolver->setPrintInfo( verbose );
    // SchurSolver->setSolverName("SchurSolver");
 
@@ -325,12 +325,22 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    WALBERLA_LOG_INFO_ON_ROOT( "Sigma: " << estimatedSigma << " ; "
                                         << "Omega: " << estimatedOmega );
 
+   auto blockPreconditioner = std::make_shared< BlockFactorisationPreconditioner< StokesOperatorFS, SubstAType, SubstSType > >(
+       storage,
+       minLevel,
+       maxLevel,
+       stokesOperatorFSSelf->getSchur(),
+       ABlockMultigridSolver,
+       SchurSolver,
+       1u,
+       projectionOperator );
+
    auto uzawaSmoother = std::make_shared< InexactUzawaPreconditioner< StokesOperatorFS, SubstAType, SubstSType > >(
        storage,
        minLevel,
        maxLevel,
        stokesOperatorFSSelf->getSchur(),
-       ABlockSolver,
+       ABlockMultigridSolver,
        SchurSolver,
        estimatedSigma,
        estimatedOmega,
@@ -338,7 +348,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        projectionOperator );
 
    auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorFS > >(
-       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, uzawaSmoother );
+       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, blockPreconditioner );
    finalStokesSolver->setPrintInfo( true );
 
    return { finalStokesSolver, ABlockSmoother };
