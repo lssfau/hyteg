@@ -18,9 +18,6 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES DGLaplaceSymmetryTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGLaplaceSymmetryTest)
 
-    waLBerla_compile_test(FILES DGInterpolateEvaluateTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME DGInterpolateEvaluateTest)
-
     waLBerla_compile_test(FILES DGPetscApplyTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME DGPetscApplyTest)
 
@@ -37,3 +34,5 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME DGProlongationTest)
 endif ()
 
+waLBerla_compile_test(FILES DGInterpolateEvaluateTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGInterpolateEvaluateTest)
