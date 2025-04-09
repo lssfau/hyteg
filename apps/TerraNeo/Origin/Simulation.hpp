@@ -553,15 +553,12 @@ void ConvectionSimulation::solveStokes()
    walberla::WcTimer localTimer;
    if ( TN.simulationParameters.tempDependentViscosity )
    {
-      storage->getTimingTree()->start( "TerraNeo update viscosity" );
       updateViscosity();
-      storage->getTimingTree()->stop( "TerraNeo update viscosity" );
+      stokesOperatorFS->getA().computeInverseDiagonalOperatorValues();
    }
 
    localTimer.start();
-   storage->getTimingTree()->start( "TerraNeo setup Stokes RHS" );
    setupStokesRHS();
-   storage->getTimingTree()->stop( "TerraNeo setup Stokes RHS" );
    localTimer.end();
    real_t setupStokesTimer = localTimer.last();
 
