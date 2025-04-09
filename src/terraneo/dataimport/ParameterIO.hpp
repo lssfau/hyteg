@@ -173,8 +173,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    {
       simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
       const std::string profileKey                = "temperatureInputProfile";
-      simulationParam.fileTemperatureInputProfile = mainConf.getParameter< std::string >( "temperatureInputProfile" );
-      const std::string profileKey                = "temperatureInputProfile";
 
       loadRadialProfile< std::vector< real_t > >( mainConf,
                                                   profileKey,
@@ -292,9 +290,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    {
       if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
       {
-      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "shearHeatingScaling" );
-      } else {
-      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "lithosphereShearHeatingScaling" );
+         simulationParam.lithosphereShearHeatingScaling = mainConf.getParameter< real_t >( "shearHeatingScaling" );
+      }
+      else
+      {
+         simulationParam.lithosphereShearHeatingScaling = mainConf.getParameter< real_t >( "lithosphereShearHeatingScaling" );
       }
       simulationParam.lithosphereThickness = mainConf.getParameter< real_t >( "lithosphereThickness" );
    }
@@ -428,7 +428,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
          break;
       default:
-         WALBERLA_LOG_WARNING("Handling for this INITIAL_TEMPERATURE_DEVIATION_METHOD is not implemented")
+         WALBERLA_LOG_WARNING( "Handling for this INITIAL_TEMPERATURE_DEVIATION_METHOD is not implemented" )
       }
    }
 
@@ -710,7 +710,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
+                                 << "true" );
    }
    else
    {
@@ -724,7 +725,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
+                                 << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

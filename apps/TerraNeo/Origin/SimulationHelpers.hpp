@@ -38,7 +38,6 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
    real_t retVal;
    real_t rho;
-   real_t rho;
 
    if ( TN.simulationParameters.haveDensityProfile && TN.simulationParameters.compressible )
    {

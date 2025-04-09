@@ -118,7 +118,6 @@ class ConvectionSimulation
    void step();
 
    void                        outputTimingTree();
-   void                        updateNonDimParameters( const Point3D& x );
    real_t                      densityFunction( const Point3D& x );
    real_t                      diffPreFactorFunction( const Point3D& x );
    real_t                      calculateStokesResidual( uint_t level );
