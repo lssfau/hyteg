@@ -18,6 +18,8 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// #define SHOW_TH_RESULTS
+
 #include "core/Abort.h"
 #include "core/Environment.h"
 #include "core/math/Constants.h"
@@ -32,6 +34,9 @@
 #ifdef SHOW_TH_RESULTS
 #include "hyteg/mixedoperators/P1ToP2VariableOperator.hpp"
 #endif
+
+#include "mixed_operator/ScalarToVectorOperator.hpp"
+#include "mixed_operator/VectorToScalarOperator.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
@@ -183,12 +188,106 @@ void comparisonWithTH2D( bool doVTKOutput = false )
 }
 #endif
 
+void applyTest2DDivergence( bool doVTKOutput = false )
+{
+   const auto meshfile = hyteg::prependHyTeGMeshDir( "2D/quad_4el.msh" );
+
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshfile );
+
+   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   uint_t                additionalHaloDepth = 1u;
+   const auto            storage             = std::make_shared< PrimitiveStorage >( setupStorage, additionalHaloDepth );
+
+   const uint_t level = 2;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing with constant vector:" );
+   DG1Function< real_t >                div( "DG1 divergence", storage, level, level );
+   P2PlusBubbleVectorFunction< real_t > src( "P2+ source", storage, level, level );
+
+   src.interpolate( real_c( 3 ), level, All );
+
+   P2PlusBubbleToDG1DivOperator divOp( storage, level, level );
+
+   divOp.apply( src, div, level, All );
+
+   real_t checkVal = div.getMaxDoFMagnitude( level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "* div.getMaxDoFMagnitude() = " << std::scientific << checkVal );
+
+   if ( doVTKOutput )
+   {
+      VTKOutput vtkOutput( ".", "P2PlusBubble_DG1_Operator_Divergence_Test1", storage );
+      vtkOutput.add( src );
+      vtkOutput.add( div );
+      vtkOutput.write( level );
+   }
+
+   WALBERLA_CHECK_LESS( checkVal, real_c( 1e-16 ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing with rigid rotation field:" );
+
+   {
+      auto exprX = []( const hyteg::Point3D& x ) { return -x[1]; };
+      auto exprY = []( const hyteg::Point3D& x ) { return +x[0]; };
+      src.interpolate( { exprX, exprY }, level, All );
+   }
+
+   divOp.apply( src, div, level, All );
+
+   checkVal = div.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "* div.getMaxDoFMagnitude() = " << std::scientific << checkVal );
+
+   if ( doVTKOutput )
+   {
+      VTKOutput vtkOutput( ".", "P2PlusBubble_DG1_Operator_Divergence_Test2", storage );
+      vtkOutput.add( src );
+      vtkOutput.add( div );
+      vtkOutput.write( level );
+   }
+
+   WALBERLA_CHECK_LESS( checkVal, real_c( 1e-16 ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing with variable field:" );
+
+   auto exprX = []( const hyteg::Point3D& x ) { return x[0] * x[0]; };
+   auto exprY = []( const hyteg::Point3D& x ) { return real_c( 2.5 ) * x[1]; };
+   src.interpolate( { exprX, exprY }, level, All );
+
+   divOp.apply( src, div, level, All );
+
+   checkVal = div.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "* div.getMaxDoFMagnitude() = " << std::scientific << checkVal );
+
+#ifdef SHOW_TH_RESULTS
+   P2VectorFunction< real_t >   cmpSrc( "P2 source", storage, level, level );
+   P1Function< real_t >         cmpDiv( "P1 divergence", storage, level, level );
+   P2ToP1ElementwiseDivOperator cmpDivOp( storage, level, level );
+   cmpSrc.interpolate( { exprX, exprY }, level, All );
+   cmpDivOp.apply( cmpSrc, cmpDiv, level, Inner );
+   real_t checkCmp = cmpDiv.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "* cmpDiv.getMaxDoFMagnitude() = " << std::scientific << checkCmp );
+#endif
+
+   if ( doVTKOutput )
+   {
+      VTKOutput vtkOutput( ".", "P2PlusBubble_DG1_Operator_Divergence_Test3", storage );
+      vtkOutput.add( src );
+      vtkOutput.add( div );
+#ifdef SHOW_TH_RESULTS
+      vtkOutput.add( cmpSrc );
+      vtkOutput.add( cmpDiv );
+#endif
+      vtkOutput.write( level );
+   }
+}
+
 int main( int argc, char** argv )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
    applyTest2DGradient( false );
+   applyTest2DDivergence( true );
 
    return EXIT_SUCCESS;
 }
