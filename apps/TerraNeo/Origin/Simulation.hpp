@@ -554,16 +554,6 @@ void ConvectionSimulation::solveEnergy()
    p2ScalarFunctionContainer["ShearHeatingTermCoeff"]->interpolate(
        shearHeatingCoeffCalc, { *( p2ScalarFunctionContainer["DensityFE"] ) }, TN.domainParameters.maxLevel, All );
 
-   if ( TN.simulationParameters.compressible && !TN.simulationParameters.adiabaticHeating )
-   {
-      // Check that for compressible runs the AH-term is switched on for the Energy OP
-      TN.simulationParameters.adiabaticHeating = true;
-
-      transportOperatorTALA->setTALADict(
-          { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-            { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
-            { TransportOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
-   }
    // Assemble RHS
    transportOperatorTALA->applyRHS( *( p2ScalarFunctionContainer["EnergyRHSWeak"] ), TN.domainParameters.maxLevel, All );
 

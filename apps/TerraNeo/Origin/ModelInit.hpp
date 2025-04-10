@@ -619,6 +619,11 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorTALA->setSurfTempCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
    transportOperatorTALA->setShearHeatingCoeff( p2ScalarFunctionContainer["ShearHeatingTermCoeff"] );
 
+   if ( TN.simulationParameters.compressible && !TN.simulationParameters.adiabaticHeating )
+   {
+      TN.simulationParameters.adiabaticHeating = true;
+   }
+
    transportOperatorTALA->setTALADict(
        { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
          { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
