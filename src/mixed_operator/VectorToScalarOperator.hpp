@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,15 +19,18 @@
  */
 #pragma once
 
+#include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 #include "hyteg/mixedoperators/MixedDummyOperators.hpp"
+#include "hyteg/mixedoperators/P2PlusBubbleToDG1Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1SurrogateOperator.hpp"
 #include "hyteg/mixedoperators/P2ToP1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 #include "P2ToP1ConstantOperator.hpp"
@@ -64,7 +67,7 @@ class VectorToScalarOperator : public Operator< vKind_t< real_t >, sKind_t< real
                DoFType                  flag,
                UpdateType               updateType = Replace ) const
    {
-      std::array< UpdateType, 3 > ut = {updateType, Add, Add};
+      std::array< UpdateType, 3 > ut = { updateType, Add, Add };
       operX.apply( src[0], dst, level, flag, ut[0] );
       operY.apply( src[1], dst, level, flag, ut[1] );
       if ( src.getDimension() == 3 )
@@ -184,5 +187,12 @@ typedef VectorToScalarOperator< P2VectorFunction,
                                 P2ToP1SurrogateDivyOperator,
                                 P2ToP1SurrogateDivzOperator >
     P2ToP1SurrogateDivOperator;
+
+typedef VectorToScalarOperator< P2PlusBubbleVectorFunction,
+                                DG1Function,
+                                P2PlusBubbleToDG1DivxOperator,
+                                P2PlusBubbleToDG1DivyOperator,
+                                P2PlusBubbleToDG1DummyOperator >
+    P2PlusBubbleToDG1DivOperator;
 
 } // namespace hyteg
