@@ -23,11 +23,25 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
-#include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
 
 namespace hyteg {
+
+namespace p0averaging {
+
+enum class AVERAGING_METHOD
+{
+   ARITHMETIC, // Vertices and centroid (Also flag to transfer to lower levels)
+   HARMONIC,
+   GEOMETRIC,
+   ARITHMETIC_QP, // Quadrature points
+   HARMONIC_QP,
+   GEOMETRIC_QP
+};
+
+}
 
 using namespace dg;
 
@@ -239,7 +253,64 @@ class P0Function : public Function< P0Function< ValueType > >
       WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT( "Not implemented" );
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            const auto  cellID = it.first;
+            const auto& cell   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( getDGFunction()->polynomialDegree( cellID ), 0 );
+            WALBERLA_CHECK_EQUAL( getDGFunction()->basis()->numDoFsPerElement( 3, 0 ), 1 );
+
+            std::vector< ValueType* > dofs;
+            dofs.reserve( srcFunctions.size() + 1 );
+
+            std::vector< volumedofspace::indexing::VolumeDoFMemoryLayout > memLayouts;
+            memLayouts.reserve( srcFunctions.size() + 1 );
+
+            std::vector< ValueType > srcValues;
+            srcValues.reserve( srcFunctions.size() );
+
+            dofs.push_back( getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level ) );
+            memLayouts.push_back( getDGFunction()->volumeDoFFunction()->memoryLayout() );
+
+            for ( const auto src : srcFunctions )
+            {
+               dofs.push_back( src.get().getDGFunction()->volumeDoFFunction()->dofMemory( cellID, level ) );
+               memLayouts.push_back( src.get().getDGFunction()->volumeDoFFunction()->memoryLayout() );
+            }
+
+            for ( auto cellType : celldof::allCellTypes )
+            {
+               for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+               {
+                  const std::array< indexing::Index, 4 > vertexIndices =
+                      celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
+                  std::array< Point3D, 4 > elementVertices;
+                  for ( uint_t i = 0; i < 4; i++ )
+                  {
+                     const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                     elementVertices[i]( 0 )  = elementVertex[0];
+                     elementVertices[i]( 1 )  = elementVertex[1];
+                     elementVertices[i]( 2 )  = elementVertex[2];
+                  }
+
+                  const Point3D centroid =
+                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
+
+                  for ( size_t k = 0; k < srcFunctions.size(); ++k )
+                  {
+                     srcValues[k] = dofs[k + 1][volumedofspace::indexing::index(
+                         idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayouts[k + 1] )];
+                  }
+
+                  const auto val = expression( Point3D( centroid( 0 ), centroid( 1 ), centroid( 2 ) ), srcValues );
+
+                  dofs[0]
+                      [volumedofspace::indexing::index( idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, memLayouts[0] )] =
+                          ValueType( val );
+               }
+            }
+         }
       }
       else
       {
@@ -413,6 +484,10 @@ class P0Function : public Function< P0Function< ValueType > >
       }
       return dgFunction_->getMinDoFValue( level, mpiReduce );
    }
+
+   void transferToLowerLevel( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
+   void transferToAllLowerLevels( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
+   void averageFromP1( P1Function< real_t >, uint_t, hyteg::p0averaging::AVERAGING_METHOD );
 
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;
