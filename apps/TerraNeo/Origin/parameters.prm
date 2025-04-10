@@ -8,8 +8,7 @@ Parameters
 
    // Spherical shell radii
 
-   rCMB 3481000;
-   rCMB 3481000;
+   rCMB 3480000;
    rSurface 6371000;
 
    // Coarse grid
@@ -21,7 +20,7 @@ Parameters
    // Refinement level
 
    maxLevel 4;
-   minLevel 2;
+   minLevel 0;
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -41,7 +40,7 @@ Parameters
    // 0: White noise
    // 1: Single SPH
    // 2: Random superposition SPH
-   initialTemperatureDeviationMethod 2;
+   initialTemperatureDeviationMethod 1;
    
    // buoyancyFactor: scaling temperature anomalies
    buoyancyFactor 0.01;
@@ -51,8 +50,8 @@ Parameters
 
    //// Method 1: Single SPH
    // degree, order: Degree and order of the Single SPH
-   degree 4;
-   order 8;
+   degree 8;
+   order 16;
 
    //// Method 2: Random Superposition SPH
    // lmin, lmax: min and max of l
@@ -68,8 +67,6 @@ Parameters
    // tempInit = 3: no filtering
    tempInit 0;
 
-   temperatureInputProfile ../../../data/terraneo/radialProfiles/TERRA_temperature_profile.json;
-
    // Steepness of temperature filtering
    initialTemperatureSteepness 4;
 
@@ -80,11 +77,11 @@ Parameters
    ////////////////////////////
 
    thermalExpansivity 2.238e-5;
-   thermalConductivity 3;
+   thermalConductivity 6;
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
-   viscosity       1e21;
+   viscosity       1e22;
 
    // Adiabatic reference state parameters
 
@@ -139,7 +136,7 @@ Parameters
    // Input temperature
 
    surfacetemp 300.0;
-   cmbtemp 4200.0;
+   cmbtemp 4000.0;
 
    //////////////////////////////
    //  Simulation parameters   //
@@ -157,10 +154,10 @@ Parameters
 
    simulationType ConvectionModel;
 
-   compressible false;
+   compressible true;
    shearHeating false;
-   adiabaticHeating false;
-   internalHeating false;
+   adiabaticHeating true;
+   internalHeating true;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -170,7 +167,7 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 5;
+   maxNumTimeSteps 5000;
    fixedTimeStep false;
    predictorCorrector false;
    // Maximum timestep size in Ma
@@ -190,7 +187,7 @@ Parameters
    fnameTopologies       ../../../data/terraneo/plates/topologies0-100Ma.geojson;
    fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
    initialAge 100;
-   finalAge 0;
+   finalAge 10000000;
    plateVelocityScaling 8;
 
    //distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)
@@ -229,18 +226,18 @@ Parameters
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
    uzawaOmega 0.3;
-   ABlockMGPreSmooth 5;
-   ABlockMGPostSmooth 5;
+   ABlockMGPreSmooth 3;
+   ABlockMGPostSmooth 3;
 
    // FGMRES solver parameters 
-   FGMRESOuterIterations 3;
+   FGMRESOuterIterations 5;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
-   ABlockMGIterations 4;
+   ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
-   ABlockCoarseGridIterations 1000;
+   ABlockCoarseGridIterations 100;
    ABlockCoarseGridTolerance 1e-10;
-   SchurMGIterations 1000;
+   SchurMGIterations 100;
    SchurMGTolerance 1e-12;
    SchurMGPreSmooth 3;
    SchurMGPostSmooth 3;
@@ -254,7 +251,7 @@ Parameters
    // Diffusion parameters 
 
    diffusionMaxNumIterations 100;
-   diffusionAbsoluteResidualUTolerance 1e-8;
+   diffusionAbsoluteResidualUTolerance 1e-9;
    
    //////////////////////////
    //  Output parameters   //
@@ -268,8 +265,8 @@ Parameters
    
    OutputVelocity true;
    OutputTemperature true;
-   OutputInterval 100;
-   OutputVertexDoFs false;
+   OutputInterval 1;
+   OutputVertexDoFs true;
 
    //If desired: output per Myr:
 
@@ -297,12 +294,12 @@ Parameters
    ADIOS2ParamKey NumSubFiles;
    ADIOS2Value 32;
 
-   outputDirectory ./output/Test_HAWK-P0_test;
+   outputDirectory /SCRATCH/edascoli/TerraNeo-Output/MT128_HAWK-v7_TALA_NS-NS_mixedHeating;
    outputBaseName TerraNeo;
 
    // Output of a. json file containing timing tree informationf
 
    timingAnalysis true;
    createTimingDB false;
-   SQLdatabaseFileName TerraNeoSQLDatabaseFile_MT64_NS-NS_Ra-1e6_k_600.db;
+   SQLdatabaseFileName TerraNeoSQLDatabaseFile.db;
 }
