@@ -6,18 +6,18 @@ target_sources(mixed_operator
       EGConvTestUtils.hpp
       EGOperators.hpp
       EGOperatorsNitscheBC.hpp
-      HybridSmoother.hpp
       HybridSmoother.cpp
+      HybridSmoother.hpp
       P1BlendingStokesOperator.hpp
       P1P1ElementwiseAffineEpsilonStokesOperator.hpp
+      P1P1StokesOperator.hpp
+      P1StokesBlockPreconditioner.hpp
       P1ToP2ConstantOperator.hpp
       P2P1TaylorHoodStokesBlockPreconditioner.hpp
       P2P1TaylorHoodStokesOperator.hpp
       P2P1UzawaDampingFactorEstimationOperator.hpp
-      P1P1StokesOperator.hpp
-      P1StokesBlockPreconditioner.hpp
-      P2ToP1ConstantOperator.hpp
       P2P2UnstableStokesOperator.hpp
+      P2ToP1ConstantOperator.hpp
       ScalarToVectorOperator.hpp
       VectorLaplaceOperator.cpp
       VectorLaplaceOperator.hpp

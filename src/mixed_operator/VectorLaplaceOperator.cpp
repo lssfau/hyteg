@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Marcus Mohr.
+ * Copyright (c) 2017-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -159,5 +159,10 @@ template class VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplac
 
 // P2SurrogateVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator >;
+
+// P2PlusBubbleVectorLaplaceOperator
+template class VectorLaplaceOperator< real_t,
+                                      P2PlusBubbleVectorFunction,
+                                      operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 >;
 
 } // namespace hyteg
