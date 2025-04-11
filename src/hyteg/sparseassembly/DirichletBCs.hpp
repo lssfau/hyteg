@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/composites/CCRStokesFunction.hpp"
 #include "hyteg/composites/P1P0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -32,6 +33,7 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
@@ -133,6 +135,14 @@ inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::v
    }
 }
 
+inline void applyDirichletBC( const P2PlusBubbleVectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   for ( uint_t k = 0; k < numerator.getDimension(); k++ )
+   {
+      applyDirichletBC( numerator[k], mat, level );
+   }
+}
+
 inline void applyDirichletBC( const dg::DGVectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )
@@ -174,6 +184,14 @@ inline void applyDirichletBC( const P2P1TaylorHoodFunction< idx_t >& numerator, 
 }
 
 inline void applyDirichletBC( const P2P2StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   for ( uint_t k = 0; k < numerator.uvw().getDimension(); ++k )
+   {
+      applyDirichletBC( numerator.uvw()[k], mat, level );
+   }
+}
+
+inline void applyDirichletBC( const CCRStokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.uvw().getDimension(); ++k )
    {

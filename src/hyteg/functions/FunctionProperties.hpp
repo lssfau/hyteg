@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,6 +19,8 @@
  */
 
 #pragma once
+
+#include <typeinfo>
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
@@ -155,11 +157,39 @@ inline uint_t numberOfInnerDoFs( const uint_t& level )
       }
    }
 
+   // ==============
+   //  DG1Functions
+   // ==============
+   else if constexpr ( std::is_same_v< FunctionTag_T, DG1FunctionTag > )
+   {
+      // Vertex
+      if constexpr ( std::is_same_v< PrimitiveType, Vertex > )
+      {
+         return 0;
+      }
+      // Edge
+      else if constexpr ( std::is_same_v< PrimitiveType, Edge > )
+      {
+         return 0;
+      }
+      // Face
+      else if constexpr ( std::is_same_v< PrimitiveType, Face > )
+      {
+         return 3 * levelinfo::num_microfaces_per_face( level );
+      }
+      // Cell
+      else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
+      {
+         return 4 * levelinfo::num_microcells_per_cell( level );
+      }
+   }
+
    // =======================
    //  P2PlusBubbleFunctions
    // =======================
    else if constexpr ( std::is_same_v< FunctionTag_T, P2PlusBubbleFunctionTag > )
    {
+      WALBERLA_LOG_WARNING_ON_ROOT( "numberOfInnerDoFs() only gives a correct answer in 2D !!!" );
       return numberOfInnerDoFs< P2FunctionTag, PrimitiveType >( level ) +
              numberOfInnerDoFs< P0FunctionTag, PrimitiveType >( level );
    }
@@ -169,7 +199,8 @@ inline uint_t numberOfInnerDoFs( const uint_t& level )
    // =========
    else
    {
-      WALBERLA_ABORT( "Missing implementation in numberOfInnerDoFs()" );
+      WALBERLA_ABORT( "Missing implementation in numberOfInnerDoFs(): typeID of Tag was '" << typeid( FunctionTag_T ).name()
+                                                                                           << "'" );
    }
 
    return 0;
@@ -186,6 +217,16 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
       return primitiveStorage.hasGlobalCells() ?
                  numberOfInnerDoFs< P0FunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells() :
                  numberOfInnerDoFs< P0FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces();
+   }
+
+   // =============
+   //  DG1Function
+   // =============
+   if constexpr ( std::is_same_v< DG1FunctionTag, FunctionTag_T > )
+   {
+      return primitiveStorage.hasGlobalCells() ?
+                 numberOfInnerDoFs< DG1FunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells() :
+                 numberOfInnerDoFs< DG1FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces();
    }
 
    // ============
@@ -232,6 +273,10 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
    // =======================
    else if constexpr ( std::is_same_v< P2PlusBubbleFunctionTag, FunctionTag_T > )
    {
+      if ( primitiveStorage.hasGlobalCells() )
+      {
+         WALBERLA_ABORT( "P2PlusBubbleFunction restricted to 2D for the moment!" );
+      }
       return numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level ) +
              numberOfLocalDoFs< P0FunctionTag >( primitiveStorage, level );
    }
@@ -242,6 +287,15 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
    else if constexpr ( std::is_same_v< P2VectorFunctionTag, FunctionTag_T > )
    {
       return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
+   }
+
+   // =============================
+   //  P2PlusBubbleVectorFunctions
+   // =============================
+   else if constexpr ( std::is_same_v< P2PlusBubbleVectorFunctionTag, FunctionTag_T > )
+   {
+      return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) *
+             numberOfLocalDoFs< P2PlusBubbleFunctionTag >( primitiveStorage, level );
    }
 
    // ====================
@@ -287,12 +341,22 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
              numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
    }
 
+   // ===================
+   //  CCRStokesFunction
+   // ===================
+   else if constexpr ( std::is_same_v< CCRStokesFunctionTag, FunctionTag_T > )
+   {
+      return numberOfLocalDoFs< P2PlusBubbleVectorFunctionTag >( primitiveStorage, level ) +
+             numberOfLocalDoFs< DG1FunctionTag >( primitiveStorage, level );
+   }
+
    // =========
    // NO MATCH
    // =========
    else
    {
-      WALBERLA_ABORT( "Missing implementation in numberOfLocalDoFs()" );
+      WALBERLA_ABORT( "Missing implementation in numberOfLocalDoFs(): typeID of Tag was '" << typeid( FunctionTag_T ).name()
+                                                                                           << "'" );
    }
 
    return 0;
