@@ -178,7 +178,9 @@ template < typename FLOAT, uint8_t DIM, uint8_t DEGREE >
 class Polynomial : public std::array< FLOAT, dimP( DIM, DEGREE ) >
 {
  public:
-   inline Polynomial() : std::array< FLOAT, dimP( DIM, DEGREE ) >{} {}
+   inline Polynomial()
+   : std::array< FLOAT, dimP( DIM, DEGREE ) >{}
+   {}
 
    template < typename CoeffVector >
    inline Polynomial( const CoeffVector& coeffs )
@@ -249,6 +251,57 @@ class Polynomial : public std::array< FLOAT, dimP( DIM, DEGREE ) >
          p_xyz += ( *this )[i] * phi[i].eval( x );
       }
       return p_xyz;
+   }
+
+   std::string to_string() const
+   {
+      // monomial basis
+      constexpr Basis< DEGREE > phi;
+
+      std::ostringstream oss;
+      for ( uint_t n = 0; n < this->size(); ++n )
+      {
+         const auto [i,j,k] = phi[n].expand();
+         const auto c = ( *this )[n];
+
+         if ( n > 0 && c >= 0 )
+         {
+            oss << " + ";
+         }
+         else if ( c < 0 )
+         {
+            oss << " - ";
+         }
+          oss << std::scientific << std::abs( c );
+
+         if ( i > 0 )
+         {
+            oss << "*x";
+            if ( i > 1 )
+            {
+               oss << "^" << i;
+            }
+         }
+
+         if ( j > 0 )
+         {
+            oss << "*y";
+            if ( j > 1 )
+            {
+               oss << "^" << j;
+            }
+         }
+
+         if ( k > 0 )
+         {
+            oss << "*z";
+            if ( k > 1 )
+            {
+               oss << "^" << k;
+            }
+         }
+      }
+      return oss.str();
    }
 
    inline const Polynomial< FLOAT, 2, DEGREE >& get_2d_restriction() const
