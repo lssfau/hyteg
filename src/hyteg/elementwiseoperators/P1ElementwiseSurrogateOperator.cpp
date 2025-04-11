@@ -626,8 +626,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
    }
    else
    {
-      // todo: use cube poly
-      if ( true )
+      if constexpr ( false ) //! cubes loop
       {
          auto& surrogate = surrogate_cube_3d_.at( id )[level];
          // monomial basis
@@ -961,170 +960,163 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
                const real_t c70 = p70[0], c71 = p71[0], c72 = p72[0], c73 = p73[0], c74 = p74[0], c75 = p75[0], c76 = p76[0],
                             c77 = p77[0];
 
-               if ( false )
-                  for ( micro.x() = 0; micro.x() < n - 2 - micro.z() - micro.y(); micro.x()++ )
+               // loop over all full cubes in the row
+               for ( micro.x() = 0; micro.x() < n - 2 - micro.z() - micro.y(); micro.x()++ )
+               {
+                  // global indices
+                  const uint_t g0 = vertexDoFIndices[0] + micro.x();
+                  const uint_t g1 = vertexDoFIndices[1] + micro.x();
+                  const uint_t g2 = vertexDoFIndices[2] + micro.x();
+                  const uint_t g3 = vertexDoFIndices[3] + micro.x();
+                  const uint_t g4 = vertexDoFIndices[4] + micro.x();
+                  const uint_t g5 = vertexDoFIndices[5] + micro.x();
+                  const uint_t g6 = vertexDoFIndices[6] + micro.x();
+                  const uint_t g7 = vertexDoFIndices[7] + micro.x();
+
+                  // local stiffness matrix
+                  real_t a00, a01, a02, a03, a04, a05, a06, a07;
+                  real_t a10, a11, a12, a13, a14, a15, a16, a17;
+                  real_t a20, a21, a22, a23, a24, a25, a26, a27;
+                  real_t a30, a31, a32, a33, a34, a35, a36, a37;
+                  real_t a40, a41, a42, a43, a44, a45, a46, a47;
+                  real_t a50, a51, a52, a53, a54, a55, a56, a57;
+                  real_t a60, a61, a62, a63, a64, a65, a66, a67;
+                  real_t a70, a71, a72, a73, a74, a75, a76, a77;
+
+                  // constant part
+                  if constexpr ( Symmetric )
                   {
-                     // global indices
-                     const uint_t g0 = vertexDoFIndices[0] + micro.x();
-                     const uint_t g1 = vertexDoFIndices[1] + micro.x();
-                     const uint_t g2 = vertexDoFIndices[2] + micro.x();
-                     const uint_t g3 = vertexDoFIndices[3] + micro.x();
-                     const uint_t g4 = vertexDoFIndices[4] + micro.x();
-                     const uint_t g5 = vertexDoFIndices[5] + micro.x();
-                     const uint_t g6 = vertexDoFIndices[6] + micro.x();
-                     const uint_t g7 = vertexDoFIndices[7] + micro.x();
-
-                     // local stiffness matrix
-                     real_t a00, a01, a02, a03, a04, a05, a06, a07;
-                     real_t a10, a11, a12, a13, a14, a15, a16, a17;
-                     real_t a20, a21, a22, a23, a24, a25, a26, a27;
-                     real_t a30, a31, a32, a33, a34, a35, a36, a37;
-                     real_t a40, a41, a42, a43, a44, a45, a46, a47;
-                     real_t a50, a51, a52, a53, a54, a55, a56, a57;
-                     real_t a60, a61, a62, a63, a64, a65, a66, a67;
-                     real_t a70, a71, a72, a73, a74, a75, a76, a77;
-
-                     // constant part
+                     a00 = c00;
+                     a10 = c10, a11 = c11;
+                     a20 = c20, a21 = c21, a22 = c22;
+                     a30 = c30, a31 = c31, a32 = c32, a33 = c33;
+                     a40 = c40, a41 = c41, a42 = c42, a43 = c43, a44 = c44;
+                     a50 = c50, a51 = c51, a52 = c52, a53 = c53, a54 = c54, a55 = c55;
+                     a60 = c60, a61 = c61, a62 = c62, a63 = c63, a64 = c64, a65 = c65, a66 = c66;
+                     a70 = c70, a71 = c71, a72 = c72, a73 = c73, a74 = c74, a75 = c75, a76 = c76, a77 = c77;
+                  }
+                  else
+                  {
+                     a00 = c00, a01 = c01, a02 = c02, a03 = c03, a04 = c04, a05 = c05, a06 = c06, a07 = c07;
+                     a10 = c10, a11 = c11, a12 = c12, a13 = c13, a14 = c14, a15 = c15, a16 = c16, a17 = c17;
+                     a20 = c20, a21 = c21, a22 = c22, a23 = c23, a24 = c24, a25 = c25, a26 = c26, a27 = c27;
+                     a30 = c30, a31 = c31, a32 = c32, a33 = c33, a34 = c34, a35 = c35, a36 = c36, a37 = c37;
+                     a40 = c40, a41 = c41, a42 = c42, a43 = c43, a44 = c44, a45 = c45, a46 = c46, a47 = c47;
+                     a50 = c50, a51 = c51, a52 = c52, a53 = c53, a54 = c54, a55 = c55, a56 = c56, a57 = c57;
+                     a60 = c60, a61 = c61, a62 = c62, a63 = c63, a64 = c64, a65 = c65, a66 = c66, a67 = c67;
+                     a70 = c70, a71 = c71, a72 = c72, a73 = c73, a74 = c74, a75 = c75, a76 = c76, a77 = c77;
+                  }
+                  // evaluate the 1d polynomials (variable part)
+                  const auto x  = X[micro.x()];
+                  auto       xk = real_t( 1.0 );
+                  for ( uint_t k = 1; k < dimP; ++k )
+                  {
+                     xk *= x;
                      if constexpr ( Symmetric )
                      {
-                        a00 = c00;
-                        a10 = c10, a11 = c11;
-                        a20 = c20, a21 = c21, a22 = c22;
-                        a30 = c30, a31 = c31, a32 = c32, a33 = c33;
-                        a40 = c40, a41 = c41, a42 = c42, a43 = c43, a44 = c44;
-                        a50 = c50, a51 = c51, a52 = c52, a53 = c53, a54 = c54, a55 = c55;
-                        a60 = c60, a61 = c61, a62 = c62, a63 = c63, a64 = c64, a65 = c65, a66 = c66;
-                        a70 = c70, a71 = c71, a72 = c72, a73 = c73, a74 = c74, a75 = c75, a76 = c76, a77 = c77;
+                        a00 += p00[k] * xk;
+                        a10 += p10[k] * xk, a11 += p11[k] * xk;
+                        a20 += p20[k] * xk, a21 += p21[k] * xk, a22 += p22[k] * xk;
+                        a30 += p30[k] * xk, a31 += p31[k] * xk, a32 += p32[k] * xk, a33 += p33[k] * xk;
+                        a40 += p40[k] * xk, a41 += p41[k] * xk, a42 += p42[k] * xk, a43 += p43[k] * xk, a44 += p44[k] * xk;
+                        a50 += p50[k] * xk, a51 += p51[k] * xk, a52 += p52[k] * xk, a53 += p53[k] * xk, a54 += p54[k] * xk,
+                            a55 += p55[k] * xk;
+                        a60 += p60[k] * xk, a61 += p61[k] * xk, a62 += p62[k] * xk, a63 += p63[k] * xk, a64 += p64[k] * xk,
+                            a65 += p65[k] * xk, a66 += p66[k] * xk;
+                        a70 += p70[k] * xk, a71 += p71[k] * xk, a72 += p72[k] * xk, a73 += p73[k] * xk, a74 += p74[k] * xk,
+                            a75 += p75[k] * xk, a76 += p76[k] * xk, a77 += p77[k] * xk;
                      }
                      else
                      {
-                        a00 = c00, a01 = c01, a02 = c02, a03 = c03, a04 = c04, a05 = c05, a06 = c06, a07 = c07;
-                        a10 = c10, a11 = c11, a12 = c12, a13 = c13, a14 = c14, a15 = c15, a16 = c16, a17 = c17;
-                        a20 = c20, a21 = c21, a22 = c22, a23 = c23, a24 = c24, a25 = c25, a26 = c26, a27 = c27;
-                        a30 = c30, a31 = c31, a32 = c32, a33 = c33, a34 = c34, a35 = c35, a36 = c36, a37 = c37;
-                        a40 = c40, a41 = c41, a42 = c42, a43 = c43, a44 = c44, a45 = c45, a46 = c46, a47 = c47;
-                        a50 = c50, a51 = c51, a52 = c52, a53 = c53, a54 = c54, a55 = c55, a56 = c56, a57 = c57;
-                        a60 = c60, a61 = c61, a62 = c62, a63 = c63, a64 = c64, a65 = c65, a66 = c66, a67 = c67;
-                        a70 = c70, a71 = c71, a72 = c72, a73 = c73, a74 = c74, a75 = c75, a76 = c76, a77 = c77;
+                        a00 += p00[k] * xk, a01 += p01[k] * xk, a02 += p02[k] * xk, a03 += p03[k] * xk, a04 += p04[k] * xk,
+                            a05 += p05[k] * xk, a06 += p06[k] * xk, a07 += p07[k] * xk;
+                        a10 += p10[k] * xk, a11 += p11[k] * xk, a12 += p12[k] * xk, a13 += p13[k] * xk, a14 += p14[k] * xk,
+                            a15 += p15[k] * xk, a16 += p16[k] * xk, a17 += p17[k] * xk;
+                        a20 += p20[k] * xk, a21 += p21[k] * xk, a22 += p22[k] * xk, a23 += p23[k] * xk, a24 += p24[k] * xk,
+                            a25 += p25[k] * xk, a26 += p26[k] * xk, a27 += p27[k] * xk;
+                        a30 += p30[k] * xk, a31 += p31[k] * xk, a32 += p32[k] * xk, a33 += p33[k] * xk, a34 += p34[k] * xk,
+                            a35 += p35[k] * xk, a36 += p36[k] * xk, a37 += p37[k] * xk;
+                        a40 += p40[k] * xk, a41 += p41[k] * xk, a42 += p42[k] * xk, a43 += p43[k] * xk, a44 += p44[k] * xk,
+                            a45 += p45[k] * xk, a46 += p46[k] * xk, a47 += p47[k] * xk;
+                        a50 += p50[k] * xk, a51 += p51[k] * xk, a52 += p52[k] * xk, a53 += p53[k] * xk, a54 += p54[k] * xk,
+                            a55 += p55[k] * xk, a56 += p56[k] * xk, a57 += p57[k] * xk;
+                        a60 += p60[k] * xk, a61 += p61[k] * xk, a62 += p62[k] * xk, a63 += p63[k] * xk, a64 += p64[k] * xk,
+                            a65 += p65[k] * xk, a66 += p66[k] * xk, a67 += p67[k] * xk;
+                        a70 += p70[k] * xk, a71 += p71[k] * xk, a72 += p72[k] * xk, a73 += p73[k] * xk, a74 += p74[k] * xk,
+                            a75 += p75[k] * xk, a76 += p76[k] * xk, a77 += p77[k] * xk;
                      }
-                     // evaluate the 1d polynomials (variable part)
-                     const auto x  = X[micro.x()];
-                     auto       xk = real_t( 1.0 );
-                     for ( uint_t k = 1; k < dimP; ++k )
-                     {
-                        xk *= x;
-                        if constexpr ( Symmetric )
-                        {
-                           a00 += p00[k] * xk;
-                           a10 += p10[k] * xk, a11 += p11[k] * xk;
-                           a20 += p20[k] * xk, a21 += p21[k] * xk, a22 += p22[k] * xk;
-                           a30 += p30[k] * xk, a31 += p31[k] * xk, a32 += p32[k] * xk, a33 += p33[k] * xk;
-                           a40 += p40[k] * xk, a41 += p41[k] * xk, a42 += p42[k] * xk, a43 += p43[k] * xk, a44 += p44[k] * xk;
-                           a50 += p50[k] * xk, a51 += p51[k] * xk, a52 += p52[k] * xk, a53 += p53[k] * xk, a54 += p54[k] * xk,
-                               a55 += p55[k] * xk;
-                           a60 += p60[k] * xk, a61 += p61[k] * xk, a62 += p62[k] * xk, a63 += p63[k] * xk, a64 += p64[k] * xk,
-                               a65 += p65[k] * xk, a66 += p66[k] * xk;
-                           a70 += p70[k] * xk, a71 += p71[k] * xk, a72 += p72[k] * xk, a73 += p73[k] * xk, a74 += p74[k] * xk,
-                               a75 += p75[k] * xk, a76 += p76[k] * xk, a77 += p77[k] * xk;
-                        }
-                        else
-                        {
-                           a00 += p00[k] * xk, a01 += p01[k] * xk, a02 += p02[k] * xk, a03 += p03[k] * xk, a04 += p04[k] * xk,
-                               a05 += p05[k] * xk, a06 += p06[k] * xk, a07 += p07[k] * xk;
-                           a10 += p10[k] * xk, a11 += p11[k] * xk, a12 += p12[k] * xk, a13 += p13[k] * xk, a14 += p14[k] * xk,
-                               a15 += p15[k] * xk, a16 += p16[k] * xk, a17 += p17[k] * xk;
-                           a20 += p20[k] * xk, a21 += p21[k] * xk, a22 += p22[k] * xk, a23 += p23[k] * xk, a24 += p24[k] * xk,
-                               a25 += p25[k] * xk, a26 += p26[k] * xk, a27 += p27[k] * xk;
-                           a30 += p30[k] * xk, a31 += p31[k] * xk, a32 += p32[k] * xk, a33 += p33[k] * xk, a34 += p34[k] * xk,
-                               a35 += p35[k] * xk, a36 += p36[k] * xk, a37 += p37[k] * xk;
-                           a40 += p40[k] * xk, a41 += p41[k] * xk, a42 += p42[k] * xk, a43 += p43[k] * xk, a44 += p44[k] * xk,
-                               a45 += p45[k] * xk, a46 += p46[k] * xk, a47 += p47[k] * xk;
-                           a50 += p50[k] * xk, a51 += p51[k] * xk, a52 += p52[k] * xk, a53 += p53[k] * xk, a54 += p54[k] * xk,
-                               a55 += p55[k] * xk, a56 += p56[k] * xk, a57 += p57[k] * xk;
-                           a60 += p60[k] * xk, a61 += p61[k] * xk, a62 += p62[k] * xk, a63 += p63[k] * xk, a64 += p64[k] * xk,
-                               a65 += p65[k] * xk, a66 += p66[k] * xk, a67 += p67[k] * xk;
-                           a70 += p70[k] * xk, a71 += p71[k] * xk, a72 += p72[k] * xk, a73 += p73[k] * xk, a74 += p74[k] * xk,
-                               a75 += p75[k] * xk, a76 += p76[k] * xk, a77 += p77[k] * xk;
-                        }
-                     }
-                     if constexpr ( Symmetric )
-                     {
-                        a01 = a10, a02 = a20, a03 = a30, a04 = a40, a05 = a50, a06 = a60, a07 = a70;
-                        /*      */ a12 = a21, a13 = a31, a14 = a41, a15 = a51, a16 = a61, a17 = a71;
-                        /*                 */ a23 = a32, a24 = a42, a25 = a52, a26 = a62, a27 = a72;
-                        /*                            */ a34 = a43, a35 = a53, a36 = a63, a37 = a73;
-                        /*                                       */ a45 = a54, a46 = a64, a47 = a74;
-                        /*                                                  */ a56 = a65, a57 = a75;
-                        /*                                                             */ a67 = a76;
-                     }
-
-                     // assemble local element vector
-                     const auto v0 = alpha * srcVertexData[g0];
-                     const auto v1 = alpha * srcVertexData[g1];
-                     const auto v2 = alpha * srcVertexData[g2];
-                     const auto v3 = alpha * srcVertexData[g3];
-                     const auto v4 = alpha * srcVertexData[g4];
-                     const auto v5 = alpha * srcVertexData[g5];
-                     const auto v6 = alpha * srcVertexData[g6];
-                     const auto v7 = alpha * srcVertexData[g7];
-
-                     // local matvec w=Av
-                     const auto w0 = a00 * v0 + a01 * v1 + a02 * v2 + a03 * v3 + a04 * v4 + a05 * v5 + a06 * v6 + a07 * v7;
-                     const auto w1 = a10 * v0 + a11 * v1 + a12 * v2 + a13 * v3 + a14 * v4 + a15 * v5 + a16 * v6 + a17 * v7;
-                     const auto w2 = a20 * v0 + a21 * v1 + a22 * v2 + a23 * v3 + a24 * v4 + a25 * v5 + a26 * v6 + a27 * v7;
-                     const auto w3 = a30 * v0 + a31 * v1 + a32 * v2 + a33 * v3 + a34 * v4 + a35 * v5 + a36 * v6 + a37 * v7;
-                     const auto w4 = a40 * v0 + a41 * v1 + a42 * v2 + a43 * v3 + a44 * v4 + a45 * v5 + a46 * v6 + a47 * v7;
-                     const auto w5 = a50 * v0 + a51 * v1 + a52 * v2 + a53 * v3 + a54 * v4 + a55 * v5 + a56 * v6 + a57 * v7;
-                     const auto w6 = a60 * v0 + a61 * v1 + a62 * v2 + a63 * v3 + a64 * v4 + a65 * v5 + a66 * v6 + a67 * v7;
-                     const auto w7 = a70 * v0 + a71 * v1 + a72 * v2 + a73 * v3 + a74 * v4 + a75 * v5 + a76 * v6 + a77 * v7;
-
-                     // write data back into global vector
-                     dstVertexData[g0] += w0;
-                     dstVertexData[g1] += w1;
-                     dstVertexData[g2] += w2;
-                     dstVertexData[g3] += w3;
-                     dstVertexData[g4] += w4;
-                     dstVertexData[g5] += w5;
-                     dstVertexData[g6] += w6;
-                     dstVertexData[g7] += w7;
                   }
-
-               for ( micro.x() = 0; micro.x() < n - 2 - micro.z() - micro.y(); micro.x()++ )
-               {// todo remove this and fix above loop
-                  Matrix4r elMat( Matrix4r::Zero() );
-                  for ( const auto& cType : celldof::allCellTypes )
+                  if constexpr ( Symmetric )
                   {
-                     p1::assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
-                     p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
+                     a01 = a10, a02 = a20, a03 = a30, a04 = a40, a05 = a50, a06 = a60, a07 = a70;
+                     /*      */ a12 = a21, a13 = a31, a14 = a41, a15 = a51, a16 = a61, a17 = a71;
+                     /*                 */ a23 = a32, a24 = a42, a25 = a52, a26 = a62, a27 = a72;
+                     /*                            */ a34 = a43, a35 = a53, a36 = a63, a37 = a73;
+                     /*                                       */ a45 = a54, a46 = a64, a47 = a74;
+                     /*                                                  */ a56 = a65, a57 = a75;
+                     /*                                                             */ a67 = a76;
                   }
+
+                  // assemble local element vector
+                  const auto v0 = alpha * srcVertexData[g0];
+                  const auto v1 = alpha * srcVertexData[g1];
+                  const auto v2 = alpha * srcVertexData[g2];
+                  const auto v3 = alpha * srcVertexData[g3];
+                  const auto v4 = alpha * srcVertexData[g4];
+                  const auto v5 = alpha * srcVertexData[g5];
+                  const auto v6 = alpha * srcVertexData[g6];
+                  const auto v7 = alpha * srcVertexData[g7];
+
+                  // local matvec w=Av
+                  const auto w0 = a00 * v0 + a01 * v1 + a02 * v2 + a03 * v3 + a04 * v4 + a05 * v5 + a06 * v6 + a07 * v7;
+                  const auto w1 = a10 * v0 + a11 * v1 + a12 * v2 + a13 * v3 + a14 * v4 + a15 * v5 + a16 * v6 + a17 * v7;
+                  const auto w2 = a20 * v0 + a21 * v1 + a22 * v2 + a23 * v3 + a24 * v4 + a25 * v5 + a26 * v6 + a27 * v7;
+                  const auto w3 = a30 * v0 + a31 * v1 + a32 * v2 + a33 * v3 + a34 * v4 + a35 * v5 + a36 * v6 + a37 * v7;
+                  const auto w4 = a40 * v0 + a41 * v1 + a42 * v2 + a43 * v3 + a44 * v4 + a45 * v5 + a46 * v6 + a47 * v7;
+                  const auto w5 = a50 * v0 + a51 * v1 + a52 * v2 + a53 * v3 + a54 * v4 + a55 * v5 + a56 * v6 + a57 * v7;
+                  const auto w6 = a60 * v0 + a61 * v1 + a62 * v2 + a63 * v3 + a64 * v4 + a65 * v5 + a66 * v6 + a67 * v7;
+                  const auto w7 = a70 * v0 + a71 * v1 + a72 * v2 + a73 * v3 + a74 * v4 + a75 * v5 + a76 * v6 + a77 * v7;
+
+                  // write data back into global vector
+                  dstVertexData[g0] += w0;
+                  dstVertexData[g1] += w1;
+                  dstVertexData[g2] += w2;
+                  dstVertexData[g3] += w3;
+                  dstVertexData[g4] += w4;
+                  dstVertexData[g5] += w5;
+                  dstVertexData[g6] += w6;
+                  dstVertexData[g7] += w7;
                }
 
-               // remainder: partial cube with missing white-down element
-               { // todo use surrogates/precomputed
-                  Matrix4r elMat( Matrix4r::Zero() );
+               // remainder: partial cube with missing white-down-element
+               if ( micro.x() == n - 2 - micro.z() - micro.y() )
+               {
+                  // todo: use (scaled?) surrogates
                   for ( const auto& cType : celldof::allCellTypes )
                   {
-                     if ( cType == celldof::CellType::WHITE_DOWN )
+                     if ( cType != celldof::CellType::WHITE_DOWN )
                      {
-                        continue;
+                        Matrix4r elMat( Matrix4r::Zero() );
+                        p1::assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
+                        p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
                      }
-                     p1::assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
-                     p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
                   }
+                  micro.x()++;
                }
-               micro.x()++;
-
-               // remainder: single white-up element at row end
-               { // todo use surrogates/precomputed
-                  Matrix4r       elMat( Matrix4r::Zero() );
-                  constexpr auto cType = celldof::CellType::WHITE_UP;
+               // remainder: single white-up-element at row end
+               // if ( micro.x() == n - 1 - micro.z() - micro.y() ) // always true
+               {
+                  // todo: use (scaled?) surrogates
+                  const auto cType = celldof::CellType::WHITE_UP;
+                  Matrix4r   elMat( Matrix4r::Zero() );
                   p1::assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
                   p1::localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, elMat, alpha );
                }
             }
          }
       }
-      else
+      else //! legacy: sawtooth. For now, we keep this for testing purposes. Should be removed when no longer required!
+      {
          for ( const auto& cType : celldof::allCellTypes )
          {
             auto& surrogate = surrogate_3d_.at( id )[level][cType];
@@ -1332,6 +1324,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
                }
             }
          }
+      }
    }
 }
 
