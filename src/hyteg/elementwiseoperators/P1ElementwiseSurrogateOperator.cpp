@@ -626,7 +626,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
    }
    else
    {
-      if constexpr ( false ) //! cubes loop
+      if constexpr ( true ) //! cubes loop
       {
          auto& surrogate = surrogate_cube_3d_.at( id )[level];
          // monomial basis
