@@ -973,6 +973,16 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
                   const uint_t g6 = vertexDoFIndices[6] + micro.x();
                   const uint_t g7 = vertexDoFIndices[7] + micro.x();
 
+                  // assemble local element vector v = alpha*src
+                  const auto v0 = alpha * srcVertexData[g0];
+                  const auto v1 = alpha * srcVertexData[g1];
+                  const auto v2 = alpha * srcVertexData[g2];
+                  const auto v3 = alpha * srcVertexData[g3];
+                  const auto v4 = alpha * srcVertexData[g4];
+                  const auto v5 = alpha * srcVertexData[g5];
+                  const auto v6 = alpha * srcVertexData[g6];
+                  const auto v7 = alpha * srcVertexData[g7];
+
                   // local stiffness matrix
                   real_t a00, a01, a02, a03, a04, a05, a06, a07;
                   real_t a10, a11, a12, a13, a14, a15, a16, a17;
@@ -1056,16 +1066,6 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
                      /*                                                  */ a56 = a65, a57 = a75;
                      /*                                                             */ a67 = a76;
                   }
-
-                  // assemble local element vector
-                  const auto v0 = alpha * srcVertexData[g0];
-                  const auto v1 = alpha * srcVertexData[g1];
-                  const auto v2 = alpha * srcVertexData[g2];
-                  const auto v3 = alpha * srcVertexData[g3];
-                  const auto v4 = alpha * srcVertexData[g4];
-                  const auto v5 = alpha * srcVertexData[g5];
-                  const auto v6 = alpha * srcVertexData[g6];
-                  const auto v7 = alpha * srcVertexData[g7];
 
                   // local matvec w=Av
                   const auto w0 = a00 * v0 + a01 * v1 + a02 * v2 + a03 * v3 + a04 * v4 + a05 * v5 + a06 * v6 + a07 * v7;
