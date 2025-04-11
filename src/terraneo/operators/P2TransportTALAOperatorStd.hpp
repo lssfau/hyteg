@@ -288,6 +288,9 @@ class P2TransportOperatorStdTemplate : public hyteg::Operator< TemperatureFuncti
 
          adiabaticOperator_->apply( temporaryLocal1, temporaryLocal, level, flag );
          dst.assign( { 1.0, timestep }, { dst, temporaryLocal }, level, flag );
+	
+	      // adiabaticOperator_->apply( *temperature_, temporaryLocal, level, flag );
+         // dst.assign( { 1.0, -timestep }, { dst, temporaryLocal }, level, flag );
       }
 
       if ( TALADict_.at( TransportOperatorTermKey::INTERNAL_HEATING_TERM ) )

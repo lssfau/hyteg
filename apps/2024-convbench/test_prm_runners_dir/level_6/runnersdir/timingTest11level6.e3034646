@@ -1,0 +1,17 @@
+mpt version 2.26 is out of service due to technical problems and version 2.30 will be automatically used instead
+
+The following have been reloaded with a version change:
+  1) gcc/12.3.0 => gcc/10.2.0
+  2) hlrs-software-stack/current => hlrs-software-stack/previous
+  3) mpt/2.30 => mpt/2.26
+
+
+Due to MODULEPATH changes, the following have been reloaded:
+  1) mpt/2.26
+
+The following have been reloaded with a version change:
+  1) gcc/10.2.0 => gcc/12.2.0
+
+
+Lmod is automatically replacing "mpt/2.26" with "openmpi/4.1.5".
+

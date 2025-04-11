@@ -262,7 +262,8 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                                     cell->getFaceInwardNormal( 0 ),
                                     cell->getFaceInwardNormal( 1 ),
                                     cell->getFaceInwardNormal( 2 ),
-                                    cell->getFaceInwardNormal( 3 ) ) )
+                                    cell->getFaceInwardNormal( 3 ) ) &&
+              cell->getGeometryMap()->verifyPointPairing( computationalLocation, toPoint3D( p->getPosition() ) ) )
          {
             p->setContainingPrimitive( cellID );
             foundByPointLocation = true;
@@ -286,7 +287,9 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                                           neighborCell->getFaceInwardNormal( 0 ),
                                           neighborCell->getFaceInwardNormal( 1 ),
                                           neighborCell->getFaceInwardNormal( 2 ),
-                                          neighborCell->getFaceInwardNormal( 3 ) ) )
+                                          neighborCell->getFaceInwardNormal( 3 ) ) &&
+                    neighborCell->getGeometryMap()->verifyPointPairing( computationalLocationNeighbor,
+                                                                        toPoint3D( p->getPosition() ) ) )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborCellID );
@@ -308,7 +311,8 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                                                 cell->getCoordinates().at( 0 ),
                                                 cell->getCoordinates().at( 1 ),
                                                 cell->getCoordinates().at( 2 ),
-                                                cell->getCoordinates().at( 3 ) ) )
+                                                cell->getCoordinates().at( 3 ) ) &&
+                 cell->getGeometryMap()->verifyPointPairing( computationalLocation, toPoint3D( p->getPosition() ) ) )
             {
                p->setContainingPrimitive( cellID );
                foundByPointLocation = true;
@@ -328,7 +332,9 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
                                                       neighborCell->getCoordinates().at( 0 ),
                                                       neighborCell->getCoordinates().at( 1 ),
                                                       neighborCell->getCoordinates().at( 2 ),
-                                                      neighborCell->getCoordinates().at( 3 ) ) )
+                                                      neighborCell->getCoordinates().at( 3 ) ) &&
+                       neighborCell->getGeometryMap()->verifyPointPairing( computationalLocationNeighbor,
+                                                                           toPoint3D( p->getPosition() ) ) )
                   {
                      p->setContainingPrimitive( neighborCellID );
                      foundByPointLocation = true;
@@ -1019,7 +1025,8 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
                                  const bool                setParticlesOutsideDomainToZero = false,
                                  const bool&               p1Evaluate                      = false,
                                  HandleOutsideDomainMethod handleOutsideDomainMethod = HandleOutsideDomainMethod::DO_NOTHING,
-                                 std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain = nullptr )
+                                 std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain = nullptr,
+                                 real_t rMin = 1.22, real_t rMax = 2.22 )
 {
    communication::syncFunctionBetweenPrimitives( cOld, level );
 
@@ -1049,6 +1056,23 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
          finalTemperature = std::max( finalTemperature, minTempCOld );
          finalTemperature = std::min( finalTemperature, maxTempCOld );
       }
+
+      if(p.getOutsideDomain() == 1)
+      {
+         if( toPoint3D( p.getPosition() ).norm() < rMin )
+         {
+            finalTemperature = 1.0;
+         }
+         else if ( toPoint3D( p.getPosition() ).norm() > rMax )
+         {
+            finalTemperature = 0.0;
+         }
+         else
+         {
+            WALBERLA_ABORT("Shouldn't be here");
+         }
+      }
+
       p->setFinalTemperature( finalTemperature );
    }
 
@@ -1395,6 +1419,9 @@ class MMOCTransport
       projectPointsBackOutsideDomain_ = projectPointsBackOutsideDomain;
    }
 
+   void setRMin( real_t rMin ) { rMin_ = rMin; }
+   void setRMax( real_t rMax ) { rMax_ = rMax; }
+
  private:
    void step( const FunctionType& c,
               const FunctionType& ux,
@@ -1461,7 +1488,9 @@ class MMOCTransport
                            setParticlesOutsideDomainToZero,
                            p1Evaluate_,
                            handleOutsideDomainMethod_,
-                           projectPointsBackOutsideDomain_ );
+                           projectPointsBackOutsideDomain_,
+                           rMin_,
+                           rMax_ );
       storage_->getTimingTree()->stop( "Temperature evaluation" );
 
       storage_->getTimingTree()->stop( "MMOCTransport" );
@@ -1596,6 +1625,8 @@ class MMOCTransport
    HandleOutsideDomainMethod handleOutsideDomainMethod_ = HandleOutsideDomainMethod::DO_NOTHING;
 
    std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain_;
+
+   real_t rMin_ = 1.22, rMax_ = 2.22;
 };
 
 } // namespace hyteg

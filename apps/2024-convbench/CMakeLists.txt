@@ -10,6 +10,7 @@ endif()
 
 waLBerla_link_files_to_builddir( *.py )
 waLBerla_link_files_to_builddir( *.prm )
+waLBerla_link_files_to_builddir( *.pbs )
 waLBerla_link_files_to_builddir( *sh )
 
 waLBerla_add_executable( NAME 2DStokesFSConvTest
@@ -40,6 +41,10 @@ waLBerla_add_executable( NAME SphericalShellBenchRotationMinimal
         FILES  SphericalShellBenchRotationMinimal.cpp
         DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes opgen-div_k_grad opgen-advection opgen-supg_mass opgen-supg_diffusion opgen-supg_advection opgen-full_stokes opgen-terraneo opgen-mass opgen-k_mass opgen-epsilon opgen-divergence opgen-gradient)
 
+waLBerla_add_executable( NAME SphericalShellBenchRotationMinimalMinimal
+        FILES  SphericalShellBenchRotationMinimalMinimal.cpp
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes opgen-div_k_grad opgen-advection opgen-supg_mass opgen-supg_diffusion opgen-supg_advection opgen-full_stokes opgen-terraneo opgen-mass opgen-k_mass opgen-epsilon opgen-divergence opgen-gradient)
+
 waLBerla_add_executable( NAME SphericalShellBenchRotation
         FILES  SphericalShellBenchRotation.cpp
         DEPENDS hyteg terraneo mixed_operator convection_particles opgen-composites-stokes opgen-div_k_grad opgen-advection opgen-supg_mass opgen-supg_diffusion opgen-supg_advection opgen-full_stokes opgen-terraneo opgen-mass opgen-k_mass opgen-epsilon opgen-divergence opgen-gradient)
@@ -50,4 +55,8 @@ waLBerla_add_executable( NAME TosiNonlinearUnitSquare
 
 waLBerla_add_executable( NAME KingTALA
         FILES  KingTALA.cpp
+        DEPENDS hyteg terraneo mixed_operator convection_particles opgen-advection opgen-mass opgen-k_mass opgen-div_k_grad opgen-epsilon opgen-terraneo opgen-composites-stokes)
+
+waLBerla_add_executable( NAME SphSimple
+        FILES  SphSimple.cpp
         DEPENDS hyteg terraneo mixed_operator convection_particles opgen-advection opgen-mass opgen-k_mass opgen-div_k_grad opgen-epsilon opgen-terraneo opgen-composites-stokes)

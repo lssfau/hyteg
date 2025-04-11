@@ -1,0 +1,33 @@
+Parameters
+{
+    nTan 9;
+    nRad 5;
+
+    minLevel 0;
+    maxLevel 2;
+
+    rMin 1.22;
+    rMax 2.22;
+
+    AiniPerturb 0.01;
+    RayleighNumber 1e6;
+
+    cflMax 0.95;
+    nCouplingIter 1;
+
+    stokesMinresIter 1000;
+    stokesMinresTol 1e-12;
+
+    transportGmresIter 1000;
+    transportGmresTol 1e-8;
+
+    simulationTime 10.0;
+    maxTimeSteps 2500;
+
+    profileFilename ./profiles/SphSimple1e6Blending/Temperature;
+
+    outputFilename SphSimple1e6Blending;
+    outputPath ./output/;
+
+    vtkWriteFrequency 1;
+}

@@ -1,16 +1,8 @@
 #!/bin/bash
-#PBS -N sph
-#PBS -l select=2:node_type=rome:mpiprocs=120:node_type_mem=256gb
-#PBS -l walltime=00:20:00
-#PBS -o ./
+#PBS -l select=16:node_type=rome:mpiprocs=120:node_type_mem=256gb
+#PBS -l walltime=23:59:59
+#PBS -N sph_exp_ad_boundoff
 
-echo $PBS_O_WORKDIR
+source /zhome/academic/HLRS/xgu/xgutnv/loadModules.sh 
 
-cd $PBS_O_WORKDIR
-
-module load hlrs-software-stack/previous
-
-module load gcc/12.2.0
-module load openmpi/4.1.5
-
-mpirun -np 240 /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg-build/apps/2024-convbench/SphericalShellBenchRotationMinimalMinimal /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg-build/apps/2024-convbench/SphericalShellBenchRotationMinimalMinimal.prm
+mpirun -np 1920 /zhome/academic/HLRS/xgu/xgutnv/hyteg-build-gcc/apps/2024-convbench/SphericalShellBenchRotationMinimal /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/apps/2024-convbench/SphericalShellBenchRotationMinimal.prm

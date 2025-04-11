@@ -20,6 +20,12 @@ target_sources( hyteg
     generated/EvaluateViscosityViscoplastic/P2EvaluateViscosityViscoplastic.hpp
     generated/EvaluateViscosityViscoplastic/P2EvaluateViscosityViscoplastic.cpp
 
+    generated/RadialGradient/P2ElementwiseRadialGradientSurfaceIcosahedralShellMapOperator.hpp
+    generated/RadialGradient/P2ElementwiseRadialGradientSurfaceIcosahedralShellMapOperator.cpp
+
+    generated/FullStokesRotationWithFSPenalty/P2VectorElementwiseFullStokesRotationWithFusedFSPenaltyVectorizedOperator.hpp
+    generated/FullStokesRotationWithFSPenalty/P2VectorElementwiseFullStokesRotationWithFusedFSPenaltyVectorizedOperator.cpp
+
     generated/Ones/P2Ones.hpp
     generated/Ones/P2Ones.cpp
 )

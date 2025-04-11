@@ -51,8 +51,25 @@ void rotationMatrix3D( const Point3D& n, Matrix3r& rotation, bool transpose )
 
    real_t nCrossComp[] = { nCross[0].norm(), nCross[1].norm(), nCross[2].norm() };
 
-   uint_t iMax = nCrossComp[0] > nCrossComp[1] ? 0 : 1;
-   iMax        = nCrossComp[iMax] > nCrossComp[2] ? iMax : 2;
+   real_t eps = 1e-10;
+
+   uint_t iMax = 0u;
+
+   if( (nCrossComp[0] + eps > nCrossComp[1]) && (nCrossComp[0] + eps > nCrossComp[2]) )
+   {
+      iMax = 0u;
+   }
+   else if( (nCrossComp[1] + eps > nCrossComp[0]) && (nCrossComp[1] + eps > nCrossComp[2]) )
+   {
+      iMax = 1u;
+   }
+   else
+   {
+      iMax = 2u;
+   }
+   
+   // uint_t iMax = nCrossComp[0] > nCrossComp[1] ? 0 : 1;
+   // iMax        = nCrossComp[iMax] > nCrossComp[2] ? iMax : 2;
 
    Point3D t1 = nCross[iMax].normalized();
 

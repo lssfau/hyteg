@@ -1,0 +1,59 @@
+
+Setup
+{
+  viscosity P1;
+  rotationWrapper true;
+  opWrapper false;
+  blending true;
+}
+
+Parameters
+{
+  nTan 3;
+  nRad 2;
+	
+  rMin 1.22;
+  rMax 2.22;
+
+  lmax 3;
+  mSph 2;
+
+  epsC 0.1;
+  epsS 0.1;
+  eps 0.001;
+
+  freeslip false;
+  mixed true;
+
+  rMu 1;
+  TRef 0.5;
+
+  maxLevel 6;
+  minLevel 0;
+
+  verbose true;
+
+  eigenLevel 4;
+  setEigenAllLevels false;
+  eigenUpperBoundFactor 1.2;
+  eigenLowerBoundFactor 15.0;
+
+  relaxSchur 0.1;
+  uzawaOmega 0.1;
+  chebyshevOrder 3;
+
+  cgSchurSmootherIter 500;
+  cgSchurSmootherTol 1e-12;
+
+  stokesCoarseMinresIter 100;
+  stokesCoarseMinresRelTol 1e-6;
+  stokesCoarseMinresAbsTol 1e-10;
+
+  uzawaPreSmooth 1;
+  uzawaPostSmooth 1;
+
+  fgmresIterations 5;
+  fgmresRestartIter 5;
+
+  timingTreeFilename /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/apps/2024-convbench/test_prm_runners_dir/level_6/timingtreedir/timingTree_11_level6.json;
+}

@@ -1,0 +1,186 @@
+Parameters
+{
+  nTan 3;
+  nRad 2;
+	
+  rMin 1.22;
+  rMax 2.22;
+
+  RayleighNumber 7e3;
+  DissipationNumber 0.5;
+  alpha 1.0;
+  thermalConductivity 1.0;
+
+  rho 1.0;
+  cp 1.0;
+
+  lmax 3;
+  mSph 2;
+
+  cubicSymmetry false;
+
+  lmaxC 4;
+  mSphC 4;
+
+  expScaling 10.0;
+  directScaling 6e-2;
+
+  epsC 1.0;
+  epsS 1.0;
+  eps 0.001;
+
+  thetaPhaseShift 0.0;
+  phiPhaseShift 0.0;
+
+  NshGrad 0.001;
+  NsEpsBoundary 1e-6;
+  NsCalcFreq 1;
+  NsnSamples 101;
+
+  plateDirSwitch false;
+  plateSwitchFreq 100;
+  plateVelRad 0.0;
+
+  freeslip true;
+  mixed false;
+
+  rMu 1;
+  TRef 0.5;
+  
+  nPlumes 8;
+
+  nx 10;
+  ny 4;
+
+  // viscosityProfile /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/viscosityProfiles/SimpleTest.json;
+  TemperatureProfile /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/radialProfiles/TemperatureProfile.json;
+
+  viscosityLowerBound 5e19;
+  viscosityUpperBound 1e24;
+
+  activationEnergy 10.0;
+
+  rheologyType 0;
+
+  shearHeating false;
+  adiabaticHeating false;
+
+  shearHeatingThresholdDistanceFromBoundary 0.0;
+
+  maxLevel 4;
+  minLevel 2;
+
+  readInMinLevel 2;
+  readInMaxLevel 4;
+
+  verbose true;
+
+  useGMG false;
+
+  omegaJacobi 0.1;
+
+  nCouplingSteps 1;
+
+  rotFactor 0.1;
+
+  supgScaling 1.0;
+
+  handsetEigen true;
+  handsetEigenValue 4.25;
+
+  eigenLevel 5;
+  setEigenAllLevels false;
+  eigenUpperBoundFactor 1.2;
+  eigenLowerBoundFactor 15.0;
+
+  relaxSchur 0.1;
+  uzawaOmega 0.1;
+  cgSmootherIter 10;
+  cgSchurSmootherIter 1000;
+  cgSchurSmootherTol 1e-16;
+  fgmresIterationsInitial 10;
+  nStepsInitial 10;
+  fgmresIterations 15;
+  fgmresTolerance 1e-4;
+
+  uzawaPreSmooth 3;
+  uzawaPostSmooth 3;
+
+  chebyshevOrder 3;
+  spectralRadius 1.0;
+
+  spectralRadiusLower 1e-1;
+  spectralRadiusUpper 1.0;
+
+  estimateUzawaOmega true;
+
+  numPowerIteration 30;
+
+  stokesMinresIter 10000;
+  stokesMinresRelTol 1e-6;
+  stokesMinresAbsTol 1e-10;
+
+  stokesCoarseMinresIter 100;
+  stokesCoarseMinresRelTol 1e-6;
+  stokesCoarseMinresAbsTol 1e-10;
+
+  stokesFineMinresIter 1;
+  stokesFineMinresRelTol 1e-6;
+  stokesFineMinresAbsTol 1e-8;
+
+  stokesFGMRESIter 10;
+
+  stokesDxExitTol 1e-8;
+
+  transportMinresIter 1000;
+  transportMinresTol 1e-8;
+
+  transportGmresArnoldiTol 1e-8;
+  transportGmresAbsTol 1e-8;
+
+  specRadCalFreq 100;
+
+  residualExitTol 1e12;
+
+  Direct false;
+
+  maxTimeSteps 2001;
+  dtStart 1e-6;
+  dtMin 1e-12;
+  dtMax 100.0;
+  dtRaster 1e-7;
+  cflMax 1.5;
+  simulationTime 10;
+  nonLinIter 4;
+  iterPicard 1;
+
+  nVCycles 10;
+
+  level 1;
+  
+  fnameTopologies /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/plates/topologies0-100Ma.geojson;
+  fnameReconstructions /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
+
+  useAdios2 true;
+  adiosXmlConfig /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
+
+  modelOutputDir /lustre/hpe/ws11/ws11.1/ws/xgutnv-profile/;
+  modelName IVCTEST;
+
+  storeCheckpoint true;
+  adios2CheckpointFreq 10;
+
+  startCheckpointPath /lustre/hpe/ws11/ws11.1/ws/xgutnv-profile/STD_NP_EPS/checkpoint;
+  
+  // lustre/hpe/ws11/ws11.1/ws/xgutnv-profile/AdiabaticIniLowerLevel2_Part1/checkpoint/;
+  
+  startCheckpointFilename STD_NP_EPS;
+  startFromCheckpoint false;
+
+  importStep 5;
+
+  // outputPath ./output;
+  // outputFilename SphericalShell_MT128_Profile_Arrhenius_ExplAdiaDiff_C2_24022025;
+  // outputFilename SphericalShellDebug;
+  vtkWriteFrequency 5;
+}

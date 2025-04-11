@@ -29,6 +29,7 @@
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg/operatorgeneration/EpsilonRotation/P2VectorElementwiseEpsilonRotation_IcosahedralShellMap_fused_quadloops_float64.hpp"
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
+#include "hyteg/operatorgeneration/generated/FullStokesRotationWithFSPenalty/P2VectorElementwiseFullStokesRotationWithFusedFSPenaltyVectorizedOperator.hpp"
 
 namespace hyteg {
 
@@ -39,7 +40,7 @@ class P2ViscousIcosahedralShellMapOperatorRotation : public Operator< P2VectorFu
    // typedef operatorgeneration::P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap ViscousOperator_T;
    // typedef operatorgeneration::P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap ViscousOperator_T;
    typedef operatorgeneration::P2VectorElementwiseEpsilonRotation_IcosahedralShellMap_fused_quadloops_float64 ViscousOperator_T;
-
+   // typedef operatorgeneration::P2VectorElementwiseFullStokesRotationWithFusedFSPenaltyVectorizedOperator ViscousOperator_T;
    // using P2VectorElementwiseEpsilonRotationAbsOperator =
    //     operatorgeneration::P2VectorElementwiseEpsilonRotationAbsIcosahedralShellMapOperator;
 

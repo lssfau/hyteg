@@ -24,7 +24,18 @@
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP0Viscosity.hpp"
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1Viscosity.hpp"
+// #define CUBES_LOOP
+#ifndef CUBES_LOOP
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
+#else
+#include "hyteg_operators/operators/cubes_loop/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/cubes_loop/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/cubes_loop/P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/cubes_loop/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
+#endif
 #include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 #include "hyteg_operators_composites/gradient/P1ToP2GradientOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesOperatorTemplate.hpp"

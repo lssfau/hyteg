@@ -53,42 +53,39 @@ using walberla::real_t;
 inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain2D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
-                                            real_t                              searchToleranceRadius )
+                                            real_t                              searchToleranceRadius,
+                                            real_t                              barycentricTolerance = real_c( 0 ) )
 {
    bool        found = false;
    PrimitiveID faceID;
    Point3D     computationalCoords;
 
+   real_t lowestTol = std::numeric_limits< real_t >::max();
+
    for ( const auto& it : storage->getFaces() )
    {
       Face& face = *it.second;
 
+      Point3D currentComputationalCoords;
+
       // map coordinates from physical to computational domain
-      face.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+      face.getGeometryMap()->evalFinv( physicalCoords, currentComputationalCoords );
 
-      bool faceIsCandidate =
-          isPointInTriangle( computationalCoords, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
+      real_t tolerance = pointFaceBaricentricTolerance2D(
+          currentComputationalCoords, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
 
-//#define BE_VERBOSE
-#ifdef BE_VERBOSE
-      WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> FaceID = " << faceID );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Face is candidate = " << ( faceIsCandidate ? "TRUE" : "FALSE" ) );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Physical Coordinates = " << physicalCoords );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Computational Coordinates = " << computationalCoords );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Face Vertices:" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[0] );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[1] );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[2] );
-      WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
-#endif
-
-      // if face is candidate, check that this is actually the correct face
-      if ( faceIsCandidate && face.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+      if ( tolerance < lowestTol && face.getGeometryMap()->verifyPointPairing( currentComputationalCoords, physicalCoords ) )
       {
-         found  = true;
-         faceID = face.getID();
-         break;
+         found               = true;
+         lowestTol           = tolerance;
+         faceID              = face.getID();
+         computationalCoords = currentComputationalCoords;
+
+         if ( std::fpclassify( tolerance ) == FP_ZERO ||
+              ( barycentricTolerance > real_c( 0 ) && tolerance < barycentricTolerance ) )
+         {
+            break;
+         }
       }
    }
 
@@ -142,36 +139,50 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
-                                            real_t                              searchToleranceRadius )
+                                            real_t                              searchToleranceRadius,
+                                            real_t                              barycentricTolerance = real_c( 0 ) )
 {
    bool        found = false;
    PrimitiveID cellID;
    Point3D     computationalCoords;
 
+   real_t lowestTol = std::numeric_limits< real_t >::max();
+
    for ( const auto& it : storage->getCells() )
    {
       Cell& cell = *it.second;
 
+      Point3D currentComputationalCoords;
+
       // map coordinates from physical to computational domain
-      cell.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+      cell.getGeometryMap()->evalFinv( physicalCoords, currentComputationalCoords );
 
-      bool cellIsCandidate = isPointInTetrahedron( computationalCoords,
-                                                   cell.getCoordinates()[0],
-                                                   cell.getCoordinates()[1],
-                                                   cell.getCoordinates()[2],
-                                                   cell.getCoordinates()[3],
-                                                   cell.getFaceInwardNormal( 0 ),
-                                                   cell.getFaceInwardNormal( 1 ),
-                                                   cell.getFaceInwardNormal( 2 ),
-                                                   cell.getFaceInwardNormal( 3 ) );
+      real_t tolerance = pointCellBaricentricTolerance3D( currentComputationalCoords,
+                                                          cell.getCoordinates()[0],
+                                                          cell.getCoordinates()[1],
+                                                          cell.getCoordinates()[2],
+                                                          cell.getCoordinates()[3] );
 
-      // if cell is candidate, check that this is actually the correct cell
-      if ( cellIsCandidate && cell.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+      if ( tolerance < lowestTol && cell.getGeometryMap()->verifyPointPairing( currentComputationalCoords, physicalCoords ) )
       {
-         found  = true;
-         cellID = cell.getID();
-         break;
+         found               = true;
+         lowestTol           = tolerance;
+         cellID              = cell.getID();
+         computationalCoords = currentComputationalCoords;
+
+         if ( std::fpclassify( tolerance ) == FP_ZERO ||
+              ( barycentricTolerance > real_c( 0 ) && tolerance < barycentricTolerance ) )
+         {
+            break;
+         }
       }
+   }
+
+   if ( found & lowestTol > 1 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( physicalCoords );
+      WALBERLA_LOG_INFO_ON_ROOT( computationalCoords );
+      WALBERLA_LOG_INFO_ON_ROOT( lowestTol );
    }
 
    // No cell found? Try different approach

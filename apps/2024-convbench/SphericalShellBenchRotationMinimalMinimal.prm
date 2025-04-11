@@ -2,7 +2,7 @@
 Setup
 {
   viscosity P1;
-  rotationWrapper true;
+  rotationWrapper false;
   opWrapper false;
   blending true;
 }
@@ -49,10 +49,12 @@ Parameters
   stokesCoarseMinresRelTol 1e-6;
   stokesCoarseMinresAbsTol 1e-10;
 
-  uzawaPreSmooth 3;
-  uzawaPostSmooth 3;
+  uzawaPreSmooth 1;
+  uzawaPostSmooth 1;
 
   fgmresIterations 5;
-
+  fgmresRestartIter 2;
+  
+  logFilename test.out;
   timingTreeFilename test.json;
 }

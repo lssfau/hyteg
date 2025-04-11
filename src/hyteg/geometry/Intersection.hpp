@@ -394,4 +394,80 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
    return false;
 }
 
+/// Returns a baricentric tolerance determining how close a point is to a face (triangle)
+/// The baricentric tolerance measures the maximum deviation of the baricentric coordinates and their sum
+/// from the interval [0,1] and 1 respectively. This criterion is a bit dodgy but it works in practice.
+/// \note Returns 0 if the point lies inside the face
+inline real_t pointFaceBaricentricTolerance2D( const Point3D& p, const Point3D& A, const Point3D& B, const Point3D& C )
+{
+   Point3D AB = B - A;
+   Point3D BC = C - B;
+   Point3D CA = A - C;
+
+   Point3D normal = AB.cross( C - A );
+   normal.normalize();
+
+   real_t dist_                    = normal.dot( A );
+   real_t doubleSignedAreaTriangle = AB.cross( C - A ).dot( normal );
+
+   // signed area of the subtriangles ABP, BCP, CAP
+   real_t doubleSignedAreaSubTriangle1 = AB.cross( p - A ).dot( normal );
+   real_t doubleSignedAreaSubTriangle2 = BC.cross( p - B ).dot( normal );
+   real_t doubleSignedAreaSubTriangle3 = CA.cross( p - C ).dot( normal );
+
+   // barycentric coordinates
+   real_t c1 = doubleSignedAreaSubTriangle2 / doubleSignedAreaTriangle;
+   real_t c2 = doubleSignedAreaSubTriangle3 / doubleSignedAreaTriangle;
+   real_t c3 = doubleSignedAreaSubTriangle1 / doubleSignedAreaTriangle;
+
+   // check if all barycentric coordinates are between 0 and 1, their sum should be 1 by construction
+   if ( c1 < 0 || c2 < 0 || c3 < 0 )
+   {
+      return std::max( { std::abs( std::min( { c1, c2, c3 } ) ),
+                         std::abs( std::max( { real_c( 0 ), c1 - real_c( 1 ), c2 - real_c( 1 ), c3 - real_c( 1 ) } ) ),
+                         std::abs( c1 + c2 + c3 - real_c( 1.0 ) ) } );
+   }
+
+   return real_c( 0 );
+}
+
+/// Returns a baricentric tolerance determining how close a point is to a cell (tetrahedron)
+/// The baricentric tolerance measures the maximum deviation of the baricentric coordinates and their sum
+/// from the interval [0,1] and 1 respectively. This criterion is a bit dodgy but it works in practice.
+/// \note Returns 0 if the point lies inside the cell
+inline real_t
+    pointCellBaricentricTolerance3D( const Point3D& p, const Point3D& A, const Point3D& B, const Point3D& C, const Point3D& D )
+{
+   Point3D AP = p - A;
+   Point3D BP = p - B;
+   Point3D AB = B - A;
+   Point3D AC = C - A;
+   Point3D AD = D - A;
+   Point3D BC = C - B;
+   Point3D BD = D - B;
+
+   // volumes of the four subtetrahedra
+   real_t Va = BP.dot( BD.cross( BC ) );
+   real_t Vb = AP.dot( AC.cross( AD ) );
+   real_t Vc = AP.dot( AD.cross( AB ) );
+   real_t Vd = AP.dot( AB.cross( AC ) );
+   real_t V  = AB.dot( AC.cross( AD ) );
+
+   // barycentric coordinates
+   real_t c1 = Va / V;
+   real_t c2 = Vb / V;
+   real_t c3 = Vc / V;
+   real_t c4 = Vd / V;
+
+   if ( c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 )
+   {
+      return std::max(
+          { std::abs( std::min( { c1, c2, c3, c4 } ) ),
+            std::abs( std::max( { real_c( 0 ), c1 - real_c( 1 ), c2 - real_c( 1 ), c3 - real_c( 1 ), c4 - real_c( 1 ) } ) ),
+            std::abs( c1 + c2 + c3 + c4 - real_c( 1.0 ) ) } );
+   }
+
+   return real_c( 0 );
+}
+
 } // namespace hyteg

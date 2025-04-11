@@ -1,0 +1,8 @@
+#!/bin/bash
+#PBS -l select=2:node_type=rome:mpiprocs=120:node_type_mem=256gb
+#PBS -l walltime=00:05:00
+#PBS -N sph
+
+source /zhome/academic/HLRS/xgu/xgutnv/loadModules.sh 
+
+mpirun -np 240 /zhome/academic/HLRS/xgu/xgutnv/hyteg-build-gcc-avx/apps/2024-convbench/SphericalShellBenchRotationMinimalMinimal SphericalShellBenchRotationMinimalMinimal.prm

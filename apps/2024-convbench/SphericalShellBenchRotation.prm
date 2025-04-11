@@ -1,7 +1,7 @@
 Parameters
 {
-  nTan 3;
-  nRad 2;
+  nTan 5;
+  nRad 3;
 	
   rMin 1.22;
   rMax 2.22;
@@ -14,10 +14,10 @@ Parameters
   rho 1.0;
   cp 1.0;
 
-  lmax 3;
-  mSph 2;
+  lmax 4;
+  mSph 0;
 
-  cubicSymmetry false;
+  cubicSymmetry true;
 
   lmaxC 4;
   mSphC 4;
@@ -25,8 +25,8 @@ Parameters
   expScaling 10.0;
   directScaling 6e-2;
 
-  epsC 0.1;
-  epsS 0.1;
+  epsC 0.01;
+  epsS 0.01;
   eps 0.001;
 
   thetaPhaseShift 0.0;
@@ -52,19 +52,19 @@ Parameters
   nx 10;
   ny 4;
 
-  viscosityProfile /home/pponkumar/hyteg/hyteg/data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+  // viscosityProfile /home/pponkumar/hyteg/hyteg/data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
 
   viscosityLowerBound 5e19;
   viscosityUpperBound 1e24;
 
-  activationEnergy 8.0;
+  activationEnergy 0.0;
 
   rheologyType 1;
 
-  shearHeating true;
-  adiabaticHeating true;
+  shearHeating false;
+  adiabaticHeating false;
 
-  maxLevel 3;
+  maxLevel 4;
   minLevel 2;
 
   readInMinLevel 2;
@@ -76,16 +76,16 @@ Parameters
 
   omegaJacobi 0.1;
 
-  nCouplingSteps 5;
+  nCouplingSteps 1;
 
-  rotFactor 0.0;
+  rotFactor 0.1;
 
   supgScaling 1.0;
 
-  handsetEigen true;
-  handsetEigenValue 4.0;
+  handsetEigen false;
+  handsetEigenValue 20.0;
 
-  eigenLevel 3;
+  eigenLevel 4;
   setEigenAllLevels false;
   eigenUpperBoundFactor 1.2;
   eigenLowerBoundFactor 15.0;
@@ -97,7 +97,7 @@ Parameters
   cgSchurSmootherTol 1e-12;
   fgmresIterationsInitial 10;
   nStepsInitial 25;
-  fgmresIterations 10;
+  fgmresIterations 15;
   fgmresTolerance 1e-4;
 
   uzawaPreSmooth 3;
@@ -141,12 +141,12 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 2;
+  maxTimeSteps 1001;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
   dtRaster 1e-7;
-  cflMax 2.0;
+  cflMax 1.2;
   simulationTime 10;
   nonLinIter 4;
   iterPicard 1;
@@ -156,20 +156,18 @@ Parameters
   level 1;
 
   useAdios2 true;
-  adiosXmlConfig /home/pponkumar/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
-  checkpointPath ./output/checkpoint;
-  checkpointFilename SphericalShell_MT128_Profile_Arrhenius_P2_21112024_Checkpoint_Continuous.bp;
+  adiosXmlConfig /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
 
-  storeCheckpoint false;
+  storeCheckpoint true;
   adios2CheckpointFreq 100;
 
+  modelOutputDir /lustre/hpe/ws11/ws11.1/ws/xgutnv-sph-bench/sph128/tetrahedral/Ra7e3;
+  modelName rMu1_Part1;
+
+  startCheckpointPath ./output/checkpoint;
   startCheckpointFilename SphericalShell_MT64_Profile_Arrhenius_P1_21112024_Checkpoint_Continuous.bp;
   startFromCheckpoint false;
 
   importStep 99999;
-
-  outputPath ./output/;
-  // outputFilename SphericalShell_MT128_Profile_Arrhenius_P2_FS_21112024;
-  outputFilename SphericalShellDebug;
-  vtkWriteFrequency 10;
+  vtkWriteFrequency 100;
 }

@@ -29,7 +29,7 @@
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0Viscosity.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
+// #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityAnnulusMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0ViscosityAnnulusMap.hpp"
 
@@ -57,13 +57,15 @@ namespace operatorgeneration {
 ///
 using P2P1StokesFullOperator = detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullOperator,
                                                                           operatorgeneration::P1ToP2GradientOperator,
-                                                                          operatorgeneration::P2ToP1DivergenceOperator >;
+                                                                          operatorgeneration::P2ToP1DivergenceOperator,
+                                                                          P2Function< real_t > >;
 
 /// P2P1StokesFullOperator with AnnulusMap blending. See documentation of P2P1StokesFullOperator.
 using P2P1StokesFullAnnulusMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullAnnulusMapOperator,
                                                operatorgeneration::P1ToP2GradientAnnulusMapOperator,
-                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator >;
+                                               operatorgeneration::P2ToP1DivergenceAnnulusMapOperator,
+                                               P2Function< real_t > >;
 
 using P2P1StokesFullP0ViscosityAnnulusMapOperator =
     detail::P2P1StokesP0VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityAnnulusMap,
@@ -74,7 +76,8 @@ using P2P1StokesFullP0ViscosityAnnulusMapOperator =
 using P2P1StokesFullIcosahedralShellMapOperator =
     detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullIcosahedralShellMapOperator,
                                                operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
-                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P2Function< real_t > >;
 
 using P2P1StokesFullP1ViscosityAnnulusMapOperator =
     detail::P2P1StokesP1VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityAnnulusMap,

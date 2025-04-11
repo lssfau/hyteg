@@ -25,11 +25,11 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
+// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+// #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
@@ -68,10 +68,10 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
+// #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP0ViscosityIcosahedralShellMap.hpp"
+// #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
+// #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP0ViscosityIcosahedralShellMap.hpp"
+// #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
@@ -667,6 +667,13 @@ int main( int argc, char* argv[] )
 
    const walberla::Config::BlockHandle parameterConfig = cfg->getBlock( "Parameters" );
    const walberla::Config::BlockHandle setupConfig     = cfg->getBlock( "Setup" );
+	
+   std::string logFilename = parameterConfig.getParameter< std::string >("logFilename");
+
+   WALBERLA_ROOT_SECTION()
+   {
+      walberla::logging::Logging::instance()->includeLoggingToFile(logFilename);
+   }
 
    WALBERLA_ROOT_SECTION()
    {
