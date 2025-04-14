@@ -493,9 +493,10 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getMinDoFValue( level, mpiReduce );
    }
 
-   void transferToLowerLevel( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
+   void transferToLowerLevel( uint_t level, hyteg::p0averaging::AVERAGING_METHOD averagingMethod, bool volumeWeighted = false );
    void transferToAllLowerLevels( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
    void averageFromP1( P1Function< real_t >, uint_t, hyteg::p0averaging::AVERAGING_METHOD );
+   void writeOutVolumeOfCells( uint_t );
 
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;

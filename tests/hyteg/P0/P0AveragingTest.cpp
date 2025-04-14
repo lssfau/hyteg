@@ -20,13 +20,96 @@
 
 #include "hyteg/p0functionspace/P0Function.hpp"
 
+#include "core/Environment.h"
+#include "core/math/Constants.h"
+#include "core/math/Random.h"
+
+#include "hyteg/geometry/AffineMap2D.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/p0functionspace/P0FunctionUtils.hpp"
+#include "hyteg/communication/Syncing.hpp"
+
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+
 using namespace hyteg;
+
+template < typename BlendingMap >
+void averagingTestAnnulusSphShell( uint_t nTan, uint_t nRad, uint_t minLevel, uint_t maxLevel, real_t rMin, real_t rMax,
+std::vector< real_t > tolLevels )
+{
+   std::shared_ptr< SetupPrimitiveStorage > setupStorage;
+   std::shared_ptr< PrimitiveStorage > storage;
+
+   real_t volFormula;
+
+   if constexpr (std::is_same_v< BlendingMap, AnnulusMap >)
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Running test with AnnulusMap" );
+
+      MeshInfo meshInfo = MeshInfo::meshAnnulus(rMin, rMax, MeshInfo::CRISS, nTan, nRad);
+      setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      AnnulusMap::setMap(*setupStorage);
+      storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
+
+      volFormula = (walberla::math::pi / 2.0) * (std::pow(rMax, 4) - std::pow(rMin, 4));
+   }
+   else if constexpr (std::is_same_v< BlendingMap, IcosahedralShellMap >)
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Running test with IcosahedralShellMap" );
+
+      MeshInfo meshInfo = MeshInfo::meshSphericalShell(nTan, nRad, rMin, rMax);
+      setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      IcosahedralShellMap::setMap(*setupStorage);
+      storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
+
+      volFormula = (4.0 * walberla::math::pi / 5.0) * (std::pow(rMax, 5) - std::pow(rMin, 5));
+   }
+   else
+   {
+      WALBERLA_ABORT("Called with unsupported blending map");
+   }   
+
+   P1Function< real_t > TP1("TP1", storage, minLevel, maxLevel);
+   P0Function< real_t > T("T", storage, minLevel, maxLevel);
+   P0Function< real_t > cellVol("cellVol", storage, minLevel, maxLevel);
+
+   std::function< real_t(const Point3D&) > TInterp = [&](const Point3D& x)
+   {
+      real_t r = x.norm();
+      return r * r;
+   };
+
+   TP1.interpolate(TInterp, maxLevel, All);
+
+   communication::syncFunctionBetweenPrimitives(TP1, maxLevel);
+
+   T.averageFromP1(TP1, maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC);
+   T.transferToAllLowerLevels(maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC, false);
+
+   // WALBERLA_LOG_INFO_ON_ROOT("volFormula = " << volFormula);
+
+   for(uint_t level = maxLevel; level > minLevel; level--)
+   {
+      cellVol.writeOutVolumeOfCells(level);
+      real_t volCalculated = T.dotGlobal(cellVol, level);
+
+      real_t relError = std::abs(volCalculated - volFormula) / volFormula;
+
+      // WALBERLA_LOG_INFO_ON_ROOT("Error at level " << level << " = " << relError );
+      WALBERLA_CHECK_LESS( relError, tolLevels[level] );
+   }
+}
 
 int main( int argc, char** argv )
 {
    walberla::debug::enterTestMode();
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+
+   averagingTestAnnulusSphShell< AnnulusMap >(8u, 4u, 0u, 5u, 1.22, 2.22, {0.0, 3e-2, 7e-3, 2e-3, 4e-4, 1e-4});
+   averagingTestAnnulusSphShell< IcosahedralShellMap >(3u, 2u, 0u, 4u, 1.22, 2.22, {0.0, 4e-2, 8e-3, 2e-3, 3e-4});
 
    return EXIT_SUCCESS;
 }

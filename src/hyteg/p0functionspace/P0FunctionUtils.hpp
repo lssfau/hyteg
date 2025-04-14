@@ -39,9 +39,8 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 3 >             micro
 
    Point3D coordinates = ( microTet0 + microTet1 + microTet2 ) / 3.0;
 
-   auto xLocal = vertexdof::macroface::transformToLocalTri( microTet0, microTet1, microTet2, coordinates );
-
-   auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1];
+   // auto xLocal = vertexdof::macroface::transformToLocalTri( microTet0, microTet1, microTet2, coordinates );
+   // auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1];
 
    if ( averagingMethod == p0averaging::AVERAGING_METHOD::ARITHMETIC )
    {
@@ -128,7 +127,7 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 4 >             micro
 template < typename ValueType >
 void P0Function< ValueType >::transferToLowerLevel( uint_t                               level,
                                                     hyteg::p0averaging::AVERAGING_METHOD averagingMethod,
-                                                    bool                                 volumeWeighted = false )
+                                                    bool                                 volumeWeighted )
 {
    if ( this->storage_->hasGlobalCells() )
    {
@@ -458,6 +457,102 @@ void P0Function< ValueType >::averageFromP1( P1Function< real_t >               
                    evaluateSampledAverage( elementVertices, { valueTri0, valueTri1, valueTri2 }, averagingMethod );
 
                p0DofMemory[p0DofIdx] = sampledAverage;
+            }
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void P0Function< ValueType >::writeOutVolumeOfCells( uint_t level )
+{
+   if ( this->storage_->hasGlobalCells() )
+   {
+      for ( auto it : this->storage_->getCells() )
+      {
+         PrimitiveID cellId = it.first;
+         Cell&       cell   = *( it.second );
+
+         const auto p0DofMemory = this->getDGFunction()->volumeDoFFunction()->dofMemory( cellId, level );
+
+         for ( auto cellType : celldof::allCellTypes )
+         {
+            for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
+            {
+               uint_t p0DofIdx = volumedofspace::indexing::index(
+                   idxIt.x(), idxIt.y(), idxIt.z(), cellType, 0, 1, level, volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
+
+               const indexing::Index& coarseElementIdx = idxIt;
+
+               const std::array< indexing::Index, 4 > coarseVertexIndices =
+                   celldof::macrocell::getMicroVerticesFromMicroCell( coarseElementIdx, cellType );
+
+               std::array< Point3D, 4 > coarseVertexCoordinates;
+               for ( uint_t i = 0; i < 4; i++ )
+               {
+                  const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, coarseVertexIndices[i] );
+
+                  Point3D elementVertexMapped;
+                  cell.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
+
+                  coarseVertexCoordinates[i]( 0 ) = elementVertexMapped[0];
+                  coarseVertexCoordinates[i]( 1 ) = elementVertexMapped[1];
+                  coarseVertexCoordinates[i]( 2 ) = elementVertexMapped[2];
+               }
+
+               for ( uint_t i = 1; i < 4; i++ )
+               {
+                  coarseVertexCoordinates[i] -= coarseVertexCoordinates[0];
+               }
+
+               real_t coarseTetVolume =
+                   ( 1.0 / 6.0 ) *
+                   std::abs( coarseVertexCoordinates[1].dot( coarseVertexCoordinates[2].cross( coarseVertexCoordinates[3] ) ) );
+
+               p0DofMemory[p0DofIdx] = coarseTetVolume;
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         PrimitiveID faceId = it.first;
+         Face&       face   = *( it.second );
+
+         const auto p0DofMemory = this->getDGFunction()->volumeDoFFunction()->dofMemory( faceId, level );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               uint_t p0DofIdx = volumedofspace::indexing::index(
+                   idxIt.x(), idxIt.y(), faceType, 0, 1, level, volumedofspace::indexing::VolumeDoFMemoryLayout::SoA );
+
+               const indexing::Index& coarseElementIdx = idxIt;
+
+               const std::array< indexing::Index, 3u > coarseVertexIndices =
+                   facedof::macroface::getMicroVerticesFromMicroFace( coarseElementIdx, faceType );
+
+               std::array< Point3D, 3u > coarseVertexCoordinates;
+               for ( uint_t i = 0; i < 3u; i++ )
+               {
+                  const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, coarseVertexIndices[i] );
+
+                  Point3D elementVertexMapped;
+                  face.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
+
+                  coarseVertexCoordinates[i]( 0 ) = elementVertexMapped[0];
+                  coarseVertexCoordinates[i]( 1 ) = elementVertexMapped[1];
+                  coarseVertexCoordinates[i]( 2 ) = elementVertexMapped[2];
+               }
+
+               auto ab = coarseVertexCoordinates[1] - coarseVertexCoordinates[0];
+               auto ac = coarseVertexCoordinates[2] - coarseVertexCoordinates[0];
+
+               real_t faceVolume     = ( 1.0 / 2.0 ) * ( ab.cross( ac ) ).norm();
+               p0DofMemory[p0DofIdx] = faceVolume;
             }
          }
       }
