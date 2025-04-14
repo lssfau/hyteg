@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr, Roman Freissler.
+ * Copyright (c) 2024-2025 Marcus Mohr, Roman Freissler, Ponsuganth Ilangovan.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -117,7 +117,7 @@ adios2::Attribute< T > readAttribute( adios2::IO& io, const std::string& name )
    {
       WALBERLA_ABORT( "Attribute '" << name << "' seems to be missing from checkpoint!" );
    }
-   return std::move( attribute );
+   return attribute;
 }
 
 /// Write a single value attribute to ADIOS2 ouptut
