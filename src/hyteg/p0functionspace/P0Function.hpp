@@ -303,9 +303,13 @@ class P0Function : public Function< P0Function< ValueType > >
                   for ( uint_t i = 0; i < 4; i++ )
                   {
                      const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
-                     elementVertices[i]( 0 )  = elementVertex[0];
-                     elementVertices[i]( 1 )  = elementVertex[1];
-                     elementVertices[i]( 2 )  = elementVertex[2];
+                     
+                     Point3D elementVertexMapped;
+                     cell.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
+
+                     elementVertices[i]( 0 )  = elementVertexMapped[0];
+                     elementVertices[i]( 1 )  = elementVertexMapped[1];
+                     elementVertices[i]( 2 )  = elementVertexMapped[2];
                   }
 
                   const Point3D centroid =
@@ -364,8 +368,12 @@ class P0Function : public Function< P0Function< ValueType > >
                   for ( uint_t i = 0; i < 3; i++ )
                   {
                      const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-                     elementVertices[i]( 0 )  = elementVertex[0];
-                     elementVertices[i]( 1 )  = elementVertex[1];
+                     
+                     Point3D elementVertexMapped;
+                     face.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
+
+                     elementVertices[i]( 0 )  = elementVertexMapped[0];
+                     elementVertices[i]( 1 )  = elementVertexMapped[1];
                   }
 
                   const Point2D centroid = ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
