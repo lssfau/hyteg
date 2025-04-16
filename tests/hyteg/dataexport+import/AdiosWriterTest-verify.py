@@ -21,7 +21,7 @@ testCases = [
 def initArgparse() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
-        usage="%(prog)s -nw NUM_WRITERS -fp FP_BITS",
+        usage="%(prog)s -n NUM_WRITERS -f FP_BITS",
         description="Compare BP-files created with AdiosWriterTest to reference files."
     )
 
@@ -46,9 +46,12 @@ def adaptTestCaseNames( testCases, args ):
 def filterOutVolatileAttribute( bplsOutput ):
     """Remove attributes whose values are naturally changing between jobs
 
-    BP files contain attributes which are 'volatile' in the sense that they
+    BP files contain 'attributes' which are 'volatile' in the sense that they
     depend on job specifics such as e.g. compiler, build type or MPI library.
-    This function removes the corresponding lines from bplsOutput."""
+    This function removes the corresponding lines from bplsOutput.
+
+    Note: What we refer to as 'attributes' here is, from the perspective of ADIOS2,
+    the single string attribute 'Software'."""
 
     volatileAttrsKeys = [ "git branch", "SHA1 of last commit", "build type", "compiler", "compiler flags", "mpi version" ]
 

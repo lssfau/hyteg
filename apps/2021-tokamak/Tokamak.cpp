@@ -754,7 +754,7 @@ void run( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
    LIKWID_MARKER_THREADINIT;
    PETScManager petScManager( &argc, &argv );
-   hyteg::printGitInfo();
+   hyteg::buildinfo::printGitInfo();
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )

@@ -30,6 +30,7 @@
 #include "hyteg/Git.hpp"
 
 using namespace hyteg;
+using namespace hyteg::buildinfo;
 
 // check for the unlikely event that the byte order specified during
 // compilation is different to the one at executation time
@@ -41,6 +42,20 @@ void checkEndianess()
 
    std::string byteOrder = ( *c ) ? "LITTLE_ENDIAN" : "BIG_ENDIAN";
    WALBERLA_CHECK( byteOrder == systemEndianess(), "Byte order inconsistent between compile and execute architecture!" );
+}
+
+void checkFPType()
+{
+   std::string fpReported = fpType();
+
+#ifdef WALBERLA_DOUBLE_ACCURACY
+   std::string fpExpected = "double";
+#else
+   std::string fpExpected = "float";
+#endif
+
+   WALBERLA_CHECK( fpReported == fpExpected,
+                   "Inconsistency in fpType detected! '" << fpReported << "' != '" << fpExpected << "'" );
 }
 
 int main( int argc, char* argv[] )
@@ -59,6 +74,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "mpiVersion() returned ........ " << mpiVersion() );
    WALBERLA_LOG_INFO_ON_ROOT( "systemEndianess() returned ... " << systemEndianess() );
    checkEndianess();
+   WALBERLA_LOG_INFO_ON_ROOT( "fpType() returned ............ " << fpType() );
+   checkFPType();
 
    WALBERLA_LOG_INFO_ON_ROOT( separator );
    printGitInfo();

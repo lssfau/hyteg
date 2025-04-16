@@ -134,7 +134,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                           bool                                                    verbose,
                           std::string                                             dbFile )
 {
-   printGitInfo();
+   buildinfo::printGitInfo();
 
    if ( vtk )
    {
@@ -235,7 +235,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
    for ( uint_t level = minLevel; level <= errorLevel; level++ )
    {
-      exact.uvw().interpolate( { solutionU, solutionV, solutionW },level, All );
+      exact.uvw().interpolate( { solutionU, solutionV, solutionW }, level, All );
       exact.p().interpolate( solutionP, level, All );
 
       if ( projectPressure )
@@ -243,7 +243,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
          vertexdof::projectMean( exact.p(), level );
       }
 
-      u.uvw().interpolate( { solutionU, solutionV, solutionW },level, DirichletBoundary );
+      u.uvw().interpolate( { solutionU, solutionV, solutionW }, level, DirichletBoundary );
       tmp.uvw().interpolate( { rhsU, rhsV, rhsW }, level, All );
 
       MVelocity.apply( tmp.uvw()[0], f.uvw()[0], level, All );
@@ -360,12 +360,10 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-
-      if (solveWithCoarseGridSolverOnEachFMGLevel)
+      if ( solveWithCoarseGridSolverOnEachFMGLevel )
       {
          fmgLevelWiseSolver[currentLevel]->solve( A, u, f, currentLevel );
       }
-
 
       if ( projectPressure )
       {

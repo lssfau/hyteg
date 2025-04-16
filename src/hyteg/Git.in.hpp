@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,7 +22,7 @@
 
 #include "core/logging/Logging.h"
 
-namespace hyteg {
+namespace hyteg::buildinfo {
 
 inline std::string gitSHA1()
 {
@@ -44,7 +44,7 @@ inline void printGitInfo()
    WALBERLA_LOG_INFO_ON_ROOT( "Git info:" )
    WALBERLA_LOG_INFO_ON_ROOT( " - SHA1:   " << gitSHA1() );
    WALBERLA_LOG_INFO_ON_ROOT( " - branch: " << gitBranch() );
-   WALBERLA_LOG_INFO_ON_ROOT( " - diff:  \n" <<  gitDiff() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - diff:  \n" << gitDiff() );
 }
 
-}
+} // namespace hyteg::buildinfo

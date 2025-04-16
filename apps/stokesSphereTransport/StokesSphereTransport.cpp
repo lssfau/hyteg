@@ -65,7 +65,7 @@ void simulate( int argc, char* argv[] )
 
    PETScManager petscManager( &argc, &argv );
 
-   printGitInfo();
+   buildinfo::printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    //check if a config was given on command line or load default file otherwise

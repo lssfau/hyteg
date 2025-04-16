@@ -106,8 +106,8 @@ int main( int argc, char* argv[] )
 
    std::string separator{"--------------------------------------------------"};
    WALBERLA_LOG_INFO_ON_ROOT( separator );
-   printBuildInfo();
-   printGitInfo();
+   buildinfo::printBuildInfo();
+   buildinfo::printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( separator );
 
    // initialise an oracle

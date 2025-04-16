@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,10 +25,12 @@
 #endif
 
 #include <sstream>
+#include <type_traits>
 
+#include "core/DataTypes.h"
 #include "core/logging/Logging.h"
 
-namespace hyteg {
+namespace hyteg::buildinfo {
 
 inline std::string buildType()
 {
@@ -77,6 +79,24 @@ inline std::string mpiVersion()
 #endif
 }
 
+/// return a string representation of the fp-type represented by real_t
+inline std::string fpType()
+{
+   using walberla::real_t;
+   if ( std::is_same_v< real_t, double > )
+   {
+      return std::string( "double" );
+   }
+   else if ( std::is_same_v< real_t, float > )
+   {
+      return std::string( "float" );
+   }
+   else
+   {
+      return typeid( real_t ).name();
+   }
+}
+
 inline void printBuildInfo()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Build info:" )
@@ -85,6 +105,7 @@ inline void printBuildInfo()
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler flags ... " << compilerFlags() );
    WALBERLA_LOG_INFO_ON_ROOT( " - mpi version ...... " << mpiVersion() );
    WALBERLA_LOG_INFO_ON_ROOT( " - byte order ....... " << systemEndianess() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - real_t ........... " << fpType() );
 }
 
-} // namespace hyteg
+} // namespace hyteg::buildinfo

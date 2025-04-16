@@ -22,6 +22,10 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
       ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py
       ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-verify.py )
 
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-recreate-reference-files.tcsh
+      ${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-recreate-reference-files.tcsh )
+
     waLBerla_execute_test( NAME AdiosWriterVerifyTest-Sequential
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AdiosWriterTest-verify.py --num-writers 1 --fp-bits ${WALBERLA_FP_BITS} )
     set_tests_properties( AdiosWriterTest-Sequential PROPERTIES FIXTURES_SETUP AdiosOutput-Sequential )

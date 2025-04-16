@@ -482,8 +482,8 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   printGitInfo();
-   printBuildInfo();
+   buildinfo::printGitInfo();
+   buildinfo::printBuildInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    //check if a config was given on command line or load default file otherwise

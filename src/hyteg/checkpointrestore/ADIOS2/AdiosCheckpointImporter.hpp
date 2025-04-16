@@ -275,7 +275,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       {
          WALBERLA_ABORT( "Attribute '" << name << "' seems to be missing from checkpoint!" );
       }
-      return std::move( attribute );
+      return attribute;
    }
 
    /// auxilliary function to avoid code-duplication in c'tors
