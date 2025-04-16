@@ -31,12 +31,18 @@ namespace hyteg {
 
 namespace p0averaging {
 
+/*
+These flags are used at two places
+ * Average P1 function to a P0 function
+ * Average P0 function from level l to level l-1
+*/
 enum class AVERAGING_METHOD
 {
-   ARITHMETIC, // Vertices and centroid (Also flag to transfer to lower levels)
+   ARITHMETIC, // Vertices and centroid (only vertices in 2D (P1 to P0 transfer), also this flag can be 
+               //                        used for transfer to P0 lower levels)
    HARMONIC,
    GEOMETRIC,
-   ARITHMETIC_QP, // Quadrature points
+   ARITHMETIC_QP, // Quadrature points (this is only applicable for P1 to P0 transfer)
    HARMONIC_QP,
    GEOMETRIC_QP
 };
@@ -493,9 +499,31 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getMinDoFValue( level, mpiReduce );
    }
 
+   /// Used to transfer a P0 function from its level to the next lower level
+   /// The values from the child cells are taken at level l and averaged 
+   /// according to the specified averagingMethod and transferred to
+   /// level-1
+   ///
+   /// \param level            level at which the transfer starts
+   /// \param averagingMethod  Averaging method to use for transfer
+   /// \param volumeWeighted   If the averaging should be weighted with tet volume
+   ///
    void transferToLowerLevel( uint_t level, hyteg::p0averaging::AVERAGING_METHOD averagingMethod, bool volumeWeighted = false );
+   
+   /// Uses the transferToLowerLevel function in a loop till minLevel is reached
    void transferToAllLowerLevels( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
-   void averageFromP1( P1Function< real_t >, uint_t, hyteg::p0averaging::AVERAGING_METHOD );
+   
+   /// Used to transfer a P1 function to a P0 function with averaging
+   /// The values from the vertices are taken and averaged 
+   /// according to the specified averagingMethod and transferred to
+   /// a P0 function
+   ///
+   /// \param src             P1 function to be averaged to *this P0
+   /// \param averagingMethod  Averaging method to use for transfer
+   ///
+   void averageFromP1( P1Function< real_t > src, uint_t, hyteg::p0averaging::AVERAGING_METHOD averagingMethod );
+
+   /// Utility function mainly written for testing
    void writeOutVolumeOfCells( uint_t );
 
  private:
