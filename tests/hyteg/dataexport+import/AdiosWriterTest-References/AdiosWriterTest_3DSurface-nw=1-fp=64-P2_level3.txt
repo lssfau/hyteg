@@ -3,12 +3,13 @@
   double    P2TestFunction            3*[1]*{3060} = -5.40505 / 5.40505
   double    P2VectorTestFunction      3*[1]*{3060, 2} = -5.40505 / 5.40505
   string    Software                  attr   = "Data generated with HyTeG (https://i10git.cs.fau.de/hyteg)
-git branch         : mohr/ctest+bpls_v2
-SHA1 of last commit: dceed1d99
-build type         : DebugOptimized
-compiler           : GNU 12.2.0
-compiler flags     : -g -O3 -fdiagnostics-color=always -Wall -Wconversion -Wshadow -march=native -Wfloat-equal -Wextra -pedantic -Wno-maybe-uninitialized -Wno-array-bounds -D_GLIBCXX_USE_CXX11_ABI=1 -pthread  -Wno-comment -Wno-stringop-overflow
-mpi version        : Open MPI v4.1.4, package: Debian OpenMPI, ident: 4.1.4, repo rev: v4.1.4, May 26, 2022
+git branch         : mohr/buildinfo
+SHA1 of last commit: 0855ad807
+build type         : Release
+compiler           : GNU 13.2.0
+compiler flags     : -O3 -DNDEBUG -fdiagnostics-color=always -Wall -Wconversion -Wshadow -Wno-conversion -Wno-float-conversion -Wno-sign-compare -Wno-sign-conversion -Wno-unused-function -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-but-set-variable -Wno-comment
+mpi version        : Open MPI v5.0.3, package: Open MPI bsofh@spacko Distribution, ident: 5.0.3, repo rev: v5.0.3, Apr 08, 2024
+type of real_t     : double
 "
   double    StokesTestFunction_uvw    3*[1]*{3060, 2} = 0 / 0
   double    TIME                      3*scalar = 0 / 2
@@ -46,3 +47,4 @@ mpi version        : Open MPI v4.1.4, package: Debian OpenMPI, ident: 4.1.4, rep
     </Piece>
   </UnstructuredGrid>
 </VTKFile>
+

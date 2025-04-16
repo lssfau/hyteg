@@ -79,6 +79,23 @@ inline std::string mpiVersion()
 #endif
 }
 
+inline std::string fpType()
+{
+   using walberla::real_t;
+   if ( std::is_same_v< real_t, double > )
+   {
+      return std::string( "double" );
+   }
+   else if ( std::is_same_v< real_t, float > )
+   {
+      return std::string( "float" );
+   }
+   else
+   {
+      return typeid( real_t ).name();
+   }
+}
+
 inline void printBuildInfo()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Build info:" )
@@ -87,6 +104,7 @@ inline void printBuildInfo()
    WALBERLA_LOG_INFO_ON_ROOT( " - compiler flags ... " << compilerFlags() );
    WALBERLA_LOG_INFO_ON_ROOT( " - mpi version ...... " << mpiVersion() );
    WALBERLA_LOG_INFO_ON_ROOT( " - byte order ....... " << systemEndianess() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - real_t ........... " << fpType() );
 }
 
 } // namespace hyteg::buildinfo

@@ -90,7 +90,8 @@ inline std::ostream& printSoftwareMetaData( std::ostream& outStream )
              << "build type         : " << hyteg::buildinfo::buildType()     << '\n'
              << "compiler           : " << hyteg::buildinfo::compilerInfo()  << '\n'
              << "compiler flags     : " << hyteg::buildinfo::compilerFlags() << '\n'
-             << "mpi version        : " << hyteg::buildinfo::mpiVersion()    << std::endl;
+             << "mpi version        : " << hyteg::buildinfo::mpiVersion()    << '\n'
+             << "type of real_t     : " << hyteg::buildinfo::fpType()        << std::endl;
    // clang-format on
 
    return outStream;

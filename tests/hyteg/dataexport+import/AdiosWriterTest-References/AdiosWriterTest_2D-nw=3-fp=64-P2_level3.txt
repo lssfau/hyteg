@@ -3,12 +3,13 @@
   double    P2TestFunction            3*[3]*{306} = -3 / 5
   double    P2VectorTestFunction      3*[3]*{306, 2} = -3 / 5
   string    Software                  attr   = "Data generated with HyTeG (https://i10git.cs.fau.de/hyteg)
-git branch         : mohr/ctest+bpls-mc3
-SHA1 of last commit: f951ba3b1
-build type         : Debug
-compiler           : Clang 16.0.6
-compiler flags     : -g -fdiagnostics-color=always -march=native -Wall -Wconversion -Wshadow -Wno-c++11-extensions -Qunused-arguments -pthread  -Wno-missing-braces -Wno-parentheses-equality
+git branch         : mohr/buildinfo
+SHA1 of last commit: 0855ad807
+build type         : Release
+compiler           : GNU 13.2.0
+compiler flags     : -O3 -DNDEBUG -fdiagnostics-color=always -Wall -Wconversion -Wshadow -Wno-conversion -Wno-float-conversion -Wno-sign-compare -Wno-sign-conversion -Wno-unused-function -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-but-set-variable -Wno-comment
 mpi version        : Open MPI v5.0.3, package: Open MPI bsofh@spacko Distribution, ident: 5.0.3, repo rev: v5.0.3, Apr 08, 2024
+type of real_t     : double
 "
   double    StokesTestFunction_uvw    3*[3]*{306, 2} = 0 / 0
   double    TIME                      3*scalar = 0 / 2
@@ -46,3 +47,4 @@ mpi version        : Open MPI v5.0.3, package: Open MPI bsofh@spacko Distributio
     </Piece>
   </UnstructuredGrid>
 </VTKFile>
+
