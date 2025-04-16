@@ -107,7 +107,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    timer->start( "Total" );
    timer->start( "Setup" );
 
-   printGitInfo();
+   buildinfo::printGitInfo();
 
    const DoFType errorFlag = Inner | NeumannBoundary;
 
@@ -629,7 +629,7 @@ void domainInfo( const std::shared_ptr< PrimitiveStorage >& storage,
                  bool                                       vtk,
                  std::string                                benchmarkName )
 {
-   printGitInfo();
+   buildinfo::printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    if ( vtk )

@@ -27,7 +27,7 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    walberla::WcTimer timeStepTimer;
-   hyteg::printGitInfo();
+   hyteg::buildinfo::printGitInfo();
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    hyteg::PETScManager manager( &argc, &argv );

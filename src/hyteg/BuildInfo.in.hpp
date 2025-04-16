@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,10 +25,12 @@
 #endif
 
 #include <sstream>
+#include <type_traits>
 
+#include "core/DataTypes.h"
 #include "core/logging/Logging.h"
 
-namespace hyteg {
+namespace hyteg::buildinfo {
 
 inline std::string buildType()
 {
@@ -87,4 +89,4 @@ inline void printBuildInfo()
    WALBERLA_LOG_INFO_ON_ROOT( " - byte order ....... " << systemEndianess() );
 }
 
-} // namespace hyteg
+} // namespace hyteg::buildinfo

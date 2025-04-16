@@ -147,8 +147,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( separator );
    WALBERLA_LOG_INFO_ON_ROOT( "--> BENCHMARK CHECKPOINT-RESTORE WITH ADIOS2 <--" );
    WALBERLA_LOG_INFO_ON_ROOT( separator );
-   printBuildInfo();
-   printGitInfo();
+   buildinfo::printBuildInfo();
+   buildinfo::printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( separator );
 
    // =====================

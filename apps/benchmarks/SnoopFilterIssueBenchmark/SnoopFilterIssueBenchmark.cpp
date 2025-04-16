@@ -52,7 +52,7 @@ void runBenchmark( uint_t      level,
 {
    WALBERLA_LOG_INFO_ON_ROOT("")
 
-   printGitInfo();
+   buildinfo::printGitInfo();
 
    const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 

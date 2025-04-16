@@ -1679,8 +1679,8 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   printGitInfo();
-   printBuildInfo();
+   buildinfo::printGitInfo();
+   buildinfo::printBuildInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    //check if a config was given on command line or load default file otherwise
@@ -1891,7 +1891,7 @@ void setup( int argc, char** argv )
    sqlStringProperties["tag"]      = sqlTag;
    sqlStringProperties["equation"] = equation;
 
-   sqlStringProperties["git_hash"]                     = gitSHA1();
+   sqlStringProperties["git_hash"]                     = buildinfo::gitSHA1();
    sqlIntegerProperties["num_processes"]               = int64_c( numProcesses );
    sqlIntegerProperties["num_faces_per_side"]          = int64_c( numEdgesPerSide );
    sqlStringProperties["discretization"]               = discretization;

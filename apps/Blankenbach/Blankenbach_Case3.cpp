@@ -283,8 +283,8 @@ void runBenchmark( real_t      cflMax,
 {
    walberla::WcTimer localTimer;
 
-   auto gitHash = gitSHA1();
-   printGitInfo();
+   auto gitHash = buildinfo::gitSHA1();
+   buildinfo::printGitInfo();
 
    const std::string benchmarkName    = "Blankenbach_Case3";
    const bool        outputTimingJSON = true;

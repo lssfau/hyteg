@@ -85,12 +85,12 @@ inline std::ostream& printSoftwareMetaData( std::ostream& outStream )
 {
    // clang-format off
    outStream << "Data generated with HyTeG (https://i10git.cs.fau.de/hyteg)\n"
-             << "git branch         : " << gitBranch()     << '\n'
-             << "SHA1 of last commit: " << gitSHA1()       << '\n'
-             << "build type         : " << buildType()     << '\n'
-             << "compiler           : " << compilerInfo()  << '\n'
-             << "compiler flags     : " << compilerFlags() << '\n'
-             << "mpi version        : " << mpiVersion()    << std::endl;
+             << "git branch         : " << hyteg::buildinfo::gitBranch()     << '\n'
+             << "SHA1 of last commit: " << hyteg::buildinfo::gitSHA1()       << '\n'
+             << "build type         : " << hyteg::buildinfo::buildType()     << '\n'
+             << "compiler           : " << hyteg::buildinfo::compilerInfo()  << '\n'
+             << "compiler flags     : " << hyteg::buildinfo::compilerFlags() << '\n'
+             << "mpi version        : " << hyteg::buildinfo::mpiVersion()    << std::endl;
    // clang-format on
 
    return outStream;

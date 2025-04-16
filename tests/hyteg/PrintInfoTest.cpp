@@ -30,6 +30,7 @@
 #include "hyteg/Git.hpp"
 
 using namespace hyteg;
+using namespace hyteg::buildinfo;
 
 // check for the unlikely event that the byte order specified during
 // compilation is different to the one at executation time

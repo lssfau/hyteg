@@ -194,7 +194,7 @@ void solve( MeshInfo&               meshInfo,
 
    FixedSizeSQLDB db( dbFile );
 
-   const std::string gitsha = gitSHA1();
+   const std::string gitsha = buildinfo::gitSHA1();
 
    db.setVariableEntry( "ts", uint_c( 0 ) );
 
