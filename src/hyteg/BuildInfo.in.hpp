@@ -79,6 +79,7 @@ inline std::string mpiVersion()
 #endif
 }
 
+/// return a string representation of the fp-type represented by real_t
 inline std::string fpType()
 {
    using walberla::real_t;

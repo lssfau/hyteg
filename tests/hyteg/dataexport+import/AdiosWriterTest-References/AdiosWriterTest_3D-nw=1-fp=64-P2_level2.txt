@@ -47,4 +47,3 @@ type of real_t     : double
     </Piece>
   </UnstructuredGrid>
 </VTKFile>
-

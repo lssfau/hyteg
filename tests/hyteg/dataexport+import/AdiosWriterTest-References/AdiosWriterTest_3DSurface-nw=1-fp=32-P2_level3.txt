@@ -47,4 +47,3 @@ type of real_t     : float
     </Piece>
   </UnstructuredGrid>
 </VTKFile>
-
