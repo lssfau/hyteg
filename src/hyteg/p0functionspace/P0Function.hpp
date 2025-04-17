@@ -38,7 +38,7 @@ These flags are used at two places
 */
 enum class AVERAGING_METHOD
 {
-   ARITHMETIC, // Vertices and centroid (only vertices in 2D (P1 to P0 transfer), also this flag can be 
+   ARITHMETIC, // Vertices and centroid (only vertices in 2D (P1 to P0 transfer), also this flag can be
                //                        used for transfer to P0 lower levels)
    HARMONIC,
    GEOMETRIC,
@@ -47,7 +47,7 @@ enum class AVERAGING_METHOD
    GEOMETRIC_QP
 };
 
-}
+} // namespace p0averaging
 
 using namespace dg;
 
@@ -188,16 +188,16 @@ class P0Function : public Function< P0Function< ValueType > >
                   std::array< Point3D, 4 > elementVertices;
                   for ( uint_t i = 0; i < 4; i++ )
                   {
-                     const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
+                     const Point3D elementVertexMapped =
+                         micromesh::microVertexPosition( this->getStorage(), cellID, level, vertexIndices[i] );
 
-                     Point3D elementVertexMapped;
-                     cell.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
-
-                     elementVertices[i]( 0 )  = elementVertexMapped[0];
-                     elementVertices[i]( 1 )  = elementVertexMapped[1];
-                     elementVertices[i]( 2 )  = elementVertexMapped[2];
+                     elementVertices[i]( 0 ) = elementVertexMapped[0];
+                     elementVertices[i]( 1 ) = elementVertexMapped[1];
+                     elementVertices[i]( 2 ) = elementVertexMapped[2];
                   }
 
+                  // This must be replaced with micromesh::microCellCenterPosition() which is to be implemented
+                  // As this approach is still approximate when blending/parametric map is active
                   const Point3D centroid =
                       ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
 
@@ -231,17 +231,16 @@ class P0Function : public Function< P0Function< ValueType > >
                   std::array< Point2D, 3 > elementVertices;
                   for ( uint_t i = 0; i < 3; i++ )
                   {
-                     const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
+                     const Point3D elementVertexMapped =
+                         micromesh::microVertexPosition( this->getStorage(), faceID, level, vertexIndices[i] );
 
-                     Point3D elementVertexMapped;
-                     face.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
-
-                     elementVertices[i]( 0 )  = elementVertexMapped[0];
-                     elementVertices[i]( 1 )  = elementVertexMapped[1];
+                     elementVertices[i]( 0 ) = elementVertexMapped[0];
+                     elementVertices[i]( 1 ) = elementVertexMapped[1];
                   }
 
-                  const Point2D centroid = ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / real_c( 3 );
-
+                  const Point2D centroid =
+                      micromesh::microFaceCenterPosition( this->getStorage(), faceID, level, idxIt, faceType );
+                  
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
 
                   dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] =
@@ -302,16 +301,16 @@ class P0Function : public Function< P0Function< ValueType > >
                   std::array< Point3D, 4 > elementVertices;
                   for ( uint_t i = 0; i < 4; i++ )
                   {
-                     const auto elementVertex = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[i] );
-                     
-                     Point3D elementVertexMapped;
-                     cell.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
+                     const Point3D elementVertexMapped =
+                         micromesh::microVertexPosition( this->getStorage(), cellID, level, vertexIndices[i] );
 
-                     elementVertices[i]( 0 )  = elementVertexMapped[0];
-                     elementVertices[i]( 1 )  = elementVertexMapped[1];
-                     elementVertices[i]( 2 )  = elementVertexMapped[2];
+                     elementVertices[i]( 0 ) = elementVertexMapped[0];
+                     elementVertices[i]( 1 ) = elementVertexMapped[1];
+                     elementVertices[i]( 2 ) = elementVertexMapped[2];
                   }
 
+                  // This must be replaced with micromesh::microCellCenterPosition() when is to be implemented
+                  // As this approach is still approximate when blending/parametric map is active
                   const Point3D centroid =
                       ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
 
@@ -367,16 +366,15 @@ class P0Function : public Function< P0Function< ValueType > >
                   std::array< Point2D, 3 > elementVertices;
                   for ( uint_t i = 0; i < 3; i++ )
                   {
-                     const auto elementVertex = vertexdof::macroface::coordinateFromIndex( level, face, vertexIndices[i] );
-                     
-                     Point3D elementVertexMapped;
-                     face.getGeometryMap()->evalF(elementVertex, elementVertexMapped);
+                     const Point3D elementVertexMapped =
+                         micromesh::microVertexPosition( this->getStorage(), faceID, level, vertexIndices[i] );
 
-                     elementVertices[i]( 0 )  = elementVertexMapped[0];
-                     elementVertices[i]( 1 )  = elementVertexMapped[1];
+                     elementVertices[i]( 0 ) = elementVertexMapped[0];
+                     elementVertices[i]( 1 ) = elementVertexMapped[1];
                   }
 
-                  const Point2D centroid = ( elementVertices[0] + elementVertices[1] + elementVertices[2] ) / 3.;
+                  const Point2D centroid =
+                      micromesh::microFaceCenterPosition( this->getStorage(), faceID, level, idxIt, faceType );
 
                   for ( size_t k = 0; k < srcFunctions.size(); ++k )
                   {
@@ -508,7 +506,7 @@ class P0Function : public Function< P0Function< ValueType > >
    }
 
    /// Used to transfer a P0 function from its level to the next lower level
-   /// The values from the child cells are taken at level l and averaged 
+   /// The values from the child cells are taken at level l and averaged
    /// according to the specified averagingMethod and transferred to
    /// level-1
    ///
@@ -517,12 +515,12 @@ class P0Function : public Function< P0Function< ValueType > >
    /// \param volumeWeighted   If the averaging should be weighted with tet volume
    ///
    void transferToLowerLevel( uint_t level, hyteg::p0averaging::AVERAGING_METHOD averagingMethod, bool volumeWeighted = false );
-   
+
    /// Uses the transferToLowerLevel function in a loop till minLevel is reached
    void transferToAllLowerLevels( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
-   
+
    /// Used to transfer a P1 function to a P0 function with averaging
-   /// The values from the vertices are taken and averaged 
+   /// The values from the vertices are taken and averaged
    /// according to the specified averagingMethod and transferred to
    /// a P0 function
    ///
