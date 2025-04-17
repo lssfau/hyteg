@@ -183,23 +183,8 @@ class P0Function : public Function< P0Function< ValueType > >
             {
                for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
                {
-                  const std::array< indexing::Index, 4 > vertexIndices =
-                      celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
-                  std::array< Point3D, 4 > elementVertices;
-                  for ( uint_t i = 0; i < 4; i++ )
-                  {
-                     const Point3D elementVertexMapped =
-                         micromesh::microVertexPosition( this->getStorage(), cellID, level, vertexIndices[i] );
-
-                     elementVertices[i]( 0 ) = elementVertexMapped[0];
-                     elementVertices[i]( 1 ) = elementVertexMapped[1];
-                     elementVertices[i]( 2 ) = elementVertexMapped[2];
-                  }
-
-                  // This must be replaced with micromesh::microCellCenterPosition() which is to be implemented
-                  // As this approach is still approximate when blending/parametric map is active
                   const Point3D centroid =
-                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
+                      micromesh::microCellCenterPosition( this->getStorage(), cellID, level, idxIt, cellType );
 
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), centroid( 2 ) ) );
 
@@ -226,21 +211,9 @@ class P0Function : public Function< P0Function< ValueType > >
             {
                for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
                {
-                  const std::array< indexing::Index, 3 > vertexIndices =
-                      facedof::macroface::getMicroVerticesFromMicroFace( idxIt, faceType );
-                  std::array< Point2D, 3 > elementVertices;
-                  for ( uint_t i = 0; i < 3; i++ )
-                  {
-                     const Point3D elementVertexMapped =
-                         micromesh::microVertexPosition( this->getStorage(), faceID, level, vertexIndices[i] );
-
-                     elementVertices[i]( 0 ) = elementVertexMapped[0];
-                     elementVertices[i]( 1 ) = elementVertexMapped[1];
-                  }
-
                   const Point2D centroid =
                       micromesh::microFaceCenterPosition( this->getStorage(), faceID, level, idxIt, faceType );
-                  
+
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
 
                   dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] =
@@ -296,23 +269,8 @@ class P0Function : public Function< P0Function< ValueType > >
             {
                for ( const auto& idxIt : celldof::macrocell::Iterator( level, cellType ) )
                {
-                  const std::array< indexing::Index, 4 > vertexIndices =
-                      celldof::macrocell::getMicroVerticesFromMicroCell( idxIt, cellType );
-                  std::array< Point3D, 4 > elementVertices;
-                  for ( uint_t i = 0; i < 4; i++ )
-                  {
-                     const Point3D elementVertexMapped =
-                         micromesh::microVertexPosition( this->getStorage(), cellID, level, vertexIndices[i] );
-
-                     elementVertices[i]( 0 ) = elementVertexMapped[0];
-                     elementVertices[i]( 1 ) = elementVertexMapped[1];
-                     elementVertices[i]( 2 ) = elementVertexMapped[2];
-                  }
-
-                  // This must be replaced with micromesh::microCellCenterPosition() when is to be implemented
-                  // As this approach is still approximate when blending/parametric map is active
                   const Point3D centroid =
-                      ( elementVertices[0] + elementVertices[1] + elementVertices[2] + elementVertices[3] ) / real_c( 4 );
+                      micromesh::microCellCenterPosition( this->getStorage(), cellID, level, idxIt, cellType );
 
                   for ( size_t k = 0; k < srcFunctions.size(); ++k )
                   {
