@@ -112,7 +112,7 @@ class P0Function : public Function< P0Function< ValueType > >
    void interpolate( ValueType constant, uint_t level, DoFType dofType = All ) const
    {
       if ( !doNotWarnOnInterpolate_ )
-         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() evaluates at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
          for ( auto& it : this->getStorage()->getCells() )
@@ -164,7 +164,7 @@ class P0Function : public Function< P0Function< ValueType > >
    {
       WALBERLA_UNUSED( dofType );
       if ( !doNotWarnOnInterpolate_ )
-         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+         WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() evaluates at the centroid." );
 
       if ( this->storage_->hasGlobalCells() )
       {
@@ -263,7 +263,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const
    {
-      WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() 'interpolates' values at the centroid." );
+      WALBERLA_LOG_WARNING_ON_ROOT( "P0Function::interpolate() evaluates at the centroid." );
       if ( this->storage_->hasGlobalCells() )
       {
          for ( auto& it : this->getStorage()->getCells() )
