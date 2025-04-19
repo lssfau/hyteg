@@ -211,7 +211,7 @@ class P0Function : public Function< P0Function< ValueType > >
             {
                for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
                {
-                  const Point2D centroid =
+                  const Point3D centroid =
                       micromesh::microFaceCenterPosition( this->getStorage(), faceID, level, idxIt, faceType );
 
                   const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
@@ -331,7 +331,7 @@ class P0Function : public Function< P0Function< ValueType > >
                      elementVertices[i]( 1 ) = elementVertexMapped[1];
                   }
 
-                  const Point2D centroid =
+                  const Point3D centroid =
                       micromesh::microFaceCenterPosition( this->getStorage(), faceID, level, idxIt, faceType );
 
                   for ( size_t k = 0; k < srcFunctions.size(); ++k )
