@@ -30,6 +30,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/p0functionspace/P0FunctionUtils.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/gridtransferoperators/P1toP0Conversion.hpp"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
@@ -85,7 +86,9 @@ std::vector< real_t > tolLevels )
 
    communication::syncFunctionBetweenPrimitives(TP1, maxLevel);
 
-   T.averageFromP1(TP1, maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC);
+   // T.averageFromP1(TP1, maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC);
+
+   P1toP0Conversion(TP1, T, maxLevel, hyteg::AveragingType::ARITHMETIC);
    T.transferToAllLowerLevels(maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC, false);
 
    // WALBERLA_LOG_INFO_ON_ROOT("volFormula = " << volFormula);
