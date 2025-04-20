@@ -26,6 +26,8 @@ target_sources( hyteg
     P1toP1LinearProlongation.hpp
     P1toP1LinearRestriction.cpp
     P1toP1LinearRestriction.hpp
+    P0toP0AveragedInjection.cpp
+    P0toP0AveragedInjection.hpp
     P1toP1QuadraticProlongation.cpp
     P1toP1QuadraticProlongation.hpp
     P1toP1QuadraticProlongationThroughP2Injection.hpp
