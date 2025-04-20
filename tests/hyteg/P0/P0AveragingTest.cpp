@@ -28,9 +28,9 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/p0functionspace/P0FunctionUtils.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/gridtransferoperators/P1toP0Conversion.hpp"
+#include "hyteg/gridtransferoperators/P0toP0AveragedInjection.hpp"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
@@ -86,16 +86,19 @@ std::vector< real_t > tolLevels )
 
    communication::syncFunctionBetweenPrimitives(TP1, maxLevel);
 
+   P0toP0AveragedInjection p0Top0AveragedInjection( hyteg::AveragingType::ARITHMETIC, false );
+
    // T.averageFromP1(TP1, maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC);
+   // T.transferToAllLowerLevels(maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC, false);
 
    P1toP0Conversion(TP1, T, maxLevel, hyteg::AveragingType::ARITHMETIC);
-   T.transferToAllLowerLevels(maxLevel, p0averaging::AVERAGING_METHOD::ARITHMETIC, false);
+   p0Top0AveragedInjection.restrictToAllLowerLevels( T, maxLevel );
 
    // WALBERLA_LOG_INFO_ON_ROOT("volFormula = " << volFormula);
 
    for(uint_t level = maxLevel; level > minLevel; level--)
    {
-      cellVol.writeOutVolumeOfCells(level);
+      cellVol.writeElementVolumesToDoFs(level);
       real_t volCalculated = T.dotGlobal(cellVol, level);
 
       real_t relError = std::abs(volCalculated - volFormula) / volFormula;
