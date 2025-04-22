@@ -76,7 +76,7 @@ double apply( const Operator&                    A,
    timer.start();
    for ( uint_t i = 0; i < iter; ++i )
    {
-      A.apply( u, Au, level, All, Replace );
+      A.apply( u, Au, level, All, Add );
    }
    timer.end();
    return timer.total() / iter;
