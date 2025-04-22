@@ -443,32 +443,11 @@ class P0Function : public Function< P0Function< ValueType > >
       return dgFunction_->getMinDoFValue( level, mpiReduce );
    }
 
-   // /// Used to transfer a P0 function from its level to the next lower level
-   // /// The values from the child cells are taken at level l and averaged
-   // /// according to the specified averagingMethod and transferred to
-   // /// level-1
-   // ///
-   // /// \param level            level at which the transfer starts
-   // /// \param averagingMethod  Averaging method to use for transfer
-   // /// \param volumeWeighted   If the averaging should be weighted with tet volume
-   // ///
-   // void transferToLowerLevel( uint_t level, hyteg::p0averaging::AVERAGING_METHOD averagingMethod, bool volumeWeighted = false );
-
-   // /// Uses the transferToLowerLevel function in a loop till minLevel is reached
-   // void transferToAllLowerLevels( uint_t, hyteg::p0averaging::AVERAGING_METHOD, bool );
-
-   // /// Used to transfer a P1 function to a P0 function with averaging
-   // /// The values from the vertices are taken and averaged
-   // /// according to the specified averagingMethod and transferred to
-   // /// a P0 function
-   // ///
-   // /// \param src             P1 function to be averaged to *this P0
-   // /// \param averagingMethod  Averaging method to use for transfer
-   // ///
-   // void averageFromP1( P1Function< real_t > src, uint_t, hyteg::p0averaging::AVERAGING_METHOD averagingMethod );
-
-   /// Utility function mainly written for testing
-   void writeElementVolumesToDoFs( uint_t );
+   /// \brief Writes the element volume as P0 DoF values
+   ///
+   /// \param level the refinement level at which the volume needs to be calculated
+   ///
+   void writeElementVolumesToDoFs( uint_t level );
 
  private:
    std::shared_ptr< DGFunction< ValueType > > dgFunction_;

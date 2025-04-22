@@ -42,8 +42,6 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 4 > microTets,
 
    Point3D coordinates = ( microTet0 + microTet1 + microTet2 + microTet3 ) / 4.0;
 
-   // auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
-
    std::function< real_t( const Point3D& ) > locallyEvaluate = [&]( const Point3D& x ) {
       return valueTet0 * ( real_c( 1.0 ) - x[0] - x[1] - x[2] ) + valueTet1 * x[0] + valueTet2 * x[1] + valueTet3 * x[2];
    };

@@ -39,9 +39,6 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 3 > microTriangles,
 
    Point3D coordinates = ( microTet0 + microTet1 + microTet2 ) / 3.0;
 
-   // auto xLocal = vertexdof::macroface::transformToLocalTri( microTet0, microTet1, microTet2, coordinates );
-   // auto value = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1];
-
    if ( averagingMethod == hyteg::AveragingType::ARITHMETIC )
    {
       return ( valueTet0 + valueTet1 + valueTet2 ) / 3.0;

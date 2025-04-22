@@ -29,13 +29,37 @@ namespace hyteg {
 class P0toP0AveragedInjection : public RestrictionOperator< P0Function< real_t > >
 {
  public:
+   /// \brief Transfers a P0 function from sourceLevel to lower level(s)
+   ///
+   /// The transfer happens with a user-specified averaging method from hyteg::AveragingType
+   /// Note that, some averaging methods from hyteg::AveragingType are not implemented
+   /// In 3D (2D), values from the 8 (4) child tetrahedrons (triangles) are averaged
+   /// and is specified to their parent tetrahedron (triangle)
+   /// In addition if a volume weighted averaging has to be done 
+   /// can also be specified
+   ///
+   /// \param averagingType  user-specified averaging method from hyteg::AveragingType
+   /// \param volumeWeighted if the averaging needs to be volume weighted
+   ///
    P0toP0AveragedInjection( hyteg::AveragingType averagingType, bool volumeWeighted )
    : averagingType_( averagingType )
    , volumeWeighted_( volumeWeighted )
    {}
 
+   /// \brief Transfers a P0 function from sourceLevel to the next lower level
+   ///
+   /// \param function    The P0 function that needs to be average-transferred
+   /// \param sourceLevel Level from which the function should be considered for averaging
+   /// \param flag        This parameter is not used at the moment
+   ///
    void restrict( const P0Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag = All ) const override;
-
+   
+   /// \brief Transfers a P0 function from sourceLevel to all lower levels 
+   ///        till the function's minLevel
+   ///
+   /// \param function    The P0 function that needs to be average-transferred
+   /// \param sourceLevel Level from which the function should be considered for averaging
+   ///
    void restrictToAllLowerLevels( const P0Function< real_t >& function, const uint_t& sourceLevel );
 
  private:

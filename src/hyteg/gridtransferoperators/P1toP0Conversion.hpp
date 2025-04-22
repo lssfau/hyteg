@@ -27,10 +27,15 @@
 
 namespace hyteg {
 
-/// Convert a P1 to a P0 function
+/// \brief Converts a P1 to a P0 function with averaging
 ///
-/// The function takes a P2Function on level (P1Level-1) and converts it to a P1Function on level P1Level by
-/// assigning the DoFs of the P2Function to those of the P1Function on the finer level.
+/// The function takes a P1Function at the specified level and 
+/// converts it to a P0Function on the same level.
+/// The cellwise constant value for the P0Function is computed as 
+/// the average of values from the vertices and centroid or from the 
+/// quadrature points. The averaging method can be specified from the
+/// list of available options in hyteg::AveragingType
+///
 void P1toP0Conversion( const P1Function< real_t >& src,
                        const P0Function< real_t >& dst,
                        const uint_t                P1Level,
