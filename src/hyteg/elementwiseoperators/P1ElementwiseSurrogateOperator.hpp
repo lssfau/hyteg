@@ -71,6 +71,8 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    using SurrogateData = surrogate::SurrogateData< real_t, DIM, 1, 1, DEGREE >;
    static constexpr uint_t N_CUBE( uint_t dim ) { return 1 << dim; } // number of DoF per micro-hypercube
    template < uint_t DIM >
+   using RHS_cube = surrogate::MatrixLike< typename LSQ::Vector, N_CUBE( DIM ), N_CUBE( DIM ) >;
+   template < uint_t DIM >
    using SurrogateCubeData = surrogate::ElementWiseData< surrogate::MatrixLike< Poly< DIM >, N_CUBE( DIM ), N_CUBE( DIM ) > >;
 
  public:

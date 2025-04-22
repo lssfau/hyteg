@@ -251,6 +251,9 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_
 template < class P1Form, uint8_t DEGREE, bool Symmetric >
 void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_surrogates_3d( uint_t level )
 {
+   // todo: exploit symmetry
+   // todo: remove computation of cType-wise polynomials
+
    auto& lsq = *lsq_[level];
    // initialize rhs vectors for lsq
    RHS_matrix< 3 > rhs;
@@ -259,6 +262,14 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_
       for ( idx_t j = 0; j < rhs.cols(); ++j )
       {
          rhs( i, j ).resize( lsq.rows );
+      }
+   }
+   RHS_cube< 3 > rhs_cube;
+   for ( idx_t i = 0; i < rhs_cube.rows(); ++i )
+   {
+      for ( idx_t j = 0; j < rhs_cube.cols(); ++j )
+      {
+         rhs_cube( i, j ).resize( lsq.rows );
       }
    }
 
@@ -295,88 +306,153 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::compute_local_
          }
       }
 
-      // todo: directly approximate cube polys
-      // construct cube polynomials
-      auto& cube = surrogate_cube_3d_[id][level];
-      auto& wu   = surrogate_3d_[id][level][celldof::CellType::WHITE_UP];
-      auto& bu   = surrogate_3d_[id][level][celldof::CellType::BLUE_UP];
-      auto& gu   = surrogate_3d_[id][level][celldof::CellType::GREEN_UP];
-      auto& wd   = surrogate_3d_[id][level][celldof::CellType::WHITE_DOWN];
-      auto& bd   = surrogate_3d_[id][level][celldof::CellType::BLUE_DOWN];
-      auto& gd   = surrogate_3d_[id][level][celldof::CellType::GREEN_DOWN];
-      for ( uint_t k = 0; k < cube( 0, 0 ).size(); ++k )
+      // set up rhs vectors for each entry of the local cube matrix
+      auto it = lsq.samplingIterator();
+      while ( it != it.end() )
       {
-         cube( 0, 0 )[k] = wu( 0, 0 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         cube( 0, 1 )[k] = wu( 0, 1 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         cube( 0, 2 )[k] = wu( 0, 2 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         // cube(0,3)[k] = 0;
-         cube( 0, 4 )[k] = wu( 0, 3 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         // cube(0,5)[k] = 0;
-         // cube(0,6)[k] = 0;
-         // cube(0,7)[k] = 0;
+         Matrix4r wu( Matrix4r::Zero() );
+         Matrix4r bu( Matrix4r::Zero() );
+         Matrix4r gu( Matrix4r::Zero() );
+         Matrix4r wd( Matrix4r::Zero() );
+         Matrix4r bd( Matrix4r::Zero() );
+         Matrix4r gd( Matrix4r::Zero() );
 
-         cube( 1, 0 )[k] = wu( 1, 0 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         cube( 1, 1 )[k] = wu( 1, 1 )[k] + bu( 0, 0 )[k] + gu( 0, 0 )[k] /*           */ /*           */ /*           */;
-         cube( 1, 2 )[k] = wu( 1, 2 )[k] + bu( 0, 2 )[k] + gu( 0, 1 )[k] /*           */ /*           */ /*           */;
-         cube( 1, 3 )[k] = /*           */ bu( 0, 1 )[k] /*           */ /*           */ /*           */ /*           */;
-         cube( 1, 4 )[k] = wu( 1, 3 )[k] /*           */ + gu( 0, 3 )[k] /*           */ /*           */ /*           */;
-         cube( 1, 5 )[k] = /*           */ bu( 0, 3 )[k] + gu( 0, 2 )[k] /*           */ /*           */ /*           */;
-         // cube(1,6)[k] = 0;
-         // cube(1,7)[k] = 0;
+         p1::assembleLocalElementMatrix3D( *cell, level, it.ijk(), celldof::CellType::WHITE_UP, form_, wu );
+         p1::assembleLocalElementMatrix3D( *cell, level, it.ijk(), celldof::CellType::BLUE_UP, form_, bu );
+         p1::assembleLocalElementMatrix3D( *cell, level, it.ijk(), celldof::CellType::GREEN_UP, form_, gu );
+         p1::assembleLocalElementMatrix3D( *cell, level, it.ijk(), celldof::CellType::WHITE_DOWN, form_, wd );
+         p1::assembleLocalElementMatrix3D( *cell, level, it.ijk(), celldof::CellType::BLUE_DOWN, form_, bd );
+         p1::assembleLocalElementMatrix3D( *cell, level, it.ijk(), celldof::CellType::GREEN_DOWN, form_, gd );
 
-         cube( 2, 0 )[k] = wu( 2, 0 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         cube( 2, 1 )[k] = wu( 2, 1 )[k] + bu( 2, 0 )[k] + gu( 1, 0 )[k] /*           */ /*           */ /*           */;
-         cube( 2, 2 )[k] = wu( 2, 2 )[k] + bu( 2, 2 )[k] + gu( 1, 1 )[k] /*           */ + bd( 3, 3 )[k] + gd( 0, 0 )[k];
-         cube( 2, 3 )[k] = /*           */ bu( 2, 1 )[k] /*           */ /*           */ /*           */ + gd( 0, 1 )[k];
-         cube( 2, 4 )[k] = wu( 2, 3 )[k] /*           */ + gu( 1, 3 )[k] /*           */ + bd( 3, 2 )[k] /*           */;
-         cube( 2, 5 )[k] = /*           */ bu( 2, 3 )[k] + gu( 1, 2 )[k] /*           */ + bd( 3, 0 )[k] + gd( 0, 2 )[k];
-         cube( 2, 6 )[k] = /*           */ /*           */ /*           */ /*           */ bd( 3, 1 )[k] + gd( 0, 3 )[k];
-         // cube(2,7)[k] = 0;
+         const auto k = it();
 
-         // cube(3,0)[k] = 0;
-         cube( 3, 1 )[k] = /*           */ bu( 1, 0 )[k] /*           */ /*           */ /*           */ /*           */;
-         cube( 3, 2 )[k] = /*           */ bu( 1, 2 )[k] /*           */ /*           */ /*           */ + gd( 1, 0 )[k];
-         cube( 3, 3 )[k] = /*           */ bu( 1, 1 )[k] /*           */ + wd( 0, 0 )[k] /*           */ + gd( 1, 1 )[k];
-         // cube(3,4)[k] = 0;
-         cube( 3, 5 )[k] = /*           */ bu( 1, 3 )[k] /*           */ + wd( 0, 3 )[k] /*           */ + gd( 1, 2 )[k];
-         cube( 3, 6 )[k] = /*           */ /*           */ /*           */ wd( 0, 2 )[k] /*           */ + gd( 1, 3 )[k];
-         cube( 3, 7 )[k] = /*           */ /*           */ /*           */ wd( 0, 1 )[k] /*           */ /*           */;
+         rhs_cube( 0, 0 )[k] = wu( 0, 0 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 0, 1 )[k] = wu( 0, 1 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 0, 2 )[k] = wu( 0, 2 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         // rhs_cube(0,3)[k] = 0;
+         rhs_cube( 0, 4 )[k] = wu( 0, 3 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         // rhs_cube(0,5)[k] = 0;
+         // rhs_cube(0,6)[k] = 0;
+         // rhs_cube(0,7)[k] = 0;
 
-         cube( 4, 0 )[k] = wu( 3, 0 )[k] /*           */ /*           */ /*           */ /*           */ /*           */;
-         cube( 4, 1 )[k] = wu( 3, 1 )[k] /*           */ + gu( 3, 0 )[k] /*           */ /*           */ /*           */;
-         cube( 4, 2 )[k] = wu( 3, 2 )[k] /*           */ + gu( 3, 1 )[k] /*           */ + bd( 2, 3 )[k] /*           */;
-         // cube(4,3)[k] = 0;
-         cube( 4, 4 )[k] = wu( 3, 3 )[k] /*           */ + gu( 3, 3 )[k] /*           */ + bd( 2, 2 )[k] /*           */;
-         cube( 4, 5 )[k] = /*           */ /*           */ gu( 3, 2 )[k] /*           */ + bd( 2, 0 )[k] /*           */;
-         cube( 4, 6 )[k] = /*           */ /*           */ /*           */ /*           */ bd( 2, 1 )[k] /*           */;
-         // cube(4,7)[k] = 0;
+         rhs_cube( 1, 0 )[k] = wu( 1, 0 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 1, 1 )[k] = wu( 1, 1 ) + bu( 0, 0 ) + gu( 0, 0 ) /*        */ /*        */ /*        */;
+         rhs_cube( 1, 2 )[k] = wu( 1, 2 ) + bu( 0, 2 ) + gu( 0, 1 ) /*        */ /*        */ /*        */;
+         rhs_cube( 1, 3 )[k] = /*        */ bu( 0, 1 ) /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 1, 4 )[k] = wu( 1, 3 ) /*        */ + gu( 0, 3 ) /*        */ /*        */ /*        */;
+         rhs_cube( 1, 5 )[k] = /*        */ bu( 0, 3 ) + gu( 0, 2 ) /*        */ /*        */ /*        */;
+         // rhs_cube(1,6)[k] = 0;
+         // rhs_cube(1,7)[k] = 0;
 
-         // cube(5,0)[k] = 0;
-         cube( 5, 1 )[k] = /*           */ bu( 3, 0 )[k] + gu( 2, 0 )[k] /*           */ /*           */ /*           */;
-         cube( 5, 2 )[k] = /*           */ bu( 3, 2 )[k] + gu( 2, 1 )[k] /*           */ + bd( 0, 3 )[k] + gd( 2, 0 )[k];
-         cube( 5, 3 )[k] = /*           */ bu( 3, 1 )[k] /*           */ + wd( 3, 0 )[k] /*           */ + gd( 2, 1 )[k];
-         cube( 5, 4 )[k] = /*           */ /*           */ gu( 2, 3 )[k] /*           */ + bd( 0, 2 )[k] /*           */;
-         cube( 5, 5 )[k] = /*           */ bu( 3, 3 )[k] + gu( 2, 2 )[k] + wd( 3, 3 )[k] + bd( 0, 0 )[k] + gd( 2, 2 )[k];
-         cube( 5, 6 )[k] = /*           */ /*           */ /*           */ wd( 3, 2 )[k] + bd( 0, 1 )[k] + gd( 2, 3 )[k];
-         cube( 5, 7 )[k] = /*           */ /*           */ /*           */ wd( 3, 1 )[k] /*           */ /*           */;
+         rhs_cube( 2, 0 )[k] = wu( 2, 0 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 2, 1 )[k] = wu( 2, 1 ) + bu( 2, 0 ) + gu( 1, 0 ) /*        */ /*        */ /*        */;
+         rhs_cube( 2, 2 )[k] = wu( 2, 2 ) + bu( 2, 2 ) + gu( 1, 1 ) /*        */ + bd( 3, 3 ) + gd( 0, 0 );
+         rhs_cube( 2, 3 )[k] = /*        */ bu( 2, 1 ) /*        */ /*        */ /*        */ + gd( 0, 1 );
+         rhs_cube( 2, 4 )[k] = wu( 2, 3 ) /*        */ + gu( 1, 3 ) /*        */ + bd( 3, 2 ) /*        */;
+         rhs_cube( 2, 5 )[k] = /*        */ bu( 2, 3 ) + gu( 1, 2 ) /*        */ + bd( 3, 0 ) + gd( 0, 2 );
+         rhs_cube( 2, 6 )[k] = /*        */ /*        */ /*        */ /*        */ bd( 3, 1 ) + gd( 0, 3 );
+         // rhs_cube(2,7)[k] = 0;
 
-         // cube(6,0)[k] = 0;
-         // cube(6,1)[k] = 0;
-         cube( 6, 2 )[k] = /*           */ /*           */ /*           */ /*           */ bd( 1, 3 )[k] + gd( 3, 0 )[k];
-         cube( 6, 3 )[k] = /*           */ /*           */ /*           */ wd( 2, 0 )[k] /*           */ + gd( 3, 1 )[k];
-         cube( 6, 4 )[k] = /*           */ /*           */ /*           */ /*           */ bd( 1, 2 )[k] /*           */;
-         cube( 6, 5 )[k] = /*           */ /*           */ /*           */ wd( 2, 3 )[k] + bd( 1, 0 )[k] + gd( 3, 2 )[k];
-         cube( 6, 6 )[k] = /*           */ /*           */ /*           */ wd( 2, 2 )[k] + bd( 1, 1 )[k] + gd( 3, 3 )[k];
-         cube( 6, 7 )[k] = /*           */ /*           */ /*           */ wd( 2, 1 )[k] /*           */ /*           */;
+         // rhs_cube(3,0)[k] = 0;
+         rhs_cube( 3, 1 )[k] = /*        */ bu( 1, 0 ) /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 3, 2 )[k] = /*        */ bu( 1, 2 ) /*        */ /*        */ /*        */ + gd( 1, 0 );
+         rhs_cube( 3, 3 )[k] = /*        */ bu( 1, 1 ) /*        */ + wd( 0, 0 ) /*        */ + gd( 1, 1 );
+         // rhs_cube(3,4)[k] = 0;
+         rhs_cube( 3, 5 )[k] = /*        */ bu( 1, 3 ) /*        */ + wd( 0, 3 ) /*        */ + gd( 1, 2 );
+         rhs_cube( 3, 6 )[k] = /*        */ /*        */ /*        */ wd( 0, 2 ) /*        */ + gd( 1, 3 );
+         rhs_cube( 3, 7 )[k] = /*        */ /*        */ /*        */ wd( 0, 1 ) /*        */ /*        */;
 
-         // cube(7,0)[k] = 0;
-         // cube(7,1)[k] = 0;
-         // cube(7,2)[k] = 0;
-         cube( 7, 3 )[k] = /*           */ /*           */ /*           */ wd( 1, 0 )[k] /*           */ /*           */;
-         // cube(7,4)[k] = 0;
-         cube( 7, 5 )[k] = /*           */ /*           */ /*           */ wd( 1, 3 )[k] /*           */ /*           */;
-         cube( 7, 6 )[k] = /*           */ /*           */ /*           */ wd( 1, 2 )[k] /*           */ /*           */;
-         cube( 7, 7 )[k] = /*           */ /*           */ /*           */ wd( 1, 1 )[k] /*           */ /*           */;
+         rhs_cube( 4, 0 )[k] = wu( 3, 0 ) /*        */ /*        */ /*        */ /*        */ /*        */;
+         rhs_cube( 4, 1 )[k] = wu( 3, 1 ) /*        */ + gu( 3, 0 ) /*        */ /*        */ /*        */;
+         rhs_cube( 4, 2 )[k] = wu( 3, 2 ) /*        */ + gu( 3, 1 ) /*        */ + bd( 2, 3 ) /*        */;
+         // rhs_cube(4,3)[k] = 0;
+         rhs_cube( 4, 4 )[k] = wu( 3, 3 ) /*        */ + gu( 3, 3 ) /*        */ + bd( 2, 2 ) /*        */;
+         rhs_cube( 4, 5 )[k] = /*        */ /*        */ gu( 3, 2 ) /*        */ + bd( 2, 0 ) /*        */;
+         rhs_cube( 4, 6 )[k] = /*        */ /*        */ /*        */ /*        */ bd( 2, 1 ) /*        */;
+         // rhs_cube(4,7)[k] = 0;
+
+         // rhs_cube(5,0)[k] = 0;
+         rhs_cube( 5, 1 )[k] = /*        */ bu( 3, 0 ) + gu( 2, 0 ) /*        */ /*        */ /*        */;
+         rhs_cube( 5, 2 )[k] = /*        */ bu( 3, 2 ) + gu( 2, 1 ) /*        */ + bd( 0, 3 ) + gd( 2, 0 );
+         rhs_cube( 5, 3 )[k] = /*        */ bu( 3, 1 ) /*        */ + wd( 3, 0 ) /*        */ + gd( 2, 1 );
+         rhs_cube( 5, 4 )[k] = /*        */ /*        */ gu( 2, 3 ) /*        */ + bd( 0, 2 ) /*        */;
+         rhs_cube( 5, 5 )[k] = /*        */ bu( 3, 3 ) + gu( 2, 2 ) + wd( 3, 3 ) + bd( 0, 0 ) + gd( 2, 2 );
+         rhs_cube( 5, 6 )[k] = /*        */ /*        */ /*        */ wd( 3, 2 ) + bd( 0, 1 ) + gd( 2, 3 );
+         rhs_cube( 5, 7 )[k] = /*        */ /*        */ /*        */ wd( 3, 1 ) /*        */ /*        */;
+
+         // rhs_cube(6,0)[k] = 0;
+         // rhs_cube(6,1)[k] = 0;
+         rhs_cube( 6, 2 )[k] = /*        */ /*        */ /*        */ /*        */ bd( 1, 3 ) + gd( 3, 0 );
+         rhs_cube( 6, 3 )[k] = /*        */ /*        */ /*        */ wd( 2, 0 ) /*        */ + gd( 3, 1 );
+         rhs_cube( 6, 4 )[k] = /*        */ /*        */ /*        */ /*        */ bd( 1, 2 ) /*        */;
+         rhs_cube( 6, 5 )[k] = /*        */ /*        */ /*        */ wd( 2, 3 ) + bd( 1, 0 ) + gd( 3, 2 );
+         rhs_cube( 6, 6 )[k] = /*        */ /*        */ /*        */ wd( 2, 2 ) + bd( 1, 1 ) + gd( 3, 3 );
+         rhs_cube( 6, 7 )[k] = /*        */ /*        */ /*        */ wd( 2, 1 ) /*        */ /*        */;
+
+         // rhs_cube(7,0)[k] = 0;
+         // rhs_cube(7,1)[k] = 0;
+         // rhs_cube(7,2)[k] = 0;
+         rhs_cube( 7, 3 )[k] = /*        */ /*        */ /*        */ wd( 1, 0 ) /*        */ /*        */;
+         // rhs_cube(7,4)[k] = 0;
+         rhs_cube( 7, 5 )[k] = /*        */ /*        */ /*        */ wd( 1, 3 ) /*        */ /*        */;
+         rhs_cube( 7, 6 )[k] = /*        */ /*        */ /*        */ wd( 1, 2 ) /*        */ /*        */;
+         rhs_cube( 7, 7 )[k] = /*        */ /*        */ /*        */ wd( 1, 1 ) /*        */ /*        */;
+
+         ++it;
+      }
+
+      // these components always sum up to zero
+      auto is_zero = []( idx_t i, idx_t j ) {
+         if ( i == 0 )
+         {
+            return ( j == 3 || j == 5 || j == 6 || j == 7 );
+         }
+         if ( i == 1 )
+         {
+            return ( j == 6 || j == 7 );
+         }
+         if ( i == 2 )
+         {
+            return ( j == 7 );
+         }
+         if ( i == 3 )
+         {
+            return ( j == 0 || j == 4 );
+         }
+         if ( i == 4 )
+         {
+            return ( j == 3 || j == 7 );
+         }
+         if ( i == 5 )
+         {
+            return ( j == 0 );
+         }
+         if ( i == 6 )
+         {
+            return ( j == 0 || j == 1 );
+         }
+         if ( i == 7 )
+         {
+            return ( j == 0 || j == 1 || j == 2 || j == 4 );
+         }
+         return false;
+      };
+
+      // fit polynomials for each entry of the local cube matrix
+      auto& cube = surrogate_cube_3d_[id][level];
+
+      for ( idx_t i = 0; i < rhs_cube.rows(); ++i )
+      {
+         for ( idx_t j = 0; j < rhs_cube.cols(); ++j )
+         {
+            if ( !is_zero( i, j ) )
+            {
+               // apply least squares fit
+               lsq.setRHS( rhs_cube( i, j ) );
+               auto& coeffs = lsq.solve();
+               cube( i, j ) = Poly< 3 >( coeffs );
+            }
+         }
       }
    }
 }
@@ -992,6 +1068,8 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
                   real_t a50, a51, a52, a53, a54, a55, a56, a57;
                   real_t a60, a61, a62, a63, a64, a65, a66, a67;
                   real_t a70, a71, a72, a73, a74, a75, a76, a77;
+
+                  // todo: exploit hard zeros
 
                   // constant part
                   if constexpr ( Symmetric )
