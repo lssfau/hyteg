@@ -26,9 +26,14 @@
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
 
+#include <hyteg/geometry/IcosahedralShellMap.hpp>
+
+
 #include "operators/P1ElementwiseDiffusion.hpp"
 #include "operators/P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab.hpp"
 #include "operators/P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab.hpp"
+#include "operators/P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
+#include "operators/P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -139,6 +144,21 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
    t = apply( A_opt, u, Au, level, iter );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. optimized", t, int( n_dof / t * 1e-6 ) ) );
 
+   if (dim == 3)
+   {
+      // apply optimized blending operator
+      operatorgeneration::P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab A_blend( storage, level, level );
+      t = apply( A_blend, u, Au, level, iter );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. blending", t, int( n_dof / t * 1e-6 ) ) );
+
+      // apply optimized divKGrad blending operator
+      hyteg::P1Function< real_t > kk( "k", storage, level, level );
+      kk.interpolate(k,level);
+      operatorgeneration::P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab A_divKGrad( storage, level, level, kk );
+      t = apply( A_divKGrad, u, Au, level, iter );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. blending", t, int( n_dof / t * 1e-6 ) ) );
+   }
+
    // // apply optimized operator with avx512
    // operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab A_512( storage, level, level );
    // t = apply(A_512, u, Au, level, iter);
@@ -199,8 +219,10 @@ int main( int argc, char* argv[] )
    //  Prepare setup for 3D tests
    // ----------------------------
    auto     n3         = compute_domain_size< 3 >( n_procs );
-   MeshInfo meshInfo3d = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), n3[0], n3[1], n3[2] );
+   // MeshInfo meshInfo3d = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), n3[0], n3[1], n3[2] );
+   MeshInfo meshInfo3d = MeshInfo::meshSphericalShell(2,2,0.5,1.0);
    SetupPrimitiveStorage setupStorage3d( meshInfo3d, n_procs );
+   IcosahedralShellMap::setMap( setupStorage3d );
    loadbalancing::roundRobin( setupStorage3d );
    std::shared_ptr< PrimitiveStorage > storage3d = std::make_shared< PrimitiveStorage >( setupStorage3d );
 
