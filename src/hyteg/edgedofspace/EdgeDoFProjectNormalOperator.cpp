@@ -74,25 +74,22 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
 
    this->timingTree_->start( "Macro-Edge" );
 
-   if ( level >= 1 )
+   for ( const auto& it : storage_->getEdges() )
    {
-      for ( const auto& it : storage_->getEdges() )
-      {
-         Edge& edge = *it.second;
+      Edge& edge = *it.second;
 
-         const DoFType edgeBC = dst_u.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
+      const DoFType edgeBC = dst_u.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         if ( storage_->hasGlobalCells() )
          {
-            if ( storage_->hasGlobalCells() )
-            {
-               edgedof::macroedge::projectNormal3D< real_t >(
-                   level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID(), dst_w.getEdgeDataID() );
-            }
-            else
-            {
-               edgedof::macroedge::projectNormal2D< real_t >(
-                   level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
-            }
+            edgedof::macroedge::projectNormal3D< real_t >(
+                level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID(), dst_w.getEdgeDataID() );
+         }
+         else
+         {
+            edgedof::macroedge::projectNormal2D< real_t >(
+                level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
          }
       }
    }
@@ -101,20 +98,17 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
 
    this->timingTree_->start( "Macro-Face" );
 
-   if ( level >= 2 )
+   for ( const auto& it : storage_->getFaces() )
    {
-      for ( const auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
+      Face& face = *it.second;
 
-         const DoFType faceBC = dst_u.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
+      const DoFType faceBC = dst_u.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, flag ) )
+      {
+         if ( storage_->hasGlobalCells() )
          {
-            if ( storage_->hasGlobalCells() )
-            {
-               edgedof::macroface::projectNormal3D< real_t >(
-                   level, face, storage_, normal_function_, dst_u.getFaceDataID(), dst_v.getFaceDataID(), dst_w.getFaceDataID() );
-            }
+            edgedof::macroface::projectNormal3D< real_t >(
+                level, face, storage_, normal_function_, dst_u.getFaceDataID(), dst_v.getFaceDataID(), dst_w.getFaceDataID() );
          }
       }
    }
@@ -139,88 +133,70 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
    // the application of Id by not touching the vector at all.
    // However, the Id diagonal must be assembled.
 
-   if ( level >= 1 )
+   for ( const auto& it : storage_->getEdges() )
    {
-      for ( const auto& it : storage_->getEdges() )
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = numU.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+
+      if ( testFlag( edgeBC, flag ) )
       {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = numU.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-
-         if ( testFlag( edgeBC, flag ) )
+         if ( storage_->hasGlobalCells() )
          {
-            if ( storage_->hasGlobalCells() )
-            {
-               edgedof::macroedge::saveProjectNormalOperator3D( level,
-                                                                edge,
-                                                                storage_,
-                                                                normal_function_,
-                                                                numU.getEdgeDataID(),
-                                                                numV.getEdgeDataID(),
-                                                                numW.getEdgeDataID(),
-                                                                mat );
-            }
-            else
-            {
-               edgedof::macroedge::saveProjectNormalOperator2D(
-                   level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
-            }
+            edgedof::macroedge::saveProjectNormalOperator3D(
+                level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), numW.getEdgeDataID(), mat );
          }
          else
          {
-            saveEdgeIdentityOperator( level, edge, numU.getEdgeDataID(), mat );
-            saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
-            if ( storage_->hasGlobalCells() )
-            {
-               saveEdgeIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
-            }
+            edgedof::macroedge::saveProjectNormalOperator2D(
+                level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
+         }
+      }
+      else
+      {
+         saveEdgeIdentityOperator( level, edge, numU.getEdgeDataID(), mat );
+         saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
+         if ( storage_->hasGlobalCells() )
+         {
+            saveEdgeIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
          }
       }
    }
 
-   if ( level >= 2 )
+   for ( const auto& it : storage_->getFaces() )
    {
-      for ( const auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
+      Face& face = *it.second;
 
-         const DoFType faceBC = numU.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
+      const DoFType faceBC = numU.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, flag ) )
+      {
+         if ( storage_->hasGlobalCells() )
          {
-            if ( storage_->hasGlobalCells() )
-            {
-               edgedof::macroface::saveProjectNormalOperator3D( level,
-                                                                face,
-                                                                storage_,
-                                                                normal_function_,
-                                                                numU.getFaceDataID(),
-                                                                numV.getFaceDataID(),
-                                                                numW.getFaceDataID(),
-                                                                mat );
-            }
-            else
-            {
-               WALBERLA_ABORT( "Normal projection for inner primitives?" );
-            }
+            edgedof::macroface::saveProjectNormalOperator3D(
+                level, face, storage_, normal_function_, numU.getFaceDataID(), numV.getFaceDataID(), numW.getFaceDataID(), mat );
          }
          else
          {
-            saveFaceIdentityOperator( level, face, numU.getFaceDataID(), mat );
-            saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
-            if ( storage_->hasGlobalCells() )
-            {
-               saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
-            }
+            WALBERLA_ABORT( "Normal projection for inner primitives?" );
          }
       }
-
-      for ( const auto& it : storage_->getCells() )
+      else
       {
-         Cell& cell = *it.second;
-         saveCellIdentityOperator( level, cell, numU.getCellDataID(), mat );
-         saveCellIdentityOperator( level, cell, numV.getCellDataID(), mat );
-         saveCellIdentityOperator( level, cell, numW.getCellDataID(), mat );
+         saveFaceIdentityOperator( level, face, numU.getFaceDataID(), mat );
+         saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
+         if ( storage_->hasGlobalCells() )
+         {
+            saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
+         }
       }
+   }
+
+   for ( const auto& it : storage_->getCells() )
+   {
+      Cell& cell = *it.second;
+      saveCellIdentityOperator( level, cell, numU.getCellDataID(), mat );
+      saveCellIdentityOperator( level, cell, numV.getCellDataID(), mat );
+      saveCellIdentityOperator( level, cell, numW.getCellDataID(), mat );
    }
 }
 

@@ -399,32 +399,34 @@ inline void saveProjectNormalOperator3D( uint_t                                 
                                          const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdW,
                                          const std::shared_ptr< SparseMatrixProxy >&              mat )
 {
-   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-
    auto dstU = edge.getData( dstIdU )->getPointer( level );
    auto dstV = edge.getData( dstIdV )->getPointer( level );
    auto dstW = edge.getData( dstIdW )->getPointer( level );
 
-   Face* faceS = storage->getFace( edge.neighborFaces()[0] );
+   const Point3D leftCoords  = edge.getCoordinates()[0];
+   const Point3D rightCoords = edge.getCoordinates()[1];
 
-   Point3D              normal;
-   std::vector< idx_t > in( 2 );
-   std::vector< idx_t > out( 2 );
+   const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( level ) );
 
-   Point3D x  = edge.getCoordinates()[0];
-   real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
-   Point3D dx = h * edge.getDirection();
-   x += dx;
+   Point3D  normal;
+   Matrix3r projection;
+   Point3D  in;
+   Point3D  out;
+
    Point3D xPhy;
 
-   for ( size_t i = 1; i < rowsize - 1; ++i )
+   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
    {
-      faceS->getGeometryMap()->evalF( x, xPhy );
-      normal_function( xPhy, normal );
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.x() * microEdgeOffset;
+      edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
 
-      const auto idxU = dstU[edgedof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-      const auto idxV = dstV[edgedof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-      const auto idxW = dstW[edgedof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      normal_function( xPhy, normal );
+      projectionMatrix3D( normal, projection );
+
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
+      const auto idxU = dstU[idx];
+      const auto idxV = dstV[idx];
+      const auto idxW = dstW[idx];
 
       mat->addValue( uint_c( idxU ), uint_c( idxU ), 1.0 - normal[0] * normal[0] );
       mat->addValue( uint_c( idxU ), uint_c( idxV ), -normal[0] * normal[1] );
@@ -435,8 +437,6 @@ inline void saveProjectNormalOperator3D( uint_t                                 
       mat->addValue( uint_c( idxW ), uint_c( idxU ), -normal[0] * normal[2] );
       mat->addValue( uint_c( idxW ), uint_c( idxV ), -normal[1] * normal[2] );
       mat->addValue( uint_c( idxW ), uint_c( idxW ), 1.0 - normal[2] * normal[2] );
-
-      x += dx;
    }
 }
 
