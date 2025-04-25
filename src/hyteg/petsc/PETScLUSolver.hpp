@@ -225,6 +225,12 @@ class PETScLUSolver : public Solver< OperatorType >
       copyBCs(x, num_);
       // copyBCs( x, num_ );
 
+      if ( !disableApplicationBC_ )
+      {
+         b.assign( { 1.0 }, { x }, level, DirichletBoundary );
+      }
+      bVec_.createVectorFromFunction( b, num_, level, All );
+      xVec_.createVectorFromFunction( x, num_, level, All );
 
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
@@ -236,12 +242,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "RHS vector setup" );
 
-      if ( !disableApplicationBC_ )
-      {
-         b.assign( { 1.0 }, { x }, level, DirichletBoundary );
-      }
-      bVec_.createVectorFromFunction( b, num_, level, All );
-      xVec_.createVectorFromFunction( x, num_, level, All );
+
       if ( assumeSymmetry_ )
       {
          AmatTmp_.zeroEntries();

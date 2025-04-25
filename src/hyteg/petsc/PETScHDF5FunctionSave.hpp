@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Andreas Burkhart.
+ * Copyright (c) 2023-2025 Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,8 +19,9 @@
  */
 
 #pragma once
-
 #include "hyteg/HytegDefinitions.hpp"
+
+#ifdef HYTEG_BUILD_WITH_PETSC
 #ifdef HYTEG_PETSC_BUILT_WITH_HDF5
 
 #include <cmath>
@@ -249,4 +250,5 @@ PetscErrorCode
 
 } // namespace hyteg
 
+#endif
 #endif
