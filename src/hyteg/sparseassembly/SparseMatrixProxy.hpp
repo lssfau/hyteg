@@ -33,7 +33,10 @@ using walberla::uint_t;
 class SparseMatrixProxy
 {
  public:
-   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const = 0;
+   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const      = 0;
+   virtual std::shared_ptr< SparseMatrixProxy > createEmptyCopy() const = 0;
+   virtual std::shared_ptr< SparseMatrixProxy >
+       createMatrix( uint_t localRows, uint_t localCols, uint_t globalRows, uint_t globalCols, const MPI_Comm& MpiCommunicator ) const = 0;
 
    /// \brief Adds the passed value on the existing value in the matrix, or sets it to the value if no value exists.
    virtual void addValue( uint_t row, uint_t col, real_t value ) = 0;

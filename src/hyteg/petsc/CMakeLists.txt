@@ -17,5 +17,7 @@ target_sources( hyteg
     PETScVectorProxy.hpp
     PETScPreconditioner.hpp     
     PETScHDF5FunctionSave.hpp     
+    PETScKSPSolver.hpp
+    PETScSolverOptions.hpp
 )
 

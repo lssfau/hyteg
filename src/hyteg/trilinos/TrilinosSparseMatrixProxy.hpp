@@ -41,6 +41,18 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
    {
       WALBERLA_ABORT( "Trilinos sparse matrix copy not implemented." );
    }
+   std::shared_ptr< SparseMatrixProxy > createEmptyCopy() const override
+   {
+      WALBERLA_ABORT( "Trilinos sparse matrix copy not implemented." );
+   }
+   std::shared_ptr< SparseMatrixProxy > createMatrix( uint_t          localRows,
+                                                      uint_t          localCols,
+                                                      uint_t          globalRows,
+                                                      uint_t          globalCols,
+                                                      const MPI_Comm& MpiCommunicator ) const override
+   {
+      WALBERLA_ABORT( "Not implemented." );
+   }
 
    void addValue( uint_t row, uint_t col, real_t value ) override
    {
@@ -68,9 +80,10 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
       WALBERLA_ABORT( "Trilinos sparse matrix construction from matrix product not implemented." );
    };
 
-   void createFromMatrixLinComb(const std::vector< real_t >& scalars, const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
+   void createFromMatrixLinComb( const std::vector< real_t >&                               scalars,
+                                 const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
-      WALBERLA_ABORT("Not implemented yet!");
+      WALBERLA_ABORT( "Not implemented yet!" );
    }
 
  private:

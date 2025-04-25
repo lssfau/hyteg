@@ -45,13 +45,22 @@ class EigenSparseMatrixProxy : public SparseMatrixProxy
 
    virtual ~EigenSparseMatrixProxy() = default;
 
-   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const { WALBERLA_ABORT( "Not implemented." ); }
+   std::shared_ptr< SparseMatrixProxy > createCopy() const override { WALBERLA_ABORT( "Not implemented." ); }
+   std::shared_ptr< SparseMatrixProxy > createEmptyCopy() const override { WALBERLA_ABORT( "Not implemented." ); }
+   std::shared_ptr< SparseMatrixProxy > createMatrix( uint_t          localRows,
+                                                      uint_t          localCols,
+                                                      uint_t          globalRows,
+                                                      uint_t          globalCols,
+                                                      const MPI_Comm& MpiCommunicator ) const override
+   {
+      WALBERLA_ABORT( "Not implemented." );
+   }
 
    /// \brief Resets the proxy such that it can be reused.
    void clear() { tripletList_.clear(); }
 
    /// \brief Adds the passed value on the existing value in the matrix, or sets it to the value if no value exists.
-   virtual void addValue( uint_t row, uint_t col, real_t value )
+   void addValue( uint_t row, uint_t col, real_t value ) override
    {
       tripletList_.push_back( Triplet( int_c( row ), int_c( col ), value ) );
    }
@@ -59,8 +68,9 @@ class EigenSparseMatrixProxy : public SparseMatrixProxy
    /// \brief Adds a "block" of values to the sparse matrix at once.
    ///
    /// The values vector is expected to be of size rows.size() * cols.size().
-   virtual void
-       addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
+   void addValues( const std::vector< uint_t >& rows,
+                   const std::vector< uint_t >& cols,
+                   const std::vector< real_t >& values ) override
    {
       WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
 
@@ -75,15 +85,15 @@ class EigenSparseMatrixProxy : public SparseMatrixProxy
 
    /// \brief Stores the product of the passed matrices (as ordered in the vector) in this matrix.
    ///        Can be used to assemble concatenated operators.
-   virtual void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
+   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       WALBERLA_ABORT( "Not implemented." );
    }
 
    /// \brief Stores the sum of the passed matrices (as ordered in the vector) in this matrix.
    ///        Can be used to assemble concatenated operators.
-   virtual void createFromMatrixLinComb( const std::vector< real_t >&                               scalars,
-                                         const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
+   void createFromMatrixLinComb( const std::vector< real_t >&                               scalars,
+                                 const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices ) override
    {
       WALBERLA_ABORT( "Not implemented." );
    }
