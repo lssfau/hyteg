@@ -25,10 +25,14 @@ waLBerla_execute_test(NAME P2SwapTest)
 waLBerla_compile_test(FILES P2FunctionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2FunctionTest)
 
-if(WALBERLA_DOUBLE_ACCURACY)
-  waLBerla_compile_test(FILES P2PlusBubbleFunctionTest.cpp DEPENDS hyteg opgen-diffusion core)
-  waLBerla_execute_test(NAME P2PlusBubbleFunctionTest)
-endif()
+target_sources( hyteg
+    PRIVATE
+    P2PlusBubbleElementwiseMass_AffineMap2D_float64.cpp
+    P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp
+)
+
+waLBerla_compile_test(FILES P2PlusBubbleFunctionTest.cpp DEPENDS hyteg opgen-diffusion opgen-mass core)
+waLBerla_execute_test(NAME P2PlusBubbleFunctionTest)
 
 waLBerla_compile_test(FILES P2Level0Test.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)

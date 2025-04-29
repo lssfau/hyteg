@@ -31,15 +31,18 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseDiffusion_float64.hpp"
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp"
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_AnnulusMap_float64.hpp"
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseMass_float64.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusion.hpp"
+#include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
+#include "hyteg_operators/operators/mass/P2PlusBubbleElementwiseMass.hpp"
+#include "hyteg_operators/operators/mass/P2PlusBubbleElementwiseMassAnnulusMap.hpp"
+
+#ifdef WALBERLA_DOUBLE_ACCURACY
+#include "P2PlusBubbleElementwiseMass_AffineMap2D_float64.hpp"
+#endif
 
 namespace hyteg {
 
@@ -252,6 +255,7 @@ void runInterpolationTests()
    std::shared_ptr< PrimitiveStorage > storage3 = generateStorage( MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING );
    std::shared_ptr< PrimitiveStorage > storage4 = generateStorage( MeshType::QUADRATIC_MAPPED_SQUARE );
 
+#ifdef WALBERLA_DOUBLE_ACCURACY
    WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on unmodified mesh" );
    testInterpolation( storage1, { real_c( 3e-16 ), real_c( 3e-16 ), real_c( 2.5e-4 ) } );
 
@@ -266,6 +270,22 @@ void runInterpolationTests()
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on boundary of an unmodified mesh" );
    testInterpolationForBCs();
+#else
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on unmodified mesh" );
+   testInterpolation( storage1, { real_c( 5e-7 ), real_c( 1e-7 ), real_c( 2.5e-4 ) } );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on mesh with affine blending" );
+   testInterpolation( storage3, { real_c( 5e-6 ), real_c( 2e-5 ), real_c( 4e-3 ) } );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation with quadratic micromesh" );
+   testInterpolation( storage4, { real_c( 5e-7 ), real_c( 5e-5 ), real_c( 3e-3 ) } );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on mesh with annulus blending" );
+   testInterpolation( storage2, { real_c( 1.8e-4 ), real_c( 5e-4 ), real_c( 0.03 ) } );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing interpolation on boundary of an unmodified mesh" );
+   testInterpolationForBCs();
+#endif
 }
 
 template < template < typename > typename func_t, typename operator_t >
@@ -377,19 +397,23 @@ void runSingleMassTest( MeshType meshType )
 
    if ( meshType == MeshType::UNIT_SQUARE )
    {
-      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_float64;
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass;
       MassOperator massOp( storage, level, level );
       massOp.apply( vecOfOnes, aux, level, All );
    }
    else if ( meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
    {
+#ifdef WALBERLA_DOUBLE_ACCURACY
       using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_AffineMap2D_float64;
       MassOperator massOp( storage, level, level );
       massOp.apply( vecOfOnes, aux, level, All );
+#else
+      WALBERLA_ABORT( "Mass test for AffineMap2D only available for float64!" );
+#endif
    }
    else if ( meshType == MeshType::ANNULUS )
    {
-      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_AnnulusMap_float64;
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMassAnnulusMap;
       MassOperator massOp( storage, level, level );
       massOp.apply( vecOfOnes, aux, level, All );
    }
@@ -405,7 +429,8 @@ void runSingleMassTest( MeshType meshType )
    }
    else if ( meshType == MeshType::ANNULUS )
    {
-      WALBERLA_CHECK_LESS_EQUAL( std::abs( measure - volumeCtrl ), real_c( 1e-7 ) );
+      real_t threshold = real_c( std::is_same_v< real_t, double > ? 1e-7 : 1e-6 );
+      WALBERLA_CHECK_LESS_EQUAL( std::abs( measure - volumeCtrl ), threshold );
       return;
    }
 
@@ -420,15 +445,19 @@ void runSingleMassTest( MeshType meshType )
 
    if ( meshType == MeshType::UNIT_SQUARE )
    {
-      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_float64;
+      using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass;
       MassOperator massOp( storage, level, level );
       massOp.apply( integrand, aux, level, All );
    }
    else if ( meshType == MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING )
    {
+#ifdef WALBERLA_DOUBLE_ACCURACY
       using MassOperator = operatorgeneration::P2PlusBubbleElementwiseMass_AffineMap2D_float64;
       MassOperator massOp( storage, level, level );
       massOp.apply( integrand, aux, level, All );
+#else
+      WALBERLA_ABORT( "Mass test for AffineMap2D only available for float64!" );
+#endif
    }
 
    measure = vecOfOnes.dotGlobal( aux, level );
@@ -465,8 +494,10 @@ void runMassTests()
    WALBERLA_LOG_INFO_ON_ROOT( " Executing test with unit square" );
    runSingleMassTest( MeshType::UNIT_SQUARE );
 
+#ifdef WALBERLA_DOUBLE_ACCURACY
    WALBERLA_LOG_INFO_ON_ROOT( " Executing test with unit square + affine blending" );
    runSingleMassTest( MeshType::OTHER_UNIT_SQUARE_AFFINE_BLENDING );
+#endif
 
    WALBERLA_LOG_INFO_ON_ROOT( " Executing test with annulus" );
    runSingleMassTest( MeshType::ANNULUS );
@@ -479,11 +510,11 @@ void runDiffusionTest( bool doVTKOutput = true )
    WALBERLA_LOG_INFO_ON_ROOT( "==============================================" );
 
    real_t value1 =
-       solveDiffusionProblem< P2PlusBubbleFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 >( doVTKOutput );
+       solveDiffusionProblem< P2PlusBubbleFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion >( doVTKOutput );
    real_t value2 = solveDiffusionProblem< P2Function, operatorgeneration::P2ElementwiseDiffusion >( doVTKOutput );
 
-   WALBERLA_CHECK_LESS( value1, 2e-9 );
-   WALBERLA_CHECK_LESS( value2, 0.5e-9 );
+   WALBERLA_CHECK_LESS( value1, real_c( std::is_same_v< real_t, double > ? 2e-9 : 2e-7 ) );
+   WALBERLA_CHECK_LESS( value2, real_c( std::is_same_v< real_t, double > ? 5e-8 : 3e-8 ) );
 }
 
 void runVectorFunctionTest( bool doVTKOutput = false )
