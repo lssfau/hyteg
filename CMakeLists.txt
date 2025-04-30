@@ -24,7 +24,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules)
 include(DetectPlatformFeatures)
 
 option ( HYTEG_BUILD_WITH_MPI            "Build with MPI"                                                             ON )
-option ( HYETG_BUILD_WITH_OPENMP         "Build with OpenMP"                                                         OFF )
+option ( HYTEG_BUILD_WITH_OPENMP         "Build with OpenMP"                                                         OFF )
 option ( HYTEG_BUILD_WITH_PETSC          "Build with PETSc"                                                          OFF )
 option ( HYTEG_BUILD_WITH_MPFR           "Build with MPFR"                                                           OFF )
 option ( HYTEG_BUILD_WITH_TRILINOS       "Build with Trilinos"                                                       OFF )
