@@ -592,9 +592,9 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
    }
 
-   const size_t minLevel = 2;
-   const size_t maxLevel = std::max( minLevel, (size_t) 2 );
-   const size_t outLevel = minLevel;
+   const size_t minLevel = level;
+   const size_t maxLevel = level;
+   const size_t outLevel = level;
 
    auto storage = builder->constructPrimitiveStorage( allArguments, setupStorage );
 
