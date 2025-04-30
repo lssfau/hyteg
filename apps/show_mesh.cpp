@@ -379,26 +379,27 @@ std::vector< std::shared_ptr< MeshBuilder > > makeBuilders()
 /// Print information on the app and available command-line parameters
 void showUsage( const std::vector< std::shared_ptr< MeshBuilder > >& builders )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "--------  USAGE: --------" )
-   WALBERLA_LOG_INFO_ON_ROOT( "show_mesh demonstrates generation of a MeshInfo object by one of the following methods:" )
+   std::stringstream usageStream;
+   usageStream << "--------  USAGE: --------\n";
+   usageStream << "show_mesh demonstrates generation of a MeshInfo object by one of the following methods:\n\n";
    for ( auto builder : builders )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( " " << builder->flag << " " << builder->options )
-      WALBERLA_LOG_INFO_ON_ROOT( "     " << builder->description )
+      usageStream << " " << builder->flag << " " << builder->options << "\n"
+                  << "     " << builder->description << "\n\n";
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "The generated base mesh will be tested be doing two levels of refinement." )
-   WALBERLA_LOG_INFO_ON_ROOT( "Then it will be exported to a VTU file for visualisation." )
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output." )
-   WALBERLA_LOG_INFO_ON_ROOT( "The desired load balancing approach can be steered by:" )
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)" )
-   WALBERLA_LOG_INFO_ON_ROOT( "Use -v                            to print info on mesh to console." )
-   WALBERLA_LOG_INFO_ON_ROOT( "Use --level <level>               to specify the refinement level for all outputs (default = 2)." )
-   WALBERLA_LOG_INFO_ON_ROOT( "Use --export-fine-mesh            to store the mesh for refinement level lvl in a MESH4.1 file." )
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "Use --parametric-map <map-degree> to write the node positions to the micro-mesh and plot via a linear or quadratic "
-       "parametric map. Only degrees 1 and 2 are supported." )
+   usageStream
+       << "The generated base mesh will be tested be doing --level levels of refinement.\n"
+       << "Then it will be exported to a VTU file for visualisation.\n"
+       << "Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n\n"
+       << "The desired load balancing approach can be steered by:\n"
+       << "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)\n\n"
+       << "Use -v                            to print info on mesh to console.\n\n"
+       << "Use --level <level>               to specify the refinement level for all outputs (default = 2).\n\n"
+       << "Use --export-fine-mesh            to store the mesh for refinement level lvl in a MESH4.1 file.\n\n"
+       << "Use --parametric-map <map-degree> to write the node positions to the micro-mesh and plot via a linear or quadratic\n"
+       << "                                  parametric map. Only degrees 1 and 2 are supported.";
+
+   WALBERLA_LOG_INFO_ON_ROOT( "" << usageStream.str() );
 }
 
 /// The actual show_mesh app itself
@@ -667,7 +668,7 @@ int main( int argc, char* argv[] )
    //  Report DoF Counts
    // -------------------
    uint_t vertexDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, level );
-   uint_t edgeDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
+   uint_t edgeDoFs   = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
    uint_t volumeDoFs = numberOfGlobalDoFs< P0FunctionTag >( *storage, level );
    WALBERLA_LOG_INFO_ON_ROOT( "Number of micro-vertices ... " << vertexDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "Number of micro-edges ...... " << edgeDoFs );
