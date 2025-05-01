@@ -1,7 +1,7 @@
 Parameters
 {
-  nTan 3;
-  nRad 2;
+  nTan 5;
+  nRad 3;
 	
   rMin 1.22;
   rMax 2.22;
@@ -14,8 +14,8 @@ Parameters
   rho 1.0;
   cp 1.0;
 
-  lmax 3;
-  mSph 2;
+  lmax 20;
+  mSph 9;
 
   cubicSymmetry false;
 
@@ -25,8 +25,8 @@ Parameters
   expScaling 10.0;
   directScaling 6e-2;
 
-  epsC 1.0;
-  epsS 1.0;
+  epsC 0.01;
+  epsS 0.01;
   eps 0.001;
 
   thetaPhaseShift 0.0;
@@ -52,7 +52,7 @@ Parameters
   nx 10;
   ny 4;
 
-  // viscosityProfile /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/viscosityProfiles/SimpleTest.json;
+  viscosityProfile /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/viscosityProfiles/SimpleTest.json;
   TemperatureProfile /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/data/terraneo/radialProfiles/TemperatureProfile.json;
 
   viscosityLowerBound 5e19;
@@ -62,8 +62,8 @@ Parameters
 
   rheologyType 0;
 
-  shearHeating false;
-  adiabaticHeating false;
+  shearHeating true;
+  adiabaticHeating true;
 
   shearHeatingThresholdDistanceFromBoundary 0.0;
 
@@ -165,7 +165,7 @@ Parameters
   adiosXmlConfig /zhome/academic/HLRS/xgu/xgutnv/hyteg/hyteg/apps/2024-convbench/ADIOS2config.xml;
 
   modelOutputDir /lustre/hpe/ws11/ws11.1/ws/xgutnv-profile/;
-  modelName IVCTEST;
+  modelName SPH_DSA_P2_SP;
 
   storeCheckpoint true;
   adios2CheckpointFreq 10;

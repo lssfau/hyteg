@@ -51,6 +51,7 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+// #include "hyteg/petsc/PETScTestSolvers.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
@@ -74,6 +75,7 @@
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/InterpolateProfile.hpp"
+#include "terraneo/helpers/RadialProfiles.hpp"
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
@@ -385,6 +387,8 @@ struct ParameterData
 
    uint_t lmax = 2U, lmaxC = 2U;
 
+   uint_t nRad = 3u;
+
    int mSph = 2, mSphC = 2;
 
    bool plateDirSwitch = false, plateCurrDir = false, verbose = false, estimateUzawaOmega = false;
@@ -492,6 +496,8 @@ class TALASimulation
 
       params.lmaxC = mainConf.getParameter< uint_t >( "lmaxC" );
       params.mSphC = mainConf.getParameter< int >( "mSphC" );
+
+      params.nRad = mainConf.getParameter< uint_t >( "nRad" );
 
       params.cubicSymmetry = mainConf.getParameter< bool >( "cubicSymmetry" );
 
@@ -865,18 +871,25 @@ class TALASimulation
 
       diffusivityCoeff_ = std::make_shared< P2Function< real_t > >( "diffusivityCoeff_", storage, minLevel, maxLevel );
       advectionCoeff_   = std::make_shared< P2Function< real_t > >( "advectionCoeff_", storage, minLevel, maxLevel );
+      constEnergyCoeff_ = std::make_shared< P2Function< real_t > >( "constEnergyCoeff_", storage, minLevel, maxLevel );
 
       diffusivityCoeff_->interpolate( 1.0, maxLevel, All );
       advectionCoeff_->interpolate( 1.0, maxLevel, All );
-
+      
+      real_t constHeatingFactor = mainConf.getParameter< real_t >("constHeatingFactor");
+      constEnergyCoeff_->interpolate( constHeatingFactor, maxLevel, All );
+      
       transportTALAOp->setDiffusivityCoeff( diffusivityCoeff_ );
       // transportTALAOp->setAdvectionCoeff( advectionCoeff_ );
+      transportTALAOp->setConstEnergyCoeff( constEnergyCoeff_ );
+
       transportTALAOp->setTemperature( TInt );
       transportTALAOp->setVelocity( u );
 
       transportTALAOp->setTALADict( { { terraneo::TransportOperatorTermKey::DIFFUSION_TERM, true },
                                       { terraneo::TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY, false },
-                                      { terraneo::TransportOperatorTermKey::SUPG_STABILISATION, false } } );
+                                      { terraneo::TransportOperatorTermKey::SUPG_STABILISATION, false },
+				      { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, true } } );
 
       transportTALAOp->initializeOperators();
 
@@ -984,10 +997,16 @@ class TALASimulation
                                                                                                   0u,
                                                                                                   CycleType::VCYCLE );
 
+      
+      // ABlockMultigridSolverPetsc = std::make_shared< PETScTestSolvers< StokesOperatorType::VelocityOperator_T > >( storage, maxLevel, 1e-8, 1e-12, 10 );
+
       blockPreconditioner = std::make_shared< BlockFactorisationPreconditioner< StokesOperatorType,
                                                                                 typename StokesOperatorType::VelocityOperator_T,
                                                                                 SchurOperator > >(
-          storage, minLevel, maxLevel, *schurOperator, ABlockMultigridSolver, schurSolver, uzawaOmega, relaxSchur, 1u );
+          storage, minLevel, maxLevel, *schurOperator, 
+	  ABlockMultigridSolver, 
+	  // ABlockMultigridSolverPetsc,
+	  schurSolver, uzawaOmega, relaxSchur, 1u );
 
       prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
       restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >();
@@ -1010,22 +1029,26 @@ class TALASimulation
                                                                                             CycleType::VCYCLE );
 
       uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
+      uint_t fgmresIterationsInitial = mainConf.getParameter< uint_t >( "fgmresIterationsInitial" );
 
       real_t fgmresTolerance = mainConf.getParameter< real_t >( "fgmresTolerance" );
 
       fgmresSolver = std::make_shared< FGMRESSolver< StokesOperatorType > >(
-          storage, minLevel, maxLevel, fgmresIterations, 50, fgmresTolerance, fgmresTolerance, 0, blockPreconditioner );
+          storage, minLevel, maxLevel, fgmresIterationsInitial, 50, fgmresTolerance, fgmresTolerance, 0, blockPreconditioner );
       fgmresSolver->setPrintInfo( true );
 
       // Visualization
 
       outputPath = walberla::format( "%s/output", modelPath.c_str() );
       cpPath     = walberla::format( "%s/checkpoint", modelPath.c_str() );
+      
+      radialProfilesPath     = walberla::format( "%s/radialProfiles", modelPath.c_str() );
 
       WALBERLA_ROOT_SECTION()
       {
          std::filesystem::create_directory( outputPath );
          std::filesystem::create_directory( cpPath );
+         std::filesystem::create_directory( radialProfilesPath );
       }
 
       std::string startCpPath     = mainConf.getParameter< std::string >( "startCheckpointPath" );
@@ -1169,6 +1192,7 @@ class TALASimulation
 
    std::shared_ptr< P2Function< real_t > > diffusivityCoeff_;
    std::shared_ptr< P2Function< real_t > > advectionCoeff_;
+   std::shared_ptr< P2Function< real_t > > constEnergyCoeff_;
 
    MMOCTransport< P2Function< real_t > > transport;
 
@@ -1201,6 +1225,8 @@ class TALASimulation
    std::shared_ptr< P2toP2QuadraticVectorProlongation >                                  ABlockProlongationOperator;
    std::shared_ptr< P2toP2QuadraticVectorRestriction >                                   ABlockRestrictionOperator;
    std::shared_ptr< GeometricMultigridSolver< StokesOperatorType::VelocityOperator_T > > ABlockMultigridSolver;
+   
+   // std::shared_ptr< PETScTestSolvers< StokesOperatorType::VelocityOperator_T > > ABlockMultigridSolverPetsc;
 
    std::shared_ptr<
        BlockFactorisationPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >
@@ -1264,6 +1290,8 @@ class TALASimulation
 
    std::string cpFilename, cpPath;
 
+   std::string radialProfilesPath;
+
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    std::shared_ptr< AdiosWriter > adios2Output;
    // std::shared_ptr< AdiosWriter > adios2Outputl2;
@@ -1298,6 +1326,15 @@ void TALASimulation::solveU()
    }
 
    uRotated->interpolate( 0.0, maxLevel, All );
+
+   uint_t nStepsInitial = mainConf.getParameter< uint_t >("nStepsInitial");
+   
+   if( iTimeStep > nStepsInitial )
+   {
+      uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
+
+      fgmresSolver->setMaxIter( fgmresIterations );
+   }
 
    stokesOperatorRotationOpgen->getA().computeInverseDiagonalOperatorValues();
 
@@ -1601,6 +1638,9 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT("Nusselt number integrated inner = " << nusseltNumberInnerInt);
          WALBERLA_LOG_INFO_ON_ROOT("");
       }
+
+      terraneo::RadialProfile TRadialProf = terraneo::computeRadialProfile( *T, params.rMin, params.rMax, params.nRad, maxLevel );
+      TRadialProf.logToFile( walberla::format( "%s/Temperature_%d.txt", radialProfilesPath.c_str(), iTimeStep ), "Temperature" );
 
       iTimeStep++;
 

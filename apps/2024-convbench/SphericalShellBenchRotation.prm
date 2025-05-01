@@ -1,6 +1,6 @@
 Parameters
 {
-  nTan 5;
+  nTan 3;
   nRad 3;
 	
   rMin 1.22;
@@ -11,13 +11,15 @@ Parameters
   alpha 1.0;
   thermalConductivity 1.0;
 
+  constHeatingFactor 2.27;
+
   rho 1.0;
   cp 1.0;
 
-  lmax 4;
-  mSph 0;
+  lmax 3;
+  mSph 2;
 
-  cubicSymmetry true;
+  cubicSymmetry false;
 
   lmaxC 4;
   mSphC 4;
@@ -95,12 +97,12 @@ Parameters
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterationsInitial 10;
+  fgmresIterationsInitial 25;
   nStepsInitial 25;
-  fgmresIterations 15;
+  fgmresIterations 6;
   fgmresTolerance 1e-4;
 
-  uzawaPreSmooth 3;
+  uzawaPreSmooth 1;
   uzawaPostSmooth 3;
 
   chebyshevOrder 4;
@@ -141,7 +143,7 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 1001;
+  maxTimeSteps 4001;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
@@ -160,10 +162,13 @@ Parameters
 
   storeCheckpoint true;
   adios2CheckpointFreq 100;
+  
+  // modelOutputDir /lustre/hpe/ws11/ws11.1/ws/xgutnv-sph-bench/sph128/tetrahedral/Ra7e3;
+  modelOutputDir /lustre/hpe/ws12/ws12.a/ws/xgutnv-build/apps/2024-convbench/output/;
 
-  modelOutputDir /lustre/hpe/ws11/ws11.1/ws/xgutnv-sph-bench/sph128/tetrahedral/Ra7e3;
-  modelName rMu1_Part1;
-
+  // modelName rMu1_Part1;
+  modelName PetscTest;
+  
   startCheckpointPath ./output/checkpoint;
   startCheckpointFilename SphericalShell_MT64_Profile_Arrhenius_P1_21112024_Checkpoint_Continuous.bp;
   startFromCheckpoint false;

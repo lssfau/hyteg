@@ -720,7 +720,7 @@ class TALASimulation
          // return 0.0;
       };
 
-      transport.setP1Evaluate( true );
+      transport.setP1Evaluate( false );
 
       transport.setParticleLocalRadiusTolerance( 0.1 );
 
