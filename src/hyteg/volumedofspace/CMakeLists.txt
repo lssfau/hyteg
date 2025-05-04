@@ -5,5 +5,6 @@ target_sources( hyteg
     VolumeDoFIndexing.cpp
     VolumeDoFIndexing.hpp
     VolumeDoFPackInfo.hpp
+    MicroElementDoFTypification.hpp
 )
 
