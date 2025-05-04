@@ -44,6 +44,9 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
   waLBerla_compile_test(FILES CheckpointingTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME CheckpointingTest)
 
+  waLBerla_compile_test(FILES FileWritingVectorAndConsistentEnumerationTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME FileWritingVectorAndConsistentEnumerationTest)
+  
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
     ${CMAKE_CURRENT_SOURCE_DIR}/CheckpointRestoreTest.prm
     ${CMAKE_CURRENT_BINARY_DIR}/CheckpointRestoreTest.prm )
