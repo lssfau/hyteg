@@ -11,5 +11,6 @@ target_sources( hyteg
     CouplingCount.hpp
     DistanceCoordinateSystem.hpp
     LocalIDMappings.hpp     
+    ConsistentEnumeration.hpp
 )
 
