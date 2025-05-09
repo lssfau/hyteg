@@ -55,7 +55,7 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
     */
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
-   /* Single precision LSQ leads to very poor accuracy of the resulting polynomials. Therefore,
+   /* Single precision LSQ may lead to very poor accuracy of the resulting polynomials. Therefore,
       we use real_t for the polynomial evaluation only, while sticking to double precision LSQ.
     */
    template < uint8_t DIM >
