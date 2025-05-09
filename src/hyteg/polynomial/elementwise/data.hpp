@@ -43,7 +43,7 @@ namespace surrogate {
  * @tparam C columns of the matrix
  */
 template < typename T, uint_t R, uint_t C >
-struct MatrixLike : public std::array< T, R*C >
+struct MatrixLike : public std::array< T, R * C >
 {
    // get (i,j) entry of this
    inline T& operator()( idx_t i, idx_t j ) { return ( *this )[static_cast< uint_t >( i * C + j )]; }
@@ -160,24 +160,36 @@ class LocalMatrixMap
 template < typename T >
 struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
 {
-   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max )
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max, uint8_t primitiveType )
    {
-      uint_t dim = ( storage->hasGlobalCells() ) ? 3 : 2;
-      if ( dim == 2 )
+      std::vector< PrimitiveID > ids;
+      switch ( primitiveType )
       {
-         for ( auto& id : storage->getFaceIDs() )
-         {
-            ( *this )[id] = std::vector< T >( l_max + 1 );
-         }
+      case 0:
+         ids = storage->getVertexIDs();
+         break;
+      case 1:
+         ids = storage->getEdgeIDs();
+         break;
+      case 2:
+         ids = storage->getFaceIDs();
+         break;
+      case 3:
+         ids = storage->getCellIDs();
+         break;
+      default:
+         break;
       }
-      else
+
+      for ( auto& id : ids )
       {
-         for ( auto& id : storage->getCellIDs() )
-         {
-            ( *this )[id] = std::vector< T >( l_max + 1 );
-         }
+         ( *this )[id] = std::vector< T >( l_max + 1 );
       }
    }
+
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max )
+   : ElementWiseData( storage, l_max, ( storage->hasGlobalCells() ) ? 3 : 2 )
+   {}
 };
 
 /**
@@ -189,7 +201,7 @@ struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
  * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
  */
 template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-using LocalMatrixLike = MatrixLike<T, polynomial::dimP( DIM, DST_DEGREE ), polynomial::dimP( DIM, SRC_DEGREE )>;
+using LocalMatrixLike = MatrixLike< T, polynomial::dimP( DIM, DST_DEGREE ), polynomial::dimP( DIM, SRC_DEGREE ) >;
 // container for RHS vectors for lsq-fit
 template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using RHS_matrix = LocalMatrixLike< typename LeastSquares< FLOAT >::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
