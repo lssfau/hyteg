@@ -98,5 +98,74 @@ static inline void
    globalDofIndices[0b111] = indexing::macroCellIndex( n, x + 1, y + 1, z + 1 );
 }
 
+namespace stencil {
+// number of stencil entries
+static constexpr inline size_t size( uint8_t dim )
+{
+   return ( dim == 2 ) ? 7 : 15;
+}
+
+// due to the strange ordering of the old stencilDirection enum, it is not used here
+enum Dir
+{
+   C,
+   W,
+   E,
+   N,
+   S,
+   NW,
+   SE,
+   TC,
+   TW,
+   TS,
+   TSE,
+   BC,
+   BN,
+   BE,
+   BNW
+};
+
+template < uint8_t DIM, typename dType = real_t >
+using StencilData = std::array< dType, size( DIM ) >;
+
+static const StencilData< 3, indexing::Index > offset = {
+    indexing::Index{ 0, 0, 0 },  // C
+    indexing::Index{ -1, 0, 0 }, // W
+    indexing::Index{ 1, 0, 0 },  // E
+    indexing::Index{ 0, 1, 0 },  // N
+    indexing::Index{ 0, -1, 0 }, // S
+    indexing::Index{ -1, 1, 0 }, // NW
+    indexing::Index{ 1, -1, 0 }, // SE
+    indexing::Index{ 0, 0, 1 },  // TC
+    indexing::Index{ -1, 0, 1 }, // TW
+    indexing::Index{ 0, -1, 1 }, // TS
+    indexing::Index{ 1, -1, 1 }, // TSE
+    indexing::Index{ 0, 0, -1 }, // BC
+    indexing::Index{ 1, 0, -1 }, // BE
+    indexing::Index{ -1, 1, -1 } // BNW
+};
+
+// get global indices of adjacent vertices
+template < uint8_t DIM >
+static void getGlobalIndices( const uint_t& level, const indexing::Index& vtx, StencilData< DIM, uint_t >& globalDofIndices )
+{
+   const auto n = levelinfo::num_microvertices_per_edge( level );
+
+   for ( uint_t k = 0; k < size( DIM ); ++k )
+   {
+      const auto& d = offset[k];
+      if constexpr ( DIM == 2 )
+      {
+         globalDofIndices[C] = indexing::macroFaceIndex( n, vtx.x() + d.x(), vtx.y() + d.y() );
+      }
+      else
+      {
+         globalDofIndices[C] = indexing::macroCellIndex( n, vtx.x() + d.x(), vtx.y() + d.y(), vtx.z() + d.z() );
+      }
+   }
+}
+
+} // namespace stencil
+
 } // namespace p1
 } // namespace hyteg
