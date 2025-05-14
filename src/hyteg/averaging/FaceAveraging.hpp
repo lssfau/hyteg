@@ -24,7 +24,17 @@
 #include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
-
+///
+/// \brief Evaluate the average value depending on the \param averagingMethod
+///
+/// Currently only possible to use the values at the vertices for computation
+/// of averages
+///
+/// \param microTriangles  Vertices of the triangle face
+/// \param valueTets       FE function values at those vertices
+/// \param averagingMethod Averaging method that should be used 
+///                        to compute a single average for the face
+///
 inline real_t evaluateSampledAverage( std::array< Point3D, 3 > microTriangles,
                                       std::array< real_t, 3 >  valueTriangles,
                                       hyteg::AveragingType     averagingMethod )

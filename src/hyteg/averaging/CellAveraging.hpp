@@ -25,7 +25,19 @@
 #include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
-
+///
+/// \brief Evaluate the average value depending on the \param averagingMethod
+///
+/// Possible to compute the averaging of the function values at the vertex and centroid.
+/// Also a 5 point quadrature is hard coded 
+/// where the function is evaluated and can be used for averaging.
+///
+/// \param microTets       Vertices of the tetrahedron
+/// \param valueTets       FE function values at those vertices
+/// \param averagingMethod Averaging method that should be used 
+///                        to compute a single average for the cell
+///
+///
 inline real_t evaluateSampledAverage( std::array< Point3D, 4 > microTets,
                                       std::array< real_t, 4 >  valueTets,
                                       hyteg::AveragingType     averagingMethod )
@@ -40,7 +52,7 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 4 > microTets,
    real_t valueTet2 = valueTets[2];
    real_t valueTet3 = valueTets[3];
 
-   Point3D coordinates = ( microTet0 + microTet1 + microTet2 + microTet3 ) / 4.0;
+   Point3D centroid = ( microTet0 + microTet1 + microTet2 + microTet3 ) / 4.0;
 
    std::function< real_t( const Point3D& ) > locallyEvaluate = [&]( const Point3D& x ) {
       return valueTet0 * ( real_c( 1.0 ) - x[0] - x[1] - x[2] ) + valueTet1 * x[0] + valueTet2 * x[1] + valueTet3 * x[2];
@@ -59,7 +71,7 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 4 > microTets,
    real_t val4 = locallyEvaluate( qp4 );
    real_t val5 = locallyEvaluate( qp5 );
 
-   auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
+   auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, centroid );
    auto value  = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
                 valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
 

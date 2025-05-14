@@ -22,16 +22,19 @@
 
 namespace hyteg {
 ///
-/// \brief This enum flags can be used in P1toP0Conversion and P0toP0AveragedInjection 
-///        to specify the averaging method that should to be used
+/// \brief These enum flags can be used in P1toP0Conversion and P0toP0AveragedInjection 
+///        to specify the averaging method that should to be used. Please refer to
+///        the corresponding functions for more information on how/where this can be
+///        used.
 ///
 enum class AveragingType
 {
-   ARITHMETIC, ///< Vertices and centroid (only vertices in 2D (P1 to P0 transfer), 
-               ///< the first three flags can be used for transfer to P0 lower levels)
+   ARITHMETIC,
    HARMONIC,
    GEOMETRIC,
-   ARITHMETIC_QP, ///< Suffix _QP referes to averaging on Quadrature points 
+   ARITHMETIC_QP, ///< Suffix _QP refers to averaging on Quadrature points
+                  ///< A single value for a FE function can be computed by averaging
+                  ///< values at the quadrature points (5 point quadrature in 3D is hard coded)
                   ///< (this and following is only applicable for P1 to P0 transfer)
    HARMONIC_QP,
    GEOMETRIC_QP
