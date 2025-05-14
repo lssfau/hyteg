@@ -33,6 +33,8 @@
 
 namespace hyteg {
 
+namespace deprecated {
+
 template < class P1Form, bool USE_INCREMENTAL_EVAL = true >
 class P1SurrogateOperator : public P1Operator< P1Form >
 {
@@ -577,4 +579,5 @@ typedef P1SurrogateOperator< forms::p1_mass_blending_q4 >       P1SurrogateMassO
 typedef P1SurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkGradOperator;
 typedef P1SurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1SurrogateAffineDivkGradOperator;
 
+} //namespace deprecated
 } // namespace hyteg

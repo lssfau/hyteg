@@ -55,11 +55,11 @@ template < class Op >
 class OperatorWrapper : public Op
 {
  public:
-   using Op::Op;
    using Op::apply_cell;
    using Op::apply_cell_generated;
    using Op::apply_face;
    using Op::apply_face_generated;
+   using Op::Op;
    using Op::smooth_sor_cell;
    using Op::smooth_sor_cell_generated;
    using Op::smooth_sor_face;
@@ -69,8 +69,8 @@ class OperatorWrapper : public Op
 using LaplaceConst         = OperatorWrapper< P1ConstantLaplaceOperator >;
 using LaplaceBlending      = OperatorWrapper< hyteg::P1VariableOperator< hyteg::forms::p1_diffusion_blending_q1 > >;
 using LaplaceAffine        = OperatorWrapper< hyteg::P1VariableOperator< hyteg::forms::p1_diffusion_affine_q1 > >;
-using LaplaceSurrogate     = OperatorWrapper< P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, false > >;
-using LaplaceSurrogateFast = OperatorWrapper< P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, true > >;
+using LaplaceSurrogate     = OperatorWrapper< deprecated::P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, false > >;
+using LaplaceSurrogateFast = OperatorWrapper< deprecated::P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, true > >;
 
 const std::map< std::string, KerType > strToKerType = { { "variable", VARIABLE },
                                                         { "constant", CONSTANT },
@@ -86,7 +86,7 @@ const std::map< KerType, std::string > kerTypeToStr = { { VARIABLE, "variable" }
 
 std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
 {
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1, 1 );
 
    switch ( dim )
    {
@@ -97,7 +97,7 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
       }
       else // rectangle
       {
-         meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
+         meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1, 1 );
       }
       break;
    case 3:
@@ -107,7 +107,7 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
       }
       else // cube
       {
-         meshInfo = MeshInfo::meshCuboid( Point3D(  0.0, 0.0, 0.0  ), Point3D(  1.0, 1.0, 1.0  ), 1, 1, 1 );
+         meshInfo = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 1, 1, 1 );
       }
       break;
 

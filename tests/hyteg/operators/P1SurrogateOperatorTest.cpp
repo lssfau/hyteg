@@ -54,7 +54,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    // operators
    forms::p1_div_k_grad_affine_q3    form( k, k );
    P1AffineDivkGradOperator          A( storage, level, level, form );
-   P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
+   deprecated::P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
 
    A_q.interpolateStencils( q, level );
 

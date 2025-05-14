@@ -449,7 +449,7 @@ int main( int argc, char** argv )
       A_form form( k, k );
 
       P1VariableOperator< A_form >  A1( storage, minLevel, maxLevel, form );
-      P1SurrogateOperator< A_form > A1q( storage, minLevel, maxLevel, form );
+      deprecated::P1SurrogateOperator< A_form > A1q( storage, minLevel, maxLevel, form );
       A1q.interpolateStencils( polyDegree, maxLevel );
 
       if ( surrogate_error )
@@ -457,7 +457,7 @@ int main( int argc, char** argv )
          auto u_var = solve< P1VariableOperator< A_form >, M_t, FE, R_t, P_t >(
              opType, storage, A1, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
 
-         auto u_surr = solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
+         auto u_surr = solve< deprecated::P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
              opType, storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
 
          M_t  M( storage, minLevel, maxLevel );
@@ -478,7 +478,7 @@ int main( int argc, char** argv )
                printStencils< P1VariableOperator< A_form > >( storage, A1 );
             break;
          case SURROGATE:
-            solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >( opType,
+            solve< deprecated::P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >( opType,
                                                                        storage,
                                                                        A1q,
                                                                        u,
@@ -490,9 +490,9 @@ int main( int argc, char** argv )
                                                                        mg_tolerance,
                                                                        coarse_tolerance,
                                                                        vtk );
-            printError< P1SurrogateOperator< A_form > >( A1q, minLevel, maxLevel );
+            printError< deprecated::P1SurrogateOperator< A_form > >( A1q, minLevel, maxLevel );
             if ( print_stencils )
-               printStencils< P1SurrogateOperator< A_form > >( storage, A1q );
+               printStencils< deprecated::P1SurrogateOperator< A_form > >( storage, A1q );
             break;
          default:
             WALBERLA_ABORT( "The desired Operator Type is not supported!" );
