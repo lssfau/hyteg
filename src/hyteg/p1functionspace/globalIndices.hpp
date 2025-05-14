@@ -100,7 +100,7 @@ static inline void
 
 namespace stencil {
 // number of stencil entries
-static constexpr inline size_t size( uint8_t dim )
+static constexpr inline size_t stencilSize( uint8_t dim )
 {
    return ( dim == 2 ) ? 7 : 15;
 }
@@ -126,7 +126,7 @@ enum Dir
 };
 
 template < uint8_t DIM, typename dType = real_t >
-using StencilData = std::array< dType, size( DIM ) >;
+using StencilData = std::array< dType, stencilSize( DIM ) >;
 
 static const StencilData< 3, indexing::Index > offset = {
     indexing::Index{ 0, 0, 0 },  // C
@@ -151,7 +151,7 @@ static void getGlobalIndices( const uint_t& level, const indexing::Index& vtx, S
 {
    const auto n = levelinfo::num_microvertices_per_edge( level );
 
-   for ( uint_t k = 0; k < size( DIM ); ++k )
+   for ( uint_t k = 0; k < stencilSize( DIM ); ++k )
    {
       const auto& d = offset[k];
       if constexpr ( DIM == 2 )
