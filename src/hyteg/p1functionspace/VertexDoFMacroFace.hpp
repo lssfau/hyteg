@@ -24,6 +24,7 @@
 
 #include "core/debug/all.h"
 #include "core/math/KahanSummation.h"
+#include "core/math/Matrix2.h"
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
@@ -131,6 +132,27 @@ inline ValueType assembleLocalDG( const uint_t&                            Level
          localMatrix( idx[0], idx[1] ) * src[vertexdof::macroface::indexFromVertex( Level, i, j, vertices[1] )] +
          localMatrix( idx[0], idx[2] ) * src[vertexdof::macroface::indexFromVertex( Level, i, j, vertices[2] )];
    return tmp;
+}
+
+inline Point3D transformToLocalTri( const Point3D& tri0,
+                                    const Point3D& tri1,
+                                    const Point3D& tri2,
+                                    const Point3D& globalPoint )
+{
+   walberla::math::Matrix2< real_t > A;
+
+   A( 0, 0 ) = ( tri1 - tri0 )[0];
+   A( 0, 1 ) = ( tri2 - tri0 )[0];
+
+   A( 1, 0 ) = ( tri1 - tri0 )[1];
+   A( 1, 1 ) = ( tri2 - tri0 )[1];
+
+   A.invert();
+
+   walberla::Vector2< real_t > x( globalPoint[0] - tri0[0], globalPoint[1] - tri0[1] );
+
+   auto result = A * x;
+   return Point3D( result[0], result[1], 0.0 );
 }
 
 template < typename ValueType >

@@ -20,6 +20,7 @@
 
 #include "core/Abort.h"
 
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/types/Averaging.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -27,12 +28,11 @@ namespace hyteg {
 ///
 /// \brief Evaluate the average value depending on the \param averagingMethod
 ///
-/// Currently only possible to use the values at the vertices for computation
-/// of averages
+/// Computes the average using the function values at vertices and the centroid
 ///
 /// \param microTriangles  Vertices of the triangle face
 /// \param valueTets       FE function values at those vertices
-/// \param averagingMethod Averaging method that should be used 
+/// \param averagingMethod Averaging method that should be used
 ///                        to compute a single average for the face
 ///
 inline real_t evaluateSampledAverage( std::array< Point3D, 3 > microTriangles,
@@ -47,11 +47,14 @@ inline real_t evaluateSampledAverage( std::array< Point3D, 3 > microTriangles,
    real_t valueTet1 = valueTriangles[1];
    real_t valueTet2 = valueTriangles[2];
 
-   Point3D coordinates = ( microTet0 + microTet1 + microTet2 ) / 3.0;
+   Point3D centroid = ( microTet0 + microTet1 + microTet2 ) / 3.0;
+
+   auto xLocal          = vertexdof::macroface::transformToLocalTri( microTet0, microTet1, microTet2, centroid );
+   auto valueAtCentroid = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] ) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1];
 
    if ( averagingMethod == hyteg::AveragingType::ARITHMETIC )
    {
-      return ( valueTet0 + valueTet1 + valueTet2 ) / 3.0;
+      return ( valueAtCentroid + valueTet0 + valueTet1 + valueTet2 ) / 4.0;
    }
    else
    {
