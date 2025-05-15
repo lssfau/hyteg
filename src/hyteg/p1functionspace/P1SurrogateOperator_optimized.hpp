@@ -704,8 +704,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   stencil[el[0]] += real_t( matrixRow( 0, 1 ) );
                   stencil[el[1]] += real_t( matrixRow( 0, 2 ) );
                }
+               ++dof;
             }
-            ++dof;
          }
       }
    }
@@ -853,15 +853,93 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      }
                   }
                }
+               ++dof;
             }
-            ++dof;
          }
       }
    }
 
    void precompute_stencil_cell_3d( uint_t lvl )
    {
-      // todo
+      const auto n     = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
+      const auto n_dof = levelinfo::num_microvertices_per_cell_from_width( n - 2 );
+
+      std::array< std::array< p1::stencil::Dir, 4 >, 24 > microElements;
+      for ( uint_t mc = 0; mc < 24; ++mc )
+      {
+         for ( uint_t mv = 0; mv < 4; ++mv )
+         {
+            microElements[mc][mv] = p1::stencil::conversion( P1Elements::P1Elements3D::allCellsAtInnerVertex[mc][mv] )
+         }
+      }
+
+      for ( const auto& [cellId, cell] : storage_->getCells() )
+      {
+         auto& stencils = stencil_cell_3d_[cellId][lvl];
+         stencils.resize( n_dof );
+         form_.setGeometryMap( cell->getGeometryMap() );
+
+         // coordinates
+         const Point3D x0 = cell->getCoordinates()[0];
+         const Point3D dx = h * ( cell->getCoordinates()[1] - x0 );
+         const Point3D dy = h * ( cell->getCoordinates()[2] - x0 );
+         const Point3D dz = h * ( cell->getCoordinates()[3] - x0 );
+
+         // coordinate offsets of stencil nbrs
+         p1::stencil::StencilData< 3, Point3D > d;
+         d[p1::stencil::W]   = -dx;
+         d[p1::stencil::E]   = dx;
+         d[p1::stencil::N]   = dy;
+         d[p1::stencil::S]   = -dy;
+         d[p1::stencil::NW]  = d[p1::stencil::N] + d[p1::stencil::W];
+         d[p1::stencil::SE]  = d[p1::stencil::S] + d[p1::stencil::E];
+         d[p1::stencil::TC]  = dz;
+         d[p1::stencil::TW]  = d[p1::stencil::TC] + d[p1::stencil::W];
+         d[p1::stencil::TS]  = d[p1::stencil::TC] + d[p1::stencil::S];
+         d[p1::stencil::TSE] = d[p1::stencil::TC] + d[p1::stencil::SE];
+         d[p1::stencil::BC]  = -dz;
+         d[p1::stencil::BE]  = d[p1::stencil::BC] + d[p1::stencil::E];
+         d[p1::stencil::BN]  = d[p1::stencil::BC] + d[p1::stencil::N];
+         d[p1::stencil::BNW] = d[p1::stencil::BC] + d[p1::stencil::NW];
+
+         p1::stencil::StencilData< 3, Point3D > coords;
+
+         // loop over inner vertices on the macro cell
+         uint_t dof = 0;
+         for ( uint_t k = 1; k < n - 1; ++k )
+         {
+            const Point3D xk = x0 + real_t( k ) * dz;
+            for ( uint_t j = 1; j < n - 1; ++j )
+            {
+               const Point3D xj = xk + real_t( j ) * dy;
+
+               for ( uint_t i = 1; i < n - 1 - j; ++i )
+               {
+                  const Point3D x = xj + real_t( i ) * dx;
+
+                  for ( uint_t dir = 1; dir < d.size(); ++dir )
+                  {
+                     coords[dir] = x + d[dir];
+                  }
+
+                  // compute local stiffness matrices and add contributions to stencil
+                  Matrixr< 1, 4 > matrixRow;
+                  auto&           stencil = stencils[dof];
+                  stencil.fill( real_t( 0.0 ) );
+                  for ( auto& el : microElements )
+                  {
+                     form_.integrateRow( 0, { { x, coords[el[1]], coords[el[2]], coords[el[3]] } }, matrixRow );
+                     for ( uint_t mv = 0; mv < 4; ++mv )
+                     {
+                        stencil[el[mv]] += real_t( matrixRow( 0, mv ) );
+                     }
+                  }
+                  ++dof;
+               }
+            }
+         }
+      }
    }
 
    void compute_surrogates_edge_2d( uint_t lvl )

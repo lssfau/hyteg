@@ -105,6 +105,10 @@ static constexpr inline size_t stencilSize( uint8_t dim )
    return ( dim == 2 ) ? 7 : 15;
 }
 
+// container for stencils
+template < uint8_t DIM, typename dType = real_t >
+using StencilData = std::array< dType, stencilSize( DIM ) >;
+
 // due to the strange ordering of the old stencilDirection enum, it is not used here
 enum Dir
 {
@@ -125,8 +129,64 @@ enum Dir
    BNW
 };
 
-template < uint8_t DIM, typename dType = real_t >
-using StencilData = std::array< dType, stencilSize( DIM ) >;
+// convert stencilDirection to stencil::Dir
+static constexpr Dir conversion( stencilDirection sd )
+{
+   switch ( sd )
+   {
+   case stencilDirection::VERTEX_C:
+      return Dir::C;
+   case stencilDirection::VERTEX_W:
+      return Dir::W;
+   case stencilDirection::VERTEX_E:
+      return Dir::E;
+   case stencilDirection::VERTEX_N:
+      return Dir::N;
+   case stencilDirection::VERTEX_S:
+      return Dir::S;
+   case stencilDirection::VERTEX_NW:
+      return Dir::NW;
+   case stencilDirection::VERTEX_SE:
+      return Dir::SE;
+   case stencilDirection::VERTEX_TC:
+      return Dir::TC;
+   case stencilDirection::VERTEX_TW:
+      return Dir::TW;
+   case stencilDirection::VERTEX_TS:
+      return Dir::TS;
+   case stencilDirection::VERTEX_TSE:
+      return Dir::TSE;
+   case stencilDirection::VERTEX_BC:
+      return Dir::BC;
+   case stencilDirection::VERTEX_BN:
+      return Dir::BN;
+   case stencilDirection::VERTEX_BE:
+      return Dir::BE;
+   case stencilDirection::VERTEX_BNW:
+      return Dir::BNW;
+   default:
+      return Dir::C;
+   }
+}
+
+// convert stencil::Dir to stencilDirection
+static constexpr StencilData< 3, stencilDirection > backConversion = {
+    stencilDirection::VERTEX_C,
+    stencilDirection::VERTEX_W,
+    stencilDirection::VERTEX_E,
+    stencilDirection::VERTEX_N,
+    stencilDirection::VERTEX_S,
+    stencilDirection::VERTEX_NW,
+    stencilDirection::VERTEX_SE,
+    stencilDirection::VERTEX_TC,
+    stencilDirection::VERTEX_TW,
+    stencilDirection::VERTEX_TS,
+    stencilDirection::VERTEX_TSE,
+    stencilDirection::VERTEX_BC,
+    stencilDirection::VERTEX_BN,
+    stencilDirection::VERTEX_BE,
+    stencilDirection::VERTEX_BNW //
+};
 
 static const StencilData< 3, indexing::Index > offset = {
     indexing::Index{ 0, 0, 0 },  // C
@@ -167,6 +227,5 @@ static void getGlobalIndices( const uint_t& level, const indexing::Index& vtx, S
 }
 
 } // namespace stencil
-
 } // namespace p1
 } // namespace hyteg
