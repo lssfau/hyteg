@@ -106,6 +106,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    {
       uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
+      if ( dim == 3 )
+      {
+         // mapping between logical indices and stencil directions for each face
+         compute_offsets_for_face_stencil_3d();
+      }
+
       /* precompute and store stencils
          * irregular stencils are precomputed for all levels
          * regular stencils are precomputed for levels 1-3
@@ -730,7 +736,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // coordinate offsets of stencil nbrs
          p1::stencil::StencilData< 3, Point3D > d;
-         // todo: store logical offsets of stencil for each macroface/lvl -> required to apply correctly
+
+         // logical offsets
+         const auto& logical_offsets = offsets_face_3d_.at( faceId );
 
          // neighbor cells (either 1 or 2)
          const auto  n_nbr_cells = face->getNumNeighborCells();
@@ -762,8 +770,6 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             stencilIndex[c].resize( microCells.size() );
 
             // iterate over micro-cells
-            std::array< indexing::Index, 4 > logicalOffsetsInCell;
-            uint_t                           n_offsets_assigned = 0;
             for ( uint_t mc = 0; mc < microCells.size(); ++mc )
             {
                const auto& microCell = microCells[mc];
@@ -776,31 +782,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
-                  if ( idx_face.z() == 0 ) // micro-vertex on face
+                  for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
                   {
-                     // 0-6 are on the face
-                     for ( uint_t dir = 0; dir < 7; ++dir )
+                     if ( idx_face == logical_offsets[dir] )
                      {
-                        if ( idx_face == p1::stencil::offset[dir] )
-                        {
-                           stencilIndex[c][mc][mv] = dir;
-                        }
-                     }
-                  }
-                  else // micro-vertex in cell
-                  {
-                     uint_t dir = 0;
-                     while ( dir < n_offsets_assigned && idx_face != logicalOffsetsInCell[dir] )
-                     {
-                        ++dir;
-                     }
-                     // 7-10 are on c=0, 11-14 on c=1
-                     stencilIndex[c][mc][mv] = 7 + 4 * c + dir;
-
-                     if ( dir == n_offsets_assigned )
-                     {
-                        logicalOffsetsInCell[dir] = idx_face;
-                        ++n_offsets_assigned;
+                        stencilIndex[c][mc][mv] = dir;
+                        break;
                      }
                   }
 
@@ -960,6 +947,69 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    void compute_surrogates_cell_3d( uint_t lvl )
    {
       // todo
+   }
+
+   void compute_offsets_for_face_stencil_3d()
+   {
+      const uint_t          lvl = 2; // make sure there are interior vertices
+      const auto            n   = levelinfo::num_microvertices_per_edge( lvl );
+      const indexing::Index idx1( 1, 1, 0 );
+
+      for ( const auto& [faceId, face] : storage_->getFaces() )
+      {
+         p1::stencil::StencilData< 3, indexing::Index > logical_offsets = p1::stencil::offset;
+
+         // neighbor cells (either 1 or 2)
+         const auto  n_nbr_cells = face->getNumNeighborCells();
+         const auto& nbrCells    = face->neighborCells();
+
+         for ( uint_t c = 0; c < n_nbr_cells; ++c )
+         {
+            const Cell* cell = storage_->getCell( nbrCells[c] );
+
+            // convert from face to cell coordinate system
+            const uint_t                  localFaceId   = cell->getLocalFaceID( faceId );
+            const std::array< uint_t, 4 > indexingBasis = algorithms::getMissingIntegersAscending< 3, 4 >(
+                { cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ),
+                  cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
+                  cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) } );
+            const auto idx1_cell = indexing::basisConversion( idx1, indexingBasis, { 0, 1, 2, 3 }, n );
+
+            // micro-cells associated with the stencil
+            const auto microCells = P1Elements::P1Elements3D::getNeighboringElements( idx1_cell, lvl );
+
+            // iterate over micro-cells
+            uint_t n_offsets_assigned = 7 + 4 * c;
+            for ( const auto& microCell : microCells )
+            {
+               // iterate over the micro-vertices of the micro-cell
+               for ( auto& mv : microCell )
+               {
+                  // logical index in the macrocell
+                  const indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( mv );
+                  // logical index on the face
+                  const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
+
+                  // stencil direction
+                  if ( idx_face.z() != 0 ) // micro-vertex in cell
+                  {
+                     // define association between stencil::Dir and idx_face
+                     uint_t dir = 0;
+                     while ( dir < n_offsets_assigned && idx_face != logical_offsets[dir] )
+                     {
+                        ++dir;
+                     }
+                     if ( dir == n_offsets_assigned )
+                     {
+                        logical_offsets[dir] = idx_face;
+                        ++n_offsets_assigned;
+                     }
+                  }
+               }
+            }
+         }
+         offsets_face_3d_[faceId] = logical_offsets;
+      }
    }
 
    //! todo remove everything from here ========>
@@ -1303,6 +1353,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    PolyStencilMap< 2, 2 > surrogate_face_2d_;
    PolyStencilMap< 3, 2 > surrogate_face_3d_;
    PolyStencilMap< 3, 3 > surrogate_cell_3d_;
+   // logical offsets on 3d faces
+   std::map< PrimitiveID, p1::stencil::StencilData< 3, indexing::Index > > offsets_face_3d_;
 };
 
 // todo test other forms
