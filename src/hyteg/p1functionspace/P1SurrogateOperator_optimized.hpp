@@ -74,7 +74,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    template < uint8_t DIM >
    using StencilMap    = surrogate::ElementWiseData< std::vector< Stencil< DIM > > >;
    using VarStencilMap = surrogate::ElementWiseData< std::vector< VarStencil > >;
-   // container for surrogate stencils. usage: map[id][lvl] -> polystencil approximating the stencil of el_id on lvl
+   // container for surrogate stencils. usage: map[id][lvl] -> poly-stencil approximating the stencil of el_id on lvl
    template < uint8_t DIM_domain, uint8_t DIM_primitive >
    using PolyStencilMap = surrogate::ElementWiseData< PolyStencil< DIM_domain, DIM_primitive > >;
 
@@ -1057,7 +1057,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    }
 
    /* Assembly of edge stencil.
-      Will be called before stencil is applied to a particuar edge-DoF.
+      Will be called before stencil is applied to a particular edge-DoF.
    */
    inline void assemble_stencil_edge( real_t* edge_stencil, const uint_t i ) const
    {
@@ -1104,7 +1104,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    }
 
    /* Assembly of face stencil.
-      Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
+      Will be called before stencil is applied to a particular face-DoF of a 2d domain.
    */
    inline void assemble_stencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const
    {
@@ -1124,7 +1124,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    }
 
    /* Assembly of face stencil.
-      Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
+      Will be called before stencil is applied to a particular face-DoF of a 3D domain.
    */
    inline void assemble_stencil_face3D( vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j ) const
    {
@@ -1171,7 +1171,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    }
 
    /* Assembly of cell stencil.
-      Will be called before stencil is applied to a particuar cell-DoF.
+      Will be called before stencil is applied to a particular cell-DoF.
    */
    inline void assemble_stencil_cell( vertexdof::macrocell::StencilMap_T& cell_stencil,
                                       const uint_t                        i,
@@ -1207,7 +1207,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    std::shared_ptr< P1Function< real_t > > diagonalValues_;
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
 
-   // least squares approximator for each level
+   // least squares approximation for each level
    std::vector< std::shared_ptr< LSQ > > lsq_volume_;    // lsq for volume primitives (cells in 3d / faces in 2d)
    std::vector< std::shared_ptr< LSQ > > lsq_interface_; // lsq for interface primitives (faces in 3d / edges in 2d)
    uint_t                                downsampling_;
