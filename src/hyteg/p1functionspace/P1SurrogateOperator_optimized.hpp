@@ -29,6 +29,7 @@
 #include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/P1Elements.hpp>
 #include <hyteg/p1functionspace/P1Function.hpp>
+#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/globalIndices.hpp>
 #include <hyteg/polynomial/elementwise/data.hpp>
 #include <hyteg/polynomial/stencil/leastSquares.hpp>
@@ -355,7 +356,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             // stencil directions associated with cell vertices
             std::array< uint_t, 3 > localStencilContributions;
-            uint_t                  k = 1;
+            uint_t                  dir = 1;
             for ( auto& cellNbrVtxId : cell->neighborVertices() )
             {
                if ( cellNbrVtxId == vtxId )
@@ -367,13 +368,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                {
                   if ( cellNbrVtxId == nbrVtxIds[j] )
                   {
-                     localStencilContributions[k] = j;
+                     localStencilContributions[dir] = j;
                      break;
                   }
                }
 
-               ++k;
-               if ( k == 3 )
+               ++dir;
+               if ( dir == 3 )
                {
                   break;
                }
@@ -390,9 +391,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             // add contributions from this face to stencil
             stencil[0] += real_t( matrixRow( 0, 0 ) );
-            for ( uint_t k = 0; k < 3; ++k )
+            for ( uint_t dir = 0; dir < 3; ++dir )
             {
-               stencil[localStencilContributions[k]] += real_t( matrixRow( 0, k + 1 ) );
+               stencil[localStencilContributions[dir]] += real_t( matrixRow( 0, dir + 1 ) );
             }
          }
       }
@@ -545,12 +546,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             {
                const auto& microCell = microCells[mc];
                // iterate over the micro-vertices of the micro-cell
-               for ( uint_t k = 0; k < 4; ++k )
+               for ( uint_t mv = 0; mv < 4; ++mv )
                {
                   // logical index in the macrocell
-                  indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[k] );
+                  indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
                   // coordinate offset from center
-                  coordinateOffset[c][mc][k] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx ) - center;
+                  coordinateOffset[c][mc][mv] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx ) - center;
                   // micro-vertex on macro-edge, -face, or -cell?
                   auto                  faces_mc_k = vertexdof::macrocell::isOnCellFace( idx, lvl );
                   std::vector< uint_t > intersectingFaces;
@@ -567,15 +568,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      const int  offset  = int( edgeIdx.x() - 1 );
                      if ( offset == 0 )
                      {
-                        stencilIndex[c][mc][k] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C );
+                        stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C );
                      }
                      else if ( offset == 1 )
                      {
-                        stencilIndex[c][mc][k] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E );
+                        stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E );
                      }
                      else if ( offset == -1 )
                      {
-                        stencilIndex[c][mc][k] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W );
+                        stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W );
                      }
                   }
                   else if ( intersectingFaces.size() == 1 ) // face
@@ -592,18 +593,18 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      const int  offset        = int( faceIdx.x() - 1 );
                      if ( offset == 0 )
                      {
-                        stencilIndex[c][mc][k] =
+                        stencilIndex[c][mc][mv] =
                             vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, faceIdxOnEdge );
                      }
                      else if ( offset == 1 )
                      {
-                        stencilIndex[c][mc][k] =
+                        stencilIndex[c][mc][mv] =
                             vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, faceIdxOnEdge );
                      }
                   }
                   else if ( intersectingFaces.size() == 0 ) // cell
                   {
-                     stencilIndex[c][mc][k] = vertexdof::macroedge::stencilIndexOnNeighborCell( c, n_nbr_faces );
+                     stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnNeighborCell( c, n_nbr_faces );
                   }
                }
             }
@@ -614,7 +615,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          {
             auto x = x0 + real_t( i ) * dx;
 
-            auto& stencil = stencils[i];
+            auto& stencil = stencils[i - 1];
             stencil.resize( stencil_size );
             std::fill( stencil.begin(), stencil.end(), real_t( 0 ) );
 
@@ -633,9 +634,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   // compute local stiffness matrix
                   form[c].integrateRow( 0, coords, localStiffnessMatrixRow );
                   // assemble stencil
-                  for ( uint_t k = 0; k < 4; ++k )
+                  for ( uint_t mv = 0; mv < 4; ++mv )
                   {
-                     stencil[stencilIndex[c][mc][k]] += localStiffnessMatrixRow[k];
+                     stencil[stencilIndex[c][mc][mv]] += localStiffnessMatrixRow[mv];
                   }
                }
             }
@@ -647,7 +648,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    {
       const auto n     = levelinfo::num_microvertices_per_edge( lvl );
       const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
-      const auto n_dof = ( n - 3 ) * ( n - 2 ) / 2;
+      const auto n_dof = levelinfo::num_microvertices_per_face_from_width( n - 2 );
 
       for ( const auto& [faceId, face] : storage_->getFaces() )
       {
@@ -678,6 +679,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                                                                                  { p1::stencil::NW, p1::stencil::W } };
 
          // loop over inner vertices on the macro face
+         uint_t dof = 0;
          for ( uint_t j = 1; j < n - 1; ++j )
          {
             const Point3D xj = x0 + real_t( j ) * dy;
@@ -686,14 +688,14 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             {
                const Point3D x = xj + real_t( i ) * dx;
 
-               for ( uint_t k = 1; k < d.size(); ++k )
+               for ( uint_t dir = 1; dir < d.size(); ++dir )
                {
-                  coords[k] = x + d[k];
+                  coords[dir] = x + d[dir];
                }
 
                // compute local stiffness matrices and add contributions to stencil
                Matrixr< 1, 3 > matrixRow;
-               auto&           stencil = stencils[i];
+               auto&           stencil = stencils[dof];
                stencil.fill( real_t( 0.0 ) );
                for ( auto& el : microElements )
                {
@@ -703,13 +705,158 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   stencil[el[1]] += real_t( matrixRow( 0, 2 ) );
                }
             }
+            ++dof;
          }
       }
    }
 
    void precompute_stencil_face_3d( uint_t lvl )
    {
-      // todo
+      const auto n     = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
+      const auto n_dof = levelinfo::num_microvertices_per_face_from_width( n - 2 );
+
+      const indexing::Index idx1( 1, 1, 0 );
+
+      for ( const auto& [faceId, face] : storage_->getFaces() )
+      {
+         auto& stencils = stencil_face_3d_[faceId][lvl];
+         stencils.resize( n_dof );
+
+         // coordinates
+         const Point3D x0 = face->getCoordinates()[0];
+         const Point3D dx = h * ( face->getCoordinates()[1] - x0 );
+         const Point3D dy = h * ( face->getCoordinates()[2] - x0 );
+
+         // coordinate offsets of stencil nbrs
+         p1::stencil::StencilData< 3, Point3D > d;
+         // todo: store logical offsets of stencil for each macroface/lvl -> required to apply correctly
+
+         // neighbor cells (either 1 or 2)
+         const auto  n_nbr_cells = face->getNumNeighborCells();
+         const auto& nbrCells    = face->neighborCells();
+
+         // collect required data for each neighbor cell
+         std::array< P1Form, 2 >                                 form{ form_, form_ };
+         sdt::array< uint_t, 2 >                                 n_microCells{};
+         std::array< std::vector< std::array< uint_t, 4 > >, 2 > stencilIndex{};
+
+         for ( uint_t c = 0; c < n_nbr_cells; ++c )
+         {
+            const Cell* cell = storage_->getCell( nbrCells[c] );
+            form[c].setGeometryMap( cell->getGeometryMap() );
+
+            // convert from face to cell coordinate system
+            const uint_t                  localFaceId   = cell->getLocalFaceID( faceId );
+            const std::array< uint_t, 4 > indexingBasis = algorithms::getMissingIntegersAscending< 3, 4 >(
+                { cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ),
+                  cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
+                  cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) } );
+            const auto idx1_cell = indexing::basisConversion( idx1, indexingBasis, { 0, 1, 2, 3 }, n );
+            const auto center    = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx1_cell );
+
+            // micro-cells associated with the stencil
+            const auto microCells = P1Elements::P1Elements3D::getNeighboringElements( idx1_cell, lvl );
+            n_microCells[c]       = microCells.size();
+            coordinateOffset[c].resize( microCells.size() );
+            stencilIndex[c].resize( microCells.size() );
+
+            // iterate over micro-cells
+            std::array< indexing::Index, 4 > logicalOffsetsInCell;
+            uint_t                           n_offsets_assigned = 0;
+            for ( uint_t mc = 0; mc < microCells.size(); ++mc )
+            {
+               const auto& microCell = microCells[mc];
+               // iterate over the micro-vertices of the micro-cell
+               for ( uint_t mv = 0; mv < 4; ++mv )
+               {
+                  // logical index in the macrocell
+                  const indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
+                  // logical index on the face
+                  const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
+
+                  // stencil direction
+                  if ( idx_face.z() == 0 ) // micro-vertex on face
+                  {
+                     // 0-6 are on the face
+                     for ( uint_t dir = 0; dir < 7; ++dir )
+                     {
+                        if ( idx_face == p1::stencil::offset[dir] )
+                        {
+                           stencilIndex[c][mc][mv] = dir;
+                        }
+                     }
+                  }
+                  else // micro-vertex in cell
+                  {
+                     uint_t dir = 0;
+                     while ( dir < n_offsets_assigned && idx_face != logicalOffsetsInCell[dir] )
+                     {
+                        ++dir;
+                     }
+                     // 7-10 are on c=0, 11-14 on c=1
+                     stencilIndex[c][mc][mv] = 7 + 4 * c + dir;
+
+                     if ( dir == n_offsets_assigned )
+                     {
+                        logicalOffsetsInCell[dir] = idx_face;
+                        ++n_offsets_assigned;
+                     }
+                  }
+
+                  // coordinate offset from center
+                  d[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx ) - center;
+               }
+            }
+         }
+
+         // assemble stencil
+         p1::stencil::StencilData< 3, Point3D > coords;
+         Matrixr< 1, 4 >                        localStiffnessMatrixRow;
+
+         // loop over inner vertices on the macro face
+         uint_t dof = 0;
+         for ( uint_t j = 1; j < n - 1; ++j )
+         {
+            const Point3D xj = x0 + real_t( j ) * dy;
+
+            for ( uint_t i = 1; i < n - 1 - j; ++i )
+            {
+               const Point3D x = xj + real_t( i ) * dx;
+
+               for ( uint_t dir = 1; dir < d.size(); ++dir )
+               {
+                  coords[dir] = x + d[dir];
+               }
+
+               auto& stencil = stencils[dof];
+               stencil.fill( real_t( 0.0 ) );
+
+               // loop over neighboring cells
+               for ( uint_t c = 0; c < n_nbr_cells; ++c )
+               {
+                  // loop over micro cells
+                  for ( uint_t mc = 0; mc < n_microCells[c]; ++mc )
+                  {
+                     // coordinates of the micro cell
+                     std::array< Point3D, 4 > coords_mc;
+                     for ( uint_t mv = 0; mv < 4; ++mv )
+                     {
+                        coords_mc[mv] = coords[stencilIndex[c][mc][mv]];
+                     }
+                     // compute local stiffness matrix
+                     form[c].integrateRow( 0, coords_mc, localStiffnessMatrixRow );
+                     // assemble stencil
+                     for ( uint_t mv = 0; mv < 4; ++mv )
+                     {
+                        stencil[stencilIndex[c][mc][mv]] += localStiffnessMatrixRow[mv];
+                     }
+                  }
+               }
+            }
+            ++dof;
+         }
+      }
    }
 
    void precompute_stencil_cell_3d( uint_t lvl )

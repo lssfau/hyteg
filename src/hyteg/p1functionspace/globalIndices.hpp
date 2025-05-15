@@ -141,6 +141,7 @@ static const StencilData< 3, indexing::Index > offset = {
     indexing::Index{ 0, -1, 1 }, // TS
     indexing::Index{ 1, -1, 1 }, // TSE
     indexing::Index{ 0, 0, -1 }, // BC
+    indexing::Index{ 0, 1, -1 }, // BN
     indexing::Index{ 1, 0, -1 }, // BE
     indexing::Index{ -1, 1, -1 } // BNW
 };
