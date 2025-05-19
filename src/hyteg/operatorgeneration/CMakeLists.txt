@@ -28,4 +28,19 @@ target_sources( hyteg
 
     generated/Ones/P2Ones.hpp
     generated/Ones/P2Ones.cpp
+
+    generated/GradientRotation/P1ToP2VectorGradientRotationIcosahedralShellMapOperator.hpp
+    generated/GradientRotation/P1ToP2VectorGradientRotationIcosahedralShellMapOperator.cpp
+
+    generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.hpp
+    generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.cpp
+
+    generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp
+    generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.cpp
+
+    generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.hpp
+    generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.cpp
+
+    generated/EpsilonRotationWithFSPenalty/P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator.hpp
+    generated/EpsilonRotationWithFSPenalty/P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator.cpp
 )

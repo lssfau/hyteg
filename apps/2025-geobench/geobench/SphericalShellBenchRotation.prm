@@ -1,0 +1,173 @@
+Parameters
+{
+  nTan 3;
+  nRad 2;
+	
+  rMin 1.22;
+  rMax 2.22;
+
+  RayleighNumber 7e3;
+  DissipationNumber 0.5;
+  alpha 1.0;
+  thermalConductivity 1.0;
+
+  constHeatingFactor 0.0;
+
+  rho 1.0;
+  cp 1.0;
+
+  lmax 3;
+  mSph 2;
+
+  cubicSymmetry false;
+
+  lmaxC 4;
+  mSphC 4;
+
+  expScaling 10.0;
+  directScaling 6e-2;
+
+  epsC 0.01;
+  epsS 0.01;
+  eps 0.001;
+
+  thetaPhaseShift 0.0;
+  phiPhaseShift 0.0;
+
+  NshGrad 0.001;
+  NsEpsBoundary 1e-6;
+  NsCalcFreq 1;
+  NsnSamples 101;
+
+  plateDirSwitch false;
+  plateSwitchFreq 100;
+  plateVelRad 0.0;
+
+  freeslip true;
+  mixed false;
+
+  rMu 100000;
+  TRef 0.5;
+  
+  nPlumes 8;
+
+  nx 10;
+  ny 4;
+
+  viscosityLowerBound 5e19;
+  viscosityUpperBound 1e24;
+
+  activationEnergy 0.0;
+
+  rheologyType 1;
+
+  shearHeating false;
+  adiabaticHeating false;
+
+  maxLevel 4;
+  minLevel 2;
+
+  readInMinLevel 2;
+  readInMaxLevel 4;
+
+  verbose true;
+
+  useGMG false;
+
+  omegaJacobi 0.1;
+
+  nCouplingSteps 1;
+
+  rotFactor 0.1;
+
+  supgScaling 1.0;
+
+  handsetEigen false;
+  handsetEigenValue 5.0;
+
+  eigenLevel 4;
+  setEigenAllLevels false;
+  eigenUpperBoundFactor 1.2;
+  eigenLowerBoundFactor 15.0;
+
+  relaxSchur 0.1;
+  uzawaOmega 0.1;
+  cgSmootherIter 10;
+  cgSchurSmootherIter 500;
+  cgSchurSmootherTol 1e-12;
+  fgmresIterationsInitial 25;
+  nStepsInitial 25;
+  fgmresIterations 6;
+  fgmresTolerance 1e-4;
+
+  uzawaPreSmooth 1;
+  uzawaPostSmooth 3;
+
+  chebyshevOrder 4;
+  spectralRadius 1.0;
+
+  spectralRadiusLower 1e-1;
+  spectralRadiusUpper 1.0;
+
+  estimateUzawaOmega true;
+
+  numPowerIteration 30;
+
+  stokesMinresIter 10000;
+  stokesMinresRelTol 1e-6;
+  stokesMinresAbsTol 1e-10;
+
+  stokesCoarseMinresIter 100;
+  stokesCoarseMinresRelTol 1e-6;
+  stokesCoarseMinresAbsTol 1e-10;
+
+  stokesFineMinresIter 1;
+  stokesFineMinresRelTol 1e-6;
+  stokesFineMinresAbsTol 1e-8;
+
+  stokesFGMRESIter 10;
+
+  stokesDxExitTol 1e-8;
+
+  transportMinresIter 1000;
+  transportMinresTol 1e-8;
+
+  transportGmresArnoldiTol 1e-8;
+  transportGmresAbsTol 1e-8;
+
+  specRadCalFreq 100;
+
+  residualExitTol 1e12;
+
+  Direct false;
+
+  maxTimeSteps 4001;
+  dtStart 1e-6;
+  dtMin 1e-12;
+  dtMax 1e-1;
+  dtRaster 1e-7;
+  cflMax 1.2;
+  simulationTime 10;
+  nonLinIter 4;
+  iterPicard 1;
+
+  nVCycles 10;
+
+  level 1;
+
+  useAdios2 true;
+  adiosXmlConfig ADIOS2config.xml;
+
+  storeCheckpoint true;
+  adios2CheckpointFreq 100;
+
+  modelOutputDir ./output/;
+  modelName SphericalShellDebug;
+  
+  startCheckpointPath ./output/checkpoint;
+  startCheckpointFilename SphericalShell_MT64_Profile_Arrhenius_P1_21112024_Checkpoint_Continuous.bp;
+  startFromCheckpoint false;
+
+  importStep 99999;
+  vtkWriteFrequency 100;
+}

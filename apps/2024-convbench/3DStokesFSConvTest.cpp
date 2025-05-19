@@ -38,19 +38,34 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
+#include "hyteg/operatorgeneration/generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.hpp"
+#include "hyteg/operatorgeneration/generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.hpp"
+#include "hyteg/operatorgeneration/generated/GradientRotation/P1ToP2VectorGradientRotationIcosahedralShellMapOperator.hpp"
+#include "hyteg/operatorgeneration/generated/EpsilonRotationWithFSPenalty/P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator.hpp"
+#include "hyteg/operatorgeneration/generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp"
+#include "hyteg/p2functionspace/P2RotationOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/python/PythonCallingWrapper.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-#include "hyteg/python/PythonCallingWrapper.hpp"
+#include "hyteg/solvers/ChebyshevSmoother.hpp"
+#include "hyteg/solvers/controlflow/SolverLoop.hpp"
+#include "hyteg/solvers/FGMRESSolver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
+#include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 
 using real_t = hyteg::real_t;
@@ -65,8 +80,20 @@ using namespace hyteg;
 //                                                       ViscousVelocityBlockOperator >
 //     StokesOperator;
 
-typedef P2P1ElementwiseBlendingFullViscousStokesOperator StokesOperator;
+typedef operatorgeneration::P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator StokesViscousOperatorRotationOpgen;
+
+// typedef operatorgeneration::P2VectorEpsilonRotationIcosahedralShellMapOperator        StokesViscousOperatorRotationOpgen;
+typedef operatorgeneration::P1ToP2VectorGradientRotationIcosahedralShellMapOperator   StokesGradientOperator;
+typedef operatorgeneration::P2VectorToP1DivergenceRotationIcosahedralShellMapOperator StokesDivergenceOperator;
+
+typedef operatorgeneration::P2P1StokesEpsilonIcosahedralShellMapOperator StokesOperator;
+// typedef operatorgeneration::P2P1StokesEpsilonIcosahedralShellMapOperator StokesOperator;
+
+// typedef operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator StokesOperator;
+// typedef P2P1ElementwiseBlendingFullViscousStokesOperator StokesOperator;
 // typedef P2P1ElementwiseBlendingStokesOperator StokesOperator;
+
+typedef operatorgeneration::P2ElementwiseBoundaryMassIcosahedralShellMapOperator BoundaryMassOperator;
 
 typedef hyteg::P2P1TaylorHoodFunction< real_t > StokesFunction;
 typedef hyteg::P2ProjectNormalOperator          ProjectionOperator;
@@ -79,6 +106,146 @@ typedef hyteg::P2toP2QuadraticProlongation VelocityProlongation;
 typedef hyteg::P2VectorFunction< real_t >  VelocityFunction;
 
 typedef hyteg::StrongFreeSlipWrapper< StokesOperator, ProjectionOperator, true > StokesOperatorFS;
+
+class P2P1StokesOpgenRotationWrapper : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   typedef StokesViscousOperatorRotationOpgen VelocityOperator_T;
+
+   P2P1StokesOpgenRotationWrapper( const std::shared_ptr< PrimitiveStorage >& storage,
+                                   uint_t                                     minLevel,
+                                   uint_t                                     maxLevel,
+                                   P2Function< real_t >&                      mu,
+                                   P2Function< real_t >&                      nx,
+                                   P2Function< real_t >&                      ny,
+                                   P2Function< real_t >&                      nz,
+                                   P2RotationOperator&                        rotationOperator,
+                                   BoundaryCondition                          bcVelocity,
+                                   real_t                                     cRotPenalty = 0.0 )
+   : Operator( storage, minLevel, maxLevel )
+   , stokesViscousOperator_( storage, minLevel, maxLevel, mu, nx, ny, nz, cRotPenalty )
+   , rotationOperator_( rotationOperator )
+   , divT( storage, minLevel, maxLevel, nx, ny, nz )
+   , div( storage, minLevel, maxLevel, nx, ny, nz )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , tmp_( "tmp__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
+   , tmpdst_( "tmpdst__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
+   , tmpAssembly_( "tmpAssembly__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
+   {
+      tmpAssembly_.enumerate( maxLevel );
+   }
+
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               uint_t                                  level,
+               DoFType                                 flag ) const
+   {
+      stokesViscousOperator_.apply( src.uvw(), dst.uvw(), level, flag );
+      divT.apply( src.p(), dst.uvw(), level, flag, Add );
+      div.apply( src.uvw(), dst.p(), level, flag, Replace );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      numeratorSrc,
+                  const P2P1TaylorHoodFunction< idx_t >&      numeratorDst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      stokesViscousOperator_.toMatrix( mat, numeratorSrc.uvw(), numeratorDst.uvw(), level, flag );
+      divT.toMatrix( mat, numeratorSrc.p(), numeratorDst.uvw(), level, flag );
+      div.toMatrix( mat, numeratorSrc.uvw(), numeratorDst.p(), level, flag );
+   }
+
+   const VelocityOperator_T& getA() const { return stokesViscousOperator_; }
+   const StokesGradientOperator& getBT() const { return divT; }
+   const StokesDivergenceOperator& getB() const { return div; }
+
+   VelocityOperator_T& getA() { return stokesViscousOperator_; }
+   StokesGradientOperator& getBT() { return divT; }
+   StokesDivergenceOperator& getB() { return div; }
+
+   StokesViscousOperatorRotationOpgen stokesViscousOperator_;
+   P2RotationOperator&                rotationOperator_;
+
+   StokesGradientOperator   divT;
+   StokesDivergenceOperator div;
+
+   P1PSPGInvDiagOperator pspg_inv_diag_;
+
+   P2P1TaylorHoodFunction< real_t > tmp_;
+   P2P1TaylorHoodFunction< real_t > tmpdst_;
+
+   P2P1TaylorHoodFunction< idx_t > tmpAssembly_;
+};
+
+class P2P1StokesRotationWrapper : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   P2P1StokesRotationWrapper( const std::shared_ptr< PrimitiveStorage >& storage,
+                              uint_t                                     minLevel,
+                              uint_t                                     maxLevel,
+                              StokesOperator&                            stokesOperator,
+                              P2RotationOperator&                        rotationOperator,
+                              BoundaryCondition                          bcVelocity )
+   : Operator( storage, minLevel, maxLevel )
+   , stokesOperator_( stokesOperator )
+   , rotationOperator_( rotationOperator )
+   , tmp_( "tmp__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
+   , tmpdst_( "tmpdst__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
+   , tmpAssembly_( "tmpAssembly__P2P1StokesRotationWrapper", storage, minLevel, maxLevel, bcVelocity )
+   {
+      tmpAssembly_.enumerate( maxLevel );
+   }
+
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               uint_t                                  level,
+               DoFType                                 flag ) const
+   {
+      tmp_.assign( { 1.0 }, { src }, level, All );
+      rotationOperator_.rotate( tmp_, level, FreeslipBoundary, true );
+      stokesOperator_.apply( tmp_, tmpdst_, level, flag );
+      rotationOperator_.rotate( tmpdst_, level, FreeslipBoundary );
+      dst.assign( { 1.0 }, { tmpdst_ }, level, All );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< idx_t >&      numeratorSrc,
+                  const P2P1TaylorHoodFunction< idx_t >&      numeratorDst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      auto matProxyOp = mat->createCopy();
+      stokesOperator_.toMatrix( matProxyOp, numeratorSrc, numeratorDst, level, flag );
+
+      auto matProxyProjectionPost = mat->createCopy();
+
+      rotationOperator_.toMatrix(
+          matProxyProjectionPost, tmpAssembly_.uvw(), numeratorDst.uvw(), level, FreeslipBoundary, false );
+
+      // we need the Id also in the pressure block
+      saveIdentityOperator( numeratorSrc.p(), matProxyProjectionPost, level, All );
+
+      std::vector< std::shared_ptr< SparseMatrixProxy > > matrices;
+      matrices.push_back( matProxyProjectionPost );
+      matrices.push_back( matProxyOp );
+
+      auto matProxyProjectionPre = mat->createCopy();
+      rotationOperator_.toMatrix( matProxyProjectionPre, tmpAssembly_.uvw(), numeratorDst.uvw(), level, FreeslipBoundary, true );
+      saveIdentityOperator( numeratorSrc.p(), matProxyProjectionPre, level, All );
+      matrices.push_back( matProxyProjectionPre );
+
+      mat->createFromMatrixProduct( matrices );
+   }
+
+   StokesOperator&     stokesOperator_;
+   P2RotationOperator& rotationOperator_;
+
+   P2P1TaylorHoodFunction< real_t > tmp_;
+   P2P1TaylorHoodFunction< real_t > tmpdst_;
+
+   P2P1TaylorHoodFunction< idx_t > tmpAssembly_;
+};
 
 PythonCallingWrapper pythonWrapperGlobal( "./",
                                           "analyticalSolutionsSphere",
@@ -101,21 +268,21 @@ std::function< real_t( const hyteg::Point3D& ) > radius = []( const hyteg::Point
 };
 
 std::function< void( const hyteg::Point3D&, hyteg::Point3D& ) > normalsShell = []( const hyteg::Point3D& x, hyteg::Point3D& n ) {
-   real_t r     = radius( x );
-   real_t rMean = 1.72;
+   real_t r = radius( x );
+   // real_t rMean = 1.72;
 
-   if ( r > rMean )
-   {
-      n[0] = x[0] / r;
-      n[1] = x[1] / r;
-      n[2] = x[2] / r;
-   }
-   else if ( r < rMean )
-   {
-      n[0] = -x[0] / r;
-      n[1] = -x[1] / r;
-      n[2] = -x[2] / r;
-   }
+   // if ( r > rMean )
+   // {
+   n[0] = x[0] / r;
+   n[1] = x[1] / r;
+   n[2] = x[2] / r;
+   // }
+   // else if ( r < rMean )
+   // {
+   //    n[0] = -x[0] / r;
+   //    n[1] = -x[1] / r;
+   //    n[2] = -x[2] / r;
+   // }
 };
 
 enum BoundaryConditionType
@@ -387,12 +554,15 @@ class StokesFlow3D
    MassOperatorP1  massOperatorP1;
    VecMassOperator vectorMassOperator;
 
+   std::shared_ptr< BoundaryMassOperator > surfaceMassOperator;
+
    std::shared_ptr< StokesOperator >     stokesOperator;
    std::shared_ptr< StokesOperatorFS >   stokesOperatorFS;
    std::shared_ptr< ProjectionOperator > projectNormal;
 
    // Functions
    std::shared_ptr< StokesFunction > u;
+   std::shared_ptr< StokesFunction > uRotated, uRotatedRotated, fRotated, fRotatedTemp;
 
    std::shared_ptr< hyteg::P1toP1LinearProlongation< real_t > > prolongationP;
    std::shared_ptr< VelocityProlongation >                      prolongationU;
@@ -403,11 +573,15 @@ class StokesFlow3D
    std::shared_ptr< StokesFunction >   fStrong;
    std::shared_ptr< StokesFunction >   AuAnalytical;
 
-   std::shared_ptr< StokesFunction > uEx;
-   std::shared_ptr< StokesFunction > uEr;
-   // std::shared_ptr< StokesFunction >   m_pFTmp;
+   std::shared_ptr< P2Function< real_t > > fSurfInt;
+   std::shared_ptr< P2Function< real_t > > fSurfIntOut;
+
+   std::shared_ptr< StokesFunction >   uEx;
+   std::shared_ptr< StokesFunction >   uEr;
    std::shared_ptr< VelocityFunction > temp;
    // std::shared_ptr< P2Function< real_t > > rhoDash;
+
+   std::shared_ptr< P2Function< real_t > > mu;
 
    // VTK output
    std::shared_ptr< hyteg::VTKOutput > vtkOutput;
@@ -432,6 +606,10 @@ class StokesFlow3D
    const uint_t minLevel;
    const uint_t maxLevel;
 
+   hyteg::BoundaryCondition bcVelocity, bcVelocityThetaPhi, bcVelocityR;
+   hyteg::BoundaryCondition bcDeltaSurf;
+   hyteg::BoundaryUID bcDeltaSurfUID;
+
  public:
    StokesFlow3D( std::shared_ptr< walberla::config::Config >&      cfg_,
                  const std::shared_ptr< hyteg::PrimitiveStorage >& storage_,
@@ -450,25 +628,48 @@ class StokesFlow3D
       prolongationP = std::make_shared< hyteg::P1toP1LinearProlongation< real_t > >();
       prolongationU = std::make_shared< VelocityProlongation >();
 
-      hyteg::BoundaryCondition bcVelocity;
-
       bcVelocity.createAllInnerBC();
+      bcVelocityThetaPhi.createAllInnerBC();
+      bcVelocityR.createAllInnerBC();
 
       if ( mainConf->getParameter< bool >( "freeslip" ) )
       {
          bcVelocity.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
          bcVelocity.createFreeslipBC( "FreeslipOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
+
+         bcVelocityThetaPhi.createNeumannBC(
+             "NeumannAllTP", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+         bcVelocityR.createDirichletBC( "DirichletAllRadial",
+                                        { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
       }
       else if ( mainConf->getParameter< bool >( "mixed" ) )
       {
          bcVelocity.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
          bcVelocity.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
+
+         bcVelocityThetaPhi.createNeumannBC( "NeumannInnerTP", { MeshInfo::hollowFlag::flagInnerBoundary } );
+         bcVelocityThetaPhi.createDirichletBC( "DirichletOuterTP", { MeshInfo::hollowFlag::flagOuterBoundary } );
+         bcVelocityR.createDirichletBC( "DirichletAllRadial",
+                                        { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
       }
       else
       {
          bcVelocity.createDirichletBC( "DirichletInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
          bcVelocity.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
+
+         bcVelocityThetaPhi.createDirichletBC(
+             "DirichletAllTP", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+         bcVelocityR.createDirichletBC( "DirichletAllRadial",
+                                        { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
       }
+
+      bcDeltaSurf.createAllInnerBC();
+      if ( mainConf->getParameter< bool >( "delta" ) )
+      {
+         bcDeltaSurfUID = bcDeltaSurf.createNeumannBC("DeltaMarker", INNER_SPECIAL);
+      }
+
+      surfaceMassOperator = std::make_shared< BoundaryMassOperator >(storage, minLevel, maxLevel, bcDeltaSurf, bcDeltaSurfUID);
 
       std::string outputPath = std::string( mainConf->getParameter< std::string >( "outputPath" ) );
 
@@ -503,7 +704,13 @@ class StokesFlow3D
          }
       }
 
-      stokesOperator   = std::make_shared< StokesOperator >( storage, minLevel_, maxLevel_ );
+      mu = std::make_shared< P2Function< real_t > >( "mu", storage, minLevel_, maxLevel_ + 1 );
+      for(uint_t iLevel = minLevel_; iLevel <= maxLevel_ + 1; iLevel++)
+      {
+         mu->interpolate( 1.0, iLevel, All );
+      }
+
+      stokesOperator   = std::make_shared< StokesOperator >( storage, minLevel_, maxLevel_, *mu );
       projectNormal    = std::make_shared< ProjectionOperator >( storage, minLevel, maxLevel, normalsShell );
       stokesOperatorFS = std::make_shared< StokesOperatorFS >( stokesOperator, projectNormal, FreeslipBoundary );
 
@@ -517,7 +724,30 @@ class StokesFlow3D
       temp  = std::make_shared< VelocityFunction >( "temp", storage, minLevel_, maxLevel_ + 1, bcVelocity );
       fSurf = std::make_shared< VelocityFunction >( "fSurf", storage, minLevel_, maxLevel_ + 1, bcVelocity );
 
+      fSurfInt = std::make_shared< P2Function< real_t > >("fSurfInt", storage, minLevel_, maxLevel_, bcDeltaSurf);
+      fSurfIntOut = std::make_shared< P2Function< real_t > >("fSurfIntOut", storage, minLevel_, maxLevel_, bcDeltaSurf);
+
+      uRotated        = std::make_shared< StokesFunction >( "uRotated", storage, minLevel_, maxLevel_ + 1, bcVelocity );
+      uRotatedRotated = std::make_shared< StokesFunction >( "uRotatedRotated", storage, minLevel_, maxLevel_ + 1, bcVelocity );
+      fRotated        = std::make_shared< StokesFunction >( "fRotated", storage, minLevel_, maxLevel_ + 1, bcVelocity );
+      fRotatedTemp    = std::make_shared< StokesFunction >( "fRotatedTemp", storage, minLevel_, maxLevel_ + 1, bcVelocity );
+
+      uRotated->uvw().component( 0U ).setBoundaryCondition( bcVelocityThetaPhi );
+      uRotated->uvw().component( 1U ).setBoundaryCondition( bcVelocityThetaPhi );
+      uRotated->uvw().component( 2U ).setBoundaryCondition( bcVelocityR );
+
+      fRotated->uvw().component( 0U ).setBoundaryCondition( bcVelocityThetaPhi );
+      fRotated->uvw().component( 1U ).setBoundaryCondition( bcVelocityThetaPhi );
+      fRotated->uvw().component( 2U ).setBoundaryCondition( bcVelocityR );
+
+      fRotatedTemp->uvw().component( 0U ).setBoundaryCondition( bcVelocityThetaPhi );
+      fRotatedTemp->uvw().component( 1U ).setBoundaryCondition( bcVelocityThetaPhi );
+      fRotatedTemp->uvw().component( 2U ).setBoundaryCondition( bcVelocityR );
+
       vtkOutput->add( *u );
+      vtkOutput->add( *uRotated );
+      vtkOutput->add( *uRotatedRotated );
+      vtkOutput->add( *fRotated );
       vtkOutput->add( *f );
    }
 
@@ -582,8 +812,8 @@ class StokesFlow3D
          fSurf->interpolate(
              { forcingFunction< true, 0 >, forcingFunction< true, 1 >, forcingFunction< true, 2 > }, maxLevel, All );
 
-         real_t scalingValue = 4.0 * pow( 2.0, maxLevel ) * 3.0 / 2.0;
-         fStrong->uvw().assign( { scalingValue }, { *fSurf }, maxLevel, All );
+         // real_t scalingValue = 4.0 * pow( 2.0, maxLevel ) * 3.0 / 2.0;
+         fStrong->uvw().assign( { 1.0 }, { *fSurf }, maxLevel, All );
       }
       else
       {
@@ -683,8 +913,16 @@ class StokesFlow3D
 
          WALBERLA_LOG_INFO_ON_ROOT(
              "Not using surface integrals for delta function, surface integrals not yet merged to master" );
-
-         vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
+         
+         WALBERLA_LOG_INFO_ON_ROOT("Not anymore, let's go, surface integrals");
+         
+         for( uint_t iDim = 0u; iDim < 3u; iDim++ )
+         {
+            fSurfInt->assign({1.0}, {fStrong->uvw().component(iDim)}, maxLevel, All);
+            surfaceMassOperator->apply(*fSurfInt, *fSurfIntOut, maxLevel, All);
+            f->uvw().component(iDim).assign({0.5}, {*fSurfIntOut}, maxLevel, All);
+         }
+         // vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
       }
       else
       {
@@ -695,6 +933,8 @@ class StokesFlow3D
 
       real_t minresTol  = mainConf->getParameter< real_t >( "tol" );
       uint_t minresIter = mainConf->getParameter< uint_t >( "minresIter" );
+
+      bool verbose = mainConf->getParameter< bool >( "verbose" );
 
       /*****************************************/
       /****** TRY A DIFFERENT SOLVER HERE ******/
@@ -711,8 +951,251 @@ class StokesFlow3D
 
       // projectNormal->project( f->uvw(), maxLevel, FreeslipBoundary, RotationNormalTranspose );
 
-      projectNormal->project( f->uvw(), maxLevel, FreeslipBoundary );
-      stokesSolver->solve( *stokesOperatorFS, *u, *f, maxLevel );
+      enum SolverType
+      {
+         DIRECT_WITH_FREESLIP_ROTATION = 0U,
+         MINRES_WITH_FREESLIP_PROJECTION,
+         MINRES_WITH_FREESLIP_ROTATION,
+         MULTIGRID_WITH_FREESLIP_ROTATION
+      };
+
+      uint_t solverTypeUint = mainConf->getParameter< uint_t >( "solverType" );
+
+      SolverType solverType = static_cast< SolverType >( solverTypeUint );
+
+      P2RotationOperator rotationOperator( storage, minLevel, maxLevel, normalsShell );
+
+      P2P1StokesRotationWrapper stokesOperatorRotation(
+          storage, minLevel, maxLevel, *stokesOperator, rotationOperator, bcVelocity );
+
+      std::function< real_t( const Point3D& ) > normalsX = []( const Point3D& x ) { return x[0] / x.norm(); };
+      std::function< real_t( const Point3D& ) > normalsY = []( const Point3D& x ) { return x[1] / x.norm(); };
+      std::function< real_t( const Point3D& ) > normalsZ = []( const Point3D& x ) { return x[2] / x.norm(); };
+
+      P2VectorFunction< real_t > normalsP2( "normalsP2", storage, minLevel, maxLevel, bcVelocity );
+
+      for(uint_t iLevel = minLevel; iLevel <= maxLevel; iLevel++)
+      {
+         normalsP2.interpolate( { normalsX, normalsY, normalsZ }, iLevel, FreeslipBoundary );
+      }
+      
+      real_t cRotPenalty = mainConf->getParameter< real_t >("cRotPenalty");
+
+      auto stokesOperatorRotationOpgen = std::make_shared< P2P1StokesOpgenRotationWrapper >( storage,
+                                                                                        minLevel,
+                                                                                        maxLevel,
+                                                                                        *mu,
+                                                                                        normalsP2.component( 0u ),
+                                                                                        normalsP2.component( 1u ),
+                                                                                        normalsP2.component( 2u ),
+                                                                                        rotationOperator,
+                                                                                        bcVelocity,
+                                                                                        cRotPenalty );
+
+      auto stokesSolverRotationOpgen = hyteg::solvertemplates::stokesMinResSolver< P2P1StokesOpgenRotationWrapper >(
+          storage, maxLevel, minresTol, minresIter, true );
+
+      if ( solverType == DIRECT_WITH_FREESLIP_ROTATION )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Using Direct solver with freeslip rotations" );
+
+         auto directSolver = PETScLUSolver< P2P1StokesOpgenRotationWrapper >( storage, maxLevel );
+
+         rotationOperator.rotate( *f, maxLevel, FreeslipBoundary, false );
+         fRotated->assign( { 1.0 }, { *f }, maxLevel, All );
+
+         directSolver.solve( *stokesOperatorRotationOpgen, *uRotated, *fRotated, maxLevel );
+
+         u->assign( { 1.0 }, { *uRotated }, maxLevel, All );
+         rotationOperator.rotate( *u, maxLevel, FreeslipBoundary, true );
+
+         vertexdof::projectMean( u->p(), maxLevel );
+
+         // hyteg::removeRotationalModes( massOperator, u->uvw(), uEr->uvw(), temp->component( 0 ), maxLevel );
+      }
+      else if ( solverType == MINRES_WITH_FREESLIP_PROJECTION )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Using Minres solver with freeslip projections" );
+
+         projectNormal->project( f->uvw(), maxLevel, FreeslipBoundary );
+         stokesSolver->solve( *stokesOperatorFS, *u, *f, maxLevel );
+
+         hyteg::removeRotationalModes( massOperator, u->uvw(), uEr->uvw(), temp->component( 0 ), maxLevel );
+      }
+      else if ( solverType == MINRES_WITH_FREESLIP_ROTATION )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Using Minres solver with freeslip rotations" );
+
+         auto stokesMinresSolverRotation =
+             MinResSolver< P2P1StokesRotationWrapper >( storage, minLevel, maxLevel, minresIter, minresTol );
+         stokesMinresSolverRotation.setPrintInfo( true );
+
+         rotationOperator.rotate( *f, maxLevel, FreeslipBoundary, false );
+         fRotated->assign( { 1.0 }, { *f }, maxLevel, All );
+
+         // stokesMinresSolverRotation.solve( stokesOperatorRotation, *uRotated, *fRotated, maxLevel );
+         stokesSolverRotationOpgen->solve(*stokesOperatorRotationOpgen, *uRotated, *fRotated, maxLevel);
+
+         u->assign( { 1.0 }, { *uRotated }, maxLevel, All );
+         rotationOperator.rotate( *u, maxLevel, FreeslipBoundary, true );
+
+         vertexdof::projectMean( u->p(), maxLevel );
+      }
+      else if ( solverType == MULTIGRID_WITH_FREESLIP_ROTATION )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Using Multigrid solver with freeslip rotations" );
+
+         auto chebyshevSmoother = std::make_shared< ChebyshevSmoother< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
+            storage, minLevel, maxLevel );
+
+         uint_t powerIter = 50u;
+
+         P2VectorFunction< real_t > uTmp( "uTmp", storage, minLevel, maxLevel );
+         P2VectorFunction< real_t > uSpecTmp( "uSpecTmp", storage, minLevel, maxLevel );
+
+         std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
+            return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
+         };
+
+         uTmp.interpolate( { randFuncA, randFuncA, randFuncA }, maxLevel, All );
+
+         stokesOperatorRotationOpgen->stokesViscousOperator_.computeInverseDiagonalOperatorValues();
+
+         real_t spectralRadius = chebyshev::estimateRadius(
+            stokesOperatorRotationOpgen->stokesViscousOperator_, maxLevel, powerIter, storage, uTmp, uSpecTmp );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
+
+         chebyshevSmoother->setupCoefficients( 3u, spectralRadius );
+
+         auto uzawaABlockPreconditioner =
+            std::make_shared< StokesVelocityFullBlockPreconditioner< P2P1StokesOpgenRotationWrapper > >( storage,
+                                                                                                         chebyshevSmoother );
+
+         real_t uzawaOmega = mainConf->getParameter<real_t>("uzawaOmega");
+
+         // real_t uzawaRelaxationParameter = estimateUzawaRelaxationParameter(storage, chebyshevSmoother, maxLevel, powerIter, 3u);
+
+         // WALBERLA_LOG_INFO_ON_ROOT( "uzawaRelaxationParameter = " << uzawaRelaxationParameter );
+
+         auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1StokesOpgenRotationWrapper > >(
+            storage, uzawaABlockPreconditioner, minLevel, maxLevel, uzawaOmega );
+
+         auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
+         auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
+
+         auto prolongationABlockOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
+         auto restrictionABlockOperator = std::make_shared< P2toP2QuadraticVectorRestriction >();
+
+         uint_t minresCoarseIter = 100u;
+         real_t minresCoarseTol  = 1e-6;
+
+         auto directSolver = std::make_shared< PETScLUSolver< P2P1StokesOpgenRotationWrapper > >( storage, minLevel );
+
+         auto coarseGridSolver = std::make_shared< MinResSolver< P2P1StokesOpgenRotationWrapper > >(
+            storage, minLevel, minLevel, minresCoarseIter, minresCoarseTol );
+         coarseGridSolver->setPrintInfo( verbose );
+
+         auto coarseGridABlockSolver = std::make_shared< MinResSolver< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
+            storage, minLevel, minLevel, minresCoarseIter, minresCoarseTol );
+         coarseGridABlockSolver->setPrintInfo( verbose );
+
+         auto multigridSolver = std::make_shared< GeometricMultigridSolver< P2P1StokesOpgenRotationWrapper > >(
+            storage, uzawaSmoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 8u, 8u );
+         
+         auto multigridABlockSolver = std::make_shared< GeometricMultigridSolver< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
+            storage, chebyshevSmoother, coarseGridABlockSolver, restrictionABlockOperator, prolongationABlockOperator, minLevel, maxLevel, 5u, 5u );
+         
+         using SubstSType = P1ElementwiseBlendingMassOperator;
+
+         auto schurOperator = std::make_shared< SubstSType >(storage, minLevel, maxLevel);
+         auto schurSolver = std::make_shared< CGSolver< SubstSType > >(storage, minLevel, maxLevel, 1000u, 1e-16);
+
+         auto blockPreconditioner = std::make_shared< 
+            BlockFactorisationPreconditioner< 
+               P2P1StokesOpgenRotationWrapper, 
+               P2P1StokesOpgenRotationWrapper::VelocityOperator_T, 
+               SubstSType > >(
+            storage,
+            minLevel,
+            maxLevel,
+            *schurOperator,
+            multigridABlockSolver,
+            schurSolver,
+            1.0,
+            1.0,
+            1u);
+         
+         uint_t fgmresIter = mainConf->getParameter< uint_t >("fgmresIter");
+         auto fgmresSolver = std::make_shared< FGMRESSolver< P2P1StokesOpgenRotationWrapper > >(
+            storage, minLevel, maxLevel, fgmresIter, 25u, 1e-16, 1e-16, 0.0, blockPreconditioner
+         );
+         fgmresSolver->setPrintInfo(true);
+
+         uint_t nVCycles = mainConf->getParameter< uint_t >( "nVCycles" );
+
+         auto stopIterationCallback =
+          [&]( const P2P1StokesOpgenRotationWrapper& _A, const StokesFunction& _u, const StokesFunction& _b, const uint_t _level ) {
+            _A.apply(_u, *fRotatedTemp, _level, All);
+            fRotatedTemp->assign({1.0, -1.0}, {*fRotatedTemp, *fRotated}, _level, All);
+
+            real_t velocityResidualInner = fRotatedTemp->uvw().dotGlobal(fRotatedTemp->uvw(), _level, Inner);
+            real_t velocityResidualFS = fRotatedTemp->uvw().dotGlobal(fRotatedTemp->uvw(), _level, NeumannBoundary);
+            real_t velocityResidualAll = fRotatedTemp->uvw().dotGlobal(fRotatedTemp->uvw(), _level, All);
+           
+            real_t pressureResidual = fRotatedTemp->p().dotGlobal(fRotatedTemp->p(), _level, All);
+
+            WALBERLA_LOG_INFO_ON_ROOT("");
+            WALBERLA_LOG_INFO_ON_ROOT("velocityResidualAll   = " << velocityResidualAll);
+            WALBERLA_LOG_INFO_ON_ROOT("velocityResidualFS    = " << velocityResidualFS);
+            WALBERLA_LOG_INFO_ON_ROOT("velocityResidualInner = " << velocityResidualInner);
+            WALBERLA_LOG_INFO_ON_ROOT("pressureResidual      = " << pressureResidual);
+            WALBERLA_LOG_INFO_ON_ROOT("");
+
+            return false;
+         };
+
+         auto multigridSolverLoop = SolverLoop< P2P1StokesOpgenRotationWrapper >( multigridSolver, nVCycles, stopIterationCallback );
+
+         rotationOperator.rotate( *f, maxLevel, FreeslipBoundary, false );
+         fRotated->assign( { 1.0 }, { *f }, maxLevel, All );
+
+         fgmresSolver->solve( *stokesOperatorRotationOpgen, *uRotated, *fRotated, maxLevel );
+         // multigridSolverLoop.solve( *stokesOperatorRotationOpgen, *uRotated, *fRotated, maxLevel );
+
+         u->assign( { 1.0 }, { *uRotated }, maxLevel, All );
+         rotationOperator.rotate( *u, maxLevel, FreeslipBoundary, true );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid solver type" );
+      }
+
+      /*
+      
+      hMax = 3.5659121772e-01, errorU = 2.1572827816e-03
+      hMax = 3.5659121772e-01, errorUSurface = 1.6002552766e-03
+      hMax = 3.5659121772e-01, errorP = 5.9814038070e-03
+
+      */
+
+      // std::function< real_t( const Point3D& ) > uInterpX = []( const Point3D& x ) { return x[0]; };
+
+      // std::function< real_t( const Point3D& ) > uInterpY = []( const Point3D& x ) { return x[1]; };
+
+      // std::function< real_t( const Point3D& ) > uInterpZ = []( const Point3D& x ) { return x[2]; };
+
+      // // u->uvw().interpolate( { uInterpX, uInterpY, uInterpZ }, maxLevel, All );
+      // u->assign({1.0}, {*uEx}, maxLevel, All);
+      // uRotated->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
+
+      // P2RotationOperator rotationOperator( storage, minLevel, maxLevel, normalsShell );
+
+      // rotationOperator.rotate( *uRotated, maxLevel, FreeslipBoundary );
+
+      // uRotatedRotated->assign({1.0}, {*uRotated}, maxLevel, All);
+
+      // rotationOperator.rotate(*uRotatedRotated, maxLevel, FreeslipBoundary, true);
 
       // projectNormal->project( f->uvw(), maxLevel, FreeslipBoundary, RotationNormal );
       // directSolver.solve( *stokesOperatorFS, *u, *f, maxLevel );
@@ -824,6 +1307,11 @@ int main( int argc, char* argv[] )
 
    auto mainConf = std::make_shared< walberla::Config::BlockHandle >( cfg->getBlock( "Parameters" ) );
 
+   WALBERLA_ROOT_SECTION()
+   {
+      mainConf->listParameters();
+   }
+
    std::string outputPath = std::string( mainConf->getParameter< std::string >( "outputPath" ) );
 
    /* Setup Mesh */
@@ -858,8 +1346,8 @@ int main( int argc, char* argv[] )
 
    auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
 
-   const uint_t minLevel = mainConf->getParameter< uint_t >( "level" );
-   const uint_t maxLevel = mainConf->getParameter< uint_t >( "level" );
+   const uint_t minLevel = mainConf->getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel = mainConf->getParameter< uint_t >( "maxLevel" );
 
    /* Solving Stokes */
 

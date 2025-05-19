@@ -1,0 +1,40 @@
+Parameters
+{
+    nx 8;
+    ny 8;
+
+    minLevel 3;
+    maxLevel 5;
+
+    verbose true;
+
+    cflMax 0.75;
+    diffusivity 1.0;
+    
+    RayleighNumber 1e2;
+
+    deltaT 1e5;
+    deltaZ 10;
+
+    nPicard 10;
+    reltolPicard 1e-6;
+    abstolPicard 1e-16;
+
+    NTimesteps 25000;
+    endTime 10;
+
+    stokesIter 20000;
+    stokesRelTol 1e-3;
+
+    transportIter 10000;
+    transportRelTol 1e-15;
+
+    logNsFreq 1;
+
+    useAdios2 true;
+    adiosXmlConfig ADIOS2config.xml;
+
+    outputFilename TosiNonlinearUnitSquareP0;
+    outputPath ./output/;
+    vtkWriteFrequency 10;
+}

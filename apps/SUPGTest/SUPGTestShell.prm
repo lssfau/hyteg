@@ -1,8 +1,0 @@
-Parameters
-{
-    level 3;
-
-    eps 1e-6;
-
-    SUPG true;
-}

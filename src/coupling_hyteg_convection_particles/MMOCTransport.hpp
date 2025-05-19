@@ -1057,22 +1057,6 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
          finalTemperature = std::min( finalTemperature, maxTempCOld );
       }
 
-      if(p.getOutsideDomain() == 1)
-      {
-         if( toPoint3D( p.getPosition() ).norm() < rMin )
-         {
-            finalTemperature = 1.0;
-         }
-         else if ( toPoint3D( p.getPosition() ).norm() > rMax )
-         {
-            finalTemperature = 0.0;
-         }
-         else
-         {
-            WALBERLA_ABORT("Shouldn't be here");
-         }
-      }
-
       p->setFinalTemperature( finalTemperature );
    }
 

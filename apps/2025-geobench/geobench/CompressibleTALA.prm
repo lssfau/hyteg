@@ -1,0 +1,95 @@
+Parameters
+{
+  nx 12;
+  ny 12;
+	
+  rMin 1.0;
+  rMax 2.0;
+  # rMin 3.141592653589793;
+  # rMax 6.283185307179586;
+
+  RayleighNumber 1e4;
+  DissipationNumber 0.25;
+  alpha 1.0;
+  thermalConductivity 1.0;
+
+  nsCalcFreq 1;
+
+  rho 1.0;
+  cp 1.0;
+
+  plateDirSwitch false;
+  plateSwitchFreq 100;
+  plateVelRad 0.0;
+
+  nPlumes 8;
+
+  nx 10;
+  ny 4;
+
+  minLevel 0;
+  maxLevel 4;
+
+  readInMinLevel 0;
+  readInMaxLevel 4;
+
+  ala true;
+
+  residualVelocityTolPicard 1e-5;
+  nStokesPicard 2;
+  direct false;
+
+  AiniPerturb 0.1;
+
+  verbose true;
+
+  stokesMinresIter 2000;
+  stokesMinresTol 1e-4;
+
+  transportMinresIter 1000;
+  transportMinresTol 1e-5;
+
+  transportGmresIter 1000;
+  transportGmresTol 1e-8;
+
+  residualExitTol 1e12;
+
+  frd true;
+
+  MMOC true;
+  SUPG false;
+  compressible true;
+  adiabaticHeating true;
+  shearHeating true;
+
+  Direct false;
+
+  nCouplingIter 10;
+  
+  maxTimeSteps 2;
+  dtStart 1e-6;
+  dtMin 1e-12;
+  dtMax 1e-1;
+  dtRaster 1e-7;
+  cflMax 1.2;
+  simulationTime 1e1;
+  nonLinIter 2;
+  iterPicard 2;
+
+  level 1;
+
+  cpPath ./output/gmd_stuff/king/checkpoint;
+  cpFilename KingSquare_ALA_Ra_3e5_Di_0_25_Continuous.bp;
+  cpStartFilename KingSquare_ALA_Ra_2e5_Di_0_25_Continuous.bp;
+
+  importStep 999999;
+
+  outputPath ./output/;
+  outputFilename KingSquare;
+  vtkWriteFrequency 25;
+  adiosXmlConfig ADIOS2config.xml;
+
+  storeCheckpointFreq 1000;
+  storeCheckpoint false;
+  startFromCheckpoint false;
+}

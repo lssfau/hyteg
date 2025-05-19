@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2024 Ponsuganth Ilangovan
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -52,29 +52,6 @@ class P2toP2LinearProlongation : public ProlongationOperator< P2Function< real_t
    std::shared_ptr< P1Function< real_t > > temp_;
 
    P1toP1LinearProlongation< real_t > p1Prolongation;
-};
-
-class P2toP2LinearVectorProlongation : public RestrictionOperator< P2VectorFunction< real_t > >
-{
- public:
-   P2toP2LinearVectorProlongation( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : p2LinearProlongationOperator_( storage, minLevel, maxLevel )
-   {}
-
-   P2toP2LinearVectorProlongation( const std::shared_ptr< P1Function< real_t > >& temp )
-   : p2LinearProlongationOperator_( temp )
-   {}
-
-   void restrict( const P2VectorFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
-   {
-      for ( uint_t k = 0; k < function.getDimension(); k++ )
-      {
-         p2LinearProlongationOperator_.prolongate( function[k], sourceLevel, flag );
-      }
-   }
-
- private:
-   P2toP2LinearProlongation p2LinearProlongationOperator_;
 };
 
 } // namespace hyteg
