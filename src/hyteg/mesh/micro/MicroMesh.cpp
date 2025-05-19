@@ -942,4 +942,67 @@ Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    return center;
 }
 
+static Point3D microCellCenterPositionNoMesh( const std::shared_ptr< PrimitiveStorage >& storage,
+                                              PrimitiveID                                cellId,
+                                              uint_t                                     level,
+                                              const indexing::Index&                     microCellIndex,
+                                              celldof::CellType                          cellType,
+                                              bool                                       withBlending )
+{
+   WALBERLA_ASSERT( storage->cellExistsLocally( cellId ), "Cannot compute center of micro-cell for non-local macro-cell" );
+
+   const Cell& cell = *( storage->getPrimitiveGenerically< Cell >( cellId ) );
+
+   std::array< indexing::Index, 4 > vertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+
+   Point3D v0 = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[0] );
+   Point3D v1 = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[1] );
+   Point3D v2 = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[2] );
+   Point3D v3 = vertexdof::macrocell::coordinateFromIndex( level, cell, vertexIndices[3] );
+
+   Point3D center = ( v0 + v1 + v2 + v3 ) / real_c( 4 );
+
+   if ( !withBlending )
+   {
+      return center;
+   }
+
+   return applyBlending( center, cell );
+}
+
+Point3D microCellCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                 PrimitiveID                                cellId,
+                                 uint_t                                     level,
+                                 const indexing::Index&                     microCellIndex,
+                                 celldof::CellType                          cellType )
+
+{
+   WALBERLA_CHECK( storage->cellExistsLocally( cellId ), "Cannot compute center of micro-cell for non-local macro-cell" );
+
+   auto microMesh = storage->getMicroMesh();
+
+   if ( !microMesh )
+   {
+      return microCellCenterPositionNoMesh( storage, cellId, level, microCellIndex, cellType, true );
+   }
+   else
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "Centroid computation is not accurate in 3D when parametric map is active" );
+
+      const Cell& cell = *( storage->getPrimitiveGenerically< Cell >( cellId ) );
+
+      std::array< indexing::Index, 4 > vertexIndices =
+          celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+
+      Point3D v0 = micromesh::microVertexPosition( storage, cellId, level, vertexIndices[0] );
+      Point3D v1 = micromesh::microVertexPosition( storage, cellId, level, vertexIndices[1] );
+      Point3D v2 = micromesh::microVertexPosition( storage, cellId, level, vertexIndices[2] );
+      Point3D v3 = micromesh::microVertexPosition( storage, cellId, level, vertexIndices[3] );
+
+      Point3D center = ( v0 + v1 + v2 + v3 ) / real_c( 4 );
+
+      return microCellCenterPositionNoMesh( storage, cellId, level, microCellIndex, cellType, false );
+   }
+}
+
 } // namespace hyteg::micromesh

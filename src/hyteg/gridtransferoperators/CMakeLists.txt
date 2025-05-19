@@ -18,12 +18,16 @@ target_sources( hyteg
     P1VectorFunctionLinearRestriction.hpp
     P1toN1E1Gradient.cpp
     P1toN1E1Gradient.hpp
+    P1toP0Conversion.cpp
+    P1toP0Conversion.hpp
     P1toP1InjectionRestriction.cpp
     P1toP1InjectionRestriction.hpp
     P1toP1LinearProlongation.cpp
     P1toP1LinearProlongation.hpp
     P1toP1LinearRestriction.cpp
     P1toP1LinearRestriction.hpp
+    P0toP0AveragedInjection.cpp
+    P0toP0AveragedInjection.hpp
     P1toP1QuadraticProlongation.cpp
     P1toP1QuadraticProlongation.hpp
     P1toP1QuadraticProlongationThroughP2Injection.hpp

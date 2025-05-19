@@ -28,6 +28,7 @@
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg::micromesh {
 
@@ -178,6 +179,24 @@ Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
                                  uint_t                                     level,
                                  const indexing::Index&                     microFaceIndex,
                                  facedof::FaceType                          faceType );
+
+/// \brief Returns the position of the "center" of a micro-cell.
+///
+/// The method determines and returns the position of the "center" of the micro-cell specified by the given microCellIndex.
+/// In this context we use as "center" of the micro-cell the position to which the barycenter of the reference tetrahedron is
+/// mapped by which ever mapping (affine, blending, isoparametric) is in use. Thus, if no MicroMesh was allocated and added
+/// to the PrimitiveStorage either an affine mapping is employed, giving the barycenter of the triangular element on the
+/// physical domain, or the result of applying the blending map to the barycenter of the triangular element on the
+/// computational domain.
+///
+/// This function is currently still approximate for isoparametric mapping, i.e. currently only the vertices of the
+/// mapped tetrahedron is taken and the centroid is computed as their average. This is still accurate for linear
+/// isoparametric mapping but not for quadratic isoparametric mapping for e.g.
+Point3D microCellCenterPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                 PrimitiveID                                cellId,
+                                 uint_t                                     level,
+                                 const indexing::Index&                     microCellIndex,
+                                 celldof::CellType                          cellType );
 
 /// Communicates the MicroMesh such that all ghost-layers are updated.
 /// Relevant, e.g., for VTK output.
