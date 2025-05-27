@@ -23,6 +23,9 @@ target_sources( hyteg
     generated/RadialGradient/P2ElementwiseRadialGradientSurfaceIcosahedralShellMapOperator.hpp
     generated/RadialGradient/P2ElementwiseRadialGradientSurfaceIcosahedralShellMapOperator.cpp
 
+    generated/RadialGradient/P2ElementwiseRadialGradientSurfaceOperator.hpp
+    generated/RadialGradient/P2ElementwiseRadialGradientSurfaceOperator.cpp
+
     generated/FullStokesRotationWithFSPenalty/P2VectorElementwiseFullStokesRotationWithFusedFSPenaltyVectorizedOperator.hpp
     generated/FullStokesRotationWithFSPenalty/P2VectorElementwiseFullStokesRotationWithFusedFSPenaltyVectorizedOperator.cpp
 

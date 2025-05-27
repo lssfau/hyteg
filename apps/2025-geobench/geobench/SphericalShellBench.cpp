@@ -1721,7 +1721,7 @@ int main( int argc, char* argv[] )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      cfg->readParameterFile( "./SphericalShellBenchRotation.prm" );
+      cfg->readParameterFile( "./SphericalShellBench.prm" );
    }
    else
    {

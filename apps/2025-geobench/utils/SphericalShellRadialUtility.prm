@@ -1,0 +1,15 @@
+Parameters
+{
+  nTan 5;
+  nRad 3;
+	
+  rMin 1.22;
+  rMax 2.22;
+
+  maxLevel 4;
+  minLevel 2;
+
+  startCheckpointPath ./output/checkpoint/;
+  startCheckpointFilename rMu30_Part8;
+  outputProfilePath ./output/Test.out;
+}

@@ -49,9 +49,11 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
+#include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/operatorgeneration/generated/EvaluateViscosityViscoplastic/P2EvaluateViscosityViscoplastic.hpp"
 #include "hyteg/operatorgeneration/generated/FullStokesViscoplastic/P2VectorElementwiseFullStokesViscoplastic.hpp"
 #include "hyteg/operatorgeneration/generated/Ones/P2Ones.hpp"
+#include "hyteg/operatorgeneration/generated/RadialGradient/P2ElementwiseRadialGradientSurfaceOperator.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FGMRESSolver.hpp"
@@ -61,7 +63,6 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
-#include "hyteg/numerictools/SpectrumEstimation.hpp"
 
 namespace hyteg {
 namespace solvertemplates {
@@ -112,8 +113,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
    // auto ABlockCoarseGridSolver =
    //     std::make_shared< MinResSolver< StokesABlockType > >( storage, minLevel, maxLevel, ABlockCoarseIter, ABlockCoarseTol );
 
-   auto ABlockCoarseGridSolver =
-       std::make_shared< PETScLUSolver< StokesABlockType > >( storage, minLevel );
+   auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< StokesABlockType > >( storage, minLevel );
    ABlockCoarseGridSolver->setReassembleMatrix( true );
 
    auto ABlockMultigridSolver = std::make_shared< GeometricMultigridSolver< StokesABlockType > >( storage,
@@ -138,7 +138,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
        std::make_shared< BlockFactorisationPreconditioner< StokesOperatorType, StokesABlockType, StokesSchurOperatorType > >(
            storage, minLevel, maxLevel, schurOperator, ABlockMultigridSolver, SchurSolver, 1.0, 1.0, 1u );
 
-   uint_t fGMRESOuterIter = 10u;
+   uint_t fGMRESOuterIter = 20u;
    real_t fGMRESTol       = 1e-8;
 
    auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorType > >(
@@ -221,7 +221,7 @@ int main( int argc, char* argv[] )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      cfg->readParameterFile( "./TosiNonlinearUnitSquare.prm" );
+      cfg->readParameterFile( "./TosiNonlinear.prm" );
    }
    else
    {
@@ -321,7 +321,17 @@ int main( int argc, char* argv[] )
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
+   uint_t nMacroFaces = storage->getNumberOfGlobalFaces();
+
+   WALBERLA_LOG_INFO_ON_ROOT("Macrofaces: " << nMacroFaces);
+
    BoundaryCondition bcTemp, bcVelocity, bcVelocityX, bcVelocityY;
+
+   BoundaryCondition bcTempNusselt;
+   BoundaryUID       bcTempNusseltUid;
+
+   bcTempNusselt.createAllInnerBC();
+   bcTempNusseltUid = bcTempNusselt.createFreeslipBC( "FreeslipTop", { BoundaryMarkers::Top, BoundaryMarkers::Corners } );
 
    bcTemp.createAllInnerBC();
    bcTemp.createDirichletBC( "DirichletTopAndBottom",
@@ -376,6 +386,15 @@ int main( int argc, char* argv[] )
    P1Function< real_t > viscosityP1Out( "viscosityP1Out", storage, minLevel, maxLevel );
 
    P0Function< real_t > viscosityP0Nonlinear( "viscosityP0Nonlinear", storage, minLevel, maxLevel );
+
+   P2Function< real_t > TNu( "TNu", storage, minLevel, maxLevel, bcTempNusselt );
+   P2Function< real_t > TNuOut( "TNuOut", storage, minLevel, maxLevel, bcTempNusselt );
+   P2Function< real_t > ones( "ones", storage, minLevel, maxLevel, bcTempNusselt );
+
+   ones.interpolate( 1.0, maxLevel, All );
+
+   operatorgeneration::P2ElementwiseRadialGradientSurfaceOperator nusseltOp(
+       storage, minLevel, maxLevel, TNu, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, bcTempNusselt, bcTempNusseltUid );
 
    onesP1.interpolate( 1.0, maxLevel, All );
    viscosityP1.interpolate( 1.0, maxLevel, All );
@@ -811,6 +830,13 @@ int main( int argc, char* argv[] )
          real_t nusseltNumber = nusseltcalc::calculateNusseltNumber2D( T, maxLevel, 0.001, 1e-6, 101 );
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "nusseltNumber = %4.7e", nusseltNumber ) );
+
+         TNu.assign( { 1.0 }, { T }, maxLevel, All );
+         nusseltOp.apply( ones, TNuOut, maxLevel, FreeslipBoundary );
+
+         real_t nusselNumberIntegrated = -TNuOut.sumGlobal( maxLevel, All );
+
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "nusselNumberIntegrated = %4.7e", nusselNumberIntegrated ) );
       }
    }
 

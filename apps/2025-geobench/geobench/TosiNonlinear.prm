@@ -3,7 +3,7 @@ Parameters
     nx 8;
     ny 8;
 
-    minLevel 3;
+    minLevel 2;
     maxLevel 5;
 
     verbose true;
@@ -16,8 +16,8 @@ Parameters
     deltaT 1e5;
     deltaZ 10;
 
-    nPicard 10;
-    reltolPicard 1e-6;
+    nPicard 100;
+    reltolPicard 1e-5;
     abstolPicard 1e-16;
 
     NTimesteps 25000;
@@ -34,7 +34,7 @@ Parameters
     useAdios2 true;
     adiosXmlConfig ADIOS2config.xml;
 
-    outputFilename TosiNonlinearUnitSquareP0;
+    outputFilename TosiNonlinearUnitSquareP0MG;
     outputPath ./output/;
     vtkWriteFrequency 10;
 }
