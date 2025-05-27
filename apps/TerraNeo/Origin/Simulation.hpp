@@ -480,9 +480,7 @@ void ConvectionSimulation::setupStokesRHS()
 
          frozenVelocityRHS->apply(
              p2p1StokesFunctionContainer["VelocityFE"]->uvw(), p2p1StokesFunctionContainer["StokesRHS"]->p(), l, All );
-
-         p2p1StokesFunctionContainer["StokesRHS"]->p().assign(
-             { -1.0 }, { p2p1StokesFunctionContainer["StokesRHS"]->p() }, l, All );
+             
       }
       else
       {
