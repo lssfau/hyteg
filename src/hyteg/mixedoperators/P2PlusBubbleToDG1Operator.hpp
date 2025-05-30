@@ -31,7 +31,6 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-// #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 
 namespace hyteg {

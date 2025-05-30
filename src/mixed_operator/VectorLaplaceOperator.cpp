@@ -163,6 +163,6 @@ template class VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLapla
 // P2PlusBubbleVectorLaplaceOperator
 template class VectorLaplaceOperator< real_t,
                                       P2PlusBubbleVectorFunction,
-                                      operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 >;
+                                      operatorgeneration::P2PlusBubbleElementwiseDiffusion >;
 
 } // namespace hyteg

@@ -21,7 +21,6 @@
 #pragma once
 
 #include "hyteg/composites/CCRStokesFunction.hpp"
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseDiffusion_float64.hpp"
 #include "hyteg/mixedoperators/DG1ToP2PlusBubbleOperator.hpp"
 #include "hyteg/mixedoperators/P2PlusBubbleToDG1Operator.hpp"
 
@@ -34,7 +33,7 @@ namespace hyteg {
 class CCRStokesOperator : public Operator< CCRStokesFunction< real_t >, CCRStokesFunction< real_t > >
 {
  public:
-   typedef operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 VelocityOperator_T;
+   typedef operatorgeneration::P2PlusBubbleElementwiseDiffusion VelocityOperator_T;
 
    CCRStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
@@ -58,10 +57,10 @@ class CCRStokesOperator : public Operator< CCRStokesFunction< real_t >, CCRStoke
       div.apply( src.uvw(), dst.p(), level, flag, Replace );
    }
 
-   const operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64& getA() const
+   const operatorgeneration::P2PlusBubbleElementwiseDiffusion& getA() const
    {
       auto ptr = Lapl.getSubOperator( 0, 0 );
-      return dynamic_cast< const operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64& >( *ptr );
+      return dynamic_cast< const operatorgeneration::P2PlusBubbleElementwiseDiffusion& >( *ptr );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,

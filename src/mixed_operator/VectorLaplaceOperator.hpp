@@ -21,11 +21,11 @@
 
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseDiffusion_float64.hpp"
 #include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
 
 #include "VectorToVectorOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
@@ -146,11 +146,11 @@ extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2Element
 // ------------------
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >  P2BlendingVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator > P2SurrogateVectorLaplaceOperator;
-typedef VectorLaplaceOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 > P2PlusBubbleVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion > P2PlusBubbleVectorLaplaceOperator;
 
 extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >;
 extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator >;
-extern template class VectorLaplaceOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64 >;
+extern template class VectorLaplaceOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion >;
 // clang-format on
 
 } // namespace hyteg
