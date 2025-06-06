@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 
+#include "hyteg/composites/CCRStokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
@@ -71,12 +72,13 @@ int main( int argc, char* argv[] )
    P2VectorFunction< int64_t > p2VectorFunc( "P2 vector function", storage, minLevel, maxLevel );
 
    P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes function", storage, minLevel, maxLevel );
+   CCRStokesFunction< real_t >      ccrStokesFunc( "CCR Stokes function", storage, minLevel, maxLevel );
 
    EGFunction< real_t > egVectorFunc( "EG vector function", storageDG, minLevel, maxLevel );
 
    n1e1::N1E1VectorFunction< real_t > n1e1VectorFunc( "N1E1 vector function", storage, minLevel, maxLevel );
 
-   P2PlusBubbleFunction< real_t >  p2BubbleFunc( "bubble enhance P2 function", storageDG, minLevel, maxLevel );
+   P2PlusBubbleFunction< real_t > p2BubbleFunc( "bubble enhance P2 function", storageDG, minLevel, maxLevel );
 
    // create a registry and register some functions
    FEFunctionRegistry registry;
@@ -109,15 +111,25 @@ int main( int argc, char* argv[] )
    // adding this will increate the count of P1Function and P2VectorFunction
    registry.add( stokesFunc );
 
+   // adding this will increate the count of P2PlusBubbleVectorFunction and DG1Function
+   registry.add( ccrStokesFunc );
+
    // check name extraction individually for all kinds
-   std::vector< functionTraits::FunctionKind > kinds{
-       DG_FUNCTION, P1_FUNCTION, P2_FUNCTION, P2_PLUS_BUBBLE_FUNCTION, P1_VECTOR_FUNCTION, P2_VECTOR_FUNCTION, N1E1_VECTOR_FUNCTION, EG_FUNCTION };
-   std::vector< uint_t > count{ 3, 3, 1, 1, 1, 2, 1, 1 };
-   for ( uint_t k = 0; k < kinds.size(); ++k )
+   std::map< functionTraits::FunctionKind, uint_t > kindCount{ { DG_FUNCTION, 4 },
+                                                               { P1_FUNCTION, 3 },
+                                                               { P2_FUNCTION, 1 },
+                                                               { P2_PLUS_BUBBLE_FUNCTION, 1 },
+                                                               { P2_PLUS_BUBBLE_VECTOR_FUNCTION, 1 },
+                                                               { P1_VECTOR_FUNCTION, 1 },
+                                                               { P2_VECTOR_FUNCTION, 2 },
+                                                               { N1E1_VECTOR_FUNCTION, 1 },
+                                                               { EG_FUNCTION, 1 } };
+
+   for ( const auto& entry : kindCount )
    {
       names.clear();
-      registry.extractFunctionNames( names, kinds[k] );
-      WALBERLA_CHECK_EQUAL( names.size(), count[k] );
+      registry.extractFunctionNames( names, entry.first );
+      WALBERLA_CHECK_EQUAL( names.size(), entry.second );
    }
 
    // selectively check function extraction
@@ -136,15 +148,20 @@ int main( int argc, char* argv[] )
    std::vector< P2Function< real_t > > realP2Funcs = p2Funcs.getFunctions< real_t >();
    WALBERLA_CHECK_EQUAL( p2ScalarFunc1.getFunctionName(), realP2Funcs[0].getFunctionName() );
 
-   // test deregistring a function works
+   // test deregistering a function works
    registry.remove( p2VectorFunc );
-   WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), 1 );
+   WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), --kindCount[P2_VECTOR_FUNCTION] );
 
    registry.remove( p0ScalarFunc1 );
+   WALBERLA_CHECK_EQUAL( registry.getDGFunctions().size(), --kindCount[DG_FUNCTION] );
 
    registry.remove( stokesFunc );
-   WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), 0 );
-   WALBERLA_CHECK_EQUAL( registry.getP1Functions().size(), 2 );
+   WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), --kindCount[P2_VECTOR_FUNCTION] );
+   WALBERLA_CHECK_EQUAL( registry.getP1Functions().size(), --kindCount[P1_FUNCTION] );
+
+   registry.remove( ccrStokesFunc );
+   WALBERLA_CHECK_EQUAL( registry.getP2PlusBubbleVectorFunctions().size(), --kindCount[P2_PLUS_BUBBLE_VECTOR_FUNCTION] );
+   WALBERLA_CHECK_EQUAL( registry.getDGFunctions().size(), --kindCount[DG_FUNCTION] );
 
    return EXIT_SUCCESS;
 }
