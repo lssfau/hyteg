@@ -22,6 +22,7 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
+#include "core/Format.hpp"
 
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -44,6 +45,7 @@ static void primitiveStorageParallelSetupWrite( const std::string& meshFile, uin
       WALBERLA_LOG_INFO( setupStorage );
 
       setupStorage.writeToFile( file );
+      setupStorage.writeToFile( walberla::format("%s.bp", file.c_str()), 0u, true );
    }
 }
 
@@ -58,8 +60,12 @@ static void primitiveStorageParallelSetupRead( const std::string& meshFile, uint
    // Load storage from file
    PrimitiveStorage storageRead( file );
 
+   // Load storage from adios2 file
+   PrimitiveStorage storageReadAdios2( walberla::format("%s.bp", file.c_str()), 0u, true );
+
    auto info     = storage.getGlobalInfo();
    auto infoRead = storageRead.getGlobalInfo();
+   auto infoReadAdios2 = storageReadAdios2.getGlobalInfo();
 
    WALBERLA_LOG_INFO_ON_ROOT( "Storage built during run time:" )
    WALBERLA_LOG_INFO_ON_ROOT( info );
@@ -67,10 +73,14 @@ static void primitiveStorageParallelSetupRead( const std::string& meshFile, uint
    WALBERLA_LOG_INFO_ON_ROOT( "Storage read from file:" )
    WALBERLA_LOG_INFO_ON_ROOT( infoRead );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Storage read from Adios2 file:" )
+   WALBERLA_LOG_INFO_ON_ROOT( infoReadAdios2 );
+
    auto ngf = storageRead.getNumberOfGlobalFaces();
    WALBERLA_CHECK_GREATER( ngf, 0 );
 
    WALBERLA_CHECK_EQUAL( info, infoRead );
+   WALBERLA_CHECK_EQUAL( info, infoReadAdios2 );
 }
 
 } // namespace hyteg
