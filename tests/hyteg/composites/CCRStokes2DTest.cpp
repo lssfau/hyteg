@@ -24,6 +24,7 @@
 
 #include "hyteg/composites/CCRStokesFunction.hpp"
 #include "hyteg/composites/CCRStokesOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -34,6 +35,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 
 // #ifndef HYTEG_BUILD_WITH_PETSC
@@ -101,7 +103,7 @@ std::function< real_t( const hyteg::Point3D& ) > getAnalyticalExpression( Expres
          real_t tmp2 = tmp1 * tmp1;
          real_t tmp3 = tmp2 * tmp2;
 
-         return x * x * tmp3 * y * y * ( real_c( 1 ) - y ) * ( real_c( 3 ) - real_c( 5 ) * y );
+         return real_c( 1000 ) * x * x * tmp3 * y * y * ( real_c( 1 ) - y ) * ( real_c( 3 ) - real_c( 5 ) * y );
       };
       break;
 
@@ -114,7 +116,7 @@ std::function< real_t( const hyteg::Point3D& ) > getAnalyticalExpression( Expres
          real_t tmp2 = tmp1 * tmp1 * tmp1;
          real_t tmp3 = ( real_c( 1 ) - y ) * ( real_c( 1 ) - y );
          real_t y3   = y * y * y;
-         return -real_c( 2 ) * x * tmp2 * ( real_c( 1 ) - real_c( 3 ) * x ) * y3 * tmp3;
+         return -real_c( 2000 ) * x * tmp2 * ( real_c( 1 ) - real_c( 3 ) * x ) * y3 * tmp3;
       };
       break;
 
@@ -228,11 +230,13 @@ void manufacturedSolutionTest( bool doVTKOutput = false )
    uint_t                      level = 4;
    CCRStokesFunction< real_t > sol_analytic( "Analytic Solution", storage, level, level );
 
-   sol_analytic.uvw().interpolate( { getAnalyticalExpression( ExpressionType::UX ), getAnalyticalExpression( ExpressionType::UY ) }, level );
+   sol_analytic.uvw().interpolate(
+       { getAnalyticalExpression( ExpressionType::UX ), getAnalyticalExpression( ExpressionType::UY ) }, level );
    sol_analytic.p().interpolate( getAnalyticalExpression( ExpressionType::P ), level );
 
    CCRStokesFunction< real_t > rhs_analytic( "Analytic RHS", storage, level, level );
-   rhs_analytic.uvw().interpolate( { getAnalyticalExpression( ExpressionType::RHS_X ), getAnalyticalExpression( ExpressionType::RHS_Y ) }, level );
+   rhs_analytic.uvw().interpolate(
+       { getAnalyticalExpression( ExpressionType::RHS_X ), getAnalyticalExpression( ExpressionType::RHS_Y ) }, level );
 
    // setup FE problem
    CCRStokesOperator           stokesOperator( storage, level, level );
@@ -263,6 +267,70 @@ void manufacturedSolutionTest( bool doVTKOutput = false )
    }
 }
 
+void manufacturedSolutionTestTaylorHood( bool doVTKOutput = false )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Running \"manufacturedSolutionTest (Taylor-Hood)\"" );
+
+   // The test uses example D.3 for Steady-State flow problems
+   // from John, "Finite Element Methods for Incompressible Flow Problems"
+   //             _
+   //            |  x^2 (1-x)^4 y^2 (1-y) (3-5y)
+   // u = 1000 * |
+   //            |_ -2x (1-x)^3 (1-3x) y^3 (1-y)^2
+   //
+   //
+   // p = pi^2 ( x y^3 cos( 2 pi x^2 y ) - x^2 y sin( 2 pi x y ) + 1/8
+   //
+   // The problem is posed in the unit square with no-slip boundary conditions
+   // for velocity.
+
+   // prepare domain and mesh
+   MeshInfo meshInfo = MeshInfo::meshRectangle(
+       Point2D( real_c( 0 ), real_c( 0 ) ), Point2D( real_c( 1 ), real_c( 1 ) ), hyteg::MeshInfo::CRISSCROSS, 2, 2 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
+
+   uint_t                           level = 4;
+   P2P1TaylorHoodFunction< real_t > sol_analytic( "Analytic Solution", storage, level, level );
+
+   sol_analytic.uvw().interpolate(
+       { getAnalyticalExpression( ExpressionType::UX ), getAnalyticalExpression( ExpressionType::UY ) }, level );
+   sol_analytic.p().interpolate( getAnalyticalExpression( ExpressionType::P ), level );
+
+   P2P1TaylorHoodFunction< real_t > rhs_analytic( "Analytic RHS", storage, level, level );
+   rhs_analytic.uvw().interpolate(
+       { getAnalyticalExpression( ExpressionType::RHS_X ), getAnalyticalExpression( ExpressionType::RHS_Y ) }, level );
+
+   // setup FE problem
+   P2P1TaylorHoodStokesOperator     stokesOperator( storage, level, level );
+   P2P1TaylorHoodFunction< real_t > discrete_rhs( "Discrete RHS", storage, level, level );
+   P2P1TaylorHoodFunction< real_t > discrete_sol( "Discrete Solution", storage, level, level );
+
+   // note: problem has no-slip boundary conditions, so nothing to do for this
+
+   P2ConstantVectorMassOperator massOperator( storage, level, level );
+   massOperator.apply( rhs_analytic.uvw(), discrete_rhs.uvw(), level, All );
+
+   EigenSparseDirectSolver< P2P1TaylorHoodStokesOperator > EigenLU( storage, level );
+   // EigenLU.setReassembleMatrix( true );
+   EigenLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
+
+   // PETScLUSolver< CCRStokesOperator > petscLU( storage, level );
+   // petscLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
+
+   // export data for post-processing
+   if ( doVTKOutput )
+   {
+      VTKOutput vtkOutput( ".", "ccr", storage );
+      vtkOutput.add( sol_analytic );
+      vtkOutput.add( rhs_analytic );
+      vtkOutput.add( discrete_sol );
+      vtkOutput.add( discrete_rhs );
+      vtkOutput.write( level );
+   }
+}
+
 } // namespace hyteg
 
 using namespace hyteg;
@@ -273,7 +341,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    objectInstantionTest();
-   manufacturedSolutionTest( true );
+   manufacturedSolutionTestTaylorHood( true );
 
    return EXIT_SUCCESS;
 }
