@@ -1,5 +1,5 @@
 add_library(mixed_operator)
-target_link_libraries(mixed_operator PRIVATE hyteg core constant_stencil_operator)
+target_link_libraries(mixed_operator PRIVATE hyteg core constant_stencil_operator opgen-mass)
 
 target_sources(mixed_operator
       PRIVATE

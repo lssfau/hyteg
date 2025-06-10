@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr.
+ * Copyright (c) 2017-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,10 +21,12 @@
 
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
+#include "hyteg_operators/operators/mass/P2PlusBubbleElementwiseMass.hpp"
 
 #include "VectorToVectorOperator.hpp"
-#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 namespace hyteg {
 
@@ -46,5 +48,9 @@ typedef VectorMassOperator< real_t, P1VectorFunction, P1ElementwiseBlendingMassO
 typedef VectorMassOperator< real_t, P2VectorFunction, P2ConstantMassOperator >            P2ConstantVectorMassOperator;
 typedef VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseMassOperator >         P2ElementwiseVectorMassOperator;
 typedef VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseBlendingMassOperator > P2ElementwiseBlendingVectorMassOperator;
+
+// P2PlusBubble versions
+typedef VectorMassOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseMass >
+    P2PlusBubbleElementwiseVectorMassOperator;
 
 } // namespace hyteg
