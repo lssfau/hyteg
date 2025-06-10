@@ -357,7 +357,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// We will use the BP format, but instead of "BP5" use "BP4", because of unclear
    /// stability issues; see https://github.com/ornladios/ADIOS2/discussions/3822#discussioncomment-7187267
    /// for details
-   inline static const std::string engineType_{ "BP4" };
+   inline static const std::string engineType_{ ADIOS2_BP_FORMAT };
 
  private:
    /// object that remembers the functions we should export
