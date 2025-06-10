@@ -143,7 +143,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Uses MPIIO for (hopefully) fast consecutive reads from a single file in parallel.
    ///
    /// Please refer to the documentation of the corresponding method in the SetupPrimitiveStorage.
-   explicit PrimitiveStorage( const std::string& file );
+   explicit PrimitiveStorage( const std::string& file, uint_t additionalHaloDepth = 0u, bool adios2 = false );
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
@@ -628,6 +628,12 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
  private:
+   void getDirectNeighbourPrimitiveIDs( const std::vector< PrimitiveID >& vertices,
+                                        const std::vector< PrimitiveID >& edges,
+                                        const std::vector< PrimitiveID >& faces,
+                                        const std::vector< PrimitiveID >& cells,
+                                        std::vector< PrimitiveID >&       neighbourPrimitiveIDs );
+
    /// Adds the direct neighbors of the given primitives to the storage.
    /// Calling this function several times allows us to enlarge our geometric halos.
    void addDirectNeighbors( const SetupPrimitiveStorage&      setupStorage,

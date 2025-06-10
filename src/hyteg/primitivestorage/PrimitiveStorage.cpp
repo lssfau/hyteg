@@ -20,6 +20,7 @@
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
+#include <adios2.h>
 #include <algorithm>
 #include <map>
 #include <vector>
@@ -146,6 +147,170 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 #ifndef NDEBUG
    checkConsistency();
 #endif
+}
+
+void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< PrimitiveID >& vertices,
+                                                       const std::vector< PrimitiveID >& edges,
+                                                       const std::vector< PrimitiveID >& faces,
+                                                       const std::vector< PrimitiveID >& cells,
+                                                       std::vector< PrimitiveID >&       neighbourPrimitiveIDs )
+{
+   std::set< PrimitiveID > neighbourPids;
+
+   for ( const auto& id : vertices )
+   {
+      const Vertex* vertex = getVertex( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( vertex );
+
+      for ( const auto& neighborVertexID : vertex->neighborVertices() )
+      {
+         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+         {
+            neighbourPids.insert( neighborVertexID );
+         }
+      }
+
+      for ( const auto& neighborEdgeID : vertex->neighborEdges() )
+      {
+         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+         {
+            neighbourPids.insert( neighborEdgeID );
+         }
+      }
+
+      for ( const auto& neighborFaceID : vertex->neighborFaces() )
+      {
+         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+         {
+            neighbourPids.insert( neighborFaceID );
+         }
+      }
+
+      for ( const auto& neighborCellID : vertex->neighborCells() )
+      {
+         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+         {
+            neighbourPids.insert( neighborCellID );
+         }
+      }
+   }
+
+   for ( const auto& id : edges )
+   {
+      const Edge* edge = getEdge( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( edge );
+
+      for ( const auto& neighborVertexID : edge->neighborVertices() )
+      {
+         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+         {
+            neighbourPids.insert( neighborVertexID );
+         }
+      }
+
+      for ( const auto& neighborEdgeID : edge->neighborEdges() )
+      {
+         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+         {
+            neighbourPids.insert( neighborEdgeID );
+         }
+      }
+
+      for ( const auto& neighborFaceID : edge->neighborFaces() )
+      {
+         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+         {
+            neighbourPids.insert( neighborFaceID );
+         }
+      }
+
+      for ( const auto& neighborCellID : edge->neighborCells() )
+      {
+         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+         {
+            neighbourPids.insert( neighborCellID );
+         }
+      }
+   }
+
+   for ( const auto& id : faces )
+   {
+      const Face* face = getFace( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( face );
+
+      for ( const auto& neighborVertexID : face->neighborVertices() )
+      {
+         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+         {
+            neighbourPids.insert( neighborVertexID );
+         }
+      }
+
+      for ( const auto& neighborEdgeID : face->neighborEdges() )
+      {
+         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+         {
+            neighbourPids.insert( neighborEdgeID );
+         }
+      }
+
+      for ( const auto& neighborFaceID : face->neighborFaces() )
+      {
+         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+         {
+            neighbourPids.insert( neighborFaceID );
+         }
+      }
+
+      for ( const auto& neighborCellID : face->neighborCells() )
+      {
+         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+         {
+            neighbourPids.insert( neighborCellID );
+         }
+      }
+   }
+
+   for ( const auto& id : cells )
+   {
+      const Cell* cell = getCell( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( cell );
+
+      for ( const auto& neighborVertexID : cell->neighborVertices() )
+      {
+         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+         {
+            neighbourPids.insert( neighborVertexID );
+         }
+      }
+
+      for ( const auto& neighborEdgeID : cell->neighborEdges() )
+      {
+         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+         {
+            neighbourPids.insert( neighborEdgeID );
+         }
+      }
+
+      for ( const auto& neighborFaceID : cell->neighborFaces() )
+      {
+         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+         {
+            neighbourPids.insert( neighborFaceID );
+         }
+      }
+
+      for ( const auto& neighborCellID : cell->neighborCells() )
+      {
+         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+         {
+            neighbourPids.insert( neighborCellID );
+         }
+      }
+   }
+
+   neighbourPrimitiveIDs.resize( neighbourPids.size() );
+   std::copy( neighbourPids.begin(), neighbourPids.end(), neighbourPrimitiveIDs.begin() );
 }
 
 void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      setupStorage,
@@ -479,12 +644,12 @@ PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
 #endif
 }
 
-PrimitiveStorage::PrimitiveStorage( const std::string& file )
+PrimitiveStorage::PrimitiveStorage( const std::string& file, uint_t additionalHaloDepth, bool adios2 )
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( std::make_shared< walberla::WcTimingTree >() )
-, hasGlobalCells_( false )  // will be updated later in the constructor
-, additionalHaloDepth_( 0 ) // NEEDS TO BE FIXED IN SERIALIZATION IF CHANGED HERE!
+, hasGlobalCells_( false )                    // will be updated later in the constructor
+, additionalHaloDepth_( additionalHaloDepth ) // NEEDS TO BE FIXED IN SERIALIZATION IF CHANGED HERE!
 {
    // We need to construct at least the maps on the coarsest level.
    vertices_[0];
@@ -498,105 +663,307 @@ PrimitiveStorage::PrimitiveStorage( const std::string& file )
 
    auto instance = walberla::mpi::MPIManager::instance();
 
-   // First we need to read the metadata.
-   int uint64Size;
-   MPI_Type_size( walberla::MPITrait< uint64_t >::type(), &uint64Size );
-   uint64_t offsetData[2];
-   MPI_File mpiFile = MPI_FILE_NULL;
-   int      result  = MPI_SUCCESS;
-   result = MPI_File_open( instance->comm(), const_cast< char* >( file.c_str() ), MPI_MODE_RDONLY, MPI_INFO_NULL, &mpiFile );
-
-   if ( result != MPI_SUCCESS )
-      WALBERLA_ABORT( "Error while opening file \"" << file << "\" for reading. MPI Error is \""
-                                                    << instance->getMPIErrorString( result ) << "\"" );
-
-   MPI_Datatype offsettype;
-   MPI_Type_contiguous( 2, walberla::MPITrait< uint64_t >::type(), &offsettype );
-   MPI_Type_commit( &offsettype );
-
-   // read each process' offset and buffer size from file
-   result = MPI_File_set_view( mpiFile,
-                               numeric_cast< MPI_Offset >( instance->rank() * 2 * uint64Size ),
-                               walberla::MPITrait< uint64_t >::type(),
-                               offsettype,
-                               const_cast< char* >( "native" ),
-                               MPI_INFO_NULL );
-
-   if ( result != MPI_SUCCESS )
-      WALBERLA_ABORT( "Internal MPI-IO error! MPI Error is \"" << instance->getMPIErrorString( result ) << "\"" );
-
-   result = MPI_File_read_all(
-       mpiFile, reinterpret_cast< char* >( offsetData ), 2, walberla::MPITrait< uint64_t >::type(), MPI_STATUS_IGNORE );
-
-   if ( result != MPI_SUCCESS )
-      WALBERLA_ABORT( "Error while reading from file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
-                                                         << "\"" );
-
-   // Now the process` portion.
-   RecvBuffer buffer;
-
-   MPI_Datatype arraytype;
-   MPI_Type_contiguous(
-       int_c( offsetData[1] ), walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(), &arraytype );
-   MPI_Type_commit( &arraytype );
-
-   result = MPI_File_set_view( mpiFile,
-                               numeric_cast< MPI_Offset >( offsetData[0] ),
-                               walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(),
-                               arraytype,
-                               const_cast< char* >( "native" ),
-                               MPI_INFO_NULL );
-
-   if ( result != MPI_SUCCESS )
-      WALBERLA_ABORT( "Internal MPI-IO error! MPI Error is \"" << instance->getMPIErrorString( result ) << "\"" );
-
-   buffer.resize( offsetData[1] );
-
-   result = MPI_File_read_all( mpiFile,
-                               reinterpret_cast< char* >( buffer.ptr() ),
-                               int_c( buffer.size() ),
-                               walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(),
-                               MPI_STATUS_IGNORE );
-
-   if ( result != MPI_SUCCESS )
-      WALBERLA_ABORT( "Error while reading from file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
-                                                         << "\"" );
-
-   result = MPI_File_close( &mpiFile );
-
-   if ( result != MPI_SUCCESS )
-      WALBERLA_ABORT( "Error while closing file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
-                                                    << "\"" );
-
-   MPI_Type_free( &arraytype );
-   MPI_Type_free( &offsettype );
-
-   // Now we process the data.
-
-   auto rank = uint_c( instance->rank() );
-
-   uint8_t hgc;
-   buffer >> hgc;
-   hasGlobalCells_ = hgc;
-
-   uint64_t numPrimitives;
-   buffer >> numPrimitives;
-
-   for ( uint_t p = 0; p < numPrimitives; p++ )
+   if ( !adios2 )
    {
-      uint_t      pRank;
-      PrimitiveID pid;
+      // First we need to read the metadata.
+      int uint64Size;
+      MPI_Type_size( walberla::MPITrait< uint64_t >::type(), &uint64Size );
+      uint64_t offsetData[2];
+      MPI_File mpiFile = MPI_FILE_NULL;
+      int      result  = MPI_SUCCESS;
+      result = MPI_File_open( instance->comm(), const_cast< char* >( file.c_str() ), MPI_MODE_RDONLY, MPI_INFO_NULL, &mpiFile );
 
-      buffer >> pRank >> pid;
+      if ( result != MPI_SUCCESS )
+         WALBERLA_ABORT( "Error while opening file \"" << file << "\" for reading. MPI Error is \""
+                                                       << instance->getMPIErrorString( result ) << "\"" );
 
-      auto isNeighbor = pRank != rank;
+      MPI_Datatype offsettype;
+      MPI_Type_contiguous( 2, walberla::MPITrait< uint64_t >::type(), &offsettype );
+      MPI_Type_commit( &offsettype );
 
-      deserializeAndAddPrimitive( buffer, isNeighbor );
+      // read each process' offset and buffer size from file
+      result = MPI_File_set_view( mpiFile,
+                                  numeric_cast< MPI_Offset >( instance->rank() * 2 * uint64Size ),
+                                  walberla::MPITrait< uint64_t >::type(),
+                                  offsettype,
+                                  const_cast< char* >( "native" ),
+                                  MPI_INFO_NULL );
 
-      if ( isNeighbor )
+      if ( result != MPI_SUCCESS )
+         WALBERLA_ABORT( "Internal MPI-IO error! MPI Error is \"" << instance->getMPIErrorString( result ) << "\"" );
+
+      result = MPI_File_read_all(
+          mpiFile, reinterpret_cast< char* >( offsetData ), 2, walberla::MPITrait< uint64_t >::type(), MPI_STATUS_IGNORE );
+
+      if ( result != MPI_SUCCESS )
+         WALBERLA_ABORT( "Error while reading from file \"" << file << "\". MPI Error is \""
+                                                            << instance->getMPIErrorString( result ) << "\"" );
+
+      // Now the process` portion.
+      RecvBuffer buffer;
+
+      MPI_Datatype arraytype;
+      MPI_Type_contiguous(
+          int_c( offsetData[1] ), walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(), &arraytype );
+      MPI_Type_commit( &arraytype );
+
+      result = MPI_File_set_view( mpiFile,
+                                  numeric_cast< MPI_Offset >( offsetData[0] ),
+                                  walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(),
+                                  arraytype,
+                                  const_cast< char* >( "native" ),
+                                  MPI_INFO_NULL );
+
+      if ( result != MPI_SUCCESS )
+         WALBERLA_ABORT( "Internal MPI-IO error! MPI Error is \"" << instance->getMPIErrorString( result ) << "\"" );
+
+      buffer.resize( offsetData[1] );
+
+      result = MPI_File_read_all( mpiFile,
+                                  reinterpret_cast< char* >( buffer.ptr() ),
+                                  int_c( buffer.size() ),
+                                  walberla::MPITrait< walberla::mpi::RecvBuffer::ElementType >::type(),
+                                  MPI_STATUS_IGNORE );
+
+      if ( result != MPI_SUCCESS )
+         WALBERLA_ABORT( "Error while reading from file \"" << file << "\". MPI Error is \""
+                                                            << instance->getMPIErrorString( result ) << "\"" );
+
+      result = MPI_File_close( &mpiFile );
+
+      if ( result != MPI_SUCCESS )
+         WALBERLA_ABORT( "Error while closing file \"" << file << "\". MPI Error is \"" << instance->getMPIErrorString( result )
+                                                       << "\"" );
+
+      MPI_Type_free( &arraytype );
+      MPI_Type_free( &offsettype );
+
+      // Now we process the data.
+
+      auto rank = uint_c( instance->rank() );
+
+      uint8_t hgc;
+      buffer >> hgc;
+      hasGlobalCells_ = hgc;
+
+      uint64_t numPrimitives;
+      buffer >> numPrimitives;
+
+      for ( uint_t p = 0; p < numPrimitives; p++ )
       {
-         neighborRanks_[0][pid] = pRank;
+         uint_t      pRank;
+         PrimitiveID pid;
+
+         buffer >> pRank >> pid;
+
+         auto isNeighbor = pRank != rank;
+
+         deserializeAndAddPrimitive( buffer, isNeighbor );
+
+         if ( isNeighbor )
+         {
+            neighborRanks_[0][pid] = pRank;
+         }
       }
+   }
+   else
+   {
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+      const std::string engineType_{ ADIOS2_BP_FORMAT };
+
+      adios2::ADIOS adios_ = adios2::ADIOS( walberla::MPIManager::instance()->comm() );
+
+      adios2::IO io = adios_.DeclareIO( "SetupPrimitiveStorageReadFromFile" );
+      io.SetEngine( engineType_ );
+      adios2::Engine engine = io.Open( file, adios2::Mode::ReadRandomAccess );
+
+      adios2::Variable< uint8_t > hasGlobalCellsVar = io.InquireVariable< uint8_t >( "hasGlobalCells" );
+      uint8_t                     hgc               = 0;
+      engine.Get( hasGlobalCellsVar, &hgc );
+      engine.PerformGets();
+
+      hasGlobalCells_ = ( hgc == 1 );
+
+      adios2::Variable< char > pritiveIdsAsStringAdiosVar =
+          io.InquireVariable< char >( "primitiveIDToTargetRankMap_PrimitiveString" );
+
+      RecvBuffer pidsBuffer;
+      uint_t     primitiveIdStringBufferSize = pritiveIdsAsStringAdiosVar.SelectionSize();
+      pidsBuffer.resize( primitiveIdStringBufferSize );
+
+      adios2::Variable< uint_t > primitiveTargetRankAdiosVar =
+          io.InquireVariable< uint_t >( "primitiveIDToTargetRankMap_TargetRank" );
+
+      uint_t                numPrimitives = primitiveTargetRankAdiosVar.SelectionSize();
+      std::vector< uint_t > primitiveTargetRank;
+      primitiveTargetRank.resize( numPrimitives );
+
+      engine.Get( pritiveIdsAsStringAdiosVar, reinterpret_cast< char* >( pidsBuffer.ptr() ) );
+      engine.Get( primitiveTargetRankAdiosVar, primitiveTargetRank.data() );
+
+      engine.PerformGets();
+
+      std::map< PrimitiveID, uint_t > primitiveIdTargetRankMap;
+
+      std::vector< PrimitiveID > primitiveIdsToRead;
+
+      uint_t rank = uint_c( instance->rank() );
+
+      for ( uint_t i = 0u; i < numPrimitives; i++ )
+      {
+         PrimitiveID pid;
+         pidsBuffer >> pid;
+
+         primitiveIdTargetRankMap[pid] = primitiveTargetRank[i];
+
+         if ( primitiveTargetRank[i] == rank )
+         {
+            primitiveIdsToRead.push_back( pid );
+         }
+      }
+
+      {
+         std::vector< RecvBuffer > primitiveRecvBuffers;
+         primitiveRecvBuffers.resize( primitiveIdsToRead.size() );
+
+         for ( uint_t i = 0u; i < primitiveIdsToRead.size(); i++ )
+         {
+            PrimitiveID pid = primitiveIdsToRead[i];
+
+            std::stringstream pName;
+            pid.toStream( pName );
+
+            std::string pNameStr = pName.str();
+
+            adios2::Variable< unsigned char > primitiveData = io.InquireVariable< unsigned char >( pNameStr );
+
+            primitiveRecvBuffers[i].resize( primitiveData.SelectionSize() );
+            engine.Get( primitiveData, primitiveRecvBuffers[i].ptr() );
+         }
+
+         engine.PerformGets();
+
+         for ( uint_t i = 0u; i < primitiveIdsToRead.size(); i++ )
+         {
+            uint_t      pRank;
+            PrimitiveID pid;
+
+            primitiveRecvBuffers[i] >> pRank >> pid;
+
+            if ( pRank != rank )
+            {
+               WALBERLA_ABORT( "pRank must be same as rank in the first pass" );
+            }
+
+            deserializeAndAddPrimitive( primitiveRecvBuffers[i], false );
+         }
+      }
+
+      std::vector< PrimitiveID > vertices{ getVertexIDs() };
+      std::vector< PrimitiveID > edges{ getEdgeIDs() };
+      std::vector< PrimitiveID > faces{ getFaceIDs() };
+      std::vector< PrimitiveID > cells{ getCellIDs() };
+
+      std::vector< PrimitiveID > directNeighbourPrimitiveIDs;
+      getDirectNeighbourPrimitiveIDs( vertices, edges, faces, cells, directNeighbourPrimitiveIDs );
+
+      {
+         std::vector< RecvBuffer > primitiveRecvBuffers;
+         primitiveRecvBuffers.resize( directNeighbourPrimitiveIDs.size() );
+
+         for ( uint_t i = 0u; i < directNeighbourPrimitiveIDs.size(); i++ )
+         {
+            PrimitiveID pid = directNeighbourPrimitiveIDs[i];
+
+            std::stringstream pName;
+            pid.toStream( pName );
+
+            std::string pNameStr = pName.str();
+
+            adios2::Variable< unsigned char > primitiveData = io.InquireVariable< unsigned char >( pNameStr );
+
+            primitiveRecvBuffers[i].resize( primitiveData.SelectionSize() );
+            engine.Get( primitiveData, primitiveRecvBuffers[i].ptr() );
+         }
+
+         engine.PerformGets();
+
+         for ( uint_t i = 0u; i < directNeighbourPrimitiveIDs.size(); i++ )
+         {
+            uint_t      pRank;
+            PrimitiveID pid;
+
+            primitiveRecvBuffers[i] >> pRank >> pid;
+
+            if ( pRank == rank )
+            {
+               WALBERLA_ABORT( "pRank must not be same as rank in further passes" );
+            }
+
+            neighborRanks_[0][pid] = pRank;
+
+            deserializeAndAddPrimitive( primitiveRecvBuffers[i], true );
+         }
+      }
+
+      for ( uint_t k = 0; k < additionalHaloDepth_; k += 1 )
+      {
+         std::vector< PrimitiveID > additionalVertices;
+         getNeighboringVertexIDs( additionalVertices );
+         std::vector< PrimitiveID > additionalEdges;
+         getNeighboringEdgeIDs( additionalEdges );
+         std::vector< PrimitiveID > additionalFaces;
+         getNeighboringFaceIDs( additionalFaces );
+         std::vector< PrimitiveID > additionalCells;
+         getNeighboringCellIDs( additionalCells );
+
+         std::vector< PrimitiveID > indirectNeighbourPrimitiveIDs;
+         getDirectNeighbourPrimitiveIDs(
+             additionalVertices, additionalEdges, additionalFaces, additionalCells, indirectNeighbourPrimitiveIDs );
+
+         {
+            std::vector< RecvBuffer > primitiveRecvBuffers;
+            primitiveRecvBuffers.resize( indirectNeighbourPrimitiveIDs.size() );
+
+            for ( uint_t i = 0u; i < indirectNeighbourPrimitiveIDs.size(); i++ )
+            {
+               PrimitiveID pid = indirectNeighbourPrimitiveIDs[i];
+
+               std::stringstream pName;
+               pid.toStream( pName );
+
+               std::string pNameStr = pName.str();
+
+               adios2::Variable< unsigned char > primitiveData = io.InquireVariable< unsigned char >( pNameStr );
+
+               primitiveRecvBuffers[i].resize( primitiveData.SelectionSize() );
+               engine.Get( primitiveData, primitiveRecvBuffers[i].ptr() );
+            }
+
+            engine.PerformGets();
+
+            for ( uint_t i = 0u; i < indirectNeighbourPrimitiveIDs.size(); i++ )
+            {
+               uint_t      pRank;
+               PrimitiveID pid;
+
+               primitiveRecvBuffers[i] >> pRank >> pid;
+
+               if ( pRank == rank )
+               {
+                  WALBERLA_ABORT( "pRank must not be same as rank in further passes" );
+               }
+
+               neighborRanks_[0][pid] = pRank;
+
+               deserializeAndAddPrimitive( primitiveRecvBuffers[i], true );
+            }
+         }
+      }
+      engine.Close();
+#else
+      WALBERLA_ABORT( "Cannot write file with ADIOS2 as it is not built with hyteg" );
+#endif
    }
 
    splitCommunicatorByPrimitiveDistribution();
