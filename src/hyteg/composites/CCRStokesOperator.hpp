@@ -33,6 +33,7 @@ namespace hyteg {
 class CCRStokesOperator : public Operator< CCRStokesFunction< real_t >, CCRStokesFunction< real_t > >
 {
  public:
+   typedef P2PlusBubbleVectorLaplaceOperator                    VelocityBlockOperator_T;
    typedef operatorgeneration::P2PlusBubbleElementwiseDiffusion VelocityOperator_T;
 
    CCRStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )

@@ -221,10 +221,9 @@ void normalisePressureToZeroMean( func_t& pressure, uint_t level )
    pressure.assign( { real_c( 1 ), -integralValue }, { pressure, one }, level, All );
 }
 
-void manufacturedSolutionTest( bool doVTKOutput = false )
+template < typename stokesOper_t, typename massOperVelocity_t, typename massOperPressure_t >
+void solveStokesProblem( uint_t level, bool doVTKOutput, std::string prefix = "" )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "Running \"manufacturedSolutionTest\"" );
-
    // The test uses example D.3 for Steady-State flow problems
    // from John, "Finite Element Methods for Incompressible Flow Problems"
    //             _
@@ -238,6 +237,9 @@ void manufacturedSolutionTest( bool doVTKOutput = false )
    // The problem is posed in the unit square with no-slip boundary conditions
    // for velocity.
 
+   using stokesFunc_t   = typename stokesOper_t::srcType;
+   using pressureFunc_t = typename massOperPressure_t::srcType;
+
    // prepare domain and mesh
    MeshInfo meshInfo = MeshInfo::meshRectangle(
        Point2D( real_c( 0 ), real_c( 0 ) ), Point2D( real_c( 1 ), real_c( 1 ) ), hyteg::MeshInfo::CRISSCROSS, 2, 2 );
@@ -245,115 +247,61 @@ void manufacturedSolutionTest( bool doVTKOutput = false )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   uint_t                      level = 5;
-   CCRStokesFunction< real_t > sol_analytic( "Analytic Solution", storage, level, level );
+   stokesFunc_t sol_analytic( "Analytic Solution", storage, level, level );
 
    sol_analytic.uvw().interpolate(
        { getAnalyticalExpression( ExpressionType::UX ), getAnalyticalExpression( ExpressionType::UY ) }, level );
    sol_analytic.p().interpolate( getAnalyticalExpression( ExpressionType::P ), level );
 
-   CCRStokesFunction< real_t > rhs_analytic( "Analytic RHS", storage, level, level );
+   stokesFunc_t rhs_analytic( "Analytic RHS", storage, level, level );
    rhs_analytic.uvw().interpolate(
        { getAnalyticalExpression( ExpressionType::RHS_X ), getAnalyticalExpression( ExpressionType::RHS_Y ) }, level );
 
    // setup FE problem
-   CCRStokesOperator           stokesOperator( storage, level, level );
-   CCRStokesFunction< real_t > discrete_rhs( "Discrete RHS", storage, level, level );
-   CCRStokesFunction< real_t > discrete_sol( "Discrete Solution", storage, level, level );
+   stokesOper_t stokesOperator( storage, level, level );
+   stokesFunc_t discrete_rhs( "Discrete RHS", storage, level, level );
+   stokesFunc_t discrete_sol( "Discrete Solution", storage, level, level );
 
    // note: problem has no-slip boundary conditions, so nothing to do for this
 
-   P2PlusBubbleElementwiseVectorMassOperator massOperator( storage, level, level );
+   massOperVelocity_t massOperator( storage, level, level );
    massOperator.apply( rhs_analytic.uvw(), discrete_rhs.uvw(), level, All );
 
-   EigenSparseDirectSolver< CCRStokesOperator > EigenLU( storage, level );
-   // EigenLU.setReassembleMatrix( true );
+   EigenSparseDirectSolver< stokesOper_t > EigenLU( storage, level );
    EigenLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
 
    // PETScLUSolver< CCRStokesOperator > petscLU( storage, level );
    // petscLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
 
    // "normalise" pressure to zero mean
-   using DG1MassOperator = DG1Operator< DGMassForm_Example >;
-   normalisePressureToZeroMean< DG1Function< real_t >, DG1MassOperator >( discrete_sol.p(), level );
+   normalisePressureToZeroMean< pressureFunc_t, massOperPressure_t >( discrete_sol.p(), level );
+
+   // compute a simple measure for difference to analytical solutions
+   stokesFunc_t difference( "Differences", storage, level, level );
+   difference.assign( { real_c( 1 ), real_c( -1 ) }, { sol_analytic, discrete_sol }, level, All );
 
    // export data for post-processing
    if ( doVTKOutput )
    {
-      VTKOutput vtkOutput( ".", "ccr", storage );
+      VTKOutput vtkOutput( ".", prefix, storage );
       vtkOutput.add( sol_analytic );
       vtkOutput.add( rhs_analytic );
       vtkOutput.add( discrete_sol );
       vtkOutput.add( discrete_rhs );
+      vtkOutput.add( difference );
       vtkOutput.write( level );
    }
 }
 
-void manufacturedSolutionTestTaylorHood( bool doVTKOutput = false )
+void manufacturedSolutionTest( uint_t level, bool doVTKOutput = false )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "Running \"manufacturedSolutionTest (Taylor-Hood)\"" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running \"manufacturedSolutionTest\"" );
 
-   // The test uses example D.3 for Steady-State flow problems
-   // from John, "Finite Element Methods for Incompressible Flow Problems"
-   //             _
-   //            |  x^2 (1-x)^4 y^2 (1-y) (3-5y)
-   // u = 1000 * |
-   //            |_ -2x (1-x)^3 (1-3x) y^3 (1-y)^2
-   //
-   //
-   // p = pi^2 ( x y^3 cos( 2 pi x^2 y ) - x^2 y sin( 2 pi x y ) + 1/8
-   //
-   // The problem is posed in the unit square with no-slip boundary conditions
-   // for velocity.
-
-   // prepare domain and mesh
-   MeshInfo meshInfo = MeshInfo::meshRectangle(
-       Point2D( real_c( 0 ), real_c( 0 ) ), Point2D( real_c( 1 ), real_c( 1 ) ), hyteg::MeshInfo::CRISSCROSS, 2, 2 );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
-
-   uint_t                           level = 4;
-   P2P1TaylorHoodFunction< real_t > sol_analytic( "Analytic Solution", storage, level, level );
-
-   sol_analytic.uvw().interpolate(
-       { getAnalyticalExpression( ExpressionType::UX ), getAnalyticalExpression( ExpressionType::UY ) }, level );
-   sol_analytic.p().interpolate( getAnalyticalExpression( ExpressionType::P ), level );
-
-   P2P1TaylorHoodFunction< real_t > rhs_analytic( "Analytic RHS", storage, level, level );
-   rhs_analytic.uvw().interpolate(
-       { getAnalyticalExpression( ExpressionType::RHS_X ), getAnalyticalExpression( ExpressionType::RHS_Y ) }, level );
-
-   // setup FE problem
-   P2P1TaylorHoodStokesOperator     stokesOperator( storage, level, level );
-   P2P1TaylorHoodFunction< real_t > discrete_rhs( "Discrete RHS", storage, level, level );
-   P2P1TaylorHoodFunction< real_t > discrete_sol( "Discrete Solution", storage, level, level );
-
-   // note: problem has no-slip boundary conditions, so nothing to do for this
-
-   P2ConstantVectorMassOperator massOperatorVelocity( storage, level, level );
-   massOperatorVelocity.apply( rhs_analytic.uvw(), discrete_rhs.uvw(), level, All );
-
-   EigenSparseDirectSolver< P2P1TaylorHoodStokesOperator > EigenLU( storage, level );
-   // EigenLU.setReassembleMatrix( true );
-   EigenLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
-
-   // PETScLUSolver< CCRStokesOperator > petscLU( storage, level );
-   // petscLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
-
-   // "normalise" pressure to zero mean
-   normalisePressureToZeroMean< P1Function< real_t >, P1ConstantMassOperator >( discrete_sol.p(), level );
-
-   // export data for post-processing
-   if ( doVTKOutput )
-   {
-      VTKOutput vtkOutput( ".", "ccr", storage );
-      vtkOutput.add( sol_analytic );
-      vtkOutput.add( rhs_analytic );
-      vtkOutput.add( discrete_sol );
-      vtkOutput.add( discrete_rhs );
-      vtkOutput.write( level );
-   }
+   using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+   solveStokesProblem< CCRStokesOperator, P2PlusBubbleElementwiseVectorMassOperator, DG1MassOperator >(
+       level, doVTKOutput, "CCRStokes2DTest_with_CCR" );
+   solveStokesProblem< P2P1TaylorHoodStokesOperator, P2ConstantVectorMassOperator, P1ConstantMassOperator >(
+       level, doVTKOutput, "CCRStokes2DTest_with_TH" );
 }
 
 } // namespace hyteg
@@ -366,8 +314,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    objectInstantionTest();
-   manufacturedSolutionTest( true );
-   manufacturedSolutionTestTaylorHood( true );
+   manufacturedSolutionTest( 6, true );
 
    return EXIT_SUCCESS;
 }
