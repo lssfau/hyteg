@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,6 +22,9 @@
 #include "core/math/Constants.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/dg1functionspace/DG1Function.hpp"
+#include "hyteg/dg1functionspace/DG1Operator.hpp"
+#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
@@ -74,7 +77,7 @@ void checkArea( std::shared_ptr< PrimitiveStorage > storage,
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
       vecOfOnes.interpolate( real_c( 1 ), lvl, All );
-      massOp->apply( vecOfOnes, aux, lvl, All );
+      massOp->apply( vecOfOnes, aux, lvl, All, Replace );
       real_t measure = vecOfOnes.dotGlobal( aux, lvl );
 
       if ( outputVTK )
@@ -164,6 +167,12 @@ int main( int argc, char** argv )
    checkArea< P1ElementwiseMassOperator >( primStore, 8.0, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( primStore, 8.0, "P2ElementwiseMassOperator" );
 
+   {
+      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 4 );
+      checkArea< DG1MassOperator >( primStore, 8.0, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
+   }
+
    // Test with backward facing step
    logSectionHeader( "Testing with BFS" );
    meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
@@ -177,6 +186,12 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseMassOperator >( primStore, 1.75, "P2ElementwiseMassOperator" );
 
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75, "P2ElementwiseBlendingMassOperator" );
+
+   {
+      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 4 );
+      checkArea< DG1MassOperator >( primStore, 1.75, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
+   }
 
    // ----------
    //  3D Tests
@@ -194,6 +209,12 @@ int main( int argc, char** argv )
    checkArea< P1ElementwiseMassOperator >( primStore, 6.0, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( primStore, 6.0, "P2ElementwiseMassOperator" );
 
+   {
+      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 3 );
+      checkArea< DG1MassOperator >( primStore, 6.0, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
+   }
+
    // Test with coarse representation of thick spherical shell
    logSectionHeader( "Testing with Icosahedral Shell" );
    meshInfo = MeshInfo::meshSphericalShell( 2, { 1.0, 2.0 } );
@@ -209,6 +230,12 @@ int main( int argc, char** argv )
    checkArea< P2ConstantMassOperator >( primStore, volume, "P2ConstantMassOperator" );
    checkArea< P1ElementwiseMassOperator >( primStore, volume, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( primStore, volume, "P2ElementwiseMassOperator" );
+
+   {
+      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 3 );
+      checkArea< DG1MassOperator >( primStore, volume, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
+   }
 
    // -------------------
    //  2D Blending Tests
