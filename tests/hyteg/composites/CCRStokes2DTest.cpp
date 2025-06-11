@@ -26,6 +26,9 @@
 #include "hyteg/composites/CCRStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/dg1functionspace/DG1Function.hpp"
+#include "hyteg/dg1functionspace/DG1Operator.hpp"
+#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -203,6 +206,21 @@ std::function< real_t( const hyteg::Point3D& ) > getAnalyticalExpression( Expres
    return expression;
 }
 
+template < typename func_t, typename massOper_t >
+void normalisePressureToZeroMean( func_t& pressure, uint_t level )
+{
+   const std::shared_ptr< PrimitiveStorage > storage = pressure.getStorage();
+   massOper_t                                massOperator( storage, level, level );
+   func_t                                    aux( "auxilliary function", storage, level, level );
+   func_t                                    one( "'ones function'", storage, level, level );
+   one.interpolate( real_c( 1 ), level, All );
+
+   massOperator.apply( pressure, aux, level, All, Replace );
+   real_t integralValue = aux.dotGlobal( one, level );
+
+   pressure.assign( { real_c( 1 ), -integralValue }, { pressure, one }, level, All );
+}
+
 void manufacturedSolutionTest( bool doVTKOutput = false )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running \"manufacturedSolutionTest\"" );
@@ -227,7 +245,7 @@ void manufacturedSolutionTest( bool doVTKOutput = false )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   uint_t                      level = 4;
+   uint_t                      level = 5;
    CCRStokesFunction< real_t > sol_analytic( "Analytic Solution", storage, level, level );
 
    sol_analytic.uvw().interpolate(
@@ -254,6 +272,10 @@ void manufacturedSolutionTest( bool doVTKOutput = false )
 
    // PETScLUSolver< CCRStokesOperator > petscLU( storage, level );
    // petscLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
+
+   // "normalise" pressure to zero mean
+   using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+   normalisePressureToZeroMean< DG1Function< real_t >, DG1MassOperator >( discrete_sol.p(), level );
 
    // export data for post-processing
    if ( doVTKOutput )
@@ -309,8 +331,8 @@ void manufacturedSolutionTestTaylorHood( bool doVTKOutput = false )
 
    // note: problem has no-slip boundary conditions, so nothing to do for this
 
-   P2ConstantVectorMassOperator massOperator( storage, level, level );
-   massOperator.apply( rhs_analytic.uvw(), discrete_rhs.uvw(), level, All );
+   P2ConstantVectorMassOperator massOperatorVelocity( storage, level, level );
+   massOperatorVelocity.apply( rhs_analytic.uvw(), discrete_rhs.uvw(), level, All );
 
    EigenSparseDirectSolver< P2P1TaylorHoodStokesOperator > EigenLU( storage, level );
    // EigenLU.setReassembleMatrix( true );
@@ -318,6 +340,9 @@ void manufacturedSolutionTestTaylorHood( bool doVTKOutput = false )
 
    // PETScLUSolver< CCRStokesOperator > petscLU( storage, level );
    // petscLU.solve( stokesOperator, discrete_sol, discrete_rhs, level );
+
+   // "normalise" pressure to zero mean
+   normalisePressureToZeroMean< P1Function< real_t >, P1ConstantMassOperator >( discrete_sol.p(), level );
 
    // export data for post-processing
    if ( doVTKOutput )
@@ -341,6 +366,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    objectInstantionTest();
+   manufacturedSolutionTest( true );
    manufacturedSolutionTestTaylorHood( true );
 
    return EXIT_SUCCESS;
