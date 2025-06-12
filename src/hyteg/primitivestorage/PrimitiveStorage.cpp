@@ -155,6 +155,41 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
                                                        const std::vector< PrimitiveID >& cells,
                                                        std::vector< PrimitiveID >&       neighbourPrimitiveIDs )
 {
+   std::function< void( const Primitive&, std::set< PrimitiveID >& ) > checkAndAddNeighbourPrimitives =
+       [this]( const Primitive& candidatePrimitive, std::set< PrimitiveID >& primitiveSet ) {
+          for ( const auto& neighborVertexID : candidatePrimitive.neighborVertices() )
+          {
+             if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+             {
+                primitiveSet.insert( neighborVertexID );
+             }
+          }
+
+          for ( const auto& neighborEdgeID : candidatePrimitive.neighborEdges() )
+          {
+             if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+             {
+                primitiveSet.insert( neighborEdgeID );
+             }
+          }
+
+          for ( const auto& neighborFaceID : candidatePrimitive.neighborFaces() )
+          {
+             if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+             {
+                primitiveSet.insert( neighborFaceID );
+             }
+          }
+
+          for ( const auto& neighborCellID : candidatePrimitive.neighborCells() )
+          {
+             if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+             {
+                primitiveSet.insert( neighborCellID );
+             }
+          }
+       };
+
    std::set< PrimitiveID > neighbourPids;
 
    for ( const auto& id : vertices )
@@ -162,37 +197,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Vertex* vertex = getVertex( id );
       WALBERLA_ASSERT_NOT_NULLPTR( vertex );
 
-      for ( const auto& neighborVertexID : vertex->neighborVertices() )
-      {
-         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
-         {
-            neighbourPids.insert( neighborVertexID );
-         }
-      }
-
-      for ( const auto& neighborEdgeID : vertex->neighborEdges() )
-      {
-         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
-         {
-            neighbourPids.insert( neighborEdgeID );
-         }
-      }
-
-      for ( const auto& neighborFaceID : vertex->neighborFaces() )
-      {
-         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
-         {
-            neighbourPids.insert( neighborFaceID );
-         }
-      }
-
-      for ( const auto& neighborCellID : vertex->neighborCells() )
-      {
-         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
-         {
-            neighbourPids.insert( neighborCellID );
-         }
-      }
+      checkAndAddNeighbourPrimitives(*vertex, neighbourPids);
    }
 
    for ( const auto& id : edges )
@@ -200,37 +205,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Edge* edge = getEdge( id );
       WALBERLA_ASSERT_NOT_NULLPTR( edge );
 
-      for ( const auto& neighborVertexID : edge->neighborVertices() )
-      {
-         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
-         {
-            neighbourPids.insert( neighborVertexID );
-         }
-      }
-
-      for ( const auto& neighborEdgeID : edge->neighborEdges() )
-      {
-         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
-         {
-            neighbourPids.insert( neighborEdgeID );
-         }
-      }
-
-      for ( const auto& neighborFaceID : edge->neighborFaces() )
-      {
-         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
-         {
-            neighbourPids.insert( neighborFaceID );
-         }
-      }
-
-      for ( const auto& neighborCellID : edge->neighborCells() )
-      {
-         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
-         {
-            neighbourPids.insert( neighborCellID );
-         }
-      }
+      checkAndAddNeighbourPrimitives(*edge, neighbourPids);
    }
 
    for ( const auto& id : faces )
@@ -238,37 +213,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Face* face = getFace( id );
       WALBERLA_ASSERT_NOT_NULLPTR( face );
 
-      for ( const auto& neighborVertexID : face->neighborVertices() )
-      {
-         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
-         {
-            neighbourPids.insert( neighborVertexID );
-         }
-      }
-
-      for ( const auto& neighborEdgeID : face->neighborEdges() )
-      {
-         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
-         {
-            neighbourPids.insert( neighborEdgeID );
-         }
-      }
-
-      for ( const auto& neighborFaceID : face->neighborFaces() )
-      {
-         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
-         {
-            neighbourPids.insert( neighborFaceID );
-         }
-      }
-
-      for ( const auto& neighborCellID : face->neighborCells() )
-      {
-         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
-         {
-            neighbourPids.insert( neighborCellID );
-         }
-      }
+      checkAndAddNeighbourPrimitives(*face, neighbourPids);
    }
 
    for ( const auto& id : cells )
@@ -276,37 +221,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Cell* cell = getCell( id );
       WALBERLA_ASSERT_NOT_NULLPTR( cell );
 
-      for ( const auto& neighborVertexID : cell->neighborVertices() )
-      {
-         if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
-         {
-            neighbourPids.insert( neighborVertexID );
-         }
-      }
-
-      for ( const auto& neighborEdgeID : cell->neighborEdges() )
-      {
-         if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
-         {
-            neighbourPids.insert( neighborEdgeID );
-         }
-      }
-
-      for ( const auto& neighborFaceID : cell->neighborFaces() )
-      {
-         if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
-         {
-            neighbourPids.insert( neighborFaceID );
-         }
-      }
-
-      for ( const auto& neighborCellID : cell->neighborCells() )
-      {
-         if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
-         {
-            neighbourPids.insert( neighborCellID );
-         }
-      }
+      checkAndAddNeighbourPrimitives(*cell, neighbourPids);
    }
 
    neighbourPrimitiveIDs.resize( neighbourPids.size() );
