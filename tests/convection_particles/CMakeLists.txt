@@ -32,3 +32,7 @@ waLBerla_compile_test(FILES P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyte
 waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTest)
 waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTestMPI2 COMMAND $<TARGET_FILE:P2UnsteadyConvectionDiffusion2DTest> PROCESSES 2 )
 waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTestMPI4 COMMAND $<TARGET_FILE:P2UnsteadyConvectionDiffusion2DTest> PROCESSES 4 )
+
+waLBerla_compile_test(FILES MMOCStepTestWithStorageFromFile.cpp DEPENDS core convection_particles )
+waLBerla_execute_test(NAME MMOCStepTestWithStorageFromFile)
+waLBerla_execute_test(NAME MMOCStepTestWithStorageFromFileMPI COMMAND $<TARGET_FILE:MMOCStepTestWithStorageFromFile> PROCESSES 4 )
