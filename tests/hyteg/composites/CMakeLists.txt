@@ -7,8 +7,8 @@ if (HYTEG_BUILD_WITH_PETSC)
     #waLBerla_execute_test(NAME P1P0Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P0Stokes2DPetscSolveTest> PROCESSES 1)
 endif ()
 
-waLBerla_compile_test(FILES ConcatenatedOperator.cpp DEPENDS hyteg core constant_stencil_operator)
-waLBerla_execute_test(NAME ConcatenatedOperator)
+waLBerla_compile_test(FILES ConcatenatedOperatorTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_execute_test(NAME ConcatenatedOperatorTest)
 
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES P1P1StokesPetscApplyTest.cpp DEPENDS hyteg core mixed_operator)
