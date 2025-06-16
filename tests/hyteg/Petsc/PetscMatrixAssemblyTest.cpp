@@ -27,7 +27,9 @@
 #include "constant_stencil_operator/P1EpsilonStokesOperator.hpp"
 #include "mixed_operator/P1BlendingStokesOperator.hpp"
 #include "mixed_operator/P1P1StokesOperator.hpp"
+
 // #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp" < --see issue 159
+#include "hyteg/composites/CCRStokesOperator.hpp"
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
@@ -41,6 +43,8 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/mixedoperators/DG1ToP2PlusBubbleOperator.hpp"
+#include "hyteg/mixedoperators/P2PlusBubbleToDG1Operator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
@@ -57,7 +61,7 @@
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
-#include "mixed_operator//P2P1TaylorHoodStokesOperator.hpp"
+#include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 #include "mixed_operator/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "mixed_operator/P2P2UnstableStokesOperator.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
@@ -358,6 +362,8 @@ int main( int argc, char* argv[] )
    testAssembly< P2P1BlendingTaylorHoodStokesOperator >( storage, level, "P2P1BlendingTaylorHoodStokesOperator", false );
    testAssembly< P2P1SurrogateTaylorHoodStokesOperator >( storage, level, level, "P2P1SurrogateTaylorHoodStokesOperator", false );
 
+   testAssembly< CCRStokesOperator >( storage, level, "CCRStokesOperator" );
+
    // ----------------------------
    //  Scalar To Vector Operators
    // ----------------------------
@@ -365,6 +371,7 @@ int main( int argc, char* argv[] )
 
    testAssembly< P1ToP2ElementwiseBlendingDivTOperator >( storage, level, "P1ScalarToP2VectorOperator" );
    testAssembly< P1ToP2ConstantDivTxOperator >( storage, level, "P1ToP2ConstantOperator" );
+   testAssembly< DG1ToP2PlusBubbleDivTOperator >( storage, level, "DG1ToP2PlusBubbleDivTOperator" );
 
    // ----------------------------
    //  Vector To Scalar Operators
@@ -373,6 +380,7 @@ int main( int argc, char* argv[] )
 
    testAssembly< P2ToP1ElementwiseBlendingDivOperator >( storage, level, "P2ScalarToP1VectorOperator" );
    testAssembly< P2ToP1ConstantDivxOperator >( storage, level, "P2ToP1ConstantOperator" );
+   testAssembly< P2PlusBubbleToDG1DivOperator >( storage, level, "P2PlusBubbleToDG1DivOperator" );
 
    // ------------------
    //  Vector Operators
