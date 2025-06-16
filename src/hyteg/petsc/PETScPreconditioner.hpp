@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,32 +19,36 @@
  */
 #pragma once
 
-#include "PETScWrapper.hpp"
-
+#include "PETScManager.hpp"
 #include "PETScLUSolver.hpp"
+#include "PETScWrapper.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 
-template<typename ValueType, template <class> class F, class O>
-class PETScPreconditioner {
-public:
-  PETScPreconditioner( O& opr, std::shared_ptr< F< idx_t > >& numerator, uint_t localSize, uint_t globalSize )
-  : opr_( opr )
-  , petscSolver( numerator, localSize, globalSize )
-  {}
+template < typename ValueType, template < class > class F, class O >
+class PETScPreconditioner
+{
+ public:
+   PETScPreconditioner( O& opr, std::shared_ptr< F< idx_t > >& numerator, uint_t localSize, uint_t globalSize )
+   : opr_( opr )
+   , petscSolver( numerator, localSize, globalSize )
+   {
+      PETScManager::ensureIsInitialized();
+   }
 
-  // y = M^{-1} * x
-  void apply(F<ValueType> &x, F<ValueType> &y, uint_t level, DoFType flag) {
-    petscSolver.solve(opr_,y,x,x,level,0,0,flag);
-  }
+   // y = M^{-1} * x
+   void apply( F< ValueType >& x, F< ValueType >& y, uint_t level, DoFType flag )
+   {
+      petscSolver.solve( opr_, y, x, x, level, 0, 0, flag );
+   }
 
-private:
-  O opr_;
-  PETScLUSolver<ValueType, F, O> petscSolver;
+ private:
+   O                                opr_;
+   PETScLUSolver< ValueType, F, O > petscSolver;
 };
 
-}
+} // namespace hyteg
 
 #endif

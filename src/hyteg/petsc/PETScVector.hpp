@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2017-2022 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/types/types.hpp"
 
+#include "PETScManager.hpp"
 #include "PETScWrapper.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -43,7 +44,9 @@ class PETScVector
    : name_( name )
    , petscCommunicator_( petscCommunicator )
    , allocated_( false )
-   {}
+   {
+      PETScManager::ensureIsInitialized();
+   }
 
    PETScVector( const FunctionType< ValueType >& function,
                 const FunctionType< idx_t >&     numerator,
@@ -53,6 +56,7 @@ class PETScVector
                 const MPI_Comm&                  petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
    : PETScVector( name, petscCommunicator )
    {
+      PETScManager::ensureIsInitialized();
       createVectorFromFunction( function, numerator, level, flag );
    }
 
@@ -111,8 +115,8 @@ class PETScVector
    inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) vec, name ); }
 
    inline Vec& get() { return vec; }
-   
-   inline void set(Vec v) { vec = v; }
+
+   inline void set( Vec v ) { vec = v; }
 
  protected:
    std::string name_;

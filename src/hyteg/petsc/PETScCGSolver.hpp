@@ -1,6 +1,5 @@
-
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +24,7 @@
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
+#include "PETScManager.hpp"
 #include "PETScSparseMatrix.hpp"
 #include "PETScVector.hpp"
 
@@ -70,6 +70,8 @@ class PETScCGSolver : public Solver< OperatorType >
    , reassembleMatrix_( false )
    , disableApplicationBC_( false )
    {
+      PETScManager::ensureIsInitialized();
+
       num.enumerate( allocatedLevel_ );
 
       KSPCreate( petscCommunicator_, &ksp );

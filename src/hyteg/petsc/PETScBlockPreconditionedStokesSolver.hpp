@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -33,6 +33,7 @@
 #include "hyteg/volumedofspace/VolumeDoFIndexing.hpp"
 #include "hyteg/volumedofspace/VolumeDoFPackInfo.hpp"
 
+#include "PETScManager.hpp"
 #include "PETScSparseMatrix.hpp"
 #include "PETScVector.hpp"
 
@@ -97,6 +98,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , matrixWasAssembledOnce_( false )
    , setFromOptions_( false )
    {
+      PETScManager::ensureIsInitialized();
       num.enumerate( level );
    }
 

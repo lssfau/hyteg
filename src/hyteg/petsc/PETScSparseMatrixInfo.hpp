@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixInfo.hpp"
 
@@ -33,7 +34,10 @@ class PETScSparseMatrixInfo : public SparseMatrixInfo
    PETScSparseMatrixInfo() = delete;
 
    PETScSparseMatrixInfo( MatInfo info )
-   : info_( info ){};
+   : info_( info )
+   {
+      PETScManager::ensureIsInitialized();
+   };
 
    /// returns the number of (used) non-zero entries in the matrix
    uint_t getNNZ() const final { return info_.nz_used; };
@@ -44,18 +48,18 @@ class PETScSparseMatrixInfo : public SparseMatrixInfo
    MatInfo info_;
 };
 
-inline std::ostream & operator<<( std::ostream & os, const PETScSparseMatrixInfo& matInfo )
+inline std::ostream& operator<<( std::ostream& os, const PETScSparseMatrixInfo& matInfo )
 {
-  os << "* block size ............................. " << matInfo.info_.block_size << "\n"
-     << "* number of nonzeros (alloced) ........... " << matInfo.info_.nz_allocated << "\n"
-     << "* number of nonzeros (used) .............. " << matInfo.info_.nz_used << "\n"
-     << "* number of nonzeros (unneeded) .......... " << matInfo.info_.nz_unneeded << "\n"
-     << "* memory allocated ....................... " << matInfo.info_.memory << "\n"
-     << "* no. of matrix assemblies called ........ " << matInfo.info_.assemblies << "\n"
-     << "* no. of mallocs during MatSetValues() ... " << matInfo.info_.mallocs << "\n";
-  return os;
+   os << "* block size ............................. " << matInfo.info_.block_size << "\n"
+      << "* number of nonzeros (alloced) ........... " << matInfo.info_.nz_allocated << "\n"
+      << "* number of nonzeros (used) .............. " << matInfo.info_.nz_used << "\n"
+      << "* number of nonzeros (unneeded) .......... " << matInfo.info_.nz_unneeded << "\n"
+      << "* memory allocated ....................... " << matInfo.info_.memory << "\n"
+      << "* no. of matrix assemblies called ........ " << matInfo.info_.assemblies << "\n"
+      << "* no. of mallocs during MatSetValues() ... " << matInfo.info_.mallocs << "\n";
+   return os;
 }
 
-}
+} // namespace hyteg
 
 #endif

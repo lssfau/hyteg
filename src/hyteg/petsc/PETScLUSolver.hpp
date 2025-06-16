@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr
+ * Copyright (c) 2017-2025 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,6 +24,7 @@
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
+#include "PETScManager.hpp"
 #include "PETScSparseMatrix.hpp"
 #include "PETScVector.hpp"
 
@@ -71,6 +72,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , disableApplicationBC_( false )
    {
+      PETScManager::ensureIsInitialized();
       num_.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp_ );
       KSPSetType( ksp_, KSPPREONLY );
