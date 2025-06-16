@@ -1,0 +1,3 @@
+# waLBerla_compile_test(FILES StokesAnalyticalExpressionsTest.cpp DEPENDS core hyteg manufactured_solutions)
+waLBerla_compile_test(FILES StokesAnalyticalExpressionsTest.cpp DEPENDS core)
+waLBerla_execute_test(NAME StokesAnalyticalExpressionsTest)
