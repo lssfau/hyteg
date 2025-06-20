@@ -1255,6 +1255,8 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t add
       {
          // hasGlobalCells - added later
          metaVec[2 * rank + 1] += sizeof( uint8_t );
+         // additionalHaloDepth - added later
+         metaVec[2 * rank + 1] += sizeof( uint64_t );
          // number of primitives - added later
          metaVec[2 * rank + 1] += sizeof( uint64_t );
 
@@ -1278,6 +1280,9 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t add
 
          uint8_t hgc = getNumberOfCells() > 0 ? 1 : 0;
          data << hgc;
+
+         uint64_t ahd = uint64_c( additionalHaloDepth );
+         data << ahd;
 
          uint64_t numPrimitives = uint64_c( pids.size() );
          data << numPrimitives;

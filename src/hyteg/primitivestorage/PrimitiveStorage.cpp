@@ -197,7 +197,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Vertex* vertex = getVertex( id );
       WALBERLA_ASSERT_NOT_NULLPTR( vertex );
 
-      checkAndAddNeighbourPrimitives(*vertex, neighbourPids);
+      checkAndAddNeighbourPrimitives( *vertex, neighbourPids );
    }
 
    for ( const auto& id : edges )
@@ -205,7 +205,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Edge* edge = getEdge( id );
       WALBERLA_ASSERT_NOT_NULLPTR( edge );
 
-      checkAndAddNeighbourPrimitives(*edge, neighbourPids);
+      checkAndAddNeighbourPrimitives( *edge, neighbourPids );
    }
 
    for ( const auto& id : faces )
@@ -213,7 +213,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Face* face = getFace( id );
       WALBERLA_ASSERT_NOT_NULLPTR( face );
 
-      checkAndAddNeighbourPrimitives(*face, neighbourPids);
+      checkAndAddNeighbourPrimitives( *face, neighbourPids );
    }
 
    for ( const auto& id : cells )
@@ -221,7 +221,7 @@ void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< Primit
       const Cell* cell = getCell( id );
       WALBERLA_ASSERT_NOT_NULLPTR( cell );
 
-      checkAndAddNeighbourPrimitives(*cell, neighbourPids);
+      checkAndAddNeighbourPrimitives( *cell, neighbourPids );
    }
 
    neighbourPrimitiveIDs.resize( neighbourPids.size() );
@@ -661,6 +661,15 @@ PrimitiveStorage::PrimitiveStorage( const std::string& file, uint_t additionalHa
       buffer >> hgc;
       hasGlobalCells_ = hgc;
 
+      uint64_t ahd;
+      buffer >> ahd;
+
+      if ( ahd < additionalHaloDepth )
+      {
+         WALBERLA_ABORT( "File written out with additionalHaloDepth = "
+                         << ahd << ", but read-in requested with additionalHaloDepth = " << additionalHaloDepth );
+      }
+
       uint64_t numPrimitives;
       buffer >> numPrimitives;
 
@@ -877,7 +886,7 @@ PrimitiveStorage::PrimitiveStorage( const std::string& file, uint_t additionalHa
       }
       engine.Close();
 #else
-      WALBERLA_ABORT( "Cannot write file with ADIOS2 as it is not built with hyteg" );
+      WALBERLA_ABORT( "Cannot read file with ADIOS2 as it is not built with hyteg" );
 #endif
    }
 
