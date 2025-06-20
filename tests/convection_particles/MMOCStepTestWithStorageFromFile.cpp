@@ -57,7 +57,9 @@ int main( int argc, char* argv[] )
    WALBERLA_ROOT_SECTION()
    {
       setupStorage->writeToFile( storageFilename, 1u );
+#ifdef HYTEG_BUILD_WITH_ADIOS2
       setupStorage->writeToFile( walberla::format("%s.bp", storageFilename.c_str()), 1u, true );
+#endif
    }
 
    // Load storage from file
