@@ -564,7 +564,7 @@ PrimitiveStorage::PrimitiveStorage( const std::string& file, uint_t additionalHa
 , modificationStamp_( 0 )
 , timingTree_( std::make_shared< walberla::WcTimingTree >() )
 , hasGlobalCells_( false )                    // will be updated later in the constructor
-, additionalHaloDepth_( additionalHaloDepth ) // NEEDS TO BE FIXED IN SERIALIZATION IF CHANGED HERE!
+, additionalHaloDepth_( additionalHaloDepth )
 {
    // We need to construct at least the maps on the coarsest level.
    vertices_[0];
