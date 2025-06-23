@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Andreas Burkhart
+ * Copyright (c) 2025 Andreas Burkhart, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,6 +23,7 @@
 
 #include "hyteg/solvers/Solver.hpp"
 
+#include "PETScManager.hpp"
 #include "PETScSparseMatrix.hpp"
 #include "PETScVector.hpp"
 
@@ -35,6 +36,7 @@ class PETScSolverOptions
  public:
    PETScSolverOptions()
    {
+      PETScManager::ensureIsInitialized();
       kspType_ = "fgmres";
       pcType_  = "none";
    }

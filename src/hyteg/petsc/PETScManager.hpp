@@ -64,10 +64,19 @@ class PETScManager
       return isInitialized;
    }
 
+   /// Aborts, if PETSc is not initialized.
+   static inline void ensureIsInitialized()
+   {
+      if ( !isInitialized() )
+      {
+         WALBERLA_ABORT( "PETSc is not initialized! Have you maybe forgotten to call PETScManager?" );
+      }
+   }
+
  private:
    bool finalizeOnDestruction_;
 };
 
-}
+} // namespace hyteg
 
 #endif

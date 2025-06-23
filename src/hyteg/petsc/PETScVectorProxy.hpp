@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
@@ -32,7 +33,9 @@ class PETScVectorProxy : public VectorProxy
  public:
    PETScVectorProxy( Vec vec )
    : vec_( vec )
-   {}
+   {
+      PETScManager::ensureIsInitialized();
+   }
 
    virtual ~PETScVectorProxy() = default;
 

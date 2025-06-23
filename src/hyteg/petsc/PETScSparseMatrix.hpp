@@ -32,6 +32,7 @@
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrixInfo.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
@@ -56,7 +57,9 @@ class PETScSparseMatrix
    , petscCommunicator_( petscCommunicator )
    , allocated_( false )
    , assembled_( false )
-   {}
+   {
+      PETScManager::ensureIsInitialized();
+   }
 
    virtual ~PETScSparseMatrix()
    {

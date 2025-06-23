@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Nils Kohl, Daniel Bauer, Andreas Burkhart.
+ * Copyright (c) 2017-2025 Nils Kohl, Daniel Bauer, Andreas Burkhart, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,6 +23,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
@@ -37,6 +38,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
    : mat_( mat )
    , autoDestroy_( autoDestroy )
    {
+      PETScManager::ensureIsInitialized();
       MatSetOption( mat_, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE );
       MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
    }
