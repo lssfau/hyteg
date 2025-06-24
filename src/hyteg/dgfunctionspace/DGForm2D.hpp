@@ -37,10 +37,7 @@ class DGForm2D : public DGForm
 {
  protected:
    virtual void
-       integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&,
-                                   const DGBasisInfo&,
-                                   int,
-                                   int, MatrixXr& ) const
+       integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&, const DGBasisInfo&, int, int, MatrixXr& ) const
    {
       WALBERLA_ABORT( "DGForm not implemented in 3D." );
    }

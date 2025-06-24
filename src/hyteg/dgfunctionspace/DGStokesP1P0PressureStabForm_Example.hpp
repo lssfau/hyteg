@@ -37,10 +37,10 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -52,10 +52,10 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -79,8 +79,13 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      real_t tmp_0 = 0.1*(std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0))*std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0)));
-      real_t a_0_0 = 1.0000000000000002*tmp_0;
+      real_t tmp_0 = 0.1 * ( std::abs( std::pow( ( ( -p_affine_6_0 + p_affine_7_0 ) * ( -p_affine_6_0 + p_affine_7_0 ) ) +
+                                                     ( ( -p_affine_6_1 + p_affine_7_1 ) * ( -p_affine_6_1 + p_affine_7_1 ) ),
+                                                 1.0 / 2.0 ) ) *
+                             std::abs( std::pow( ( ( -p_affine_6_0 + p_affine_7_0 ) * ( -p_affine_6_0 + p_affine_7_0 ) ) +
+                                                     ( ( -p_affine_6_1 + p_affine_7_1 ) * ( -p_affine_6_1 + p_affine_7_1 ) ),
+                                                 1.0 / 2.0 ) ) );
+      real_t a_0_0 = 1.0000000000000002 * tmp_0;
 
       elMat( 0, 0 ) = a_0_0;
    }
@@ -91,10 +96,10 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -132,8 +137,13 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
       const auto p_affine_10_0 = outwardNormal( 0 );
       const auto p_affine_10_1 = outwardNormal( 1 );
 
-      real_t tmp_0 = 0.1*(std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0))*std::abs(std::pow(((-p_affine_6_0 + p_affine_7_0)*(-p_affine_6_0 + p_affine_7_0)) + ((-p_affine_6_1 + p_affine_7_1)*(-p_affine_6_1 + p_affine_7_1)), 1.0/2.0)));
-      real_t a_0_0 = -1.0000000000000002*tmp_0;
+      real_t tmp_0 = 0.1 * ( std::abs( std::pow( ( ( -p_affine_6_0 + p_affine_7_0 ) * ( -p_affine_6_0 + p_affine_7_0 ) ) +
+                                                     ( ( -p_affine_6_1 + p_affine_7_1 ) * ( -p_affine_6_1 + p_affine_7_1 ) ),
+                                                 1.0 / 2.0 ) ) *
+                             std::abs( std::pow( ( ( -p_affine_6_0 + p_affine_7_0 ) * ( -p_affine_6_0 + p_affine_7_0 ) ) +
+                                                     ( ( -p_affine_6_1 + p_affine_7_1 ) * ( -p_affine_6_1 + p_affine_7_1 ) ),
+                                                 1.0 / 2.0 ) ) );
+      real_t a_0_0 = -1.0000000000000002 * tmp_0;
 
       elMat( 0, 0 ) = a_0_0;
    };
@@ -142,10 +152,10 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -156,8 +166,8 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                  const std::vector< Point3D >& coordsFacet,
                                                  const Point3D&                oppositeVertex,
                                                  const Point3D&                outwardNormal,
-                                                 const DGBasisInfo&                                       basis,
-                                                 int                                                      degree,
+                                                 const DGBasisInfo&            basis,
+                                                 int                           degree,
                                                  MatrixXr&                     elMat ) const override
    {
       elMat.resize( basis.numDoFsPerElement( 2, degree ), 1 );

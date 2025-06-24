@@ -1,4 +1,3 @@
-
 /*
 * Copyright (c) 2017-2022 Nils Kohl.
 *
@@ -29,7 +28,6 @@
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 
-
 #include "Eigen/Eigen"
 
 namespace hyteg {
@@ -39,10 +37,10 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -139,10 +137,10 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -185,10 +183,10 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -241,10 +239,10 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -285,8 +283,8 @@ class DGVectorMassFormP1P1_00 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -305,10 +303,10 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -346,10 +344,10 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -392,10 +390,10 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -448,10 +446,10 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -492,8 +490,8 @@ class DGVectorMassFormP1P1_10 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -512,10 +510,10 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -553,10 +551,10 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -599,10 +597,10 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -655,10 +653,10 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -699,8 +697,8 @@ class DGVectorMassFormP1P1_01 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -719,10 +717,10 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -819,10 +817,10 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -865,10 +863,10 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -921,10 +919,10 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -965,8 +963,8 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );
@@ -981,15 +979,14 @@ class DGVectorMassFormP1P1_11 : public hyteg::dg::DGForm2D
    }
 };
 
-
 class DGMassFormP0P0 : public hyteg::dg::DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1013,10 +1010,10 @@ class DGMassFormP0P0 : public hyteg::dg::DGForm2D
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1051,10 +1048,10 @@ class DGMassFormP0P0 : public hyteg::dg::DGForm2D
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1099,10 +1096,10 @@ class DGMassFormP0P0 : public hyteg::dg::DGForm2D
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -1135,8 +1132,8 @@ class DGMassFormP0P0 : public hyteg::dg::DGForm2D
                                          const std::vector< Point3D >& coordsFacet,
                                          const Point3D&                oppositeVertex,
                                          const Point3D&                outwardNormal,
-                                         const DGBasisInfo&                                       basis,
-                                         int                                                      degree,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
                                          MatrixXr&                     elMat ) const override
    {
       WALBERLA_UNUSED( coordsElement );

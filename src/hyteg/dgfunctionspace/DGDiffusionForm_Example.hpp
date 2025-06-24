@@ -64,98 +64,98 @@ class DGDiffusionForm_Example : public DGForm
 
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override;
 
    void integrateVolume3D( const std::vector< Point3D >& coords,
-                                   const DGBasisInfo&                                       trialBasis,
-                                   const DGBasisInfo&                                       testBasis,
-                                   int                                                      trialDegree,
-                                   int                                                      testDegree,
-                                   MatrixXr&                     elMat ) const override;
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
+                           MatrixXr&                     elMat ) const override;
 
    void integrateFacetInner2D( const std::vector< Point3D >& coordsElement,
-                                       const std::vector< Point3D >& coordsFacet,
-                                       const Point3D&                oppositeVertex,
-                                       const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const override;
+                               const std::vector< Point3D >& coordsFacet,
+                               const Point3D&                oppositeVertex,
+                               const Point3D&                outwardNormal,
+                               const DGBasisInfo&            trialBasis,
+                               const DGBasisInfo&            testBasis,
+                               int                           trialDegree,
+                               int                           testDegree,
+                               MatrixXr&                     elMat ) const override;
 
    void integrateFacetInner3D( const std::vector< Point3D >& coordsElement,
-                                       const std::vector< Point3D >& coordsFacet,
-                                       const Point3D&                oppositeVertex,
-                                       const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
-                                       MatrixXr&                     elMat ) const override;
+                               const std::vector< Point3D >& coordsFacet,
+                               const Point3D&                oppositeVertex,
+                               const Point3D&                outwardNormal,
+                               const DGBasisInfo&            trialBasis,
+                               const DGBasisInfo&            testBasis,
+                               int                           trialDegree,
+                               int                           testDegree,
+                               MatrixXr&                     elMat ) const override;
 
    void integrateFacetCoupling2D( const std::vector< Point3D >& coordsElementInner,
-                                          const std::vector< Point3D >& coordsElementOuter,
-                                          const std::vector< Point3D >& coordsFacet,
-                                          const Point3D&                oppositeVertexInnerElement,
-                                          const Point3D&                oppositeVertexOuterElement,
-                                          const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const override;
+                                  const std::vector< Point3D >& coordsElementOuter,
+                                  const std::vector< Point3D >& coordsFacet,
+                                  const Point3D&                oppositeVertexInnerElement,
+                                  const Point3D&                oppositeVertexOuterElement,
+                                  const Point3D&                outwardNormal,
+                                  const DGBasisInfo&            trialBasis,
+                                  const DGBasisInfo&            testBasis,
+                                  int                           trialDegree,
+                                  int                           testDegree,
+                                  MatrixXr&                     elMat ) const override;
 
    void integrateFacetCoupling3D( const std::vector< Point3D >& coordsElementInner,
-                                          const std::vector< Point3D >& coordsElementOuter,
-                                          const std::vector< Point3D >& coordsFacet,
-                                          const Point3D&                oppositeVertexInnerElement,
-                                          const Point3D&                oppositeVertexOuterElement,
-                                          const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
-                                          MatrixXr&                     elMat ) const override;
+                                  const std::vector< Point3D >& coordsElementOuter,
+                                  const std::vector< Point3D >& coordsFacet,
+                                  const Point3D&                oppositeVertexInnerElement,
+                                  const Point3D&                oppositeVertexOuterElement,
+                                  const Point3D&                outwardNormal,
+                                  const DGBasisInfo&            trialBasis,
+                                  const DGBasisInfo&            testBasis,
+                                  int                           trialDegree,
+                                  int                           testDegree,
+                                  MatrixXr&                     elMat ) const override;
 
    void integrateFacetDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
-                                                   const std::vector< Point3D >& coordsFacet,
-                                                   const Point3D&                oppositeVertex,
-                                                   const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const override;
+                                           const std::vector< Point3D >& coordsFacet,
+                                           const Point3D&                oppositeVertex,
+                                           const Point3D&                outwardNormal,
+                                           const DGBasisInfo&            trialBasis,
+                                           const DGBasisInfo&            testBasis,
+                                           int                           trialDegree,
+                                           int                           testDegree,
+                                           MatrixXr&                     elMat ) const override;
 
    void integrateFacetDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
-                                                   const std::vector< Point3D >& coordsFacet,
-                                                   const Point3D&                oppositeVertex,
-                                                   const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
-                                                   MatrixXr&                     elMat ) const override;
+                                           const std::vector< Point3D >& coordsFacet,
+                                           const Point3D&                oppositeVertex,
+                                           const Point3D&                outwardNormal,
+                                           const DGBasisInfo&            trialBasis,
+                                           const DGBasisInfo&            testBasis,
+                                           int                           trialDegree,
+                                           int                           testDegree,
+                                           MatrixXr&                     elMat ) const override;
 
    void integrateRHSDirichletBoundary2D( const std::vector< Point3D >& coordsElement,
-                                                 const std::vector< Point3D >& coordsFacet,
-                                                 const Point3D&                oppositeVertex,
-                                                 const Point3D&                outwardNormal,
-                                                 const DGBasisInfo&                                       basis,
-                                                 int                                                      degree,
-                                                 MatrixXr&                     elMat ) const override;
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
+                                         MatrixXr&                     elMat ) const override;
 
    void integrateRHSDirichletBoundary3D( const std::vector< Point3D >& coordsElement,
-                                                 const std::vector< Point3D >& coordsFacet,
-                                                 const Point3D&                oppositeVertex,
-                                                 const Point3D&                outwardNormal,
-                                                 const DGBasisInfo&                                       basis,
-                                                 int                                                      degree,
-                                                 MatrixXr&                     elMat ) const override;
+                                         const std::vector< Point3D >& coordsFacet,
+                                         const Point3D&                oppositeVertex,
+                                         const Point3D&                outwardNormal,
+                                         const DGBasisInfo&            basis,
+                                         int                           degree,
+                                         MatrixXr&                     elMat ) const override;
 
  private:
    void Scalar_Variable_Coefficient_2D_g( real_t in_0, real_t in_1, real_t* out_0 ) const

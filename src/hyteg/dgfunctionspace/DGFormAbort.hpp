@@ -40,19 +40,13 @@ using walberla::real_c;
 class DGFormAbort : public DGForm
 {
  protected:
-   void integrateVolume2D( const std::vector< Point3D >&, const DGBasisInfo&,
-                           const DGBasisInfo&,
-                           int,
-                           int, MatrixXr& )
+   void integrateVolume2D( const std::vector< Point3D >&, const DGBasisInfo&, const DGBasisInfo&, int, int, MatrixXr& )
        const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&,
-                                   const DGBasisInfo&,
-                                   int,
-                                   int, MatrixXr& )
+   virtual void integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&, const DGBasisInfo&, int, int, MatrixXr& )
        const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );

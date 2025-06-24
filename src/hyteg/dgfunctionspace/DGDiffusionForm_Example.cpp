@@ -27,10 +27,10 @@ using walberla::real_c;
 using walberla::uint_c;
 
 void DGDiffusionForm_Example::integrateVolume2D( const std::vector< Point3D >& coords,
-                                                 const DGBasisInfo&                                       trialBasis,
-                                                 const DGBasisInfo&                                       testBasis,
-                                                 int                                                      trialDegree,
-                                                 int                                                      testDegree,
+                                                 const DGBasisInfo&            trialBasis,
+                                                 const DGBasisInfo&            testBasis,
+                                                 int                           trialDegree,
+                                                 int                           testDegree,
                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
@@ -156,10 +156,10 @@ void DGDiffusionForm_Example::integrateVolume2D( const std::vector< Point3D >& c
 }
 
 void DGDiffusionForm_Example::integrateVolume3D( const std::vector< Point3D >& coords,
-                                                 const DGBasisInfo&                                       trialBasis,
-                                                 const DGBasisInfo&                                       testBasis,
-                                                 int                                                      trialDegree,
-                                                 int                                                      testDegree,
+                                                 const DGBasisInfo&            trialBasis,
+                                                 const DGBasisInfo&            testBasis,
+                                                 int                           trialDegree,
+                                                 int                           testDegree,
                                                  MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
@@ -302,10 +302,10 @@ void DGDiffusionForm_Example::integrateFacetInner2D( const std::vector< Point3D 
                                                      const std::vector< Point3D >& coordsFacet,
                                                      const Point3D&,
                                                      const Point3D&     outwardNormal,
-                                                     const DGBasisInfo&                                       trialBasis,
-                                                     const DGBasisInfo&                                       testBasis,
-                                                     int                                                      trialDegree,
-                                                     int                                                      testDegree,
+                                                     const DGBasisInfo& trialBasis,
+                                                     const DGBasisInfo& testBasis,
+                                                     int                trialDegree,
+                                                     int                testDegree,
                                                      MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
@@ -422,10 +422,10 @@ void DGDiffusionForm_Example::integrateFacetInner3D( const std::vector< Point3D 
                                                      const std::vector< Point3D >& coordsFacet,
                                                      const Point3D&,
                                                      const Point3D&     outwardNormal,
-                                                     const DGBasisInfo&                                       trialBasis,
-                                                     const DGBasisInfo&                                       testBasis,
-                                                     int                                                      trialDegree,
-                                                     int                                                      testDegree,
+                                                     const DGBasisInfo& trialBasis,
+                                                     const DGBasisInfo& testBasis,
+                                                     int                trialDegree,
+                                                     int                testDegree,
                                                      MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
@@ -811,10 +811,10 @@ void DGDiffusionForm_Example::integrateFacetCoupling2D( const std::vector< Point
                                                         const Point3D&,
                                                         const Point3D&,
                                                         const Point3D&     outwardNormal,
-                                                        const DGBasisInfo&                                       trialBasis,
-                                                        const DGBasisInfo&                                       testBasis,
-                                                        int                                                      trialDegree,
-                                                        int                                                      testDegree,
+                                                        const DGBasisInfo& trialBasis,
+                                                        const DGBasisInfo& testBasis,
+                                                        int                trialDegree,
+                                                        int                testDegree,
                                                         MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
@@ -963,10 +963,10 @@ void DGDiffusionForm_Example::integrateFacetCoupling3D( const std::vector< Point
                                                         const Point3D&,
                                                         const Point3D&,
                                                         const Point3D&     outwardNormal,
-                                                        const DGBasisInfo&                                       trialBasis,
-                                                        const DGBasisInfo&                                       testBasis,
-                                                        int                                                      trialDegree,
-                                                        int                                                      testDegree,
+                                                        const DGBasisInfo& trialBasis,
+                                                        const DGBasisInfo& testBasis,
+                                                        int                trialDegree,
+                                                        int                testDegree,
                                                         MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
@@ -1478,10 +1478,10 @@ void DGDiffusionForm_Example::integrateFacetDirichletBoundary2D( const std::vect
                                                                  const std::vector< Point3D >& coordsFacet,
                                                                  const Point3D&,
                                                                  const Point3D&     outwardNormal,
-                                                                 const DGBasisInfo&                                       trialBasis,
-    const DGBasisInfo&                                       testBasis,
-    int                                                      trialDegree,
-    int                                                      testDegree,
+                                                                 const DGBasisInfo& trialBasis,
+                                                                 const DGBasisInfo& testBasis,
+                                                                 int                trialDegree,
+                                                                 int                testDegree,
                                                                  MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 2, uint_c( testDegree ) ) ),
@@ -1596,10 +1596,10 @@ void DGDiffusionForm_Example::integrateFacetDirichletBoundary3D( const std::vect
                                                                  const std::vector< Point3D >& coordsFacet,
                                                                  const Point3D&,
                                                                  const Point3D&     outwardNormal,
-                                                                 const DGBasisInfo&                                       trialBasis,
-    const DGBasisInfo&                                       testBasis,
-    int                                                      trialDegree,
-    int                                                      testDegree,
+                                                                 const DGBasisInfo& trialBasis,
+                                                                 const DGBasisInfo& testBasis,
+                                                                 int                trialDegree,
+                                                                 int                testDegree,
                                                                  MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( 3, uint_c( testDegree ) ) ),
@@ -1980,8 +1980,8 @@ void DGDiffusionForm_Example::integrateRHSDirichletBoundary2D( const std::vector
                                                                const std::vector< Point3D >& coordsFacet,
                                                                const Point3D&,
                                                                const Point3D&     outwardNormal,
-                                                               const DGBasisInfo&                                       basis,
-    int                                                      degree,
+                                                               const DGBasisInfo& basis,
+                                                               int                degree,
                                                                MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, uint_c( degree ) ) ), 1 );
@@ -2058,8 +2058,8 @@ void DGDiffusionForm_Example::integrateRHSDirichletBoundary3D( const std::vector
                                                                const std::vector< Point3D >& coordsFacet,
                                                                const Point3D&,
                                                                const Point3D&     outwardNormal,
-                                                               const DGBasisInfo&                                       basis,
-    int                                                      degree,
+                                                               const DGBasisInfo& basis,
+                                                               int                degree,
                                                                MatrixXr&          elMat ) const
 {
    elMat.resize( Eigen::Index( basis.numDoFsPerElement( 3, uint_c( degree ) ) ), 1 );

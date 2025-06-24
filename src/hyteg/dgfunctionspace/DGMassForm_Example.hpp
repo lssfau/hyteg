@@ -37,10 +37,10 @@ class DGMassForm_Example : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
@@ -82,10 +82,10 @@ class DGMassForm_Example : public DGFormVolume
    }
 
    virtual void integrateVolume3D( const std::vector< Point3D >& coords,
-                                   const DGBasisInfo&                                       trialBasis,
-                                   const DGBasisInfo&                                       testBasis,
-                                   int                                                      trialDegree,
-                                   int                                                      testDegree,
+                                   const DGBasisInfo&            trialBasis,
+                                   const DGBasisInfo&            testBasis,
+                                   int                           trialDegree,
+                                   int                           testDegree,
                                    MatrixXr&                     elMat ) const override
    {
       elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
