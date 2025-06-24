@@ -31,6 +31,10 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include <adios2.h>
+#endif
+
 using walberla::real_c;
 
 namespace hyteg {
@@ -1140,138 +1144,238 @@ bool SetupPrimitiveStorage::onBoundary( const PrimitiveID& primitiveID, const bo
    }
 }
 
-void SetupPrimitiveStorage::writeToFile( const std::string& fileName ) const
+void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t additionalHaloDepth, bool adios2 ) const
 {
-   // Just misusing the buffers for convenience. We are not actually sending anything.
-   // Serialization to buffers is implemented, and we can write byte streams later :)
-   SendBuffer data;
-
-   // To ensure consecutive data for each process, we need to know how many bytes each process requires.
-   // Simple solution: we iterate over all primitives twice: once for the number of bytes required, once to write to the stream.
-
-   // Layout:
-   // metadata + data rank 0 + data rank 1 + ... + data rank n-1
-   //
-   // metadata:
-   // rank 0 data pos + rank 0 data size + rank 1 data pos + rank 1 data size + ...
-   // (size = 2 * 64 bit * numprocs)
-   //
-   // data:
-   // hasGlobalCells, numPrimitivesInSection, prim0, prim1, ...
-   //
-   // Everything is subject to change obviously so better check the code.
-
-   // The metadata will contain one 64 bit unsigned int for the position in the file, and one 64 bit unsigned int for the
-   // number of bytes that are allocated. We interleave this, such that two consecutive entries are the pos and the size in bytes.
-   // To update the position, we will have to(?) iterate over that thing. It is not _really_ scalable, but should still be fast
-   // for ~1mio processes(?).
-   std::vector< uint64_t > metaVec( 2 * numberOfProcesses_, 0 );
-
    PrimitiveMap primitives;
    getSetupPrimitives( primitives );
 
-   // This "cache" is simplifying and slightly optimizing the serialization.
-   // We capture all IDs we want to write per process.
-   std::vector< std::set< PrimitiveID > > primitiveIDsToWrite( numberOfProcesses_ );
-
-   // Let`s check what amount of memory we need for each process.
-   for ( auto [pid, primitive] : primitives )
+   if ( !adios2 )
    {
-      auto rank = getTargetRank( pid );
+      // Just misusing the buffers for convenience. We are not actually sending anything.
+      // Serialization to buffers is implemented, and we can write byte streams later :)
+      SendBuffer data;
 
-      // Now we go after the current primitive and its neighborhood.
-      std::vector< PrimitiveID > localNeighborPrimitiveIDs;
-      primitive->getNeighborPrimitives( localNeighborPrimitiveIDs );
+      // To ensure consecutive data for each process, we need to know how many bytes each process requires.
+      // Simple solution: we iterate over all primitives twice: once for the number of bytes required, once to write to the stream.
 
-      // We simply add the current ID to that list. We can later check whether it is a neighbor or a local primitive.
-      localNeighborPrimitiveIDs.push_back( pid );
+      // Layout:
+      // metadata + data rank 0 + data rank 1 + ... + data rank n-1
+      //
+      // metadata:
+      // rank 0 data pos + rank 0 data size + rank 1 data pos + rank 1 data size + ...
+      // (size = 2 * 64 bit * numprocs)
+      //
+      // data:
+      // hasGlobalCells, numPrimitivesInSection, prim0, prim1, ...
+      //
+      // Everything is subject to change obviously so better check the code.
 
-      for ( auto npid : localNeighborPrimitiveIDs )
+      // The metadata will contain one 64 bit unsigned int for the position in the file, and one 64 bit unsigned int for the
+      // number of bytes that are allocated. We interleave this, such that two consecutive entries are the pos and the size in bytes.
+      // To update the position, we will have to(?) iterate over that thing. It is not _really_ scalable, but should still be fast
+      // for ~1mio processes(?).
+      std::vector< uint64_t > metaVec( 2 * numberOfProcesses_, 0 );
+
+      // This "cache" is simplifying and slightly optimizing the serialization.
+      // We capture all IDs we want to write per process.
+      std::vector< std::set< PrimitiveID > > primitiveIDsToWrite( numberOfProcesses_ );
+
+      // Let`s check what amount of memory we need for each process.
+      for ( auto [pid, primitive] : primitives )
       {
-         auto nrank = getTargetRank( npid );
+         auto rank = getTargetRank( pid );
 
-         WALBERLA_CHECK_LESS( nrank,
-                              numberOfProcesses_,
-                              "The SetupPrimitiveStorage has assigned a primitive to a rank that is larger than"
-                              "the number of processes that are supposed to deserialize the file." )
+         // Now we go after the current primitive and its neighborhood.
+         std::vector< PrimitiveID > localNeighborPrimitiveIDs;
+         primitive->getNeighborPrimitives( localNeighborPrimitiveIDs );
 
-         // We only write primitives once for each rank.
-         if ( primitiveIDsToWrite[rank].count( npid ) )
+         // We simply add the current ID to that list. We can later check whether it is a neighbor or a local primitive.
+         localNeighborPrimitiveIDs.push_back( pid );
+
+         // add additional halos
+         std::set< PrimitiveID > localNeighborNeighbourSet( localNeighborPrimitiveIDs.begin(), localNeighborPrimitiveIDs.end() );
+
+         for ( uint_t k = 0; k < additionalHaloDepth; k++ )
          {
-            continue;
+            std::vector< PrimitiveID > idsToBeAdded;
+
+            for ( auto& n : localNeighborPrimitiveIDs )
+            {
+               std::vector< PrimitiveID > additionalNeighborPrimitiveIDs;
+               getPrimitive( n )->getNeighborPrimitives( additionalNeighborPrimitiveIDs );
+
+               for ( auto& anp : additionalNeighborPrimitiveIDs )
+               {
+                  if ( localNeighborNeighbourSet.find( anp ) == localNeighborNeighbourSet.end() )
+                  {
+                     localNeighborNeighbourSet.insert( anp );
+                     idsToBeAdded.push_back( anp );
+                  }
+               }
+            }
+
+            for ( auto& anp : idsToBeAdded )
+            {
+               localNeighborPrimitiveIDs.push_back( anp );
+            }
          }
 
-         // Only reaching this if we did not already mark the primitive for serialization.
-         primitiveIDsToWrite[rank].insert( npid );
+         for ( auto npid : localNeighborPrimitiveIDs )
+         {
+            auto nrank = getTargetRank( npid );
 
-         auto nprimitive = getPrimitive( npid );
+            WALBERLA_CHECK_LESS( nrank,
+                                 numberOfProcesses_,
+                                 "The SetupPrimitiveStorage has assigned a primitive to a rank that is larger than"
+                                 "the number of processes that are supposed to deserialize the file." )
 
-         // Misusing a tmp buffer to compute the size of the resulting byte stream.
-         SendBuffer tmp;
-         tmp << getTargetRank( npid );
-         tmp << npid;
-         tmp << nprimitive->getType();
-         tmp << *nprimitive;
+            // We only write primitives once for each rank.
+            if ( primitiveIDsToWrite[rank].count( npid ) )
+            {
+               continue;
+            }
 
-         // Updating size in bytes.
-         metaVec[2 * rank + 1] += tmp.size();
+            // Only reaching this if we did not already mark the primitive for serialization.
+            primitiveIDsToWrite[rank].insert( npid );
+
+            auto nprimitive = getPrimitive( npid );
+
+            // Misusing a tmp buffer to compute the size of the resulting byte stream.
+            SendBuffer tmp;
+            tmp << getTargetRank( npid );
+            tmp << npid;
+            tmp << nprimitive->getType();
+            tmp << *nprimitive;
+
+            // Updating size in bytes.
+            metaVec[2 * rank + 1] += tmp.size();
+         }
       }
+
+      // Now we accumulate the mem to get the starting pos of each portion in the final buffer.
+      uint64_t memCnt = 0;
+      for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
+      {
+         // hasGlobalCells - added later
+         metaVec[2 * rank + 1] += sizeof( uint8_t );
+         // additionalHaloDepth - added later
+         metaVec[2 * rank + 1] += sizeof( uint64_t );
+         // number of primitives - added later
+         metaVec[2 * rank + 1] += sizeof( uint64_t );
+
+         // setting the position - adding an offset that has the size of the metadata portion
+         metaVec[2 * rank] = 2 * numberOfProcesses_ * sizeof( uint64_t ) + memCnt;
+
+         memCnt += metaVec[2 * rank + 1];
+      }
+
+      // Writing metadata to buffer.
+      for ( auto i : metaVec )
+      {
+         data << i;
+      }
+
+      // Next we actually write the data to the buffer, for each rank.
+      for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
+      {
+         // We already cached the PrimitiveIDs of Primitives we want to write.
+         auto pids = primitiveIDsToWrite[rank];
+
+         uint8_t hgc = getNumberOfCells() > 0 ? 1 : 0;
+         data << hgc;
+
+         uint64_t ahd = uint64_c( additionalHaloDepth );
+         data << ahd;
+
+         uint64_t numPrimitives = uint64_c( pids.size() );
+         data << numPrimitives;
+
+         // Looping over cached PrimitiveIDs
+         for ( auto pid : pids )
+         {
+            auto primitive  = getPrimitive( pid );
+            auto targetRank = getTargetRank( pid );
+
+            data << targetRank;
+            data << pid;
+            data << primitive->getType();
+            data << *primitive;
+         }
+      }
+
+      // And finally to file...
+      std::ofstream fsdata;
+      fsdata.open( fileName, std::ios::binary );
+
+      fsdata.write( reinterpret_cast< char* >( data.ptr() ),
+                    numeric_cast< std::streamsize >( sizeof( walberla::mpi::SendBuffer::ElementType ) * data.size() ) );
+
+      fsdata.close();
    }
-
-   // Now we accumulate the mem to get the starting pos of each portion in the final buffer.
-   uint64_t memCnt = 0;
-   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
+   else
    {
-      // hasGlobalCells - added later
-      metaVec[2 * rank + 1] += sizeof( uint8_t );
-      // number of primitives - added later
-      metaVec[2 * rank + 1] += sizeof( uint64_t );
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+      const std::string engineType_{ ADIOS2_BP_FORMAT };
 
-      // setting the position - adding an offset that has the size of the metadata portion
-      metaVec[2 * rank] = 2 * numberOfProcesses_ * sizeof( uint64_t ) + memCnt;
+      adios2::ADIOS adios_ = adios2::ADIOS();
 
-      memCnt += metaVec[2 * rank + 1];
-   }
+      adios2::IO io = adios_.DeclareIO( "SetupPrimitiveStorageWriteToFile" );
+      io.SetEngine( engineType_ );
+      adios2::Engine engine = io.Open( fileName, adios2::Mode::Write );
 
-   // Writing metadata to buffer.
-   for ( auto i : metaVec )
-   {
-      data << i;
-   }
+      engine.BeginStep();
 
-   // Next we actually write the data to the buffer, for each rank.
-   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
-   {
-      // We already cached the PrimitiveIDs of Primitives we want to write.
-      auto pids = primitiveIDsToWrite[rank];
+      SendBuffer            primitiveIdsInBuffer;
+      std::vector< uint_t > primitiveTargetRank;
 
       uint8_t hgc = getNumberOfCells() > 0 ? 1 : 0;
-      data << hgc;
 
-      uint64_t numPrimitives = uint64_c( pids.size() );
-      data << numPrimitives;
+      io.DefineVariable< uint8_t >( "hasGlobalCells", {}, {}, { 1 } );
+      adios2::Variable< uint8_t > hasGlobalCellsVarAdios = io.InquireVariable< uint8_t >( "hasGlobalCells" );
 
-      // Looping over cached PrimitiveIDs
-      for ( auto pid : pids )
+      engine.Put( hasGlobalCellsVarAdios, &hgc );
+
+      for ( auto [pid, primitive] : primitives )
       {
-         auto primitive  = getPrimitive( pid );
-         auto targetRank = getTargetRank( pid );
+         SendBuffer dataPrimitive;
+         dataPrimitive << getTargetRank( pid );
+         dataPrimitive << pid;
+         dataPrimitive << primitive->getType();
+         dataPrimitive << *primitive;
 
-         data << targetRank;
-         data << pid;
-         data << primitive->getType();
-         data << *primitive;
+         std::stringstream pName;
+         pid.toStream( pName );
+
+         std::string primitiveIdString = pName.str();
+
+         io.DefineVariable< unsigned char >( primitiveIdString, {}, {}, { dataPrimitive.size() } );
+         adios2::Variable< unsigned char > primitiveData = io.InquireVariable< unsigned char >( primitiveIdString );
+
+         engine.Put( primitiveData, dataPrimitive.ptr() );
+
+         engine.PerformPuts();
+
+         primitiveIdsInBuffer << pid;
+         primitiveTargetRank.push_back( getTargetRank( pid ) );
       }
+
+      io.DefineVariable< char >( "primitiveIDToTargetRankMap_PrimitiveString", {}, {}, { primitiveIdsInBuffer.size() } );
+      auto pritiveIdsAsStringData = io.InquireVariable< char >( "primitiveIDToTargetRankMap_PrimitiveString" );
+
+      engine.Put( pritiveIdsAsStringData, reinterpret_cast< char* >( primitiveIdsInBuffer.ptr() ) );
+
+      io.DefineVariable< uint_t >( "primitiveIDToTargetRankMap_TargetRank", {}, {}, { primitiveTargetRank.size() } );
+      auto primitiveTargetRankData = io.InquireVariable< uint_t >( "primitiveIDToTargetRankMap_TargetRank" );
+
+      engine.Put( primitiveTargetRankData, primitiveTargetRank.data() );
+
+      engine.PerformPuts();
+      engine.EndStep();
+      engine.Close();
+#else
+      WALBERLA_ABORT( "Cannot write file with ADIOS2 as it is not built with hyteg" );
+#endif
    }
-
-   // And finally to file...
-   std::ofstream fsdata;
-   fsdata.open( fileName, std::ios::binary );
-
-   fsdata.write( reinterpret_cast< char* >( data.ptr() ),
-                 numeric_cast< std::streamsize >( sizeof( walberla::mpi::SendBuffer::ElementType ) * data.size() ) );
-
-   fsdata.close();
 }
 
 } // namespace hyteg

@@ -196,7 +196,7 @@ class SetupPrimitiveStorage
    /// primitives can still be located on the root process after load balancing. Still, the actual number of processes must match.
    ///
    /// \param fileName name of the file
-   void writeToFile( const std::string& fileName ) const;
+   void writeToFile( const std::string& fileName, uint_t additionalHaloDepth = 0u, bool adios2 = false ) const;
 
    bool rootOnly() const { return rootOnly_; }
 
