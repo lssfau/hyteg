@@ -22,7 +22,7 @@
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/forms/DGForm.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"

@@ -1,0 +1,17 @@
+target_sources(hyteg
+  PRIVATE
+  DGDiffusionForm_Example.cpp
+  DGDiffusionForm_Example.hpp
+  DGDivForm.hpp
+  DGForm2D.hpp
+  DGFormAbort.hpp
+  DGFormVolume.hpp
+  DGMassForm_Example.hpp
+  DGStokesP1P0PressureStabForm_Example.hpp
+  DGVectorLaplaceForm.hpp
+  DGVectorMassForm.hpp
+  P0_to_P1_divt_form.cpp
+  P0_to_P1_divt_form.hpp
+  P1_to_P0_div_form.cpp
+  P1_to_P0_div_form.hpp
+)

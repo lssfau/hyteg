@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,11 +20,8 @@
 
 #pragma once
 
-#include <hyteg/communication/Syncing.hpp>
-
-#include "hyteg/dgfunctionspace/DGFormAbort.hpp"
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/P1_to_P0_div_form.hpp"
 #include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGDivtForm.hpp"
@@ -32,6 +29,8 @@
 #include "hyteg/egfunctionspace/EGMassForm.hpp"
 #include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGFormAbort.hpp"
+#include "hyteg/forms/form_hyteg_dg/P1_to_P0_div_form.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"

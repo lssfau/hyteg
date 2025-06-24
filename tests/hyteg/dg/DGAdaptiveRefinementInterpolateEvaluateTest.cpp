@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,10 +24,10 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGDiffusionForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

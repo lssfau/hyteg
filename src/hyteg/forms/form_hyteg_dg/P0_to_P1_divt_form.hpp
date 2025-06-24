@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,9 +23,9 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
-#include "hyteg/dgfunctionspace/DGForm2D.hpp"
-#include "hyteg/dgfunctionspace/DGFormVolume.hpp"
+#include "hyteg/forms/DGForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGForm2D.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGFormVolume.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -34,7 +34,7 @@
 namespace hyteg {
 namespace dg {
 
-class p1_to_p0_div_0_affine_q0 : public DGFormVolume
+class p0_to_p1_divt_0_affine_q0 : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
@@ -52,7 +52,7 @@ class p1_to_p0_div_0_affine_q0 : public DGFormVolume
                            MatrixXr&                     elMat ) const override;
 };
 
-class p1_to_p0_div_1_affine_q0 : public DGFormVolume
+class p0_to_p1_divt_1_affine_q0 : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
@@ -70,7 +70,7 @@ class p1_to_p0_div_1_affine_q0 : public DGFormVolume
                            MatrixXr&                     elMat ) const override;
 };
 
-class p1_to_p0_div_2_affine_q0 : public DGFormVolume
+class p0_to_p1_divt_2_affine_q0 : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,

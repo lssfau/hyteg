@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner.
+* Copyright (c) 2022-2025 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -38,8 +38,6 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
-
-#include "DGOperator.hpp"
 
 namespace hyteg {
 namespace dg {

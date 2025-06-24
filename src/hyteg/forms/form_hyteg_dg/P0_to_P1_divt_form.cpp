@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,7 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hyteg/dgfunctionspace/P0_to_P1_divt_form.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0_to_P1_divt_form.hpp"
 
 namespace hyteg {
 namespace dg {

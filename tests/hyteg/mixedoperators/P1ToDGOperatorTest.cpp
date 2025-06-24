@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner.
+* Copyright (c) 2022-2025 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,13 +20,12 @@
 
 #include "hyteg/mixedoperators/P1ToDGOperator.hpp"
 
-#include <hyteg/dg1functionspace/DG1Operator.hpp>
-#include <hyteg/dgfunctionspace/DGMassForm_Example.hpp>
-
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/dg1functionspace/DG1Operator.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
 #include "hyteg/mixedoperators/DGToP1Operator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

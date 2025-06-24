@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
-*
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
+
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
 *
@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/forms/DGForm.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 

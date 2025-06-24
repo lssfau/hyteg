@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner.
+* Copyright (c) 2022-2025 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,20 +18,20 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <hyteg/dgfunctionspace/ScalarP1WithDGFormOperator.hpp>
-
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/dgfunctionspace/ScalarP1WithDGFormOperator.hpp"
 #include "hyteg/egfunctionspace/EGDivFormNew.hpp"
 #include "hyteg/egfunctionspace/EGDivFormNitscheBC.hpp"
 #include "hyteg/egfunctionspace/EGDivtFormNitscheBC.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceFormNitscheBC.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
@@ -49,10 +49,10 @@ using walberla::math::pi;
 
 /// Returns the scaled L2 error.
 real_t testPoisson2D( uint_t                                    level,
-               MeshInfo                                  meshInfo,
-               std::function< real_t( const Point3D& ) > solFunc,
-               std::function< real_t( const Point3D& ) > rhsFunc,
-               bool                                      writeVTK = true )
+                      MeshInfo                                  meshInfo,
+                      std::function< real_t( const Point3D& ) > solFunc,
+                      std::function< real_t( const Point3D& ) > rhsFunc,
+                      bool                                      writeVTK = true )
 {
    using namespace dg;
 
@@ -78,8 +78,8 @@ real_t testPoisson2D( uint_t                                    level,
    EGFunction< real_t > Merr( "Merr", storage, level, level );
    EGFunction< real_t > rhs_int( "rhs_int", storage, level, level );
 
-   eg::EGLaplaceOperatorNitscheBC A(storage, level, level );
-   eg::EGMassOperator       M( storage, level, level );
+   eg::EGLaplaceOperatorNitscheBC A( storage, level, level );
+   eg::EGMassOperator             M( storage, level, level );
 
    DGToP1Operator< P1ToDG1InterpolationForm, real_t > opDGToP1Real(
        storage, level, level, std::make_shared< P1ToDG1InterpolationForm >() );
@@ -96,7 +96,7 @@ real_t testPoisson2D( uint_t                                    level,
    sol.interpolate( { solFunc, solFunc }, level, All );
 
    // Solve system.
-   PETScCGSolver< eg::EGLaplaceOperatorNitscheBC > solverA(storage, level, 1e-6, 1e-6, 10000 );
+   PETScCGSolver< eg::EGLaplaceOperatorNitscheBC > solverA( storage, level, 1e-6, 1e-6, 10000 );
    solverA.disableApplicationBC( true );
    solverA.solve( A, u, f, level );
 
@@ -147,7 +147,7 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
       p1y_to_p0.apply( src.getConformingPart()->component( 1 ), dst, level, flag, Add );
       if ( src.getDimension() == 3 )
       {
-          p1z_to_p0.apply( src.getConformingPart()->component( 2 ), dst, level, flag, Add );
+         p1z_to_p0.apply( src.getConformingPart()->component( 2 ), dst, level, flag, Add );
       }
 
       // p1_to_p0.apply( *src.getConformingPart(), dst, level, flag, updateType );
@@ -177,7 +177,7 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
    }
 
  private:
-/*
+   /*
     P1ToP0Operator< EGDivFormP0P1_new_0 > p1x_to_p0;
     P1ToP0Operator< EGDivFormP0P1_new_1 > p1y_to_p0;
     P1ToP0Operator< dg::DGFormAbort > p1z_to_p0;
@@ -187,11 +187,10 @@ class EGToP0DivOperatorNew final : public Operator< EGFunction< real_t >, P0Func
 
    P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_0 > p1x_to_p0;
    P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_1 > p1y_to_p0;
-    P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_2 > p1z_to_p0;
+   P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_2 > p1z_to_p0;
 
    //P1ToP0ConstantDivOperator p1_to_p0;
    P0Operator< dg::eg::EGDivFormNitscheBC_P0E > edg_to_p0;
-
 };
 
 // TODO: fix code duplication
@@ -248,7 +247,7 @@ class P0ToEGDivTOperatorNew final : public Operator< P0Function< real_t >, EGFun
    }
 
  private:
-/*
+   /*
     P0ToP1Operator< EGDivtFormP1P0_new_0 > p0_to_p1x;
     P0ToP1Operator< EGDivtFormP1P0_new_1 > p0_to_p1y;
     P0ToP1Operator< dg::DGFormAbort > p0_to_p1z;
@@ -263,22 +262,20 @@ class P0ToEGDivTOperatorNew final : public Operator< P0Function< real_t >, EGFun
 
    // P0ToP1ConstantDivTOperator p0_to_p1;
    P0Operator< dg::eg::EGDivtFormNitscheBC_EP0 > p0_to_edg;
-
 };
 
 class EGP0StokesOperatorNitscheBC : public Operator< EGP0StokesFunction< real_t >, EGP0StokesFunction< real_t > >
 {
  public:
+   typedef eg::EGLaplaceEnergyNormOperator EnergyNormOperator_T;
 
-    typedef eg::EGLaplaceEnergyNormOperator EnergyNormOperator_T;
-
-   EGP0StokesOperatorNitscheBC(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   EGP0StokesOperatorNitscheBC( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , velocityBlockOp( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , energyNormOp(storage, minLevel, maxLevel)
-    {}
+   , energyNormOp( storage, minLevel, maxLevel )
+   {}
 
    void apply( const EGP0StokesFunction< real_t >& src,
                const EGP0StokesFunction< real_t >& dst,
@@ -302,16 +299,16 @@ class EGP0StokesOperatorNitscheBC : public Operator< EGP0StokesFunction< real_t 
    }
 
    eg::EGLaplaceOperatorNitscheBC velocityBlockOp;
-    EnergyNormOperator_T energyNormOp;
-   EGToP0DivOperatorNew  div;
-    P0ToEGDivTOperatorNew divT;
+   EnergyNormOperator_T           energyNormOp;
+   EGToP0DivOperatorNew           div;
+   P0ToEGDivTOperatorNew          divT;
 };
 
 void runTestPoisson2D( uint_t                                           minLevel,
-                     uint_t                                           maxLevel,
-                     const MeshInfo&                                  meshInfo,
-                     const std::function< real_t( const Point3D& ) >& solFunc,
-                     const std::function< real_t( const Point3D& ) >& rhsFunc )
+                       uint_t                                           maxLevel,
+                       const MeshInfo&                                  meshInfo,
+                       const std::function< real_t( const Point3D& ) >& solFunc,
+                       const std::function< real_t( const Point3D& ) >& rhsFunc )
 {
    auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
    auto convRateEps = l2ConvRate * 0.1;
@@ -336,12 +333,12 @@ void runTestPoisson2D( uint_t                                           minLevel
 }
 
 real_t testStokes2D( uint_t                                           level,
-                   MeshInfo                                         meshInfo,
-                   const std::function< real_t( const Point3D& ) >& solFuncX,
-                   const std::function< real_t( const Point3D& ) >& solFuncY,
-                   const std::function< real_t( const Point3D& ) >& rhsFuncX,
-                   const std::function< real_t( const Point3D& ) >& rhsFuncY,
-                   bool                                             writeVTK = true )
+                     MeshInfo                                         meshInfo,
+                     const std::function< real_t( const Point3D& ) >& solFuncX,
+                     const std::function< real_t( const Point3D& ) >& solFuncY,
+                     const std::function< real_t( const Point3D& ) >& rhsFuncX,
+                     const std::function< real_t( const Point3D& ) >& rhsFuncY,
+                     bool                                             writeVTK = true )
 {
    using namespace dg;
 
@@ -349,25 +346,25 @@ real_t testStokes2D( uint_t                                           level,
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   auto basis                                                = std::make_shared< DGBasisLinearLagrange_Example >();
-  auto laplaceForm0                                         = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00 >();
-   auto laplaceForm1                                         = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11 >();
-   auto laplaceFormDG =  std::make_shared< dg::eg::EGVectorLaplaceForm_NewNew_EE >();
+   auto basis         = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm0  = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00 >();
+   auto laplaceForm1  = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11 >();
+   auto laplaceFormDG = std::make_shared< dg::eg::EGVectorLaplaceForm_NewNew_EE >();
 
-/*
+   /*
     auto laplaceForm0                                         = std::make_shared< EGVectorLaplaceFormP1P1_new_00 >();
     auto laplaceForm1                                         = std::make_shared< EGVectorLaplaceFormP1P1_new_11 >();
     auto laplaceFormDG                                        = std::make_shared< EGVectorLaplaceFormEDGEDG_new >();
 */
-    laplaceForm0->callback_Scalar_Variable_Coefficient_2D_g0  = solFuncX;
+   laplaceForm0->callback_Scalar_Variable_Coefficient_2D_g0  = solFuncX;
    laplaceForm1->callback_Scalar_Variable_Coefficient_2D_g1  = solFuncY;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
    auto massForm                                             = std::make_shared< DGMassForm_Example >();
 
-   auto divForm                                        = std::make_shared< dg::eg::EGDivFormNitscheBC_P0E >();
-    //auto divForm                                        = std::make_shared< EGDivFormP0EDG_new >();
-    divForm->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
+   auto divForm = std::make_shared< dg::eg::EGDivFormNitscheBC_P0E >();
+   //auto divForm                                        = std::make_shared< EGDivFormP0EDG_new >();
+   divForm->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
    divForm->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
 
    // TODO: remove this
@@ -391,8 +388,8 @@ real_t testStokes2D( uint_t                                           level,
    copyBdry( rhs_int );
    copyBdry( num );
 
-   EGP0StokesOperatorNitscheBC A(storage, level, level );
-   eg::EGMassOperator    M( storage, level, level );
+   EGP0StokesOperatorNitscheBC A( storage, level, level );
+   eg::EGMassOperator          M( storage, level, level );
 
    DGToP1Operator< P1ToDG1InterpolationForm, real_t > opDGToP1Real(
        storage, level, level, std::make_shared< P1ToDG1InterpolationForm >() );
@@ -408,7 +405,7 @@ real_t testStokes2D( uint_t                                           level,
 
    // Solve system.
    // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
-   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA(storage, level, num, 1e-14, 1e-14, 10000 );
+   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-14, 1e-14, 10000 );
    solverA.disableApplicationBC( true );
    solverA.setFromOptions( true );
    solverA.solve( A, u, f, level );
@@ -419,201 +416,195 @@ real_t testStokes2D( uint_t                                           level,
 
    WALBERLA_LOG_INFO_ON_ROOT( discrL2 );
 
-
-      VTKOutput vtk( "../../output/", "NitscheStokes2D", storage );
-    vtk.add( u );
-    vtk.add(*u.uvw().getConformingPart());
-    vtk.add(*u.uvw().getDiscontinuousPart());
-    vtk.add( sol );
-    vtk.add(*sol.uvw().getConformingPart());
-    vtk.add(*sol.uvw().getDiscontinuousPart());
-    vtk.add( err );
-    vtk.add( f );
-    vtk.add(*f.uvw().getConformingPart());
-    vtk.add(*f.uvw().getDiscontinuousPart());
-    vtk.write(level);
-
+   VTKOutput vtk( "../../output/", "NitscheStokes2D", storage );
+   vtk.add( u );
+   vtk.add( *u.uvw().getConformingPart() );
+   vtk.add( *u.uvw().getDiscontinuousPart() );
+   vtk.add( sol );
+   vtk.add( *sol.uvw().getConformingPart() );
+   vtk.add( *sol.uvw().getDiscontinuousPart() );
+   vtk.add( err );
+   vtk.add( f );
+   vtk.add( *f.uvw().getConformingPart() );
+   vtk.add( *f.uvw().getDiscontinuousPart() );
+   vtk.write( level );
 
    return discrL2;
 }
 
-
 real_t testStokes3D( uint_t                                           level,
-                         MeshInfo                                         meshInfo,
-                         const std::function< real_t( const Point3D& ) >& solFuncX,
-                         const std::function< real_t( const Point3D& ) >& solFuncY,
+                     MeshInfo                                         meshInfo,
+                     const std::function< real_t( const Point3D& ) >& solFuncX,
+                     const std::function< real_t( const Point3D& ) >& solFuncY,
                      const std::function< real_t( const Point3D& ) >& solFuncZ,
                      const std::function< real_t( const Point3D& ) >& pFunc,
-                         const std::function< real_t( const Point3D& ) >& rhsFuncX,
-                         const std::function< real_t( const Point3D& ) >& rhsFuncY,
+                     const std::function< real_t( const Point3D& ) >& rhsFuncX,
+                     const std::function< real_t( const Point3D& ) >& rhsFuncY,
                      const std::function< real_t( const Point3D& ) >& rhsFuncZ,
-                         bool                                             writeVTK = true ) {
-    using namespace dg;
+                     bool                                             writeVTK = true )
+{
+   using namespace dg;
 
-    SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
-    setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
-    std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, 1);
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-    auto basis = std::make_shared<DGBasisLinearLagrange_Example>();
-    auto laplaceForm0 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00>();
-    auto laplaceForm1 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11>();
-    auto laplaceForm2 = std::make_shared<dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_22>();
-    auto laplaceFormDG = std::make_shared<dg::eg::EGVectorLaplaceForm_NewNew_EE>();
+   auto basis         = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto laplaceForm0  = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_00 >();
+   auto laplaceForm1  = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_11 >();
+   auto laplaceForm2  = std::make_shared< dg::eg::EGVectorLaplaceFormNitscheBC_P1P1_22 >();
+   auto laplaceFormDG = std::make_shared< dg::eg::EGVectorLaplaceForm_NewNew_EE >();
 
-    laplaceForm0->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-    laplaceForm1->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-    laplaceForm2->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
-    laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-    laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-    laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
-    auto massForm = std::make_shared<DGMassForm_Example>();
+   laplaceForm0->callback_Scalar_Variable_Coefficient_3D_g0  = solFuncX;
+   laplaceForm1->callback_Scalar_Variable_Coefficient_3D_g1  = solFuncY;
+   laplaceForm2->callback_Scalar_Variable_Coefficient_3D_g2  = solFuncZ;
+   laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+   laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+   laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+   auto massForm                                             = std::make_shared< DGMassForm_Example >();
 
-    auto divForm = std::make_shared<dg::eg::EGDivFormNitscheBC_P0E>();
-    divForm->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
-    divForm->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
-    divForm->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
+   auto divForm                                        = std::make_shared< dg::eg::EGDivFormNitscheBC_P0E >();
+   divForm->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
+   divForm->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
+   divForm->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
 
-    // TODO: remove this
-    auto copyBdry = [](auto &fun) { fun.p().setBoundaryCondition(fun.uvw().getBoundaryCondition()); };
+   // TODO: remove this
+   auto copyBdry = []( auto& fun ) { fun.p().setBoundaryCondition( fun.uvw().getBoundaryCondition() ); };
 
-    EGP0StokesFunction<real_t> u("u", storage, level, level);
-    EGP0StokesFunction<real_t> f("f", storage, level, level);
-    EGP0StokesFunction<real_t> sol("sol", storage, level, level);
-    EGP0StokesFunction<real_t> tmp("tmp", storage, level, level);
-    EGP0StokesFunction<real_t> err("err", storage, level, level);
-    EGP0StokesFunction<real_t> Merr("Merr", storage, level, level);
-    EGP0StokesFunction<real_t> rhs_int("rhs_int", storage, level, level);
-    EGP0StokesFunction<idx_t> num("num", storage, level, level);
+   EGP0StokesFunction< real_t > u( "u", storage, level, level );
+   EGP0StokesFunction< real_t > f( "f", storage, level, level );
+   EGP0StokesFunction< real_t > sol( "sol", storage, level, level );
+   EGP0StokesFunction< real_t > tmp( "tmp", storage, level, level );
+   EGP0StokesFunction< real_t > err( "err", storage, level, level );
+   EGP0StokesFunction< real_t > Merr( "Merr", storage, level, level );
+   EGP0StokesFunction< real_t > rhs_int( "rhs_int", storage, level, level );
+   EGP0StokesFunction< idx_t >  num( "num", storage, level, level );
 
-    copyBdry(u);
-    copyBdry(f);
-    copyBdry(sol);
-    copyBdry(tmp);
-    copyBdry(err);
-    copyBdry(Merr);
-    copyBdry(rhs_int);
-    copyBdry(num);
+   copyBdry( u );
+   copyBdry( f );
+   copyBdry( sol );
+   copyBdry( tmp );
+   copyBdry( err );
+   copyBdry( Merr );
+   copyBdry( rhs_int );
+   copyBdry( num );
 
-    EGP0StokesOperatorNitscheBC A(storage, level, level);
-    eg::EGMassOperator M(storage, level, level);
+   EGP0StokesOperatorNitscheBC A( storage, level, level );
+   eg::EGMassOperator          M( storage, level, level );
 
-    DGToP1Operator<P1ToDG1InterpolationForm, real_t> opDGToP1Real(
-            storage, level, level, std::make_shared<P1ToDG1InterpolationForm>());
+   DGToP1Operator< P1ToDG1InterpolationForm, real_t > opDGToP1Real(
+       storage, level, level, std::make_shared< P1ToDG1InterpolationForm >() );
 
+   // Assemble RHS.
+   f.uvw().evaluateLinearFunctional( rhsFuncX, rhsFuncY, rhsFuncZ, level );
+   {
+      VTKOutput vtk_preBC( "../../output/", "NitscheStokes3D_preBC", storage );
+      vtk_preBC.add( f );
+      vtk_preBC.add( *f.uvw().getConformingPart() );
+      vtk_preBC.add( *f.uvw().getDiscontinuousPart() );
+      vtk_preBC.write( level );
+   }
+   f.uvw().applyDirichletBoundaryConditions( laplaceForm0, laplaceForm1, laplaceForm2, laplaceFormDG, level );
+   f.p().interpolate( 0, level, All );
+   f.p().getDGFunction()->applyDirichletBoundaryConditions( divForm, level );
 
-    // Assemble RHS.
-    f.uvw().evaluateLinearFunctional(rhsFuncX, rhsFuncY, rhsFuncZ, level);
-    {
-    VTKOutput vtk_preBC("../../output/", "NitscheStokes3D_preBC", storage);
-    vtk_preBC.add(f);
-    vtk_preBC.add(*f.uvw().getConformingPart());
-    vtk_preBC.add(*f.uvw().getDiscontinuousPart());
-    vtk_preBC.write(level);
+   // Interpolate solution
+   sol.uvw().interpolate( { solFuncX, solFuncY, solFuncZ }, level, All );
+   sol.p().interpolate( pFunc, level, All );
+
+   // Solve system.
+   // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
+   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-14, 1e-14, 10000 );
+   solverA.disableApplicationBC( true );
+   solverA.setFromOptions( true );
+   solverA.solve( A, u, f, level );
+
+   err.assign( { 1.0, -1.0 }, { u, sol }, level );
+   M.apply( err.uvw(), Merr.uvw(), level, All, Replace );
+   auto discrL2 = sqrt( err.uvw().dotGlobal( Merr.uvw(), level ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( discrL2 );
+
+   // vtk
+   VTKOutput vtk( "../../output/", "NitscheStokes3D", storage );
+   vtk.add( u );
+   vtk.add( *u.uvw().getConformingPart() );
+   vtk.add( *u.uvw().getDiscontinuousPart() );
+   vtk.add( sol );
+   vtk.add( *sol.uvw().getConformingPart() );
+   vtk.add( *sol.uvw().getDiscontinuousPart() );
+   vtk.add( err );
+   vtk.add( f );
+   vtk.add( *f.uvw().getConformingPart() );
+   vtk.add( *f.uvw().getDiscontinuousPart() );
+
+   vtk.write( level );
+
+   return discrL2;
 }
-        f.uvw().applyDirichletBoundaryConditions( laplaceForm0, laplaceForm1, laplaceForm2,  laplaceFormDG, level );
-        f.p().interpolate( 0, level, All );
-        f.p().getDGFunction()->applyDirichletBoundaryConditions( divForm, level );
-
-        // Interpolate solution
-        sol.uvw().interpolate( { solFuncX, solFuncY, solFuncZ }, level, All );
-        sol.p().interpolate( pFunc, level, All );
-
-
-        // Solve system.
-        // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
-        PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA(storage, level, num, 1e-14, 1e-14, 10000 );
-        solverA.disableApplicationBC( true );
-        solverA.setFromOptions( true );
-        solverA.solve( A, u, f, level );
-
-        err.assign( { 1.0, -1.0 }, { u, sol }, level );
-        M.apply( err.uvw(), Merr.uvw(), level, All, Replace );
-        auto discrL2 = sqrt( err.uvw().dotGlobal( Merr.uvw(), level ) );
-
-        WALBERLA_LOG_INFO_ON_ROOT( discrL2 );
-
-        // vtk
-        VTKOutput vtk( "../../output/", "NitscheStokes3D", storage );
-        vtk.add( u );
-        vtk.add(*u.uvw().getConformingPart());
-        vtk.add(*u.uvw().getDiscontinuousPart());
-        vtk.add( sol );
-        vtk.add(*sol.uvw().getConformingPart());
-        vtk.add(*sol.uvw().getDiscontinuousPart());
-        vtk.add( err );
-        vtk.add( f );
-        vtk.add(*f.uvw().getConformingPart());
-        vtk.add(*f.uvw().getDiscontinuousPart());
-
-        vtk.write( level );
-
-
-
-        return discrL2;
-    }
 
 void runTestStokes2D( uint_t                                           minLevel,
-                    uint_t                                           maxLevel,
-                    const MeshInfo&                                  meshInfo,
-                    const std::function< real_t( const Point3D& ) >& solFuncX,
-                    const std::function< real_t( const Point3D& ) >& solFuncY,
-                    const std::function< real_t( const Point3D& ) >& rhsFuncX,
-                    const std::function< real_t( const Point3D& ) >& rhsFuncY ) {
-    auto l2ConvRate = std::pow(2, -(int(1) + 1));
-    auto convRateEps = l2ConvRate * 0.1;
-    auto err = hyteg::testStokes2D(minLevel, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY);
-    WALBERLA_LOG_INFO_ON_ROOT(" expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps);
-    WALBERLA_LOG_INFO_ON_ROOT("error level " << minLevel << ": " << err);
-    for (uint_t l = minLevel + 1; l <= maxLevel; l++) {
-        auto errFiner = hyteg::testStokes2D(l, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY);
-        auto computedRate = errFiner / err;
+                      uint_t                                           maxLevel,
+                      const MeshInfo&                                  meshInfo,
+                      const std::function< real_t( const Point3D& ) >& solFuncX,
+                      const std::function< real_t( const Point3D& ) >& solFuncY,
+                      const std::function< real_t( const Point3D& ) >& rhsFuncX,
+                      const std::function< real_t( const Point3D& ) >& rhsFuncY )
+{
+   auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
+   auto convRateEps = l2ConvRate * 0.1;
+   auto err         = hyteg::testStokes2D( minLevel, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY );
+   WALBERLA_LOG_INFO_ON_ROOT( " expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
+   WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
+   for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
+   {
+      auto errFiner     = hyteg::testStokes2D( l, meshInfo, solFuncX, solFuncY, rhsFuncX, rhsFuncY );
+      auto computedRate = errFiner / err;
 
-        WALBERLA_LOG_INFO_ON_ROOT("error level " << l << ": " << errFiner);
-        WALBERLA_LOG_INFO_ON_ROOT("computed rate level " << l << " / " << l - 1 << ": " << computedRate);
+      WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
+      WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
 
-        WALBERLA_CHECK_LESS_EQUAL(computedRate,
-                                  l2ConvRate + convRateEps,
-                                  "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                               << " not sufficiently small (computed: " << computedRate
-                                                               << ", estimated + eps: " << l2ConvRate + convRateEps
-                                                               << ")");
-        err = errFiner;
-    }
+      WALBERLA_CHECK_LESS_EQUAL( computedRate,
+                                 l2ConvRate + convRateEps,
+                                 "Convergence L2 rate level " << l << " vs level " << l - 1
+                                                              << " not sufficiently small (computed: " << computedRate
+                                                              << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+      err = errFiner;
+   }
 }
 
+void runTestStokes3D( uint_t                                           minLevel,
+                      uint_t                                           maxLevel,
+                      const MeshInfo&                                  meshInfo,
+                      const std::function< real_t( const Point3D& ) >& solFuncX,
+                      const std::function< real_t( const Point3D& ) >& solFuncY,
+                      const std::function< real_t( const Point3D& ) >& solFuncZ,
+                      const std::function< real_t( const Point3D& ) >& pFunc,
+                      const std::function< real_t( const Point3D& ) >& rhsFuncX,
+                      const std::function< real_t( const Point3D& ) >& rhsFuncY,
+                      const std::function< real_t( const Point3D& ) >& rhsFuncZ )
+{
+   auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
+   auto convRateEps = l2ConvRate * 0.1;
+   auto err = hyteg::testStokes3D( minLevel, meshInfo, solFuncX, solFuncY, solFuncZ, pFunc, rhsFuncX, rhsFuncY, rhsFuncZ );
+   WALBERLA_LOG_INFO_ON_ROOT( " expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
+   WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
+   for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
+   {
+      auto errFiner     = hyteg::testStokes3D( l, meshInfo, solFuncX, solFuncY, solFuncZ, pFunc, rhsFuncX, rhsFuncY, rhsFuncZ );
+      auto computedRate = errFiner / err;
 
-    void runTestStokes3D( uint_t                                           minLevel,
-                          uint_t                                           maxLevel,
-                          const MeshInfo&                                  meshInfo,
-                          const std::function< real_t( const Point3D& ) >& solFuncX,
-                          const std::function< real_t( const Point3D& ) >& solFuncY,
-                          const std::function< real_t( const Point3D& ) >& solFuncZ,
-                          const std::function< real_t( const Point3D& ) >& pFunc,
-                          const std::function< real_t( const Point3D& ) >& rhsFuncX,
-                          const std::function< real_t( const Point3D& ) >& rhsFuncY,
-                          const std::function< real_t( const Point3D& ) >& rhsFuncZ)
-    {
-        auto l2ConvRate  = std::pow( 2, -( int( 1 ) + 1 ) );
-        auto convRateEps = l2ConvRate * 0.1;
-        auto err         = hyteg::testStokes3D( minLevel, meshInfo, solFuncX, solFuncY,solFuncZ, pFunc, rhsFuncX, rhsFuncY,  rhsFuncZ);
-        WALBERLA_LOG_INFO_ON_ROOT( " expected L2 rate: " << l2ConvRate << ", threshold: " << l2ConvRate + convRateEps );
-        WALBERLA_LOG_INFO_ON_ROOT( "error level " << minLevel << ": " << err );
-        for ( uint_t l = minLevel + 1; l <= maxLevel; l++ )
-        {
-            auto errFiner     = hyteg::testStokes3D( l, meshInfo, solFuncX, solFuncY,solFuncZ,pFunc, rhsFuncX, rhsFuncY,  rhsFuncZ);
-            auto computedRate = errFiner / err;
+      WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
+      WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
 
-            WALBERLA_LOG_INFO_ON_ROOT( "error level " << l << ": " << errFiner );
-            WALBERLA_LOG_INFO_ON_ROOT( "computed rate level " << l << " / " << l - 1 << ": " << computedRate );
-
-            WALBERLA_CHECK_LESS_EQUAL( computedRate,
-                                       l2ConvRate + convRateEps,
-                                       "Convergence L2 rate level " << l << " vs level " << l - 1
-                                                                    << " not sufficiently small (computed: " << computedRate
-                                                                    << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
-            err = errFiner;
-        }
-    }
+      WALBERLA_CHECK_LESS_EQUAL( computedRate,
+                                 l2ConvRate + convRateEps,
+                                 "Convergence L2 rate level " << l << " vs level " << l - 1
+                                                              << " not sufficiently small (computed: " << computedRate
+                                                              << ", estimated + eps: " << l2ConvRate + convRateEps << ")" );
+      err = errFiner;
+   }
+}
 
 } // namespace hyteg
 

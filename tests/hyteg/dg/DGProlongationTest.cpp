@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner.
+* Copyright (c) 2017-2025 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,8 +27,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/gridtransferoperators/DGRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
