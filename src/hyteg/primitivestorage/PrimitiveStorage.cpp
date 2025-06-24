@@ -20,7 +20,6 @@
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#include <adios2.h>
 #include <algorithm>
 #include <map>
 #include <vector>
@@ -42,6 +41,10 @@
 #include "hyteg/primitives/Vertex.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include <adios2.h>
+#endif
 
 namespace hyteg {
 

@@ -20,7 +20,6 @@
 
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
-#include <adios2.h>
 #include <algorithm>
 #include <iomanip>
 #include <set>
@@ -31,6 +30,10 @@
 
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include <adios2.h>
+#endif
 
 using walberla::real_c;
 
