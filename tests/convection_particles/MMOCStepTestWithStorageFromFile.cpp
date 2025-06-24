@@ -45,10 +45,12 @@ int main( int argc, char* argv[] )
    walberla::debug::enterTestMode();
 
    walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   MeshInfo meshInfo = MeshInfo::meshSphericalShell(3u, 2u, 1.22, 2.22);
+   const real_t rMin = 1.22;
+   const real_t rMax = 2.22;
+
+   MeshInfo meshInfo = MeshInfo::meshSphericalShell(3u, 2u, rMin, rMax);
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
 
@@ -80,11 +82,20 @@ int main( int argc, char* argv[] )
 
    const uint_t level = 1u;
 
-   P2Function< real_t > TWithStorage("TWithStorage", storage, level, level);
-   P2Function< real_t > TWithStorageRead("TWithStorageRead", storageRead, level, level);
+   BoundaryCondition bcTemp;
+   BoundaryCondition bcVelocity;
 
-   P2VectorFunction< real_t > uWithStorage("TWithStorage", storage, level, level);
-   P2VectorFunction< real_t > uWithStorageRead("TWithStorageRead", storageRead, level, level);
+   bcTemp.createAllInnerBC();
+   bcVelocity.createAllInnerBC();
+
+   bcTemp.createDirichletBC("AllDirichlet", {MeshInfo::flagInnerBoundary, MeshInfo::flagOuterBoundary});
+   bcVelocity.createDirichletBC("AllDirichlet", {MeshInfo::flagInnerBoundary, MeshInfo::flagOuterBoundary});
+
+   P2Function< real_t > TWithStorage("TWithStorage", storage, level, level, bcTemp);
+   P2Function< real_t > TWithStorageRead("TWithStorageRead", storageRead, level, level, bcTemp);
+
+   P2VectorFunction< real_t > uWithStorage("TWithStorage", storage, level, level, bcVelocity);
+   P2VectorFunction< real_t > uWithStorageRead("TWithStorageRead", storageRead, level, level, bcVelocity);
 
    MMOCTransport< P2Function< real_t > > mmocTransportWithStorage(storage, level, level, TimeSteppingScheme::RK4);
    MMOCTransport< P2Function< real_t > > mmocTransportWithStorageRead(storageRead, level, level, TimeSteppingScheme::RK4);
@@ -94,11 +105,52 @@ int main( int argc, char* argv[] )
       return std::sin(x[0]) * x[1] * x[1] * x[0] + std::cos(x[1]) * x[0] * x[0];
    };
 
+   const real_t rMean = (rMin + rMax) / 2;
+
+   std::function< real_t(const Point3D&) > uX = [rMean](const Point3D& x)
+   {
+      real_t r = x.norm();
+      real_t uTheta = 1.0;
+
+      real_t theta = std::acos( x[2] / r );
+      real_t phi = std::atan2(x[1], x[0]);
+
+      real_t weight = 4.0 / (1.0 + std::exp(100.0 * (r - rMean) * (r - rMean)));
+
+      return weight * uTheta * std::cos(theta) * std::cos(phi);
+   };
+
+   std::function< real_t(const Point3D&) > uY = [rMean](const Point3D& x)
+   {
+      real_t r = x.norm();
+      real_t uTheta = 1.0;
+
+      real_t theta = std::acos( x[2] / r );
+      real_t phi = std::atan2(x[1], x[0]);
+
+      real_t weight = 4.0 / (1.0 + std::exp(100.0 * (r - rMean) * (r - rMean)));
+
+      return weight * uTheta * std::cos(theta) * std::sin(phi);
+   };
+
+   std::function< real_t(const Point3D&) > uZ = [rMean](const Point3D& x)
+   {
+      real_t r = x.norm();
+      real_t uTheta = 1.0;
+
+      real_t theta = std::acos( x[2] / r );
+      real_t phi = std::atan2(x[1], x[0]);
+
+      real_t weight = 4.0 / (1.0 + std::exp(100.0 * (r - rMean) * (r - rMean)));
+
+      return -weight * uTheta * std::sin(theta);
+   };
+
    TWithStorage.interpolate(someFunc, level, All);
    TWithStorageRead.interpolate(someFunc, level, All);
 
-   uWithStorage.interpolate(someFunc, level, All);
-   uWithStorageRead.interpolate(someFunc, level, All);
+   uWithStorage.interpolate({uX, uY, uZ}, level, All);
+   uWithStorageRead.interpolate({uX, uY, uZ}, level, All);
 
    real_t uMax = uWithStorage.getMaxComponentMagnitude(level, All);
    real_t hMin = MeshQuality::getMinimalEdgeLength(storage, level);
@@ -107,8 +159,8 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT("dt = " << dt);
 
-   mmocTransportWithStorage.step(TWithStorage, uWithStorage, uWithStorage, level, All, dt, 1u);
-   mmocTransportWithStorageRead.step(TWithStorageRead, uWithStorageRead, uWithStorageRead, level, All, dt, 1u);
+   mmocTransportWithStorage.step(TWithStorage, uWithStorage, uWithStorage, level, Inner, dt, 1u);
+   mmocTransportWithStorageRead.step(TWithStorageRead, uWithStorageRead, uWithStorageRead, level, Inner, dt, 1u);
 
    TWithStorageRead.assign({1.0, -1.0}, {TWithStorageRead, TWithStorage}, level, All);
 
@@ -127,14 +179,14 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( infoReadAdios2 );
    WALBERLA_CHECK_EQUAL( info, infoReadAdios2 );
 
-   P2Function< real_t > TWithStorageReadAdios2("TWithStorageReadAdios2", storageReadAdios2, level, level);
-   P2VectorFunction< real_t > uWithStorageReadAdios2("TWithStorageReadAdios2", storageReadAdios2, level, level);
+   P2Function< real_t > TWithStorageReadAdios2("TWithStorageReadAdios2", storageReadAdios2, level, level, bcTemp);
+   P2VectorFunction< real_t > uWithStorageReadAdios2("TWithStorageReadAdios2", storageReadAdios2, level, level, bcVelocity);
    MMOCTransport< P2Function< real_t > > mmocTransportWithStorageReadAdios2(storageReadAdios2, level, level, TimeSteppingScheme::RK4);
 
    TWithStorageReadAdios2.interpolate(someFunc, level, All);
-   uWithStorageReadAdios2.interpolate(someFunc, level, All);
+   uWithStorageReadAdios2.interpolate({uX, uY, uZ}, level, All);
 
-   mmocTransportWithStorageReadAdios2.step(TWithStorageReadAdios2, uWithStorageReadAdios2, uWithStorageReadAdios2, level, All, dt, 1u);
+   mmocTransportWithStorageReadAdios2.step(TWithStorageReadAdios2, uWithStorageReadAdios2, uWithStorageReadAdios2, level, Inner, dt, 1u);
    
    TWithStorageReadAdios2.assign({1.0, -1.0}, {TWithStorageReadAdios2, TWithStorage}, level, All);
 
