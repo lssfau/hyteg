@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -167,6 +167,13 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
       if ( !form_->onlyVolumeIntegrals() )
       {
+         // For cross-coupling, fluxes, etc. we need larger halos
+         if ( src.getStorage()->getAdditionalHaloDepth() == 0 )
+         {
+            WALBERLA_ABORT( "Your DGForm does not only consist of volume integrals.\n"
+                            << "Thus, you need a PrimitiveStorage with additionalHaloDepth > 0." );
+         }
+
          src.communicate( level );
       }
 
