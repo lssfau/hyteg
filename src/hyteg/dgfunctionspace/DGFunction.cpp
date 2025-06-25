@@ -77,18 +77,6 @@ DGFunction< ValueType >::DGFunction( const std::string&                         
       WALBERLA_LOG_WARNING( "DG-type functions do not support blending, yet! See issue #293" );
    }
 
-   // give the user a warning, if they try to use blending, see issue #293
-   if ( meshIsBlended() )
-   {
-      WALBERLA_LOG_WARNING( "DG-type functions do not support blending, yet! See issue #293" );
-   }
-
-   // give the user a warning, if they try to use blending, see issue #293
-   if ( meshIsBlended() )
-   {
-      WALBERLA_LOG_WARNING( "DG-type functions do not support blending, yet! See issue #293" );
-   }
-
    volumeDoFFunction_ =
        std::make_shared< volumedofspace::VolumeDoFFunction< ValueType > >( name,
                                                                            storage,
