@@ -1,0 +1,10 @@
+Parameters
+{
+  benchmark DONEA_HUERTA;  // which benchmark to run: DONEA_HUERTA or JOHN_D3?
+  // benchmark JOHN_D3;
+  minLevel 2;                 // run test from this level ...
+  maxLevel 8;                 // ... up to this level
+  numSubIntervals 1;          // for meshing the unit square
+  outputVTK true;             // should we output files for visualisation?
+  compareTaylorHood true;     // run problems also with Taylor-Hood for comparison? 
+}

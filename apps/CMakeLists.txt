@@ -96,6 +96,7 @@ add_subdirectory(surfaces)
 
 if( HYTEG_BUILD_WITH_PETSC )
   add_subdirectory(2021-tokamak)
+  add_subdirectory(2025-CCR-Element)
 endif()
 
 if( HYTEG_TERRANEO_MODULE )
