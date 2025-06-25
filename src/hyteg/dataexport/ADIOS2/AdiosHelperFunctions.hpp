@@ -118,7 +118,7 @@ adios2::Attribute< T > readAttribute( adios2::IO& io, const std::string& name )
    {
       WALBERLA_ABORT( "Attribute '" << name << "' seems to be missing from checkpoint!" );
    }
-   return ( attribute );
+   return attribute;
 }
 
 /// Write a single value attribute to ADIOS2 ouptut

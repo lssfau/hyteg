@@ -263,7 +263,7 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
 
    if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.timeStep > 0 )
    {
-      uint_t shell = static_cast< uint_t >(
+      uint_t shell = uint_c(
           std::round( real_c( TN.simulationParameters.numLayers ) *
                       ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
       WALBERLA_ASSERT( shell < TN.physicalParameters.temperatureProfile.size() );
