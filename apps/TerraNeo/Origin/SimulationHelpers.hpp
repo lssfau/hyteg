@@ -309,7 +309,7 @@ void ConvectionSimulation::outputTimingTree()
 // SQL database for runtime analysis
 void ConvectionSimulation::initTimingDB()
 {
-   auto gitHash = gitSHA1();
+   auto gitHash = hyteg::buildinfo::gitSHA1();
    db           = std::make_shared< hyteg::FixedSizeSQLDB >( TN.outputParameters.fileNameSQLdb, true );
 
    db->setConstantEntry( "gitHash", gitHash );
