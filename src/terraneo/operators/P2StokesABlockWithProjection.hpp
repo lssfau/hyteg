@@ -55,7 +55,7 @@ class P2ViscousIcosahedralShellMapOperatorFS : public Operator< P2VectorFunction
                const P2VectorFunction< real_t >& dst,
                const uint_t                      level,
                const DoFType                     flag,
-               const UpdateType                  updateType = Replace ) const
+               const UpdateType                  updateType = Replace ) const override
    {
       tmp_.assign( { 1 }, { src }, level, All );
       // projectNormal_.project( tmp_, level, FreeslipBoundary );
@@ -102,7 +102,7 @@ class P2ABlockStdViscousIcosahedralShellMapOperatorFS : public Operator< P2Vecto
                const P2VectorFunction< real_t >& dst,
                const uint_t                      level,
                const DoFType                     flag,
-               const UpdateType                  updateType = Replace ) const
+               const UpdateType                  updateType = Replace ) const override
    {
       tmp_.assign( { 1 }, { src }, level, All );
       // projectNormal_.project( tmp_, level, FreeslipBoundary );
