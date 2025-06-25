@@ -26,7 +26,7 @@
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
@@ -168,7 +168,7 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseMassOperator >( primStore, 8.0, "P2ElementwiseMassOperator" );
 
    {
-      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
       auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 4 );
       checkArea< DG1MassOperator >( primStore, 8.0, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
    }
@@ -188,7 +188,7 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75, "P2ElementwiseBlendingMassOperator" );
 
    {
-      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
       auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 4 );
       checkArea< DG1MassOperator >( primStore, 1.75, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
    }
@@ -210,7 +210,7 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseMassOperator >( primStore, 6.0, "P2ElementwiseMassOperator" );
 
    {
-      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
       auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 3 );
       checkArea< DG1MassOperator >( primStore, 6.0, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
    }
@@ -232,7 +232,7 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseMassOperator >( primStore, volume, "P2ElementwiseMassOperator" );
 
    {
-      using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+      using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
       auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 3 );
       checkArea< DG1MassOperator >( primStore, volume, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
    }

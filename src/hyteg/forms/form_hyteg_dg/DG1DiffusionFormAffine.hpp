@@ -43,19 +43,19 @@ using walberla::real_c;
 /// for details.
 ///
 /// Note: if uncertain, try setting beta_0 to 1 for 2D and 0.5 for 3D applications.
-class DGDiffusionForm_Example : public DGForm
+class DG1DiffusionFormAffine : public DGForm
 {
  public:
-   DGDiffusionForm_Example( real_t _beta_0 )
+   DG1DiffusionFormAffine( real_t _beta_0 )
    : callback_Scalar_Variable_Coefficient_2D_g( []( const Point3D& ) { return real_c( 0 ); } )
    , callback_Scalar_Variable_Coefficient_3D_g( []( const Point3D& ) { return real_c( 0 ); } )
    , sigma_0( 6 )
    , beta_0( _beta_0 )
    {}
 
-   DGDiffusionForm_Example( real_t                                           _beta_0,
-                            const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_2D_g,
-                            const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_3D_g )
+   DG1DiffusionFormAffine( real_t                                           _beta_0,
+                           const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_2D_g,
+                           const std::function< real_t( const Point3D& ) >& _callback_Scalar_Variable_Coefficient_3D_g )
    : callback_Scalar_Variable_Coefficient_2D_g( _callback_Scalar_Variable_Coefficient_2D_g )
    , callback_Scalar_Variable_Coefficient_3D_g( _callback_Scalar_Variable_Coefficient_3D_g )
    , sigma_0( 6 )

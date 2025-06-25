@@ -25,8 +25,6 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGDiffusionForm_Example.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

@@ -26,8 +26,7 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGDiffusionForm_Example.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -97,7 +96,7 @@ void test( uint_t                                           dim,
    const uint_t numRandomEvaluations = 200;
 
    auto basis    = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto massForm = std::make_shared< DGMassForm_Example >();
+   auto massForm = std::make_shared< DG1MassFormAffine >();
 
    P1Function< real_t > interpolatedP1( "u_P1", storage, level, level );
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );

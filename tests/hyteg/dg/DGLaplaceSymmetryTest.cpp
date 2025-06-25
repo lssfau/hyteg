@@ -25,7 +25,7 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGDiffusionForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1DiffusionFormAffine.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -46,7 +46,7 @@ static void test( const std::string& meshFile, const uint_t& level )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
-   auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
+   auto dgDiffusionForm = std::make_shared< DG1DiffusionFormAffine >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
    auto dgBasis         = std::make_shared< DGBasisLinearLagrange_Example >();
 
    DGFunction< idx_t > numerator( "numerator", storage, level, level, dgBasis, 1 );
@@ -83,7 +83,7 @@ static void testAMR( const uint_t& level, uint_t numRefinements )
          storage->refinementAndCoarseningHanging( refine, coarsen );
       }
 
-      auto dgDiffusionForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
+      auto dgDiffusionForm = std::make_shared< DG1DiffusionFormAffine >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
       auto dgBasis         = std::make_shared< DGBasisLinearLagrange_Example >();
 
       DGFunction< idx_t > numerator( "numerator", storage, level, level, dgBasis, 1 );

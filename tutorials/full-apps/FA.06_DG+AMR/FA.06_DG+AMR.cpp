@@ -173,8 +173,8 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGDiffusionForm_Example.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1DiffusionFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -255,8 +255,8 @@ void DGAMR( uint_t localMacroRefinements, uint_t globalMicroRefinements, std::st
 
    /// [DG parameters]
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( 1, solution, solution );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
+   auto laplaceForm = std::make_shared< DG1DiffusionFormAffine >( 1, solution, solution );
+   auto massForm    = std::make_shared< DG1MassFormAffine >();
    /// [DG parameters]
 
    /// [DG functions]

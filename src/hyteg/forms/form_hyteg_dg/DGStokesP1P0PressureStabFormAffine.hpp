@@ -33,7 +33,7 @@
 namespace hyteg {
 namespace dg {
 
-class DGStokesP1P0PressureStabForm_Example : public DGForm2D
+class DGStokesP1P0PressureStabFormAffine : public DGForm2D
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
@@ -43,6 +43,9 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree = 0 );
+      WALBERLA_ASSERT( testDegree = 0 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       elMat.setZero();
@@ -58,6 +61,9 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree = 0 );
+      WALBERLA_ASSERT( testDegree = 0 );
+
       const auto p_affine_0_0 = coordsElement[0]( 0 );
       const auto p_affine_0_1 = coordsElement[0]( 1 );
 
@@ -102,6 +108,9 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree = 0 );
+      WALBERLA_ASSERT( testDegree = 0 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -158,6 +167,9 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree = 0 );
+      WALBERLA_ASSERT( testDegree = 0 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
       elMat.setZero();
    }
@@ -170,6 +182,8 @@ class DGStokesP1P0PressureStabForm_Example : public DGForm2D
                                                  int                           degree,
                                                  MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( degree = 0 );
+
       elMat.resize( basis.numDoFsPerElement( 2, degree ), 1 );
       elMat.setZero();
    }

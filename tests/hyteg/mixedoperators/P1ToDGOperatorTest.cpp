@@ -25,7 +25,7 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/mixedoperators/DGToP1Operator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -64,7 +64,7 @@ void checkP1ToDG1ByIntegral( const uint_t dim )
 
    op.apply( src, *dst.getDGFunction(), level, All, hyteg::Replace );
 
-   auto        massForm = std::make_shared< DGMassForm_Example >();
+   auto        massForm = std::make_shared< DG1MassFormAffine >();
    DG1Operator M( storage, level, level, massForm );
 
    M.apply( dst, Mdst, level, All, Replace );

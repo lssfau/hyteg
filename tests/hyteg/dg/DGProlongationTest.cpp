@@ -28,7 +28,7 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/gridtransferoperators/DGRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -55,7 +55,7 @@ void testDG1Prolongation( const std::string& meshFile )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    auto dgBasis  = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto massForm = std::make_shared< DGMassForm_Example >();
+   auto massForm = std::make_shared< DG1MassFormAffine >();
 
    DGFunction< real_t > test_function( "test_function", storage, minLevel, maxLevel, dgBasis, degree );
    DGFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel, dgBasis, degree );
@@ -146,7 +146,7 @@ void compareProlongationWithRestrictionDG1( const std::string& meshFile )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    auto dgBasis  = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto massForm = std::make_shared< DGMassForm_Example >();
+   auto massForm = std::make_shared< DG1MassFormAffine >();
 
    DGFunction< real_t > fine_function( "test_function", storage, minLevel, maxLevel, dgBasis, degree );
    DGFunction< real_t > coarse_function( "test_function", storage, minLevel, maxLevel, dgBasis, degree );

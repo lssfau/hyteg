@@ -33,7 +33,7 @@
 namespace hyteg {
 namespace dg {
 
-class DGMassForm_Example : public DGFormVolume
+class DG1MassFormAffine : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
@@ -43,6 +43,9 @@ class DGMassForm_Example : public DGFormVolume
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -88,6 +91,9 @@ class DGMassForm_Example : public DGFormVolume
                                    int                           testDegree,
                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );

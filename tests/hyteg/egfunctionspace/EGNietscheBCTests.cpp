@@ -31,7 +31,6 @@
 #include "hyteg/egfunctionspace/EGDivtFormNitscheBC.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceFormNitscheBC.hpp"
 #include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
@@ -68,7 +67,7 @@ real_t testPoisson2D( uint_t                                    level,
    laplaceForm0->callback_Scalar_Variable_Coefficient_2D_g0  = solFunc;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFunc;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFunc;
-   auto massForm                                             = std::make_shared< DGMassForm_Example >();
+   auto massForm                                             = std::make_shared< DG1MassFormAffine >();
 
    EGFunction< real_t > u( "u", storage, level, level );
    EGFunction< real_t > f( "f", storage, level, level );
@@ -360,7 +359,7 @@ real_t testStokes2D( uint_t                                           level,
    laplaceForm1->callback_Scalar_Variable_Coefficient_2D_g1  = solFuncY;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g0 = solFuncX;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_2D_g1 = solFuncY;
-   auto massForm                                             = std::make_shared< DGMassForm_Example >();
+   auto massForm                                             = std::make_shared< DG1MassFormAffine >();
 
    auto divForm = std::make_shared< dg::eg::EGDivFormNitscheBC_P0E >();
    //auto divForm                                        = std::make_shared< EGDivFormP0EDG_new >();
@@ -461,7 +460,7 @@ real_t testStokes3D( uint_t                                           level,
    laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g1 = solFuncY;
    laplaceFormDG->callback_Scalar_Variable_Coefficient_3D_g2 = solFuncZ;
-   auto massForm                                             = std::make_shared< DGMassForm_Example >();
+   auto massForm                                             = std::make_shared< DG1MassFormAffine >();
 
    auto divForm                                        = std::make_shared< dg::eg::EGDivFormNitscheBC_P0E >();
    divForm->callback_Scalar_Variable_Coefficient_3D_g0 = solFuncX;

@@ -25,7 +25,8 @@
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1DiffusionFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -52,8 +53,8 @@ real_t testDG1( uint_t                                    level,
    real_t beta_0 = storage->hasGlobalCells() ? 0.5 : 1.0;
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( beta_0, solFunc, solFunc );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
+   auto laplaceForm = std::make_shared< DG1DiffusionFormAffine >( beta_0, solFunc, solFunc );
+   auto massForm    = std::make_shared< DG1MassFormAffine >();
 
    DG1Function< real_t > u( "u", storage, level, level );
    DG1Function< real_t > f( "f", storage, level, level );
@@ -76,12 +77,12 @@ real_t testDG1( uint_t                                    level,
 
    // Interpolate solution
    tmp.evaluateLinearFunctional( solFunc, level );
-   PETScCGSolver< DG1Operator< DGMassForm_Example > > solverM( storage, level, numerator );
+   PETScCGSolver< DG1Operator< DG1MassFormAffine > > solverM( storage, level, numerator );
    solverM.solve( M, sol, tmp, level );
 
    // Solve system.
-   //PETScCGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
-   CGSolver< DG1Operator< DGDiffusionForm_Example > > solverA( storage, level, level, 10000 );
+   //PETScCGSolver< DG1Operator< DG1DiffusionFormAffine > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   CGSolver< DG1Operator< DG1DiffusionFormAffine > > solverA( storage, level, level, 10000 );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );

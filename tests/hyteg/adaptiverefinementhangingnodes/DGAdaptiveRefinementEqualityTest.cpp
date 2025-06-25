@@ -25,8 +25,8 @@
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGDiffusionForm_Example.hpp"
-#include "hyteg/forms/form_hyteg_dg/DGMassForm_Example.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1DiffusionFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -72,8 +72,8 @@ real_t cmpMacroMicroRefinementTest( uint_t microRefinementLevel, uint_t macroRef
    real_t beta_0 = storage->hasGlobalCells() ? 0.5 : 1.0;
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( beta_0, solFunc, solFunc );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
+   auto laplaceForm = std::make_shared< DG1DiffusionFormAffine >( beta_0, solFunc, solFunc );
+   auto massForm    = std::make_shared< DG1MassFormAffine >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, 1 );
    DGFunction< real_t > f( "f", storage, level, level, basis, 1 );
