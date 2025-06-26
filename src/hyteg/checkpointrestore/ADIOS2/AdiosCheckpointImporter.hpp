@@ -112,7 +112,10 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// - string describing its data-type (aka value-type), such as e.g. "double"
    /// - the minimum refinement level for which data are present in the checkpoint
    /// - the maximum refinement level for which data are present in the checkpoint
-   const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
+   const std::vector< FunctionDescription >& getFunctionDetails() const
+   {
+      return funcDescr_;
+   }
 
    /// On the root process print information on the checkoint file (format, contents, ...) to standard output
    void printCheckpointInfo()
@@ -275,7 +278,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       {
          WALBERLA_ABORT( "Attribute '" << name << "' seems to be missing from checkpoint!" );
       }
-      return attribute;
+      return ( attribute );
    }
 
    /// auxilliary function to avoid code-duplication in c'tors

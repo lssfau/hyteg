@@ -41,7 +41,7 @@ void ConvectionSimulation::setupOutput()
    else
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-      WALBERLA_LOG_INFO_ON_ROOT( "Output format: ADIOS2 - BP4" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output format: ADIOS2 - BP5" );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       _output = std::make_shared< AdiosWriter >( TN.outputParameters.outputDirectory,
                                                  TN.outputParameters.outputBaseName,
@@ -80,7 +80,7 @@ void ConvectionSimulation::setupOutput()
       WALBERLA_LOG_INFO_ON_ROOT( " VTK is NOT recommended for speed and memory management " );
       if ( TN.outputParameters.OutputTemperature )
       {
-         if ( TN.outputParameters.vtkOutputVertexDoFs )
+         if ( TN.outputParameters.outputVertexDoFs )
          {
             vtkOutput->add( p2ScalarFunctionContainer["Temperature[K]"]->getVertexDoFFunction() );
             vtkOutput->add( p2ScalarFunctionContainer["TemperatureDev"]->getVertexDoFFunction() );
@@ -94,7 +94,7 @@ void ConvectionSimulation::setupOutput()
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         if ( TN.outputParameters.vtkOutputVertexDoFs )
+         if ( TN.outputParameters.outputVertexDoFs )
          {
             vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
             vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
@@ -107,7 +107,7 @@ void ConvectionSimulation::setupOutput()
       }
       else
       {
-         if ( TN.outputParameters.vtkOutputVertexDoFs )
+         if ( TN.outputParameters.outputVertexDoFs )
          {
             vtkOutput->add( p2ScalarFunctionContainer["VelocityMagnitudeSquared"]->getVertexDoFFunction() );
          }
@@ -124,18 +124,20 @@ void ConvectionSimulation::setupOutput()
       {
          _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
          _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
-         _output->add( *( p2ScalarFunctionContainer["ReferenceTemperature[K]"] ) );
       }
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
-
-         // stokes RHS velocity
-
-         _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->uvw() );
-
-         // stokes RHS pressure field
+         if ( TN.outputParameters.outputVertexDoFs )
+         {
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
+         }
+         else
+         {
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
+         }
          _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->p() );
       }
       else
@@ -143,10 +145,16 @@ void ConvectionSimulation::setupOutput()
          _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
       }
 
-      // _output->add( *( p2ScalarFunctionContainer["DiffusionFE"] ) );
-      _output->add( *( p2ScalarFunctionContainer["DensityFE"] ) );
-      _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      _output->add( p2ScalarFunctionContainer["DensityFE"]->getVertexDoFFunction() );
+      if ( TN.outputParameters.outputVertexDoFs )
+      {
+         _output->add( p2ScalarFunctionContainer["Viscosity[Pas]"]->getVertexDoFFunction() );
+      }
+      else
 
+      {
+         _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      }
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
 
@@ -168,7 +176,7 @@ void ConvectionSimulation::dataOutput()
    WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output   ****" );
    WALBERLA_LOG_INFO_ON_ROOT( "**************************" );
 
-   if ( !TN.simulationParameters.adaptiveRefTemp )
+   if ( !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
    {
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFunction =
           [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
@@ -188,7 +196,14 @@ void ConvectionSimulation::dataOutput()
              temperatureDevFunction, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
       }
    }
-
+   else
+   {
+      p2ScalarFunctionContainer["TemperatureDev"]->assign(
+          { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
+          { *( p2ScalarFunctionContainer["TemperatureDev"] ) },
+          TN.domainParameters.maxLevel,
+          All );
+   }
    p2ScalarFunctionContainer["Temperature[K]"]->assign( { ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
                                                         { *( p2ScalarFunctionContainer["TemperatureFE"] ) },
                                                         TN.domainParameters.maxLevel,
@@ -234,7 +249,7 @@ void ConvectionSimulation::dataOutput()
          storage->getTimingTree()->stop( "Adios2 data output" );
       }
 
-      if ( TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
+      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
            TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
@@ -243,6 +258,18 @@ void ConvectionSimulation::dataOutput()
              *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
          checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
                                               TN.outputParameters.ADIOS2StoreCheckpointFilename, attributeList_ );
+      }
+      else if ( TN.outputParameters.outputMyr && TN.outputParameters.ADIOS2StoreCheckpoint &&
+                ( ( TN.simulationParameters.modelRunTimeMa ) >=
+                  real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+         checkpointExporter->registerFunction(
+             *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+                                              TN.outputParameters.ADIOS2StoreCheckpointFilename );
+         TN.outputParameters.checkpointCount += 1;
       }
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified! " );
@@ -264,6 +291,19 @@ void ConvectionSimulation::dataOutput()
                                           ".dat",
                                       "temperature" );
 
+      real_t cmPerYear = 3.15e9;
+      for ( uint_t i = 0; i < velocityProfiles->rms.size(); i++ )
+      {
+         velocityProfiles->mean[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->max[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->min[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->rms[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+      }
+      velocityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
+                                       TN.outputParameters.outputBaseName + "_VelocityProfile_" + std::to_string( outputTime ) +
+                                       ".dat",
+                                   "velocity" );
+
       if ( TN.simulationParameters.tempDependentViscosity )
       {
          // Redimensionalise viscosity to SI unit [Pa s]
@@ -281,6 +321,37 @@ void ConvectionSimulation::dataOutput()
    }
 
    TN.outputParameters.prevOutputTime = std::round( TN.simulationParameters.modelRunTimeMa );
+}
+
+void ConvectionSimulation::outputCheckpoint()
+{
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+   if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U &&
+        TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+      checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+      checkpointExporter->registerFunction(
+          *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+      checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+                                           TN.outputParameters.ADIOS2StoreCheckpointFilename );
+   }
+   else if ( TN.outputParameters.outputMyr &&
+             ( ( TN.simulationParameters.modelRunTimeMa ) >=
+               real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+      checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+      checkpointExporter->registerFunction(
+          *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+      checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+                                           TN.outputParameters.ADIOS2StoreCheckpointFilename );
+      TN.outputParameters.checkpointCount += 1;
+   }
+
+#else
+   WALBERLA_LOG_INFO_ON_ROOT( "No valid output format for checkpoint data specified! " );
+#endif
 }
 
 } // namespace terraneo

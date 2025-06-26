@@ -58,55 +58,56 @@ void ConvectionSimulation::init()
    TN.simulationParameters.unknownsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, TN.domainParameters.maxLevel );
    TN.simulationParameters.unknownsStokes =
        numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMin = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.simulationParameters.hMin      = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.simulationParameters.hMax      = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.domainParameters.numProcessors = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
    printConfig( TN );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-   attributeList_["rCMB"] = TN.domainParameters.rCMB;
+   attributeList_["rCMB"]     = TN.domainParameters.rCMB;
    attributeList_["rSurface"] = TN.domainParameters.rSurface;
-   attributeList_["nTan"] = TN.domainParameters.nTan;
-   attributeList_["nRad"] = TN.domainParameters.nRad;
+   attributeList_["nTan"]     = TN.domainParameters.nTan;
+   attributeList_["nRad"]     = TN.domainParameters.nRad;
    attributeList_["minLevel"] = TN.domainParameters.minLevel;
    attributeList_["maxLevel"] = TN.domainParameters.maxLevel;
 
-   attributeList_["simulationType"] = TN.simulationParameters.simulationType;
-   attributeList_["adaptiveRefTemp"] = TN.simulationParameters.adaptiveRefTemp;
-   attributeList_["tempDependentViscosity"] = TN.simulationParameters.tempDependentViscosity;
+   attributeList_["simulationType"]             = TN.simulationParameters.simulationType;
+   attributeList_["adaptiveRefTemp"]            = TN.simulationParameters.adaptiveRefTemp;
+   attributeList_["tempDependentViscosity"]     = TN.simulationParameters.tempDependentViscosity;
    attributeList_["tempDependentViscosityType"] = TN.simulationParameters.tempDependentViscosityType;
 
-   attributeList_["fnameTopologies"] = TN.simulationParameters.fnameTopologies;
-   attributeList_["fnameReconstructions"] = TN.simulationParameters.fnameReconstructions;
-   attributeList_["plateVelocityScaling"] = TN.simulationParameters.plateVelocityScaling;
-   attributeList_["plateSmoothingDistance"] = TN.simulationParameters.plateSmoothingDistance;
-   attributeList_["compressible"] = TN.simulationParameters.compressible;
-   attributeList_["shearHeating"] = TN.simulationParameters.shearHeating;
-   attributeList_["adiabaticHeating"] = TN.simulationParameters.adiabaticHeating;
-   attributeList_["internalHeating"] = TN.simulationParameters.internalHeating;
-   attributeList_["boundaryCond"] = TN.simulationParameters.boundaryCond;
-   attributeList_["boundaryCondFreeSlip"] = TN.simulationParameters.boundaryCondFreeSlip;
-   attributeList_["haveViscosityProfile"] = TN.simulationParameters.haveViscosityProfile;
-   attributeList_["fileViscosityProfile"] = TN.simulationParameters.fileViscosityProfile;
+   attributeList_["fnameTopologies"]                = TN.simulationParameters.fnameTopologies;
+   attributeList_["fnameReconstructions"]           = TN.simulationParameters.fnameReconstructions;
+   attributeList_["plateVelocityScaling"]           = TN.simulationParameters.plateVelocityScaling;
+   attributeList_["plateSmoothingDistance"]         = TN.simulationParameters.plateSmoothingDistance;
+   attributeList_["compressible"]                   = TN.simulationParameters.compressible;
+   attributeList_["shearHeating"]                   = TN.simulationParameters.shearHeating;
+   attributeList_["adiabaticHeating"]               = TN.simulationParameters.adiabaticHeating;
+   attributeList_["internalHeating"]                = TN.simulationParameters.internalHeating;
+   attributeList_["boundaryCond"]                   = TN.simulationParameters.boundaryCond;
+   attributeList_["boundaryCondFreeSlip"]           = TN.simulationParameters.boundaryCondFreeSlip;
+   attributeList_["haveViscosityProfile"]           = TN.simulationParameters.haveViscosityProfile;
+   attributeList_["fileViscosityProfile"]           = TN.simulationParameters.fileViscosityProfile;
    attributeList_["lithosphereShearHeatingScaling"] = TN.simulationParameters.lithosphereShearHeatingScaling;
-   attributeList_["lithosphereThickness"] = TN.simulationParameters.lithosphereThickness;
+   attributeList_["lithosphereThickness"]           = TN.simulationParameters.lithosphereThickness;
 
-   attributeList_["surfaceTemp"] = TN.physicalParameters.surfaceTemp;
-   attributeList_["cmbTemp"] = TN.physicalParameters.cmbTemp;
-   attributeList_["thermalExpansivity"] = TN.physicalParameters.thermalExpansivity;
-   attributeList_["thermalConductivity"] = TN.physicalParameters.thermalConductivity;
+   attributeList_["surfaceTemp"]          = TN.physicalParameters.surfaceTemp;
+   attributeList_["cmbTemp"]              = TN.physicalParameters.cmbTemp;
+   attributeList_["thermalExpansivity"]   = TN.physicalParameters.thermalExpansivity;
+   attributeList_["thermalConductivity"]  = TN.physicalParameters.thermalConductivity;
    attributeList_["specificHeatCapacity"] = TN.physicalParameters.specificHeatCapacity;
-   attributeList_["internalHeatingRate"] = TN.physicalParameters.internalHeatingRate;
-   attributeList_["referenceDensity"] = TN.physicalParameters.referenceDensity;
-   attributeList_["surfaceDensity"] = TN.physicalParameters.surfaceDensity;
-   attributeList_["referenceViscosity"] = TN.physicalParameters.referenceViscosity;
-   attributeList_["viscosity"] = TN.physicalParameters.viscosity;
-   attributeList_["grueneisenParameter"] = TN.physicalParameters.grueneisenParameter;
-   attributeList_["adiabatSurfaceTemp"] = TN.physicalParameters.adiabatSurfaceTemp;
-   attributeList_["activationEnergy"] = TN.physicalParameters.activationEnergy;
+   attributeList_["internalHeatingRate"]  = TN.physicalParameters.internalHeatingRate;
+   attributeList_["referenceDensity"]     = TN.physicalParameters.referenceDensity;
+   attributeList_["surfaceDensity"]       = TN.physicalParameters.surfaceDensity;
+   attributeList_["referenceViscosity"]   = TN.physicalParameters.referenceViscosity;
+   attributeList_["viscosity"]            = TN.physicalParameters.viscosity;
+   attributeList_["grueneisenParameter"]  = TN.physicalParameters.grueneisenParameter;
+   attributeList_["adiabatSurfaceTemp"]   = TN.physicalParameters.adiabatSurfaceTemp;
+   attributeList_["activationEnergy"]     = TN.physicalParameters.activationEnergy;
    attributeList_["depthViscosityFactor"] = TN.physicalParameters.depthViscosityFactor;
-   attributeList_["viscosityLowerBound"] = TN.physicalParameters.viscosityLowerBound;
-   attributeList_["viscosityUpperBound"] = TN.physicalParameters.viscosityUpperBound;
+   attributeList_["viscosityLowerBound"]  = TN.physicalParameters.viscosityLowerBound;
+   attributeList_["viscosityUpperBound"]  = TN.physicalParameters.viscosityUpperBound;
 #endif
 
    setupBoundaryConditions();
@@ -114,6 +115,11 @@ void ConvectionSimulation::init()
    initialiseFunctions();
    setupSolversAndOperators();
    setupOutput();
+   if ( TN.outputParameters.createTimingDB )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Create SQL database for runtime analysis" );
+      initTimingDB();
+   }
 }
 
 // Setup the domain
@@ -131,7 +137,7 @@ void ConvectionSimulation::setupDomain()
 
    IcosahedralShellMap::setMap( *setupStorage );
 
-   storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
+   storage          = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
    auto storageInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" )
    WALBERLA_LOG_INFO_ON_ROOT( "--- PrimitiveStorage Info ----" )
@@ -333,6 +339,9 @@ void ConvectionSimulation::initialiseFunctions()
       WALBERLA_LOG_INFO_ON_ROOT( "Setup Oracle for Plates" );
       terraneo::oracle = std::make_shared< terraneo::plates::PlateVelocityProvider >(
           TN.simulationParameters.fnameTopologies, TN.simulationParameters.fnameReconstructions );
+      // Plate averaging object
+      std::vector< std::pair< real_t, int > > weightPairs = { { 1.0 / 100.0, 6 } };
+      terraneo::avgPointProvider = std::make_shared< terraneo::plates::UniformCirclesPointWeightProvider >( weightPairs, 1e-1 );
    }
    // Assign temperature field to temperaturePrev
 
@@ -358,14 +367,25 @@ void ConvectionSimulation::initialiseFunctions()
       p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
       p2p1StokesFunctionContainer["StokesRHS"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
       p2p1StokesFunctionContainer["StokesTmp1"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
+      // for volumetric average temperature calculation
+      p2ScalarFunctionContainer["TemperatureVolumetric"]->interpolate( real_c( 1 ), level, All );
+      p2ScalarFunctionContainer["Volume"]->interpolate( real_c( 1 ), level, All );
    }
 
-   auto temperatureRadialProfile = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+   auto temperatureRadialProfile            = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
                                                          TN.domainParameters.rMin,
                                                          TN.domainParameters.rMax,
                                                          TN.domainParameters.nRad,
                                                          TN.domainParameters.maxLevel );
-   temperatureProfiles           = std::make_shared< RadialProfile >( temperatureRadialProfile );
+   temperatureProfiles                      = std::make_shared< RadialProfile >( temperatureRadialProfile );
+   TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
+
+   auto velocityRadialProfile = computeRadialProfile( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+                                                      TN.domainParameters.rMin,
+                                                      TN.domainParameters.rMax,
+                                                      TN.domainParameters.nRad,
+                                                      TN.domainParameters.maxLevel );
+   velocityProfiles           = std::make_shared< RadialProfile >( velocityRadialProfile );
 
    if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
    {
@@ -377,22 +397,7 @@ void ConvectionSimulation::initialiseFunctions()
                                                           TN.domainParameters.maxLevel );
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
-
-   referenceTemperatureFct = [this]( const Point3D& x ) {
-      real_t radius = x.norm();
-      if ( TN.simulationParameters.adaptiveRefTemp )
-      {
-         uint_t shell = static_cast< uint_t >(
-             std::round( real_c( TN.simulationParameters.numLayers ) *
-                         ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
-         WALBERLA_ASSERT( shell < temperatureProfiles->mean.size() );
-         return temperatureProfiles->mean.at( shell );
-      }
-      else
-      {
-         return referenceTemperatureFunction( x );
-      }
-   };
+   referenceTemperatureFct = [this]( const Point3D& x ) { return referenceTemperatureFunction( x ); };
 }
 
 void ConvectionSimulation::setupSolversAndOperators()
@@ -487,11 +492,8 @@ void ConvectionSimulation::setupSolversAndOperators()
 
              stokesResidual = calculateStokesResidual( _level );
 
-             if ( TN.solverParameters.numVCycles == 0 )
-             {
-                WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-                    "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, TN.solverParameters.vCycleResidualUPrev ) );
-             }
+             WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+                 "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, TN.solverParameters.vCycleResidualUPrev ) );
 
              auto reductionRateU = stokesResidual / TN.solverParameters.vCycleResidualUPrev;
 
@@ -617,6 +619,11 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperatorTALA->setSurfTempCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
    transportOperatorTALA->setShearHeatingCoeff( p2ScalarFunctionContainer["ShearHeatingTermCoeff"] );
 
+   if ( TN.simulationParameters.compressible && !TN.simulationParameters.adiabaticHeating )
+   {
+      TN.simulationParameters.adiabaticHeating = true;
+   }
+
    transportOperatorTALA->setTALADict(
        { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
          { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
@@ -630,12 +637,35 @@ void ConvectionSimulation::setupSolversAndOperators()
    transportOperator->setP1Evaluate( false );
    transportOperator->setParticleLocalRadiusTolerance( 1e-3 );
 
-   std::function< void( const Point3D&, Point3D& ) > projectBack = []( const Point3D& x, Point3D& xProj ) {
-      // WALBERLA_ABORT("x = " << x);
-      xProj = x;
+   std::function< void( const hyteg::Point3D&, hyteg::Point3D& ) > projectPointsBack = [&]( const hyteg::Point3D& xOld,
+                                                                                            hyteg::Point3D&       xNew ) {
+      xNew = xOld;
+
+      real_t r = xOld.norm();
+
+      real_t eps = 1e-8;
+
+      if ( r < TN.domainParameters.rMax - eps && r > TN.domainParameters.rMin + eps )
+      {
+         WALBERLA_ABORT( "Particle is inside the domain, but seems like neighbour search failed due to tighter tolerance" );
+      }
+      else if ( r > TN.domainParameters.rMax - eps )
+      {
+         real_t dr = r - TN.domainParameters.rMax;
+         xNew      = xOld - dr * xOld / r;
+      }
+      else if ( r < TN.domainParameters.rMin + eps )
+      {
+         real_t dr = TN.domainParameters.rMin - r;
+         xNew      = xOld + dr * xOld / r;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Cannot be here" );
+      }
    };
 
-   transportOperator->setProjectPointsBackOutsideDomainFunction( projectBack );
+   transportOperator->setProjectPointsBackOutsideDomainFunction( projectPointsBack );
 
    transportSolverTALA = std::make_shared< CGSolver< P2TransportIcosahedralShellMapOperator > >(
        storage,

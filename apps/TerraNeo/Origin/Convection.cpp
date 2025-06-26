@@ -66,6 +66,15 @@ int main( int argc, char** argv )
          WALBERLA_LOG_INFO_ON_ROOT( "Circulation model finished at " << simulation.getSimulationParams().agePrev << " Ma." )
          return EXIT_SUCCESS;
       }
+      // Check if the simulation has reached the desired age for a convection model and finish the simulation
+      if ( simulation.getSimulationParams().simulationType == "ConvectionModel" &&
+           ( simulation.getSimulationParams().modelRunTimeMa >= simulation.getSimulationParams().finalAge ) )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Convection model finished at " << simulation.getSimulationParams().modelRunTimeMa
+                                                                    << " Ma. After: " << simulation.getSimulationParams().timeStep
+                                                                    << " timesteps." )
+         return EXIT_SUCCESS;
+      }
    }
 
    if ( simulation.getSimulationParams().simulationType == "CirculationModel" )

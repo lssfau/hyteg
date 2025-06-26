@@ -46,17 +46,18 @@ struct DomainParameters
 {
    //geometric information
 
-   real_t rCMB     = real_c( 3471000 );
+   real_t rCMB     = real_c( 3480000 );
    real_t rSurface = real_c( 6371000 );
 
    //calculate non-dimensional radii such that mantle thickness = 1
    real_t rMin = rCMB / ( rSurface - rCMB );
    real_t rMax = rSurface / ( rSurface - rCMB );
 
-   uint_t nTan     = 2;
-   uint_t nRad     = 2;
-   uint_t minLevel = 0;
-   uint_t maxLevel = 1;
+   uint_t nTan          = 2;
+   uint_t nRad          = 2;
+   uint_t minLevel      = 0;
+   uint_t maxLevel      = 1;
+   uint_t numProcessors = 1;
 
    real_t domainVolume() const
    {
@@ -130,6 +131,8 @@ struct OutputParameters
    std::string ADIOS2CheckpointPath     = std::string( "output" );
    std::string ADIOS2CheckpointFilename = std::string( "conv_sim" );
 
+   std::string fileNameSQLdb = std::string( "SQLdatabaseFileName" );
+
    bool ADIOS2StartFromCheckpoint = false;
    bool ADIOS2StoreCheckpoint     = false;
 
@@ -141,13 +144,16 @@ struct OutputParameters
    bool   OutputViscosity   = true;
    bool   OutputTemperature = true;
    uint_t OutputInterval    = 1;
+   uint_t checkpointCount   = 1;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
    real_t prevOutputTime    = real_c( 0 );
 
-   bool vtkOutputVertexDoFs = true;
-   bool outputProfiles      = false;
+   bool outputVertexDoFs = true;
+   bool outputProfiles   = false;
+
+   bool createTimingDB = false;
 };
 // Simulation parameters
 struct SimulationParameters
@@ -184,6 +190,8 @@ struct SimulationParameters
    //Parameters given via config file
    bool        fixedTimestep              = false;
    uint_t      timeStep                   = 0;
+   real_t      maxTimestepSize            = 0;
+   real_t      avrgTemperatureVol         = real_c( 0 );
    real_t      modelTime                  = real_c( 0 );
    real_t      dtPrev                     = real_c( 0 );
    real_t      dt                         = real_c( 0 );
@@ -192,10 +200,9 @@ struct SimulationParameters
    uint_t      timestep                   = 0;
    std::string simulationType             = std::string( "ConvectionModel" );
    uint_t      maxNumTimesteps            = 100;
-   bool        resetSolver                = false;
-   uint_t      resetSolverFrequency       = 100;
    bool        adaptiveRefTemp            = false;
    bool        tempDependentViscosity     = false;
+   bool        volAvrgTemperatureDev      = false;
    uint_t      tempDependentViscosityType = 0;
 
    //circulation model parameters
@@ -221,6 +228,7 @@ struct SimulationParameters
    bool        haveThermalExpProfile       = false;
    bool        haveSpecificHeatCapProfile  = false;
    bool        haveDensityProfile          = false;
+   bool        predictorCorrector          = false;
    std::string fileTemperatureInputProfile = std::string( "TemperatureInputProfile.json" );
    std::string fileViscosityProfile        = std::string( "ViscosityProfile.json" );
    std::string fileThermalExpProfile       = std::string( "ThermalExpProfile.json" );
@@ -232,8 +240,8 @@ struct SimulationParameters
 
    // Shear heating scaling for mantle ciruclation model with
    // predifned Lithosphere thickness in km
-   real_t lithosphereShearHeatingScaling  = 1e-5;
-   real_t lithosphereThickness = real_c( 100 );
+   real_t lithosphereShearHeatingScaling = 1e-5;
+   real_t lithosphereThickness           = real_c( 100 );
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
@@ -272,6 +280,7 @@ struct PhysicalParameters
    std::vector< real_t > radiusAlpha;
    std::vector< real_t > radiusDensity;
    std::vector< real_t > temperatureProfile;
+   std::vector< real_t > velocityProfile;
    std::vector< real_t > viscosityProfile;
    std::vector< real_t > temperatureInputProfile;
    std::vector< real_t > thermalExpansivityProfile;
@@ -309,10 +318,9 @@ struct PhysicalParameters
 
    //numbers required to get non-D numbers
 
-   real_t characteristicVelocity = real_c( 5e-9 );
-
-   real_t mantleThickness    = real_c( 2900000 );
-   real_t thermalDiffusivity = thermalConductivity / ( referenceDensity * specificHeatCapacity );
+   real_t mantleThickness        = real_c( 2900000 );
+   real_t thermalDiffusivity     = thermalConductivity / ( referenceDensity * specificHeatCapacity );
+   real_t characteristicVelocity = thermalConductivity / ( referenceDensity * specificHeatCapacity * mantleThickness );
 
    //non-D numbers derived from other parameters
 

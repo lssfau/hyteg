@@ -141,18 +141,14 @@ real_t ConvectionSimulation::surfaceTempCoefficientFunction( const Point3D& )
 
 void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
 {
-   uint_t coordIdx = 0;
+   uint_t                                           coordIdx = 0;
+   terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
 
-   //function to return plate velocities, copied and adapted from PlateVelocityDemo.cpp.
-   std::function< real_t( const Point3D& ) > Velocity = [&coordIdx]( const Point3D& x ) {
-      terraneo::vec3D coords{ x[0], x[1], x[2] };
-      //get velocity at current plate age (intervals of 1Ma)
-      terraneo::vec3D velocity = oracle->getPointVelocity(
-          coords,
-          TN.simulationParameters.plateAge,
-          terraneo::plates::LinearDistanceSmoother{ real_c( 1 ) / TN.simulationParameters.plateSmoothingDistance },
-          terraneo::plates::DefaultPlateNotFoundHandler{} );
-
+   // callback function for computing the velocity components
+   std::function< real_t( const Point3D& ) > Velocity = [&coordIdx, &handlerWithStatistics]( const Point3D& point ) {
+      vec3D coords{ point[0], point[1], point[2] };
+      vec3D velocity = oracle->getLocallyAveragedPointVelocity(
+          coords, TN.simulationParameters.plateAge, *avgPointProvider, handlerWithStatistics );
       return velocity[int_c( coordIdx )] /
              ( TN.physicalParameters.characteristicVelocity *
                TN.simulationParameters.plateVelocityScaling ); //non-dimensionalise by dividing by characteristic velocity
@@ -216,6 +212,11 @@ void ConvectionSimulation::updateViscosity()
    {
       // Update reference viscosity with new min Viscosity value
       TN.physicalParameters.referenceViscosity = minRefViscosity;
+      TN.physicalParameters.rayleighNumber =
+          ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
+            std::pow( TN.physicalParameters.mantleThickness, 3 ) *
+            ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
+          ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
    }
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
@@ -260,26 +261,42 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
       return ( TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
 
-   if ( TN.simulationParameters.haveTemperatureProfile )
+   if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.timeStep > 0 )
    {
-      real_t temp = interpolateDataValues( x,
-                                           TN.physicalParameters.radiusT,
-                                           TN.physicalParameters.temperatureInputProfile,
-                                           TN.domainParameters.rMin,
-                                           TN.domainParameters.rMax );
-
-      real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
-
+      uint_t shell = uint_c(
+          std::round( real_c( TN.simulationParameters.numLayers ) *
+                      ( ( radius - TN.domainParameters.rMin ) / ( TN.domainParameters.rMax - TN.domainParameters.rMin ) ) ) );
+      WALBERLA_ASSERT( shell < TN.physicalParameters.temperatureProfile.size() );
+      real_t retVal = TN.physicalParameters.temperatureProfile.at( shell );
       return retVal;
+   }
+   if ( !TN.simulationParameters.compressible && TN.simulationParameters.volAvrgTemperatureDev &&
+        TN.simulationParameters.timeStep > 0 )
+   {
+      return TN.simulationParameters.avrgTemperatureVol;
    }
    else
    {
-      real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
-                    std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
+      if ( TN.simulationParameters.haveTemperatureProfile )
+      {
+         real_t temp = interpolateDataValues( x,
+                                              TN.physicalParameters.radiusT,
+                                              TN.physicalParameters.temperatureInputProfile,
+                                              TN.domainParameters.rMin,
+                                              TN.domainParameters.rMax );
 
-      real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         return retVal;
+      }
+      else
+      {
+         real_t temp = TN.physicalParameters.adiabatSurfaceTemp *
+                       std::exp( ( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) ) );
 
-      return retVal;
+         real_t retVal = ( temp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+
+         return retVal;
+      }
    }
 }
 
@@ -287,6 +304,110 @@ void ConvectionSimulation::outputTimingTree()
 {
    auto timer = storage->getTimingTree();
    writeTimingTreeJSON( *timer, TN.outputParameters.outputDirectory + "/" + "TimingTree.json" );
+}
+
+// SQL database for runtime analysis
+void ConvectionSimulation::initTimingDB()
+{
+   auto gitHash = hyteg::buildinfo::gitSHA1();
+   db           = std::make_shared< hyteg::FixedSizeSQLDB >( TN.outputParameters.fileNameSQLdb, true );
+
+   db->setConstantEntry( "gitHash", gitHash );
+   db->setConstantEntry( "cfl_max", TN.simulationParameters.cflMax );
+   db->setConstantEntry( "unknownsTemperature", TN.simulationParameters.unknownsTemperature );
+   db->setConstantEntry( "unknownsStokes", TN.simulationParameters.unknownsStokes );
+   db->setConstantEntry( "h_min", TN.simulationParameters.hMin );
+   db->setConstantEntry( "h_max", TN.simulationParameters.hMax );
+   db->setConstantEntry( "numProcessors", TN.domainParameters.numProcessors );
+   db->setConstantEntry( "nRad", TN.domainParameters.nRad );
+   db->setConstantEntry( "nTAn", TN.domainParameters.nTan );
+   db->setConstantEntry( "maxLevel", TN.domainParameters.maxLevel );
+   db->setConstantEntry( "minLevel", TN.domainParameters.minLevel );
+}
+// This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
+// It takes the mean temperature of the corresponding layers as input and calculates the heat flow
+// as q = -k *  grad T * A [TW].
+void ConvectionSimulation::calculateHeatflow( const std::shared_ptr< RadialProfile >& temperatureProfile )
+{
+   const real_t pi                  = walberla::math::pi;
+   const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+   const real_t thermalConductivity = TN.physicalParameters.thermalConductivity;
+   const real_t mantleThickness     = TN.physicalParameters.mantleThickness;
+
+   const std::vector< real_t >& radius    = temperatureProfile->shellRadii;
+   const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
+   const uint_t                 numLayers = radius.size();
+
+   const real_t areaSurface = 4 * pi * std::pow( radius[numLayers - 1], 2 );
+   const real_t areaCMB     = 4 * pi * std::pow( radius[0], 2 );
+
+   // Calculate heat flows
+   const real_t heatFlowFactor = -thermalConductivity * mantleThickness * 1e-12;
+
+   real_t heatFlowCMB = heatFlowFactor * ( meanTemp[1] - meanTemp[0] ) * redimTemp / ( radius[1] - radius[0] ) * areaCMB;
+
+   real_t heatFlowSurface = heatFlowFactor * ( meanTemp[numLayers - 1] - meanTemp[numLayers - 2] ) * redimTemp /
+                            ( radius[numLayers - 1] - radius[numLayers - 2] ) * areaSurface;
+
+   WALBERLA_LOG_INFO_ON_ROOT( " " );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow Surface: " << heatFlowSurface << " TW" );
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
+      db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
+   }
+}
+
+// This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
+// It takes the mean temperature of the corresponding layers as input and calculates the heat flow
+// as q = -k *  grad T * A [TW].
+void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< RadialProfile >& temperatureProfile )
+{
+   const real_t pi                  = walberla::math::pi;
+   const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+   const real_t thermalConductivity = TN.physicalParameters.thermalConductivity;
+   const real_t mantleThickness     = TN.physicalParameters.mantleThickness;
+
+   const std::vector< real_t >& radius    = temperatureProfile->shellRadii;
+   const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
+   const uint_t                 numLayers = radius.size();
+
+   // Calculate heat flows
+   const real_t heatFlowFactor = thermalConductivity * mantleThickness * 1e-12;
+
+   real_t dTdr = ( meanTemp[1] - meanTemp[0] ) / ( radius[1] - radius[0] );
+
+   uint_t nuSamples   = 101u;
+   real_t hGradient   = 1e-2;
+   real_t epsBoundary = 1e-7;
+
+   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                                           TN.domainParameters.maxLevel,
+                                                                           hGradient,
+                                                                           TN.domainParameters.rMax,
+                                                                           epsBoundary,
+                                                                           nuSamples );
+
+   real_t dTdrIntegralInner =
+       nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                    TN.domainParameters.maxLevel,
+                                                    hGradient,
+                                                    TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary,
+                                                    epsBoundary,
+                                                    nuSamples );
+
+   real_t heatFlowSurface = heatFlowFactor * dTdrIntegralOuter * redimTemp;
+   real_t heatFlowCMB     = heatFlowFactor * dTdrIntegralInner * redimTemp;
+
+   WALBERLA_LOG_INFO_ON_ROOT( " " );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow Surface: " << heatFlowSurface << " TW" );
+   if ( TN.outputParameters.createTimingDB )
+   {
+      db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
+      db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
+   }
 }
 
 } // namespace terraneo

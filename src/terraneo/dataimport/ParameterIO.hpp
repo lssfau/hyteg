@@ -139,6 +139,8 @@ inline void loadRadialProfile( const walberla::Config::BlockHandle& mainConf,
 
 // define plate velocity oracle
 std::shared_ptr< terraneo::plates::PlateVelocityProvider > oracle;
+// define plate velocity averaging point provider
+std::shared_ptr< terraneo::plates::UniformCirclesPointWeightProvider > avgPointProvider;
 
 inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& mainConf )
 {
@@ -164,9 +166,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    domainParam.maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
    //calculate non-dimensional radii such that mantle thickness = 1
+   physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
    domainParam.rMin              = domainParam.rCMB / ( domainParam.rSurface - domainParam.rCMB );
    domainParam.rMax              = domainParam.rSurface / ( domainParam.rSurface - domainParam.rCMB );
-   physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
 
    /*############ MODEL PARAMETERS ############*/
    if ( mainConf.isDefined( "temperatureInputProfile" ) )
@@ -248,11 +250,14 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.surfaceDensity         = mainConf.getParameter< real_t >( "surfaceDensity" );
    physicalParam.referenceDensity       = mainConf.getParameter< real_t >( "referenceDensity" );
    physicalParam.viscosity              = mainConf.getParameter< real_t >( "viscosity" );
+   physicalParam.referenceViscosity     = physicalParam.viscosity;
 
    // Set all radial varying parameters to input reference values to avoid inconsistent calculations on non-dim numbers
    physicalParam.specificHeatCapacityRadial = physicalParam.specificHeatCapacity;
    physicalParam.thermalExpansivityRadial   = physicalParam.thermalExpansivity;
-
+   physicalParam.characteristicVelocity =
+       physicalParam.thermalConductivity /
+       ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity * physicalParam.mantleThickness );
    //used to calculate non-D numbers
    physicalParam.thermalDiffusivity =
        physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity );
@@ -279,9 +284,12 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    simulationParam.cflMax                 = mainConf.getParameter< real_t >( "cflMax" );
    simulationParam.fixedTimestep          = mainConf.getParameter< bool >( "fixedTimestep" );
+   simulationParam.maxTimestepSize        = mainConf.getParameter< real_t >( "maxTimestepSize" );
    simulationParam.dtConstant             = mainConf.getParameter< real_t >( "dtConstant" );
+   simulationParam.predictorCorrector     = mainConf.getParameter< bool >( "predictorCorrector" );
    simulationParam.maxNumTimesteps        = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
    simulationParam.adaptiveRefTemp        = mainConf.getParameter< bool >( "adaptiveRefTemp" );
+   simulationParam.volAvrgTemperatureDev  = mainConf.getParameter< bool >( "volAvrgTemperatureDev" );
    simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
    simulationParam.simulationType         = mainConf.getParameter< std::string >( "simulationType" );
    simulationParam.compressible           = mainConf.getParameter< bool >( "compressible" );
@@ -290,9 +298,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    {
       if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
       {
-      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "shearHeatingScaling" );
-      } else {
-      simulationParam.lithosphereShearHeatingScaling  = mainConf.getParameter< real_t >( "lithosphereShearHeatingScaling" );
+         simulationParam.lithosphereShearHeatingScaling = mainConf.getParameter< real_t >( "shearHeatingScaling" );
+      }
+      else
+      {
+         simulationParam.lithosphereShearHeatingScaling = mainConf.getParameter< real_t >( "lithosphereShearHeatingScaling" );
       }
       simulationParam.lithosphereThickness = mainConf.getParameter< real_t >( "lithosphereThickness" );
    }
@@ -301,17 +311,16 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.boundaryCond     = mainConf.getParameter< uint_t >( "boundaryCond" );
    simulationParam.timingAnalysis   = mainConf.getParameter< bool >( "timingAnalysis" );
 
-   if ( simulationParam.tempDependentViscosity )
+   if ( simulationParam.tempDependentViscosity || simulationParam.haveViscosityProfile )
    {
       simulationParam.tempDependentViscosityType = mainConf.getParameter< uint_t >( "tempDependentViscosityType" );
-      simulationParam.resetSolver                = mainConf.getParameter< bool >( "resetSolver" );
-      simulationParam.resetSolverFrequency       = mainConf.getParameter< uint_t >( "resetSolverFrequency" );
       physicalParam.activationEnergy             = mainConf.getParameter< real_t >( "activationEnergy" );
       physicalParam.depthViscosityFactor         = mainConf.getParameter< real_t >( "depthViscosityFactor" );
       physicalParam.viscosityLowerBound          = mainConf.getParameter< real_t >( "viscosityLowerBound" );
       physicalParam.viscosityUpperBound          = mainConf.getParameter< real_t >( "viscosityUpperBound" );
    }
 
+   simulationParam.finalAge = mainConf.getParameter< real_t >( "finalAge" );
    //simulation parameters for circulation models only:
    if ( simulationParam.simulationType == "CirculationModel" )
    {
@@ -320,7 +329,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          simulationParam.fnameTopologies        = mainConf.getParameter< std::string >( "fnameTopologies" );
          simulationParam.fnameReconstructions   = mainConf.getParameter< std::string >( "fnameReconstructions" );
          simulationParam.initialAge             = mainConf.getParameter< real_t >( "initialAge" );
-         simulationParam.finalAge               = mainConf.getParameter< real_t >( "finalAge" );
          simulationParam.ageMa                  = simulationParam.initialAge;
          simulationParam.agePrev                = simulationParam.initialAge;
          simulationParam.plateAge               = simulationParam.initialAge;
@@ -428,7 +436,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
          initialisationParam.sphTool                     = std::make_shared< SphericalHarmonicsTool >( initialisationParam.deg );
          break;
       default:
-         WALBERLA_LOG_WARNING("Handling for this INITIAL_TEMPERATURE_DEVIATION_METHOD is not implemented")
+         WALBERLA_LOG_WARNING( "Handling for this INITIAL_TEMPERATURE_DEVIATION_METHOD is not implemented" )
       }
    }
 
@@ -476,10 +484,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );
    outputParam.vtk             = mainConf.getParameter< bool >( "vtk" );
 
-   outputParam.OutputVelocity      = mainConf.getParameter< bool >( "OutputVelocity" );
-   outputParam.OutputTemperature   = mainConf.getParameter< bool >( "OutputTemperature" );
-   outputParam.OutputInterval      = mainConf.getParameter< uint_t >( "OutputInterval" );
-   outputParam.vtkOutputVertexDoFs = mainConf.getParameter< bool >( "OutputVertexDoFs" );
+   outputParam.OutputVelocity    = mainConf.getParameter< bool >( "OutputVelocity" );
+   outputParam.OutputTemperature = mainConf.getParameter< bool >( "OutputTemperature" );
+   outputParam.OutputInterval    = mainConf.getParameter< uint_t >( "OutputInterval" );
+   outputParam.outputVertexDoFs  = mainConf.getParameter< bool >( "OutputVertexDoFs" );
 
    outputParam.ADIOS2ParamKey     = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
    outputParam.ADIOS2Value        = mainConf.getParameter< std::string >( "ADIOS2Value" );
@@ -505,6 +513,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       outputParam.outputIntervalMyr = mainConf.getParameter< uint_t >( "outputIntervalMyr" );
       outputParam.OutputInterval    = 1;
    }
+
+   outputParam.fileNameSQLdb  = mainConf.getParameter< std::string >( "SQLdatabaseFileName" );
+   outputParam.createTimingDB = mainConf.getParameter< bool >( "createTimingDB" );
 
    simulationParam.verbose = mainConf.getParameter< bool >( "verbose" );
    //number of radial layers at max level (x2 for P2 elements)
@@ -608,16 +619,18 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
       WALBERLA_LOG_INFO_ON_ROOT( "Reference Density            : " << physicalParam.referenceDensity );
    }
 
-   if ( simulationParam.tempDependentViscosity )
+   if ( simulationParam.haveViscosityProfile || simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "T dependent Viscosity type: " << simulationParam.tempDependentViscosityType );
-      WALBERLA_LOG_INFO_ON_ROOT( "Activation Energy         : " << physicalParam.activationEnergy );
-      WALBERLA_LOG_INFO_ON_ROOT( "Depth Viscosity Factor    : " << physicalParam.depthViscosityFactor );
-      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity lower bound     : " << physicalParam.viscosityLowerBound );
-      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity upper bound     : " << physicalParam.viscosityUpperBound );
-      WALBERLA_LOG_INFO_ON_ROOT( "reset Solver              : " << ( simulationParam.resetSolver ? "true" : "false" ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "reset Solver Frequency    : " << ( simulationParam.resetSolverFrequency ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity lower bound        : " << physicalParam.viscosityLowerBound );
+      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity upper bound        : " << physicalParam.viscosityUpperBound );
+      if ( simulationParam.tempDependentViscosity )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "T dependent Viscosity type: " << simulationParam.tempDependentViscosityType );
+         WALBERLA_LOG_INFO_ON_ROOT( "Activation Energy         : " << physicalParam.activationEnergy );
+         WALBERLA_LOG_INFO_ON_ROOT( "Depth Viscosity Factor    : " << physicalParam.depthViscosityFactor );
+      }
    }
+
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Non-dimensial Numbers    ----" )
@@ -681,6 +694,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Internal heating        : " << ( simulationParam.internalHeating ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "T-dependent Viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.      : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "volumetric avrg Ref Temp.      : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
 
    if ( simulationParam.simulationType == "CirculationModel" )
    {
@@ -702,10 +717,11 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "vtk               : " << ( outputParam.vtk ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Interval   : " << outputParam.OutputInterval );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.vtkOutputVertexDoFs ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
+                                 << "true" );
    }
    else
    {
@@ -719,7 +735,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
+                                 << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

@@ -166,6 +166,9 @@ Parameters
 
    maxNumTimeSteps 10;
    fixedTimeStep false;
+   predictorCorrector false;
+   // Maximum timestep size in Ma
+   maxTimeStepSize 0.5;
    cflMax 0.75;
    dtConstant 1e-4;
 
@@ -173,6 +176,8 @@ Parameters
    // true: update to radial mean Temperature
 
    adaptiveRefTemp false;
+   // currently only for incompressible runs implemented
+   volAvrgTemperatureDev false;
 
    // Input files for circulation model
 
@@ -287,4 +292,6 @@ Parameters
    // default: false
 
    timingAnalysis false;
+   createTimingDB false;
+   SQLdatabaseFileName timingDB.db;
 }
