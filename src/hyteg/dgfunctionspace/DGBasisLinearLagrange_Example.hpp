@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "core/DataTypes.h"
-
-#include "core/debug/CheckFunctions.h"
 #include "core/Abort.h"
+#include "core/DataTypes.h"
+#include "core/debug/CheckFunctions.h"
+
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
@@ -150,10 +150,10 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
       }
    };
 
-   virtual void integrateBasisFunction( uint_t                                                degree,
+   virtual void integrateBasisFunction( uint_t                                           degree,
                                         const std::array< Point2D, 3 >&                  coords,
-                                        const std::function< real_t( const Point3D& ) >&      f,
-                                        std::vector< real_t >&                                values )
+                                        const std::function< real_t( const Point3D& ) >& f,
+                                        std::vector< real_t >&                           values )
    {
       values.resize( numDoFsPerElement( 2, degree ) );
 
@@ -228,10 +228,10 @@ class DGBasisLinearLagrange_Example : public DGBasisInfo
       }
    }
 
-   virtual void integrateBasisFunction( uint_t                                                degree,
+   virtual void integrateBasisFunction( uint_t                                           degree,
                                         const std::array< Point3D, 4 >&                  coords,
-                                        const std::function< real_t( const Point3D& ) >&      f,
-                                        std::vector< real_t >&                                values )
+                                        const std::function< real_t( const Point3D& ) >& f,
+                                        std::vector< real_t >&                           values )
    {
       values.resize( numDoFsPerElement( 3, degree ) );
 

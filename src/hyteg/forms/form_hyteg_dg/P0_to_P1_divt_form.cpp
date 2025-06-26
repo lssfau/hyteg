@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,7 +18,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hyteg/dgfunctionspace/P0_to_P1_divt_form.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0_to_P1_divt_form.hpp"
 
 namespace hyteg {
 namespace dg {
@@ -26,10 +26,10 @@ namespace dg {
 using walberla::uint_c;
 
 void p0_to_p1_divt_0_affine_q0::integrateVolume2D( const std::vector< Point3D >& coords,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 2 ), uint_c( testDegree ) ) ),
@@ -62,10 +62,10 @@ void p0_to_p1_divt_0_affine_q0::integrateVolume2D( const std::vector< Point3D >&
 }
 
 void p0_to_p1_divt_0_affine_q0::integrateVolume3D( const std::vector< Point3D >& coords,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 3 ), uint_c( testDegree ) ) ),
@@ -144,10 +144,10 @@ void p0_to_p1_divt_0_affine_q0::integrateVolume3D( const std::vector< Point3D >&
 }
 
 void p0_to_p1_divt_1_affine_q0::integrateVolume2D( const std::vector< Point3D >& coords,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 2 ), uint_c( testDegree ) ) ),
@@ -180,10 +180,10 @@ void p0_to_p1_divt_1_affine_q0::integrateVolume2D( const std::vector< Point3D >&
 }
 
 void p0_to_p1_divt_1_affine_q0::integrateVolume3D( const std::vector< Point3D >& coords,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 3 ), uint_c( testDegree ) ) ),
@@ -270,10 +270,10 @@ void p0_to_p1_divt_2_affine_q0::integrateVolume2D( const std::vector< Point3D >&
 {}
 
 void p0_to_p1_divt_2_affine_q0::integrateVolume3D( const std::vector< Point3D >& coords,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
 {
    elMat.resize( Eigen::Index( testBasis.numDoFsPerElement( uint_c( 3 ), uint_c( testDegree ) ) ),

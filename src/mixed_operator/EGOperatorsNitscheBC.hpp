@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner, Fabian Böhm.
+* Copyright (c) 2022-2025 Andreas Wagner, Fabian Böhm, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,11 +20,6 @@
 
 #pragma once
 
-#include <hyteg/p0functionspace/P0P0MassForm.hpp>
-
-#include "hyteg/dgfunctionspace/DGDivForm.hpp"
-#include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
-#include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/dgfunctionspace/ScalarP1WithDGFormOperator.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGDivFormNitscheBC.hpp"
@@ -32,11 +27,15 @@
 #include "hyteg/egfunctionspace/EGDivtFormNitscheBC.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceFormNitscheBC.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGDivForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGVectorLaplaceForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGVectorMassForm.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP0Operator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
+#include "hyteg/p0functionspace/P0P0MassForm.hpp"
 #include "hyteg/p0functionspace/P0P0WeightedMassForm.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
@@ -112,9 +111,9 @@ class EGLaplaceOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
    using DGToDGOperatorType = P0Operator< EGVectorLaplaceFormNitscheBC_EE >;
 
    ScalarP1WithDGFormOperator cg_;
-   CGToDGOperatorType cg_to_dg_coupling_;
-   DGToCGOperatorType dg_to_cg_coupling_;
-   DGToDGOperatorType dg_to_dg_coupling_;
+   CGToDGOperatorType         cg_to_dg_coupling_;
+   DGToCGOperatorType         dg_to_cg_coupling_;
+   DGToDGOperatorType         dg_to_dg_coupling_;
 };
 
 // TODO: fix code duplication
@@ -163,29 +162,28 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-
-      cg_00.apply( src.getConformingPart()->component( 0 ), tmp_->component(0), level, flag, updateType );
+      cg_00.apply( src.getConformingPart()->component( 0 ), tmp_->component( 0 ), level, flag, updateType );
       cg_01.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 0 ), level, flag, updateType );
-      dst.getConformingPart()->component( 0 ).add({1}, {tmp_->component(0)}, level, flag);
+      dst.getConformingPart()->component( 0 ).add( { 1 }, { tmp_->component( 0 ) }, level, flag );
 
-      cg_10.apply( src.getConformingPart()->component( 0 ), tmp_->component(1), level, flag, updateType );
+      cg_10.apply( src.getConformingPart()->component( 0 ), tmp_->component( 1 ), level, flag, updateType );
       cg_11.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 1 ), level, flag, updateType );
-      dst.getConformingPart()->component( 1 ).add({1}, {tmp_->component(1)}, level, flag);
+      dst.getConformingPart()->component( 1 ).add( { 1 }, { tmp_->component( 1 ) }, level, flag );
 
       if ( src.getDimension() == 3 )
       {
-          cg_02.apply( src.getConformingPart()->component( 2 ), tmp_->component(0), level, flag, updateType );
-          dst.getConformingPart()->component( 0 ).add({1}, {tmp_->component(0)}, level, flag);
+         cg_02.apply( src.getConformingPart()->component( 2 ), tmp_->component( 0 ), level, flag, updateType );
+         dst.getConformingPart()->component( 0 ).add( { 1 }, { tmp_->component( 0 ) }, level, flag );
 
-          cg_12.apply( src.getConformingPart()->component( 2 ), tmp_->component(1), level, flag, updateType );
-          dst.getConformingPart()->component( 1 ).add({1}, {tmp_->component(1)}, level, flag);
+         cg_12.apply( src.getConformingPart()->component( 2 ), tmp_->component( 1 ), level, flag, updateType );
+         dst.getConformingPart()->component( 1 ).add( { 1 }, { tmp_->component( 1 ) }, level, flag );
 
-          cg_20.apply( src.getConformingPart()->component( 0 ), tmp_->component(2), level, flag, updateType );
-          cg_21.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 2 ), level, flag, updateType );
-          dst.getConformingPart()->component( 2 ).add({1}, {tmp_->component(2)}, level, flag);
+         cg_20.apply( src.getConformingPart()->component( 0 ), tmp_->component( 2 ), level, flag, updateType );
+         cg_21.apply( src.getConformingPart()->component( 1 ), dst.getConformingPart()->component( 2 ), level, flag, updateType );
+         dst.getConformingPart()->component( 2 ).add( { 1 }, { tmp_->component( 2 ) }, level, flag );
 
-          cg_22.apply( src.getConformingPart()->component( 2 ), tmp_->component(2), level, flag, updateType );
-          dst.getConformingPart()->component( 2 ).add({1}, {tmp_->component(2)}, level, flag);
+         cg_22.apply( src.getConformingPart()->component( 2 ), tmp_->component( 2 ), level, flag, updateType );
+         dst.getConformingPart()->component( 2 ).add( { 1 }, { tmp_->component( 2 ) }, level, flag );
       }
 
       dg_to_cg_coupling_.apply( *src.getDiscontinuousPart(), *dst.getConformingPart(), level, flag, Add );
@@ -240,11 +238,11 @@ class EGEpsilonOperatorNitscheBC : public Operator< EGFunction< real_t >, EGFunc
    ScalarP1WithDGFormOperator cg_21;
    ScalarP1WithDGFormOperator cg_22;
 
-   CGToDGOperatorType                        cg_to_dg_coupling_;
-   DGToCGOperatorType                        dg_to_cg_coupling_;
-   DGToDGOperatorType                        dg_to_dg_coupling_;
-   std::function< real_t( const Point3D& ) > viscosity_;
-    std::shared_ptr< P1VectorFunction< real_t > > tmp_;
+   CGToDGOperatorType                            cg_to_dg_coupling_;
+   DGToCGOperatorType                            dg_to_cg_coupling_;
+   DGToDGOperatorType                            dg_to_dg_coupling_;
+   std::function< real_t( const Point3D& ) >     viscosity_;
+   std::shared_ptr< P1VectorFunction< real_t > > tmp_;
 };
 
 // TODO: fix code duplication
@@ -299,7 +297,6 @@ class EGToP0DivOperatorNitscheBC final : public Operator< EGFunction< real_t >, 
    }
 
  private:
-
    P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_0 > p1x_to_p0;
    P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_1 > p1y_to_p0;
    P1ToP0Operator< dg::eg::EGDivFormNitscheBC_P0P1_2 > p1z_to_p0;
@@ -325,7 +322,6 @@ class P0ToEGDivTOperatorNitscheBC final : public Operator< P0Function< real_t >,
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-
       p0_to_p1x.apply( src, dst.getConformingPart()->component( 0 ), level, flag, updateType );
       p0_to_p1y.apply( src, dst.getConformingPart()->component( 1 ), level, flag, updateType );
       if ( src.getDimension() == 3 )

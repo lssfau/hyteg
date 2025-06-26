@@ -20,7 +20,6 @@
 #pragma once
 
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"

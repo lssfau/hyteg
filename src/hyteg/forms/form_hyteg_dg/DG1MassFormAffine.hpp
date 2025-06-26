@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,8 +23,8 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
-#include "hyteg/dgfunctionspace/DGFormVolume.hpp"
+#include "hyteg/forms/DGForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGFormVolume.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -33,16 +33,19 @@
 namespace hyteg {
 namespace dg {
 
-class DGMassForm_Example : public DGFormVolume
+class DG1MassFormAffine : public DGFormVolume
 {
  protected:
    void integrateVolume2D( const std::vector< Point3D >& coords,
-                           const DGBasisInfo&                                       trialBasis,
-                           const DGBasisInfo&                                       testBasis,
-                           int                                                      trialDegree,
-                           int                                                      testDegree,
+                           const DGBasisInfo&            trialBasis,
+                           const DGBasisInfo&            testBasis,
+                           int                           trialDegree,
+                           int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -82,12 +85,15 @@ class DGMassForm_Example : public DGFormVolume
    }
 
    virtual void integrateVolume3D( const std::vector< Point3D >& coords,
-                                   const DGBasisInfo&                                       trialBasis,
-                                   const DGBasisInfo&                                       testBasis,
-                                   int                                                      trialDegree,
-                                   int                                                      testDegree,
+                                   const DGBasisInfo&            trialBasis,
+                                   const DGBasisInfo&            testBasis,
+                                   int                           trialDegree,
+                                   int                           testDegree,
                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 3, testDegree ), trialBasis.numDoFsPerElement( 3, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );

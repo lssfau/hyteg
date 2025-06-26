@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner.
+* Copyright (c) 2022-2025 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,14 +22,14 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
-#include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/P1_to_P0_div_form.hpp"
 #include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGDivtForm.hpp"
 #include "hyteg/egfunctionspace/EGMassForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGFormAbort.hpp"
+#include "hyteg/forms/form_hyteg_dg/P1_to_P0_div_form.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
@@ -125,11 +125,10 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
       //vtk.write( level, 0 );
       // vtk.write( level, 1 );
 
-    //  WALBERLA_ASSERT(updateType == Replace);
+      //  WALBERLA_ASSERT(updateType == Replace);
 
-      if (updateType == Replace && mat == nullptr)
-         dst.interpolate(0, level, All);
-
+      if ( updateType == Replace && mat == nullptr )
+         dst.interpolate( 0, level, All );
 
       DGBasisLinearLagrange_Example dstBasis;
 
@@ -138,10 +137,8 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
       //communication::syncFunctionBetweenPrimitives( dst, level );
       src.communicate( level );
 
-       const auto storage = this->getStorage();
-       const int dim = storage->hasGlobalCells() ? 3 : 2;
-
-
+      const auto storage = this->getStorage();
+      const int  dim     = storage->hasGlobalCells() ? 3 : 2;
 
       const std::vector< PrimitiveID > pids{ ( dim == 2 ) ? storage->getFaceIDs() : storage->getCellIDs() };
 
@@ -159,7 +156,7 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
          const auto srcMemLayout = src.volumeDoFFunction()->memoryLayout();
 
          // zero out halos for matrix-free application
-         if ( mat == nullptr)
+         if ( mat == nullptr )
          {
             if ( dim == 2 )
             {
@@ -261,7 +258,6 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
                   vertexDoFIndices.insert( vertexDoFIndices.begin(), vertexDoFIndicesArray.begin(), vertexDoFIndicesArray.end() );
                }
 
-
                for ( uint_t srcDofIdx = 0; srcDofIdx < numSrcDofs; srcDofIdx++ )
                {
                   if ( dim == 2 )
@@ -344,7 +340,6 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
             }
          }
 
-
          if ( mat == nullptr )
          {
             if ( dim == 2 )
@@ -360,8 +355,6 @@ class DGToP1Operator : public Operator< DGFunction< ValueType >, P1Function< Val
             }
          }
       }
-
-
    }
 
    std::shared_ptr< Form > form_;

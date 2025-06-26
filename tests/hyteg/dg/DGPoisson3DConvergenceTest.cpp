@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,10 +23,10 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1DiffusionFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -55,8 +55,8 @@ real_t test( uint_t                                    level,
    real_t beta_0 = storage->hasGlobalCells() ? 0.5 : 1.0;
 
    auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto laplaceForm = std::make_shared< DGDiffusionForm_Example >( beta_0, solFunc, solFunc );
-   auto massForm    = std::make_shared< DGMassForm_Example >();
+   auto laplaceForm = std::make_shared< DG1DiffusionFormAffine >( beta_0, solFunc, solFunc );
+   auto massForm    = std::make_shared< DG1MassFormAffine >();
 
    DGFunction< real_t > u( "u", storage, level, level, basis, degree );
    DGFunction< real_t > f( "f", storage, level, level, basis, degree );
@@ -178,7 +178,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, hom. BC, rhs != 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) {
          return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) * sin( 2 * pi * x[2] );
@@ -196,7 +196,7 @@ int main( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "### Test on multiple macros, inhom. BC, rhs = 0 ###" );
 
-      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D(  0, 0, 0  ), Point3D(  1, 1, 1  ), 1, 1, 1 );
+      MeshInfo meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 );
 
       std::function< real_t( const Point3D& ) > solFunc = []( const Point3D& x ) { return sin( x[0] ) * sinh( x[1] ) * x[2]; };
       std::function< real_t( const Point3D& ) > rhsFunc = []( const Point3D& ) { return 0; };

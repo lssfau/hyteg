@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
-*
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
+
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
 *
@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/forms/DGForm.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -43,10 +43,10 @@ class DGFormVolume : public DGForm
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
@@ -66,10 +66,10 @@ class DGFormVolume : public DGForm
                                        const std::vector< Point3D >& coordsFacet,
                                        const Point3D&                oppositeVertex,
                                        const Point3D&                outwardNormal,
-                                       const DGBasisInfo&                                       trialBasis,
-                                       const DGBasisInfo&                                       testBasis,
-                                       int                                                      trialDegree,
-                                       int                                                      testDegree,
+                                       const DGBasisInfo&            trialBasis,
+                                       const DGBasisInfo&            testBasis,
+                                       int                           trialDegree,
+                                       int                           testDegree,
                                        MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
@@ -91,10 +91,10 @@ class DGFormVolume : public DGForm
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElementInner );
@@ -118,10 +118,10 @@ class DGFormVolume : public DGForm
                                           const Point3D&                oppositeVertexInnerElement,
                                           const Point3D&                oppositeVertexOuterElement,
                                           const Point3D&                outwardNormal,
-                                          const DGBasisInfo&                                       trialBasis,
-                                          const DGBasisInfo&                                       testBasis,
-                                          int                                                      trialDegree,
-                                          int                                                      testDegree,
+                                          const DGBasisInfo&            trialBasis,
+                                          const DGBasisInfo&            testBasis,
+                                          int                           trialDegree,
+                                          int                           testDegree,
                                           MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElementInner );
@@ -143,10 +143,10 @@ class DGFormVolume : public DGForm
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
@@ -166,10 +166,10 @@ class DGFormVolume : public DGForm
                                                    const std::vector< Point3D >& coordsFacet,
                                                    const Point3D&                oppositeVertex,
                                                    const Point3D&                outwardNormal,
-                                                   const DGBasisInfo&                                       trialBasis,
-                                                   const DGBasisInfo&                                       testBasis,
-                                                   int                                                      trialDegree,
-                                                   int                                                      testDegree,
+                                                   const DGBasisInfo&            trialBasis,
+                                                   const DGBasisInfo&            testBasis,
+                                                   int                           trialDegree,
+                                                   int                           testDegree,
                                                    MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
@@ -189,8 +189,8 @@ class DGFormVolume : public DGForm
                                                  const std::vector< Point3D >& coordsFacet,
                                                  const Point3D&                oppositeVertex,
                                                  const Point3D&                outwardNormal,
-                                                 const DGBasisInfo&                                       basis,
-                                                 int                                                      degree,
+                                                 const DGBasisInfo&            basis,
+                                                 int                           degree,
                                                  MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );
@@ -208,8 +208,8 @@ class DGFormVolume : public DGForm
                                                  const std::vector< Point3D >& coordsFacet,
                                                  const Point3D&                oppositeVertex,
                                                  const Point3D&                outwardNormal,
-                                                 const DGBasisInfo&                                       basis,
-                                                 int                                                      degree,
+                                                 const DGBasisInfo&            basis,
+                                                 int                           degree,
                                                  MatrixXr&                     elMat ) const
    {
       WALBERLA_UNUSED( coordsElement );

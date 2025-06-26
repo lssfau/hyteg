@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,7 +23,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
+#include "hyteg/forms/DGForm.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -40,19 +40,13 @@ using walberla::real_c;
 class DGFormAbort : public DGForm
 {
  protected:
-   void integrateVolume2D( const std::vector< Point3D >&, const DGBasisInfo&,
-                           const DGBasisInfo&,
-                           int,
-                           int, MatrixXr& )
+   void integrateVolume2D( const std::vector< Point3D >&, const DGBasisInfo&, const DGBasisInfo&, int, int, MatrixXr& )
        const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );
    }
 
-   virtual void integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&,
-                                   const DGBasisInfo&,
-                                   int,
-                                   int, MatrixXr& )
+   virtual void integrateVolume3D( const std::vector< Point3D >&, const DGBasisInfo&, const DGBasisInfo&, int, int, MatrixXr& )
        const override
    {
       WALBERLA_ABORT( "Invalid call to DGForm. This is a placeholder." );

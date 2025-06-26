@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -47,22 +47,22 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    std::function< real_t( const Point3D& ) > solFunc0 = []( const Point3D& x ) {
-     return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] );
+      return sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] );
    };
 
    std::function< real_t( const Point3D& ) > solFunc1 = []( const Point3D& x ) {
-     return sin( 3 * pi * x[0] ) * sin( 3 * pi * x[1] );
+      return sin( 3 * pi * x[0] ) * sin( 3 * pi * x[1] );
    };
 
    std::function< real_t( const Point3D& ) > rhsFunc0 = []( const Point3D& x ) {
-     return 8 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) );
+      return 8 * pi * pi * ( sin( 2 * pi * x[0] ) * sin( 2 * pi * x[1] ) );
    };
 
    std::function< real_t( const Point3D& ) > rhsFunc1 = []( const Point3D& x ) {
-     return 2 * 9 * pi * pi * ( sin( 3 * pi * x[0] ) * sin( 3 * pi * x[1] ) );
+      return 2 * 9 * pi * pi * ( sin( 3 * pi * x[0] ) * sin( 3 * pi * x[1] ) );
    };
 
-   auto basis       = std::make_shared< DGBasisLinearLagrange_Example >();
+   auto basis = std::make_shared< DGBasisLinearLagrange_Example >();
 
    DGVectorFunction< real_t > u( "u", storage, level, level, basis, degree );
    DGVectorFunction< real_t > f( "f", storage, level, level, basis, degree );
@@ -73,8 +73,8 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    DGVectorFunction< idx_t > numerator( "numerator", storage, level, level, basis, degree );
    numerator.enumerate( level );
 
-   DGVectorMassOperator< real_t >    M(storage, level, level);
-   DGVectorLaplaceOperator< real_t > A(storage, level, level);
+   DGVectorMassOperator< real_t >    M( storage, level, level );
+   DGVectorLaplaceOperator< real_t > A( storage, level, level );
 
    f[0].evaluateLinearFunctional( rhsFunc0, level );
    f[1].evaluateLinearFunctional( rhsFunc1, level );
@@ -91,7 +91,7 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    err.assign( { 1.0, -1.0 }, { u, sol }, level );
    auto discrL2 = sqrt( err.dotGlobal( err, level ) / real_c( numberOfGlobalDoFs( u, level ) ) );
 
-   WALBERLA_LOG_INFO(discrL2);
+   WALBERLA_LOG_INFO( discrL2 );
 
    VTKOutput vtk( "../../output/", "DGVectorPoisson2DConvergenceTest_testDirichlet", storage );
    vtk.add( u );
@@ -113,14 +113,14 @@ int main( int argc, char** argv )
    hyteg::PETScManager petscManager( &argc, &argv );
 
    {
-      const uint_t degree = 1;
-      const uint_t level = 4;
-      auto err_level= hyteg::testHomDirichlet( level, degree );
-      auto err_level_next = hyteg::testHomDirichlet( level+1, degree );
-      auto rate = err_level / err_level_next;
+      const uint_t degree         = 1;
+      const uint_t level          = 4;
+      auto         err_level      = hyteg::testHomDirichlet( level, degree );
+      auto         err_level_next = hyteg::testHomDirichlet( level + 1, degree );
+      auto         rate           = err_level / err_level_next;
 
-      WALBERLA_CHECK_LESS(rate, 4.1);
-      WALBERLA_CHECK_GREATER(rate, 3.9);
+      WALBERLA_CHECK_LESS( rate, 4.1 );
+      WALBERLA_CHECK_GREATER( rate, 3.9 );
    }
 
    return EXIT_SUCCESS;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -65,19 +65,19 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
  private:
    /// Just a small helper method that writes the local matrix into the global sparse system.
    template < typename VType >
-   void addLocalToGlobalMatrix( int                                                            dim,
-                                int                                                            numSrcDofs,
-                                int                                                            numDstDofs,
-                                VType*                                                         srcDofMemory,
-                                VType*                                                         dstDofMemory,
-                                VolumeDoFMemoryLayout                                          srcMemLayout,
-                                VolumeDoFMemoryLayout                                          dstMemLayout,
-                                Index                                                          srcElementIdx,
-                                Index                                                          dstElementIdx,
-                                uint_t                                                         srcMicroVolType,
-                                uint_t                                                         dstMicroVolType,
-                                uint_t                                                         level,
-                                std::shared_ptr< SparseMatrixProxy >                           mat,
+   void addLocalToGlobalMatrix( int                                  dim,
+                                int                                  numSrcDofs,
+                                int                                  numDstDofs,
+                                VType*                               srcDofMemory,
+                                VType*                               dstDofMemory,
+                                VolumeDoFMemoryLayout                srcMemLayout,
+                                VolumeDoFMemoryLayout                dstMemLayout,
+                                Index                                srcElementIdx,
+                                Index                                dstElementIdx,
+                                uint_t                               srcMicroVolType,
+                                uint_t                               dstMicroVolType,
+                                uint_t                               level,
+                                std::shared_ptr< SparseMatrixProxy > mat,
                                 const MatrixXr&                      localMat ) const
    {
       // Sparse assembly.
@@ -165,9 +165,15 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
       using indexing::Index;
       using volumedofspace::indexing::ElementNeighborInfo;
 
-
       if ( !form_->onlyVolumeIntegrals() )
       {
+         // For cross-coupling, fluxes, etc. we need larger halos
+         if ( src.getStorage()->getAdditionalHaloDepth() == 0 )
+         {
+            WALBERLA_ABORT( "Your DGForm does not only consist of volume integrals.\n"
+                            << "Thus, you need a PrimitiveStorage with additionalHaloDepth > 0." );
+         }
+
          src.communicate( level );
       }
 
@@ -278,20 +284,20 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                {
                   if ( dim == 2 )
                   {
-                     srcDofs(static_cast<idx_t>(srcDofIdx)) = real_c(srcDofMemory[volumedofspace::indexing::index(
-                        elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout)]);
+                     srcDofs( static_cast< idx_t >( srcDofIdx ) ) = real_c( srcDofMemory[volumedofspace::indexing::index(
+                         elementIdx.x(), elementIdx.y(), faceType, srcDofIdx, numSrcDofs, level, srcMemLayout )] );
                   }
                   else
                   {
                      srcDofs( static_cast< idx_t >( srcDofIdx ) ) =
-                        real_c(srcDofMemory[volumedofspace::indexing::index(elementIdx.x(),
-                                                                            elementIdx.y(),
-                                                                            elementIdx.z(),
-                                                                            cellType,
-                                                                            srcDofIdx,
-                                                                            numSrcDofs,
-                                                                            level,
-                                                                            srcMemLayout)]);
+                         real_c( srcDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                               elementIdx.y(),
+                                                                               elementIdx.z(),
+                                                                               cellType,
+                                                                               srcDofIdx,
+                                                                               numSrcDofs,
+                                                                               level,
+                                                                               srcMemLayout )] );
                   }
                }
 
@@ -921,7 +927,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                                              srcMemLayout );
                                  }
 
-                                 nSrcDofs(static_cast<idx_t>(srcDofIdx)) = real_c(glMemory[n][nSrcDoFArrIndices[srcDofIdx]]);
+                                 nSrcDofs( static_cast< idx_t >( srcDofIdx ) ) =
+                                     real_c( glMemory[n][nSrcDoFArrIndices[srcDofIdx]] );
                               }
 
                               if ( mat == nullptr )
@@ -940,26 +947,24 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                        uint_t globalRowIdx;
                                        if ( dim == 2 )
                                        {
-                                          globalRowIdx =
-                                              uint_c( dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                                                    elementIdx.y(),
-                                                                                                    faceType,
-                                                                                                    dstDofIdx,
-                                                                                                    numDstDofs,
-                                                                                                    level,
-                                                                                                    dstMemLayout )] );
+                                          globalRowIdx = uint_c( dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                                                               elementIdx.y(),
+                                                                                                               faceType,
+                                                                                                               dstDofIdx,
+                                                                                                               numDstDofs,
+                                                                                                               level,
+                                                                                                               dstMemLayout )] );
                                        }
                                        else
                                        {
-                                          globalRowIdx =
-                                              uint_c( dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                                                    elementIdx.y(),
-                                                                                                    elementIdx.z(),
-                                                                                                    cellType,
-                                                                                                    dstDofIdx,
-                                                                                                    numDstDofs,
-                                                                                                    level,
-                                                                                                    dstMemLayout )] );
+                                          globalRowIdx = uint_c( dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
+                                                                                                               elementIdx.y(),
+                                                                                                               elementIdx.z(),
+                                                                                                               cellType,
+                                                                                                               dstDofIdx,
+                                                                                                               numDstDofs,
+                                                                                                               level,
+                                                                                                               dstMemLayout )] );
                                        }
                                        const auto globalColIdx = uint_c( glMemory[n][nSrcDoFArrIndices[uint_c( srcDofIdx )]] );
 
@@ -1000,26 +1005,26 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                            {
                               if ( dim == 2 )
                               {
-                                 nSrcDofs(static_cast<idx_t>(srcDofIdx)) =
-                                    real_c(srcDofMemory[volumedofspace::indexing::index(neighborInfo.neighborElementIndices(n).x(),
-                                                                                        neighborInfo.neighborElementIndices(n).y(),
-                                                                                        neighborInfo.neighborFaceType(n),
-                                                                                        srcDofIdx,
-                                                                                        numSrcDofs,
-                                                                                        level,
-                                                                                        srcMemLayout)]);
+                                 nSrcDofs( static_cast< idx_t >( srcDofIdx ) ) = real_c(
+                                     srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                   neighborInfo.neighborElementIndices( n ).y(),
+                                                                                   neighborInfo.neighborFaceType( n ),
+                                                                                   srcDofIdx,
+                                                                                   numSrcDofs,
+                                                                                   level,
+                                                                                   srcMemLayout )] );
                               }
                               else
                               {
-                                 nSrcDofs(static_cast<idx_t>(srcDofIdx)) =
-                                    real_c(srcDofMemory[volumedofspace::indexing::index(neighborInfo.neighborElementIndices(n).x(),
-                                                                                        neighborInfo.neighborElementIndices(n).y(),
-                                                                                        neighborInfo.neighborElementIndices(n).z(),
-                                                                                        neighborInfo.neighborCellType(n),
-                                                                                        srcDofIdx,
-                                                                                        numSrcDofs,
-                                                                                        level,
-                                                                                        srcMemLayout)]);
+                                 nSrcDofs( static_cast< idx_t >( srcDofIdx ) ) = real_c(
+                                     srcDofMemory[volumedofspace::indexing::index( neighborInfo.neighborElementIndices( n ).x(),
+                                                                                   neighborInfo.neighborElementIndices( n ).y(),
+                                                                                   neighborInfo.neighborElementIndices( n ).z(),
+                                                                                   neighborInfo.neighborCellType( n ),
+                                                                                   srcDofIdx,
+                                                                                   numSrcDofs,
+                                                                                   level,
+                                                                                   srcMemLayout )] );
                               }
                            }
 
@@ -1087,15 +1092,12 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                         }
                         else if ( updateType == Add )
                         {
-                           dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
-                                                                         elementIdx.y(),
-                                                                         faceType,
-                                                                         dstDofIdx,
-                                                                         numDstDofs,
-                                                                         level,
-                                                                         dstMemLayout )] +=
-                              static_cast<VType>(dstDofs(static_cast<idx_t>(dstDofIdx)));
-                        } else {
+                           dstDofMemory[volumedofspace::indexing::index(
+                               elementIdx.x(), elementIdx.y(), faceType, dstDofIdx, numDstDofs, level, dstMemLayout )] +=
+                               static_cast< VType >( dstDofs( static_cast< idx_t >( dstDofIdx ) ) );
+                        }
+                        else
+                        {
                            WALBERLA_ABORT( "Invalid update type." );
                         }
                      }
@@ -1111,8 +1113,9 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                          numDstDofs,
                                                                          level,
                                                                          dstMemLayout )] =
-                              static_cast<VType>(dstDofs(static_cast<idx_t>(dstDofIdx)));
-                        } else if ( updateType == Add )
+                               static_cast< VType >( dstDofs( static_cast< idx_t >( dstDofIdx ) ) );
+                        }
+                        else if ( updateType == Add )
                         {
                            dstDofMemory[volumedofspace::indexing::index( elementIdx.x(),
                                                                          elementIdx.y(),
@@ -1122,8 +1125,10 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
                                                                          numDstDofs,
                                                                          level,
                                                                          dstMemLayout )] +=
-                               static_cast<VType>(dstDofs(static_cast<idx_t>(dstDofIdx)));
-                        } else {
+                               static_cast< VType >( dstDofs( static_cast< idx_t >( dstDofIdx ) ) );
+                        }
+                        else
+                        {
                            WALBERLA_ABORT( "Invalid update type." );
                         }
                      }

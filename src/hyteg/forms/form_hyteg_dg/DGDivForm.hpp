@@ -1,6 +1,5 @@
-
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,8 +23,8 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/dgfunctionspace/DGBasisInfo.hpp"
-#include "hyteg/dgfunctionspace/DGForm.hpp"
-#include "hyteg/dgfunctionspace/DGForm2D.hpp"
+#include "hyteg/forms/DGForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGForm2D.hpp"
 #include "hyteg/types/Matrix.hpp"
 #include "hyteg/types/PointND.hpp"
 
@@ -44,6 +43,9 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -169,6 +171,9 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -298,6 +303,9 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -485,6 +493,9 @@ class DGDivFormP1P1_0 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -558,6 +569,9 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -683,6 +697,9 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -812,6 +829,9 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -999,6 +1019,9 @@ class DGDivFormP1P1_1 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -1072,6 +1095,9 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -1193,6 +1219,9 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -1322,6 +1351,9 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -1509,6 +1541,9 @@ class DGDivtFormP1P1_0 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -1656,6 +1691,9 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -1777,6 +1815,9 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -1906,6 +1947,9 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -2093,6 +2137,9 @@ class DGDivtFormP1P1_1 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 1 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -2240,6 +2287,9 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -2280,6 +2330,9 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -2374,6 +2427,9 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -2478,6 +2534,9 @@ class DGDivFormP0P1_0 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -2838,6 +2897,9 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -2878,6 +2940,9 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -2972,6 +3037,9 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -3076,6 +3144,9 @@ class DGDivtFormP1P0_0 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -3188,6 +3259,9 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
                            int                           testDegree,
                            MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coords[0]( 0 );
@@ -3228,6 +3302,9 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
                                        int                           testDegree,
                                        MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );
@@ -3322,6 +3399,9 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
                                           int                           testDegree,
                                           MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElementInner[0]( 0 );
@@ -3426,6 +3506,9 @@ class DGDivtFormP1P0_1 : public hyteg::dg::DGForm2D
                                                    int                           testDegree,
                                                    MatrixXr&                     elMat ) const override
    {
+      WALBERLA_ASSERT( trialDegree == 0 );
+      WALBERLA_ASSERT( testDegree == 1 );
+
       elMat.resize( testBasis.numDoFsPerElement( 2, testDegree ), trialBasis.numDoFsPerElement( 2, trialDegree ) );
 
       const auto p_affine_0_0 = coordsElement[0]( 0 );

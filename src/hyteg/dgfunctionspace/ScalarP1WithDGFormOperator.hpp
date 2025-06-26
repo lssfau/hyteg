@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022 Andreas Wagner.
+* Copyright (c) 2022-2025 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -39,8 +39,6 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 
-#include "DGOperator.hpp"
-
 namespace hyteg {
 namespace dg {
 
@@ -75,7 +73,7 @@ class ScalarP1WithDGFormOperator : public Operator< P1Function< real_t >, P1Func
                DoFType                     flag,
                UpdateType                  updateType ) const override
    {
-/*
+      /*
       VTKOutput vtk( "../../output", "EGApplyDebug", src.getStorage() );
       vtk.add( src );
       vtk.add( dst );
@@ -85,18 +83,18 @@ class ScalarP1WithDGFormOperator : public Operator< P1Function< real_t >, P1Func
 
       vtk.write( level, 0 );
     */
-//dstReal_.interpolate( 0, level, All );
- //      srcReal_.interpolate( 0, level, All );
+      //dstReal_.interpolate( 0, level, All );
+      //      srcReal_.interpolate( 0, level, All );
 
-     //  vtk.write( level, 1 );
+      //  vtk.write( level, 1 );
       opP1ToDGReal.apply( src, srcReal_, level, All, Replace );
       //if ( updateType != Replace )
       //   opP1ToDGReal.apply( dst, dstReal_, level, All, Replace );
-    //   vtk.write( level, 2 );
+      //   vtk.write( level, 2 );
       opMain.apply( srcReal_, dstReal_, level, All, Replace );
-    //   vtk.write( level, 3 );
+      //   vtk.write( level, 3 );
       opDGToP1Real.apply( dstReal_, dst, level, All, updateType );
-    //   vtk.write( level, 4 );
+      //   vtk.write( level, 4 );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,

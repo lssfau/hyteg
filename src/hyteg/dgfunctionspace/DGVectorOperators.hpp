@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
-#include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
+#include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
+#include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/operators/VectorToVectorOperator.hpp"
 
 namespace hyteg {
@@ -38,14 +38,18 @@ class DGVectorLaplaceOperator : public VectorToVectorOperator< ValueType, DGVect
    {
       if ( this->dim_ == 3 )
       {
-         WALBERLA_ABORT("not implemented yet.");
+         WALBERLA_ABORT( "not implemented yet." );
       }
       else
       {
-         this->subOper_[0][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_00 >() );
-         this->subOper_[0][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_01 >() );
-         this->subOper_[1][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_10 >() );
-         this->subOper_[1][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_11 >() );
+         this->subOper_[0][0] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_00 >() );
+         this->subOper_[0][1] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_01 >() );
+         this->subOper_[1][0] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_10 >() );
+         this->subOper_[1][1] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorLaplaceFormP1P1_11 >() );
       }
    }
 };
@@ -55,21 +59,25 @@ class DGVectorMassOperator : public VectorToVectorOperator< ValueType, DGVectorF
 {
  public:
    DGVectorMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-       : VectorToVectorOperator< ValueType, DGVectorFunction, DGVectorFunction >( storage, minLevel, maxLevel )
+   : VectorToVectorOperator< ValueType, DGVectorFunction, DGVectorFunction >( storage, minLevel, maxLevel )
    {
       if ( this->dim_ == 3 )
       {
-         WALBERLA_ABORT("not implemented yet.");
+         WALBERLA_ABORT( "not implemented yet." );
       }
       else
       {
-         this->subOper_[0][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_00 >() );
-         this->subOper_[0][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_01 >() );
-         this->subOper_[1][0] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_10 >() );
-         this->subOper_[1][1] = std::make_shared< DGOperator > ( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_11 >() );
+         this->subOper_[0][0] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_00 >() );
+         this->subOper_[0][1] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_01 >() );
+         this->subOper_[1][0] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_10 >() );
+         this->subOper_[1][1] =
+             std::make_shared< DGOperator >( storage, minLevel, maxLevel, std::make_shared< DGVectorMassFormP1P1_11 >() );
       }
    }
 };
 
-}
-}
+} // namespace dg
+} // namespace hyteg

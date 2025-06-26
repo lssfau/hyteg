@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,8 +21,8 @@
 
 #include "hyteg/composites/P1P0StokesFunction.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
-#include "hyteg/dgfunctionspace/DGStokesP1P0PressureStabForm_Example.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGStokesP1P0PressureStabFormAffine.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_divdiv_affine_q2.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
 #include "hyteg/mixedoperators/P0ToP1Operator.hpp"
@@ -143,7 +143,7 @@ class P1P0StokesOperator : public Operator< P1P0StokesFunction< real_t >, P1P0St
    , mudivdiv( storage, minLevel, maxLevel, mu )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , stab( storage, minLevel, maxLevel, std::make_shared< DGStokesP1P0PressureStabForm_Example >() )
+   , stab( storage, minLevel, maxLevel, std::make_shared< DGStokesP1P0PressureStabFormAffine >() )
    , energyNormOp( Lapl )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}

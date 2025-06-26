@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,26 +20,26 @@
 
 #pragma once
 
-#include "hyteg/dgfunctionspace/DGDivForm.hpp"
-#include "hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp"
-#include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGDivtForm.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
 #include "hyteg/egfunctionspace/EGIIPGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGDivForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGVectorLaplaceForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGVectorMassForm.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
 
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "mixed_operator/P1EpsilonOperator.hpp"
 #include "mixed_operator/ScalarToVectorOperator.hpp"
 #include "mixed_operator/VectorLaplaceOperator.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "mixed_operator/VectorToScalarOperator.hpp"
-#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 namespace hyteg {
 namespace dg {

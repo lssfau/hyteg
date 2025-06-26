@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,10 +24,10 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGBasisLinearLagrange_Example.hpp"
-#include "hyteg/dgfunctionspace/DGDiffusionForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/dgfunctionspace/DGOperator.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1DiffusionFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
@@ -50,8 +50,8 @@ void dgPetscApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
 
    auto basis    = std::make_shared< DGBasisLinearLagrange_Example >();
-   auto diffForm = std::make_shared< DGDiffusionForm_Example >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
-   auto massForm = std::make_shared< DGMassForm_Example >();
+   auto diffForm = std::make_shared< DG1DiffusionFormAffine >( ( storage->hasGlobalCells() ? 0.5 : 1 ) );
+   auto massForm = std::make_shared< DG1MassFormAffine >();
 
    DGFunction< real_t > src( "src", storage, level, level, basis, 1 );
    DGFunction< real_t > tmp( "tmp", storage, level, level, basis, 1 );

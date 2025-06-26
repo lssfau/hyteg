@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,15 +21,11 @@
 #pragma once
 
 #include <hyteg/communication/Syncing.hpp>
-#include <hyteg/dgfunctionspace/DGVectorLaplaceForm.hpp>
 #include <hyteg/egfunctionspace/EGEpsilonEnergyNormForm.hpp>
+#include <hyteg/forms/form_hyteg_dg/DGVectorLaplaceForm.hpp>
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dgfunctionspace/DGDivForm.hpp"
-#include "hyteg/dgfunctionspace/DGFormAbort.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/dgfunctionspace/DGVectorMassForm.hpp"
-#include "hyteg/dgfunctionspace/P0_to_P1_divt_form.hpp"
 #include "hyteg/egfunctionspace/EGConstEpsilonForm.hpp"
 #include "hyteg/egfunctionspace/EGDivForm.hpp"
 #include "hyteg/egfunctionspace/EGEpsilonForm.hpp"
@@ -37,6 +33,10 @@
 #include "hyteg/egfunctionspace/EGMassForm.hpp"
 #include "hyteg/egfunctionspace/EGNIPGVectorLaplaceForm.hpp"
 #include "hyteg/egfunctionspace/EGVectorLaplaceForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGDivForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGFormAbort.hpp"
+#include "hyteg/forms/form_hyteg_dg/DGVectorMassForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0_to_P1_divt_form.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
