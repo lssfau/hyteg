@@ -40,7 +40,7 @@
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 // P2PlusBubble Operators
-#include "hyteg/experimental/P2PlusBubbleOperators/P2PlusBubbleElementwiseDiffusion_float64.hpp"
+#include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
 
 // Mixed Operators
 #include "hyteg/composites/CCRStokesOperator.hpp"
@@ -239,7 +239,7 @@ int main( int argc, char* argv[] )
       // ------------------------
    case P2PLUSBUBBLELAPLACE: {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P2PlusBubble elements" );
-      using P2PlusBubbleElementwiseDiffusion = hyteg::operatorgeneration::P2PlusBubbleElementwiseDiffusion_float64;
+      using P2PlusBubbleElementwiseDiffusion = hyteg::operatorgeneration::P2PlusBubbleElementwiseDiffusion;
       P2PlusBubbleElementwiseDiffusion opr( storage, level, level );
       petsc::exportOperator< P2PlusBubbleElementwiseDiffusion >( opr, fileName, matName, format, storage, level, elim, symm, verb );
    }
