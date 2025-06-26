@@ -28,8 +28,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
-#include "hyteg/dgfunctionspace/DGMassForm_Example.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
+#include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -297,7 +297,7 @@ void manufacturedSolutionTest( uint_t level, bool doVTKOutput = false )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running \"manufacturedSolutionTest\"" );
 
-   using DG1MassOperator = DG1Operator< DGMassForm_Example >;
+   using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
    solveStokesProblem< CCRStokesOperator, P2PlusBubbleElementwiseVectorMassOperator, DG1MassOperator >(
        level, doVTKOutput, "CCRStokes2DTest_with_CCR" );
    solveStokesProblem< P2P1TaylorHoodStokesOperator, P2ConstantVectorMassOperator, P1ConstantMassOperator >(
