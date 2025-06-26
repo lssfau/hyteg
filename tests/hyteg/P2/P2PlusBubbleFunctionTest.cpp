@@ -564,7 +564,12 @@ int main( int argc, char* argv[] )
 
    runInterpolationTests();
    runMassTests();
-   runDiffusionTest();
+
+   // Using Eigen Sparse Solver currently
+   if( walberla::MPIManager::instance()->numProcesses() == 1 ) {
+     runDiffusionTest();
+   }
+
    runVectorFunctionTest();
 
    return EXIT_SUCCESS;

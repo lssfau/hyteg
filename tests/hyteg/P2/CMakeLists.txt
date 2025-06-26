@@ -32,7 +32,8 @@ target_sources( hyteg
 )
 
 waLBerla_compile_test(FILES P2PlusBubbleFunctionTest.cpp DEPENDS hyteg opgen-diffusion opgen-mass core)
-waLBerla_execute_test(NAME P2PlusBubbleFunctionTest)
+waLBerla_execute_test(NAME P2PlusBubbleFunctionTest1 COMMAND $<TARGET_FILE:P2PlusBubbleFunctionTest> PROCESSES 1)
+waLBerla_execute_test(NAME P2PlusBubbleFunctionTest2 COMMAND $<TARGET_FILE:P2PlusBubbleFunctionTest> PROCESSES 2)
 
 waLBerla_compile_test(FILES P2Level0Test.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)
