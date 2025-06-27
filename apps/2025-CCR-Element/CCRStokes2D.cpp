@@ -34,7 +34,6 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 
