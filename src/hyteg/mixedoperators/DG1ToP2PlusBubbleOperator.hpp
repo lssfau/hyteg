@@ -117,7 +117,11 @@ class DG1ToP2PlusBubbleOperator : public Operator< DG1Function< real_t >, P2Plus
 
       int dim = 2;
 
-      src.communicate( level );
+      // check, if we need to update stuff for the DG1 source function
+      if ( storage->getAdditionalHaloDepth() > 0 )
+      {
+         src.communicate( level );
+      }
 
       if ( updateType == Replace && mat == nullptr )
       {
