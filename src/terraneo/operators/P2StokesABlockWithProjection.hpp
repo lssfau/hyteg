@@ -82,9 +82,9 @@ class P2ABlockViscousProjectionFSTemplate : public Operator< P2VectorFunction< r
       viscousOperator.toMatrix( mat, src, dst, level, flag );
    }
 
-   void computeInverseDiagonalOperatorValues() { viscousOperator.computeInverseDiagonalOperatorValues(); }
+   void computeInverseDiagonalOperatorValues() override { viscousOperator.computeInverseDiagonalOperatorValues(); }
 
-   std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const override
    {
       return viscousOperator.getInverseDiagonalValues();
    }
