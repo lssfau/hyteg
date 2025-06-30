@@ -432,7 +432,9 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
                                                             p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
                                                             *projectionOperator,
-                                                            bcVelocity );
+                                                            bcVelocity,
+                                                            *( p2ScalarFunctionContainer["DensityFE"] ),
+                                                            false );
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
