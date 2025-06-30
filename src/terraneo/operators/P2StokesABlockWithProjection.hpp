@@ -40,12 +40,12 @@ class P2ABlockViscousProjectionFSTemplate : public Operator< P2VectorFunction< r
 {
  public:
    P2ABlockViscousProjectionFSTemplate( const std::shared_ptr< PrimitiveStorage >&    storage,
-                                      uint_t                                        minLevel,
-                                      uint_t                                        maxLevel,
-                                      const ViscosityFunction_T&                    mu,
-                                      P2ProjectNormalOperator&                      projectNormal,
-                                      BoundaryCondition                             bcVelocity,
-                                      std::shared_ptr< P2VectorFunction< real_t > > tmp = nullptr )
+                                        uint_t                                        minLevel,
+                                        uint_t                                        maxLevel,
+                                        const ViscosityFunction_T&                    mu,
+                                        P2ProjectNormalOperator&                      projectNormal,
+                                        BoundaryCondition                             bcVelocity,
+                                        std::shared_ptr< P2VectorFunction< real_t > > tmp = nullptr )
    : Operator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
    , viscousOperator( storage, minLevel, maxLevel, mu )
    , projectNormal_( projectNormal )
@@ -68,7 +68,7 @@ class P2ABlockViscousProjectionFSTemplate : public Operator< P2VectorFunction< r
                const UpdateType                  updateType = Replace ) const override
    {
       tmp_->assign( { 1 }, { src }, level, All );
-      
+
       viscousOperator.apply( *tmp_, dst, level, flag, updateType );
       projectNormal_.project( dst, level, FreeslipBoundary );
    }
@@ -95,6 +95,9 @@ class P2ABlockViscousProjectionFSTemplate : public Operator< P2VectorFunction< r
    P2ProjectNormalOperator& projectNormal_;
 };
 
+using P2ABlockOperatorWithProjection =
+    P2ABlockViscousProjectionFSTemplate< P2Function< real_t >,
+                                         operatorgeneration::P2ViscousBlockFullIcosahedralShellMapOperator >;
 using P2ABlockP1ViscousOperatorWithProjection =
     P2ABlockViscousProjectionFSTemplate< P1Function< real_t >,
                                          operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap >;

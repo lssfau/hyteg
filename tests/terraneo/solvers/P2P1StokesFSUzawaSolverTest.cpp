@@ -70,6 +70,7 @@ int main( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel, bcVelocity );
    P2P1TaylorHoodFunction< real_t > res( "res", storage, minLevel, maxLevel, bcVelocity );
 
+   P2Function< real_t > rho( "rho", storage, minLevel, maxLevel );
    P2Function< real_t > mu( "mu", storage, minLevel, maxLevel );
    P1Function< real_t > muInv( "muInv", storage, minLevel, maxLevel );
 
@@ -101,7 +102,7 @@ int main( int argc, char* argv[] )
    auto projectionOperator = std::make_shared< P2ProjectNormalOperator >( storage, minLevel, maxLevel, normalsFS );
 
    auto stokesOperatorFS = std::make_shared< P2P1StokesFullIcosahedralShellMapOperatorFS >(
-       storage, minLevel, maxLevel, mu, muInv, *projectionOperator, bcVelocity );
+       storage, minLevel, maxLevel, mu, muInv, *projectionOperator, bcVelocity, rho );
 
    P2ElementwiseBlendingVectorMassOperator vecMassOperator( storage, minLevel, maxLevel );
 

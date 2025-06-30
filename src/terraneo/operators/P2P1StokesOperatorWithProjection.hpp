@@ -80,8 +80,8 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
                                        BoundaryCondition                                   bcVelocity,
                                        const DensityFunction_T&                            rhoP1,
                                        const bool                                          frozenVelocity = true,
-                                       std::shared_ptr< P2P1TaylorHoodFunction< real_t > > tmp         = nullptr,
-                                       std::shared_ptr< P2VectorFunction< real_t > >       tmpVec      = nullptr )
+                                       std::shared_ptr< P2P1TaylorHoodFunction< real_t > > tmp            = nullptr,
+                                       std::shared_ptr< P2VectorFunction< real_t > >       tmpVec         = nullptr )
    : Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >( storage, minLevel, maxLevel )
    , frozenVelocity_( frozenVelocity )
    , stokesOperator_( storage, minLevel, maxLevel, mu )
@@ -94,14 +94,14 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
       if ( tmp == nullptr )
       {
          tmp_ = std::make_shared< P2P1TaylorHoodFunction< real_t > >(
-             "tmp__P2P1StokesFullIcosahedralShellMapOperatorFS", storage, minLevel, maxLevel, bcVelocity );
+             "tmp__P2P1FullStokesProjectionFSTemplate", storage, minLevel, maxLevel, bcVelocity );
       }
       else
       {
          tmp_ = tmp;
       }
 
-      if( !frozenVelocity_ )
+      if ( !frozenVelocity_ )
       {
          divCompressibleOperator_ = std::make_shared< DivCompressibleOperator_T >( storage, minLevel, maxLevel, rhoP1 );
       }
@@ -121,14 +121,14 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
       projectNormal_.project( *tmp_, level, FreeslipBoundary );
 
       stokesOperator_.getA().apply( tmp_->uvw(), dst.uvw(), level, flag, updateType );
-      
-      if( !frozenVelocity_ )
+
+      if ( !frozenVelocity_ )
       {
          divCompressibleOperator_->apply( tmp_->uvw(), dst.p(), level, flag, updateType );
       }
       else
       {
-         stokesOperator_.getB().apply(tmp_->uvw(), dst.p(), level, flag, updateType);
+         stokesOperator_.getB().apply( tmp_->uvw(), dst.p(), level, flag, updateType );
       }
 
       stokesOperator_.getBT().apply( tmp_->p(), dst.uvw(), level, flag, Add );
@@ -186,6 +186,15 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
 
    ViscousOperatorFS_T& getA() { return viscousOperatorWrapped_; }
 };
+
+using P2P1StokesFullIcosahedralShellMapOperatorFS =
+    P2P1FullStokesProjectionFSTemplate< P2Function< real_t >,
+                                        P2Function< real_t >,
+                                        P1Function< real_t >,
+                                        P2ABlockOperatorWithProjection,
+                                        operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator,
+                                        operatorgeneration::P1ElementwiseKMassIcosahedralShellMap,
+                                        operatorgeneration::P2VectorToP1ElementwiseDivergenceCompressibleIcosahedralShellMap >;
 
 using P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS =
     P2P1FullStokesProjectionFSTemplate< P1Function< real_t >,
