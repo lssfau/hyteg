@@ -148,7 +148,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 2;
+   boundaryCond 3;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
