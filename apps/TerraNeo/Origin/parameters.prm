@@ -13,8 +13,8 @@ Parameters
 
    // Coarse grid
 
-   nTan 5;
-   nRad 3;
+   nTan 3;
+   nRad 2;
    threeDim true;
 
    // Refinement level
@@ -148,7 +148,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 1;
+   boundaryCond 3;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
@@ -235,7 +235,7 @@ Parameters
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
-   ABlockCoarseGridIterations 100;
+   ABlockCoarseGridIterations 10;
    ABlockCoarseGridTolerance 1e-10;
    SchurMGIterations 100;
    SchurMGTolerance 1e-12;
@@ -282,7 +282,7 @@ Parameters
    ADIOS2StoreCheckpointFilename TerraNeo_checkpoint_Test_HAWK-v4;
    ADIOS2StoreCheckpoint false;
 
-   ADIOS2StartCheckpointPath /SCRATCH/edascoli/TerraNeo-Output/checkpoint;
+   ADIOS2StartCheckpointPath ./output/checkpoint;
    ADIOS2StartCheckpointFilename TerraNeo_checkpoint_MT128_NS-NS;
    ADIOS2StartFromCheckpoint false;
 
@@ -294,7 +294,7 @@ Parameters
    ADIOS2ParamKey NumSubFiles;
    ADIOS2Value 32;
 
-   outputDirectory /SCRATCH/edascoli/TerraNeo-Output/MT128_HAWK-v7_TALA_NS-NS_mixedHeating;
+   outputDirectory ./output/;
    outputBaseName TerraNeo;
 
    // Output of a. json file containing timing tree informationf

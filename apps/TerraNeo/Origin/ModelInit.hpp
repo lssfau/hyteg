@@ -432,11 +432,13 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
                                                             p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
                                                             *projectionOperator,
-                                                            bcVelocity );
+                                                            bcVelocity,
+                                                            *( p2ScalarFunctionContainer["DensityFE"] ),
+                                                            false );
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      auto solverContainer = hyteg::solvertemplates::stokesGMGFSSolver(
+      stokesSolverClass = std::make_shared< StokesMCFGMRESSolver< StokesOperatorFS, P2ProjectNormalOperator > >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
@@ -445,116 +447,26 @@ void ConvectionSimulation::setupSolversAndOperators()
           p2p1StokesFunctionContainer["StokesTmpProlongation"],
           p2p1StokesFunctionContainer["StokesTmp1"],
           p2p1StokesFunctionContainer["StokesTmp2"],
-          TN.solverParameters.estimateUzawaOmega,
-          TN.simulationParameters.verbose,
-          {
-              { solvertemplates::StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
-                TN.solverParameters.numPowerIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
-                TN.solverParameters.FGMRESOuterIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,
-                TN.solverParameters.FGMRESTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, TN.solverParameters.uzawaIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, TN.solverParameters.uzawaOmega },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                TN.solverParameters.ABlockMGIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                TN.solverParameters.ABlockMGTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, TN.solverParameters.ABlockMGPreSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, TN.solverParameters.ABlockMGPostSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, TN.solverParameters.ABlockCoarseGridIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE,
-                TN.solverParameters.ABlockCoarseGridTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC, TN.solverParameters.solverPETSc },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                TN.solverParameters.SchurMGIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                TN.solverParameters.SchurMGTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, TN.solverParameters.SchurMGPreSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, TN.solverParameters.SchurMGPostSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER,
-                TN.solverParameters.SchurCoarseGridIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE,
-                TN.solverParameters.SchurCoarseGridTolerance },
-          } );
-
-      stokesSolverFS       = std::get< 0 >( solverContainer );
-      stokesABlockSmoother = std::get< 1 >( solverContainer );
+          TN );
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
-      auto stopIterationCallback =
-          [&]( const StokesOperatorFS& _A, const StokesFunction& _u, const StokesFunction& _b, const uint_t _level ) {
-             WALBERLA_UNUSED( _A );
-             WALBERLA_UNUSED( _u );
-             WALBERLA_UNUSED( _b );
-             real_t stokesResidual;
-
-             stokesResidual = calculateStokesResidual( _level );
-
-             WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-                 "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, TN.solverParameters.vCycleResidualUPrev ) );
-
-             auto reductionRateU = stokesResidual / TN.solverParameters.vCycleResidualUPrev;
-
-             TN.solverParameters.vCycleResidualUPrev = stokesResidual;
-
-             TN.solverParameters.numVCycles++;
-             TN.solverParameters.averageResidualReductionU += reductionRateU;
-
-             if ( TN.simulationParameters.verbose )
-             {
-                WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "[Uzawa] iter %3d | residual: %10.5e | reduction: %10.5e ",
-                                                             TN.solverParameters.numVCycles,
-                                                             stokesResidual,
-                                                             reductionRateU ) );
-             }
-
-             if ( stokesResidual / TN.solverParameters.initialResidualU < TN.solverParameters.stokesRelativeResidualUTolerance )
-             {
-                WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached relative residual threshold" )
-                return true;
-             }
-
-             if ( stokesResidual < TN.solverParameters.stokesAbsoluteResidualUTolerance )
-             {
-                WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached absolute residual threshold" )
-                return true;
-             }
-             return false;
-          };
-
-      auto solverContainer = solvertemplates::stokesGMGUzawaFSSolver< StokesOperatorFS, P2ProjectNormalOperator >(
+      stokesSolverClass = std::make_shared< StokesMCUzawaSolver< StokesOperatorFS, P2ProjectNormalOperator > >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
           stokesOperatorFS,
           projectionOperator,
-          p2p1StokesFunctionContainer["StokesTmp1"],
           p2p1StokesFunctionContainer["StokesTmpProlongation"],
-          TN.simulationParameters.verbose,
-          { { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
-              TN.solverParameters.numPowerIterations },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS,
-              TN.solverParameters.stokesUzawaCoarseGridIter },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE,
-              TN.solverParameters.stokesUzawaCoarseGridTol },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_PETSC, TN.solverParameters.solverPETSc },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, TN.solverParameters.uzawaOmega },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, TN.solverParameters.ABlockMGPreSmooth },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, TN.solverParameters.ABlockMGPostSmooth },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, TN.solverParameters.uzawaIterations },
-            { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID,
-              TN.solverParameters.stokesSmoothIncrementCoarseGrid } } );
-
-      stokesSolverFS = std::make_shared< SolverLoop< StokesOperatorFS > >(
-          std::get< 0 >( solverContainer ), TN.solverParameters.stokesMaxNumIterations, stopIterationCallback );
-      stokesABlockSmoother = std::get< 1 >( solverContainer );
+          p2p1StokesFunctionContainer["StokesTmp1"],
+          TN );
    }
    else
    {
       WALBERLA_ABORT( "Unknown solver type" );
    }
+
+   stokesSolverFS = stokesSolverClass->getSolver();
 
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );

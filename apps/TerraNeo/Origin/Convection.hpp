@@ -97,8 +97,10 @@
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2TransportRHSOperator.hpp"
-// #include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "terraneo/operators/P2TransportTALAOperatorStd.hpp"
+#include "terraneo/solvers/MCSolverBase.hpp"
+#include "terraneo/solvers/StokesMCFGMRESSolver.hpp"
+#include "terraneo/solvers/StokesMCUzawaSolver.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 
 namespace terraneo {
@@ -112,7 +114,7 @@ class ConvectionSimulation
    ConvectionSimulation() = delete;
 
    ConvectionSimulation( const walberla::Config::BlockHandle& mainConf );
-   ~ConvectionSimulation(){};
+   ~ConvectionSimulation() {};
 
    void init();
 
@@ -243,12 +245,14 @@ class ConvectionSimulation
 
    // Solvers
 
-   std::shared_ptr< CGSolver< DiffusionOperator > >                      diffusionSolver;
-   std::shared_ptr< FGMRESSolver< StokesOperator > >                     stokesSolver;
-   std::shared_ptr< Solver< StokesOperatorFS > >                         stokesSolverFS;
-   std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
-
+   std::shared_ptr< FGMRESSolver< StokesOperator > >                  stokesSolver;
    std::shared_ptr< Solver< StokesOperatorFS::ViscousOperatorFS_T > > stokesABlockSmoother;
+
+   std::shared_ptr< MCSolverBase< StokesOperatorFS > > stokesSolverClass;
+   std::shared_ptr< Solver< StokesOperatorFS > >       stokesSolverFS;
+
+   std::shared_ptr< CGSolver< DiffusionOperator > >                      diffusionSolver;
+   std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
 
    // Operators
    std::shared_ptr< StokesOperator >                         stokesOperator;
