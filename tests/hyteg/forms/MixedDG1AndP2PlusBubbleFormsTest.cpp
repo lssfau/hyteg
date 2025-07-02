@@ -162,9 +162,9 @@ Matrix< real_t, 7, 3 > computeGradientMatWithMaple( int componentIdx )
    return elMat / real_c( 120 );
 }
 
-Matrix< double, 3, 7 > computeDivergenceMatWithForm( int componentIdx )
+Matrix< real_t, 3, 7 > computeDivergenceMatWithForm( int componentIdx )
 {
-   Matrix< double, 3, 7 >                       elMat;
+   Matrix< real_t, 3, 7 >                       elMat;
    forms::p2_plus_bubble_to_dg1_div_0_affine_q3 form0;
    forms::p2_plus_bubble_to_dg1_div_1_affine_q3 form1;
 
@@ -185,7 +185,7 @@ Matrix< double, 3, 7 > computeDivergenceMatWithForm( int componentIdx )
 }
 
 template < typename T >
-void showMat( const T& mat, double scalFac = 1.0, double threshold = 1.0e-15 )
+void showMat( const T& mat, real_t scalFac = 1.0, real_t threshold = 1.0e-15 )
 {
    WALBERLA_LOG_INFO_ON_ROOT( " " << std::scientific << std::setprecision( 2 ) << std::showpos );
 
@@ -224,23 +224,24 @@ int main( int argc, char** argv )
       sStr << "Gradient (componentIdx = " << componentIdx << ")";
       logSectionHeader( sStr.str() );
 
-      Matrix< double, 7, 3 > elMat = computeGradientMatWithForm( componentIdx );
+      Matrix< real_t, 7, 3 > elMat = computeGradientMatWithForm( componentIdx );
 
       WALBERLA_LOG_INFO_ON_ROOT( "Element matrix computed with HOG form:" );
       showMat( elMat );
 
       int scalingFactor = 120;
       WALBERLA_LOG_INFO_ON_ROOT( "Scaled by " << scalingFactor << ":" );
-      showMat( elMat, static_cast< double >( scalingFactor ) );
+      showMat( elMat, static_cast< real_t >( scalingFactor ) );
 
       Matrix< real_t, 7, 3 > cntrl = computeGradientMatWithMaple( componentIdx );
       WALBERLA_LOG_INFO_ON_ROOT( "Element matrix computed with Maple:" );
       WALBERLA_LOG_INFO_ON_ROOT( "Scaled by " << scalingFactor << ":" );
-      showMat( cntrl, static_cast< double >( scalingFactor ) );
+      showMat( cntrl, static_cast< real_t >( scalingFactor ) );
 
       Matrix< real_t, 7, 3 > diff = cntrl - elMat;
       WALBERLA_LOG_INFO_ON_ROOT( "Frobenius norm of difference = " << diff.norm() );
-      WALBERLA_CHECK_LESS( diff.norm(), real_c( 5e-16 ) );
+      real_t tol = std::is_same_v< real_t, double > ? real_c( 5e-16 ) : real_c( 5e-8 );
+      WALBERLA_CHECK_LESS( diff.norm(), tol );
    }
 
    // Divergence
@@ -250,19 +251,20 @@ int main( int argc, char** argv )
       sStr << "Gradient (componentIdx = " << componentIdx << ")";
       logSectionHeader( sStr.str() );
 
-      Matrix< double, 3, 7 > elMat = computeDivergenceMatWithForm( componentIdx );
+      Matrix< real_t, 3, 7 > elMat = computeDivergenceMatWithForm( componentIdx );
 
       WALBERLA_LOG_INFO_ON_ROOT( "Element matrix computed with HOG form:" );
       showMat( elMat );
 
       int scalingFactor = 120;
       WALBERLA_LOG_INFO_ON_ROOT( "Scaled by " << scalingFactor << ":" );
-      showMat( elMat, static_cast< double >( scalingFactor ) );
+      showMat( elMat, static_cast< real_t >( scalingFactor ) );
 
       Matrix< real_t, 3, 7 > cntrl = computeGradientMatWithMaple( componentIdx ).transpose();
       Matrix< real_t, 3, 7 > diff  = cntrl - elMat;
       WALBERLA_LOG_INFO_ON_ROOT( "Frobenius norm of difference to control = " << diff.norm() );
-      WALBERLA_CHECK_LESS( diff.norm(), real_c( 5e-16 ) );
+      real_t tol = std::is_same_v< real_t, double > ? real_c( 5e-16 ) : real_c( 7e-8 );
+      WALBERLA_CHECK_LESS( diff.norm(), tol );
    }
 
    return EXIT_SUCCESS;
