@@ -79,6 +79,13 @@ class P1StokesFunction : public BlockFunction< ValueType >
    {
       return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
    }
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const
+   {
+      this->subFunc_[0]->template unwrap< P1VectorFunction< ValueType > >().setToZero( level );
+      this->subFunc_[1]->template unwrap< P1Function< ValueType > >().setToZero( level );
+   }
 };
 
 inline unsigned long long p1p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )

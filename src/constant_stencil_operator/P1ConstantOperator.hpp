@@ -66,6 +66,20 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
                   size_t                                      level,
                   DoFType                                     flag ) const override;
 
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValues() override
+   {
+      // This callback to the parent class is need for SFINAE.hpp to detect the method. PLEASE DO NOT REMOVE!
+      P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::computeInverseDiagonalOperatorValues();
+   }
+
+   std::shared_ptr< P1Function< ValueType > > getInverseDiagonalValues() const override
+   {
+      // This callback to the parent class is need for SFINAE.hpp to detect the method. PLEASE DO NOT REMOVE!
+      return P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::getInverseDiagonalValues();
+   }
+
  protected:
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
 

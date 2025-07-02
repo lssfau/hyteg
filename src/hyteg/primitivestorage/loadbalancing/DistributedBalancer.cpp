@@ -305,7 +305,11 @@ MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxR
    WALBERLA_CHECK( maxRank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ),
                    "Cannot distribute to more than available processes." );
 
+   WALBERLA_MPI_BARRIER();
+
    std::map< PrimitiveID, uint_t > globalPrimitiveDistribution = storage.getGlobalPrimitiveRanks();
+
+   WALBERLA_MPI_BARRIER();
 
    const uint_t numReceivingProcesses = maxRank - minRank + 1;
    const uint_t rank                  = uint_c( walberla::mpi::MPIManager::instance()->rank() );
@@ -327,6 +331,8 @@ MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxR
    }
 
    const uint_t numPrimitives = storage.getNumberOfGlobalPrimitives();
+
+   WALBERLA_MPI_BARRIER();
 
    if ( rank >= minRank && rank <= maxRank )
    {
@@ -415,7 +421,11 @@ MigrationInfo reverseDistributionDry( const MigrationInfo& originalMigrationInfo
       bs.getPackageSendBuffer( it.second ) << it.first;
    }
 
+   WALBERLA_MPI_BARRIER();
+
    bs.sendAll();
+
+   WALBERLA_MPI_BARRIER();
 
    while ( !bs.allPackagesReceived() )
    {

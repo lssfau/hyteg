@@ -712,7 +712,9 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
                                                uint_t         level,
                                                ValueType&     value,
                                                real_t         searchToleranceRadius,
-                                               PrimitiveID    id ) const
+                                               PrimitiveID    id,
+                                               real_t         distanceTolerance,
+                                               bool           useBestGuess ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
@@ -741,8 +743,10 @@ bool VertexDoFFunction< ValueType >::evaluate( const Point3D& physicalCoords,
       }
       else
       {
-         auto target         = threeD ? mapFromPhysicalToComputationalDomain3D( storage, physicalCoords, searchToleranceRadius ) :
-                                        mapFromPhysicalToComputationalDomain2D( storage, physicalCoords, searchToleranceRadius );
+         auto target         = threeD ? mapFromPhysicalToComputationalDomain3D(
+                                    storage, physicalCoords, searchToleranceRadius, distanceTolerance, useBestGuess ) :
+                                        mapFromPhysicalToComputationalDomain2D(
+                                    storage, physicalCoords, searchToleranceRadius, distanceTolerance, useBestGuess );
          coordExists         = std::get< 0 >( target );
          id                  = std::get< 1 >( target );
          computationalCoords = std::get< 2 >( target );

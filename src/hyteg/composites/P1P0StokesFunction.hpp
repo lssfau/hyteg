@@ -32,9 +32,11 @@ template < typename ValueType >
 class P1P0StokesFunction : public BlockFunction< ValueType >
 {
  public:
+   using valueType = ValueType;
+
    template < typename VType >
    using FunctionType = P1P0StokesFunction< VType >;
-
+   
    P1P0StokesFunction( const std::string&                         name,
                        const std::shared_ptr< PrimitiveStorage >& storage,
                        size_t                                     minLevel,

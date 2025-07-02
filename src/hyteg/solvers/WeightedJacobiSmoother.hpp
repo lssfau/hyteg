@@ -22,8 +22,8 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/functions/FunctionTools.hpp"
-#include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
 
@@ -40,7 +40,7 @@ class WeightedJacobiSmoother : public Solver< OperatorType >
                            const real_t&                              relax )
    : relax_( relax )
    , tmp_( "tmp_weighted_jacobi", storage, minLevel, maxLevel )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    {}
 
    void solve( const OperatorType&                   A,
@@ -52,7 +52,7 @@ class WeightedJacobiSmoother : public Solver< OperatorType >
 
       copyBCs( x, tmp_ );
       tmp_.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { x }, level, All );
-      
+
       if ( const auto* A_jac = dynamic_cast< const WeightedJacobiSmoothable< typename OperatorType::srcType >* >( &A ) )
       {
          A_jac->smooth_jac( x, b, tmp_, relax_, level, flag_ );

@@ -61,7 +61,8 @@ class P2P1TaylorHoodFunction : public BlockFunction< ValueType >
           _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
    }
 
-   [[nodiscard]] const P2VectorFunction< ValueType >& uvw() const {
+   [[nodiscard]] const P2VectorFunction< ValueType >& uvw() const
+   {
       return this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >();
    }
 
@@ -70,13 +71,18 @@ class P2P1TaylorHoodFunction : public BlockFunction< ValueType >
       return this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >();
    }
 
-   [[nodiscard]] const P1Function< ValueType >& p() const {
+   [[nodiscard]] const P1Function< ValueType >& p() const
+   {
       return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
    }
 
-   [[nodiscard]] P1Function< ValueType >& p()
+   [[nodiscard]] P1Function< ValueType >& p() { return this->subFunc_[1]->template unwrap< P1Function< ValueType > >(); }
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const
    {
-      return this->subFunc_[1]->template unwrap< P1Function< ValueType > >();
+      this->subFunc_[0]->template unwrap< P2VectorFunction< ValueType > >().setToZero( level );
+      this->subFunc_[1]->template unwrap< P1Function< ValueType > >().setToZero( level );
    }
 };
 

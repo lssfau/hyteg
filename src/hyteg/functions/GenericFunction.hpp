@@ -123,16 +123,16 @@ class GenericFunction
 
    virtual void swap( const GenericFunction< value_t >& other, const uint_t& level, const DoFType& flag = All ) const = 0;
 
-   virtual void copyFrom( const GenericFunction< value_t >&              other,
-                          const uint_t&                                  level,
+   virtual void copyFrom( const GenericFunction< value_t >&      other,
+                          const uint_t&                          level,
                           const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                           const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const = 0;
 
-   template < typename OtherType >
-   void copyBoundaryConditionFromFunction( const OtherType& other )
-   {
-      this->setBoundaryCondition( other.getBoundaryCondition() );
-   }
+   // currently there seems no way around providing only a few type alternatives
+   // fixing this would require a restructuring of GenericFunction and FunctionWrapper as there are no templated virtual functions
+   virtual void copyBoundaryConditionFromFunction( const GenericFunction< double >& other ) = 0;
+   virtual void copyBoundaryConditionFromFunction( const GenericFunction< float >& other ) = 0;
+   virtual void copyBoundaryConditionFromFunction( const GenericFunction< idx_t >& other ) = 0;
 
    virtual void enumerate( uint_t level ) const = 0;
 

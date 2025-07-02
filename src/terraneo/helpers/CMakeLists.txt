@@ -4,4 +4,6 @@ target_sources( hyteg
     typeAliases.hpp
     RadialProfiles.hpp
     TerraNeoParameters.hpp
+    ConvectionToolbox.hpp
+    ConvectionToolbox.cpp
 )

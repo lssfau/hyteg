@@ -39,8 +39,11 @@ template < typename func_t >
 class FunctionWrapper final : public GenericFunction< typename FunctionTrait< func_t >::ValueType >
 {
  public:
-   typedef typename FunctionTrait< func_t >::ValueType value_t;
-   typedef typename FunctionTrait< func_t >::Tag       Tag;
+   typedef typename FunctionTrait< func_t >::ValueType      value_t;
+   typedef typename FunctionTrait< func_t >::Tag            Tag;
+   typedef typename func_t::template FunctionType< double > doubleOtherType;
+   typedef typename func_t::template FunctionType< float >  floatOtherType;
+   typedef typename func_t::template FunctionType< idx_t >  idx_tOtherType;
 
    // is this really helpful, as it is not templated?
    // typedef func_t FunctionType;
@@ -136,6 +139,21 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    void setBoundaryCondition( BoundaryCondition bc ) { wrappedFunc_->setBoundaryCondition( bc ); };
 
+   void copyBoundaryConditionFromFunction( const GenericFunction< double >& other )
+   {
+      wrappedFunc_->copyBoundaryConditionFromFunction( other.template unwrap< doubleOtherType >() );
+   }
+
+   void copyBoundaryConditionFromFunction( const GenericFunction< float >& other )
+   {
+      wrappedFunc_->copyBoundaryConditionFromFunction( other.template unwrap< floatOtherType >() );
+   }
+
+   void copyBoundaryConditionFromFunction( const GenericFunction< idx_t >& other )
+   {
+      wrappedFunc_->copyBoundaryConditionFromFunction( other.template unwrap< idx_tOtherType >() );
+   }
+
    BoundaryCondition getBoundaryCondition() const { return wrappedFunc_->getBoundaryCondition(); };
 
    void add( const value_t scalar, uint_t level, DoFType flag = All ) const { wrappedFunc_->add( scalar, level, flag ); };
@@ -171,8 +189,8 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_->swap( other.template unwrap< func_t >(), level, flag );
    };
 
-   void copyFrom( const GenericFunction< value_t >&              other,
-                  const uint_t&                                  level,
+   void copyFrom( const GenericFunction< value_t >&      other,
+                  const uint_t&                          level,
                   const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
    {

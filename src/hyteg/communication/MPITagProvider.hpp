@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Marcus Mohr.
+ * Copyright (c) 2024-2025 Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -42,6 +42,9 @@ class MPITagProvider
    /// Marks whether class can still provide tag values
    static bool poolExhausted_;
 
+   /// Pool of returned MPI tags
+   static std::vector< int > returnedTags_;
+
  public:
    /// Return the largest possible tag value supported by the MPI library in use
    static int getMaxMPITag()
@@ -58,6 +61,13 @@ class MPITagProvider
 #else
       return std::numeric_limits< int >::max();
 #endif
+   }
+
+   /// Returns an MPI Tag back to the pool
+   /// Make sure that the tag is no longer referenced before returning!
+   static void returnMPITag( int returnedTag )
+   {
+      returnedTags_.push_back( returnedTag );
    }
 
    /// Return another MPI tag value
@@ -78,6 +88,13 @@ class MPITagProvider
       {
          WALBERLA_ABORT( "Your application exhausted the pool of available MPI tags.\n"
                          << "Your MPI implementation provides a maximum of " << maxMPITag_ << " tags." );
+      }
+
+      if ( returnedTags_.size() > 0 )
+      {
+         int recylcedTag = returnedTags_.back();
+         returnedTags_.pop_back();
+         return recylcedTag;
       }
 
       // this will store the return tag

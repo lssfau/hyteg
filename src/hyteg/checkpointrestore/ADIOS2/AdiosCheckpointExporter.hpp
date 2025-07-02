@@ -180,6 +180,27 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    /// \param fileName             name of checkpoint "file" (BP format actually uses a directory)
    /// \param userAttributeNames   list of names for additional attributes
    /// \param userAttributeValues  list of strings with data for the additional attributes
+   inline void storeCheckpoint( std::string                                     filePath,
+                                std::string                                     fileName,
+                                const std::vector< std::string >&               userAttributeNames,
+                                const std::vector< adiosHelpers::adiostype_t >& userAttributeValues )
+   {
+      WALBERLA_CHECK( userAttributeNames.size() == userAttributeValues.size() );
+      std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes;
+
+      for ( uint_t k = 0; k < userAttributeNames.size(); k++ )
+      {
+         userDefinedAttributes.emplace( userAttributeNames[k], userAttributeValues[k] );
+      }
+
+      storeCheckpoint( filePath, fileName, userDefinedAttributes );
+   }
+
+   /// Trigger storing of a single checkpoint
+   ///
+   /// \param filePath              path to checkpoint file
+   /// \param fileName              name of checkpoint "file" (BP format actually uses a directory)
+   /// \param userDefinedAttributes mapping of string keys to values of adiostype_t
    inline void storeCheckpoint( std::string                                              filePath,
                                 std::string                                              fileName,
                                 const std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes )

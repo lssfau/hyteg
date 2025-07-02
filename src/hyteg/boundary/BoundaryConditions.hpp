@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -91,6 +91,11 @@ public:
    BoundaryUID createFreeslipBC  ( const std::string & name, const uint_t &                meshBoundaryFlag  );
    /// Assigns multiple mesh boundary flags to a free slip BC.
    BoundaryUID createFreeslipBC  ( const std::string & name, const std::vector< uint_t > & meshBoundaryFlags );
+
+   /// Assigns one mesh boundary flag to an "inner BC"
+   BoundaryUID createInnerBC  ( const std::string & name, const uint_t &                meshBoundaryFlag  );
+   /// Assigns multiple mesh boundary flags to an "inner BC"
+   BoundaryUID createInnerBC  ( const std::string & name, const std::vector< uint_t > & meshBoundaryFlags );
 
   /// Returns the boundary type that is assigned to the passed mesh boundary flag integer.
   DoFType getBoundaryType( const uint_t & meshBoundaryFlag ) const;

@@ -4,6 +4,7 @@ target_sources( hyteg
     CSFVectorFunction.hpp
     FEFunctionRegistry.hpp
     Function.hpp
+    FunctionHistory.hpp
     FunctionIterator.hpp
     FunctionMultiStore.hpp
     FunctionProperties.hpp

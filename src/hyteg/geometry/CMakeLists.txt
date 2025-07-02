@@ -5,6 +5,7 @@ target_sources( hyteg
     AnnulusAlignedMap.hpp
     AnnulusMap.hpp
     CircularMap.hpp
+    ClosestPoint.hpp
     GeometryHelpers.cpp
     GeometryHelpers.hpp
     GeometryMap.cpp

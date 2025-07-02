@@ -18,6 +18,11 @@ target_sources( hyteg
     WeightedJacobiSmoother.hpp
     CGSolver.hpp
     SORSmoother.hpp     
+    SubstitutePreconditioner.hpp
+    ApplyInverseDiagonalWrapper.hpp
+    GMRESSolver.hpp
+    FGMRESSolver.hpp
+    FunctionMultiplicationPreconditioner.hpp
 )
 add_subdirectory( solvertemplates )
 add_subdirectory( preconditioners )

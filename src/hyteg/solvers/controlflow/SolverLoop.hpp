@@ -52,6 +52,7 @@ class SolverLoop : public Solver< OperatorType >
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      stopIterationCallback_( A, x, b, level );
       for ( uint_t i = 0; i < iterations_; i++ )
       {
          solver_->solve( A, x, b, level );

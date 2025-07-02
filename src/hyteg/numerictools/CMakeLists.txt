@@ -3,5 +3,8 @@ target_sources( hyteg
     CFDHelpers.hpp
     SpectrumEstimation.hpp
     L2Space.cpp
+    BDFScheme.hpp
+    CrankNicolsonScheme.hpp
+    TimeDiscretisationScheme.hpp
 )
 

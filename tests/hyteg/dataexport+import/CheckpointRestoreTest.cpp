@@ -197,8 +197,8 @@ auto importCheckpointContinuous( const std::string&                         file
    func_t< value_t > feFunc( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
 
    std::vector< real_t > timestepInfo = restorer.getTimestepInfo();
-   timestepInfo = restorer.getTimestepInfo();
-   timestepInfo = restorer.getTimestepInfo();
+   timestepInfo                       = restorer.getTimestepInfo();
+   timestepInfo                       = restorer.getTimestepInfo();
 
    uint_t checkpointSteps = timestepInfo.size();
 
@@ -277,13 +277,36 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
    std::map< std::string, adiosHelpers::adiostype_t > userAttributes         = {};
    std::map< std::string, adiosHelpers::adiostype_t > userAttributesToImport = {};
 
-   userAttributes["Test1"] = 1.0;
-   userAttributes["Test2"] = static_cast< uint_t >( 12u );
-   userAttributes["Test3"] = true;
+   // test all variant types
+   userAttributes["Test0"] = int( -4 );
+   userAttributes["Test1"] = long( -12l );
+   userAttributes["Test2"] = float( 0.9f );
+   userAttributes["Test3"] = double( -1.25 );
+   userAttributes["Test4"] = uint_t( 99ul );
+   userAttributes["Test5"] = bool( true );
+   userAttributes["Test6"] = std::string( "Test string" );
+   userAttributes["Test7"]  = std::vector< int >( { 1, -2, 3, -4, 5 } );
+   userAttributes["Test8"]  = std::vector< long >( { 5l, -4l, 3l, -2l, 1l } );
+   userAttributes["Test9"]  = std::vector< float >( { -0.1f, 0.2f, -0.3f, 0.4f, -0.5f } );
+   userAttributes["Test10"] = std::vector< double >( { -0.2, 0.4, -0.6, 0.8, -1.0 } );
+   userAttributes["Test11"] = std::vector< uint_t >( { 0ul, 1ul, 10ul, 100ul, 1000ul, 100000ul } );
+   userAttributes["Test12"] = std::vector< bool >( { false, false, false, true, false, true } );
+   userAttributes["Test13"] = std::vector< std::string >( { "This", "is", "a", "test" } );
 
-   userAttributesToImport["Test1"] = 0.0;
-   userAttributesToImport["Test2"] = static_cast< uint_t >( 102u );
-   userAttributesToImport["Test3"] = false;
+   userAttributesToImport["Test0"] = int( 0 );
+   userAttributesToImport["Test1"] = long( 0 );
+   userAttributesToImport["Test2"] = float( 0.0 );
+   userAttributesToImport["Test3"] = double( 0.0 );
+   userAttributesToImport["Test4"] = uint_t( 0 );
+   userAttributesToImport["Test5"] = bool( false );
+   userAttributesToImport["Test6"] = std::string( "" );
+   userAttributesToImport["Test7"]  = std::vector< int >( {} );
+   userAttributesToImport["Test8"]  = std::vector< long >( {} );
+   userAttributesToImport["Test9"]  = std::vector< float >( {} );
+   userAttributesToImport["Test10"] = std::vector< double >( {} );
+   userAttributesToImport["Test11"] = std::vector< uint_t >( {} );
+   userAttributesToImport["Test12"] = std::vector< bool >( {} );
+   userAttributesToImport["Test13"] = std::vector< std::string >( {} );   
 
    //  Create Checkpoint
    if ( verbose )
@@ -304,9 +327,37 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
 
    // std::cout << std::get< real_t >(userAttributesToImport["Test1"]) << ", " << std::get< uint_t >(userAttributesToImport["Test2"]) << ", " << std::get< bool >(userAttributesToImport["Test3"]) << std::endl;
 
-   WALBERLA_CHECK( userAttributes["Test1"] == userAttributesToImport["Test1"] );
-   WALBERLA_CHECK( userAttributes["Test2"] == userAttributesToImport["Test2"] );
-   WALBERLA_CHECK( userAttributes["Test3"] == userAttributesToImport["Test3"] );
+   // integer datatype for output
+   using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
+
+   // check userAttributes after reload
+   for ( auto& entry : userAttributes )
+   {
+      std::visit(
+          [&userAttributesToImport, &entry]( const auto& arg ) {
+             using T                = std::decay_t< decltype( arg ) >;
+             const std::string& key = entry.first;
+
+             if constexpr ( std::is_same_v< T, std::vector< int > > || std::is_same_v< T, std::vector< long > > ||
+                            std::is_same_v< T, std::vector< float > > || std::is_same_v< T, std::vector< double > > ||
+                            std::is_same_v< T, std::vector< uint_t > > || std::is_same_v< T, std::vector< bool > > ||
+                            std::is_same_v< T, std::vector< std::string > > )
+             {
+                for ( uint_t k = 0; k < arg.size(); k++ )
+                {
+                   WALBERLA_LOG_INFO_ON_ROOT( key << " ; " << k << " ; " << arg.at( k ) << " ; "
+                                                  << std::get< T >( userAttributesToImport[key] ).at( k ) );
+                   WALBERLA_CHECK( arg.at( k ) == std::get< T >( userAttributesToImport[key] ).at( k ) );
+                }
+             }
+             else
+             {
+                WALBERLA_LOG_INFO_ON_ROOT( key << " ; " << arg << " ; " << std::get< T >( userAttributesToImport[key] ) );
+                WALBERLA_CHECK( arg == std::get< T >( userAttributesToImport[key] ) );
+             }
+          },
+          entry.second );
+   }
 
    func_t< value_t > difference( "Difference", storage, minLevel, maxLevel );
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )

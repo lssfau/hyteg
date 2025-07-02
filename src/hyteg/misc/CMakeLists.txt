@@ -5,5 +5,6 @@ target_sources( hyteg
     ExactStencilWeights.hpp
     dummy.cpp
     zeros.cpp     
+    SFINAE.hpp
 )
 
