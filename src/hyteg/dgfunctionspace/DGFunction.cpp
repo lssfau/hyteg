@@ -378,7 +378,11 @@ void DGFunction< ValueType >::enumerate( uint_t level ) const
    }
 
    this->enumerate( level, startOnRank );
-   communicate( level );
+
+   if ( this->storage_->getAdditionalHaloDepth() > 0 )
+   {
+      communicate( level );
+   }
 }
 
 template < typename ValueType >
